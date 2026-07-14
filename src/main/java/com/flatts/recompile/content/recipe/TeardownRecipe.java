@@ -11,6 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -45,6 +46,10 @@ import net.minecraft.world.level.Level;
  *
  * <p>Notes on the schema:
  * <ul>
+ *   <li>{@code results} is the deterministic material core and must be non-empty:
+ *       every teardown yields materials (even data recovery gives e-scrap).
+ *       Knowledge-only acquisition is via loot caches (schematic drops), not a
+ *       material-less teardown, so an empty {@code results} is a load error.
  *   <li>{@code input} is an {@link Ingredient}: a bare item id string
  *       ({@code "minecraft:iron_door"}), a tag with a {@code #} prefix
  *       ({@code "#c:ingots/copper"}), or a JSON array of item ids. Tag-keyed inputs
@@ -126,7 +131,7 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
     public static final MapCodec<TeardownRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         Ingredient.CODEC.fieldOf("input").forGetter(TeardownRecipe::input),
         Codec.STRING.optionalFieldOf("station", DEFAULT_STATION).forGetter(TeardownRecipe::station),
-        ItemResult.CODEC.listOf().fieldOf("results").forGetter(TeardownRecipe::results),
+        ExtraCodecs.nonEmptyList(ItemResult.CODEC.listOf()).fieldOf("results").forGetter(TeardownRecipe::results),
         ChanceResult.CODEC.listOf().optionalFieldOf("extras", List.of()).forGetter(TeardownRecipe::extras),
         TeachEntry.CODEC.listOf().optionalFieldOf("teaches", List.of()).forGetter(TeardownRecipe::teaches)
     ).apply(instance, TeardownRecipe::new));
