@@ -1,0 +1,15 @@
+{
+  "itemGroup.recompile": "Recompile",
+
+  "block.recompile.garbage_block": "Block of Garbage",
+
+  "item.recompile.scrap_metal": "Scrap Metal",
+  "item.recompile.plastic_scrap": "Plastic Scrap",
+  "item.recompile.glass_shards": "Glass Shards",
+  "item.recompile.organic_muck": "Organic Muck",
+  "item.recompile.fiber_scrap": "Fiber Scrap",
+  "item.recompile.e_scrap": "E-Scrap",
+  "item.recompile.junk": "Junk",
+
+  "generator.recompile.garbage": "Garbage World"
+}

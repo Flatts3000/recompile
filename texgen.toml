@@ -1,0 +1,93 @@
+# Recompile texture manifest - consumed by the texgen engine in mc-pack-toolkit.
+# Backend is procedural for now (deterministic, offline, ships real placeholder-
+# quality art). Flip a surface to backend = "ai" and run `texgen generate` with an
+# OPENAI_API_KEY to get gpt-image-1 candidates, then select + promote.
+
+mod_id = "recompile"
+
+[settings]
+model = "gpt-image-1"
+quality = "low"
+candidate_count = 6
+
+# ---------------------------------------------------------------------------
+# Blocks
+# ---------------------------------------------------------------------------
+
+[surface.garbage_block]
+kind = "block"
+backend = "procedural"
+size = 16
+variants = 3
+prompt = "a full-bleed top-down Minecraft block face of compacted household mixed trash: crushed cans, torn plastic, paper, and dirt clumps, muted browns and greys, gritty"
+vanilla_ref = "block/coarse_dirt"
+[surface.garbage_block.procedural]
+style = "rubble"
+palette = ["#6b5a3e", "#7a6b4a", "#8a7a5a", "#5a5148", "#4a4038", "#9a8a6a", "#847c6a"]
+
+# ---------------------------------------------------------------------------
+# Base material items (the 7-material vocabulary, P0.4)
+# ---------------------------------------------------------------------------
+
+[surface.scrap_metal]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small twisted lump of dull scrap metal, Minecraft item icon on transparent background"
+[surface.scrap_metal.procedural]
+style = "lump"
+palette = ["#9aa0a6", "#6f767c", "#c2c8cd", "#4c5257"]
+
+[surface.plastic_scrap]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a wad of crushed multicolored plastic scrap, muted, Minecraft item icon on transparent background"
+[surface.plastic_scrap.procedural]
+style = "lump"
+palette = ["#c8b7a0", "#a76b6b", "#6b8fa7", "#dcdcd0"]
+
+[surface.glass_shards]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small pile of pale teal broken glass shards, Minecraft item icon on transparent background"
+[surface.glass_shards.procedural]
+style = "lump"
+palette = ["#7fb0a6", "#a9d8cf", "#4f7a72", "#cfeae4"]
+
+[surface.organic_muck]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a glob of dark brown-green organic muck, Minecraft item icon on transparent background"
+[surface.organic_muck.procedural]
+style = "lump"
+palette = ["#5a4a2e", "#6e5a34", "#7a6a3a", "#443a24"]
+
+[surface.fiber_scrap]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a tangle of frayed tan fabric and fiber scrap, Minecraft item icon on transparent background"
+[surface.fiber_scrap.procedural]
+style = "lump"
+palette = ["#c9b58c", "#a48a5e", "#e0d2ac", "#7c6642"]
+
+[surface.e_scrap]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a broken green circuit board fragment with gold contacts, Minecraft item icon on transparent background"
+[surface.e_scrap.procedural]
+style = "lump"
+palette = ["#2f7d4f", "#3f9d63", "#c7a33a", "#1f5236"]
+
+[surface.junk]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a nondescript grey lump of compacted junk filler, Minecraft item icon on transparent background"
+[surface.junk.procedural]
+style = "lump"
+palette = ["#8a8478", "#6f6a60", "#a39c8e", "#585349"]
