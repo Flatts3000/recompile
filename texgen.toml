@@ -91,3 +91,43 @@ prompt = "a nondescript grey lump of compacted junk filler, Minecraft item icon 
 [surface.junk.procedural]
 style = "lump"
 palette = ["#8a8478", "#6f6a60", "#a39c8e", "#585349"]
+
+# ---------------------------------------------------------------------------
+# Crafting component + trash-tier tools (P1.2)
+# ---------------------------------------------------------------------------
+
+[surface.rebar]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a short length of rusty steel reinforcing bar (rebar), Minecraft item icon on transparent background"
+[surface.rebar.procedural]
+style = "lump"
+palette = ["#8a5a3a", "#6f4a2e", "#a97b53", "#4a3626"]
+
+[surface.scrap_knife]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a crude knife with a scrap-metal blade and a rebar handle, Minecraft tool icon, held diagonally, transparent background"
+[surface.scrap_knife.procedural]
+style = "lump"
+palette = ["#9aa0a6", "#6f767c", "#8a5a3a", "#4c5257"]
+
+[surface.prybar]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a bent steel prybar/crowbar, Minecraft tool icon, held diagonally, transparent background"
+[surface.prybar.procedural]
+style = "lump"
+palette = ["#b04a3a", "#8a3a2e", "#c95a48", "#6f2e26"]
+
+[surface.junk_shovel]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a crude shovel with a scrap-metal head and a rebar handle, Minecraft tool icon, held diagonally, transparent background"
+[surface.junk_shovel.procedural]
+style = "lump"
+palette = ["#9aa0a6", "#6f767c", "#8a5a3a", "#4c5257"]

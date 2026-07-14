@@ -11,5 +11,10 @@
   "item.recompile.e_scrap": "E-Scrap",
   "item.recompile.junk": "Junk",
 
+  "item.recompile.rebar": "Rebar",
+  "item.recompile.scrap_knife": "Scrap Knife",
+  "item.recompile.prybar": "Prybar",
+  "item.recompile.junk_shovel": "Junk Shovel",
+
   "generator.recompile.garbage": "Garbage World"
 }

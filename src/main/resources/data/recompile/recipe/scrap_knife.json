@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "M",
+    "R"
+  ],
+  "key": {
+    "M": "recompile:scrap_metal",
+    "R": "recompile:rebar"
+  },
+  "result": {
+    "id": "recompile:scrap_knife",
+    "count": 1
+  }
+}
