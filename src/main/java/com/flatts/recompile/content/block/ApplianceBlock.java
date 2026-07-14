@@ -1,15 +1,20 @@
 package com.flatts.recompile.content.block;
 
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.registry.RCItems;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -21,10 +26,29 @@ import net.minecraft.world.phys.BlockHitResult;
  * bench arrives in Phase 3; until then the item is simply collected). Mining also
  * drops the appliance (self-drop loot table), so it can be relocated whole.
  */
-public class ApplianceBlock extends Block {
+public class ApplianceBlock extends FallingBlock {
+
+    public static final MapCodec<ApplianceBlock> CODEC = simpleCodec(ApplianceBlock::new);
 
     public ApplianceBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected MapCodec<? extends ApplianceBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (RCConfig.GARBAGE_GRAVITY_ENABLED.get()) {
+            super.tick(state, level, pos, random);
+        }
+    }
+
+    @Override
+    public int getDustColor(BlockState state, BlockGetter level, BlockPos pos) {
+        return state.getMapColor(level, pos).col;
     }
 
     @Override

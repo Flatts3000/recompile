@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.block;
 
+import com.flatts.recompile.RCConfig;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -11,8 +12,10 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -36,12 +39,28 @@ import org.jetbrains.annotations.Nullable;
  * <p>Each concrete variant supplies its own pull table, crumble range, and the tool
  * it takes to open (null = bare hand). Subclasses provide their own {@code sorted}
  * property so the persisted range matches how many pulls that variant allows.
+ *
+ * <p>Garbage obeys gravity (design P0.3): it is a {@link FallingBlock} so mounds slump
+ * when quarried. Config-gated by {@code world.garbageGravityEnabled} - the scheduled
+ * fall tick only drops the block when gravity is on.
  */
-public abstract class SortableBlock extends Block {
+public abstract class SortableBlock extends FallingBlock {
 
     protected SortableBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(sortedProperty(), 0));
+    }
+
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (RCConfig.GARBAGE_GRAVITY_ENABLED.get()) {
+            super.tick(state, level, pos, random);
+        }
+    }
+
+    @Override
+    public int getDustColor(BlockState state, BlockGetter level, BlockPos pos) {
+        return state.getMapColor(level, pos).col;
     }
 
     /** The {@code sorted} progress property (0 .. maxPulls-1), defined per variant. */

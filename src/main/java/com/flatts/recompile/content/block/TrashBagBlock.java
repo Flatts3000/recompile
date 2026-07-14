@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.Recompile;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -23,8 +24,15 @@ public class TrashBagBlock extends SortableBlock {
     public static final ResourceKey<LootTable> BAG_PULLS = ResourceKey.create(
         Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "gameplay/bag_pulls"));
 
+    public static final MapCodec<TrashBagBlock> CODEC = simpleCodec(TrashBagBlock::new);
+
     public TrashBagBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected MapCodec<? extends TrashBagBlock> codec() {
+        return CODEC;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.registry.RCItems;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
@@ -20,8 +21,15 @@ public class CompactedBaleBlock extends SortableBlock {
 
     public static final IntegerProperty SORTED = IntegerProperty.create("sorted", 0, MAX_PULLS - 1);
 
+    public static final MapCodec<CompactedBaleBlock> CODEC = simpleCodec(CompactedBaleBlock::new);
+
     public CompactedBaleBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected MapCodec<? extends CompactedBaleBlock> codec() {
+        return CODEC;
     }
 
     @Override

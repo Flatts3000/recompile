@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.Recompile;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -26,8 +27,15 @@ public class GarbageBlock extends SortableBlock {
     public static final ResourceKey<LootTable> HOUSEHOLD_PULLS = ResourceKey.create(
         Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "gameplay/household_pulls"));
 
+    public static final MapCodec<GarbageBlock> CODEC = simpleCodec(GarbageBlock::new);
+
     public GarbageBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected MapCodec<? extends GarbageBlock> codec() {
+        return CODEC;
     }
 
     @Override
