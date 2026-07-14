@@ -7,6 +7,7 @@
   "block.recompile.appliance": "Appliance",
 
   "message.recompile.needs_tool": "You need a %s to open this",
+  "message.recompile.dimension_locked": "That way is sealed for now.",
 
   "item.recompile.scrap_metal": "Scrap Metal",
   "item.recompile.plastic_scrap": "Plastic Scrap",
