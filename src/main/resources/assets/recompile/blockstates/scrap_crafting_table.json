@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "recompile:block/scrap_crafting_table" }
+  }
+}

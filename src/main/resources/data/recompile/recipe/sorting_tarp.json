@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FFF",
+    "RRR"
+  ],
+  "key": {
+    "F": "recompile:fiber_scrap",
+    "R": "recompile:rebar"
+  },
+  "result": {
+    "id": "recompile:sorting_tarp",
+    "count": 1
+  }
+}

@@ -18,6 +18,14 @@ public final class RCConfig {
      */
     public static final ModConfigSpec.BooleanValue GARBAGE_GRAVITY_ENABLED;
 
+    /**
+     * Dimension lockout (P1.8): Nether and End access are disabled by default until
+     * each themed dimension ships, so vanilla dimensions can't leak free resources
+     * into the closed trash economy. Flip a flag on when its themed build lands.
+     */
+    public static final ModConfigSpec.BooleanValue NETHER_ENABLED;
+    public static final ModConfigSpec.BooleanValue END_ENABLED;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -25,6 +33,15 @@ public final class RCConfig {
         GARBAGE_GRAVITY_ENABLED = builder
             .comment("Whether Blocks of Garbage obey gravity (slump when quarried, deorbit on regrowth).")
             .define("garbageGravityEnabled", true);
+        builder.pop();
+
+        builder.push("dimensions");
+        NETHER_ENABLED = builder
+            .comment("Allow travel to the Nether. Off until the themed Nether ships (P1.8).")
+            .define("netherEnabled", false);
+        END_ENABLED = builder
+            .comment("Allow travel to the End. Off until the themed End ships (P1.8).")
+            .define("endEnabled", false);
         builder.pop();
 
         SPEC = builder.build();

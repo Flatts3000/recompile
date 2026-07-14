@@ -1,7 +1,12 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.ApplianceBlock;
+import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
+import com.flatts.recompile.content.block.SortingTarpBlock;
+import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -36,6 +41,56 @@ public final class RCBlocks {
             .mapColor(MapColor.DIRT)
             .strength(0.6F)
             .sound(SoundType.GRAVEL)
+    );
+
+    /** Trash bag (P1.1): soft surface litter. Instant hand-break, quiet. */
+    public static final DeferredBlock<TrashBagBlock> TRASH_BAG = BLOCKS.registerBlock(
+        "trash_bag",
+        TrashBagBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_WHITE)
+            .strength(0.2F)
+            .sound(SoundType.WOOL)
+    );
+
+    /** Compacted bale (P1.1): dense, strapped trash. Sturdier; opened with a scrap knife. */
+    public static final DeferredBlock<CompactedBaleBlock> COMPACTED_BALE = BLOCKS.registerBlock(
+        "compacted_bale",
+        CompactedBaleBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.DIRT)
+            .strength(0.9F)
+            .sound(SoundType.GRASS)
+    );
+
+    /** Appliance (P1.1): the teardown on-ramp. Pried open with a prybar. Metal feel. */
+    public static final DeferredBlock<ApplianceBlock> APPLIANCE = BLOCKS.registerBlock(
+        "appliance",
+        ApplianceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.4F)
+            .sound(SoundType.METAL)
+    );
+
+    /** Scrap crafting table: the tier-zero 3x3 crafting station (no wood in this world). */
+    public static final DeferredBlock<ScrapCraftingTableBlock> SCRAP_CRAFTING_TABLE = BLOCKS.registerBlock(
+        "scrap_crafting_table",
+        ScrapCraftingTableBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
+            .sound(SoundType.METAL)
+    );
+
+    /** Sorting Tarp (P1.3): the batch-sorting station. GUI machine; manual, no hoppers. */
+    public static final DeferredBlock<SortingTarpBlock> SORTING_TARP = BLOCKS.registerBlock(
+        "sorting_tarp",
+        SortingTarpBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BROWN)
+            .strength(0.8F)
+            .sound(SoundType.WOOL)
     );
 
     private RCBlocks() {

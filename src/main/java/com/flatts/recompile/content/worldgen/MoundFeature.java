@@ -15,9 +15,10 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * of random radius and height, so the field varies instead of tiling. Density is
  * controlled by the placed-feature count (config-tunable later).
  *
- * <p>Deliberately simple for the feasibility slice - it sits blocks on the surface
- * relative to the placement origin. On the gently rolling substrate that reads as
- * mounds; per-column heightmap sampling can refine the skirt later if needed.
+ * <p>The block mix (P1.1) follows the mound shape: trash bags scatter on the outer
+ * surface (easy litter), compacted bales concentrate in the core (the mound shape
+ * does the depth-reward work), and appliances are uncommon pocket finds inside.
+ * Per-column heightmap sampling can refine the skirt later if needed.
  */
 public class MoundFeature extends Feature<NoneFeatureConfiguration> {
 
@@ -27,6 +28,10 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
     private static final int MAX_HEIGHT = 15;
     private static final int MIN_WIDTH = 4;
     private static final int MAX_WIDTH = 15;
+
+    private static final float SURFACE_BAG_CHANCE = 0.22F;
+    private static final float CORE_BALE_CHANCE = 0.35F;
+    private static final float CORE_APPLIANCE_CHANCE = 0.05F;
 
     public MoundFeature() {
         super(NoneFeatureConfiguration.CODEC);
@@ -42,7 +47,6 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
         int width = MIN_WIDTH + random.nextInt(MAX_WIDTH - MIN_WIDTH + 1);
         double radius = width / 2.0;
         int r = (int) Math.floor(radius);
-        BlockState garbage = RCBlocks.GARBAGE_BLOCK.get().defaultBlockState();
 
         boolean placedAny = false;
         for (int dx = -r; dx <= r; dx++) {
@@ -53,15 +57,34 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
                 }
                 // Dome profile: tallest at the center, tapering to a 1-block rim.
                 int column = (int) Math.round(height * (1.0 - dist / radius));
+                boolean core = dist < radius * 0.4;
                 for (int dy = 0; dy <= column; dy++) {
                     BlockPos pos = origin.offset(dx, dy, dz);
                     if (level.getBlockState(pos).isAir()) {
-                        level.setBlock(pos, garbage, 2);
+                        boolean surface = dy == column;
+                        level.setBlock(pos, pickBlock(random, core, dy, column, surface), 2);
                         placedAny = true;
                     }
                 }
             }
         }
         return placedAny;
+    }
+
+    /** Pick the block for a mound cell: bags on the surface, bales/appliances in the core. */
+    private BlockState pickBlock(RandomSource random, boolean core, int dy, int column, boolean surface) {
+        if (surface && random.nextFloat() < SURFACE_BAG_CHANCE) {
+            return RCBlocks.TRASH_BAG.get().defaultBlockState();
+        }
+        if (core && dy <= column * 0.5) {
+            float roll = random.nextFloat();
+            if (roll < CORE_APPLIANCE_CHANCE) {
+                return RCBlocks.APPLIANCE.get().defaultBlockState();
+            }
+            if (roll < CORE_APPLIANCE_CHANCE + CORE_BALE_CHANCE) {
+                return RCBlocks.COMPACTED_BALE.get().defaultBlockState();
+            }
+        }
+        return RCBlocks.GARBAGE_BLOCK.get().defaultBlockState();
     }
 }

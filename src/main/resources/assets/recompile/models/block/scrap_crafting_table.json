@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/scrap_crafting_table_front",
+    "down": "recompile:block/scrap_crafting_table_bottom",
+    "up": "recompile:block/scrap_crafting_table_top",
+    "north": "recompile:block/scrap_crafting_table_front",
+    "west": "recompile:block/scrap_crafting_table_front",
+    "east": "recompile:block/scrap_crafting_table_side",
+    "south": "recompile:block/scrap_crafting_table_side"
+  }
+}

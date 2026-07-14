@@ -25,7 +25,13 @@ public final class RCCreativeTabs {
                 .title(Component.translatable("itemGroup.recompile"))
                 .icon(() -> RCItems.GARBAGE_BLOCK.get().getDefaultInstance())
                 .displayItems((parameters, output) -> {
-                    output.accept(RCItems.GARBAGE_BLOCK.get());
+                    RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
+                    output.accept(RCItems.SCRAP_CRAFTING_TABLE.get());
+                    output.accept(RCItems.SORTING_TARP.get());
+                    RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
+                    output.accept(RCItems.REBAR.get());
+                    output.accept(RCItems.METAL_SCREEN.get());
+                    output.accept(RCItems.ORGANICS_SCREEN.get());
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
                 })
                 .build()
