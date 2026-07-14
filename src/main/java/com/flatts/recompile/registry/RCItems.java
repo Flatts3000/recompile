@@ -53,6 +53,11 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> TRASH_TOOLS = List.of(
         SCRAP_KNIFE, PRYBAR, JUNK_SHOVEL);
 
+    // ---------------- Sorting Tarp screens (P1.3) ----------------
+    // A screen in the tarp's modifier slot skews what comes out, not how much.
+    public static final DeferredItem<Item> METAL_SCREEN = ITEMS.registerItem("metal_screen", Item::new);
+    public static final DeferredItem<Item> ORGANICS_SCREEN = ITEMS.registerItem("organics_screen", Item::new);
+
     // ---------------- Blocks-as-items ----------------
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
@@ -63,6 +68,8 @@ public final class RCItems {
     /** The appliance block-item is also the teardown input carried to the workbench (P1.4). */
     public static final DeferredItem<BlockItem> APPLIANCE =
         ITEMS.registerSimpleBlockItem("appliance", RCBlocks.APPLIANCE);
+    public static final DeferredItem<BlockItem> SORTING_TARP =
+        ITEMS.registerSimpleBlockItem("sorting_tarp", RCBlocks.SORTING_TARP);
 
     /** The garbage-block family in creative-tab order. */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(

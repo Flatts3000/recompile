@@ -56,6 +56,7 @@ public final class RCGameTests {
     /** Wire up from the {@code Recompile} constructor. */
     public static void register(IEventBus modEventBus) {
         SortingTests.register();
+        SortingTarpTests.register();
 
         FUNCTIONS.register(modEventBus);
         modEventBus.addListener(RCGameTests::onRegisterGameTests);

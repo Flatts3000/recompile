@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.ApplianceBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -69,6 +70,16 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(1.4F)
             .sound(SoundType.METAL)
+    );
+
+    /** Sorting Tarp (P1.3): the batch-sorting station. GUI machine; manual, no hoppers. */
+    public static final DeferredBlock<SortingTarpBlock> SORTING_TARP = BLOCKS.registerBlock(
+        "sorting_tarp",
+        SortingTarpBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BROWN)
+            .strength(0.8F)
+            .sound(SoundType.WOOL)
     );
 
     private RCBlocks() {

@@ -5,6 +5,10 @@
   "block.recompile.trash_bag": "Trash Bag",
   "block.recompile.compacted_bale": "Compacted Bale",
   "block.recompile.appliance": "Appliance",
+  "block.recompile.sorting_tarp": "Sorting Tarp",
+
+  "item.recompile.metal_screen": "Metal Screen",
+  "item.recompile.organics_screen": "Organics Screen",
 
   "message.recompile.needs_tool": "You need a %s to open this",
   "message.recompile.dimension_locked": "That way is sealed for now.",
