@@ -64,7 +64,29 @@ neoForge {
     }
 }
 
+repositories {
+    // JEI (Just Enough Items) - mezz's maven at BlameJared.
+    maven {
+        name = 'BlameJared'
+        url = 'https://maven.blamejared.com'
+    }
+    // Jade (the WAILA fork) - served via the Modrinth maven.
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+}
+
 dependencies {
+    // Dev-only testing viewers: JEI (recipe/item browser) + Jade (block/entity
+    // tooltips). runtimeOnly - present in dev runs (runClient), never a compile
+    // dependency and never shipped. Versions mirror the productive-frogs 26.1.2 line.
+    // Add the JEI compileOnly api + a @JeiPlugin later when we surface teardown
+    // tables in JEI/EMI (design: pull tables visible in JEI day one).
+    runtimeOnly "mezz.jei:jei-26.1.2-neoforge:29.6.2.38"
+    runtimeOnly "maven.modrinth:jade:gWlwZzoj"
+
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
