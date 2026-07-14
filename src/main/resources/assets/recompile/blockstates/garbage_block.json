@@ -1,6 +1,31 @@
 {
   "variants": {
-    "": [
+    "sorted=0": [
+      { "model": "recompile:block/garbage_block_0" },
+      { "model": "recompile:block/garbage_block_1" },
+      { "model": "recompile:block/garbage_block_2" }
+    ],
+    "sorted=1": [
+      { "model": "recompile:block/garbage_block_0" },
+      { "model": "recompile:block/garbage_block_1" },
+      { "model": "recompile:block/garbage_block_2" }
+    ],
+    "sorted=2": [
+      { "model": "recompile:block/garbage_block_0" },
+      { "model": "recompile:block/garbage_block_1" },
+      { "model": "recompile:block/garbage_block_2" }
+    ],
+    "sorted=3": [
+      { "model": "recompile:block/garbage_block_0" },
+      { "model": "recompile:block/garbage_block_1" },
+      { "model": "recompile:block/garbage_block_2" }
+    ],
+    "sorted=4": [
+      { "model": "recompile:block/garbage_block_0" },
+      { "model": "recompile:block/garbage_block_1" },
+      { "model": "recompile:block/garbage_block_2" }
+    ],
+    "sorted=5": [
       { "model": "recompile:block/garbage_block_0" },
       { "model": "recompile:block/garbage_block_1" },
       { "model": "recompile:block/garbage_block_2" }
