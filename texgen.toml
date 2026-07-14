@@ -124,6 +124,24 @@ style = "lump"
 palette = ["#8a8478", "#6f6a60", "#a39c8e", "#585349"]
 
 # ---------------------------------------------------------------------------
+# Scrap crafting table (bootstrap 3x3 station)
+# ---------------------------------------------------------------------------
+
+[surface.scrap_crafting_table]
+kind = "block_multiface"
+backend = "retint"
+size = 16
+faces = ["top", "front", "side", "bottom"]
+# A scrap-metal retint of the vanilla crafting table: keep the recognizable grid/shape,
+# recolor to cool grey. Sources are vanilla textures, extracted from the client jar.
+tint = "#aab0b6"
+[surface.scrap_crafting_table.source]
+top = "block/crafting_table_top"
+front = "block/crafting_table_front"
+side = "block/crafting_table_side"
+bottom = "block/oak_planks"
+
+# ---------------------------------------------------------------------------
 # Sorting Tarp + screens (P1.3)
 # ---------------------------------------------------------------------------
 

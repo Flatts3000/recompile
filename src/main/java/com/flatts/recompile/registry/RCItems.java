@@ -68,6 +68,8 @@ public final class RCItems {
     /** The appliance block-item is also the teardown input carried to the workbench (P1.4). */
     public static final DeferredItem<BlockItem> APPLIANCE =
         ITEMS.registerSimpleBlockItem("appliance", RCBlocks.APPLIANCE);
+    public static final DeferredItem<BlockItem> SCRAP_CRAFTING_TABLE =
+        ITEMS.registerSimpleBlockItem("scrap_crafting_table", RCBlocks.SCRAP_CRAFTING_TABLE);
     public static final DeferredItem<BlockItem> SORTING_TARP =
         ITEMS.registerSimpleBlockItem("sorting_tarp", RCBlocks.SORTING_TARP);
 

@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.ApplianceBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -69,6 +70,16 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(1.4F)
+            .sound(SoundType.METAL)
+    );
+
+    /** Scrap crafting table: the tier-zero 3x3 crafting station (no wood in this world). */
+    public static final DeferredBlock<ScrapCraftingTableBlock> SCRAP_CRAFTING_TABLE = BLOCKS.registerBlock(
+        "scrap_crafting_table",
+        ScrapCraftingTableBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
             .sound(SoundType.METAL)
     );
 

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MM",
+    "FF"
+  ],
+  "key": {
+    "M": "recompile:scrap_metal",
+    "F": "recompile:fiber_scrap"
+  },
+  "result": {
+    "id": "recompile:scrap_crafting_table",
+    "count": 1
+  }
+}
