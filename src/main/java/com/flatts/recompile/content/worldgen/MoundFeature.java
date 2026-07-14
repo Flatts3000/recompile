@@ -21,8 +21,12 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  */
 public class MoundFeature extends Feature<NoneFeatureConfiguration> {
 
-    private static final int MIN_RADIUS = 2;
-    private static final int MAX_RADIUS = 4;
+    // Height and width are drawn independently and uniformly, so the field mixes
+    // tall spires, low wide heaps, and everything between. Width is a diameter.
+    private static final int MIN_HEIGHT = 3;
+    private static final int MAX_HEIGHT = 15;
+    private static final int MIN_WIDTH = 4;
+    private static final int MAX_WIDTH = 15;
 
     public MoundFeature() {
         super(NoneFeatureConfiguration.CODEC);
@@ -34,19 +38,21 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
         BlockPos origin = context.origin();
         RandomSource random = context.random();
 
-        int radius = MIN_RADIUS + random.nextInt(MAX_RADIUS - MIN_RADIUS + 1);
-        int height = radius + random.nextInt(2);
+        int height = MIN_HEIGHT + random.nextInt(MAX_HEIGHT - MIN_HEIGHT + 1);
+        int width = MIN_WIDTH + random.nextInt(MAX_WIDTH - MIN_WIDTH + 1);
+        double radius = width / 2.0;
+        int r = (int) Math.floor(radius);
         BlockState garbage = RCBlocks.GARBAGE_BLOCK.get().defaultBlockState();
 
         boolean placedAny = false;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
+        for (int dx = -r; dx <= r; dx++) {
+            for (int dz = -r; dz <= r; dz++) {
                 double dist = Math.sqrt((double) dx * dx + (double) dz * dz);
-                if (dist > radius + 0.5) {
+                if (dist > radius) {
                     continue;
                 }
-                // Dome profile: tallest at the center, tapering to the rim.
-                int column = (int) Math.round(height * (1.0 - dist / (radius + 1.0)));
+                // Dome profile: tallest at the center, tapering to a 1-block rim.
+                int column = (int) Math.round(height * (1.0 - dist / radius));
                 for (int dy = 0; dy <= column; dy++) {
                     BlockPos pos = origin.offset(dx, dy, dz);
                     if (level.getBlockState(pos).isAir()) {
