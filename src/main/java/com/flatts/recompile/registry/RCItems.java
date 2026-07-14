@@ -56,6 +56,17 @@ public final class RCItems {
     // ---------------- Blocks-as-items ----------------
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
+    public static final DeferredItem<BlockItem> TRASH_BAG =
+        ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
+    public static final DeferredItem<BlockItem> COMPACTED_BALE =
+        ITEMS.registerSimpleBlockItem("compacted_bale", RCBlocks.COMPACTED_BALE);
+    /** The appliance block-item is also the teardown input carried to the workbench (P1.4). */
+    public static final DeferredItem<BlockItem> APPLIANCE =
+        ITEMS.registerSimpleBlockItem("appliance", RCBlocks.APPLIANCE);
+
+    /** The garbage-block family in creative-tab order. */
+    public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(
+        GARBAGE_BLOCK, TRASH_BAG, COMPACTED_BALE, APPLIANCE);
 
     private RCItems() {
         // utility class

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "sorted=0": { "model": "recompile:block/trash_bag" },
+    "sorted=1": { "model": "recompile:block/trash_bag" },
+    "sorted=2": { "model": "recompile:block/trash_bag" }
+  }
+}

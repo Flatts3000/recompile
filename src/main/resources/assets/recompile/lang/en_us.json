@@ -2,6 +2,11 @@
   "itemGroup.recompile": "Recompile",
 
   "block.recompile.garbage_block": "Block of Garbage",
+  "block.recompile.trash_bag": "Trash Bag",
+  "block.recompile.compacted_bale": "Compacted Bale",
+  "block.recompile.appliance": "Appliance",
+
+  "message.recompile.needs_tool": "You need a %s to open this",
 
   "item.recompile.scrap_metal": "Scrap Metal",
   "item.recompile.plastic_scrap": "Plastic Scrap",

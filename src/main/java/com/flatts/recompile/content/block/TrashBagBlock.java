@@ -10,23 +10,20 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The household Block of Garbage (design P0.3 + P0.4): the bulk block. Bare-hand
- * pick-through pulls one drop from the household region table; crumbles after 4-6
- * pulls. All the sort machinery lives in {@link SortableBlock}. Gravity (P0.3) is
- * deferred to a later pass.
+ * Trash bag (design P1.1): soft surface litter. Bare-hand, quick small pulls (2-3),
+ * a lighter pull table than the garbage block. Generates on mound surfaces.
  */
-public class GarbageBlock extends SortableBlock {
+public class TrashBagBlock extends SortableBlock {
 
-    private static final int MIN_PULLS = 4;
-    private static final int MAX_PULLS = 6;
+    private static final int MIN_PULLS = 2;
+    private static final int MAX_PULLS = 3;
 
     public static final IntegerProperty SORTED = IntegerProperty.create("sorted", 0, MAX_PULLS - 1);
 
-    /** The household region's pull table (design: region-weighted pulls, JSON per region). */
-    public static final ResourceKey<LootTable> HOUSEHOLD_PULLS = ResourceKey.create(
-        Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "gameplay/household_pulls"));
+    public static final ResourceKey<LootTable> BAG_PULLS = ResourceKey.create(
+        Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "gameplay/bag_pulls"));
 
-    public GarbageBlock(Properties properties) {
+    public TrashBagBlock(Properties properties) {
         super(properties);
     }
 
@@ -37,7 +34,7 @@ public class GarbageBlock extends SortableBlock {
 
     @Override
     protected ResourceKey<LootTable> pullTable() {
-        return HOUSEHOLD_PULLS;
+        return BAG_PULLS;
     }
 
     @Override

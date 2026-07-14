@@ -26,6 +26,37 @@ style = "rubble"
 palette = ["#6b5a3e", "#7a6b4a", "#8a7a5a", "#5a5148", "#4a4038", "#9a8a6a", "#847c6a"]
 
 # ---------------------------------------------------------------------------
+# Garbage block variants (P1.1)
+# ---------------------------------------------------------------------------
+
+[surface.trash_bag]
+kind = "block"
+backend = "procedural"
+size = 16
+prompt = "a full-bleed Minecraft block face of a stuffed white/grey plastic trash bag, wrinkled, tied off, muted"
+[surface.trash_bag.procedural]
+style = "rubble"
+palette = ["#c8c8c0", "#a8a8a0", "#8f8f88", "#d8d8d0", "#707068"]
+
+[surface.compacted_bale]
+kind = "block"
+backend = "procedural"
+size = 16
+prompt = "a full-bleed Minecraft block face of a compacted cube bale of mixed trash bound with wire strapping, dense"
+[surface.compacted_bale.procedural]
+style = "rubble"
+palette = ["#8a7a5a", "#6b5a3e", "#9a8a6a", "#5a5148", "#b0a070"]
+
+[surface.appliance]
+kind = "block"
+backend = "procedural"
+size = 16
+prompt = "a full-bleed Minecraft block face of a battered dirty-white household appliance panel with dents and rust streaks"
+[surface.appliance.procedural]
+style = "rubble"
+palette = ["#c0c4c8", "#9aa0a6", "#d6dade", "#7a6b4a", "#6f767c"]
+
+# ---------------------------------------------------------------------------
 # Base material items (the 7-material vocabulary, P0.4)
 # ---------------------------------------------------------------------------
 
