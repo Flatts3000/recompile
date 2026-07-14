@@ -4,6 +4,7 @@ import com.flatts.recompile.gametest.RCGameTests;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCCreativeTabs;
+import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import net.neoforged.bus.api.IEventBus;
@@ -36,6 +37,7 @@ public final class Recompile {
         RCItems.register(modEventBus);
         RCBlockEntities.register(modEventBus);
         RCCreativeTabs.register(modEventBus);
+        RCFeatures.register(modEventBus);
 
         // The public data spine (P0.5). Registered from day one so the knowledge
         // axis (P1.4) is never retrofitted into a live schema.

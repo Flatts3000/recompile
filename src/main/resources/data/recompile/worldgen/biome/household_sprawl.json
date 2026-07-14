@@ -27,6 +27,8 @@
   "spawn_costs": {},
   "carvers": [],
   "features": [
-    [], [], [], [], [], [], [], [], [], [], []
+    [], [], [], [], [], [], [], [], [],
+    [ "recompile:garbage_mound" ],
+    []
   ]
 }
