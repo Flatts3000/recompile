@@ -128,6 +128,9 @@ public class SortingTarpBlockEntity extends BlockEntity implements MenuProvider 
             be.resetProgress();
             return;
         }
+        if (be.outputsFull()) {
+            return; // nowhere to put results - pause, keep progress (furnace behaviour)
+        }
         be.progress++;
         be.setChanged();
         if (be.progress >= PROCESS_TICKS) {
@@ -193,6 +196,17 @@ public class SortingTarpBlockEntity extends BlockEntity implements MenuProvider 
             progress = 0;
             setChanged();
         }
+    }
+
+    /** True when no output slot can accept anything more - the machine must pause. */
+    private boolean outputsFull() {
+        for (int slot = OUTPUT_START; slot < SLOT_COUNT; slot++) {
+            ItemStack stack = inventory.getStackInSlot(slot);
+            if (stack.isEmpty() || stack.getCount() < stack.getMaxStackSize()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public ItemStackHandler getInventory() {
