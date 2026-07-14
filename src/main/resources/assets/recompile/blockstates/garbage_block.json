@@ -1,0 +1,9 @@
+{
+  "variants": {
+    "": [
+      { "model": "recompile:block/garbage_block_0" },
+      { "model": "recompile:block/garbage_block_1" },
+      { "model": "recompile:block/garbage_block_2" }
+    ]
+  }
+}

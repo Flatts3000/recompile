@@ -3,10 +3,10 @@
   "input": "minecraft:iron_door",
   "station": "recompile:workbench",
   "results": [
-    { "item": "minecraft:iron_nugget", "count": 2 }
+    { "item": "recompile:scrap_metal", "count": 2 }
   ],
   "extras": [
-    { "item": "minecraft:iron_bars", "chance": 0.35 }
+    { "item": "recompile:junk", "chance": 0.5 }
   ],
   "teaches": [
     { "recipe": "minecraft:iron_door", "chance": 0.25, "scraps_required": 3 }

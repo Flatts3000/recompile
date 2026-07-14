@@ -1,5 +1,10 @@
 package com.flatts.recompile;
 
+import com.flatts.recompile.gametest.RCGameTests;
+import com.flatts.recompile.registry.RCBlockEntities;
+import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCCreativeTabs;
+import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -25,9 +30,19 @@ public final class Recompile {
     public Recompile(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Recompile initializing");
 
+        // Blocks before Items (the garbage block-item references the block); block
+        // entities after blocks; creative tab after items.
+        RCBlocks.register(modEventBus);
+        RCItems.register(modEventBus);
+        RCBlockEntities.register(modEventBus);
+        RCCreativeTabs.register(modEventBus);
+
         // The public data spine (P0.5). Registered from day one so the knowledge
         // axis (P1.4) is never retrofitted into a live schema.
         RCRecipeTypes.register(modEventBus);
+
+        // In-world GameTests (CI gameTest job runs these).
+        RCGameTests.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, RCConfig.SPEC);
     }
