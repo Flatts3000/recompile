@@ -1,0 +1,141 @@
+plugins {
+    id 'java'
+    id 'net.neoforged.moddev' version '2.0.141'
+}
+
+base {
+    // MC version in the artifact name (Mekanism convention) so the jar is
+    // unmistakable: recompile-26.1.2-0.1.0-alpha.1.jar
+    archivesName = "${mod_id}-${minecraft_version}"
+}
+
+group = mod_group_id
+version = mod_version
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+}
+
+neoForge {
+    version = neoforge_version
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+        // moddev 2.0+ split the old `data()` run into clientData()/serverData().
+        clientData {
+            clientData()
+            programArguments.addAll '--mod', mod_id,
+                                    '--all',
+                                    '--output', file('src/generated/resources').absolutePath,
+                                    '--existing', file('src/main/resources').absolutePath
+        }
+        serverData {
+            serverData()
+            programArguments.addAll '--mod', mod_id,
+                                    '--all',
+                                    '--output', file('src/generated/resources').absolutePath,
+                                    '--existing', file('src/main/resources').absolutePath
+        }
+        // Headless server that runs registered GameTests on boot, non-zero exit
+        // on failure. Invoke via `./gradlew runGameTestServer`. moddev 2.0.141
+        // has no gameTestServer() convenience method, so set the type directly.
+        gameTestServer {
+            type.set('gameTestServer')
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+
+    // moddev's JUnit integration: tests under src/test/java run against a real,
+    // loaded mod context (registries populated, tags resolvable) without booting
+    // a full server. Invoke via `./gradlew test`.
+    unitTest {
+        enable()
+        testedMod = mods.named("${mod_id}").get()
+    }
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'full'
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/generated/resources'
+        }
+    }
+}
+
+tasks.processResources {
+    inputs.property 'mod_id', mod_id
+    inputs.property 'mod_name', mod_name
+    inputs.property 'mod_version', mod_version
+    inputs.property 'mod_license', mod_license
+    inputs.property 'mod_authors', mod_authors
+    inputs.property 'mod_description', mod_description
+    inputs.property 'minecraft_version_range', minecraft_version_range
+    inputs.property 'neoforge_loader_version_range', neoforge_loader_version_range
+    inputs.property 'neoforge_version', neoforge_version
+
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand(
+            mod_id: mod_id,
+            mod_name: mod_name,
+            mod_version: mod_version,
+            mod_license: mod_license,
+            mod_authors: mod_authors,
+            mod_description: mod_description,
+            minecraft_version_range: minecraft_version_range,
+            neoforge_loader_version_range: neoforge_loader_version_range,
+            neoforge_version: neoforge_version
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25
+}
+
+jar {
+    manifest {
+        attributes([
+            'Specification-Title'     : mod_name,
+            'Specification-Vendor'    : mod_authors,
+            'Specification-Version'   : '1',
+            'Implementation-Title'    : mod_name,
+            'Implementation-Version'  : mod_version,
+            'Implementation-Vendor'   : mod_authors
+        ])
+    }
+}
+
+// Aggregate prepare task for the interactive moddev runs. `gradle clean` wipes
+// build/moddev/*RunVmArgs.txt; IntelliJ's generated run configs reference those
+// at launch, so regenerate them after a clean. Invoke: `./gradlew prepareAllRuns`.
+tasks.register('prepareAllRuns') {
+    group = 'neoforge runs'
+    description = 'Regenerate VM args / classpath files for the interactive moddev runs.'
+    dependsOn 'prepareClientRun',
+              'prepareServerRun',
+              'prepareGameTestServerRun'
+}
