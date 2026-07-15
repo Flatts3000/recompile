@@ -4,22 +4,61 @@
     {
       "rolls": 1,
       "entries": [
-        { "type": "minecraft:item", "name": "recompile:junk", "weight": 40 },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:junk",
+          "weight": 200
+        },
         {
           "type": "minecraft:item",
           "name": "recompile:scrap_metal",
-          "weight": 15,
+          "weight": 75,
           "functions": [
-            { "function": "minecraft:set_count", "count": { "type": "minecraft:uniform", "min": 1, "max": 2 } }
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
           ]
         },
-        { "type": "minecraft:item", "name": "recompile:rebar", "weight": 8 },
-        { "type": "minecraft:item", "name": "recompile:plastic_scrap", "weight": 15 },
-        { "type": "minecraft:item", "name": "recompile:glass_shards", "weight": 12 },
-        { "type": "minecraft:item", "name": "recompile:fiber_scrap", "weight": 12 },
-        { "type": "minecraft:item", "name": "recompile:organic_muck", "weight": 10 },
-        { "type": "minecraft:item", "name": "recompile:e_scrap", "weight": 3 },
-        { "type": "minecraft:item", "name": "recompile:tin_can", "weight": 6 }
+        {
+          "type": "minecraft:item",
+          "name": "recompile:rebar",
+          "weight": 40
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:plastic_scrap",
+          "weight": 75
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:glass_shards",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:fiber_scrap",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:organic_muck",
+          "weight": 50
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:e_scrap",
+          "weight": 15
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:tin_can",
+          "weight": 6
+        }
       ]
     }
   ]
