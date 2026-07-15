@@ -4,10 +4,12 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ToolMaterial;
+import net.minecraft.world.item.component.Weapon;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -64,9 +66,19 @@ public final class RCItems {
         "scrap_knife",
         props -> new Item(props.tool(ToolMaterial.STONE, RCTags.MINEABLE_WITH_KNIFE, 1.0F, -2.0F, 0.0F)));
 
-    /** The prybar opens appliances and is the trio's weak weapon - hence still sword-class. */
+    // The prybar opens appliances and levers the Scrap Barrel apart - a vanilla barrel
+    // answers to an axe, but this one is welded steel and axes have no place in a world
+    // with no trees. Same tool()-over-a-tag treatment as the knife.
+    //
+    // It is also the trio's weak weapon, and tool() would quietly double its melee cost:
+    // sword() ships Weapon(1), tool() ships Weapon(2). The knife can eat that trade
+    // because it is not the weapon - this one cannot, so the melee profile is pinned back
+    // to Weapon(1) explicitly. What it keeps from tool(): the mining rule, and 1 durability
+    // per block broken rather than a sword's 2.
     public static final DeferredItem<Item> PRYBAR = ITEMS.registerItem(
-        "prybar", props -> new Item(props.sword(ToolMaterial.STONE, 2.0F, -2.6F)));
+        "prybar",
+        props -> new Item(props.tool(ToolMaterial.STONE, RCTags.MINEABLE_WITH_PRYBAR, 2.0F, -2.6F, 0.0F)
+            .component(DataComponents.WEAPON, new Weapon(1))));
 
     /** The starter tool trio (creative tab ordering). */
     public static final List<DeferredItem<Item>> TRASH_TOOLS = List.of(

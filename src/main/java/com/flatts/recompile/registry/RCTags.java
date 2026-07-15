@@ -26,4 +26,15 @@ public final class RCTags {
      */
     public static final TagKey<Block> MINEABLE_WITH_KNIFE = TagKey.create(
         Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "mineable/knife"));
+
+    /**
+     * Blocks the prybar levers apart quickly - the third leg of the one-tool-per-block
+     * rule, after the junk shovel's garbage and the scrap knife's bales.
+     *
+     * <p>The Scrap Barrel is welded sheet steel. A vanilla barrel is wood and answers to
+     * an axe; this one has no more business with an axe than with a shovel, and prying a
+     * seam apart is exactly what the prybar is for.
+     */
+    public static final TagKey<Block> MINEABLE_WITH_PRYBAR = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "mineable/prybar"));
 }
