@@ -1,9 +1,12 @@
 package com.flatts.recompile.content.block;
 
+import com.flatts.recompile.registry.RCItems;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.VegetationBlock;
@@ -42,5 +45,20 @@ public class DumpMushroomBlock extends VegetationBlock {
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
         return state.is(Blocks.MYCELIUM) || state.is(BlockTags.DIRT);
+    }
+
+    /**
+     * Pick-block hands over the edible mushroom item.
+     *
+     * <p>Needed because this block has no {@code BlockItem}: the default implementation
+     * returns {@code new ItemStack(block.asItem())}, which is an empty stack for a
+     * block-item-less block, so pick-block silently did nothing. Vanilla hits the same
+     * case and solves it the same way (see {@code SweetBerryBushBlock}). The stack
+     * matches what breaking the block drops.
+     */
+    @Override
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state,
+            boolean includeData) {
+        return new ItemStack(RCItems.DUMP_MUSHROOM.get());
     }
 }
