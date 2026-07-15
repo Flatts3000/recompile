@@ -57,8 +57,8 @@ public final class RCItems {
     // builders hand out different components, and the knife wants the tool side of each:
     //   - 1 durability per block broken, where a sword costs 2. This is the knife's day
     //     job (a bale per cut), so its real cost halved.
-    //   - 2 durability per melee hit, where a sword costs 1. The knife is not the weapon;
-    //     the prybar below stays sword-class and keeps that role.
+    //   - 2 durability per melee hit, where a sword costs 1. The knife is not the weapon,
+    //     so it can eat that; the prybar below is, and pins the cost back to Weapon(1).
     //   - it can break blocks in creative, which swords refuse - correct for a tool.
     // Dropped with sword(): fast cobweb mining and the SWORD_INSTANTLY_MINES /
     // SWORD_EFFICIENT overrides. Nothing in a garbage world has cobwebs or leaves.
@@ -73,8 +73,16 @@ public final class RCItems {
     // It is also the trio's weak weapon, and tool() would quietly double its melee cost:
     // sword() ships Weapon(1), tool() ships Weapon(2). The knife can eat that trade
     // because it is not the weapon - this one cannot, so the melee profile is pinned back
-    // to Weapon(1) explicitly. What it keeps from tool(): the mining rule, and 1 durability
-    // per block broken rather than a sword's 2.
+    // to Weapon(1) explicitly. The override is chained AFTER tool() on purpose: components
+    // are last-write-wins, so the order is what makes the pin hold. What it keeps from
+    // tool(): the mining rule, and 1 durability per block broken rather than a sword's 2.
+    //
+    // It does still give up the sword-only combat rules - fast cobweb cutting and the
+    // SWORD_INSTANTLY_MINES / SWORD_EFFICIENT overrides - and that is accepted rather than
+    // overlooked. Those rules need cobwebs or foliage to matter; this world has no trees,
+    // its starting biome spawns nothing, no vanilla structure generates in it (its biome is
+    // in no vanilla biome tag), and the Nether and End are locked. There is nothing here
+    // for them to bite on. Revisit if a themed dimension ever ships webs.
     public static final DeferredItem<Item> PRYBAR = ITEMS.registerItem(
         "prybar",
         props -> new Item(props.tool(ToolMaterial.STONE, RCTags.MINEABLE_WITH_PRYBAR, 2.0F, -2.6F, 0.0F)
