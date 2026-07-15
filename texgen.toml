@@ -124,11 +124,15 @@ backend = "ai"
 size = 16
 prompt = "a sealed dented tin food can standing upright with a faded torn paper label, muted greys and browns, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# The opened state of tin_can. Derived from tin_can's raw source (reference) so the
+# pair reads as one object in two states - generated independently, the body colour
+# and label drift apart and they stop looking like the same can.
 [surface.tin_can_open]
 kind = "item"
 backend = "ai"
 size = 16
-prompt = "an opened dented tin food can, jagged lid peeled halfway back, dull mystery contents visible inside, faded torn label, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+reference = "tin_can"
+prompt = "keep this exact can unchanged - same grey steel body, same dents, same faded red-and-white label, same size and position. Change only the top: the lid is cut open and peeled halfway back as a jagged curled metal disc, revealing dull mystery contents inside the rim. Plain transparent background, no scene"
 
 # ---------------------------------------------------------------------------
 # Forage (P1.9) - dump mushroom (cross-model plant + edible item) and the
