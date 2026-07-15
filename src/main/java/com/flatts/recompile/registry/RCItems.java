@@ -50,9 +50,21 @@ public final class RCItems {
     // The knife is a cutting tool, not a sword: it mines its own tag
     // (recompile:mineable/knife = bales) the way a shovel mines mineable/shovel, so the
     // one tool that opens a bale is also the one that cuts it loose for the tarp.
+    //
+    // tool() rather than sword() is a deliberate trade, not an oversight - the two
+    // builders hand out different components, and the knife wants the tool side of each:
+    //   - 1 durability per block broken, where a sword costs 2. This is the knife's day
+    //     job (a bale per cut), so its real cost halved.
+    //   - 2 durability per melee hit, where a sword costs 1. The knife is not the weapon;
+    //     the prybar below stays sword-class and keeps that role.
+    //   - it can break blocks in creative, which swords refuse - correct for a tool.
+    // Dropped with sword(): fast cobweb mining and the SWORD_INSTANTLY_MINES /
+    // SWORD_EFFICIENT overrides. Nothing in a garbage world has cobwebs or leaves.
     public static final DeferredItem<Item> SCRAP_KNIFE = ITEMS.registerItem(
         "scrap_knife",
         props -> new Item(props.tool(ToolMaterial.STONE, RCTags.MINEABLE_WITH_KNIFE, 1.0F, -2.0F, 0.0F)));
+
+    /** The prybar opens appliances and is the trio's weak weapon - hence still sword-class. */
     public static final DeferredItem<Item> PRYBAR = ITEMS.registerItem(
         "prybar", props -> new Item(props.sword(ToolMaterial.STONE, 2.0F, -2.6F)));
 
