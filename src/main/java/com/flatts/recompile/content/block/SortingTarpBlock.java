@@ -116,10 +116,10 @@ public class SortingTarpBlock extends Block {
      */
     private static int outputRolls(Item item) {
         if (item == RCItems.GARBAGE_BLOCK.get().asItem()) {
-            return 5;
+            return 6;
         }
         if (item == RCItems.TRASH_BAG.get().asItem()) {
-            return 3;
+            return 4;
         }
         if (item == RCItems.COMPACTED_BALE.get().asItem()) {
             return 8;

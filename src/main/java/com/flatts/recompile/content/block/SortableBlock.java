@@ -48,9 +48,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <pre>
  *   block            hand (avg)   tarp   ratio
- *   garbage_block       1.9         5     2.6x
- *   trash_bag           1.5         3     2.0x
- *   compacted_bale      2.9         8     2.8x
+ *   garbage_block       2.5         6     2.4x
+ *   trash_bag           2.0         4     2.0x
+ *   compacted_bale      3.5         8     2.3x
  * </pre>
  *
  * Hand-sorting used to average 4.9/2.5/6.9 against a tarp that gave 5/2/12, so hand was
@@ -59,18 +59,24 @@ import org.jetbrains.annotations.Nullable;
  * visibly worse: it is the always-available option and needs no station and no hauling.
  * Automation must clear the tarp by a similar margin when it lands.
  *
- * <p><b>Pulls are yield, not a way to clear ground.</b> Cutting pull counts to tune yield
- * also makes a block crumble sooner, so it silently speeds up hand-clearing - that is what
- * {@link #PULL_COOLDOWN_TICKS} exists to hold in check. Each block has exactly one tool
- * (garbage digs with the junk shovel, a bale is cut with the knife, an appliance is pried),
- * and no bare-hand action may out-clear a tool. Re-check the ticks below against
- * {@code minecraft:mineable/shovel} before touching a pull range:
+ * <p><b>{@code minPulls} is a floor, and it is load-bearing.</b> It is not a tuning knob:
+ * it is the guarantee that a block never comes apart in one touch. Dropping it to 1 made
+ * a third of garbage blocks and half of all bags vanish on the first click, which reads
+ * as an instant break and let bare hands strip ground faster than any tool - no cooldown
+ * fixes that, because the block is already gone. Keep {@code minPulls >= 2}.
+ *
+ * <p><b>Pulls are yield AND time; the two cannot be tuned apart.</b> Fewer pulls means
+ * less yield but a faster crumble, so cutting pulls to slow the economy silently speeds
+ * up clearing. Yield is traded against the tarp's rolls, never against the floor. Each
+ * block has exactly one tool - garbage digs with the junk shovel, a bale is cut with the
+ * knife, an appliance is pried - and no bare-hand action may out-clear a tool. Re-check
+ * these ticks (20 = 1s) against {@code minecraft:mineable/shovel} before touching a range:
  *
  * <pre>
- *   block            right-click   dig   (20 ticks = 1s)
- *   garbage_block       15.1         5   shovel-tagged, 3.0x faster
- *   trash_bag           12.0         6   no shovel bonus by design
- *   compacted_bale      23.1        27   knife's job, not the shovel's
+ *   block            right-click   dig
+ *   garbage_block       20.0         5   shovel-tagged, 4.0x faster
+ *   trash_bag           16.0         6   no shovel bonus by design
+ *   compacted_bale      28.0        27   knife's job, not the shovel's
  * </pre>
  *
  * <p>Garbage obeys gravity (design P0.3): it is a {@link FallingBlock} so mounds slump

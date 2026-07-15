@@ -1,13 +1,16 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
@@ -38,6 +41,30 @@ final class SortingTests {
             helper.assertTrue(crumbled, "garbage block should crumble within 3 pulls");
             helper.assertBlockPresent(Blocks.AIR, pos);
             helper.assertEntityPresent(EntityType.ITEM);
+            helper.succeed();
+        });
+
+        // Regression: minPulls was 1, so a third of garbage blocks (and half of all
+        // bags) vanished on the very first pull. An instant break lets bare hands strip
+        // ground faster than any tool, and no cooldown can fix it - the block is already
+        // gone. The first pull must never destroy a sortable block. Run enough trials
+        // that a reintroduced 1-in-3 would be caught every time.
+        RCGameTests.test("first_pull_never_destroys_a_block", 60, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos pos = new BlockPos(1, 1, 1);
+            BlockPos abs = helper.absolutePos(pos);
+
+            for (Block block : List.of(RCBlocks.GARBAGE_BLOCK.get(), RCBlocks.TRASH_BAG.get(),
+                    RCBlocks.COMPACTED_BALE.get())) {
+                for (int trial = 0; trial < 40; trial++) {
+                    helper.setBlock(pos, block);
+                    boolean crumbled = SortableBlock.sortOnce(level, abs);
+                    helper.assertFalse(crumbled,
+                        block + " must survive its first pull - an instant break lets hands "
+                            + "out-clear tools (minPulls must stay >= 2)");
+                }
+            }
+            helper.setBlock(pos, Blocks.AIR);
             helper.succeed();
         });
 

@@ -12,17 +12,18 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The household Block of Garbage (design P0.3 + P0.4): the bulk block. Bare-hand
- * pick-through pulls one drop from the household region table; crumbles after 1-3
+ * pick-through pulls one drop from the household region table; crumbles after 2-3
  * pulls. All the sort machinery lives in {@link SortableBlock}. Gravity (P0.3) is
  * deferred to a later pass.
  *
- * <p>Hand-sorting is deliberately wasteful: ~1.9 pulls on average, against the
- * Sorting Tarp's flat 5 from the same block. You tear the block apart and lose most
- * of what was in it. See {@link SortableBlock} for the tier rationale.
+ * <p>Hand-sorting is deliberately wasteful: ~2.5 pulls on average, against the
+ * Sorting Tarp's flat 6 from the same block. You tear the block apart and lose most
+ * of what was in it. See {@link SortableBlock} for the tier rationale, and note the
+ * floor - a block must never come apart in one touch.
  */
 public class GarbageBlock extends SortableBlock {
 
-    private static final int MIN_PULLS = 1;
+    private static final int MIN_PULLS = 2;
     private static final int MAX_PULLS = 3;
 
     public static final IntegerProperty SORTED = IntegerProperty.create("sorted", 0, MAX_PULLS - 1);
