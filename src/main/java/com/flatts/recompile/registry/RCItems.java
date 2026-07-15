@@ -101,6 +101,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("scrap_crafting_table", RCBlocks.SCRAP_CRAFTING_TABLE);
     public static final DeferredItem<BlockItem> SORTING_TARP =
         ITEMS.registerSimpleBlockItem("sorting_tarp", RCBlocks.SORTING_TARP);
+    public static final DeferredItem<BlockItem> SCRAP_BARREL =
+        ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
 
     /** The garbage-block family in creative-tab order. */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(

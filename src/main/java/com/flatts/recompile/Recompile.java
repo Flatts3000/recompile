@@ -1,6 +1,7 @@
 package com.flatts.recompile;
 
 import com.flatts.recompile.gametest.RCGameTests;
+import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCCreativeTabs;
 import com.flatts.recompile.registry.RCFeatures;
@@ -34,6 +35,7 @@ public final class Recompile {
         // creative tab after items.
         RCBlocks.register(modEventBus);
         RCItems.register(modEventBus);
+        RCBlockEntities.register(modEventBus);
         RCCreativeTabs.register(modEventBus);
         RCFeatures.register(modEventBus);
 

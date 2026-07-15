@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "open=false": { "model": "recompile:block/scrap_barrel" },
+    "open=true": { "model": "recompile:block/scrap_barrel_open" }
+  }
+}
