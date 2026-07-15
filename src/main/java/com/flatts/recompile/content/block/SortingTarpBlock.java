@@ -38,6 +38,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class SortingTarpBlock extends Block {
 
+    // Gate holding right-click so a held stack sifts at a steady cadence instead of
+    // flooding the world with item entities (a bale is 12 rolls per sift).
+    private static final int SIFT_COOLDOWN_TICKS = 8;
+
     // A waist-height tarp-draped table: a draped mass from y3 up, on four leg feet.
     private static final VoxelShape SHAPE = Shapes.or(
         Block.box(1, 3, 1, 15, 13, 15),    // tarp-draped table mass
@@ -61,6 +65,12 @@ public class SortingTarpBlock extends Block {
         if (outputRolls(stack.getItem()) <= 0) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
+        // Holding right-click auto-repeats; the cooldown paces it (both sides track it,
+        // set before shrink so it keys on the input item, not an emptied stack).
+        if (player.getCooldowns().isOnCooldown(stack)) {
+            return InteractionResult.SUCCESS;
+        }
+        player.getCooldowns().addCooldown(stack, SIFT_COOLDOWN_TICKS);
         if (level instanceof ServerLevel serverLevel) {
             sift(serverLevel, pos, stack.getItem());
             if (!player.getAbilities().instabuild) {
