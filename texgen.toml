@@ -195,23 +195,19 @@ size = 16
 tint = "#a9713f"
 source = "item/stick"
 
+# No vanilla knife to retint, so AI item icon on a transparent background.
 [surface.scrap_knife]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a crude knife with a scrap-metal blade and a rebar handle, Minecraft tool icon, held diagonally, transparent background"
-[surface.scrap_knife.procedural]
-style = "lump"
-palette = ["#9aa0a6", "#6f767c", "#8a5a3a", "#4c5257"]
+prompt = "a crude knife held diagonally, a jagged scrap-metal blade and a wrapped rusty-rebar handle, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# No vanilla crowbar to retint, so AI item icon on a transparent background.
 [surface.prybar]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a bent steel prybar/crowbar, Minecraft tool icon, held diagonally, transparent background"
-[surface.prybar.procedural]
-style = "lump"
-palette = ["#b04a3a", "#8a3a2e", "#c95a48", "#6f2e26"]
+prompt = "a bent steel crowbar prybar held diagonally, one hooked flattened pry end, rusty red-brown steel, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # Junk shovel keeps the vanilla shovel silhouette but retinted to dull scrap grey -
 # same recognizable tool shape, retextured, not AI-generated.
