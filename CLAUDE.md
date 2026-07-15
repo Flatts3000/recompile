@@ -61,6 +61,10 @@ Textures are **generated, never hand-drawn**, by the shared engine at `../mc-pac
 
 Two surfaces that must read as the same object in different states use `reference = "<other-surface>"` (e.g. `tin_can_open` -> `tin_can`), which derives one from the other's source art instead of generating it blind. Generating each state from its own prompt makes them drift into different objects.
 
+`kind` picks both the output directory and whether the art keeps an alpha background. When those need to differ - a cross-model plant is a transparent sprite that must live in `textures/block/` - set `transparent = true` explicitly (see `dump_mushroom`).
+
+Changing a surface's `kind` and re-running `promote` re-finalizes from `art_src/` with **no API call**, so moving art between atlases costs nothing and cannot drift.
+
 Blocks with `variants = N` get randomized variants from the **blockstate JSON, not code**.
 
 ## 26.1 API deltas that bite
@@ -76,6 +80,8 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - Food is data-component driven: `Item.Properties.food(FoodProperties)`. `SuspiciousStewItem` / `MushroomStewItem` no longer exist.
 - Tools come from `Item.Properties` helpers: `props.shovel(ToolMaterial.STONE, dmg, speed)`.
 - **Item rendering needs `assets/<ns>/items/<id>.json`** client item definitions *in addition to* `models/item/`.
+- **Atlases are split and a model can only use its own.** `atlases/blocks.json` stitches `textures/block/**`; `atlases/items.json` stitches `textures/item/**`. A *block* model referencing `<ns>:item/foo` renders as the pink/black missing texture even though the PNG exists. A sprite that feeds both (a cross-model plant and its icon) lives in `textures/block/` and the item model points there - vanilla does exactly this for `brown_mushroom`.
+- **`CraftingMenu.stillValid` hard-codes `Blocks.CRAFTING_TABLE`.** A custom crafting station must subclass it and override `stillValid`, or the menu opens and closes on the first server tick, which looks exactly like "right-click does nothing" (see `ScrapCraftingMenu`). Expect the same pattern in other vanilla menus.
 - BlockEntity serialization uses `ValueOutput`/`ValueInput`, not `CompoundTag` (not currently used here - the mod has no BlockEntities).
 - Custom worldgen: `noise_router` requires `preliminary_surface_level` (16 fields, not 15); biome `carvers` is a flat list; biome `features` is 11 arrays (index 9 = vegetal_decoration). A world preset must be **selected** at world creation via the World Type button - a default world silently ignores it, the #1 cause of "worldgen isn't working."
 
