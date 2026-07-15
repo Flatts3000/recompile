@@ -8,9 +8,6 @@
   "block.recompile.scrap_crafting_table": "Scrap Crafting Table",
   "block.recompile.sorting_tarp": "Sorting Tarp",
 
-  "item.recompile.metal_screen": "Metal Screen",
-  "item.recompile.organics_screen": "Organics Screen",
-
   "message.recompile.needs_tool": "You need a %s to open this",
   "message.recompile.dimension_locked": "That way is sealed for now.",
 

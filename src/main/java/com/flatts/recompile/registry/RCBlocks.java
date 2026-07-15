@@ -83,7 +83,11 @@ public final class RCBlocks {
             .sound(SoundType.METAL)
     );
 
-    /** Sorting Tarp (P1.3): the batch-sorting station. GUI machine; manual, no hoppers. */
+    /**
+     * Sorting Tarp (P1.3): the manual batch-sorting table. Right-click holding a
+     * garbage block / bag / bale to sift into the world; no GUI, no hoppers, no
+     * BlockEntity. {@code noOcclusion} because the model is a table, not a full cube.
+     */
     public static final DeferredBlock<SortingTarpBlock> SORTING_TARP = BLOCKS.registerBlock(
         "sorting_tarp",
         SortingTarpBlock::new,
@@ -91,6 +95,7 @@ public final class RCBlocks {
             .mapColor(MapColor.COLOR_BROWN)
             .strength(0.8F)
             .sound(SoundType.WOOL)
+            .noOcclusion()
     );
 
     private RCBlocks() {

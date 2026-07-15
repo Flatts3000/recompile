@@ -1,12 +1,10 @@
 package com.flatts.recompile;
 
 import com.flatts.recompile.gametest.RCGameTests;
-import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCCreativeTabs;
 import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCItems;
-import com.flatts.recompile.registry.RCMenuTypes;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -36,8 +34,6 @@ public final class Recompile {
         // creative tab after items.
         RCBlocks.register(modEventBus);
         RCItems.register(modEventBus);
-        RCBlockEntities.register(modEventBus);
-        RCMenuTypes.register(modEventBus);
         RCCreativeTabs.register(modEventBus);
         RCFeatures.register(modEventBus);
 
