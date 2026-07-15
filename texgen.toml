@@ -31,14 +31,18 @@ palette = ["#6b5a3e", "#7a6b4a", "#8a7a5a", "#5a5148", "#4a4038", "#9a8a6a", "#8
 # Garbage block variants (P1.1)
 # ---------------------------------------------------------------------------
 
+# Multiface so a bag reads as a cuboidal block: taut wrinkled sides bulging over
+# contents, a tied knot on top, settled folds on the bottom. Glossy black
+# contractor bag. Rendered via cube_bottom_top (distinct top / bottom / side).
 [surface.trash_bag]
-kind = "block"
-backend = "procedural"
+kind = "block_multiface"
+backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a stuffed white/grey plastic trash bag, wrinkled, tied off, muted"
-[surface.trash_bag.procedural]
-style = "rubble"
-palette = ["#c8c8c0", "#a8a8a0", "#8f8f88", "#d8d8d0", "#707068"]
+faces = ["top", "bottom", "side"]
+[surface.trash_bag.prompt]
+top = "a full-bleed top-down Minecraft block face: the tied-off top of a glossy black plastic contractor trash bag, plastic gathered into a knot at the center with wrinkles radiating outward, dark with subtle sheen highlights"
+bottom = "a full-bleed Minecraft block face: the settled bottom of a glossy black plastic trash bag, horizontal folds and creases, corners tucked under, dark, flatter and plainer"
+side = "a full-bleed Minecraft block face: the side of a stuffed glossy black plastic contractor trash bag, taut plastic bulging over lumpy contents, vertical drape wrinkles and a slight sheen, dark"
 
 # Multiface: sides show the wrapped strapping, top/bottom (end) show the cut
 # cross-section. Rendered via cube_bottom_top (end on top+bottom, side on the 4 sides).
