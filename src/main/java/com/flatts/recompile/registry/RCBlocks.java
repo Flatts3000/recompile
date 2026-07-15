@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.ApplianceBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.ScrapBarrelBlock;
 import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
@@ -99,6 +100,21 @@ public final class RCBlocks {
             .strength(0.8F)
             .sound(SoundType.WOOL)
             .noOcclusion()
+    );
+
+    /**
+     * Scrap Barrel: the garbage world's storage. Every vanilla container is wood-gated
+     * (chest and barrel want planks, hopper wants a chest), and this world has no trees,
+     * so without this there is nowhere to put anything - which the Sorting Tarp makes
+     * acute, since it sifts onto the ground. Metal, so it sounds and mines like one.
+     */
+    public static final DeferredBlock<ScrapBarrelBlock> SCRAP_BARREL = BLOCKS.registerBlock(
+        "scrap_barrel",
+        ScrapBarrelBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.6F)
+            .sound(SoundType.METAL)
     );
 
     /**

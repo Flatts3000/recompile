@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/scrap_barrel_end_open",
+    "bottom": "recompile:block/scrap_barrel_end",
+    "side": "recompile:block/scrap_barrel_side",
+    "particle": "recompile:block/scrap_barrel_side"
+  }
+}

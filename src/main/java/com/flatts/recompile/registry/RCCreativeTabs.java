@@ -28,6 +28,7 @@ public final class RCCreativeTabs {
                     RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
                     output.accept(RCItems.SCRAP_CRAFTING_TABLE.get());
                     output.accept(RCItems.SORTING_TARP.get());
+                    output.accept(RCItems.SCRAP_BARREL.get());
                     RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
                     output.accept(RCItems.REBAR.get());
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));

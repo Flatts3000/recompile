@@ -186,6 +186,27 @@ top = "a full-bleed top-down Minecraft block face: a worn canvas tarp work surfa
 side = "a full-bleed Minecraft block face: the side of a jury-rigged sorting table, a worn tarp draping over the edge with a striped woven-plastic bulk sack slumped against it, muted browns with a faded band of blue and red stripe"
 leg = "a full-bleed Minecraft block face: a salvaged scrap-metal and weathered-wood table leg, rusty and worn, muted, vertical grain"
 
+# Scrap Barrel: the storage block, a welded box of salvaged sheet metal. Rendered via
+# cube_bottom_top, so it needs an end face and a side. Top and bottom share the "end"
+# texture the way the bale does - the box's two ends look alike, and the barrel is
+# always top-up, so its underside is barely ever seen. "end_open" is the third face:
+# the lid state a vanilla barrel has, swapped in by the blockstate.
+#
+# CUBOIDAL, never a cylinder. This is a full block, so a round drum painted on a
+# square face fights its own silhouette - a circular lid floating on a square top
+# reads as a mistake, and cylindrical sides cannot tile against a neighbour. Vanilla's
+# own barrel is a boxy barrel for exactly this reason. Every prompt below pushes
+# straight edges, corner welds and flat panels, and rules out circles explicitly.
+[surface.scrap_barrel]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["end", "end_open", "side"]
+[surface.scrap_barrel.prompt]
+end = "a full-bleed top-down Minecraft block face: the closed square lid of a boxy welded steel container seen from directly above, a riveted flange running straight along all four edges, a flat latch plate near one edge, scratched grey paint and rust streaks. Square and rectilinear - straight edges corner to corner, absolutely no circles, no round rim, no cylinder. Flat, no perspective, fills the whole tile"
+end_open = "a full-bleed top-down Minecraft block face: a boxy welded steel container seen from directly above with its lid off, a dark square hollow opening framed by a rusty riveted flange running straight along all four edges, muted greys and browns. The opening is a SQUARE - rectilinear, straight edges, absolutely no circles, no round rim, no cylinder. Flat, no perspective, fills the whole tile"
+side = "a full-bleed Minecraft block face: the flat side panel of a boxy welded steel container, a horizontal riveted rib across the middle, vertical weld seams down the left and right edges, scratched grey paint, rust streaks and dents. Flat sheet metal, rectilinear - no curvature, no barrel staves, no cylinder. Muted, fills the whole tile edge to edge"
+
 # ---------------------------------------------------------------------------
 # Crafting component + trash-tier tools (P1.2)
 # ---------------------------------------------------------------------------

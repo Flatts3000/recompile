@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
@@ -19,7 +20,8 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * GameTests for the hand-sorting mechanic (design P0.4): pulling materials from a
- * garbage block and the block crumbling after 1-3 pulls.
+ * garbage block and the block crumbling after 2-3 pulls, plus the tool rules the
+ * sorting economy leans on.
  */
 final class SortingTests {
 
@@ -47,37 +49,45 @@ final class SortingTests {
             helper.succeed();
         });
 
-        // Every garbage block has exactly one tool, and that tool must be the fast way to
-        // cut it loose - otherwise the block is stranded where it generated. The bale is
-        // the knife's: it was the richest block but the slowest to cash in, because
-        // nothing mined it faster than bare hands. Asserts the tag + TOOL component are
-        // really wired, which a compile cannot see.
-        RCGameTests.test("knife_mines_bales_shovel_mines_garbage", 20, helper -> {
+        // Every block has exactly one tool, and that tool must be the fast way to take it
+        // apart - otherwise the block is stranded where it stands. The bale is the knife's
+        // (it was the richest block but the slowest to cash in, because nothing mined it
+        // faster than bare hands); garbage is the shovel's; the barrel is the prybar's -
+        // it is welded steel, so an axe, the vanilla barrel's tool, has no business here.
+        // Asserts the tags + TOOL components are really wired, which a compile cannot see,
+        // and that no tool poaches another's block.
+        RCGameTests.test("one_tool_per_block", 20, helper -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            BlockState bale = RCBlocks.COMPACTED_BALE.get().defaultBlockState();
             BlockState garbage = RCBlocks.GARBAGE_BLOCK.get().defaultBlockState();
+            BlockState bale = RCBlocks.COMPACTED_BALE.get().defaultBlockState();
+            BlockState barrel = RCBlocks.SCRAP_BARREL.get().defaultBlockState();
 
-            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.SCRAP_KNIFE.get()));
-            float knifeOnBale = player.getDestroySpeed(bale);
-            float knifeOnGarbage = player.getDestroySpeed(garbage);
+            // Each tool against every block, so a tag pointed at the wrong one is caught.
+            record Tool(String name, Item item, BlockState owns) {}
+            List<Tool> tools = List.of(
+                new Tool("junk shovel", RCItems.JUNK_SHOVEL.get(), garbage),
+                new Tool("scrap knife", RCItems.SCRAP_KNIFE.get(), bale),
+                new Tool("prybar", RCItems.PRYBAR.get(), barrel));
+            List<BlockState> blocks = List.of(garbage, bale, barrel);
 
-            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.JUNK_SHOVEL.get()));
-            float shovelOnGarbage = player.getDestroySpeed(garbage);
-            float shovelOnBale = player.getDestroySpeed(bale);
+            for (Tool tool : tools) {
+                for (BlockState block : blocks) {
+                    player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                    float bare = player.getDestroySpeed(block);
+                    player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(tool.item()));
+                    float withTool = player.getDestroySpeed(block);
 
-            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-            float bareHand = player.getDestroySpeed(bale);
-
-            helper.assertTrue(knifeOnBale > bareHand,
-                "the scrap knife must cut a bale loose faster than bare hands (got "
-                    + knifeOnBale + " vs " + bareHand + ") - check recompile:mineable/knife");
-            helper.assertTrue(shovelOnGarbage > bareHand,
-                "the junk shovel must dig garbage faster than bare hands");
-            // One tool per block: neither tool may poach the other's job.
-            helper.assertTrue(shovelOnBale == bareHand,
-                "the shovel must not dig bales - that is the knife's job");
-            helper.assertTrue(knifeOnGarbage == bareHand,
-                "the knife must not dig garbage - that is the shovel's job");
+                    if (block == tool.owns()) {
+                        helper.assertTrue(withTool > bare, tool.name()
+                            + " must mine its own block faster than bare hands (got "
+                            + withTool + " vs " + bare + ") - check its recompile:mineable/* tag");
+                    } else {
+                        helper.assertTrue(withTool == bare, tool.name()
+                            + " must not poach another tool's block (got " + withTool
+                            + " vs " + bare + " bare)");
+                    }
+                }
+            }
             helper.succeed();
         });
 

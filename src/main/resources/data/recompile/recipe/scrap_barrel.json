@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "M M",
+    "MMM"
+  ],
+  "key": {
+    "M": "recompile:scrap_metal"
+  },
+  "result": {
+    "id": "recompile:scrap_barrel",
+    "count": 1
+  }
+}

@@ -7,6 +7,8 @@
   "block.recompile.appliance": "Appliance",
   "block.recompile.scrap_crafting_table": "Scrap Crafting Table",
   "block.recompile.sorting_tarp": "Sorting Tarp",
+  "block.recompile.scrap_barrel": "Scrap Barrel",
+  "container.recompile.scrap_barrel": "Scrap Barrel",
   "block.recompile.dump_mushroom": "Dump Mushroom",
 
   "message.recompile.needs_tool": "You need a %s to open this",
