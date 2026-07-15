@@ -26,7 +26,7 @@ JAVA_HOME="/c/Program Files/Java/jdk-25" ./gradlew build
 
 `runGameTestServer` boots a headless server, runs every registered test in a scripted plot, and exits non-zero on failure. It also loads all worldgen registries and hard-fails on any JSON parse error, so it is the fastest way to validate datapack changes without a GUI. It has no per-test filter - it runs the whole suite (seconds).
 
-Its pass count includes a vanilla built-in test: the mod's own tests run in the `recompile:default` environment, and a `minecraft:default` batch of 1 runs alongside them. "All 4 required tests passed" means 3 of ours plus that one, not 4 of ours.
+Its pass count includes a vanilla built-in test: the mod's own tests run in the `recompile:default` environment, and a `minecraft:default` batch of 1 runs alongside them. So the reported total is always ours **plus one** - don't read it as a count of this mod's tests.
 
 CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent jobs. The `build` job name is load-bearing: main's branch protection requires that status check.
 
@@ -38,7 +38,7 @@ CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent j
 
 **The pick-through loop is the mod's heart.** `SortableBlock` (abstract, extends `FallingBlock`) is shared by `GarbageBlock`, `TrashBagBlock`, `CompactedBaleBlock`, and `ApplianceBlock`. Right-click a placed block to pull one drop from its loot table; progress persists in a blockstate `sorted` IntegerProperty - **a palette flyweight, deliberately not a BlockEntity**, because garbage is the mod's bulk block. Each variant supplies its own pull table, crumble window (`minPulls`/`maxPulls`, rising chance between), and required tool (null = bare hand). Gravity is config-gated in the overridden `tick`.
 
-**The mod has zero BlockEntities and zero Menus, on purpose.** The Sorting Tarp was deliberately rewritten to be stateless: right-click it holding garbage to sift drops into the world, no GUI, no internal inventory, no hopper automation. Adding a BlockEntity or a Menu is a design reversal - check `../trashlands/docs/design_decisions.md` before doing it.
+**The mod has zero BlockEntities, and no machine GUI, on purpose.** The Sorting Tarp was deliberately rewritten to be stateless: right-click it holding garbage to sift drops into the world, no GUI, no internal inventory, no hopper automation. Any block that stores items or opens a machine screen is a design reversal - check `../trashlands/docs/design_decisions.md` before adding one. The single `Menu` (`ScrapCraftingMenu`) is not an exception to that: it is vanilla's own crafting menu with `stillValid` re-pointed, holding no state of its own.
 
 **Loot: two distinct kinds.** `loot_table/blocks/*` are ordinary block drops. `loot_table/gameplay/{household_pulls,bag_pulls}.json` are **weighted pull streams rolled programmatically** from Java via `reloadableRegistries().getLootTable(key)` + `getRandomItems`, then dropped with `Block.popResource`. They declare `"type": "minecraft:chest"` (which gates loot-context param validation) despite never being a chest. Tuning drop rates means editing these two files, not Java.
 
