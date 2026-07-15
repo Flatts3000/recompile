@@ -56,8 +56,22 @@ import org.jetbrains.annotations.Nullable;
  * Hand-sorting used to average 4.9/2.5/6.9 against a tarp that gave 5/2/12, so hand was
  * as good as the tarp for a garbage block and strictly better for a bag - the station
  * was a downgrade, and the early game handed out materials far too fast. Keep hand
- * visibly worse: it is the always-available option and needs no station, no hauling,
- * and no cooldown. Automation must clear the tarp by a similar margin when it lands.
+ * visibly worse: it is the always-available option and needs no station and no hauling.
+ * Automation must clear the tarp by a similar margin when it lands.
+ *
+ * <p><b>Pulls are yield, not a way to clear ground.</b> Cutting pull counts to tune yield
+ * also makes a block crumble sooner, so it silently speeds up hand-clearing - that is what
+ * {@link #PULL_COOLDOWN_TICKS} exists to hold in check. Each block has exactly one tool
+ * (garbage digs with the junk shovel, a bale is cut with the knife, an appliance is pried),
+ * and no bare-hand action may out-clear a tool. Re-check the ticks below against
+ * {@code minecraft:mineable/shovel} before touching a pull range:
+ *
+ * <pre>
+ *   block            right-click   dig   (20 ticks = 1s)
+ *   garbage_block       15.1         5   shovel-tagged, 3.0x faster
+ *   trash_bag           12.0         6   no shovel bonus by design
+ *   compacted_bale      23.1        27   knife's job, not the shovel's
+ * </pre>
  *
  * <p>Garbage obeys gravity (design P0.3): it is a {@link FallingBlock} so mounds slump
  * when quarried. Config-gated by {@code world.garbageGravityEnabled} - the scheduled
@@ -70,10 +84,11 @@ public abstract class SortableBlock extends FallingBlock {
      * cadence, so the whole mod picks through trash at one rhythm.
      *
      * <p>Without this, holding right-click pulled every 4 ticks (the client's use
-     * delay), which tore a garbage block apart in ~8 ticks - faster than digging it
-     * out with the junk shovel, so hands beat tools at clearing ground. It also has
-     * to be a multiple of the 4-tick use delay, or click-spam would outpace holding
-     * and reward exactly the RSI-farming the design rules out.
+     * delay), which tore a garbage block apart in ~8 ticks - faster than the 18 ticks
+     * of digging it out by hand and not far off the shovel's 5, so hands rivalled
+     * tools at clearing ground. It also has to be a multiple of the 4-tick use delay,
+     * or click-spam would outpace holding and reward exactly the RSI-farming the
+     * design rules out.
      *
      * <p>Keyed through {@link net.minecraft.world.item.ItemCooldowns}, whose only
      * public query is by {@link ItemStack} - so a bare-hand pull keys on the empty
