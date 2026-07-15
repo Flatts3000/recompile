@@ -8,7 +8,9 @@ mod_id = "recompile"
 [settings]
 model = "gpt-image-1"
 quality = "low"
-candidate_count = 6
+# 5 = the org's gpt-image-1 per-minute image cap; one call per surface stays under
+# the rate limit, then the backend throttles ~60s before the next surface.
+candidate_count = 5
 
 # ---------------------------------------------------------------------------
 # Blocks
@@ -38,23 +40,27 @@ prompt = "a full-bleed Minecraft block face of a stuffed white/grey plastic tras
 style = "rubble"
 palette = ["#c8c8c0", "#a8a8a0", "#8f8f88", "#d8d8d0", "#707068"]
 
+# Multiface: sides show the wrapped strapping, top/bottom (end) show the cut
+# cross-section. Rendered via cube_bottom_top (end on top+bottom, side on the 4 sides).
 [surface.compacted_bale]
-kind = "block"
-backend = "procedural"
+kind = "block_multiface"
+backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a compacted cube bale of mixed trash bound with wire strapping, dense"
-[surface.compacted_bale.procedural]
-style = "rubble"
-palette = ["#8a7a5a", "#6b5a3e", "#9a8a6a", "#5a5148", "#b0a070"]
+faces = ["end", "side"]
+[surface.compacted_bale.prompt]
+end = "a full-bleed top-down Minecraft block face: the cut end of a compacted cube bale of mixed household trash, a dense packed cross-section of crushed cans, plastic and paper, muted browns and greys, no strapping bands"
+side = "a full-bleed Minecraft block face: the side of a compacted cube bale of mixed household trash bound with two horizontal wire strapping bands, dense crushed debris, muted browns and greys"
 
+# Multiface like the bale: side panels vs the top/bottom (end). Rendered via
+# cube_bottom_top (end on top+bottom, side on the 4 sides).
 [surface.appliance]
-kind = "block"
-backend = "procedural"
+kind = "block_multiface"
+backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a battered dirty-white household appliance panel with dents and rust streaks"
-[surface.appliance.procedural]
-style = "rubble"
-palette = ["#c0c4c8", "#9aa0a6", "#d6dade", "#7a6b4a", "#6f767c"]
+faces = ["end", "side"]
+[surface.appliance.prompt]
+end = "a full-bleed top-down Minecraft block face: the top of a battered dirty-white household appliance, dented sheet metal with faint control-panel marks and rust spots, muted"
+side = "a full-bleed Minecraft block face: the side panel of a battered dirty-white household appliance with dents, scratches and rust streaks, muted greys"
 
 # ---------------------------------------------------------------------------
 # Base material items (the 7-material vocabulary, P0.4)
@@ -176,14 +182,14 @@ palette = ["#c9b58c", "#a48a5e", "#e0d2ac", "#7c6642"]
 # Crafting component + trash-tier tools (P1.2)
 # ---------------------------------------------------------------------------
 
+# Rebar keeps the vanilla stick silhouette (a diagonal rod) but retinted to rusty
+# steel - a recognizable "bent rod" shape, retextured, not AI-generated.
 [surface.rebar]
 kind = "item"
-backend = "procedural"
+backend = "retint"
 size = 16
-prompt = "a short length of rusty steel reinforcing bar (rebar), Minecraft item icon on transparent background"
-[surface.rebar.procedural]
-style = "lump"
-palette = ["#8a5a3a", "#6f4a2e", "#a97b53", "#4a3626"]
+tint = "#a9713f"
+source = "item/stick"
 
 [surface.scrap_knife]
 kind = "item"
@@ -203,11 +209,11 @@ prompt = "a bent steel prybar/crowbar, Minecraft tool icon, held diagonally, tra
 style = "lump"
 palette = ["#b04a3a", "#8a3a2e", "#c95a48", "#6f2e26"]
 
+# Junk shovel keeps the vanilla shovel silhouette but retinted to dull scrap grey -
+# same recognizable tool shape, retextured, not AI-generated.
 [surface.junk_shovel]
 kind = "item"
-backend = "procedural"
+backend = "retint"
 size = 16
-prompt = "a crude shovel with a scrap-metal head and a rebar handle, Minecraft tool icon, held diagonally, transparent background"
-[surface.junk_shovel.procedural]
-style = "lump"
-palette = ["#9aa0a6", "#6f767c", "#8a5a3a", "#4c5257"]
+tint = "#9095a0"
+source = "item/iron_shovel"
