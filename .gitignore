@@ -47,8 +47,11 @@ __pycache__/
 docs/CODEMAPS/
 
 # Texture candidate scratch space (raw 1024s, previews, prompt metadata,
-# generator scripts, comparison HTML). Selected candidates get copied into
-# assets/ explicitly.
+# generator scripts, comparison HTML). Only the finalized 16px game textures
+# under assets/ are committed - no raw AI output lands in the repo.
 gen/
+# Selected raw 1024px AI sources (promote copies here to allow re-finalizing
+# without re-hitting the API). Kept local; never committed.
+art_src/
 build_errors.txt
 .claude/

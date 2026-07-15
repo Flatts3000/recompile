@@ -8,7 +8,9 @@ mod_id = "recompile"
 [settings]
 model = "gpt-image-1"
 quality = "low"
-candidate_count = 6
+# 5 = the org's gpt-image-1 per-minute image cap; one call per surface stays under
+# the rate limit, then the backend throttles ~60s before the next surface.
+candidate_count = 5
 
 # ---------------------------------------------------------------------------
 # Blocks
@@ -29,99 +31,88 @@ palette = ["#6b5a3e", "#7a6b4a", "#8a7a5a", "#5a5148", "#4a4038", "#9a8a6a", "#8
 # Garbage block variants (P1.1)
 # ---------------------------------------------------------------------------
 
+# Multiface so a bag reads as a cuboidal block: taut wrinkled sides bulging over
+# contents, a tied knot on top, settled folds on the bottom. Glossy black
+# contractor bag. Rendered via cube_bottom_top (distinct top / bottom / side).
 [surface.trash_bag]
-kind = "block"
-backend = "procedural"
+kind = "block_multiface"
+backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a stuffed white/grey plastic trash bag, wrinkled, tied off, muted"
-[surface.trash_bag.procedural]
-style = "rubble"
-palette = ["#c8c8c0", "#a8a8a0", "#8f8f88", "#d8d8d0", "#707068"]
+faces = ["top", "bottom", "side"]
+[surface.trash_bag.prompt]
+top = "a full-bleed top-down Minecraft block face: the tied-off top of a glossy black plastic contractor trash bag, plastic gathered into a knot at the center with wrinkles radiating outward, dark with subtle sheen highlights"
+bottom = "a full-bleed Minecraft block face: the settled bottom of a glossy black plastic trash bag, horizontal folds and creases, corners tucked under, dark, flatter and plainer"
+side = "a full-bleed Minecraft block face: the side of a stuffed glossy black plastic contractor trash bag, taut plastic bulging over lumpy contents, vertical drape wrinkles and a slight sheen, dark"
 
+# Multiface: sides show the wrapped strapping, top/bottom (end) show the cut
+# cross-section. Rendered via cube_bottom_top (end on top+bottom, side on the 4 sides).
 [surface.compacted_bale]
-kind = "block"
-backend = "procedural"
+kind = "block_multiface"
+backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a compacted cube bale of mixed trash bound with wire strapping, dense"
-[surface.compacted_bale.procedural]
-style = "rubble"
-palette = ["#8a7a5a", "#6b5a3e", "#9a8a6a", "#5a5148", "#b0a070"]
+faces = ["end", "side"]
+[surface.compacted_bale.prompt]
+end = "a full-bleed top-down Minecraft block face: the cut end of a compacted cube bale of mixed household trash, a dense packed cross-section of crushed cans, plastic and paper, muted browns and greys, no strapping bands"
+side = "a full-bleed Minecraft block face: the side of a compacted cube bale of mixed household trash bound with two horizontal wire strapping bands, dense crushed debris, muted browns and greys"
 
+# Multiface like the bale: side panels vs the top/bottom (end). Rendered via
+# cube_bottom_top (end on top+bottom, side on the 4 sides).
 [surface.appliance]
-kind = "block"
-backend = "procedural"
+kind = "block_multiface"
+backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a battered dirty-white household appliance panel with dents and rust streaks"
-[surface.appliance.procedural]
-style = "rubble"
-palette = ["#c0c4c8", "#9aa0a6", "#d6dade", "#7a6b4a", "#6f767c"]
+faces = ["end", "side"]
+[surface.appliance.prompt]
+end = "a full-bleed top-down Minecraft block face: the top of a battered dirty-white household appliance, dented sheet metal with faint control-panel marks and rust spots, muted"
+side = "a full-bleed Minecraft block face: the side panel of a battered dirty-white household appliance with dents, scratches and rust streaks, muted greys"
 
 # ---------------------------------------------------------------------------
 # Base material items (the 7-material vocabulary, P0.4)
 # ---------------------------------------------------------------------------
 
+# AI item icons on transparent backgrounds. Colour is the main 16px differentiator,
+# so junk is pushed brown/mixed to stay distinct from steely scrap_metal.
 [surface.scrap_metal]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a small twisted lump of dull scrap metal, Minecraft item icon on transparent background"
-[surface.scrap_metal.procedural]
-style = "lump"
-palette = ["#9aa0a6", "#6f767c", "#c2c8cd", "#4c5257"]
+prompt = "a small twisted lump of dull steely-grey scrap metal, bent nails and wire, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.plastic_scrap]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a wad of crushed multicolored plastic scrap, muted, Minecraft item icon on transparent background"
-[surface.plastic_scrap.procedural]
-style = "lump"
-palette = ["#c8b7a0", "#a76b6b", "#6b8fa7", "#dcdcd0"]
+prompt = "a crushed wad of muted multicolored plastic scrap, faded red blue and white shreds, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.glass_shards]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a small pile of pale teal broken glass shards, Minecraft item icon on transparent background"
-[surface.glass_shards.procedural]
-style = "lump"
-palette = ["#7fb0a6", "#a9d8cf", "#4f7a72", "#cfeae4"]
+prompt = "a small pile of pale teal-green broken glass shards, sharp translucent fragments, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.organic_muck]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a glob of dark brown-green organic muck, Minecraft item icon on transparent background"
-[surface.organic_muck.procedural]
-style = "lump"
-palette = ["#5a4a2e", "#6e5a34", "#7a6a3a", "#443a24"]
+prompt = "a wet glob of dark brown-green organic muck, compost sludge, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.fiber_scrap]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a tangle of frayed tan fabric and fiber scrap, Minecraft item icon on transparent background"
-[surface.fiber_scrap.procedural]
-style = "lump"
-palette = ["#c9b58c", "#a48a5e", "#e0d2ac", "#7c6642"]
+prompt = "a tangle of frayed tan cloth and fiber scrap with loose threads, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.e_scrap]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a broken green circuit board fragment with gold contacts, Minecraft item icon on transparent background"
-[surface.e_scrap.procedural]
-style = "lump"
-palette = ["#2f7d4f", "#3f9d63", "#c7a33a", "#1f5236"]
+prompt = "a broken green circuit board fragment with gold contacts and tiny components, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.junk]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a nondescript grey lump of compacted junk filler, Minecraft item icon on transparent background"
-[surface.junk.procedural]
-style = "lump"
-palette = ["#8a8478", "#6f6a60", "#a39c8e", "#585349"]
+prompt = "a compacted lump of mixed brown-grey junk filler, crushed cardboard and grit, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # ---------------------------------------------------------------------------
 # Scrap crafting table (bootstrap 3x3 station)
@@ -142,72 +133,53 @@ side = "block/crafting_table_side"
 bottom = "block/oak_planks"
 
 # ---------------------------------------------------------------------------
-# Sorting Tarp + screens (P1.3)
+# Sorting Tarp (P1.3) - a jury-rigged sorting TABLE, rendered by a custom multi-
+# element model (models/block/sorting_tarp.json): tarp-covered top spread with junk,
+# tarp/sack sides, salvaged frame legs. Screens were dropped (design revision).
 # ---------------------------------------------------------------------------
 
 [surface.sorting_tarp]
-kind = "block"
-backend = "procedural"
+kind = "block_multiface"
+backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a canvas tarp with a small heap of sorted trash on it, worn brown fabric with a rebar frame edge"
-[surface.sorting_tarp.procedural]
-style = "rubble"
-palette = ["#7a6a4a", "#5f5238", "#8f7d58", "#4a4030", "#9a8a6a"]
-
-[surface.metal_screen]
-kind = "item"
-backend = "procedural"
-size = 16
-prompt = "a square metal mesh sorting screen in a rebar frame, Minecraft item icon on transparent background"
-[surface.metal_screen.procedural]
-style = "lump"
-palette = ["#9aa0a6", "#6f767c", "#c2c8cd", "#4c5257"]
-
-[surface.organics_screen]
-kind = "item"
-backend = "procedural"
-size = 16
-prompt = "a square woven-fiber sorting screen in a rebar frame, Minecraft item icon on transparent background"
-[surface.organics_screen.procedural]
-style = "lump"
-palette = ["#c9b58c", "#a48a5e", "#e0d2ac", "#7c6642"]
+faces = ["top", "side", "leg"]
+[surface.sorting_tarp.prompt]
+top = "a full-bleed top-down Minecraft block face: a worn canvas tarp work surface spread with a small pile of mixed sorted trash, muted browns and greys, gritty"
+side = "a full-bleed Minecraft block face: the side of a jury-rigged sorting table, a worn tarp draping over the edge with a striped woven-plastic bulk sack slumped against it, muted browns with a faded band of blue and red stripe"
+leg = "a full-bleed Minecraft block face: a salvaged scrap-metal and weathered-wood table leg, rusty and worn, muted, vertical grain"
 
 # ---------------------------------------------------------------------------
 # Crafting component + trash-tier tools (P1.2)
 # ---------------------------------------------------------------------------
 
+# Rebar keeps the vanilla stick silhouette (a diagonal rod) but retinted to rusty
+# steel - a recognizable "bent rod" shape, retextured, not AI-generated.
 [surface.rebar]
 kind = "item"
-backend = "procedural"
+backend = "retint"
 size = 16
-prompt = "a short length of rusty steel reinforcing bar (rebar), Minecraft item icon on transparent background"
-[surface.rebar.procedural]
-style = "lump"
-palette = ["#8a5a3a", "#6f4a2e", "#a97b53", "#4a3626"]
+tint = "#a9713f"
+source = "item/stick"
 
+# No vanilla knife to retint, so AI item icon on a transparent background.
 [surface.scrap_knife]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a crude knife with a scrap-metal blade and a rebar handle, Minecraft tool icon, held diagonally, transparent background"
-[surface.scrap_knife.procedural]
-style = "lump"
-palette = ["#9aa0a6", "#6f767c", "#8a5a3a", "#4c5257"]
+prompt = "a crude knife held diagonally, a jagged scrap-metal blade and a wrapped rusty-rebar handle, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# No vanilla crowbar to retint, so AI item icon on a transparent background.
 [surface.prybar]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
-prompt = "a bent steel prybar/crowbar, Minecraft tool icon, held diagonally, transparent background"
-[surface.prybar.procedural]
-style = "lump"
-palette = ["#b04a3a", "#8a3a2e", "#c95a48", "#6f2e26"]
+prompt = "a bent steel crowbar prybar held diagonally, one hooked flattened pry end, rusty red-brown steel, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# Junk shovel keeps the vanilla shovel silhouette but retinted to dull scrap grey -
+# same recognizable tool shape, retextured, not AI-generated.
 [surface.junk_shovel]
 kind = "item"
-backend = "procedural"
+backend = "retint"
 size = 16
-prompt = "a crude shovel with a scrap-metal head and a rebar handle, Minecraft tool icon, held diagonally, transparent background"
-[surface.junk_shovel.procedural]
-style = "lump"
-palette = ["#9aa0a6", "#6f767c", "#8a5a3a", "#4c5257"]
+tint = "#9095a0"
+source = "item/iron_shovel"

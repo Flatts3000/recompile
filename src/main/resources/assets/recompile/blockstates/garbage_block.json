@@ -1,34 +1,286 @@
 {
   "variants": {
     "sorted=0": [
-      { "model": "recompile:block/garbage_block_0" },
-      { "model": "recompile:block/garbage_block_1" },
-      { "model": "recompile:block/garbage_block_2" }
+      {
+        "model": "recompile:block/garbage_block_0"
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_1"
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_2"
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 270
+      }
     ],
     "sorted=1": [
-      { "model": "recompile:block/garbage_block_0" },
-      { "model": "recompile:block/garbage_block_1" },
-      { "model": "recompile:block/garbage_block_2" }
+      {
+        "model": "recompile:block/garbage_block_0"
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_1"
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_2"
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 270
+      }
     ],
     "sorted=2": [
-      { "model": "recompile:block/garbage_block_0" },
-      { "model": "recompile:block/garbage_block_1" },
-      { "model": "recompile:block/garbage_block_2" }
+      {
+        "model": "recompile:block/garbage_block_0"
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_1"
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_2"
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 270
+      }
     ],
     "sorted=3": [
-      { "model": "recompile:block/garbage_block_0" },
-      { "model": "recompile:block/garbage_block_1" },
-      { "model": "recompile:block/garbage_block_2" }
+      {
+        "model": "recompile:block/garbage_block_0"
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_1"
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_2"
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 270
+      }
     ],
     "sorted=4": [
-      { "model": "recompile:block/garbage_block_0" },
-      { "model": "recompile:block/garbage_block_1" },
-      { "model": "recompile:block/garbage_block_2" }
+      {
+        "model": "recompile:block/garbage_block_0"
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_1"
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_2"
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 270
+      }
     ],
     "sorted=5": [
-      { "model": "recompile:block/garbage_block_0" },
-      { "model": "recompile:block/garbage_block_1" },
-      { "model": "recompile:block/garbage_block_2" }
+      {
+        "model": "recompile:block/garbage_block_0"
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_0",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_1"
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_1",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/garbage_block_2"
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/garbage_block_2",
+        "y": 270
+      }
     ]
   }
 }

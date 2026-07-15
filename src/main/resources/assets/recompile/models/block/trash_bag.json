@@ -1,6 +1,8 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "all": "recompile:block/trash_bag"
+    "top": "recompile:block/trash_bag_top",
+    "bottom": "recompile:block/trash_bag_bottom",
+    "side": "recompile:block/trash_bag_side"
   }
 }

@@ -1,6 +1,8 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "all": "recompile:block/appliance"
+    "top": "recompile:block/appliance_end",
+    "bottom": "recompile:block/appliance_end",
+    "side": "recompile:block/appliance_side"
   }
 }
