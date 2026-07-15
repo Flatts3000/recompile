@@ -40,11 +40,69 @@ import org.jetbrains.annotations.Nullable;
  * it takes to open (null = bare hand). Subclasses provide their own {@code sorted}
  * property so the persisted range matches how many pulls that variant allows.
  *
+ * <p><b>Recovery tiers.</b> The pull table says what is <em>in</em> a block; the method
+ * says how much of it you get out. The ladder is hand &lt;&lt; Sorting Tarp &lt;&lt;
+ * automation (a later phase), and the lever is rolls per block, so a table edit retunes
+ * every tier at once. Expected pulls are E[crumble] over {@link #shouldCrumble}, not
+ * {@link #maxPulls}, which is why these look low:
+ *
+ * <pre>
+ *   block            hand (avg)   tarp   ratio
+ *   garbage_block       2.5         6     2.4x
+ *   trash_bag           2.0         4     2.0x
+ *   compacted_bale      3.5         8     2.3x
+ * </pre>
+ *
+ * Hand-sorting used to average 4.9/2.5/6.9 against a tarp that gave 5/2/12, so hand was
+ * as good as the tarp for a garbage block and strictly better for a bag - the station
+ * was a downgrade, and the early game handed out materials far too fast. Keep hand
+ * visibly worse: it is the always-available option and needs no station and no hauling.
+ * Automation must clear the tarp by a similar margin when it lands.
+ *
+ * <p><b>{@code minPulls} is a floor, and it is load-bearing.</b> It is not a tuning knob:
+ * it is the guarantee that a block never comes apart in one touch. Dropping it to 1 made
+ * a third of garbage blocks and half of all bags vanish on the first click, which reads
+ * as an instant break and let bare hands strip ground faster than any tool - no cooldown
+ * fixes that, because the block is already gone. Keep {@code minPulls >= 2}.
+ *
+ * <p><b>Pulls are yield AND time; the two cannot be tuned apart.</b> Fewer pulls means
+ * less yield but a faster crumble, so cutting pulls to slow the economy silently speeds
+ * up clearing. Yield is traded against the tarp's rolls, never against the floor. Each
+ * block has exactly one tool - garbage digs with the junk shovel, a bale is cut with the
+ * knife, an appliance is pried - and no bare-hand action may out-clear a tool. Re-check
+ * these ticks (20 = 1s) against {@code minecraft:mineable/shovel} before touching a range:
+ *
+ * <pre>
+ *   block            right-click   dig
+ *   garbage_block       20.0         5   shovel-tagged, 4.0x faster
+ *   trash_bag           16.0         6   no shovel bonus by design
+ *   compacted_bale      28.0        27   knife's job, not the shovel's
+ * </pre>
+ *
  * <p>Garbage obeys gravity (design P0.3): it is a {@link FallingBlock} so mounds slump
  * when quarried. Config-gated by {@code world.garbageGravityEnabled} - the scheduled
  * fall tick only drops the block when gravity is on.
  */
 public abstract class SortableBlock extends FallingBlock {
+
+    /**
+     * Ticks between pulls from one player's hands. Matches the Sorting Tarp's sift
+     * cadence, so the whole mod picks through trash at one rhythm.
+     *
+     * <p>Without this, holding right-click pulled every 4 ticks (the client's use
+     * delay), which tore a garbage block apart in ~8 ticks - faster than the 18 ticks
+     * of digging it out by hand and not far off the shovel's 5, so hands rivalled
+     * tools at clearing ground. It also has to be a multiple of the 4-tick use delay,
+     * or click-spam would outpace holding and reward exactly the RSI-farming the
+     * design rules out.
+     *
+     * <p>Keyed through {@link net.minecraft.world.item.ItemCooldowns}, whose only
+     * public query is by {@link ItemStack} - so a bare-hand pull keys on the empty
+     * stack, whose cooldown group is {@code minecraft:air}. Vanilla never puts a
+     * cooldown on air, and keying on the *empty* stack rather than whatever is held
+     * means a player cannot dodge the gate by swapping items between pulls.
+     */
+    public static final int PULL_COOLDOWN_TICKS = 8;
 
     protected SortableBlock(Properties properties) {
         super(properties);
@@ -87,6 +145,9 @@ public abstract class SortableBlock extends FallingBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hit) {
         if (requiredTool() == null) {
+            if (!takePull(player, ItemStack.EMPTY)) {
+                return InteractionResult.SUCCESS;
+            }
             if (level instanceof ServerLevel serverLevel) {
                 sort(serverLevel, pos);
             }
@@ -106,12 +167,28 @@ public abstract class SortableBlock extends FallingBlock {
             Player player, InteractionHand hand, BlockHitResult hit) {
         Item tool = requiredTool();
         if (tool != null && stack.is(tool)) {
+            if (!takePull(player, stack)) {
+                return InteractionResult.SUCCESS;
+            }
             if (level instanceof ServerLevel serverLevel) {
                 sort(serverLevel, pos);
             }
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    /**
+     * Claim this player's next pull, or refuse if they are still on cooldown.
+     * Runs on both sides, matching the Sorting Tarp: the client gate keeps it from
+     * spamming use packets the server would only drop.
+     */
+    private static boolean takePull(Player player, ItemStack key) {
+        if (player.getCooldowns().isOnCooldown(key)) {
+            return false;
+        }
+        player.getCooldowns().addCooldown(key, PULL_COOLDOWN_TICKS);
+        return true;
     }
 
     /** Pull once: roll this variant's table, drop it, advance progress, crumble if spent. */

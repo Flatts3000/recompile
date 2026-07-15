@@ -18,7 +18,11 @@ Recompile is the engine; **Trashlands** is its showcase modpack (the Productive 
 
 ## Status
 
-**Design phase - no code yet** (2026-07-14). The design is locked through the mid-game tiers; the next milestone is a one-week feasibility slice (custom garbage worldgen + one garbage block that tears down into sorted materials). The Gradle NeoForge project is added when the slice starts, against the confirmed NeoForge / MC 26.1 toolchain.
+**Alpha, playable** (2026-07-15). Built against MC `26.1.2` / NeoForge `26.1.2.76`.
+
+Shipped: the garbage world (custom preset, coarse-dirt plain, mounds), the Blocks of Garbage and their variants (bags, bales, appliances), the trash-tier tools, the Sorting Tarp, dimension lockout, and the food tier (scavenged tin cans, foraged dump mushrooms).
+
+Next: **teardown-as-knowledge** (the Recompile Workbench), the mod's distinct axis. Its data spine - the public `recompile:teardown` recipe type - is already in place. See [`docs/roadmap.md`](docs/roadmap.md) for the build order.
 
 ## License
 

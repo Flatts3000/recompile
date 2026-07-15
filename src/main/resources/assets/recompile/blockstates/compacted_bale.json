@@ -1,12 +1,16 @@
 {
   "variants": {
-    "sorted=0": { "model": "recompile:block/compacted_bale" },
-    "sorted=1": { "model": "recompile:block/compacted_bale" },
-    "sorted=2": { "model": "recompile:block/compacted_bale" },
-    "sorted=3": { "model": "recompile:block/compacted_bale" },
-    "sorted=4": { "model": "recompile:block/compacted_bale" },
-    "sorted=5": { "model": "recompile:block/compacted_bale" },
-    "sorted=6": { "model": "recompile:block/compacted_bale" },
-    "sorted=7": { "model": "recompile:block/compacted_bale" }
+    "sorted=0": {
+      "model": "recompile:block/compacted_bale"
+    },
+    "sorted=1": {
+      "model": "recompile:block/compacted_bale"
+    },
+    "sorted=2": {
+      "model": "recompile:block/compacted_bale"
+    },
+    "sorted=3": {
+      "model": "recompile:block/compacted_bale"
+    }
   }
 }

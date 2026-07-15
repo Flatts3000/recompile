@@ -8,7 +8,8 @@
         { "type": "minecraft:item", "name": "recompile:fiber_scrap", "weight": 25 },
         { "type": "minecraft:item", "name": "recompile:plastic_scrap", "weight": 25 },
         { "type": "minecraft:item", "name": "recompile:organic_muck", "weight": 15 },
-        { "type": "minecraft:item", "name": "recompile:glass_shards", "weight": 5 }
+        { "type": "minecraft:item", "name": "recompile:glass_shards", "weight": 5 },
+        { "type": "minecraft:item", "name": "recompile:tin_can", "weight": 5 }
       ]
     }
   ]

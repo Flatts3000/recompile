@@ -3,13 +3,16 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.ApplianceBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
+import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -96,6 +99,22 @@ public final class RCBlocks {
             .strength(0.8F)
             .sound(SoundType.WOOL)
             .noOcclusion()
+    );
+
+    /**
+     * Dump mushroom (P1.9): the forageable plant. Grows on vanilla mycelium in any
+     * light; breaking it drops the edible {@code dump_mushroom} item. No block-item -
+     * it is worldgen-placed and foraged, not planted (farming is a later tier).
+     */
+    public static final DeferredBlock<DumpMushroomBlock> DUMP_MUSHROOM = BLOCKS.registerBlock(
+        "dump_mushroom",
+        DumpMushroomBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .noCollision()
+            .instabreak()
+            .sound(SoundType.GRASS)
+            .pushReaction(PushReaction.DESTROY)
     );
 
     private RCBlocks() {

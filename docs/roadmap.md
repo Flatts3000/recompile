@@ -1,6 +1,9 @@
 # Recompile - implementation roadmap
 
-**Status:** Phase 0 and Phase 1 shipped to `main` (2026-07-14). Phases are ordered by
+**Status:** Phases 0 through 2.5 shipped to `main` (2026-07-15) - the mod is a playable alpha
+and the early loop is tuned against real play. Next is **Phase 3, teardown-as-knowledge**, the
+distinct axis; its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
+are ordered by
 **gameplay discovery** - the sequence a player actually lives, so each phase delivers a
 coherent playable increment. The locked feature design is the source of truth in the
 Trashlands repo (`../trashlands/docs/design_decisions.md` + `feature_matrix.md`); this
@@ -45,7 +48,7 @@ The go/no-go slice - spawn, dig, sort, get materials, in a world that reads as a
 
 ---
 
-## Phase 2 - The early loop  *(design P1.1 / P1.2 / P1.3 / P1.8)*
+## Phase 2 - The early loop  *(DONE, design P1.1 / P1.2 / P1.3 / P1.8)*
 
 What the player reaches for the moment hand-sorting palls: better tools and a faster sort.
 - **Trash tools (P1.2):** scrap knife, prybar, junk shovel, rebar (universal handle). No
@@ -53,14 +56,44 @@ What the player reaches for the moment hand-sorting palls: better tools and a fa
 - **Garbage variants (P1.1):** bags (hand/instant), bales (scrap knife), appliances (prybar).
   One interlocking tool+block matrix. Appliances are introduced here as the future teardown
   input - the on-ramp to Phase 3.
-- **Sorting Tarp (P1.3):** the batch upgrade to the sort verb - the hold-to-sort UI later
-  machines inherit; screen slot skews *what*, not *how much*.
+- **Sorting Tarp (P1.3):** the batch upgrade to the sort verb. Shipped *without* the GUI or
+  screen slot this originally called for - the locked revision makes it stateless: right-click
+  it holding garbage, sorted materials drop into the world. Hopper-proof by construction.
 - **Dimension lockout (P1.8):** cheap config disabling Nether/End portals. Pulled in here
   (ahead of its "try a portal" discovery slot) to plug the vanilla-resource leak early.
 - Fold in garbage-block gravity (deferred from Phase 1).
 
 **Exit:** the full pre-knowledge loop - scavenge with real tools, meet every garbage type, sort
 at two speeds.
+
+**Recovery ladder (tuned 2026-07-15, in play).** The pull table says what is *in* a block; the
+method decides how much of it you get out. The ladder is **hand << tarp << automation**, and it
+is load-bearing enough to have broken twice - the numbers live on `SortableBlock`'s javadoc, and
+the reasoning in `../trashlands/docs/design_decisions.md` (P1.3). Two rules for anyone retuning:
+
+- `minPulls` is a **floor**, not a knob: it guarantees a block never comes apart in one touch.
+  At 1, a third of garbage blocks vanished on the first click and bare hands out-cleared tools.
+- **Pulls are yield *and* time.** Cutting pulls to slow the economy silently speeds up clearing.
+  Trade yield against the tarp's rolls instead. By hand you get one roll per pull cooldown, so
+  the material rate (~2.65 items/s) is set by the cooldown alone, not by pull counts.
+
+**One tool per block:** garbage digs with the junk shovel, a bale is cut with the scrap knife
+(`recompile:mineable/knife` - it both opens *and* frees a bale, or the tarp's best input would
+be stranded where it generated), an appliance is pried. No bare-hand action may out-clear a tool.
+
+## Phase 2.5 - Food, the survive tier  *(DONE, design P1.9)*
+
+Pulled in ahead of Phase 3: Minecraft ships a hunger bar, so a playable alpha needs an answer
+before the knowledge system, and this is not a survival-pressure pack (no thirst, no grind).
+
+- **Creature-free starting biome, on purpose** - a silent plain sells the dead world and makes
+  the reclamation payoff land. So food is forage + scavenge, never hunting.
+- **Tin cans (scavenge):** drop from the pull tables, sealed -> opened with the scrap knife,
+  and eating one rolls a random effect. Suspicious Stew's risk, moved onto the dump's food.
+- **Dump mushrooms (forage):** a first-party edible growing on vanilla-mycelium patches between
+  mounds. Vanilla mushrooms are left untouched.
+- **Deferred:** the scrap planter + muck compost (waits on Phase 3 so its knowledge gating is
+  real), and roaches / infested blocks.
 
 ## Phase 3 - Teardown-as-knowledge  *(design P1.4) - the distinct axis*
 

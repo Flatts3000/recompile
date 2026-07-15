@@ -106,16 +106,23 @@ public class SortingTarpBlock extends Block {
         }
     }
 
-    /** How many material rolls one of this input yields (0 = not a valid sorting input). */
+    /**
+     * How many material rolls one of this input yields (0 = not a valid sorting input).
+     *
+     * <p>These are the middle rung of the recovery ladder documented on
+     * {@link SortableBlock}: each must stay clearly above what the same block gives to
+     * bare hands (1.9 / 1.5 / 2.9 on average) and leave room for automation above.
+     * The bale was 12 - a jackpot that outpaced everything else in the tier.
+     */
     private static int outputRolls(Item item) {
         if (item == RCItems.GARBAGE_BLOCK.get().asItem()) {
-            return 5;
+            return 6;
         }
         if (item == RCItems.TRASH_BAG.get().asItem()) {
-            return 2;
+            return 4;
         }
         if (item == RCItems.COMPACTED_BALE.get().asItem()) {
-            return 12;
+            return 8;
         }
         return 0;
     }

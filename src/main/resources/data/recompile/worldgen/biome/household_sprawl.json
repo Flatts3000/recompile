@@ -28,7 +28,7 @@
   "carvers": [],
   "features": [
     [], [], [], [], [], [], [], [], [],
-    [ "recompile:garbage_mound" ],
+    [ "recompile:garbage_mound", "recompile:mycelium_patch" ],
     []
   ]
 }

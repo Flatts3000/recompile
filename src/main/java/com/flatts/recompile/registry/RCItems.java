@@ -1,7 +1,10 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.item.OpenedCanItem;
+import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ToolMaterial;
@@ -44,14 +47,33 @@ public final class RCItems {
     public static final DeferredItem<Item> REBAR = ITEMS.registerItem("rebar", Item::new);
     public static final DeferredItem<Item> JUNK_SHOVEL = ITEMS.registerItem(
         "junk_shovel", props -> new Item(props.shovel(ToolMaterial.STONE, 1.5F, -3.0F)));
+    // The knife is a cutting tool, not a sword: it mines its own tag
+    // (recompile:mineable/knife = bales) the way a shovel mines mineable/shovel, so the
+    // one tool that opens a bale is also the one that cuts it loose for the tarp.
     public static final DeferredItem<Item> SCRAP_KNIFE = ITEMS.registerItem(
-        "scrap_knife", props -> new Item(props.sword(ToolMaterial.STONE, 1.0F, -2.0F)));
+        "scrap_knife",
+        props -> new Item(props.tool(ToolMaterial.STONE, RCTags.MINEABLE_WITH_KNIFE, 1.0F, -2.0F, 0.0F)));
     public static final DeferredItem<Item> PRYBAR = ITEMS.registerItem(
         "prybar", props -> new Item(props.sword(ToolMaterial.STONE, 2.0F, -2.6F)));
 
     /** The starter tool trio (creative tab ordering). */
     public static final List<DeferredItem<Item>> TRASH_TOOLS = List.of(
         SCRAP_KNIFE, PRYBAR, JUNK_SHOVEL);
+
+    // ---------------- Food (P1.9) ----------------
+    // Scavenged tin cans: a sealed can opens with a scrap knife into an opened can
+    // that eats like Suspicious Stew (a random effect - the risk staple). The dump
+    // mushroom is the humble forage staple, foraged off garbage mycelium.
+    public static final DeferredItem<Item> TIN_CAN = ITEMS.registerItem("tin_can", SealedCanItem::new);
+    public static final DeferredItem<Item> TIN_CAN_OPEN = ITEMS.registerItem(
+        "tin_can_open",
+        props -> new OpenedCanItem(props.food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.3F).build())));
+    public static final DeferredItem<Item> DUMP_MUSHROOM = ITEMS.registerItem(
+        "dump_mushroom",
+        props -> new Item(props.food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1F).build())));
+
+    /** Food items in creative-tab order. */
+    public static final List<DeferredItem<Item>> FOOD = List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM);
 
     // ---------------- Blocks-as-items ----------------
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
