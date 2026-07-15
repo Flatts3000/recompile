@@ -58,6 +58,7 @@ public final class RCGameTests {
         SortingTests.register();
         SortingTarpTests.register();
         ForageTests.register();
+        CraftingTableTests.register();
 
         FUNCTIONS.register(modEventBus);
         modEventBus.addListener(RCGameTests::onRegisterGameTests);

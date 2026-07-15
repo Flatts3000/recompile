@@ -102,22 +102,7 @@ public final class RCBlocks {
     );
 
     /**
-     * Garbage mycelium (P1.9): the forage substrate. A fungal crust on the coarse dirt
-     * that the player cannot pick up ({@code noLootTable}); worldgen scatters it in
-     * patches and dump mushrooms grow on it. No block-item.
-     */
-    public static final DeferredBlock<Block> GARBAGE_MYCELIUM = BLOCKS.registerBlock(
-        "garbage_mycelium",
-        Block::new,
-        () -> BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_PURPLE)
-            .strength(0.6F)
-            .sound(SoundType.GRASS)
-            .noLootTable()
-    );
-
-    /**
-     * Dump mushroom (P1.9): the forageable plant. Grows on garbage mycelium in any
+     * Dump mushroom (P1.9): the forageable plant. Grows on vanilla mycelium in any
      * light; breaking it drops the edible {@code dump_mushroom} item. No block-item -
      * it is worldgen-placed and foraged, not planted (farming is a later tier).
      */

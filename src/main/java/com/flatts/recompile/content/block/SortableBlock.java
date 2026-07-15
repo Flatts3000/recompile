@@ -40,6 +40,25 @@ import org.jetbrains.annotations.Nullable;
  * it takes to open (null = bare hand). Subclasses provide their own {@code sorted}
  * property so the persisted range matches how many pulls that variant allows.
  *
+ * <p><b>Recovery tiers.</b> The pull table says what is <em>in</em> a block; the method
+ * says how much of it you get out. The ladder is hand &lt;&lt; Sorting Tarp &lt;&lt;
+ * automation (a later phase), and the lever is rolls per block, so a table edit retunes
+ * every tier at once. Expected pulls are E[crumble] over {@link #shouldCrumble}, not
+ * {@link #maxPulls}, which is why these look low:
+ *
+ * <pre>
+ *   block            hand (avg)   tarp   ratio
+ *   garbage_block       1.9         5     2.6x
+ *   trash_bag           1.5         3     2.0x
+ *   compacted_bale      2.9         8     2.8x
+ * </pre>
+ *
+ * Hand-sorting used to average 4.9/2.5/6.9 against a tarp that gave 5/2/12, so hand was
+ * as good as the tarp for a garbage block and strictly better for a bag - the station
+ * was a downgrade, and the early game handed out materials far too fast. Keep hand
+ * visibly worse: it is the always-available option and needs no station, no hauling,
+ * and no cooldown. Automation must clear the tarp by a similar margin when it lands.
+ *
  * <p>Garbage obeys gravity (design P0.3): it is a {@link FallingBlock} so mounds slump
  * when quarried. Config-gated by {@code world.garbageGravityEnabled} - the scheduled
  * fall tick only drops the block when gravity is on.

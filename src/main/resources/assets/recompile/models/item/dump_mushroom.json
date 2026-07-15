@@ -1,4 +1,4 @@
 {
   "parent": "minecraft:item/generated",
-  "textures": { "layer0": "recompile:item/dump_mushroom" }
+  "textures": { "layer0": "recompile:block/dump_mushroom" }
 }

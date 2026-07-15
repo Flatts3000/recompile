@@ -135,22 +135,22 @@ reference = "tin_can"
 prompt = "keep this exact can unchanged - same grey steel body, same dents, same faded red-and-white label, same size and position. Change only the top: the lid is cut open and peeled halfway back as a jagged curled metal disc, revealing dull mystery contents inside the rim. Plain transparent background, no scene"
 
 # ---------------------------------------------------------------------------
-# Forage (P1.9) - dump mushroom (cross-model plant + edible item) and the
-# garbage_mycelium substrate top (a mycelium-crust block face; sides reuse vanilla
-# coarse_dirt in the model).
+# Forage (P1.9) - the dump mushroom. The substrate is vanilla minecraft:mycelium,
+# so there is no first-party substrate surface here.
+#
+# kind = "block" (not "item") because the sprite feeds a cross-model BLOCK: the
+# blocks atlas only stitches textures/block/**, so an item-atlas sprite renders as
+# the missing texture in-world. The item icon reuses this same block texture, which
+# is exactly what vanilla does for brown_mushroom. `transparent` holds the alpha
+# that kind = "block" would otherwise turn off.
 # ---------------------------------------------------------------------------
 
 [surface.dump_mushroom]
-kind = "item"
+kind = "block"
+transparent = true
 backend = "ai"
 size = 16
 prompt = "a single small drab scavenged dump mushroom, a pale grey-brown fungal cap on a short stalk, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
-
-[surface.garbage_mycelium]
-kind = "block"
-backend = "ai"
-size = 16
-prompt = "a full-bleed top-down Minecraft block face of a grey-purple fungal mycelium crust spreading over dark dirt, fine pale spores and threads, muted, gritty"
 
 # ---------------------------------------------------------------------------
 # Scrap crafting table (bootstrap 3x3 station)

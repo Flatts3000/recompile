@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.Blocks;
 
 /**
  * GameTests for the hand-sorting mechanic (design P0.4): pulling materials from a
- * garbage block and the block crumbling after 4-6 pulls.
+ * garbage block and the block crumbling after 1-3 pulls.
  */
 final class SortingTests {
 
@@ -27,11 +27,11 @@ final class SortingTests {
             BlockPos abs = helper.absolutePos(pos);
 
             boolean crumbled = false;
-            for (int i = 0; i < 6 && !crumbled; i++) {
+            for (int i = 0; i < 3 && !crumbled; i++) {
                 crumbled = GarbageBlock.sortOnce(level, abs);
             }
 
-            helper.assertTrue(crumbled, "garbage block should crumble within 6 pulls");
+            helper.assertTrue(crumbled, "garbage block should crumble within 3 pulls");
             helper.assertBlockPresent(Blocks.AIR, pos);
             helper.assertEntityPresent(EntityType.ITEM);
             helper.succeed();

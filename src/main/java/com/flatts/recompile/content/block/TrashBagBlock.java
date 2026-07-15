@@ -11,13 +11,15 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Trash bag (design P1.1): soft surface litter. Bare-hand, quick small pulls (2-3),
+ * Trash bag (design P1.1): soft surface litter. Bare-hand, quick small pulls (1-2),
  * a lighter pull table than the garbage block. Generates on mound surfaces.
+ *
+ * <p>~1.5 pulls by hand against the Sorting Tarp's 3 - see {@link SortableBlock}.
  */
 public class TrashBagBlock extends SortableBlock {
 
-    private static final int MIN_PULLS = 2;
-    private static final int MAX_PULLS = 3;
+    private static final int MIN_PULLS = 1;
+    private static final int MAX_PULLS = 2;
 
     public static final IntegerProperty SORTED = IntegerProperty.create("sorted", 0, MAX_PULLS - 1);
 

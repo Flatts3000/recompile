@@ -7,7 +7,6 @@
   "block.recompile.appliance": "Appliance",
   "block.recompile.scrap_crafting_table": "Scrap Crafting Table",
   "block.recompile.sorting_tarp": "Sorting Tarp",
-  "block.recompile.garbage_mycelium": "Garbage Mycelium",
   "block.recompile.dump_mushroom": "Dump Mushroom",
 
   "message.recompile.needs_tool": "You need a %s to open this",
