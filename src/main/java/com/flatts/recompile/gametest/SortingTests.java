@@ -3,15 +3,18 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -41,6 +44,40 @@ final class SortingTests {
             helper.assertTrue(crumbled, "garbage block should crumble within 3 pulls");
             helper.assertBlockPresent(Blocks.AIR, pos);
             helper.assertEntityPresent(EntityType.ITEM);
+            helper.succeed();
+        });
+
+        // Every garbage block has exactly one tool, and that tool must be the fast way to
+        // cut it loose - otherwise the block is stranded where it generated. The bale is
+        // the knife's: it was the richest block but the slowest to cash in, because
+        // nothing mined it faster than bare hands. Asserts the tag + TOOL component are
+        // really wired, which a compile cannot see.
+        RCGameTests.test("knife_mines_bales_shovel_mines_garbage", 20, helper -> {
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            BlockState bale = RCBlocks.COMPACTED_BALE.get().defaultBlockState();
+            BlockState garbage = RCBlocks.GARBAGE_BLOCK.get().defaultBlockState();
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.SCRAP_KNIFE.get()));
+            float knifeOnBale = player.getDestroySpeed(bale);
+            float knifeOnGarbage = player.getDestroySpeed(garbage);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.JUNK_SHOVEL.get()));
+            float shovelOnGarbage = player.getDestroySpeed(garbage);
+            float shovelOnBale = player.getDestroySpeed(bale);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            float bareHand = player.getDestroySpeed(bale);
+
+            helper.assertTrue(knifeOnBale > bareHand,
+                "the scrap knife must cut a bale loose faster than bare hands (got "
+                    + knifeOnBale + " vs " + bareHand + ") - check recompile:mineable/knife");
+            helper.assertTrue(shovelOnGarbage > bareHand,
+                "the junk shovel must dig garbage faster than bare hands");
+            // One tool per block: neither tool may poach the other's job.
+            helper.assertTrue(shovelOnBale == bareHand,
+                "the shovel must not dig bales - that is the knife's job");
+            helper.assertTrue(knifeOnGarbage == bareHand,
+                "the knife must not dig garbage - that is the shovel's job");
             helper.succeed();
         });
 

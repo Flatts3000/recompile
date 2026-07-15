@@ -47,8 +47,12 @@ public final class RCItems {
     public static final DeferredItem<Item> REBAR = ITEMS.registerItem("rebar", Item::new);
     public static final DeferredItem<Item> JUNK_SHOVEL = ITEMS.registerItem(
         "junk_shovel", props -> new Item(props.shovel(ToolMaterial.STONE, 1.5F, -3.0F)));
+    // The knife is a cutting tool, not a sword: it mines its own tag
+    // (recompile:mineable/knife = bales) the way a shovel mines mineable/shovel, so the
+    // one tool that opens a bale is also the one that cuts it loose for the tarp.
     public static final DeferredItem<Item> SCRAP_KNIFE = ITEMS.registerItem(
-        "scrap_knife", props -> new Item(props.sword(ToolMaterial.STONE, 1.0F, -2.0F)));
+        "scrap_knife",
+        props -> new Item(props.tool(ToolMaterial.STONE, RCTags.MINEABLE_WITH_KNIFE, 1.0F, -2.0F, 0.0F)));
     public static final DeferredItem<Item> PRYBAR = ITEMS.registerItem(
         "prybar", props -> new Item(props.sword(ToolMaterial.STONE, 2.0F, -2.6F)));
 
