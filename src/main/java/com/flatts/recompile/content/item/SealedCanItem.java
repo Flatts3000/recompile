@@ -28,7 +28,11 @@ public class SealedCanItem extends Item {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
-            stack.shrink(1);
+            // Creative keeps its stack, same as the Sorting Tarp's inputs and vanilla's
+            // own ItemStack.consume - otherwise opening a can in creative eats it.
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
+            }
             ItemStack opened = new ItemStack(RCItems.TIN_CAN_OPEN.get());
             if (!player.getInventory().add(opened)) {
                 player.drop(opened, false);

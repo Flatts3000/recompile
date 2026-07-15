@@ -65,6 +65,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class SortableBlock extends FallingBlock {
 
+    /**
+     * Ticks between pulls from one player's hands. Matches the Sorting Tarp's sift
+     * cadence, so the whole mod picks through trash at one rhythm.
+     *
+     * <p>Without this, holding right-click pulled every 4 ticks (the client's use
+     * delay), which tore a garbage block apart in ~8 ticks - faster than digging it
+     * out with the junk shovel, so hands beat tools at clearing ground. It also has
+     * to be a multiple of the 4-tick use delay, or click-spam would outpace holding
+     * and reward exactly the RSI-farming the design rules out.
+     *
+     * <p>Keyed through {@link net.minecraft.world.item.ItemCooldowns}, whose only
+     * public query is by {@link ItemStack} - so a bare-hand pull keys on the empty
+     * stack, whose cooldown group is {@code minecraft:air}. Vanilla never puts a
+     * cooldown on air, and keying on the *empty* stack rather than whatever is held
+     * means a player cannot dodge the gate by swapping items between pulls.
+     */
+    public static final int PULL_COOLDOWN_TICKS = 8;
+
     protected SortableBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(sortedProperty(), 0));
@@ -106,6 +124,9 @@ public abstract class SortableBlock extends FallingBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hit) {
         if (requiredTool() == null) {
+            if (!takePull(player, ItemStack.EMPTY)) {
+                return InteractionResult.SUCCESS;
+            }
             if (level instanceof ServerLevel serverLevel) {
                 sort(serverLevel, pos);
             }
@@ -125,12 +146,28 @@ public abstract class SortableBlock extends FallingBlock {
             Player player, InteractionHand hand, BlockHitResult hit) {
         Item tool = requiredTool();
         if (tool != null && stack.is(tool)) {
+            if (!takePull(player, stack)) {
+                return InteractionResult.SUCCESS;
+            }
             if (level instanceof ServerLevel serverLevel) {
                 sort(serverLevel, pos);
             }
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    /**
+     * Claim this player's next pull, or refuse if they are still on cooldown.
+     * Runs on both sides, matching the Sorting Tarp: the client gate keeps it from
+     * spamming use packets the server would only drop.
+     */
+    private static boolean takePull(Player player, ItemStack key) {
+        if (player.getCooldowns().isOnCooldown(key)) {
+            return false;
+        }
+        player.getCooldowns().addCooldown(key, PULL_COOLDOWN_TICKS);
+        return true;
     }
 
     /** Pull once: roll this variant's table, drop it, advance progress, crumble if spent. */

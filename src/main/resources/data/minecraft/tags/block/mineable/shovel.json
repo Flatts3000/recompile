@@ -1,6 +1,9 @@
 {
   "replace": false,
   "values": [
-    "recompile:garbage_block"
+    "recompile:garbage_block",
+    "recompile:trash_bag",
+    "recompile:compacted_bale",
+    "recompile:appliance"
   ]
 }
