@@ -57,6 +57,7 @@ public final class RCGameTests {
     public static void register(IEventBus modEventBus) {
         SortingTests.register();
         SortingTarpTests.register();
+        ForageTests.register();
 
         FUNCTIONS.register(modEventBus);
         modEventBus.addListener(RCGameTests::onRegisterGameTests);

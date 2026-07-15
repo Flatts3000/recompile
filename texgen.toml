@@ -115,6 +115,40 @@ size = 16
 prompt = "a compacted lump of mixed brown-grey junk filler, crushed cardboard and grit, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # ---------------------------------------------------------------------------
+# Food (P1.9) - scavenged tin cans, sealed + opened
+# ---------------------------------------------------------------------------
+
+[surface.tin_can]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a sealed dented tin food can standing upright with a faded torn paper label, muted greys and browns, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.tin_can_open]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "an opened dented tin food can, jagged lid peeled halfway back, dull mystery contents visible inside, faded torn label, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------
+# Forage (P1.9) - dump mushroom (cross-model plant + edible item) and the
+# garbage_mycelium substrate top (a mycelium-crust block face; sides reuse vanilla
+# coarse_dirt in the model).
+# ---------------------------------------------------------------------------
+
+[surface.dump_mushroom]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a single small drab scavenged dump mushroom, a pale grey-brown fungal cap on a short stalk, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.garbage_mycelium]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face of a grey-purple fungal mycelium crust spreading over dark dirt, fine pale spores and threads, muted, gritty"
+
+# ---------------------------------------------------------------------------
 # Scrap crafting table (bootstrap 3x3 station)
 # ---------------------------------------------------------------------------
 

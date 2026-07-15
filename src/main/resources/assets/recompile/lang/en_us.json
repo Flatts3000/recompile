@@ -7,6 +7,8 @@
   "block.recompile.appliance": "Appliance",
   "block.recompile.scrap_crafting_table": "Scrap Crafting Table",
   "block.recompile.sorting_tarp": "Sorting Tarp",
+  "block.recompile.garbage_mycelium": "Garbage Mycelium",
+  "block.recompile.dump_mushroom": "Dump Mushroom",
 
   "message.recompile.needs_tool": "You need a %s to open this",
   "message.recompile.dimension_locked": "That way is sealed for now.",
@@ -23,6 +25,10 @@
   "item.recompile.scrap_knife": "Scrap Knife",
   "item.recompile.prybar": "Prybar",
   "item.recompile.junk_shovel": "Junk Shovel",
+
+  "item.recompile.tin_can": "Tin Can",
+  "item.recompile.tin_can_open": "Opened Tin Can",
+  "item.recompile.dump_mushroom": "Dump Mushroom",
 
   "generator.recompile.garbage": "Garbage World"
 }

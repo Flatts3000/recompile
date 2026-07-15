@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.MoundFeature;
+import com.flatts.recompile.content.worldgen.MyceliumPatchFeature;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -17,6 +18,10 @@ public final class RCFeatures {
 
     public static final Supplier<Feature<NoneFeatureConfiguration>> GARBAGE_MOUND =
         FEATURES.register("garbage_mound", MoundFeature::new);
+
+    /** Forageable mycelium patches with dump mushrooms (design P1.9). */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> MYCELIUM_PATCH =
+        FEATURES.register("mycelium_patch", MyceliumPatchFeature::new);
 
     private RCFeatures() {
         // utility class
