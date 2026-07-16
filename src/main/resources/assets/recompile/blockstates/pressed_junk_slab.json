@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "recompile:block/pressed_junk_slab"
+    },
+    "type=double": {
+      "model": "recompile:block/pressed_junk"
+    },
+    "type=top": {
+      "model": "recompile:block/pressed_junk_slab_top"
+    }
+  }
+}

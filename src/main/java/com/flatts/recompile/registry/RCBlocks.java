@@ -11,7 +11,12 @@ import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.TransparentBlock;
+import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -155,6 +160,97 @@ public final class RCBlocks {
             .sound(SoundType.GRASS)
             .pushReaction(PushReaction.DESTROY)
     );
+
+    // ---------------- Building blocks (P1.12): the deliberate shelter tier ----------------
+    // Crafted from scrap at the Scrap Crafting Table; tier-0 and ungated (survival/shelter is
+    // free, tech is locked). Hand-breakable and drop themselves - there is no pickaxe in this
+    // world and reclaiming your own walls must not be punishing; the prybar is only the
+    // *faster* tool on the metal ones (via the mineable/prybar tag), never required. Full kit
+    // per material: base + slab + stairs + wall. The base block is declared immediately above
+    // its stairs so the StairBlock factory can read its default state during registration.
+
+    public static final DeferredBlock<Block> PRESSED_JUNK_BLOCK = BLOCKS.registerBlock(
+        "pressed_junk_block", Block::new, RCBlocks::pressedJunkProps);
+    public static final DeferredBlock<SlabBlock> PRESSED_JUNK_SLAB = BLOCKS.registerBlock(
+        "pressed_junk_slab", SlabBlock::new, RCBlocks::pressedJunkProps);
+    public static final DeferredBlock<StairBlock> PRESSED_JUNK_STAIRS = BLOCKS.registerBlock(
+        "pressed_junk_stairs",
+        props -> new StairBlock(PRESSED_JUNK_BLOCK.get().defaultBlockState(), props),
+        RCBlocks::pressedJunkProps);
+    public static final DeferredBlock<WallBlock> PRESSED_JUNK_WALL = BLOCKS.registerBlock(
+        "pressed_junk_wall", WallBlock::new, RCBlocks::pressedJunkProps);
+
+    public static final DeferredBlock<Block> SCRAP_PLATING = BLOCKS.registerBlock(
+        "scrap_plating", Block::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<SlabBlock> SCRAP_PLATING_SLAB = BLOCKS.registerBlock(
+        "scrap_plating_slab", SlabBlock::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<StairBlock> SCRAP_PLATING_STAIRS = BLOCKS.registerBlock(
+        "scrap_plating_stairs",
+        props -> new StairBlock(SCRAP_PLATING.get().defaultBlockState(), props),
+        RCBlocks::metalBuildProps);
+    public static final DeferredBlock<WallBlock> SCRAP_PLATING_WALL = BLOCKS.registerBlock(
+        "scrap_plating_wall", WallBlock::new, RCBlocks::metalBuildProps);
+
+    public static final DeferredBlock<Block> CORRUGATED_METAL = BLOCKS.registerBlock(
+        "corrugated_metal", Block::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<SlabBlock> CORRUGATED_METAL_SLAB = BLOCKS.registerBlock(
+        "corrugated_metal_slab", SlabBlock::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<StairBlock> CORRUGATED_METAL_STAIRS = BLOCKS.registerBlock(
+        "corrugated_metal_stairs",
+        props -> new StairBlock(CORRUGATED_METAL.get().defaultBlockState(), props),
+        RCBlocks::metalBuildProps);
+    public static final DeferredBlock<WallBlock> CORRUGATED_METAL_WALL = BLOCKS.registerBlock(
+        "corrugated_metal_wall", WallBlock::new, RCBlocks::metalBuildProps);
+
+    public static final DeferredBlock<Block> PLASTIC_PANEL = BLOCKS.registerBlock(
+        "plastic_panel", Block::new, RCBlocks::plasticBuildProps);
+    public static final DeferredBlock<SlabBlock> PLASTIC_PANEL_SLAB = BLOCKS.registerBlock(
+        "plastic_panel_slab", SlabBlock::new, RCBlocks::plasticBuildProps);
+    public static final DeferredBlock<StairBlock> PLASTIC_PANEL_STAIRS = BLOCKS.registerBlock(
+        "plastic_panel_stairs",
+        props -> new StairBlock(PLASTIC_PANEL.get().defaultBlockState(), props),
+        RCBlocks::plasticBuildProps);
+    public static final DeferredBlock<WallBlock> PLASTIC_PANEL_WALL = BLOCKS.registerBlock(
+        "plastic_panel_wall", WallBlock::new, RCBlocks::plasticBuildProps);
+
+    // Cullet Glass: just the block and its pane. Glass has no honest slab or stairs form
+    // (vanilla ships neither), so the family is block + pane (an IronBarsBlock).
+    public static final DeferredBlock<TransparentBlock> CULLET_GLASS = BLOCKS.registerBlock(
+        "cullet_glass", TransparentBlock::new, RCBlocks::glassBuildProps);
+    public static final DeferredBlock<IronBarsBlock> CULLET_GLASS_PANE = BLOCKS.registerBlock(
+        "cullet_glass_pane", IronBarsBlock::new, RCBlocks::glassBuildProps);
+
+    /** Compacted mixed trash - the WALL-E cube. Soft, cheap, the bulk junk sink. */
+    private static BlockBehaviour.Properties pressedJunkProps() {
+        return BlockBehaviour.Properties.of()
+            .mapColor(MapColor.DIRT)
+            .strength(1.2F)
+            .sound(SoundType.GRAVEL);
+    }
+
+    /** Salvaged sheet metal - sturdy, so slow by hand; the prybar is the faster tool. */
+    private static BlockBehaviour.Properties metalBuildProps() {
+        return BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
+            .sound(SoundType.METAL);
+    }
+
+    /** Salvaged plastic sheeting - light and quick to work. */
+    private static BlockBehaviour.Properties plasticBuildProps() {
+        return BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_WHITE)
+            .strength(1.0F)
+            .sound(SoundType.WOOL);
+    }
+
+    /** Salvaged glass - fragile, near-instant to break, {@code noOcclusion} for transparency. */
+    private static BlockBehaviour.Properties glassBuildProps() {
+        return BlockBehaviour.Properties.of()
+            .strength(0.4F)
+            .sound(SoundType.GLASS)
+            .noOcclusion();
+    }
 
     private RCBlocks() {
         // utility class

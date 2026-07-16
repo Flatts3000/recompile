@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "recompile:block/plastic_panel_slab"
+    },
+    "type=double": {
+      "model": "recompile:block/plastic_panel"
+    },
+    "type=top": {
+      "model": "recompile:block/plastic_panel_slab_top"
+    }
+  }
+}

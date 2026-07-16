@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "key": {
+    "#": "recompile:scrap_plating"
+  },
+  "result": {
+    "id": "recompile:scrap_plating_stairs",
+    "count": 4
+  }
+}

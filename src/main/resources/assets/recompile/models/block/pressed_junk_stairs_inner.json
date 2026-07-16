@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "recompile:block/pressed_junk",
+    "side": "recompile:block/pressed_junk",
+    "top": "recompile:block/pressed_junk"
+  }
+}

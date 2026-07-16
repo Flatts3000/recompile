@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "recompile:block/plastic_panel",
+    "side": "recompile:block/plastic_panel",
+    "top": "recompile:block/plastic_panel"
+  }
+}
