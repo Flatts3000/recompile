@@ -20,7 +20,7 @@ Recompile is the engine; **Trashlands** is its showcase modpack (the Productive 
 
 **Alpha, playable** (2026-07-15). Built against MC `26.1.2` / NeoForge `26.1.2.76`.
 
-Shipped: the garbage world (custom preset, coarse-dirt plain, mounds), the Blocks of Garbage and their variants (bags, bales, appliances), the trash-tier tools, the Sorting Tarp, dimension lockout, and the food tier (scavenged tin cans, foraged dump mushrooms).
+Shipped: the garbage world (custom preset, coarse-dirt plain, mounds), the Blocks of Garbage and their variants (bags, bales, Bulky Waste), the trash-tier tools, the Sorting Tarp, dimension lockout, storage (the Scrap Barrel), the food tier (scavenged tin cans, foraged dump mushrooms), and shelter (a mattress dug out of the trash).
 
 Next: **teardown-as-knowledge** (the Recompile Workbench), the mod's distinct axis. Its data spine - the public `recompile:teardown` recipe type - is already in place. See [`docs/roadmap.md`](docs/roadmap.md) for the build order.
 
