@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "recompile:item/appliance"
+    "model": "recompile:item/bulky_waste"
   }
 }

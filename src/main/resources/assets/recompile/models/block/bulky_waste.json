@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/bulky_waste_end",
+    "bottom": "recompile:block/bulky_waste_end",
+    "side": "recompile:block/bulky_waste_side",
+    "particle": "recompile:block/bulky_waste_side"
+  }
+}

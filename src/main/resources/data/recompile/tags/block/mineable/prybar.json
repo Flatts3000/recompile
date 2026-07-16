@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "recompile:scrap_barrel"
+    "recompile:scrap_barrel",
+    "recompile:bulky_waste"
   ]
 }

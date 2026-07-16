@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "": [
+      { "model": "recompile:block/bulky_waste" },
+      { "model": "recompile:block/bulky_waste", "y": 90 },
+      { "model": "recompile:block/bulky_waste", "y": 180 },
+      { "model": "recompile:block/bulky_waste", "y": 270 }
+    ]
+  }
+}

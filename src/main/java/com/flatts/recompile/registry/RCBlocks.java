@@ -1,7 +1,8 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
-import com.flatts.recompile.content.block.ApplianceBlock;
+import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
@@ -67,14 +68,21 @@ public final class RCBlocks {
             .sound(SoundType.GRASS)
     );
 
-    /** Appliance (P1.1): the teardown on-ramp. Pried open with a prybar. Metal feel. */
-    public static final DeferredBlock<ApplianceBlock> APPLIANCE = BLOCKS.registerBlock(
-        "appliance",
-        ApplianceBlock::new,
+    /**
+     * Bulky Waste (P1.11): something big is buried here - pry it open to find out what.
+     * Inherits the appliance's slot and feel. {@code requiresCorrectToolForDrops} so the
+     * prybar (via {@code recompile:mineable/prybar}) is the <em>only</em> way in - bare
+     * hands get nothing, matching the compacted bale, which keeps its "you need a Prybar"
+     * nudge honest. The find itself lives in the loot table, which is the file that grows.
+     */
+    public static final DeferredBlock<BulkyWasteBlock> BULKY_WASTE = BLOCKS.registerBlock(
+        "bulky_waste",
+        BulkyWasteBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(1.4F)
             .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
     );
 
     /** Scrap crafting table: the tier-zero 3x3 crafting station (no wood in this world). */
@@ -115,6 +123,21 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(1.6F)
             .sound(SoundType.METAL)
+    );
+
+    /**
+     * Mattress (P1.11): the first find in the Bulky Waste table, and this world's bed -
+     * a vanilla bed needs planks, and there are no trees. Two blocks like a bed, soft and
+     * quiet, {@code noOcclusion} because it is 5 pixels tall rather than a cube.
+     */
+    public static final DeferredBlock<MattressBlock> MATTRESS = BLOCKS.registerBlock(
+        "mattress",
+        MattressBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.WOOL)
+            .strength(0.2F)
+            .sound(SoundType.WOOL)
+            .noOcclusion()
     );
 
     /**

@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.item.MattressItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
@@ -44,7 +45,7 @@ public final class RCItems {
     // ---------------- Crafting components + trash-tier tools (P1.2) ----------------
     // Rebar is the universal handle (the analog of vanilla sticks) - drops from the
     // scrap-metal pull stream. Tools are tier-zero (stone-class); no pickaxe, on
-    // purpose (nothing to mine). The knife opens bales, the prybar opens appliances
+    // purpose (nothing to mine). The knife cuts bales, the prybar digs out Bulky Waste
     // (and is a weak weapon), the junk shovel digs garbage fast.
     public static final DeferredItem<Item> REBAR = ITEMS.registerItem("rebar", Item::new);
     public static final DeferredItem<Item> JUNK_SHOVEL = ITEMS.registerItem(
@@ -66,9 +67,9 @@ public final class RCItems {
         "scrap_knife",
         props -> new Item(props.tool(ToolMaterial.STONE, RCTags.MINEABLE_WITH_KNIFE, 1.0F, -2.0F, 0.0F)));
 
-    // The prybar opens appliances and levers the Scrap Barrel apart - a vanilla barrel
-    // answers to an axe, but this one is welded steel and axes have no place in a world
-    // with no trees. Same tool()-over-a-tag treatment as the knife.
+    // The prybar digs out Bulky Waste and levers the Scrap Barrel apart - a vanilla
+    // barrel answers to an axe, but this one is welded steel and axes have no place in a
+    // world with no trees. Same tool()-over-a-tag treatment as the knife.
     //
     // It is also the trio's weak weapon, and tool() would quietly double its melee cost:
     // sword() ships Weapon(1), tool() ships Weapon(2). The knife can eat that trade
@@ -114,9 +115,19 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
     public static final DeferredItem<BlockItem> COMPACTED_BALE =
         ITEMS.registerSimpleBlockItem("compacted_bale", RCBlocks.COMPACTED_BALE);
-    /** The appliance block-item is also the teardown input carried to the workbench (P1.4). */
-    public static final DeferredItem<BlockItem> APPLIANCE =
-        ITEMS.registerSimpleBlockItem("appliance", RCBlocks.APPLIANCE);
+    /**
+     * Bulky Waste (P1.11). Registered so creative can place it; it is unobtainable in
+     * survival, because breaking the block yields the <em>find</em> rather than itself,
+     * so there is nothing to dupe.
+     */
+    public static final DeferredItem<BlockItem> BULKY_WASTE =
+        ITEMS.registerSimpleBlockItem("bulky_waste", RCBlocks.BULKY_WASTE);
+    /**
+     * The mattress: place it and it is a bed, or cut it open with the knife for string.
+     * Never craftable - the dump gives you the bed (P1.11).
+     */
+    public static final DeferredItem<MattressItem> MATTRESS = ITEMS.registerItem(
+        "mattress", props -> new MattressItem(RCBlocks.MATTRESS.get(), props));
     public static final DeferredItem<BlockItem> SCRAP_CRAFTING_TABLE =
         ITEMS.registerSimpleBlockItem("scrap_crafting_table", RCBlocks.SCRAP_CRAFTING_TABLE);
     public static final DeferredItem<BlockItem> SORTING_TARP =
@@ -126,7 +137,7 @@ public final class RCItems {
 
     /** The garbage-block family in creative-tab order. */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(
-        GARBAGE_BLOCK, TRASH_BAG, COMPACTED_BALE, APPLIANCE);
+        GARBAGE_BLOCK, TRASH_BAG, COMPACTED_BALE, BULKY_WASTE);
 
     private RCItems() {
         // utility class

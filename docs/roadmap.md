@@ -22,7 +22,7 @@ config fallbacks.
 **Organizing principle - discovery order:** build in the order the player encounters things.
 The garbage world comes first (you spawn in it), then the early hand loop, then the tools and
 sorting that loop demands, and only then teardown-as-knowledge - the mod's distinct axis, which
-is the *payoff* of the early loop, not its entry (its on-ramp is the prybar + appliances). A
+is the *payoff* of the early loop, not its entry (its on-ramp is the prybar + Bulky Waste). A
 few systems (dimension lockout, the knowledge system's risky internals) are pulled earlier than
 their discovery slot for a concrete reason, called out where they occur.
 
@@ -53,8 +53,8 @@ The go/no-go slice - spawn, dig, sort, get materials, in a world that reads as a
 What the player reaches for the moment hand-sorting palls: better tools and a faster sort.
 - **Trash tools (P1.2):** scrap knife, prybar, junk shovel, rebar (universal handle). No
   pickaxe, on purpose - nothing to mine, and its absence tells the player that.
-- **Garbage variants (P1.1):** bags (hand/instant), bales (scrap knife), appliances (prybar).
-  One interlocking tool+block matrix. Appliances are introduced here as the future teardown
+- **Garbage variants (P1.1):** bags (hand/instant), bales (scrap knife), Bulky Waste (prybar).
+  One interlocking tool+block matrix. Bulky Waste is introduced here as the future teardown
   input - the on-ramp to Phase 3.
 - **Sorting Tarp (P1.3):** the batch upgrade to the sort verb. Shipped *without* the GUI or
   screen slot this originally called for - the locked revision makes it stateless: right-click
@@ -79,7 +79,7 @@ the reasoning in `../trashlands/docs/design_decisions.md` (P1.3). Two rules for 
 
 **One tool per block:** garbage digs with the junk shovel, a bale is cut with the scrap knife
 (`recompile:mineable/knife` - it both opens *and* frees a bale, or the tarp's best input would
-be stranded where it generated), an appliance is pried. No bare-hand action may out-clear a tool.
+be stranded where it generated), Bulky Waste is pried out. No bare-hand action may out-clear a tool.
 
 ## Phase 2.5 - Food, the survive tier  *(DONE, design P1.9)*
 
