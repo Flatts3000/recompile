@@ -76,6 +76,30 @@ final class BulkyWasteTests {
             helper.succeed();
         });
 
+        // Breaking a mattress in survival must return EXACTLY ONE item. The loot gates on
+        // part=foot, and breaking either half runs the loot table twice - once for the half
+        // the player broke, once for the orphan that updateShape destroys - so the gate is
+        // the only thing filtering two rolls down to one. A flipped gate or a stray
+        // suppress-drops flag would silently yield zero or two, and neither shows in a
+        // compile. setBlock(AIR) runs no loot at all (see mattress_places_and_breaks), so
+        // this destroys the HEAD for real: the drop then comes from the orphaned FOOT.
+        RCGameTests.test("mattress_broken_drops_exactly_one", 40, helper -> {
+            BlockPos foot = new BlockPos(1, 1, 1);
+            BlockPos head = foot.north();
+            helper.setBlock(foot, RCBlocks.MATTRESS.get().defaultBlockState()
+                .setValue(MattressBlock.FACING, net.minecraft.core.Direction.NORTH)
+                .setValue(MattressBlock.PART, BedPart.FOOT));
+            helper.setBlock(head, RCBlocks.MATTRESS.get().defaultBlockState()
+                .setValue(MattressBlock.FACING, net.minecraft.core.Direction.NORTH)
+                .setValue(MattressBlock.PART, BedPart.HEAD));
+
+            helper.getLevel().destroyBlock(helper.absolutePos(head), true);
+            helper.assertBlockPresent(Blocks.AIR, foot);
+            helper.assertBlockPresent(Blocks.AIR, head);
+            helper.succeedWhen(() ->
+                helper.assertItemEntityCountIs(RCItems.MATTRESS.get(), foot, 3.0, 1));
+        });
+
         // The mattress is your bed OR your rope. The knife is the only exit, reusing the
         // tin can's verb - and without a knife it must refuse rather than silently eat it.
         RCGameTests.test("mattress_cut_open_needs_a_knife", 20, helper -> {
