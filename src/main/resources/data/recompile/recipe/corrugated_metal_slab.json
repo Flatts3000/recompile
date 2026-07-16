@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###"
+  ],
+  "key": {
+    "#": "recompile:corrugated_metal"
+  },
+  "result": {
+    "id": "recompile:corrugated_metal_slab",
+    "count": 6
+  }
+}

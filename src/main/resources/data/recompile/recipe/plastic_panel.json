@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": "recompile:plastic_scrap"
+  },
+  "result": {
+    "id": "recompile:plastic_panel",
+    "count": 1
+  }
+}

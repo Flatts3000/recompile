@@ -150,10 +150,37 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("pressed_junk_stairs", RCBlocks.PRESSED_JUNK_STAIRS);
     public static final DeferredItem<BlockItem> PRESSED_JUNK_WALL =
         ITEMS.registerSimpleBlockItem("pressed_junk_wall", RCBlocks.PRESSED_JUNK_WALL);
+    public static final DeferredItem<BlockItem> SCRAP_PLATING =
+        ITEMS.registerSimpleBlockItem("scrap_plating", RCBlocks.SCRAP_PLATING);
+    public static final DeferredItem<BlockItem> SCRAP_PLATING_SLAB =
+        ITEMS.registerSimpleBlockItem("scrap_plating_slab", RCBlocks.SCRAP_PLATING_SLAB);
+    public static final DeferredItem<BlockItem> SCRAP_PLATING_STAIRS =
+        ITEMS.registerSimpleBlockItem("scrap_plating_stairs", RCBlocks.SCRAP_PLATING_STAIRS);
+    public static final DeferredItem<BlockItem> SCRAP_PLATING_WALL =
+        ITEMS.registerSimpleBlockItem("scrap_plating_wall", RCBlocks.SCRAP_PLATING_WALL);
+    public static final DeferredItem<BlockItem> CORRUGATED_METAL =
+        ITEMS.registerSimpleBlockItem("corrugated_metal", RCBlocks.CORRUGATED_METAL);
+    public static final DeferredItem<BlockItem> CORRUGATED_METAL_SLAB =
+        ITEMS.registerSimpleBlockItem("corrugated_metal_slab", RCBlocks.CORRUGATED_METAL_SLAB);
+    public static final DeferredItem<BlockItem> CORRUGATED_METAL_STAIRS =
+        ITEMS.registerSimpleBlockItem("corrugated_metal_stairs", RCBlocks.CORRUGATED_METAL_STAIRS);
+    public static final DeferredItem<BlockItem> CORRUGATED_METAL_WALL =
+        ITEMS.registerSimpleBlockItem("corrugated_metal_wall", RCBlocks.CORRUGATED_METAL_WALL);
+    public static final DeferredItem<BlockItem> PLASTIC_PANEL =
+        ITEMS.registerSimpleBlockItem("plastic_panel", RCBlocks.PLASTIC_PANEL);
+    public static final DeferredItem<BlockItem> PLASTIC_PANEL_SLAB =
+        ITEMS.registerSimpleBlockItem("plastic_panel_slab", RCBlocks.PLASTIC_PANEL_SLAB);
+    public static final DeferredItem<BlockItem> PLASTIC_PANEL_STAIRS =
+        ITEMS.registerSimpleBlockItem("plastic_panel_stairs", RCBlocks.PLASTIC_PANEL_STAIRS);
+    public static final DeferredItem<BlockItem> PLASTIC_PANEL_WALL =
+        ITEMS.registerSimpleBlockItem("plastic_panel_wall", RCBlocks.PLASTIC_PANEL_WALL);
 
     /** Building blocks in creative-tab order (grouped by family: base, slab, stairs, wall). */
     public static final List<DeferredItem<BlockItem>> BUILDING_BLOCKS = List.of(
-        PRESSED_JUNK_BLOCK, PRESSED_JUNK_SLAB, PRESSED_JUNK_STAIRS, PRESSED_JUNK_WALL);
+        PRESSED_JUNK_BLOCK, PRESSED_JUNK_SLAB, PRESSED_JUNK_STAIRS, PRESSED_JUNK_WALL,
+        SCRAP_PLATING, SCRAP_PLATING_SLAB, SCRAP_PLATING_STAIRS, SCRAP_PLATING_WALL,
+        CORRUGATED_METAL, CORRUGATED_METAL_SLAB, CORRUGATED_METAL_STAIRS, CORRUGATED_METAL_WALL,
+        PLASTIC_PANEL, PLASTIC_PANEL_SLAB, PLASTIC_PANEL_STAIRS, PLASTIC_PANEL_WALL);
 
     private RCItems() {
         // utility class

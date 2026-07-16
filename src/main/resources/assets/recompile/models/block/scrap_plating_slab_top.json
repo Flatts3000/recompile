@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "recompile:block/scrap_plating",
+    "side": "recompile:block/scrap_plating",
+    "top": "recompile:block/scrap_plating"
+  }
+}

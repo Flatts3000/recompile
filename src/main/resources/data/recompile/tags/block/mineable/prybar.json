@@ -2,6 +2,14 @@
   "replace": false,
   "values": [
     "recompile:scrap_barrel",
-    "recompile:bulky_waste"
+    "recompile:bulky_waste",
+    "recompile:scrap_plating",
+    "recompile:scrap_plating_slab",
+    "recompile:scrap_plating_stairs",
+    "recompile:scrap_plating_wall",
+    "recompile:corrugated_metal",
+    "recompile:corrugated_metal_slab",
+    "recompile:corrugated_metal_stairs",
+    "recompile:corrugated_metal_wall"
   ]
 }

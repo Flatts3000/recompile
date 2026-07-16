@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "recompile:block/scrap_plating_slab"
+    },
+    "type=double": {
+      "model": "recompile:block/scrap_plating"
+    },
+    "type=top": {
+      "model": "recompile:block/scrap_plating_slab_top"
+    }
+  }
+}

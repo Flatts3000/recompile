@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "recompile:block/corrugated_metal_slab"
+    },
+    "type=double": {
+      "model": "recompile:block/corrugated_metal"
+    },
+    "type=top": {
+      "model": "recompile:block/corrugated_metal_slab_top"
+    }
+  }
+}

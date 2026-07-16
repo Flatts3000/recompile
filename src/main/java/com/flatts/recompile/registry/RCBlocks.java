@@ -178,12 +178,61 @@ public final class RCBlocks {
     public static final DeferredBlock<WallBlock> PRESSED_JUNK_WALL = BLOCKS.registerBlock(
         "pressed_junk_wall", WallBlock::new, RCBlocks::pressedJunkProps);
 
+    public static final DeferredBlock<Block> SCRAP_PLATING = BLOCKS.registerBlock(
+        "scrap_plating", Block::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<SlabBlock> SCRAP_PLATING_SLAB = BLOCKS.registerBlock(
+        "scrap_plating_slab", SlabBlock::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<StairBlock> SCRAP_PLATING_STAIRS = BLOCKS.registerBlock(
+        "scrap_plating_stairs",
+        props -> new StairBlock(SCRAP_PLATING.get().defaultBlockState(), props),
+        RCBlocks::metalBuildProps);
+    public static final DeferredBlock<WallBlock> SCRAP_PLATING_WALL = BLOCKS.registerBlock(
+        "scrap_plating_wall", WallBlock::new, RCBlocks::metalBuildProps);
+
+    public static final DeferredBlock<Block> CORRUGATED_METAL = BLOCKS.registerBlock(
+        "corrugated_metal", Block::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<SlabBlock> CORRUGATED_METAL_SLAB = BLOCKS.registerBlock(
+        "corrugated_metal_slab", SlabBlock::new, RCBlocks::metalBuildProps);
+    public static final DeferredBlock<StairBlock> CORRUGATED_METAL_STAIRS = BLOCKS.registerBlock(
+        "corrugated_metal_stairs",
+        props -> new StairBlock(CORRUGATED_METAL.get().defaultBlockState(), props),
+        RCBlocks::metalBuildProps);
+    public static final DeferredBlock<WallBlock> CORRUGATED_METAL_WALL = BLOCKS.registerBlock(
+        "corrugated_metal_wall", WallBlock::new, RCBlocks::metalBuildProps);
+
+    public static final DeferredBlock<Block> PLASTIC_PANEL = BLOCKS.registerBlock(
+        "plastic_panel", Block::new, RCBlocks::plasticBuildProps);
+    public static final DeferredBlock<SlabBlock> PLASTIC_PANEL_SLAB = BLOCKS.registerBlock(
+        "plastic_panel_slab", SlabBlock::new, RCBlocks::plasticBuildProps);
+    public static final DeferredBlock<StairBlock> PLASTIC_PANEL_STAIRS = BLOCKS.registerBlock(
+        "plastic_panel_stairs",
+        props -> new StairBlock(PLASTIC_PANEL.get().defaultBlockState(), props),
+        RCBlocks::plasticBuildProps);
+    public static final DeferredBlock<WallBlock> PLASTIC_PANEL_WALL = BLOCKS.registerBlock(
+        "plastic_panel_wall", WallBlock::new, RCBlocks::plasticBuildProps);
+
     /** Compacted mixed trash - the WALL-E cube. Soft, cheap, the bulk junk sink. */
     private static BlockBehaviour.Properties pressedJunkProps() {
         return BlockBehaviour.Properties.of()
             .mapColor(MapColor.DIRT)
             .strength(1.2F)
             .sound(SoundType.GRAVEL);
+    }
+
+    /** Salvaged sheet metal - sturdy, so slow by hand; the prybar is the faster tool. */
+    private static BlockBehaviour.Properties metalBuildProps() {
+        return BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
+            .sound(SoundType.METAL);
+    }
+
+    /** Salvaged plastic sheeting - light and quick to work. */
+    private static BlockBehaviour.Properties plasticBuildProps() {
+        return BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_WHITE)
+            .strength(1.0F)
+            .sound(SoundType.WOOL);
     }
 
     private RCBlocks() {
