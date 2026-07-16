@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "key": {
+    "#": "recompile:pressed_junk_block"
+  },
+  "result": {
+    "id": "recompile:pressed_junk_stairs",
+    "count": 4
+  }
+}

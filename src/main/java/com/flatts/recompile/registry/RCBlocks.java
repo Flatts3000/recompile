@@ -11,7 +11,10 @@ import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -155,6 +158,33 @@ public final class RCBlocks {
             .sound(SoundType.GRASS)
             .pushReaction(PushReaction.DESTROY)
     );
+
+    // ---------------- Building blocks (P1.12): the deliberate shelter tier ----------------
+    // Crafted from scrap at the Scrap Crafting Table; tier-0 and ungated (survival/shelter is
+    // free, tech is locked). Hand-breakable and drop themselves - there is no pickaxe in this
+    // world and reclaiming your own walls must not be punishing; the prybar is only the
+    // *faster* tool on the metal ones (via the mineable/prybar tag), never required. Full kit
+    // per material: base + slab + stairs + wall. The base block is declared immediately above
+    // its stairs so the StairBlock factory can read its default state during registration.
+
+    public static final DeferredBlock<Block> PRESSED_JUNK_BLOCK = BLOCKS.registerBlock(
+        "pressed_junk_block", Block::new, RCBlocks::pressedJunkProps);
+    public static final DeferredBlock<SlabBlock> PRESSED_JUNK_SLAB = BLOCKS.registerBlock(
+        "pressed_junk_slab", SlabBlock::new, RCBlocks::pressedJunkProps);
+    public static final DeferredBlock<StairBlock> PRESSED_JUNK_STAIRS = BLOCKS.registerBlock(
+        "pressed_junk_stairs",
+        props -> new StairBlock(PRESSED_JUNK_BLOCK.get().defaultBlockState(), props),
+        RCBlocks::pressedJunkProps);
+    public static final DeferredBlock<WallBlock> PRESSED_JUNK_WALL = BLOCKS.registerBlock(
+        "pressed_junk_wall", WallBlock::new, RCBlocks::pressedJunkProps);
+
+    /** Compacted mixed trash - the WALL-E cube. Soft, cheap, the bulk junk sink. */
+    private static BlockBehaviour.Properties pressedJunkProps() {
+        return BlockBehaviour.Properties.of()
+            .mapColor(MapColor.DIRT)
+            .strength(1.2F)
+            .sound(SoundType.GRAVEL);
+    }
 
     private RCBlocks() {
         // utility class

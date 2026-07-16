@@ -139,6 +139,22 @@ public final class RCItems {
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(
         GARBAGE_BLOCK, TRASH_BAG, COMPACTED_BALE, BULKY_WASTE);
 
+    // ---------------- Building blocks (P1.12): the deliberate shelter tier ----------------
+    // Refined from scrap into blocks you would choose to build a home from. Full kit per
+    // material (base + slab + stairs + wall); also the material sink for bulk scrap.
+    public static final DeferredItem<BlockItem> PRESSED_JUNK_BLOCK =
+        ITEMS.registerSimpleBlockItem("pressed_junk_block", RCBlocks.PRESSED_JUNK_BLOCK);
+    public static final DeferredItem<BlockItem> PRESSED_JUNK_SLAB =
+        ITEMS.registerSimpleBlockItem("pressed_junk_slab", RCBlocks.PRESSED_JUNK_SLAB);
+    public static final DeferredItem<BlockItem> PRESSED_JUNK_STAIRS =
+        ITEMS.registerSimpleBlockItem("pressed_junk_stairs", RCBlocks.PRESSED_JUNK_STAIRS);
+    public static final DeferredItem<BlockItem> PRESSED_JUNK_WALL =
+        ITEMS.registerSimpleBlockItem("pressed_junk_wall", RCBlocks.PRESSED_JUNK_WALL);
+
+    /** Building blocks in creative-tab order (grouped by family: base, slab, stairs, wall). */
+    public static final List<DeferredItem<BlockItem>> BUILDING_BLOCKS = List.of(
+        PRESSED_JUNK_BLOCK, PRESSED_JUNK_SLAB, PRESSED_JUNK_STAIRS, PRESSED_JUNK_WALL);
+
     private RCItems() {
         // utility class
     }

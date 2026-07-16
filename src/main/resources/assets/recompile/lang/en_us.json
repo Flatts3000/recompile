@@ -12,6 +12,11 @@
   "container.recompile.scrap_barrel": "Scrap Barrel",
   "block.recompile.dump_mushroom": "Dump Mushroom",
 
+  "block.recompile.pressed_junk_block": "Pressed Junk Block",
+  "block.recompile.pressed_junk_slab": "Pressed Junk Slab",
+  "block.recompile.pressed_junk_stairs": "Pressed Junk Stairs",
+  "block.recompile.pressed_junk_wall": "Pressed Junk Wall",
+
   "message.recompile.needs_tool": "You need a %s to open this",
   "message.recompile.dimension_locked": "That way is sealed for now.",
 
