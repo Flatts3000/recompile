@@ -5,7 +5,7 @@
   "block.recompile.trash_bag": "Trash Bag",
   "block.recompile.compacted_bale": "Compacted Bale",
   "block.recompile.bulky_waste": "Bulky Waste",
-  "block.recompile.mattress": "Mattress",
+  "block.recompile.mattress": "Dirty Mattress",
   "block.recompile.scrap_crafting_table": "Scrap Crafting Table",
   "block.recompile.sorting_tarp": "Sorting Tarp",
   "block.recompile.scrap_barrel": "Scrap Barrel",
@@ -31,6 +31,8 @@
   "item.recompile.tin_can": "Tin Can",
   "item.recompile.tin_can_open": "Opened Tin Can",
   "item.recompile.dump_mushroom": "Dump Mushroom",
+
+  "item.recompile.mattress": "Dirty Mattress",
 
   "generator.recompile.garbage": "Garbage World"
 }
