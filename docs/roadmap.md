@@ -95,6 +95,24 @@ before the knowledge system, and this is not a survival-pressure pack (no thirst
 - **Deferred:** the scrap planter + muck compost (waits on Phase 3 so its knowledge gating is
   real), and roaches / infested blocks.
 
+## Phase 2.6 - Building blocks, the shelter tier  *(DONE, design P1.11 shelter / P1.12)*
+
+Pulled in ahead of Phase 3, like food: crude shelter is already free (the Block of Garbage is
+buildable, P0.3), but stacking raw trash is not a home. This is the **deliberate** building
+tier - refine scrap into blocks you would *choose* to build with - and, just as importantly, a
+**material sink** for the bulk scrap the sort produces. Tier-0 and ungated (survival/shelter is
+free, tech is locked); crafted at the Scrap Crafting Table. Not defense - the starting biome is
+creature-free and nothing threatens builds; this is the WALL-E move of rebuilding from garbage.
+
+- **Five families, full kit each** (block + slab + stairs + wall): Pressed Junk (the junk sink),
+  Scrap Plating, Corrugated Metal (the shanty aesthetic), Plastic Panel, and Cullet Glass
+  (block + slab + stairs + **pane** - glass's honest thin form).
+- **Hand-breakable, drop themselves** - no pickaxe exists and reclaiming your own walls must not
+  be punishing; the prybar is only the faster tool on metal, never required.
+- The ~110 repetitive JSON files are derived from the vanilla `cobblestone_*` / `glass_pane_*`
+  templates by namespace substitution, so the stairs rotation table and double-slab loot are
+  correct by construction.
+
 ## Phase 3 - Teardown-as-knowledge  *(design P1.4) - the distinct axis*
 
 The payoff and the mod's reason to exist: tear a found item down at the **Recompile Workbench**
