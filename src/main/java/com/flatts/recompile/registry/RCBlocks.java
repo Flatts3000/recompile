@@ -11,9 +11,11 @@ import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -211,6 +213,19 @@ public final class RCBlocks {
     public static final DeferredBlock<WallBlock> PLASTIC_PANEL_WALL = BLOCKS.registerBlock(
         "plastic_panel_wall", WallBlock::new, RCBlocks::plasticBuildProps);
 
+    // Cullet Glass: glass's honest thin form is a pane, so the family is
+    // block + slab + stairs + pane (an IronBarsBlock) rather than a wall.
+    public static final DeferredBlock<TransparentBlock> CULLET_GLASS = BLOCKS.registerBlock(
+        "cullet_glass", TransparentBlock::new, RCBlocks::glassBuildProps);
+    public static final DeferredBlock<SlabBlock> CULLET_GLASS_SLAB = BLOCKS.registerBlock(
+        "cullet_glass_slab", SlabBlock::new, RCBlocks::glassBuildProps);
+    public static final DeferredBlock<StairBlock> CULLET_GLASS_STAIRS = BLOCKS.registerBlock(
+        "cullet_glass_stairs",
+        props -> new StairBlock(CULLET_GLASS.get().defaultBlockState(), props),
+        RCBlocks::glassBuildProps);
+    public static final DeferredBlock<IronBarsBlock> CULLET_GLASS_PANE = BLOCKS.registerBlock(
+        "cullet_glass_pane", IronBarsBlock::new, RCBlocks::glassBuildProps);
+
     /** Compacted mixed trash - the WALL-E cube. Soft, cheap, the bulk junk sink. */
     private static BlockBehaviour.Properties pressedJunkProps() {
         return BlockBehaviour.Properties.of()
@@ -233,6 +248,14 @@ public final class RCBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
             .strength(1.0F)
             .sound(SoundType.WOOL);
+    }
+
+    /** Salvaged glass - fragile, near-instant to break, {@code noOcclusion} for transparency. */
+    private static BlockBehaviour.Properties glassBuildProps() {
+        return BlockBehaviour.Properties.of()
+            .strength(0.4F)
+            .sound(SoundType.GLASS)
+            .noOcclusion();
     }
 
     private RCBlocks() {

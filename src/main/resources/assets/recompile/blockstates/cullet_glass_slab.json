@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "recompile:block/cullet_glass_slab"
+    },
+    "type=double": {
+      "model": "recompile:block/cullet_glass"
+    },
+    "type=top": {
+      "model": "recompile:block/cullet_glass_slab_top"
+    }
+  }
+}

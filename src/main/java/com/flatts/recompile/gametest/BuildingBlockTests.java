@@ -40,5 +40,16 @@ final class BuildingBlockTests {
             helper.succeedWhen(() -> helper.assertItemEntityCountIs(
                 RCBlocks.PRESSED_JUNK_SLAB.get().asItem(), pos, 2.0, 2));
         });
+
+        // Cullet Glass drops itself (not shards, and not nothing-without-silk-touch like
+        // vanilla glass) - building must be reversible. The pane is an IronBarsBlock, the
+        // family's most distinct class, so it is the one worth asserting.
+        RCGameTests.test("glass_pane_drops_itself", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.CULLET_GLASS_PANE.get());
+            helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
+            helper.assertBlockPresent(Blocks.AIR, pos);
+            helper.succeedWhenEntityPresent(EntityType.ITEM, pos);
+        });
     }
 }

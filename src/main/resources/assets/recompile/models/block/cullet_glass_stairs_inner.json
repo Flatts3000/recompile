@@ -1,0 +1,17 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": {
+      "force_translucent": true,
+      "sprite": "recompile:block/cullet_glass"
+    },
+    "top": {
+      "force_translucent": true,
+      "sprite": "recompile:block/cullet_glass"
+    },
+    "side": {
+      "force_translucent": true,
+      "sprite": "recompile:block/cullet_glass"
+    }
+  }
+}

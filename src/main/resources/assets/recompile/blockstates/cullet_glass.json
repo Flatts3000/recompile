@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "recompile:block/cullet_glass"
+    }
+  }
+}

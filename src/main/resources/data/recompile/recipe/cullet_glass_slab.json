@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###"
+  ],
+  "key": {
+    "#": "recompile:cullet_glass"
+  },
+  "result": {
+    "id": "recompile:cullet_glass_slab",
+    "count": 6
+  }
+}
