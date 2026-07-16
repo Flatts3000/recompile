@@ -34,6 +34,10 @@
   "message.recompile.needs_tool": "You need a %s to open this",
   "message.recompile.dimension_locked": "That way is sealed for now.",
 
+  "jade.recompile.salvage_with": "Salvage with a %s",
+  "jade.recompile.sort_by_hand": "Sort by hand",
+  "jade.recompile.sorted": "Sorted %s/%s",
+
   "item.recompile.scrap_metal": "Scrap Metal",
   "item.recompile.plastic_scrap": "Plastic Scrap",
   "item.recompile.glass_shards": "Glass Shards",

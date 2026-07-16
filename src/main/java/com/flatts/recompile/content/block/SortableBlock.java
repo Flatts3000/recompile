@@ -136,6 +136,25 @@ public abstract class SortableBlock extends FallingBlock {
     @Nullable
     protected abstract Item requiredTool();
 
+    // ---- read-only accessors for the Jade tooltip (compat.jade), which lives in
+    // another package and cannot see the protected sort internals. ----
+
+    /** The tool this variant is sorted with, or null for bare hand. */
+    @Nullable
+    public Item sortTool() {
+        return requiredTool();
+    }
+
+    /** Pulls taken so far, from the {@code sorted} blockstate (0 .. maxPulls-1). */
+    public int sortedCount(BlockState state) {
+        return state.getValue(sortedProperty());
+    }
+
+    /** Pulls at which the block is certain to crumble (the progress denominator). */
+    public int sortCrumbleAt() {
+        return maxPulls();
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(sortedProperty());
