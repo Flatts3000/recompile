@@ -38,6 +38,11 @@
   "jade.recompile.sort_by_hand": "Sort by hand",
   "jade.recompile.sorted": "Sorted %s/%s",
 
+  "jei.recompile.sorting": "Sorting",
+  "jei.recompile.cutting": "Cutting",
+  "jei.recompile.prying": "Prying",
+  "jei.recompile.chance": "%s%% chance",
+
   "item.recompile.scrap_metal": "Scrap Metal",
   "item.recompile.plastic_scrap": "Plastic Scrap",
   "item.recompile.glass_shards": "Glass Shards",

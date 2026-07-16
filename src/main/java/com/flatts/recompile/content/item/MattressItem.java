@@ -27,9 +27,11 @@ import net.minecraft.world.level.block.Block;
  */
 public class MattressItem extends BlockItem {
 
-    private static final int STRING = 4;
-    private static final int FIBER = 2;
-    private static final int SPRINGS = 1;
+    // Public so the JEI Cutting category (compat.jei) shows the exact yield without
+    // duplicating the numbers.
+    public static final int STRING = 4;
+    public static final int FIBER = 2;
+    public static final int SPRINGS = 1;
 
     public MattressItem(Block block, Properties properties) {
         super(block, properties);
