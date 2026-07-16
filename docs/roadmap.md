@@ -46,6 +46,12 @@ The go/no-go slice - spawn, dig, sort, get materials, in a world that reads as a
 
 **Playtest-confirmed.** Gravity on the garbage block (P0.3) is the one deferred slice item.
 
+**JEI + Jade plugins shipped (2026-07-16).** The custom mechanics that are not vanilla recipes
+now surface in-viewer: JEI **Sorting / Cutting / Prying** categories + the Scrap Crafting Table
+as the crafting station; Jade tool hints + sort progress. Reads bundled pull-table JSON
+(loot tables are not client-synced). **Teardown JEI stays a Phase 3 item** (the locked-recipe
+overlay). See CLAUDE.md "JEI / Jade integration".
+
 ---
 
 ## Phase 2 - The early loop  *(DONE, design P1.1 / P1.2 / P1.3 / P1.8)*
