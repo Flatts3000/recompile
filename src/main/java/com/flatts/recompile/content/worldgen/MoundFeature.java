@@ -17,7 +17,7 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  *
  * <p>The block mix (P1.1) follows the mound shape: trash bags scatter on the outer
  * surface (easy litter), compacted bales concentrate in the core (the mound shape
- * does the depth-reward work), and appliances are uncommon pocket finds inside.
+ * does the depth-reward work), and Bulky Waste is the uncommon pocket find inside.
  * Per-column heightmap sampling can refine the skirt later if needed.
  */
 public class MoundFeature extends Feature<NoneFeatureConfiguration> {
@@ -31,7 +31,15 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
 
     private static final float SURFACE_BAG_CHANCE = 0.22F;
     private static final float CORE_BALE_CHANCE = 0.35F;
-    private static final float CORE_APPLIANCE_CHANCE = 0.05F;
+    /**
+     * Bulky Waste per core cell (P1.11). Inherited unchanged from the appliance it
+     * replaced, because it is already playtested: measured 2026-07-15 at ~2.41 per mound
+     * and ~12 per chunk against ~48.5 core-eligible cells, so most mounds hold a couple
+     * and tearing into one pays off. That is the *beat* - how often "something big is
+     * buried here" fires. Which find it turns out to be is the loot table's job, not this
+     * number's, so a new find never needs worldgen retuned.
+     */
+    private static final float CORE_BULKY_WASTE_CHANCE = 0.05F;
 
     public MoundFeature() {
         super(NoneFeatureConfiguration.CODEC);
@@ -71,17 +79,19 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
         return placedAny;
     }
 
-    /** Pick the block for a mound cell: bags on the surface, bales/appliances in the core. */
+    /** Pick the block for a mound cell: bags on the surface, bales/bulky waste in the core. */
     private BlockState pickBlock(RandomSource random, boolean core, int dy, int column, boolean surface) {
         if (surface && random.nextFloat() < SURFACE_BAG_CHANCE) {
             return RCBlocks.TRASH_BAG.get().defaultBlockState();
         }
         if (core && dy <= column * 0.5) {
+            // One roll shared by both: bulky waste takes the bottom band, bales the next.
+            // So the bale chance is offset by the bulky one - change either and both move.
             float roll = random.nextFloat();
-            if (roll < CORE_APPLIANCE_CHANCE) {
-                return RCBlocks.APPLIANCE.get().defaultBlockState();
+            if (roll < CORE_BULKY_WASTE_CHANCE) {
+                return RCBlocks.BULKY_WASTE.get().defaultBlockState();
             }
-            if (roll < CORE_APPLIANCE_CHANCE + CORE_BALE_CHANCE) {
+            if (roll < CORE_BULKY_WASTE_CHANCE + CORE_BALE_CHANCE) {
                 return RCBlocks.COMPACTED_BALE.get().defaultBlockState();
             }
         }

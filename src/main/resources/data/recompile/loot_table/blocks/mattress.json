@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        { "condition": "minecraft:survives_explosion" },
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "recompile:mattress",
+          "properties": { "part": "foot" }
+        }
+      ],
+      "entries": [
+        { "type": "minecraft:item", "name": "recompile:mattress" }
+      ]
+    }
+  ]
+}

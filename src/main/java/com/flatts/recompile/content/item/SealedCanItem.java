@@ -24,7 +24,7 @@ public class SealedCanItem extends Item {
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!hasKnife(player)) {
+        if (!KnifeWork.hasKnife(player)) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
@@ -33,23 +33,10 @@ public class SealedCanItem extends Item {
             if (!player.getAbilities().instabuild) {
                 stack.shrink(1);
             }
-            ItemStack opened = new ItemStack(RCItems.TIN_CAN_OPEN.get());
-            if (!player.getInventory().add(opened)) {
-                player.drop(opened, false);
-            }
+            KnifeWork.give(player, new ItemStack(RCItems.TIN_CAN_OPEN.get()));
             level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.PLAYERS, 0.7F, 1.4F);
         }
         return InteractionResult.SUCCESS;
-    }
-
-    private static boolean hasKnife(Player player) {
-        var inventory = player.getInventory();
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            if (inventory.getItem(slot).is(RCItems.SCRAP_KNIFE.get())) {
-                return true;
-            }
-        }
-        return false;
     }
 }

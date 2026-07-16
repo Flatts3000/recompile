@@ -55,16 +55,29 @@ faces = ["end", "side"]
 end = "a full-bleed top-down Minecraft block face: the cut end of a compacted cube bale of mixed household trash, a dense packed cross-section of crushed cans, plastic and paper, muted browns and greys, no strapping bands"
 side = "a full-bleed Minecraft block face: the side of a compacted cube bale of mixed household trash bound with two horizontal wire strapping bands, dense crushed debris, muted browns and greys"
 
-# Multiface like the bale: side panels vs the top/bottom (end). Rendered via
-# cube_bottom_top (end on top+bottom, side on the 4 sides).
-[surface.appliance]
+# Bulky Waste (P1.11): something big is buried here. The texture must read as
+# CONTENTS UNKNOWN - it is a tell, and a tell that hints what is inside spoils its own
+# reveal. No fridge, no mattress silhouette, nothing identifiable.
+[surface.bulky_waste]
 kind = "block_multiface"
 backend = "ai"
 size = 16
 faces = ["end", "side"]
-[surface.appliance.prompt]
-end = "a full-bleed top-down Minecraft block face: the top of a battered dirty-white household appliance, dented sheet metal with faint control-panel marks and rust spots, muted"
-side = "a full-bleed Minecraft block face: the side panel of a battered dirty-white household appliance with dents, scratches and rust streaks, muted greys"
+[surface.bulky_waste.prompt]
+end = "a full-bleed top-down Minecraft block face: a bulky unidentifiable object buried in a dump, wrapped in filthy grey-brown plastic sheeting cinched down with frayed cord, hard edges pushing up under the wrapping. Muted greys and browns, gritty, flat, no perspective. Nothing identifiable underneath - the shape must stay a mystery"
+side = "a full-bleed Minecraft block face: the side of a bulky unidentifiable object wrapped in filthy grey-brown plastic sheeting, taut over hard edges, frayed cord lashed horizontally across it, packed dirt and torn trash at the edges. Muted, gritty, nothing identifiable underneath"
+
+# Mattress (P1.11): the first find, and this world's bed - a vanilla bed needs planks and
+# there are no trees. Flat 5px slab, rendered from a custom model, so it needs a top and
+# a side. Filthy, but it is the nicest thing you own.
+[surface.mattress]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["top", "side"]
+[surface.mattress.prompt]
+top = "a full-bleed top-down Minecraft block face: the top of a discarded mattress, pale blue-grey striped ticking fabric, buttoned tufts, brown water stains and a torn corner. Muted, flat, no perspective, fills the whole tile"
+side = "a full-bleed Minecraft block face: the side edge of a discarded mattress, pale blue-grey striped ticking fabric with a piped seam running horizontally, stained and grubby, muted, fills the whole tile"
 
 # ---------------------------------------------------------------------------
 # Base material items (the 7-material vocabulary, P0.4)

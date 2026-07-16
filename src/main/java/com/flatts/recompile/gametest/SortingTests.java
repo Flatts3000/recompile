@@ -62,13 +62,17 @@ final class SortingTests {
             BlockState bale = RCBlocks.COMPACTED_BALE.get().defaultBlockState();
             BlockState barrel = RCBlocks.SCRAP_BARREL.get().defaultBlockState();
 
+            BlockState bulky = RCBlocks.BULKY_WASTE.get().defaultBlockState();
+
             // Each tool against every block, so a tag pointed at the wrong one is caught.
-            record Tool(String name, Item item, BlockState owns) {}
+            // `owns` is a LIST: one block has one tool, but a tool may own several - the
+            // prybar digs out both the barrel and bulky waste.
+            record Tool(String name, Item item, List<BlockState> owns) {}
             List<Tool> tools = List.of(
-                new Tool("junk shovel", RCItems.JUNK_SHOVEL.get(), garbage),
-                new Tool("scrap knife", RCItems.SCRAP_KNIFE.get(), bale),
-                new Tool("prybar", RCItems.PRYBAR.get(), barrel));
-            List<BlockState> blocks = List.of(garbage, bale, barrel);
+                new Tool("junk shovel", RCItems.JUNK_SHOVEL.get(), List.of(garbage)),
+                new Tool("scrap knife", RCItems.SCRAP_KNIFE.get(), List.of(bale)),
+                new Tool("prybar", RCItems.PRYBAR.get(), List.of(barrel, bulky)));
+            List<BlockState> blocks = List.of(garbage, bale, barrel, bulky);
 
             for (Tool tool : tools) {
                 for (BlockState block : blocks) {
@@ -77,7 +81,7 @@ final class SortingTests {
                     player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(tool.item()));
                     float withTool = player.getDestroySpeed(block);
 
-                    if (block == tool.owns()) {
+                    if (tool.owns().contains(block)) {
                         helper.assertTrue(withTool > bare, tool.name()
                             + " must mine its own block faster than bare hands (got "
                             + withTool + " vs " + bare + ") - check its recompile:mineable/* tag");
