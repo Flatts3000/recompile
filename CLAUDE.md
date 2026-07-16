@@ -71,6 +71,15 @@ Changing a surface's `kind` and re-running `promote` re-finalizes from `art_src/
 
 Blocks with `variants = N` get randomized variants from the **blockstate JSON, not code**.
 
+## JEI / Jade integration (`compat/`)
+
+JEI and Jade are `runtimeOnly` viewers **plus** `compileOnly` APIs (`jei-...-neoforge-api`; the Jade jar bundles `snownee.jade.api`). The plugins live in `com.flatts.recompile.compat.{jei,jade}` and load **only when the viewer mod is present** - `@JeiPlugin` / `@WailaPlugin` are never referenced otherwise, so the mod ships and runs without either.
+
+- **JEI** (`RecompileJeiPlugin`): one reusable `SalvageCategory`, three instances - **Sorting** (what a garbage block / bag / bale yields), **Cutting** (knife: can, mattress), **Prying** (prybar: Bulky Waste). Plus the Scrap Crafting Table as the crafting **station** (the world has no vanilla table). Anything that is a real crafting recipe already shows automatically - only the non-recipe mechanics need a category.
+- **Jade** (`RecompileJadePlugin`): a tool-hint provider ("Salvage with a Prybar/Scrap Knife" / "Sort by hand") and a sort-progress provider ("Sorted N/max", reading the otherwise-hidden `sorted` blockstate). `SortableBlock` exposes public read-only accessors (`sortTool`/`sortedCount`/`sortCrumbleAt`) so the compat package can see its protected internals.
+- **`SortingData`** parses the **bundled loot JSON** (not a live table) because loot tables are not client-synced - so the categories work in singleplayer and on servers. It is server-safe and the only JEI/Jade logic a GameTest can cover (`SortingDataTests`); the categories/providers are thin renderers verified in `runClient`. Datapack-retuned pulls are not reflected in JEI - accepted, revisit if needed.
+- **Teardown JEI is deferred to Phase 3** (only an example recipe exists; its locked-recipe overlay is the Phase 3 risk spike). EMI is not wired.
+
 ## 26.1 API deltas that bite
 
 Most tutorials target 1.20/1.21 and will mislead you:
