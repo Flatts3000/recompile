@@ -176,10 +176,6 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("plastic_panel_wall", RCBlocks.PLASTIC_PANEL_WALL);
     public static final DeferredItem<BlockItem> CULLET_GLASS =
         ITEMS.registerSimpleBlockItem("cullet_glass", RCBlocks.CULLET_GLASS);
-    public static final DeferredItem<BlockItem> CULLET_GLASS_SLAB =
-        ITEMS.registerSimpleBlockItem("cullet_glass_slab", RCBlocks.CULLET_GLASS_SLAB);
-    public static final DeferredItem<BlockItem> CULLET_GLASS_STAIRS =
-        ITEMS.registerSimpleBlockItem("cullet_glass_stairs", RCBlocks.CULLET_GLASS_STAIRS);
     public static final DeferredItem<BlockItem> CULLET_GLASS_PANE =
         ITEMS.registerSimpleBlockItem("cullet_glass_pane", RCBlocks.CULLET_GLASS_PANE);
 
@@ -189,7 +185,7 @@ public final class RCItems {
         SCRAP_PLATING, SCRAP_PLATING_SLAB, SCRAP_PLATING_STAIRS, SCRAP_PLATING_WALL,
         CORRUGATED_METAL, CORRUGATED_METAL_SLAB, CORRUGATED_METAL_STAIRS, CORRUGATED_METAL_WALL,
         PLASTIC_PANEL, PLASTIC_PANEL_SLAB, PLASTIC_PANEL_STAIRS, PLASTIC_PANEL_WALL,
-        CULLET_GLASS, CULLET_GLASS_SLAB, CULLET_GLASS_STAIRS, CULLET_GLASS_PANE);
+        CULLET_GLASS, CULLET_GLASS_PANE);
 
     private RCItems() {
         // utility class

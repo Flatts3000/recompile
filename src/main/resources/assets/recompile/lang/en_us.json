@@ -29,8 +29,6 @@
   "block.recompile.plastic_panel_stairs": "Plastic Panel Stairs",
   "block.recompile.plastic_panel_wall": "Plastic Panel Wall",
   "block.recompile.cullet_glass": "Cullet Glass",
-  "block.recompile.cullet_glass_slab": "Cullet Glass Slab",
-  "block.recompile.cullet_glass_stairs": "Cullet Glass Stairs",
   "block.recompile.cullet_glass_pane": "Cullet Glass Pane",
 
   "message.recompile.needs_tool": "You need a %s to open this",

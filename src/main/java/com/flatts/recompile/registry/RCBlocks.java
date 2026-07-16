@@ -213,16 +213,10 @@ public final class RCBlocks {
     public static final DeferredBlock<WallBlock> PLASTIC_PANEL_WALL = BLOCKS.registerBlock(
         "plastic_panel_wall", WallBlock::new, RCBlocks::plasticBuildProps);
 
-    // Cullet Glass: glass's honest thin form is a pane, so the family is
-    // block + slab + stairs + pane (an IronBarsBlock) rather than a wall.
+    // Cullet Glass: just the block and its pane. Glass has no honest slab or stairs form
+    // (vanilla ships neither), so the family is block + pane (an IronBarsBlock).
     public static final DeferredBlock<TransparentBlock> CULLET_GLASS = BLOCKS.registerBlock(
         "cullet_glass", TransparentBlock::new, RCBlocks::glassBuildProps);
-    public static final DeferredBlock<SlabBlock> CULLET_GLASS_SLAB = BLOCKS.registerBlock(
-        "cullet_glass_slab", SlabBlock::new, RCBlocks::glassBuildProps);
-    public static final DeferredBlock<StairBlock> CULLET_GLASS_STAIRS = BLOCKS.registerBlock(
-        "cullet_glass_stairs",
-        props -> new StairBlock(CULLET_GLASS.get().defaultBlockState(), props),
-        RCBlocks::glassBuildProps);
     public static final DeferredBlock<IronBarsBlock> CULLET_GLASS_PANE = BLOCKS.registerBlock(
         "cullet_glass_pane", IronBarsBlock::new, RCBlocks::glassBuildProps);
 

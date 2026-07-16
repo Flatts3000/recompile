@@ -104,9 +104,9 @@ tier - refine scrap into blocks you would *choose* to build with - and, just as 
 free, tech is locked); crafted at the Scrap Crafting Table. Not defense - the starting biome is
 creature-free and nothing threatens builds; this is the WALL-E move of rebuilding from garbage.
 
-- **Five families, full kit each** (block + slab + stairs + wall): Pressed Junk (the junk sink),
-  Scrap Plating, Corrugated Metal (the shanty aesthetic), Plastic Panel, and Cullet Glass
-  (block + slab + stairs + **pane** - glass's honest thin form).
+- **Four full-kit families** (block + slab + stairs + wall): Pressed Junk (the junk sink),
+  Scrap Plating, Corrugated Metal (the shanty aesthetic), Plastic Panel. Plus **Cullet Glass**
+  as **block + pane** only - glass has no honest slab or stairs form (vanilla ships neither).
 - **Hand-breakable, drop themselves** - no pickaxe exists and reclaiming your own walls must not
   be punishing; the prybar is only the faster tool on metal, never required.
 - The ~110 repetitive JSON files are derived from the vanilla `cobblestone_*` / `glass_pane_*`
