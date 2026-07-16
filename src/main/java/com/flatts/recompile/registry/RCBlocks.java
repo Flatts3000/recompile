@@ -69,10 +69,11 @@ public final class RCBlocks {
     );
 
     /**
-     * Bulky Waste (P1.11): something big is buried here - break it to find out what.
-     * Inherits the appliance's slot and feel. No {@code requiresCorrectToolForDrops}: the
-     * prybar is fast (via {@code recompile:mineable/prybar}), but it always gives up its
-     * find. The find itself lives in the loot table, which is the file that grows.
+     * Bulky Waste (P1.11): something big is buried here - pry it open to find out what.
+     * Inherits the appliance's slot and feel. {@code requiresCorrectToolForDrops} so the
+     * prybar (via {@code recompile:mineable/prybar}) is the <em>only</em> way in - bare
+     * hands get nothing, matching the compacted bale, which keeps its "you need a Prybar"
+     * nudge honest. The find itself lives in the loot table, which is the file that grows.
      */
     public static final DeferredBlock<BulkyWasteBlock> BULKY_WASTE = BLOCKS.registerBlock(
         "bulky_waste",
@@ -81,6 +82,7 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(1.4F)
             .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
     );
 
     /** Scrap crafting table: the tier-zero 3x3 crafting station (no wood in this world). */

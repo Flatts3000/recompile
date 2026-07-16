@@ -12,6 +12,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.phys.Vec3;
 
 /** GameTests for Bulky Waste (design P1.11) and its first find, the mattress. */
 final class BulkyWasteTests {
@@ -31,6 +32,39 @@ final class BulkyWasteTests {
             helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
             helper.assertBlockPresent(Blocks.AIR, pos);
             helper.succeedWhenEntityPresent(EntityType.ITEM, pos);
+        });
+
+        // Right-click with a prybar pops it open (mirrors the compacted bale's tool gate).
+        // Fails against the pre-interaction block, where a right-click did nothing and the
+        // block would still be standing.
+        RCGameTests.test("bulky_waste_opens_with_a_prybar", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.BULKY_WASTE.get());
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            Vec3 standing = helper.absoluteVec(pos.above().getCenter());
+            player.snapTo(standing.x, standing.y, standing.z);
+            player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                new ItemStack(RCItems.PRYBAR.get()));
+
+            helper.useBlock(pos, player);
+            helper.assertBlockPresent(Blocks.AIR, pos);
+            helper.succeedWhenEntityPresent(EntityType.ITEM, pos);
+        });
+
+        // Bare hand must NOT open it - the prybar is the only way in, so the block stays
+        // and the player is nudged instead (the message itself is server-only chat, so this
+        // asserts the block survives rather than trying to read the text).
+        RCGameTests.test("bulky_waste_needs_a_prybar_to_open", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.BULKY_WASTE.get());
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            Vec3 standing = helper.absoluteVec(pos.above().getCenter());
+            player.snapTo(standing.x, standing.y, standing.z);
+            player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+            helper.useBlock(pos, player);
+            helper.assertBlockPresent(RCBlocks.BULKY_WASTE.get(), pos);
+            helper.succeed();
         });
 
         // The two overrides that fail SILENTLY. Without isBed, NeoForge's patched
