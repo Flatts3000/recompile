@@ -102,5 +102,8 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_KNIFE.get()), CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
+        // The Burn Barrel is this world's furnace - register it as a smelting station so scrap ->
+        // copper shows up on it, not only on the (uncraftable) vanilla furnace.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), RecipeTypes.SMELTING);
     }
 }
