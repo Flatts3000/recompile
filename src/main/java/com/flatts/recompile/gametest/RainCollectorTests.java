@@ -146,6 +146,35 @@ final class RainCollectorTests {
                 "a dry collector must not consume the glass bottle");
             helper.succeed();
         });
+
+        // The tank's water must survive a save/load - the one behaviour the other tests can't
+        // reach (they never serialize). A wrong child()/serialize pairing would silently drop
+        // the water on world reload.
+        RCGameTests.test("rain_collector_tank_survives_reload", 20, helper -> {
+            BlockPos lower = new BlockPos(1, 1, 1);
+            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get());
+            var registries = helper.getLevel().registryAccess();
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+                    instanceof RainCollectorBlockEntity be)) {
+                helper.fail("rain collector base has no BlockEntity");
+                return;
+            }
+            be.catchRain();
+            be.catchRain();
+            int stored = be.storedWater();
+            helper.assertTrue(stored > 0, "precondition: the tank was filled");
+
+            net.minecraft.nbt.CompoundTag tag = be.saveCustomOnly(registries);
+            RainCollectorBlockEntity reloaded =
+                new RainCollectorBlockEntity(be.getBlockPos(), be.getBlockState());
+            reloaded.loadCustomOnly(net.minecraft.world.level.storage.TagValueInput.create(
+                net.minecraft.util.ProblemReporter.DISCARDING, registries, tag));
+
+            helper.assertTrue(reloaded.storedWater() == stored,
+                "the tank must survive save/load; saved " + stored + " mB, reloaded "
+                    + reloaded.storedWater() + " mB");
+            helper.succeed();
+        });
     }
 
     private static boolean hasItem(Player player, net.minecraft.world.item.Item item) {
