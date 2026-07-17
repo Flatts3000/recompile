@@ -12,13 +12,16 @@ import com.flatts.recompile.content.block.ScrapBarrelBlock;
 import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.WallTorchBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -253,6 +256,18 @@ public final class RCBlocks {
     public static final DeferredBlock<IronBarsBlock> CULLET_GLASS_PANE = BLOCKS.registerBlock(
         "cullet_glass_pane", IronBarsBlock::new, RCBlocks::glassBuildProps);
 
+    // Scrap Torch (P1.4-A lighting): a rag torch that is a 1:1 reskin of the vanilla torch -
+    // an oily rag (the trash-world "coal") lashed to a rebar. Light 14, no burn-out. The wall
+    // variant is placed by the same item (StandingAndWallBlockItem) and drops the standing item.
+    public static final DeferredBlock<TorchBlock> SCRAP_TORCH = BLOCKS.registerBlock(
+        "scrap_torch",
+        props -> new TorchBlock(ParticleTypes.FLAME, props),
+        RCBlocks::torchProps);
+    public static final DeferredBlock<WallTorchBlock> WALL_SCRAP_TORCH = BLOCKS.registerBlock(
+        "wall_scrap_torch",
+        props -> new WallTorchBlock(ParticleTypes.FLAME, props),
+        RCBlocks::torchProps);
+
     /** Compacted mixed trash - the WALL-E cube. Soft, cheap, the bulk junk sink. */
     private static BlockBehaviour.Properties pressedJunkProps() {
         return BlockBehaviour.Properties.of()
@@ -275,6 +290,16 @@ public final class RCBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
             .strength(1.0F)
             .sound(SoundType.WOOL);
+    }
+
+    /** Vanilla-torch physics: no collision, instant break, full light, destroyed when pushed. */
+    private static BlockBehaviour.Properties torchProps() {
+        return BlockBehaviour.Properties.of()
+            .noCollision()
+            .instabreak()
+            .lightLevel(state -> 14)
+            .sound(SoundType.METAL)
+            .pushReaction(PushReaction.DESTROY);
     }
 
     /** Salvaged glass - fragile, near-instant to break, {@code noOcclusion} for transparency. */

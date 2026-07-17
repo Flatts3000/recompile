@@ -32,10 +32,12 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SCRAP_BARREL.get());
                     output.accept(RCItems.RAIN_COLLECTOR.get());
                     output.accept(RCItems.MATTRESS.get());
+                    output.accept(RCItems.SCRAP_TORCH.get());
                     RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
                     output.accept(RCItems.REBAR.get());
                     RCItems.BUILDING_BLOCKS.forEach(block -> output.accept(block.get()));
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
+                    output.accept(RCItems.OILY_RAG.get());
                     RCItems.FOOD.forEach(food -> output.accept(food.get()));
                 })
                 .build()

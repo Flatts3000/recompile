@@ -12,6 +12,8 @@
   "block.recompile.scrap_barrel": "Scrap Barrel",
   "container.recompile.scrap_barrel": "Scrap Barrel",
   "block.recompile.rain_collector": "Rain Collector",
+  "block.recompile.scrap_torch": "Scrap Torch",
+  "block.recompile.wall_scrap_torch": "Scrap Torch",
   "block.recompile.dump_mushroom": "Dump Mushroom",
 
   "block.recompile.pressed_junk_block": "Pressed Junk Block",
@@ -59,6 +61,7 @@
   "item.recompile.fiber_scrap": "Fiber Scrap",
   "item.recompile.e_scrap": "E-Scrap",
   "item.recompile.junk": "Junk",
+  "item.recompile.oily_rag": "Oily Rag",
 
   "item.recompile.rebar": "Rebar",
   "item.recompile.scrap_knife": "Scrap Knife",

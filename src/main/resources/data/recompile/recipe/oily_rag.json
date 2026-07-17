@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "recompile:fiber_scrap",
+    "recompile:organic_muck"
+  ],
+  "result": {
+    "id": "recompile:oily_rag",
+    "count": 1
+  }
+}

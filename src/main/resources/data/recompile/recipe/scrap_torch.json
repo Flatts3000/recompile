@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "O",
+    "R"
+  ],
+  "key": {
+    "O": "recompile:oily_rag",
+    "R": "recompile:rebar"
+  },
+  "result": {
+    "id": "recompile:scrap_torch",
+    "count": 4
+  }
+}
