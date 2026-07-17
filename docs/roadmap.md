@@ -1,8 +1,9 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.5 shipped to `main` (2026-07-15) - the mod is a playable alpha
-and the early loop is tuned against real play. Next is **Phase 3, teardown-as-knowledge**, the
-distinct axis; its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
+**Status:** Phases 0 through 2.7 shipped to `main` - the mod is a playable alpha and the early
+loop is tuned against real play. Phase 3's **materials teardown** (the Recompile Workbench) shipped
+2026-07-16; its **knowledge/function axis** is the next major decision and stays under review (see
+Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
 are ordered by
 **gameplay discovery** - the sequence a player actually lives, so each phase delivers a
 coherent playable increment. The locked feature design is the source of truth in the
@@ -14,7 +15,9 @@ config-gated, but "defaults are the design."
 > shipped so far is a **first-pass placeholder** chosen to prove the mechanic, not balanced against
 > play: the pull tables (`household_pulls` / `bag_pulls`), the Bulky Waste find table and its 5%
 > mound chance, the glass-bottle weight (half of tin cans), dump-mushroom density, the Rain
-> Collector fill rate, and the building-block recipe costs (the material-sink balance). Before
+> Collector fill rate, the building-block recipe costs (the material-sink balance), and the
+> teardown yields + breakdown time (the mattress -> 4 string / 2 fiber / 1 scrap at 80 ticks, and
+> the workbench recipe cost). Before
 > launch, do **one playtest-driven balance pass across all loot tables + recipes together**, so the
 > found-economy rates, sinks, and rarity curves are coherent rather than tuned piecemeal. Tuning is
 > pack responsibility (Trashlands), even though the numbers live in this mod's JSON.
@@ -138,17 +141,26 @@ BlockEntity, after the Scrap Barrel). **Owner override of P1.10 #5:** shipped st
 than gated on a consumer; washing-salvage decoupled to a later tier. See CLAUDE.md for the
 26.1 fluid-API delta.
 
-## Phase 3 - Teardown-as-knowledge  *(design P1.4) - the distinct axis*
+## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 
-The payoff and the mod's reason to exist: tear a found item down at the **Recompile Workbench**
-to recover materials AND its recipe. Deterministic study points -> schematic item -> learn it
-permanently; unlearned tech can't be crafted until studied. Rides vanilla `doLimitedCrafting` +
-recipe-book grants; hand-authored JSON unlock tables only.
+Tear a found item down at the **Recompile Workbench** into materials. This is the teardown exit
+the found economy needs - the P1.11.5 invariant ("finds in, materials out"), which was blocked on
+the bench existing.
 
-**Open with a de-risk spike.** The riskiest internals - the JEI/EMI locked-recipe overlay and
-FTB Teams team-shared sync - get proven in isolation *first*, before wiring the full loop, so
-discovery-order sequencing doesn't defer the technical risk. Automatic recipe introspection
-stays maybe-never.
+**The materials workbench is SHIPPED (2026-07-16).** GUI-free, keeping the mod's no-machine-screen
+identity: two tools (scrap knife, prybar) rest on the table (a baked multipart model, no BER),
+hold right-click with a found item to run a per-recipe timed breakdown, outputs pop into the world,
+the racked tool wears. The `recompile:teardown` schema gained optional `tool` + `ticks` fields.
+The mattress migrated onto it (its in-hand knife-cut retired), so string is now bench-gated. JEI
+Teardown category + a Jade diagnostic ship with it.
+
+**The knowledge axis is NOT built and remains under review.** The `teaches` field is parsed but
+ignored. Whether teardown's second axis is **knowledge** (recover recipes, gate crafting) or
+**function** (recover working components, no gate) is an open design decision (P1.4 "under
+review"): the `doLimitedCrafting` gate is player-scoped and leaks through Create autocrafting, and
+the scope of gating the whole catalog is questioned since material scarcity already gates. It
+layers onto the same bench once decided - or never. The JEI/EMI locked-recipe overlay and FTB
+Teams sync de-risk spike belongs to that axis, not the shipped materials bench.
 
 ## Phase 4 - Garbage regions  *(design P1.5)*
 
