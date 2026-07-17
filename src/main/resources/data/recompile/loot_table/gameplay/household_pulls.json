@@ -58,6 +58,11 @@
           "type": "minecraft:item",
           "name": "recompile:tin_can",
           "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:glass_bottle",
+          "weight": 3
         }
       ]
     }
