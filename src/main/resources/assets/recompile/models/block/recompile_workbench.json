@@ -1,0 +1,9 @@
+{
+  "comment": "cube_bottom_top: a distinct steel worktop on a riveted metal frame (frame also on the bottom). The racked tool sprites lie on the top face via the multipart pieces.",
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/recompile_workbench_top",
+    "side": "recompile:block/recompile_workbench_side",
+    "bottom": "recompile:block/recompile_workbench_side"
+  }
+}

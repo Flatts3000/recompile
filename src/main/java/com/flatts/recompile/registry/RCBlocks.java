@@ -7,6 +7,7 @@ import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.RainCollectorBlock;
+import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBarrelBlock;
 import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
@@ -113,6 +114,22 @@ public final class RCBlocks {
             .mapColor(MapColor.COLOR_BROWN)
             .strength(0.8F)
             .sound(SoundType.WOOL)
+            .noOcclusion()
+    );
+
+    /**
+     * Recompile Workbench (P1.4): the disassembly table - the teardown exit the found
+     * economy needs (P1.11.5). Hold right-click with a found item to tear it into materials;
+     * a scrap knife and prybar rest on it as the tool rack. {@code noOcclusion} because the
+     * baked model carries the tool sprites on top. Metal, so it sounds and mines like scrap.
+     */
+    public static final DeferredBlock<RecompileWorkbenchBlock> RECOMPILE_WORKBENCH = BLOCKS.registerBlock(
+        "recompile_workbench",
+        RecompileWorkbenchBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
+            .sound(SoundType.METAL)
             .noOcclusion()
     );
 

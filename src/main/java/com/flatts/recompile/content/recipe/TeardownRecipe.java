@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -61,7 +62,13 @@ import net.minecraft.world.level.Level;
  *       so the knowledge axis is never retrofitted into a live schema.
  *       {@code scraps_required} is the deterministic study-point threshold (how many
  *       teardowns complete the study); {@code chance} is acceleration only (a lucky
- *       insight grants extra progress) - there is no bad-streak failure.
+ *       insight grants extra progress) - there is no bad-streak failure. The materials
+ *       workbench (P1.4, built) ignores {@code teaches} entirely - it is dormant until
+ *       the knowledge/function axis is decided.
+ *   <li>{@code tool} (optional) is an {@link Ingredient} naming the tool that must be
+ *       racked at the bench to run this teardown (e.g. {@code "recompile:scrap_knife"});
+ *       omit it for a no-tool teardown. {@code ticks} (optional, default
+ *       {@value #DEFAULT_TICKS}) is how long the player holds to complete one breakdown.
  * </ul>
  *
  * <p>The item-shaped {@link Recipe} surfaces ({@link #assemble}) return the primary
@@ -73,6 +80,9 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
 
     /** The default station id when a table omits {@code station}. */
     public static final String DEFAULT_STATION = "recompile:workbench";
+
+    /** The default breakdown time (ticks) when a table omits {@code ticks}. 80 = 4s. */
+    public static final int DEFAULT_TICKS = 80;
 
     /** A fixed, deterministic core output: an item and a count. */
     public record ItemResult(Item item, int count) {
@@ -133,32 +143,35 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
         Codec.STRING.optionalFieldOf("station", DEFAULT_STATION).forGetter(TeardownRecipe::station),
         ExtraCodecs.nonEmptyList(ItemResult.CODEC.listOf()).fieldOf("results").forGetter(TeardownRecipe::results),
         ChanceResult.CODEC.listOf().optionalFieldOf("extras", List.of()).forGetter(TeardownRecipe::extras),
-        TeachEntry.CODEC.listOf().optionalFieldOf("teaches", List.of()).forGetter(TeardownRecipe::teaches)
+        TeachEntry.CODEC.listOf().optionalFieldOf("teaches", List.of()).forGetter(TeardownRecipe::teaches),
+        Ingredient.CODEC.optionalFieldOf("tool").forGetter(TeardownRecipe::tool),
+        Codec.intRange(1, 72000).optionalFieldOf("ticks", DEFAULT_TICKS).forGetter(TeardownRecipe::ticks)
     ).apply(instance, TeardownRecipe::new));
 
+    // Bridged from the map codec rather than composed field-by-field: recipes sync once on
+    // join, and this has no component-arity ceiling as the schema grows (the knowledge axis
+    // will add more fields). The nested records' STREAM_CODECs are kept as wire-shape docs.
     public static final StreamCodec<RegistryFriendlyByteBuf, TeardownRecipe> STREAM_CODEC =
-        StreamCodec.composite(
-            Ingredient.CONTENTS_STREAM_CODEC, TeardownRecipe::input,
-            ByteBufCodecs.STRING_UTF8, TeardownRecipe::station,
-            ItemResult.STREAM_CODEC.apply(ByteBufCodecs.list()), TeardownRecipe::results,
-            ChanceResult.STREAM_CODEC.apply(ByteBufCodecs.list()), TeardownRecipe::extras,
-            TeachEntry.STREAM_CODEC.apply(ByteBufCodecs.list()), TeardownRecipe::teaches,
-            TeardownRecipe::new
-        );
+        ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
 
     private final Ingredient input;
     private final String station;
     private final List<ItemResult> results;
     private final List<ChanceResult> extras;
     private final List<TeachEntry> teaches;
+    private final Optional<Ingredient> tool;
+    private final int ticks;
 
     public TeardownRecipe(Ingredient input, String station, List<ItemResult> results,
-                          List<ChanceResult> extras, List<TeachEntry> teaches) {
+                          List<ChanceResult> extras, List<TeachEntry> teaches,
+                          Optional<Ingredient> tool, int ticks) {
         this.input = input;
         this.station = station;
         this.results = List.copyOf(results);
         this.extras = List.copyOf(extras);
         this.teaches = List.copyOf(teaches);
+        this.tool = tool;
+        this.ticks = ticks;
     }
 
     public Ingredient input() {
@@ -179,6 +192,16 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
 
     public List<TeachEntry> teaches() {
         return teaches;
+    }
+
+    /** The tool that must be racked at the bench to run this teardown; empty = no tool needed. */
+    public Optional<Ingredient> tool() {
+        return tool;
+    }
+
+    /** Ticks the player must hold to complete this breakdown (default {@link #DEFAULT_TICKS}). */
+    public int ticks() {
+        return ticks;
     }
 
     @Override

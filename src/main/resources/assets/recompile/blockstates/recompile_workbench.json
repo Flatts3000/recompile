@@ -1,0 +1,13 @@
+{
+  "multipart": [
+    { "apply": { "model": "recompile:block/recompile_workbench" } },
+    {
+      "when": { "has_knife": "true" },
+      "apply": { "model": "recompile:block/recompile_workbench_knife" }
+    },
+    {
+      "when": { "has_prybar": "true" },
+      "apply": { "model": "recompile:block/recompile_workbench_prybar" }
+    }
+  ]
+}

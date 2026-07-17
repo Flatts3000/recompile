@@ -64,6 +64,7 @@ public final class RCGameTests {
         BuildingBlockTests.register();
         SortingDataTests.register();
         RainCollectorTests.register();
+        RecompileWorkbenchTests.register();
 
         FUNCTIONS.register(modEventBus);
         modEventBus.addListener(RCGameTests::onRegisterGameTests);
