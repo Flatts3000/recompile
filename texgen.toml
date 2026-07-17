@@ -324,6 +324,15 @@ backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face of the front of a salvaged metal workbench, a riveted grey steel frame panel with a small mounted bench vice and a shallow drawer, weathered scratched industrial metal, reads as a workbench body not a wall"
 
+# The Burn Barrel side: the Scrap Barrel's metal drum, retinted rusty so the body matches the
+# rusty top (retint sources the mod's own promoted scrap_barrel_side, not a vanilla texture).
+[surface.burn_barrel_side]
+kind = "block"
+backend = "retint"
+size = 16
+tint = "#a06a40"
+source = "block/scrap_barrel_side"
+
 # The Burn Barrel top (P2.2): unlit = a cold open drum mouth of ash and soot; lit = glowing embers.
 [surface.burn_barrel_top]
 kind = "block"

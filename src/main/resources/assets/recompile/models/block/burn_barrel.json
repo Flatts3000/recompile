@@ -1,9 +1,9 @@
 {
-  "comment": "The drum body reuses the Scrap Barrel textures; only the open top is dedicated art.",
+  "comment": "The drum body is the Scrap Barrel's metal retinted rusty (burn_barrel_side) to match the top.",
   "parent": "minecraft:block/cube_bottom_top",
   "textures": {
     "top": "recompile:block/burn_barrel_top",
-    "bottom": "recompile:block/scrap_barrel_end",
-    "side": "recompile:block/scrap_barrel_side"
+    "bottom": "recompile:block/burn_barrel_side",
+    "side": "recompile:block/burn_barrel_side"
   }
 }
