@@ -1,8 +1,8 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "frame": "recompile:block/scrap_barrel_side",
-    "particle": "recompile:block/scrap_barrel_side"
+    "frame": "recompile:block/rain_collector_base",
+    "particle": "recompile:block/rain_collector_base"
   },
   "elements": [
     {

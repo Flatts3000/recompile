@@ -1,9 +1,9 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "top": "recompile:block/sorting_tarp_top",
-    "side": "recompile:block/sorting_tarp_side",
-    "particle": "recompile:block/sorting_tarp_side"
+    "top": "recompile:block/rain_collector_tarp_top",
+    "side": "recompile:block/rain_collector_tarp_side",
+    "particle": "recompile:block/rain_collector_tarp_side"
   },
   "elements": [
     {
