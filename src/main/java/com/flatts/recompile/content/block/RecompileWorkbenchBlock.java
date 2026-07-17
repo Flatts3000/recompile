@@ -104,8 +104,10 @@ public class RecompileWorkbenchBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hit) {
-        // Sneak + empty hand pulls a racked tool back off the table.
-        if (player.isShiftKeyDown()) {
+        // Sneak + empty hand pulls a racked tool back off the table. The empty-hand check matters:
+        // this also runs when useItemOn returns TRY_WITH_EMPTY_HAND for a held non-input item, and
+        // without it a sneak-click while holding junk would yank a tool off unexpectedly.
+        if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
             if (level instanceof ServerLevel serverLevel
                     && level.getBlockEntity(pos) instanceof RecompileWorkbenchBlockEntity workbench) {
                 workbench.unrackOne(serverLevel, player);
@@ -115,11 +117,6 @@ public class RecompileWorkbenchBlock extends BaseEntityBlock {
         return InteractionResult.PASS;
     }
 
-    @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof RecompileWorkbenchBlockEntity workbench) {
-            workbench.dropTools(level);
-        }
-        return super.playerWillDestroy(level, pos, state, player);
-    }
+    // Racked tools drop from RecompileWorkbenchBlockEntity.preRemoveSideEffects, which fires on
+    // every removal cause (player break, explosion, piston, /setblock) - no playerWillDestroy needed.
 }

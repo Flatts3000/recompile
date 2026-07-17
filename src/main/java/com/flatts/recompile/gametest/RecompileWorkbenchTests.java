@@ -13,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.Vec3;
 
@@ -47,11 +48,38 @@ final class RecompileWorkbenchTests {
                 return;
             }
             helper.assertTrue(workbench.hasTool(RecompileWorkbenchBlockEntity.KNIFE_SLOT),
-                "the knife must be racked in the BlockEntity");
+                "the knife must be racked in the BlockEntity (rack's syncPresence must not drop it)");
 
-            workbench.dropTools(helper.getLevel());
+            // Any removal must return the racked tool - driven by preRemoveSideEffects, since the
+            // BE is not a Container. destroyBlock takes the real removal path.
+            helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
+            helper.assertBlockPresent(Blocks.AIR, pos);
             helper.succeedWhen(() ->
                 helper.assertItemEntityCountIs(RCItems.SCRAP_KNIFE.get(), pos, 2.0, 1));
+        });
+
+        // The hold-progress path (advanceBreakdown across ticks) - which breakdownNow bypasses.
+        // Fire it every 4 ticks like a held right-click; near 80 ticks it completes and drops.
+        RCGameTests.test("workbench_hold_completes_a_breakdown", 140, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.RECOMPILE_WORKBENCH.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(pos);
+            if (!(level.getBlockEntity(abs) instanceof RecompileWorkbenchBlockEntity workbench)) {
+                helper.fail("the workbench has no BlockEntity");
+                return;
+            }
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            workbench.rackTool(level, player, new ItemStack(RCItems.SCRAP_KNIFE.get()));
+            ItemStack mattress = new ItemStack(RCItems.MATTRESS.get());
+
+            for (int tick = 4; tick <= 100; tick += 4) {
+                helper.runAfterDelay(tick, () -> workbench.advanceBreakdown(level, player, mattress));
+            }
+            helper.runAfterDelay(112, () -> {
+                helper.assertItemEntityCountIs(Items.STRING, pos, 3.0, 4);
+                helper.succeed();
+            });
         });
 
         // The flagship: a mattress + a racked knife -> string/fiber/scrap, and the knife wears.

@@ -6,7 +6,9 @@ import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -57,6 +59,10 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
     private NonNullList<ItemStack> tools = NonNullList.withSize(TOOL_SLOTS, ItemStack.EMPTY);
     private int progress = 0;
     private long lastFireTick = Long.MIN_VALUE;
+    // Progress is scoped to the item and player it was earned on, so it can't be banked across
+    // a held-item swap or blended between two players holding the same bench.
+    private @Nullable Item progressItem = null;
+    private @Nullable UUID progressOwner = null;
 
     public RecompileWorkbenchBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(RCBlockEntities.RECOMPILE_WORKBENCH.get(), worldPosition, blockState);
@@ -113,7 +119,7 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
         return false;
     }
 
-    /** Drop every racked tool into the world (called when the block is broken). */
+    /** Drop every racked tool into the world (called when the block is removed). */
     public void dropTools(Level level) {
         for (int slot = 0; slot < tools.size(); slot++) {
             ItemStack tool = tools.get(slot);
@@ -121,6 +127,21 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
                 Block.popResource(level, worldPosition, tool);
                 tools.set(slot, ItemStack.EMPTY);
             }
+        }
+    }
+
+    /**
+     * Drop the racked tools on ANY removal (player break, explosion, piston, {@code /setblock},
+     * mod replace). This BE is deliberately not a {@link net.minecraft.world.Container}, so
+     * vanilla's Container drop path here is a no-op; this is the general removal hook that covers
+     * every cause. A same-block blockstate change (racking/unracking, which rewrites has_knife /
+     * has_prybar) keeps the BlockEntity and does NOT call this, so the tools are not dropped then.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState oldState) {
+        super.preRemoveSideEffects(pos, oldState);
+        if (level != null && !level.isClientSide()) {
+            dropTools(level);
         }
     }
 
@@ -132,6 +153,11 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
     /** Read-only view of a racked tool (may be empty). For gametests. */
     public ItemStack getTool(int slot) {
         return slot >= 0 && slot < tools.size() ? tools.get(slot) : ItemStack.EMPTY;
+    }
+
+    /** Current accumulated hold-progress in ticks. For gametests. */
+    public int progressTicks() {
+        return progress;
     }
 
     // ---- breakdown -------------------------------------------------------------------
@@ -154,12 +180,19 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
         }
         long now = level.getGameTime();
         long delta = now - lastFireTick;
-        lastFireTick = now;
-        if (delta < 0 || delta > GRACE_TICKS) {
+        // Restart progress on a released hold (gap), a swapped item, or a different player -
+        // so time can't be banked across a swap or shared between two people holding at once.
+        boolean fresh = delta < 0 || delta > GRACE_TICKS
+            || held.getItem() != progressItem
+            || !player.getUUID().equals(progressOwner);
+        if (fresh) {
             progress = 0;
         } else {
             progress += (int) Math.min(delta, MAX_STEP);
         }
+        lastFireTick = now;
+        progressItem = held.getItem();
+        progressOwner = player.getUUID();
         workingFeedback(level);
         if (progress >= recipe.ticks()) {
             complete(level, recipe, held, player);
@@ -242,9 +275,13 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
         if (held.isEmpty()) {
             return Optional.empty();
         }
-        return level.getServer().getRecipeManager()
-            .getRecipeFor(RCRecipeTypes.TEARDOWN.get(), new SingleRecipeInput(held), level)
-            .filter(holder -> holder.value().station().equals(TeardownRecipe.DEFAULT_STATION));
+        // Iterate every teardown recipe for this input and pick the one for THIS station -
+        // getRecipeFor returns only the first match by input and ignores station, so a datapack
+        // recipe for the same item at another station could otherwise mask the workbench's.
+        return level.getServer().getRecipeManager().recipeMap()
+            .getRecipesFor(RCRecipeTypes.TEARDOWN.get(), new SingleRecipeInput(held), level)
+            .filter(holder -> holder.value().station().equals(TeardownRecipe.DEFAULT_STATION))
+            .findFirst();
     }
 
     private void workingFeedback(ServerLevel level) {
