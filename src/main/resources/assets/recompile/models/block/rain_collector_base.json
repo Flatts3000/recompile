@@ -1,0 +1,21 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "frame": "recompile:block/scrap_barrel_side",
+    "particle": "recompile:block/scrap_barrel_side"
+  },
+  "elements": [
+    {
+      "from": [2, 0, 2],
+      "to": [14, 16, 14],
+      "faces": {
+        "down":  { "uv": [2, 2, 14, 14], "texture": "#frame", "cullface": "down" },
+        "up":    { "uv": [2, 2, 14, 14], "texture": "#frame" },
+        "north": { "uv": [2, 0, 14, 16], "texture": "#frame" },
+        "south": { "uv": [2, 0, 14, 16], "texture": "#frame" },
+        "west":  { "uv": [2, 0, 14, 16], "texture": "#frame" },
+        "east":  { "uv": [2, 0, 14, 16], "texture": "#frame" }
+      }
+    }
+  ]
+}

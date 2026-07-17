@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "top": "recompile:block/sorting_tarp_top",
+    "side": "recompile:block/sorting_tarp_side",
+    "particle": "recompile:block/sorting_tarp_side"
+  },
+  "elements": [
+    {
+      "__comment": "tarp draped low over the frame",
+      "from": [0, 0, 0],
+      "to": [16, 5, 16],
+      "faces": {
+        "down":  { "uv": [0, 0, 16, 16], "texture": "#side", "cullface": "down" },
+        "up":    { "uv": [0, 0, 16, 16], "texture": "#top" },
+        "north": { "uv": [0, 11, 16, 16], "texture": "#side" },
+        "south": { "uv": [0, 11, 16, 16], "texture": "#side" },
+        "west":  { "uv": [0, 11, 16, 16], "texture": "#side" },
+        "east":  { "uv": [0, 11, 16, 16], "texture": "#side" }
+      }
+    },
+    {
+      "__comment": "a slumped peak so it reads as a stretched sheet catching rain",
+      "from": [2, 5, 2],
+      "to": [14, 8, 14],
+      "faces": {
+        "up":    { "uv": [2, 2, 14, 14], "texture": "#top" },
+        "north": { "uv": [2, 8, 14, 11], "texture": "#side" },
+        "south": { "uv": [2, 8, 14, 11], "texture": "#side" },
+        "west":  { "uv": [2, 8, 14, 11], "texture": "#side" },
+        "east":  { "uv": [2, 8, 14, 11], "texture": "#side" }
+      }
+    }
+  ]
+}

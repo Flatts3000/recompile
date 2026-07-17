@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "recompile:block/rain_collector_base"
+  }
+}
