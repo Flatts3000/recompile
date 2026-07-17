@@ -262,6 +262,23 @@ size = 16
 tint = "#9095a0"
 source = "item/iron_shovel"
 
+# Oily Rag: the trash-world fuel. AI item icon (no vanilla rag to retint).
+[surface.oily_rag]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a greasy oil-soaked rag, a wadded grimy cloth stained dark with grease and muck, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# Scrap Torch: a retint of the vanilla torch so it maps 1:1 to the torch model UV - a grimy
+# rusty rebar-and-rag torch, flame kept warm by the warm tint. transparent like block/torch.
+[surface.scrap_torch]
+kind = "block"
+backend = "retint"
+size = 16
+transparent = true
+tint = "#a9713f"
+source = "block/torch"
+
 # ---------------------------------------------------------------------------
 # Building blocks (P1.12): the deliberate shelter tier
 # ---------------------------------------------------------------------------

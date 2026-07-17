@@ -4,10 +4,12 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.Weapon;
 import net.neoforged.bus.api.IEventBus;
@@ -40,6 +42,11 @@ public final class RCItems {
     /** The seven base materials in canonical order (creative tab + docs use this). */
     public static final List<DeferredItem<Item>> BASE_MATERIALS = List.of(
         SCRAP_METAL, PLASTIC_SCRAP, GLASS_SHARDS, ORGANIC_MUCK, FIBER_SCRAP, E_SCRAP, JUNK);
+
+    // Oily Rag (P1.4-A): fiber + muck, the trash world's "coal" - a general fuel that burns in
+    // any furnace (charcoal parity) and is the head of the Scrap Torch. No consumer forces it
+    // yet (no furnace/burn barrel exists), so it is the fuel primitive, ready for the burn tier.
+    public static final DeferredItem<Item> OILY_RAG = ITEMS.registerItem("oily_rag", Item::new);
 
     // ---------------- Crafting components + trash-tier tools (P1.2) ----------------
     // Rebar is the universal handle (the analog of vanilla sticks) - drops from the
@@ -137,6 +144,11 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
         ITEMS.registerSimpleBlockItem("rain_collector", RCBlocks.RAIN_COLLECTOR);
+    /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */
+    public static final DeferredItem<StandingAndWallBlockItem> SCRAP_TORCH = ITEMS.registerItem(
+        "scrap_torch",
+        props -> new StandingAndWallBlockItem(
+            RCBlocks.SCRAP_TORCH.get(), RCBlocks.WALL_SCRAP_TORCH.get(), Direction.DOWN, props));
 
     /** The garbage-block family in creative-tab order. */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(

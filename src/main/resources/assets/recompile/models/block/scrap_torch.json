@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/torch",
+  "textures": {
+    "torch": "recompile:block/scrap_torch"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=east": { "model": "recompile:block/wall_scrap_torch" },
+    "facing=south": { "model": "recompile:block/wall_scrap_torch", "y": 90 },
+    "facing=west": { "model": "recompile:block/wall_scrap_torch", "y": 180 },
+    "facing=north": { "model": "recompile:block/wall_scrap_torch", "y": 270 }
+  }
+}
