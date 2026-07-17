@@ -30,7 +30,7 @@ final class BurnBarrelTests {
             barrel.setItem(0, new ItemStack(RCItems.SCRAP_METAL.get()));
             barrel.setItem(1, new ItemStack(RCItems.OILY_RAG.get()));
             helper.succeedWhen(() ->
-                helper.assertTrue(barrel.getItem(2).is(Items.COPPER_INGOT),
+                helper.assertTrue(barrel.getItem(2).is(Items.COPPER_NUGGET),
                     "the burn barrel must smelt scrap metal into copper, output was " + barrel.getItem(2)));
         });
 
@@ -46,9 +46,9 @@ final class BurnBarrelTests {
                 helper.fail("the burn barrel has no BlockEntity");
                 return;
             }
-            barrel.setItem(2, new ItemStack(Items.COPPER_INGOT));
+            barrel.setItem(2, new ItemStack(Items.COPPER_NUGGET));
             helper.runAfterDelay(20, () -> {
-                helper.assertTrue(barrel.getItem(2).is(Items.COPPER_INGOT),
+                helper.assertTrue(barrel.getItem(2).is(Items.COPPER_NUGGET),
                     "a hopper must not pull from the burn barrel - it is manual-only");
                 helper.succeed();
             });

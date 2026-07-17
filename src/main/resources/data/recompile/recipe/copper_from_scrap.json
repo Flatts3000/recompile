@@ -5,6 +5,6 @@
   "experience": 0.3,
   "ingredient": "recompile:scrap_metal",
   "result": {
-    "id": "minecraft:copper_ingot"
+    "id": "minecraft:copper_nugget"
   }
 }

@@ -330,7 +330,7 @@ prompt = "a full-bleed Minecraft block face of the front of a salvaged metal wor
 kind = "block"
 backend = "retint"
 size = 16
-tint = "#a06a40"
+tint = "#fb8359"
 source = "block/scrap_barrel_side"
 
 # The Burn Barrel top (P2.2): unlit = a cold open drum mouth of ash and soot; lit = glowing embers.
