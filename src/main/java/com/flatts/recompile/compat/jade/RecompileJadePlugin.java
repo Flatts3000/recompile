@@ -4,6 +4,7 @@ import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import snownee.jade.api.IWailaClientRegistration;
+import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.WailaPlugin;
 
@@ -20,6 +21,12 @@ import snownee.jade.api.WailaPlugin;
  */
 @WailaPlugin
 public class RecompileJadePlugin implements IWailaPlugin {
+
+    @Override
+    public void register(IWailaCommonRegistration registration) {
+        // Server side: send the workbench's racked-tool durability to the client on hover.
+        registration.registerBlockDataProvider(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);
+    }
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {

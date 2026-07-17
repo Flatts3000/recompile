@@ -44,6 +44,7 @@
   "jade.recompile.workbench_needs_tool": "Needs a %s racked",
   "jade.recompile.workbench_ready": "Hold right-click to break it down",
   "jade.recompile.workbench_no_value": "No salvage value",
+  "jade.recompile.workbench_durability": "%s: %s/%s",
 
   "jei.recompile.sorting": "Sorting",
   "jei.recompile.cutting": "Cutting",
