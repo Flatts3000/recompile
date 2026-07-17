@@ -1,0 +1,9 @@
+{
+  "comment": "The drum body is the Scrap Barrel's metal retinted rusty (burn_barrel_side) to match the top.",
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/burn_barrel_top",
+    "bottom": "recompile:block/burn_barrel_side",
+    "side": "recompile:block/burn_barrel_side"
+  }
+}

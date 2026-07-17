@@ -11,6 +11,8 @@
   "block.recompile.recompile_workbench": "Recompile Workbench",
   "block.recompile.scrap_barrel": "Scrap Barrel",
   "container.recompile.scrap_barrel": "Scrap Barrel",
+  "block.recompile.burn_barrel": "Burn Barrel",
+  "container.recompile.burn_barrel": "Burn Barrel",
   "block.recompile.rain_collector": "Rain Collector",
   "block.recompile.scrap_torch": "Scrap Torch",
   "block.recompile.wall_scrap_torch": "Scrap Torch",
@@ -37,6 +39,8 @@
 
   "message.recompile.needs_tool": "You need a %s to open this",
   "message.recompile.dimension_locked": "That way is sealed for now.",
+
+  "tooltip.recompile.fuel": "Fuel: %s items",
 
   "jade.recompile.salvage_with": "Salvage with a %s",
   "jade.recompile.sort_by_hand": "Sort by hand",

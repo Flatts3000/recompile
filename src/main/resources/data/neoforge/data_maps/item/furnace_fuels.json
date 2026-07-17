@@ -2,6 +2,9 @@
   "values": {
     "recompile:oily_rag": {
       "burn_time": 1600
+    },
+    "recompile:junk": {
+      "burn_time": 400
     }
   }
 }

@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "lit=false": { "model": "recompile:block/burn_barrel" },
+    "lit=true": { "model": "recompile:block/burn_barrel_on" }
+  }
+}
