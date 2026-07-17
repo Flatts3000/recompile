@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "R R",
+    "R R"
+  ],
+  "key": {
+    "S": "recompile:scrap_metal",
+    "R": "recompile:rebar"
+  },
+  "result": {
+    "id": "recompile:recompile_workbench",
+    "count": 1
+  }
+}

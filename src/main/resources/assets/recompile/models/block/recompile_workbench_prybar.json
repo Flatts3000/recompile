@@ -1,0 +1,17 @@
+{
+  "comment": "The racked prybar, lying flat on the right of the table top (driven by has_prybar).",
+  "textures": {
+    "prybar": "recompile:block/prybar",
+    "particle": "recompile:block/prybar"
+  },
+  "elements": [
+    {
+      "from": [9, 16, 2],
+      "to": [14, 16.4, 14],
+      "faces": {
+        "up":   { "uv": [0, 0, 16, 16], "texture": "#prybar" },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#prybar" }
+      }
+    }
+  ]
+}

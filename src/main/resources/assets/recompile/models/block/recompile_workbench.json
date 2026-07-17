@@ -1,0 +1,7 @@
+{
+  "comment": "Interim body texture reuses scrap_plating; dedicated art is queued in texgen.toml (surface recompile_workbench) and swaps in on approval.",
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "recompile:block/scrap_plating"
+  }
+}

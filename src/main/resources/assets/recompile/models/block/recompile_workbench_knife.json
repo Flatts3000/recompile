@@ -1,0 +1,17 @@
+{
+  "comment": "The racked scrap knife, lying flat on the left of the table top (driven by has_knife).",
+  "textures": {
+    "knife": "recompile:block/scrap_knife",
+    "particle": "recompile:block/scrap_knife"
+  },
+  "elements": [
+    {
+      "from": [2, 16, 2],
+      "to": [7, 16.4, 14],
+      "faces": {
+        "up":   { "uv": [0, 0, 16, 16], "texture": "#knife" },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#knife" }
+      }
+    }
+  ]
+}

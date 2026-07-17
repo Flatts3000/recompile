@@ -293,6 +293,14 @@ backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face of a salvaged plastic sheeting panel, flat off-white and pale grey plastic with grime and faint mould, subtle seams and scuffs, matte synthetic"
 
+# The Recompile Workbench (P1.4) body. Interim: the block model reuses scrap_plating
+# until this is generated and approved, then repoint models/block/recompile_workbench.
+[surface.recompile_workbench]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face of a salvaged steel workbench surface, a scratched heavy-gauge steel worktop with scattered bolt holes, oil stains, scuff marks and shallow tool grooves, weathered industrial grey metal"
+
 # Recycled cullet glass is a retint of vanilla glass, not AI: a framed semi-transparent
 # glass tile is exactly what vanilla glass already is, and gpt-image-1 returns near-blank
 # output for it (a transparent-background prompt isolates an object, not a framed tile).

@@ -39,7 +39,36 @@ public final class TeardownData {
     /** One teardown recipe as JEI needs it: the input, its outputs, and the required tool (or null). */
     public record Entry(ItemStack input, List<SortingData.Weighted> outputs, @Nullable Item tool) {}
 
+    /** Every bundled teardown recipe surfaced to viewers (hardcoded, like SortingData's paths). */
+    private static final List<String> ALL_PATHS = List.of(MATTRESS);
+    private static List<Entry> cached;
+
     private TeardownData() {
+    }
+
+    /** All readable bundled teardown recipes, parsed once and cached. */
+    public static List<Entry> all() {
+        if (cached == null) {
+            List<Entry> entries = new ArrayList<>();
+            for (String path : ALL_PATHS) {
+                Entry entry = read(path);
+                if (entry != null) {
+                    entries.add(entry);
+                }
+            }
+            cached = List.copyOf(entries);
+        }
+        return cached;
+    }
+
+    /** The teardown for a given input item, or null if none (bundled recipes only). */
+    public static @Nullable Entry forInput(Item input) {
+        for (Entry entry : all()) {
+            if (entry.input().is(input)) {
+                return entry;
+            }
+        }
+        return null;
     }
 
     /** Read a bundled teardown recipe, or null if it cannot be read or its input is not a bare item. */
