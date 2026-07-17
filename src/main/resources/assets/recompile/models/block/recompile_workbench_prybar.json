@@ -9,8 +9,8 @@
       "from": [9, 16, 2],
       "to": [14, 16.4, 14],
       "faces": {
-        "up":   { "uv": [0, 0, 16, 16], "texture": "#prybar" },
-        "down": { "uv": [0, 0, 16, 16], "texture": "#prybar" }
+        "up":   { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#prybar" },
+        "down": { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#prybar" }
       }
     }
   ]

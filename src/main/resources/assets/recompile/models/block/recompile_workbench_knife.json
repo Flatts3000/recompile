@@ -9,8 +9,8 @@
       "from": [2, 16, 2],
       "to": [7, 16.4, 14],
       "faces": {
-        "up":   { "uv": [0, 0, 16, 16], "texture": "#knife" },
-        "down": { "uv": [0, 0, 16, 16], "texture": "#knife" }
+        "up":   { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#knife" },
+        "down": { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#knife" }
       }
     }
   ]
