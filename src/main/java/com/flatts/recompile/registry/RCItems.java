@@ -134,6 +134,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("sorting_tarp", RCBlocks.SORTING_TARP);
     public static final DeferredItem<BlockItem> SCRAP_BARREL =
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
+    public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
+        ITEMS.registerSimpleBlockItem("rain_collector", RCBlocks.RAIN_COLLECTOR);
 
     /** The garbage-block family in creative-tab order. */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(

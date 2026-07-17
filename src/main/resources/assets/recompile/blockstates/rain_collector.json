@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "half=lower": { "model": "recompile:block/rain_collector_base" },
+    "half=upper": { "model": "recompile:block/rain_collector_tarp" }
+  }
+}

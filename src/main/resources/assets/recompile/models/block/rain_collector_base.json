@@ -1,0 +1,22 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "frame": "recompile:block/rain_collector_base",
+    "particle": "recompile:block/rain_collector_base"
+  },
+  "elements": [
+    {
+      "__comment": "the tank/basin - near-full width so it reads as a barrel, not a post",
+      "from": [1, 0, 1],
+      "to": [15, 16, 15],
+      "faces": {
+        "down":  { "uv": [1, 1, 15, 15], "texture": "#frame", "cullface": "down" },
+        "up":    { "uv": [1, 1, 15, 15], "texture": "#frame" },
+        "north": { "uv": [1, 0, 15, 16], "texture": "#frame" },
+        "south": { "uv": [1, 0, 15, 16], "texture": "#frame" },
+        "west":  { "uv": [1, 0, 15, 16], "texture": "#frame" },
+        "east":  { "uv": [1, 0, 15, 16], "texture": "#frame" }
+      }
+    }
+  ]
+}

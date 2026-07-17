@@ -119,6 +119,16 @@ creature-free and nothing threatens builds; this is the WALL-E move of rebuildin
   templates by namespace substitution, so the stairs rotation table and double-slab loot are
   correct by construction.
 
+## Phase 2.7 - Water, the Rain Collector  *(DONE, design P1.10)*
+
+This world has no water at all (sea level -64, `default_fluid: air`); only rain. The **Rain
+Collector** is the one source - a scrap frame + tarp (1x2x1) that fills a **real water tank**
+from rain, dispenses water bottles to a glass bottle, and moves water through pipes/buckets like
+any tank. The mod's first fluids, on 26.1's new transfer/`ResourceHandler` API (the second
+BlockEntity, after the Scrap Barrel). **Owner override of P1.10 #5:** shipped standalone rather
+than gated on a consumer; washing-salvage decoupled to a later tier. See CLAUDE.md for the
+26.1 fluid-API delta.
+
 ## Phase 3 - Teardown-as-knowledge  *(design P1.4) - the distinct axis*
 
 The payoff and the mod's reason to exist: tear a found item down at the **Recompile Workbench**

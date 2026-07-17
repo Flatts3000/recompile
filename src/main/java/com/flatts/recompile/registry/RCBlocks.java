@@ -6,6 +6,7 @@ import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.RainCollectorBlock;
 import com.flatts.recompile.content.block.ScrapBarrelBlock;
 import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
@@ -142,6 +143,21 @@ public final class RCBlocks {
             .mapColor(MapColor.WOOL)
             .strength(0.2F)
             .sound(SoundType.WOOL)
+            .noOcclusion()
+    );
+
+    /**
+     * Rain Collector (P1.10): a scrap frame + tarp that fills a water tank from rain - the
+     * only water source in a world with none. Two cells (base + tarp); the base holds the
+     * BlockEntity. {@code noOcclusion} because the tarp half is not a full cube.
+     */
+    public static final DeferredBlock<RainCollectorBlock> RAIN_COLLECTOR = BLOCKS.registerBlock(
+        "rain_collector",
+        RainCollectorBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.2F)
+            .sound(SoundType.METAL)
             .noOcclusion()
     );
 

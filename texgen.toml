@@ -312,3 +312,24 @@ backend = "retint"
 size = 16
 tint = "#6e7a5a"
 source = "block/glass_pane_top"
+
+# ---------------------------------------------------------------------------
+# Rain Collector (P1.10): a catch-basin frame + a rain-catching tarp
+# ---------------------------------------------------------------------------
+# Kin to the Sorting Tarp on purpose (same tarp-on-a-frame object) but its own
+# thing: a sagging weathered tarp with a puddle, over a salvaged catch basin.
+
+[surface.rain_collector_base]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face of a salvaged water-catch basin frame: riveted grey sheet-metal panel, rusty and water-stained with dark streaks, a welded lower rim, industrial scrap, muted"
+
+[surface.rain_collector_tarp]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["top", "side"]
+[surface.rain_collector_tarp.prompt]
+top = "a full-bleed top-down Minecraft block face: a sagging weathered tarp stretched to catch rain, faded blue-grey plastic sheeting with a shallow puddle of rainwater pooling in the centre, water sheen, grime and creases, muted, fills the whole tile"
+side = "a full-bleed Minecraft block face: the draping edge of a weathered rain-catching tarp, faded blue-grey plastic sheeting sagging in wet folds, grimy and stained, muted, fills the whole tile"
