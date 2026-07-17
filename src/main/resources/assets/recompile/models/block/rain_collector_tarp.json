@@ -7,28 +7,55 @@
   },
   "elements": [
     {
-      "__comment": "tarp draped low over the frame",
+      "__comment": "a shallow catch tray - the tarp stretched over the frame, sagging inward to pool rain. Four raised rim walls...",
       "from": [0, 0, 0],
-      "to": [16, 5, 16],
+      "to": [16, 6, 2],
       "faces": {
-        "down":  { "uv": [0, 0, 16, 16], "texture": "#side", "cullface": "down" },
-        "up":    { "uv": [0, 0, 16, 16], "texture": "#top" },
-        "north": { "uv": [0, 11, 16, 16], "texture": "#side" },
-        "south": { "uv": [0, 11, 16, 16], "texture": "#side" },
-        "west":  { "uv": [0, 11, 16, 16], "texture": "#side" },
-        "east":  { "uv": [0, 11, 16, 16], "texture": "#side" }
+        "up":    { "uv": [0, 0, 16, 2], "texture": "#top" },
+        "down":  { "uv": [0, 14, 16, 16], "texture": "#side" },
+        "north": { "uv": [0, 10, 16, 16], "texture": "#side" },
+        "south": { "uv": [0, 10, 16, 16], "texture": "#side" },
+        "west":  { "uv": [14, 10, 16, 16], "texture": "#side" },
+        "east":  { "uv": [0, 10, 2, 16], "texture": "#side" }
       }
     },
     {
-      "__comment": "a slumped peak so it reads as a stretched sheet catching rain",
-      "from": [2, 5, 2],
-      "to": [14, 8, 14],
+      "from": [0, 0, 14],
+      "to": [16, 6, 16],
+      "faces": {
+        "up":    { "uv": [0, 14, 16, 16], "texture": "#top" },
+        "down":  { "uv": [0, 0, 16, 2], "texture": "#side" },
+        "north": { "uv": [0, 10, 16, 16], "texture": "#side" },
+        "south": { "uv": [0, 10, 16, 16], "texture": "#side" },
+        "west":  { "uv": [14, 10, 16, 16], "texture": "#side" },
+        "east":  { "uv": [0, 10, 2, 16], "texture": "#side" }
+      }
+    },
+    {
+      "from": [0, 0, 2],
+      "to": [2, 6, 14],
+      "faces": {
+        "up":    { "uv": [0, 2, 2, 14], "texture": "#top" },
+        "west":  { "uv": [2, 10, 14, 16], "texture": "#side" },
+        "east":  { "uv": [2, 10, 14, 16], "texture": "#side" }
+      }
+    },
+    {
+      "from": [14, 0, 2],
+      "to": [16, 6, 14],
+      "faces": {
+        "up":    { "uv": [14, 2, 16, 14], "texture": "#top" },
+        "west":  { "uv": [2, 10, 14, 16], "texture": "#side" },
+        "east":  { "uv": [2, 10, 14, 16], "texture": "#side" }
+      }
+    },
+    {
+      "__comment": "...and a low floor cradling the pooled rain (the puddle sprite).",
+      "from": [2, 0, 2],
+      "to": [14, 2, 14],
       "faces": {
         "up":    { "uv": [2, 2, 14, 14], "texture": "#top" },
-        "north": { "uv": [2, 8, 14, 11], "texture": "#side" },
-        "south": { "uv": [2, 8, 14, 11], "texture": "#side" },
-        "west":  { "uv": [2, 8, 14, 11], "texture": "#side" },
-        "east":  { "uv": [2, 8, 14, 11], "texture": "#side" }
+        "down":  { "uv": [2, 2, 14, 14], "texture": "#side", "cullface": "down" }
       }
     }
   ]

@@ -33,7 +33,6 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
@@ -59,10 +58,8 @@ public class RainCollectorBlock extends BaseEntityBlock {
     /** Slow fill, matching vanilla's cauldron rain chance. */
     private static final float RAIN_CHANCE = 0.05F;
 
-    private static final VoxelShape BASE_SHAPE = Block.box(2, 0, 2, 14, 16, 14);
-    private static final VoxelShape TARP_SHAPE = Shapes.or(
-        Block.box(0, 0, 0, 16, 5, 16),   // tarp draped low over the frame
-        Block.box(2, 5, 2, 14, 8, 14));  // a slight sagging peak
+    private static final VoxelShape BASE_SHAPE = Block.box(1, 0, 1, 15, 16, 15);
+    private static final VoxelShape TARP_SHAPE = Block.box(0, 0, 0, 16, 6, 16); // the catch tray
 
     public RainCollectorBlock(BlockBehaviour.Properties properties) {
         super(properties);

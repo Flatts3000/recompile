@@ -6,15 +6,16 @@
   },
   "elements": [
     {
-      "from": [2, 0, 2],
-      "to": [14, 16, 14],
+      "__comment": "the tank/basin - near-full width so it reads as a barrel, not a post",
+      "from": [1, 0, 1],
+      "to": [15, 16, 15],
       "faces": {
-        "down":  { "uv": [2, 2, 14, 14], "texture": "#frame", "cullface": "down" },
-        "up":    { "uv": [2, 2, 14, 14], "texture": "#frame" },
-        "north": { "uv": [2, 0, 14, 16], "texture": "#frame" },
-        "south": { "uv": [2, 0, 14, 16], "texture": "#frame" },
-        "west":  { "uv": [2, 0, 14, 16], "texture": "#frame" },
-        "east":  { "uv": [2, 0, 14, 16], "texture": "#frame" }
+        "down":  { "uv": [1, 1, 15, 15], "texture": "#frame", "cullface": "down" },
+        "up":    { "uv": [1, 1, 15, 15], "texture": "#frame" },
+        "north": { "uv": [1, 0, 15, 16], "texture": "#frame" },
+        "south": { "uv": [1, 0, 15, 16], "texture": "#frame" },
+        "west":  { "uv": [1, 0, 15, 16], "texture": "#frame" },
+        "east":  { "uv": [1, 0, 15, 16], "texture": "#frame" }
       }
     }
   ]
