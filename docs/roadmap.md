@@ -1,9 +1,10 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.7 shipped to `main` - the mod is a playable alpha and the early
-loop is tuned against real play. Phase 3's **materials teardown** (the Recompile Workbench) shipped
-2026-07-16; its **knowledge/function axis** is the next major decision and stays under review (see
-Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
+**Status:** Phases 0 through 2.9 shipped to `main` - the mod is a playable alpha, tuned against
+real play. Recent tiers: **lighting** (Scrap Torch + Oily Rag, 2.8) and the **Burn Barrel** smelter
+(2.9, the first metal step toward Create) shipped 2026-07-17. Phase 3's **materials teardown** (the
+Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis** is the next major decision
+and stays under review (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
 are ordered by
 **gameplay discovery** - the sequence a player actually lives, so each phase delivers a
 coherent playable increment. The locked feature design is the source of truth in the
@@ -141,6 +142,29 @@ BlockEntity, after the Scrap Barrel). **Owner override of P1.10 #5:** shipped st
 than gated on a consumer; washing-salvage decoupled to a later tier. See CLAUDE.md for the
 26.1 fluid-API delta.
 
+## Phase 2.8 - Lighting  *(DONE, design P1.4-A)*
+
+No wood (no sticks) and no coal, so vanilla torches can't be crafted - but survival-tier light is
+craftable from minute one (P1.4-A). Two items solve it:
+- **Oily Rag** (`fiber_scrap` + `organic_muck`) - the trash world's **"coal"**: a general furnace
+  fuel at charcoal parity (`neoforge:furnace_fuels`, 1600 ticks), and the head of the torch. The
+  fuel primitive the burn tier then consumes.
+- **Scrap Torch** (Oily Rag over rebar -> 4) - a **1:1 vanilla-torch reskin** (light 14, floor/wall,
+  permanent). Textured as a retint of the vanilla torch so it keeps the exact silhouette + model UV.
+
+Parked (design's second rung): a refined **Grease/Biogas Lantern**.
+
+## Phase 2.9 - Smelting, the Burn Barrel  *(DONE, design P2.2)* - pulled ahead of Phase 6
+
+The garbage world's first **smelter**, and the start of the metal economy toward Create ("Recompile
+converts, Create moves", P2.3). A **vanilla-furnace reskin** (`AbstractFurnace` on
+`RecipeType.SMELTING`, the vanilla furnace screen) with a LIT active/idle state. **"Worse" = not
+automatable**: it exposes no slots to any face, so it is loaded and emptied by hand - automation is
+the reward for a later, better furnace. Smelts **`scrap_metal -> copper_nugget`** (the copper-first
+gating; iron is the gated upgrade - see `../trashlands/docs/material_economy.md`), fueled by the
+Oily Rag + junk. JEI smelting station + a fuel-value item tooltip. The excavated-and-repaired
+vanilla furnace (P2.2's second rung) is still unbuilt.
+
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 
 Tear a found item down at the **Recompile Workbench** into materials. This is the teardown exit
@@ -179,8 +203,8 @@ is the pack's engine.
 ## Phase 6 - The full loop  *(design P2)*
 
 Discovered as you climb tiers; leans on curation + sibling mods.
-- Tier-2 processing: Burn Barrel (custom) + excavated-and-repaired furnace; purity-as-yield,
-  junk fuel, no energy (P2.2).
+- Tier-2 processing (P2.2): the **Burn Barrel shipped early as Phase 2.9**; the
+  excavated-and-repaired furnace (its second rung) is what remains here. Purity-as-yield, no energy.
 - Reclamation chain: compost + clean water + seed -> grass -> crops -> trees; yields only land (P2.4).
 - E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6).
 - Tier-3 logistics seam: "Recompile converts, Create moves"; never *require* Create (P2.3).
