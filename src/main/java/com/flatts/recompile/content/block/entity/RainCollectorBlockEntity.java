@@ -1,7 +1,10 @@
 package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.registry.RCBlockEntities;
+import com.flatts.recompile.registry.RCDataComponents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -111,5 +114,32 @@ public class RainCollectorBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         input.child("tank").ifPresent(tank::deserialize);
+    }
+
+    // ---------------- carry water through break + replace (item data component) ----------------
+    // The tank survives save/load via the NBT above, but breaking the block destroys the
+    // BlockEntity, so without this the water would be lost every time you pick the collector up.
+    // Expose the stored water as an item component the loot table copies onto the drop, and refill
+    // from it when a collector is placed.
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        int stored = tank.getAmountAsInt(0);
+        if (stored > 0) {
+            builder.set(RCDataComponents.RAIN_WATER.get(), stored);
+        }
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentGetter getter) {
+        super.applyImplicitComponents(getter);
+        Integer stored = getter.get(RCDataComponents.RAIN_WATER.get());
+        if (stored != null && stored > 0) {
+            try (Transaction transaction = Transaction.openRoot()) {
+                tank.insert(WATER, stored, transaction);
+                transaction.commit();
+            }
+        }
     }
 }

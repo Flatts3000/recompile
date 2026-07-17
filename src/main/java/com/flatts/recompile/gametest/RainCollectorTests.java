@@ -3,6 +3,7 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.content.block.RainCollectorBlock;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -173,6 +174,38 @@ final class RainCollectorTests {
             helper.assertTrue(reloaded.storedWater() == stored,
                 "the tank must survive save/load; saved " + stored + " mB, reloaded "
                     + reloaded.storedWater() + " mB");
+            helper.succeed();
+        });
+
+        // The water must survive break + replace, not just save/load: the broken collector's item
+        // carries the water (the rain_water component the loot table copies off the BlockEntity),
+        // and a freshly placed collector refills from it. Reproduces the "loses the water" bug.
+        RCGameTests.test("rain_collector_water_survives_break_replace", 20, helper -> {
+            BlockPos lower = new BlockPos(1, 1, 1);
+            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get());
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+                    instanceof RainCollectorBlockEntity be)) {
+                helper.fail("rain collector base has no BlockEntity");
+                return;
+            }
+            be.catchRain();
+            be.catchRain();
+            int stored = be.storedWater();
+            helper.assertTrue(stored > 0, "precondition: the tank was filled");
+
+            // Break: the dropped item carries the water as an item component.
+            var components = be.collectComponents();
+            Integer carried = components.get(RCDataComponents.RAIN_WATER.get());
+            helper.assertTrue(carried != null && carried == stored,
+                "a broken collector must carry its water, got " + carried);
+
+            // Replace: a fresh collector applies the component and refills to the same level.
+            RainCollectorBlockEntity replaced =
+                new RainCollectorBlockEntity(be.getBlockPos(), be.getBlockState());
+            replaced.applyComponents(components, net.minecraft.core.component.DataComponentPatch.EMPTY);
+            helper.assertTrue(replaced.storedWater() == stored,
+                "a replaced collector must restore its water; expected " + stored
+                    + " got " + replaced.storedWater());
             helper.succeed();
         });
     }
