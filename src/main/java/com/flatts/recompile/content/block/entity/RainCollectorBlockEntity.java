@@ -2,6 +2,7 @@ package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.registry.RCBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
@@ -29,8 +30,10 @@ public class RainCollectorBlockEntity extends BlockEntity {
 
     /** Four buckets. */
     public static final int CAPACITY = 4000;
-    /** Water added per successful rain tick (the fill is slow - see the block's chance gate). */
+    /** Water added each collect interval while raining. */
     private static final int RAIN_MB = 100;
+    /** How often the collector checks the sky - once a second is plenty and cheap. */
+    private static final int COLLECT_INTERVAL = 20;
     /** A glass bottle's worth. */
     private static final int BOTTLE_MB = 250;
 
@@ -52,7 +55,23 @@ public class RainCollectorBlockEntity extends BlockEntity {
         return tank;
     }
 
-    /** A successful rain tick adds water, capped at capacity. */
+    /**
+     * Server ticker (lower half only): once a second, if it is raining and the tarp can see
+     * the sky, catch water. This is the real fill path - {@code Block.handlePrecipitation}
+     * fires only on a rare random block per chunk, far too seldom for a block whose whole job
+     * is collecting rain. {@code pos.above(2)} is the open air above the tarp.
+     */
+    public static void serverTick(Level level, BlockPos pos, BlockState state, RainCollectorBlockEntity be) {
+        // isRaining (global weather) + canSeeSky, NOT isRainingAt: the latter also demands the
+        // biome's precipitation be RAIN at the spot, which over-couples to biome climate and is
+        // untestable. This world's biome always rains, so raining-under-open-sky is the rule.
+        if (level.getGameTime() % COLLECT_INTERVAL == 0
+                && level.isRaining() && level.canSeeSky(pos.above(2))) {
+            be.catchRain();
+        }
+    }
+
+    /** A collect tick adds water, capped at capacity. */
     public void catchRain() {
         // The transfer API only commits changes when the transaction commits; a root
         // transaction closed without committing rolls back. So: open, insert, commit.

@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
+import com.flatts.recompile.registry.RCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,11 +21,12 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -54,9 +56,6 @@ public class RainCollectorBlock extends BaseEntityBlock {
 
     public static final MapCodec<RainCollectorBlock> CODEC = simpleCodec(RainCollectorBlock::new);
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
-
-    /** Slow fill, matching vanilla's cauldron rain chance. */
-    private static final float RAIN_CHANCE = 0.05F;
 
     private static final VoxelShape BASE_SHAPE = Block.box(1, 0, 1, 15, 16, 15);
     private static final VoxelShape TARP_SHAPE = Block.box(0, 0, 0, 16, 6, 16); // the catch tray
@@ -90,16 +89,14 @@ public class RainCollectorBlock extends BaseEntityBlock {
 
     // ---------------- rain fill ----------------
 
+    /** Only the lower half (which holds the tank) ticks, and only on the server. */
     @Override
-    public void handlePrecipitation(BlockState state, Level level, BlockPos pos, Biome.Precipitation precipitation) {
-        // Only the sky-exposed tarp catches rain; it fills the base's tank below it.
-        if (state.getValue(HALF) != DoubleBlockHalf.UPPER || precipitation != Biome.Precipitation.RAIN) {
-            return;
+    @Nullable
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide() || state.getValue(HALF) != DoubleBlockHalf.LOWER) {
+            return null;
         }
-        if (level.getRandom().nextFloat() < RAIN_CHANCE
-                && level.getBlockEntity(pos.below()) instanceof RainCollectorBlockEntity be) {
-            be.catchRain();
-        }
+        return createTickerHelper(type, RCBlockEntities.RAIN_COLLECTOR.get(), RainCollectorBlockEntity::serverTick);
     }
 
     // ---------------- interaction: bucket (capability) + glass bottle -> water bottle ----------------

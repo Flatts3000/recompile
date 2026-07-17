@@ -104,6 +104,31 @@ final class RainCollectorTests {
             helper.succeed();
         });
 
+        // The whole point: it must actually collect rain. Turn on the weather, place it under
+        // open sky, tick, and assert the tank rises - the regression guard for the bug where
+        // it relied on the far-too-rare handlePrecipitation instead of a ticker.
+        RCGameTests.test("rain_collector_fills_while_raining", 140, helper -> {
+            net.minecraft.world.level.saveddata.WeatherData weather = helper.getLevel().getWeatherData();
+            weather.setRaining(true);   // isRaining() reads a level that ramps up over ~20 ticks
+            weather.setRainTime(100000);
+            BlockPos lower = new BlockPos(1, 1, 1);
+            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
+                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.LOWER));
+            helper.setBlock(lower.above(), RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
+                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.UPPER));
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+                    instanceof RainCollectorBlockEntity be)) {
+                helper.fail("rain collector base has no BlockEntity");
+                return;
+            }
+            helper.assertTrue(be.storedWater() == 0, "a fresh collector starts empty");
+            helper.runAfterDelay(60, () -> {
+                helper.assertTrue(be.storedWater() > 0,
+                    "a collector under open sky must fill while raining, got " + be.storedWater() + " mB");
+                helper.succeed();
+            });
+        });
+
         // A dry collector refuses: no water bottle, and the glass bottle is not eaten.
         RCGameTests.test("rain_collector_dry_refuses_a_bottle", 20, helper -> {
             BlockPos lower = new BlockPos(1, 1, 1);
