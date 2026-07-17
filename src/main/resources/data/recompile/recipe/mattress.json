@@ -1,0 +1,12 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:mattress",
+  "station": "recompile:workbench",
+  "tool": "recompile:scrap_knife",
+  "ticks": 80,
+  "results": [
+    { "item": "minecraft:string", "count": 4 },
+    { "item": "recompile:fiber_scrap", "count": 2 },
+    { "item": "recompile:scrap_metal", "count": 1 }
+  ]
+}

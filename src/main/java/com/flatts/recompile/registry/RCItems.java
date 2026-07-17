@@ -1,7 +1,6 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
-import com.flatts.recompile.content.item.MattressItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
@@ -123,15 +122,17 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> BULKY_WASTE =
         ITEMS.registerSimpleBlockItem("bulky_waste", RCBlocks.BULKY_WASTE);
     /**
-     * The mattress: place it and it is a bed, or cut it open with the knife for string.
-     * Never craftable - the dump gives you the bed (P1.11).
+     * The mattress: place it and it is a bed, or tear it down at the Recompile Workbench
+     * (P1.4) for string. Never craftable - the dump gives you the bed (P1.11).
      */
-    public static final DeferredItem<MattressItem> MATTRESS = ITEMS.registerItem(
-        "mattress", props -> new MattressItem(RCBlocks.MATTRESS.get(), props));
+    public static final DeferredItem<BlockItem> MATTRESS =
+        ITEMS.registerSimpleBlockItem("mattress", RCBlocks.MATTRESS);
     public static final DeferredItem<BlockItem> SCRAP_CRAFTING_TABLE =
         ITEMS.registerSimpleBlockItem("scrap_crafting_table", RCBlocks.SCRAP_CRAFTING_TABLE);
     public static final DeferredItem<BlockItem> SORTING_TARP =
         ITEMS.registerSimpleBlockItem("sorting_tarp", RCBlocks.SORTING_TARP);
+    public static final DeferredItem<BlockItem> RECOMPILE_WORKBENCH =
+        ITEMS.registerSimpleBlockItem("recompile_workbench", RCBlocks.RECOMPILE_WORKBENCH);
     public static final DeferredItem<BlockItem> SCRAP_BARREL =
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =

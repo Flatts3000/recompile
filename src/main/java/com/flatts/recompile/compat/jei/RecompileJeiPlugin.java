@@ -2,7 +2,7 @@ package com.flatts.recompile.compat.jei;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.compat.SortingData;
-import com.flatts.recompile.content.item.MattressItem;
+import com.flatts.recompile.compat.TeardownData;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import mezz.jei.api.IModPlugin;
@@ -16,7 +16,6 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 /**
  * JEI integration: surfaces the mechanics that are not vanilla recipes and so are
@@ -24,8 +23,9 @@ import net.minecraft.world.item.Items;
  *
  * <ul>
  *   <li><b>Sorting</b> - what a garbage block / bag / bale gives up, from the pull tables.</li>
- *   <li><b>Cutting</b> - the scrap knife's item transforms (sealed can, mattress).</li>
+ *   <li><b>Cutting</b> - the scrap knife's item transforms (the sealed tin can).</li>
  *   <li><b>Prying</b> - what the prybar breaks out of Bulky Waste.</li>
+ *   <li><b>Teardown</b> - what the Recompile Workbench tears a found item into (P1.4).</li>
  *   <li>The Scrap Crafting Table registered as the crafting <b>station</b>, since this world
  *       has no vanilla crafting table for JEI to point at.</li>
  * </ul>
@@ -39,6 +39,8 @@ public class RecompileJeiPlugin implements IModPlugin {
         RecipeType.create(Recompile.MOD_ID, "cutting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> PRYING =
         RecipeType.create(Recompile.MOD_ID, "prying", SalvageRecipe.class);
+    static final RecipeType<SalvageRecipe> TEARDOWN =
+        RecipeType.create(Recompile.MOD_ID, "teardown", SalvageRecipe.class);
 
     private static final Identifier UID = Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "jei");
 
@@ -56,7 +58,9 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false),
             new SalvageCategory(PRYING, Component.translatable("jei.recompile.prying"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true));
+                gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true),
+            new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true));
     }
 
     @Override
@@ -70,15 +74,19 @@ public class RecompileJeiPlugin implements IModPlugin {
 
         registration.addRecipes(CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.TIN_CAN.get()),
-                List.of(new SortingData.Weighted(new ItemStack(RCItems.TIN_CAN_OPEN.get()), 1.0f))),
-            new SalvageRecipe(new ItemStack(RCItems.MATTRESS.get()), List.of(
-                new SortingData.Weighted(new ItemStack(Items.STRING, MattressItem.STRING), 1.0f),
-                new SortingData.Weighted(new ItemStack(RCItems.FIBER_SCRAP.get(), MattressItem.FIBER), 1.0f),
-                new SortingData.Weighted(new ItemStack(RCItems.SCRAP_METAL.get(), MattressItem.SPRINGS), 1.0f)))));
+                List.of(new SortingData.Weighted(new ItemStack(RCItems.TIN_CAN_OPEN.get()), 1.0f)))));
 
         registration.addRecipes(PRYING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),
                 SortingData.outputs(SortingData.BULKY))));
+
+        // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1),
+        // so the numbers stay single-sourced in the recipe file. The mattress is the one find.
+        TeardownData.Entry mattress = TeardownData.read(TeardownData.MATTRESS);
+        if (mattress != null) {
+            registration.addRecipes(TEARDOWN, List.of(
+                new SalvageRecipe(mattress.input(), mattress.outputs())));
+        }
     }
 
     @Override
@@ -93,5 +101,6 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.COMPACTED_BALE.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_KNIFE.get()), CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
     }
 }

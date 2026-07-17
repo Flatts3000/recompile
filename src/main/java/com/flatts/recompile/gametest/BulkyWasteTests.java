@@ -133,34 +133,7 @@ final class BulkyWasteTests {
             helper.succeedWhen(() ->
                 helper.assertItemEntityCountIs(RCItems.MATTRESS.get(), foot, 3.0, 1));
         });
-
-        // The mattress is your bed OR your rope. The knife is the only exit, reusing the
-        // tin can's verb - and without a knife it must refuse rather than silently eat it.
-        RCGameTests.test("mattress_cut_open_needs_a_knife", 20, helper -> {
-            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            player.getInventory().clearContent();
-            player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
-                new ItemStack(RCItems.MATTRESS.get()));
-
-            var noKnife = RCItems.MATTRESS.get()
-                .use(helper.getLevel(), player, net.minecraft.world.InteractionHand.MAIN_HAND);
-            helper.assertTrue(noKnife == net.minecraft.world.InteractionResult.PASS,
-                "without a knife the mattress must not cut open, got " + noKnife);
-
-            player.getInventory().add(new ItemStack(RCItems.SCRAP_KNIFE.get()));
-            RCItems.MATTRESS.get()
-                .use(helper.getLevel(), player, net.minecraft.world.InteractionHand.MAIN_HAND);
-
-            boolean hasString = false;
-            var inv = player.getInventory();
-            for (int slot = 0; slot < inv.getContainerSize(); slot++) {
-                if (inv.getItem(slot).is(net.minecraft.world.item.Items.STRING)) {
-                    hasString = true;
-                }
-            }
-            helper.assertTrue(hasString,
-                "cutting a mattress with the knife must yield string - the only early source");
-            helper.succeed();
-        });
+        // The mattress -> string exit moved to the Recompile Workbench (P1.4); its teardown
+        // is covered by RecompileWorkbenchTests. The in-hand knife-cut was retired here.
     }
 }

@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
+import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -36,6 +37,15 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "rain_collector",
             () -> new BlockEntityType<>(RainCollectorBlockEntity::new, RCBlocks.RAIN_COLLECTOR.get()));
+
+    /**
+     * The Recompile Workbench's racked tools (design P1.4). Holds two tool stacks so their
+     * durability survives; exposes no capability, so it is never hopper-fed.
+     */
+    public static final Supplier<BlockEntityType<RecompileWorkbenchBlockEntity>> RECOMPILE_WORKBENCH =
+        BLOCK_ENTITIES.register(
+            "recompile_workbench",
+            () -> new BlockEntityType<>(RecompileWorkbenchBlockEntity::new, RCBlocks.RECOMPILE_WORKBENCH.get()));
 
     private RCBlockEntities() {
         // utility class
