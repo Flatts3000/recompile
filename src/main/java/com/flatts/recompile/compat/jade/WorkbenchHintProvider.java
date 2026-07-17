@@ -14,47 +14,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
-import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
 /**
- * Jade: make the Recompile Workbench legible to a player who has never used one. The bench has
- * no GUI, so its whole state (what is racked, what it wants) is otherwise invisible. This reads
- * the {@code has_knife}/{@code has_prybar} blockstate and the looking player's held item and
- * spells out the next step - rack a tool, or hold a found item, or "no salvage value" - and the
- * remaining durability of each racked tool.
+ * Jade (client component): make the Recompile Workbench legible to a player who has never used
+ * one. The bench has no GUI, so its whole state (what is racked, what it wants, tool wear) is
+ * otherwise invisible. This reads the {@code has_knife}/{@code has_prybar} blockstate, the looking
+ * player's held item, and the racked-tool durability that {@link WorkbenchDataProvider} sends over
+ * the server-data channel, then spells out the next step.
  *
- * <p>The racked tools' durability lives in the server-side BlockEntity (not synced), so it comes
- * across via Jade's server-data channel ({@link #appendServerData} on the server writes it,
- * {@link BlockAccessor#getServerData()} reads it on the client). Which tool a find needs comes
- * from the bundled recipe JSON via {@link TeardownData} (recipes are not client-synced in 26.1).
+ * <p>The server-data side is a <b>separate</b> provider ({@link WorkbenchDataProvider}): since MC
+ * 1.21.6 a single class may not be both an {@code IComponentProvider} and an
+ * {@code IServerDataProvider}. Which tool a find needs comes from the bundled recipe JSON via
+ * {@link TeardownData} (recipes are not client-synced in 26.1).
  */
-public enum WorkbenchHintProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+public enum WorkbenchHintProvider implements IBlockComponentProvider {
     INSTANCE;
 
     private static final Identifier UID =
         Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "workbench_hint");
-
-    @Override
-    public void appendServerData(CompoundTag data, BlockAccessor accessor) {
-        if (accessor.getBlockEntity() instanceof RecompileWorkbenchBlockEntity workbench) {
-            writeTool(data, "knife", workbench.getTool(RecompileWorkbenchBlockEntity.KNIFE_SLOT));
-            writeTool(data, "prybar", workbench.getTool(RecompileWorkbenchBlockEntity.PRYBAR_SLOT));
-        }
-    }
-
-    @Override
-    public boolean shouldRequestData(BlockAccessor accessor) {
-        return true;
-    }
-
-    private static void writeTool(CompoundTag data, String key, ItemStack tool) {
-        if (!tool.isEmpty() && tool.isDamageableItem()) {
-            data.putInt(key + "_rem", tool.getMaxDamage() - tool.getDamageValue());
-            data.putInt(key + "_max", tool.getMaxDamage());
-        }
-    }
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {

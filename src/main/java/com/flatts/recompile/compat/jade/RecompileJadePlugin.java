@@ -24,8 +24,9 @@ public class RecompileJadePlugin implements IWailaPlugin {
 
     @Override
     public void register(IWailaCommonRegistration registration) {
-        // Server side: send the workbench's racked-tool durability to the client on hover.
-        registration.registerBlockDataProvider(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);
+        // Server side: send the workbench's racked-tool durability to the client on hover. This is
+        // a separate provider from the client component - since MC 1.21.6 one class cannot be both.
+        registration.registerBlockDataProvider(WorkbenchDataProvider.INSTANCE, RecompileWorkbenchBlock.class);
     }
 
     @Override
