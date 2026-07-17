@@ -10,6 +10,15 @@ Trashlands repo (`../trashlands/docs/design_decisions.md` + `feature_matrix.md`)
 file is the engineering build order and maps to those P-codes. Everything ships
 config-gated, but "defaults are the design."
 
+> **Before beta - tune all drop numbers (gate, 2026-07-16).** Every loot weight and recipe cost
+> shipped so far is a **first-pass placeholder** chosen to prove the mechanic, not balanced against
+> play: the pull tables (`household_pulls` / `bag_pulls`), the Bulky Waste find table and its 5%
+> mound chance, the glass-bottle weight (half of tin cans), dump-mushroom density, the Rain
+> Collector fill rate, and the building-block recipe costs (the material-sink balance). Before
+> launch, do **one playtest-driven balance pass across all loot tables + recipes together**, so the
+> found-economy rates, sinks, and rarity curves are coherent rather than tuned piecemeal. Tuning is
+> pack responsibility (Trashlands), even though the numbers live in this mod's JSON.
+
 **Confirmed toolchain (mirrors `../productive-frogs`):** MC `26.1.2`, NeoForge `26.1.2.76`,
 ModDevGradle `2.0.141`, Java 25, Gradle wrapper `9.5.1`, pack format `84`. Mod id
 `recompile`, package `com.flatts.recompile`.
