@@ -31,8 +31,19 @@ final class SortingDataTests {
                 .filter(w -> w.stack().is(RCItems.JUNK.get())).findFirst().orElse(null);
             helper.assertTrue(junk != null && junk.chance() > 0.3f,
                 "junk (weight 200) should dominate the household pull");
-            helper.assertTrue(out.stream().anyMatch(w -> w.stack().is(RCItems.TIN_CAN.get())),
+            SortingData.Weighted tin = out.stream()
+                .filter(w -> w.stack().is(RCItems.TIN_CAN.get())).findFirst().orElse(null);
+            helper.assertTrue(tin != null,
                 "the tin can (a rare pull) should appear in the household stream");
+            // Glass bottles are the found input for the Rain Collector (you can't craft one
+            // in this world), dropped at half the tin can's weight.
+            SortingData.Weighted bottle = out.stream()
+                .filter(w -> w.stack().is(net.minecraft.world.item.Items.GLASS_BOTTLE))
+                .findFirst().orElse(null);
+            helper.assertTrue(bottle != null,
+                "glass bottles should be a household pull - the collector's only source of them");
+            helper.assertTrue(Math.abs(bottle.chance() - tin.chance() * 0.5f) < 0.001f,
+                "glass bottles should be half as likely as tin cans");
             helper.succeed();
         });
 
