@@ -324,6 +324,19 @@ backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face of the front of a salvaged metal workbench, a riveted grey steel frame panel with a small mounted bench vice and a shallow drawer, weathered scratched industrial metal, reads as a workbench body not a wall"
 
+# The Burn Barrel top (P2.2): unlit = a cold open drum mouth of ash and soot; lit = glowing embers.
+[surface.burn_barrel_top]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face looking down into an open metal drum, a cold sooty interior of grey ash and charred black debris ringed by a rusty steel rim, unlit and dead"
+
+[surface.burn_barrel_top_lit]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face looking down into a burning metal drum, bright glowing orange and red embers with small flames and hot coals ringed by a rusty steel rim, fiery and hot"
+
 # Recycled cullet glass is a retint of vanilla glass, not AI: a framed semi-transparent
 # glass tile is exactly what vanilla glass already is, and gpt-image-1 returns near-blank
 # output for it (a transparent-background prompt isolates an object, not a framed tile).

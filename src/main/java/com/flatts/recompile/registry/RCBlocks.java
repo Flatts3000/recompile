@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.BurnBarrelBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
@@ -13,6 +14,7 @@ import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.SlabBlock;
@@ -135,6 +137,19 @@ public final class RCBlocks {
             .sound(SoundType.METAL)
             .noOcclusion()
     );
+
+    /**
+     * Burn Barrel (P2.2): the first smelter - a drum you burn refuse in. A vanilla-furnace reskin
+     * that is manual-only (no automation). Glows and lights (13) while burning. Metal, full cube.
+     */
+    public static final DeferredBlock<BurnBarrelBlock> BURN_BARREL = BLOCKS.registerBlock(
+        "burn_barrel",
+        BurnBarrelBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
+            .sound(SoundType.METAL)
+            .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
 
     /**
      * Scrap Barrel: the garbage world's storage. Every vanilla container is wood-gated

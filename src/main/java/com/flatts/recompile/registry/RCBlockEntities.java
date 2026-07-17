@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
@@ -46,6 +47,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "recompile_workbench",
             () -> new BlockEntityType<>(RecompileWorkbenchBlockEntity::new, RCBlocks.RECOMPILE_WORKBENCH.get()));
+
+    /** The Burn Barrel's furnace inventory (design P2.2) - a manual-only smelter. */
+    public static final Supplier<BlockEntityType<BurnBarrelBlockEntity>> BURN_BARREL =
+        BLOCK_ENTITIES.register(
+            "burn_barrel",
+            () -> new BlockEntityType<>(BurnBarrelBlockEntity::new, RCBlocks.BURN_BARREL.get()));
 
     private RCBlockEntities() {
         // utility class

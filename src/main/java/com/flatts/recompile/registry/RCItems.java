@@ -142,6 +142,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("recompile_workbench", RCBlocks.RECOMPILE_WORKBENCH);
     public static final DeferredItem<BlockItem> SCRAP_BARREL =
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
+    public static final DeferredItem<BlockItem> BURN_BARREL =
+        ITEMS.registerSimpleBlockItem("burn_barrel", RCBlocks.BURN_BARREL);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
         ITEMS.registerSimpleBlockItem("rain_collector", RCBlocks.RAIN_COLLECTOR);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */

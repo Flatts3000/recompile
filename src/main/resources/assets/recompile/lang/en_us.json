@@ -11,6 +11,8 @@
   "block.recompile.recompile_workbench": "Recompile Workbench",
   "block.recompile.scrap_barrel": "Scrap Barrel",
   "container.recompile.scrap_barrel": "Scrap Barrel",
+  "block.recompile.burn_barrel": "Burn Barrel",
+  "container.recompile.burn_barrel": "Burn Barrel",
   "block.recompile.rain_collector": "Rain Collector",
   "block.recompile.scrap_torch": "Scrap Torch",
   "block.recompile.wall_scrap_torch": "Scrap Torch",
