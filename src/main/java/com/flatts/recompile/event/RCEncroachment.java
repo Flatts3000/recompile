@@ -10,6 +10,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -135,6 +136,9 @@ public final class RCEncroachment {
         if (!soil.is(RCTags.ENCROACHABLE) || soil.is(RCTags.ENCROACHMENT_IMMUNE)) {
             return Outcome.NOT_A_TARGET;
         }
+        if (isMoist(soil)) {
+            return Outcome.NOT_A_TARGET;
+        }
         if (!isFrontier(level, pos)) {
             return Outcome.INTERIOR;
         }
@@ -152,6 +156,24 @@ public final class RCEncroachment {
 
         level.setBlockAndUpdate(pos, Blocks.COARSE_DIRT.defaultBlockState());
         return Outcome.REVERTED;
+    }
+
+    /**
+     * Water holds the ground. Wet farmland is spared and dry farmland is taken, so an irrigated
+     * plot defends itself and an abandoned one dries out and goes back to the dump - which makes
+     * the P1.10 water economy a reclamation defence rather than only an input.
+     *
+     * <p>Keyed on the <em>property</em> rather than on {@code minecraft:farmland}, so any modded
+     * farmland reusing vanilla's {@code moisture} is covered without being named. This is the one
+     * rule a tag cannot express: tags match blocks, and the distinction here is blockstate.
+     *
+     * <p>Consequence worth knowing: a crop standing on unwatered farmland goes with it. That is
+     * the intent - water your crops or lose them - but it is the one place encroachment destroys
+     * player investment, so it is deliberately gated behind "you let it dry out".
+     */
+    private static boolean isMoist(BlockState soil) {
+        return soil.hasProperty(BlockStateProperties.MOISTURE)
+            && soil.getValue(BlockStateProperties.MOISTURE) > 0;
     }
 
     /**

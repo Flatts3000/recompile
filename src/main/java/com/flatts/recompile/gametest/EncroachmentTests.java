@@ -7,6 +7,7 @@ import com.flatts.recompile.registry.RCTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
  * GameTests for encroachment (design P1.7-R): the junkyard fights back. Each test drives
@@ -170,9 +171,51 @@ final class EncroachmentTests {
             helper.succeed();
         });
 
+        // Water holds the ground: an irrigated plot defends itself, an abandoned one dries out
+        // and goes back to the dump. Keyed on the moisture property rather than the farmland
+        // block, so modded farmland is covered without being named.
+        RCGameTests.test("encroachment_takes_dry_farmland_only", 10, helper -> {
+            helper.setBlock(NEIGHBOUR, Blocks.COARSE_DIRT);
+
+            helper.setBlock(SOIL, Blocks.FARMLAND.defaultBlockState()
+                .setValue(BlockStateProperties.MOISTURE, 7));
+            Outcome wet = RCEncroachment.encroachOnce(helper.getLevel(), helper.absolutePos(SOIL));
+            helper.assertTrue(wet == Outcome.NOT_A_TARGET,
+                "watered farmland must hold, got " + wet);
+
+            helper.setBlock(SOIL, Blocks.FARMLAND.defaultBlockState()
+                .setValue(BlockStateProperties.MOISTURE, 0));
+            Outcome dry = RCEncroachment.encroachOnce(helper.getLevel(), helper.absolutePos(SOIL));
+            helper.assertTrue(dry == Outcome.REVERTED,
+                "unwatered farmland must be taken, got " + dry);
+
+            helper.succeed();
+        });
+
+        // The allowlist is the only thing standing between this mechanic and the rest of the
+        // world. substrate_overworld is a near neighbour of moss_replaceable, which *does*
+        // include #base_stone_overworld - pointing at the wrong one would quietly put the whole
+        // terrain, and every stone build, on the menu.
+        RCGameTests.test("encroachment_never_targets_stone", 10, helper -> {
+            helper.setBlock(NEIGHBOUR, Blocks.COARSE_DIRT);
+            for (Block safe : new Block[] {
+                Blocks.STONE, Blocks.DEEPSLATE, Blocks.COBBLESTONE, Blocks.GRAVEL, Blocks.SAND}) {
+                helper.setBlock(SOIL, safe);
+
+                Outcome outcome =
+                    RCEncroachment.encroachOnce(helper.getLevel(), helper.absolutePos(SOIL));
+
+                helper.assertTrue(outcome == Outcome.NOT_A_TARGET,
+                    safe + " must never be encroachable, got " + outcome);
+            }
+            helper.succeed();
+        });
+
         // The tags are the whole tuning surface, and a typo in one of their JSON paths fails
         // silently - the sweep would just decide nothing is ever hostile and do nothing.
         RCGameTests.test("encroachment_tags_are_populated", 10, helper -> {
+            helper.assertTrue(!Blocks.STONE.defaultBlockState().is(RCTags.ENCROACHABLE),
+                "stone must not be encroachable");
             helper.assertTrue(Blocks.GRASS_BLOCK.defaultBlockState().is(RCTags.ENCROACHABLE),
                 "grass must be encroachable");
             helper.assertTrue(Blocks.DIRT.defaultBlockState().is(RCTags.ENCROACHABLE),

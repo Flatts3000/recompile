@@ -187,7 +187,9 @@ sweep (`RCEncroachment`), not a mixin - so an unattended base cannot rot while i
 
 Targets the **whole dirt family, not just grass** (`#minecraft:substrate_overworld`), so a rung-1
 spreader that leaves bare dirt at the frontier gets no free pass. Two carve-outs: **coarse dirt**
-(the revert target) and **mycelium** (the dump-mushroom substrate - the P1.9 forage economy). Five
+(the revert target) and **mycelium** (the dump-mushroom substrate - the P1.9 forage economy).
+**Wet farmland holds, dry farmland is taken** - irrigation defends a plot, so P1.10 water becomes a
+reclamation defence and not only an input. Five
 block tags plus a biome tag are the whole tuning surface, each built from other tags so modded
 dirt variants are covered without a mod release; the mod is inert outside the garbage biomes.
 Deliberately **untuned** - the rates join the pre-beta balance pass.
