@@ -1,6 +1,5 @@
 {
   "itemGroup.recompile": "Recompile",
-
   "block.recompile.garbage_block": "Block of Garbage",
   "block.recompile.trash_bag": "Trash Bag",
   "block.recompile.compacted_bale": "Compacted Bale",
@@ -17,7 +16,6 @@
   "block.recompile.scrap_torch": "Scrap Torch",
   "block.recompile.wall_scrap_torch": "Scrap Torch",
   "block.recompile.dump_mushroom": "Dump Mushroom",
-
   "block.recompile.pressed_junk_block": "Pressed Junk Block",
   "block.recompile.pressed_junk_slab": "Pressed Junk Slab",
   "block.recompile.pressed_junk_stairs": "Pressed Junk Stairs",
@@ -36,12 +34,9 @@
   "block.recompile.plastic_panel_wall": "Plastic Panel Wall",
   "block.recompile.cullet_glass": "Cullet Glass",
   "block.recompile.cullet_glass_pane": "Cullet Glass Pane",
-
   "message.recompile.needs_tool": "You need a %s to open this",
   "message.recompile.dimension_locked": "That way is sealed for now.",
-
   "tooltip.recompile.fuel": "Fuel: %s items",
-
   "jade.recompile.salvage_with": "Salvage with a %s",
   "jade.recompile.sort_by_hand": "Sort by hand",
   "jade.recompile.sorted": "Sorted %s/%s",
@@ -51,13 +46,11 @@
   "jade.recompile.workbench_ready": "Hold right-click to break it down",
   "jade.recompile.workbench_no_value": "No salvage value",
   "jade.recompile.workbench_durability": "%s: %s/%s",
-
   "jei.recompile.sorting": "Sorting",
   "jei.recompile.cutting": "Cutting",
   "jei.recompile.prying": "Prying",
   "jei.recompile.teardown": "Teardown",
   "jei.recompile.chance": "%s%% chance",
-
   "item.recompile.scrap_metal": "Scrap Metal",
   "item.recompile.plastic_scrap": "Plastic Scrap",
   "item.recompile.glass_shards": "Glass Shards",
@@ -66,17 +59,15 @@
   "item.recompile.e_scrap": "E-Scrap",
   "item.recompile.junk": "Junk",
   "item.recompile.oily_rag": "Oily Rag",
-
   "item.recompile.rebar": "Rebar",
   "item.recompile.scrap_knife": "Scrap Knife",
   "item.recompile.prybar": "Prybar",
   "item.recompile.junk_shovel": "Junk Shovel",
-
   "item.recompile.tin_can": "Tin Can",
   "item.recompile.tin_can_open": "Opened Tin Can",
   "item.recompile.dump_mushroom": "Dump Mushroom",
-
   "item.recompile.mattress": "Dirty Mattress",
-
-  "generator.recompile.garbage": "Garbage World"
+  "generator.recompile.garbage": "Garbage World",
+  "block.recompile.machine_frame": "Machine Frame",
+  "block.recompile.rain_collector_funnel": "Rain Collector Funnel"
 }

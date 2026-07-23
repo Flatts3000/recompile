@@ -146,6 +146,12 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("burn_barrel", RCBlocks.BURN_BARREL);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
         ITEMS.registerSimpleBlockItem("rain_collector", RCBlocks.RAIN_COLLECTOR);
+    /**
+     * The shared multiblock component. Note there is deliberately no item for
+     * {@code rain_collector_funnel}: a dummy cell is never crafted or held, only formed.
+     */
+    public static final DeferredItem<BlockItem> MACHINE_FRAME =
+        ITEMS.registerSimpleBlockItem("machine_frame", RCBlocks.MACHINE_FRAME);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */
     public static final DeferredItem<StandingAndWallBlockItem> SCRAP_TORCH = ITEMS.registerItem(
         "scrap_torch",
