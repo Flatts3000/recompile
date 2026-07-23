@@ -28,10 +28,18 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
  * without our help. (It follows that the rung-1 spreader must convert coarse dirt <em>straight</em>
  * to grass - leave plain dirt as an intermediate and vanilla spread finishes the job for free.)
  *
- * <p><b>The ladder is the answer.</b> Bare grass reverts; grass under cover loses the cover
- * instead; grass near logs or leaves is permanent. Permanence is earned at the top of the
+ * <p><b>The ladder is the answer.</b> Bare soil reverts; soil under cover loses the cover
+ * instead; soil near logs or leaves is permanent. Permanence is earned at the top of the
  * reclamation chain rather than granted at the bottom, which is what gives rungs 2-3 a purpose
  * beyond yield and makes the first forest a border rather than an ornament.
+ *
+ * <p><b>Everything here is tag-driven, including the exceptions.</b> The target is the dirt
+ * family via {@code #minecraft:substrate_overworld} rather than a list of block ids, so a
+ * chisel-style mod's dirt variants are covered without a mod release. (Not
+ * {@code #minecraft:dirt} - 26.1 narrowed that one to three blocks and it no longer contains
+ * grass.) Two blocks are carved back out: coarse dirt
+ * (the revert target - otherwise the sweep churns bare ground forever) and mycelium (the
+ * substrate the dump mushrooms grow on, so eating it would erode the P1.9 forage economy).
  *
  * <p><b>Two kinds of permanence, and only one is contested.</b> Encroachment reverts grass to
  * <em>plain</em> coarse dirt. Mound retirement (Phase 5) is a separate layer and stays permanent,
@@ -47,15 +55,15 @@ public final class RCEncroachment {
 
     /** What a single encroachment attempt did. Returned so GameTests can assert the ladder rung. */
     public enum Outcome {
-        /** Not healed ground - nothing to take. */
+        /** Not takeable soil - either outside the dirt family, or explicitly immune. */
         NOT_A_TARGET,
-        /** Healed, but ringed by healed ground. Safe until the front reaches it. */
+        /** Takeable, but ringed by healed ground. Safe until the front reaches it. */
         INTERIOR,
         /** Rung 3: a log or leaf holds this ground permanently. */
         ANCHORED,
         /** Rung 2: the cover absorbed the hit and was stripped. The soil survives. */
         COVER_STRIPPED,
-        /** Rung 1: bare grass went back to coarse dirt. */
+        /** Rung 1: bare soil went back to coarse dirt. */
         REVERTED
     }
 
@@ -120,7 +128,11 @@ public final class RCEncroachment {
      * block", which is what makes it testable on the plain gametest plot.
      */
     public static Outcome encroachOnce(ServerLevel level, BlockPos pos) {
-        if (!level.getBlockState(pos).is(Blocks.GRASS_BLOCK)) {
+        BlockState soil = level.getBlockState(pos);
+        // Allowlist minus denylist. Tags union but cannot subtract, so the two exceptions the
+        // design needs - coarse dirt (the revert target) and mycelium (the forage substrate) -
+        // have to be carved back out here rather than in the JSON.
+        if (!soil.is(RCTags.ENCROACHABLE) || soil.is(RCTags.ENCROACHMENT_IMMUNE)) {
             return Outcome.NOT_A_TARGET;
         }
         if (!isFrontier(level, pos)) {

@@ -5,6 +5,7 @@ import com.flatts.recompile.event.RCEncroachment.Outcome;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCTags;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 /**
@@ -107,7 +108,8 @@ final class EncroachmentTests {
         });
 
         // Builds are never a target. P1.6 item 4 is explicit that this must not threaten what
-        // the player put down, and the only thing enforcing that is grass being the sole target.
+        // the player put down, and the only thing enforcing that is the allowlist being an
+        // allowlist - anything outside the dirt family is untouchable by construction.
         RCGameTests.test("encroachment_never_touches_built_blocks", 10, helper -> {
             helper.setBlock(SOIL, RCBlocks.PRESSED_JUNK_BLOCK.get());
             helper.setBlock(NEIGHBOUR, Blocks.COARSE_DIRT);
@@ -121,9 +123,64 @@ final class EncroachmentTests {
             helper.succeed();
         });
 
-        // The three tags are the whole tuning surface, and a typo in one of their JSON paths
-        // fails silently - the sweep would just decide nothing is ever hostile and do nothing.
+        // The target is the whole dirt family, not just grass - podzol, moss and plain dirt are
+        // all takeable. Plain dirt matters most: it is what a rung-1 spreader leaves behind
+        // mid-conversion, and exempting it would hand the player a free frontier.
+        RCGameTests.test("encroachment_takes_the_whole_dirt_family", 10, helper -> {
+            helper.setBlock(NEIGHBOUR, Blocks.COARSE_DIRT);
+            for (Block soil : new Block[] {
+                Blocks.DIRT, Blocks.PODZOL, Blocks.ROOTED_DIRT, Blocks.MOSS_BLOCK}) {
+                helper.setBlock(SOIL, soil);
+
+                Outcome outcome =
+                    RCEncroachment.encroachOnce(helper.getLevel(), helper.absolutePos(SOIL));
+
+                helper.assertTrue(outcome == Outcome.REVERTED,
+                    soil + " is dirt-like and must be takeable, got " + outcome);
+            }
+            helper.succeed();
+        });
+
+        // Mycelium is the substrate MyceliumPatchFeature places and dump mushrooms grow on -
+        // the forage half of the P1.9 food tier. It is inside #minecraft:dirt, so only the
+        // immune tag keeps the junkyard from quietly eating the world's renewable food.
+        RCGameTests.test("encroachment_spares_mycelium", 10, helper -> {
+            helper.setBlock(SOIL, Blocks.MYCELIUM);
+            helper.setBlock(NEIGHBOUR, Blocks.COARSE_DIRT);
+
+            Outcome outcome = RCEncroachment.encroachOnce(helper.getLevel(), helper.absolutePos(SOIL));
+
+            helper.assertTrue(outcome == Outcome.NOT_A_TARGET,
+                "mycelium must be immune so foraging survives, got " + outcome);
+            helper.assertTrue(helper.getBlockState(SOIL).is(Blocks.MYCELIUM),
+                "mycelium must be left alone");
+            helper.succeed();
+        });
+
+        // Coarse dirt is the revert target. If it were ever takeable the sweep would churn bare
+        // ground into bare ground forever, burning the whole per-tick budget on no-ops.
+        RCGameTests.test("encroachment_does_not_churn_coarse_dirt", 10, helper -> {
+            helper.setBlock(SOIL, Blocks.COARSE_DIRT);
+            helper.setBlock(NEIGHBOUR, Blocks.COARSE_DIRT);
+
+            Outcome outcome = RCEncroachment.encroachOnce(helper.getLevel(), helper.absolutePos(SOIL));
+
+            helper.assertTrue(outcome == Outcome.NOT_A_TARGET,
+                "coarse dirt is the end state and must never be a target, got " + outcome);
+            helper.succeed();
+        });
+
+        // The tags are the whole tuning surface, and a typo in one of their JSON paths fails
+        // silently - the sweep would just decide nothing is ever hostile and do nothing.
         RCGameTests.test("encroachment_tags_are_populated", 10, helper -> {
+            helper.assertTrue(Blocks.GRASS_BLOCK.defaultBlockState().is(RCTags.ENCROACHABLE),
+                "grass must be encroachable");
+            helper.assertTrue(Blocks.DIRT.defaultBlockState().is(RCTags.ENCROACHABLE),
+                "plain dirt must be encroachable");
+            helper.assertTrue(Blocks.MYCELIUM.defaultBlockState().is(RCTags.ENCROACHMENT_IMMUNE),
+                "mycelium must be immune");
+            helper.assertTrue(Blocks.COARSE_DIRT.defaultBlockState().is(RCTags.ENCROACHMENT_IMMUNE),
+                "coarse dirt must be immune");
             helper.assertTrue(Blocks.COARSE_DIRT.defaultBlockState().is(RCTags.HOSTILE_GROUND),
                 "coarse dirt must be hostile ground");
             helper.assertTrue(

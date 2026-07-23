@@ -184,8 +184,13 @@ no longer need the dump") is untouched.
 Needs **no saved state**: coarse dirt is the universal surface, so every healed patch is ringed by
 unhealed ground and the frontier test is a local neighbour check. Runs as a player-anchored sampling
 sweep (`RCEncroachment`), not a mixin - so an unattended base cannot rot while its owner is away.
-Three block tags plus a biome tag are the whole tuning surface; the mod is inert outside the garbage
-biomes. Deliberately **untuned** - the rates join the pre-beta balance pass.
+
+Targets the **whole dirt family, not just grass** (`#minecraft:substrate_overworld`), so a rung-1
+spreader that leaves bare dirt at the frontier gets no free pass. Two carve-outs: **coarse dirt**
+(the revert target) and **mycelium** (the dump-mushroom substrate - the P1.9 forage economy). Five
+block tags plus a biome tag are the whole tuning surface, each built from other tags so modded
+dirt variants are covered without a mod release; the mod is inert outside the garbage biomes.
+Deliberately **untuned** - the rates join the pre-beta balance pass.
 
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 

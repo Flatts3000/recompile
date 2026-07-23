@@ -40,9 +40,44 @@ public final class RCTags {
         Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "mineable/prybar"));
 
     // ---------------- Encroachment (P1.7-R): the junkyard fights back ----------------
-    // The three sides of the contested frontier. All three are tags rather than hardcoded
-    // block lists so a pack can retune what counts as junk, what shelters, and what covers,
-    // without a mod release - the same data-driven-first rule the pull tables follow.
+    // Every side of the contested frontier is a tag rather than a hardcoded block list, and
+    // each of those tags is itself built from *other* tags wherever one exists. That is what
+    // makes the system survive contact with the wider mod ecosystem: a chisel-style mod that
+    // adds forty dirt variants joins #minecraft:dirt and is covered without a mod release,
+    // where a block-id list would silently ignore every one of them.
+
+    /**
+     * What unhealed ground can take: the dirt family, via {@code #minecraft:substrate_overworld}
+     * (plus the convention tag where a pack supplies one). Explicitly an allowlist rather than
+     * "anything that is not junk", so an unrecognised modded block is never eaten by default.
+     *
+     * <p><b>Not {@code #minecraft:dirt}</b> - 26.1 narrowed that tag to dirt, coarse dirt and
+     * rooted dirt, so it does not contain grass. {@code substrate_overworld} is the union that
+     * still means "overworld ground": {@code #dirt + #mud + #moss_blocks + #grass_blocks}. Mods
+     * add their variants to those sub-tags, so the family stays correct without a mod release.
+     *
+     * <p>Note this covers plain {@code dirt} as well as grass, which closes a loophole: a
+     * rung-1 spreader that leaves bare dirt at the frontier does not get a free pass.
+     * Farmland and dirt paths are deliberately outside it - vanilla does not consider them
+     * substrate, and reverting farmland would destroy standing crops.
+     */
+    public static final TagKey<Block> ENCROACHABLE = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "encroachable"));
+
+    /**
+     * Carved back out of {@link #ENCROACHABLE}, because tags can union but cannot subtract.
+     * Ships with two entries and both are load-bearing:
+     *
+     * <ul>
+     *   <li><b>coarse dirt</b> - the revert target itself. Without this the sweep would churn
+     *       bare ground into bare ground forever.</li>
+     *   <li><b>mycelium</b> - the substrate {@code MyceliumPatchFeature} places and dump
+     *       mushrooms grow on. It is the forage half of the P1.9 food tier, so letting the
+     *       junkyard eat it would quietly erode the only renewable food in the world.</li>
+     * </ul>
+     */
+    public static final TagKey<Block> ENCROACHMENT_IMMUNE = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "encroachment_immune"));
 
     /**
      * Unhealed ground: what a healed block has to be touching to be on the frontier at all.
