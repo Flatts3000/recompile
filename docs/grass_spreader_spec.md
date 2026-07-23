@@ -35,27 +35,30 @@ returns and the shape must change - `RainCollectorBlockEntity` checks `canSeeSky
 
 ## Structure - four cells, bottom to top
 
-**No Machine Frame in this machine.** You place a Sprinkler Head directly rather than a generic
-frame that transforms into one - it reads better (you craft a sprinkler head, you place a sprinkler
-head) and it drops two blocks from the design. The Machine Frame is still the Rain Collector's
-component, so the shared vocabulary keeps its user.
+**No Machine Frame in this machine.** The Machine Frame stays the Rain Collector's component, so the
+shared vocabulary keeps its user; here the moving part is a **Motor**.
 
 | Cell | You place | Formed as | Notes |
 |---|---|---|---|
 | 3 (top) | **Solar Panel** | *unchanged* | Unshaded, caps the tower. Shared component. |
-| 2 | **Sprinkler Head** | *unchanged* | Sprays (and later spins). Bespoke art. |
+| 2 | **Motor** | **sprinkler head** | A motor is what *spins* a sprinkler head - the fiction is exact, and it is why this machine is the one that eventually needs rotation. Bespoke art. |
 | 1 | **Rain Collector** | `grass_spreader_tank` | The incorporated water - a literal collector, consumed into the structure. |
 | 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master, and the pump base. **Its own texture** - deliberately not the collector's palette, so the two machines never read as the same object. |
 
-**Two cells keep their own appearance**, which the framework already supports: a `Multiblock.Cell`
-may name the same block as both component and formed. Only the Rain Collector cell actually
-transforms, because a collector is a core with a tank and must not stay one inside another machine.
+**The motor is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
+of a found appliance (`broken_appliance`, a Bulky Waste line) at the Recompile Workbench, never
+crafted. So rung 1 sits behind the teardown spine and a find, which orders progression well: you
+salvage a motor before you can water anything. It also means the spreader cannot be rushed.
 
-**The Sprinkler Head and Solar Panel are craftable blocks that also extend `MultiblockDummyBlock`.**
-Standalone they behave like ordinary blocks (`findCore` returns null and every override falls
-through); inside a formed spreader they redirect break and use to the core, which is what keeps the
-machine one object. One block doing both jobs beats a placeable component plus a near-identical
-formed twin.
+**The Solar Panel keeps its own appearance** - the framework supports a `Multiblock.Cell` naming the
+same block as component *and* formed, so a cell that does not change costs one block, not two. The
+collector and motor cells both transform: a collector is a core with a tank and must not stay one
+inside another machine, and a motor visibly becomes the head.
+
+**The Solar Panel is a craftable block that also extends `MultiblockDummyBlock`.** Standalone it
+behaves like an ordinary block (`findCore` returns null and every override falls through); inside a
+formed spreader it redirects break and use to the core, which is what keeps the machine one object.
+One block doing both jobs beats a placeable component plus a near-identical formed twin.
 
 Built with the shipped framework (`multiblock_system_spec.md`): place the core, and it auto-assembles
 from your inventory if you are carrying the parts, or waits while you stack them by hand.
@@ -70,20 +73,34 @@ for the water thread.
 
 ## New blocks
 
-Four, not six - dropping the frame removed the need for separate formed twins of the head and panel.
+Three bespoke to this machine, plus two shared components later machines reuse.
 
 | Block | Kind | Notes |
 |---|---|---|
-| `grass_spreader` | core | Holds `FORMED`; runs the conversion tick and the particles. |
-| `grass_spreader_tank` | dummy | The formed collector cell; reuses the rain-collector tote model. The only cell that transforms. |
-| `sprinkler_head` | craftable **and** dummy | Sprays particles, spins later. Bespoke art. |
-| `solar_panel` | craftable **and** dummy, **shared** | **Inert** - see below. Reusable by later machines. |
+| `grass_spreader` | core, bespoke | Holds `FORMED`; runs the conversion tick and the particles. |
+| `grass_spreader_tank` | dummy, bespoke | The formed collector cell; reuses the rain-collector tote model. |
+| `grass_spreader_head` | dummy, bespoke | The formed motor cell - the sprinkler head. Sprays particles, spins later. |
+| `motor` | **shared component** | **Teardown-only**, from a `broken_appliance` find. Inert - see below. |
+| `solar_panel` | craftable **and** dummy, **shared** | Inert - see below. Reusable by later machines. |
 
-**The solar panel is a recoloured, no-op daylight detector.** It reuses vanilla's
-`template_daylight_detector` model and its texture recoloured to the palette, because vanilla already
-ships a block that *is* a solar panel. It has **no behaviour of any kind**: it does not detect light,
-emit redstone, or generate power. Stated explicitly because the name invites exactly that, and P3.5
-locks "no RF before the Nether." Same rule the Machine Frame already follows.
+The `broken_appliance` find and its teardown recipe (`-> motor + scrap_metal + plastic_scrap`) come
+with this machine: one line in `loot_table/blocks/bulky_waste.json` plus one `recompile:teardown`
+recipe, no new systems. It quietly restores the appliance P1.11 dropped when Bulky Waste replaced it,
+as a *find item* this time - the shape the design settled on.
+
+**Both shared components are inert, and their names invite exactly the opposite** - so state it
+plainly, because either would break locked design:
+
+- **Solar Panel** - a recoloured, **no-op** daylight detector: vanilla's `template_daylight_detector`
+  model with its texture recoloured to the palette, because vanilla already ships a block that *is* a
+  solar panel. It does **not** detect light, emit redstone, or generate power. P3.5 locks "no RF
+  before the Nether."
+- **Motor** - it does **not** rotate anything, expose kinetics, or require Create. P2.3 locks
+  "Recompile converts, Create moves", and the mod never *requires* Create.
+
+Same rule the Machine Frame already follows. The eventual spinning head is a **client-side visual on
+the formed machine**, not the motor gaining behaviour - if either component ever grows real
+mechanics, that is a new design decision, not an implementation detail.
 
 ---
 
