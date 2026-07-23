@@ -31,13 +31,35 @@ public abstract class MultiblockCoreBlock extends Block {
     /** Whether the machine is assembled. Drives behaviour, and is worth surfacing in Jade. */
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
 
+    private volatile @Nullable Multiblock cachedBlueprint;
+
     protected MultiblockCoreBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FORMED, false));
     }
 
-    /** The shape this core assembles into. */
-    public abstract Multiblock blueprint();
+    /**
+     * Build this machine's blueprint. Called <b>once</b>, lazily - not from the constructor, because
+     * a blueprint names other blocks and those are not resolvable while blocks are still registering.
+     */
+    protected abstract Multiblock createBlueprint();
+
+    /**
+     * The shape this core assembles into, memoized.
+     *
+     * <p>Memoized rather than rebuilt because {@link #neighborChanged} calls this, and that fires on
+     * every adjacent block update - a player mining beside a machine would otherwise churn a fresh
+     * record, list and {@code Vec3i} per tick of noise. Caching here rather than in each subclass
+     * means a future machine cannot forget to.
+     */
+    public final Multiblock blueprint() {
+        Multiblock cached = cachedBlueprint;
+        if (cached == null) {
+            cached = createBlueprint();
+            cachedBlueprint = cached;
+        }
+        return cached;
+    }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -61,7 +83,11 @@ public abstract class MultiblockCoreBlock extends Block {
         if (level.isClientSide()) {
             return;
         }
-        if (by instanceof Player player) {
+        // Sneak-place suppresses auto-assembly, so a bare core can always be placed deliberately.
+        // Without this a creative player could never place one at all - creative "has" every
+        // component, so assembly would always fire and there would be no way to get the unformed
+        // block (for a partial build, or just as decor).
+        if (by instanceof Player player && !player.isShiftKeyDown()) {
             autoAssemble(level, pos, player);
         }
         tryForm(level, pos);
@@ -123,10 +149,11 @@ public abstract class MultiblockCoreBlock extends Block {
             return false;
         }
         BlockState state = level.getBlockState(pos);
-        if (isFormed(state) || !core.blueprint().matches(level, pos)) {
+        Multiblock blueprint = core.blueprint();
+        if (isFormed(state) || !blueprint.matches(level, pos)) {
             return false;
         }
-        core.blueprint().form(level, pos);
+        blueprint.form(level, pos);
         level.setBlock(pos, state.setValue(FORMED, true), Block.UPDATE_ALL);
         return true;
     }

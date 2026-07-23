@@ -95,6 +95,43 @@ final class RainCollectorTests {
             });
         });
 
+        // Breaking a FILLED machine must hand the water back. The component plumbing is unit-tested
+        // below, and the drops are counted above, but neither covers the actual player path - and
+        // the funnel path is the risky one, because the core's loot is rolled by hand there and
+        // passing the wrong BlockEntity would silently drop an empty collector with every test
+        // still green. Assert the dropped item really carries the water.
+        RCGameTests.test("rain_collector_break_returns_the_water", 40, helper -> {
+            formCollector(helper);
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE))
+                    instanceof RainCollectorBlockEntity be)) {
+                helper.fail("rain collector core has no BlockEntity");
+                return;
+            }
+            be.catchRain();
+            be.catchRain();
+            int stored = be.storedWater();
+            helper.assertTrue(stored > 0, "precondition: the tank was filled");
+
+            // break from the TOP, the hand-rolled path
+            helper.getLevel().destroyBlock(helper.absolutePos(CORE.above()), true);
+
+            helper.succeedWhen(() -> {
+                ItemStack dropped = null;
+                for (var entity : helper.getLevel().getEntities(
+                        net.minecraft.world.entity.EntityType.ITEM,
+                        net.minecraft.world.phys.AABB.encapsulatingFullBlocks(
+                            helper.absolutePos(CORE).offset(-3, -3, -3),
+                            helper.absolutePos(CORE).offset(3, 3, 3)),
+                        e -> e.getItem().is(RCItems.RAIN_COLLECTOR.get()))) {
+                    dropped = entity.getItem();
+                }
+                helper.assertTrue(dropped != null, "breaking the funnel must drop the collector");
+                Integer carried = dropped.get(RCDataComponents.RAIN_WATER.get());
+                helper.assertTrue(carried != null && carried == stored,
+                    "the dropped collector must carry its " + stored + " mB, got " + carried);
+            });
+        });
+
         // ...and the same from the other end. This is the case that recurses if the two removal
         // handlers ever call destroyBlock on each other instead of dropResources + setBlock.
         RCGameTests.test("rain_collector_breaking_funnel_disbands_once", 40, helper -> {
