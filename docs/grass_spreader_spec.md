@@ -35,12 +35,27 @@ returns and the shape must change - `RainCollectorBlockEntity` checks `canSeeSky
 
 ## Structure - four cells, bottom to top
 
-| Cell | Formed as | Component you place | Notes |
+**No Machine Frame in this machine.** You place a Sprinkler Head directly rather than a generic
+frame that transforms into one - it reads better (you craft a sprinkler head, you place a sprinkler
+head) and it drops two blocks from the design. The Machine Frame is still the Rain Collector's
+component, so the shared vocabulary keeps its user.
+
+| Cell | You place | Formed as | Notes |
 |---|---|---|---|
-| 0 | **Grass Spreader Core** | (the core itself) | The master, and the pump base. **Its own texture** - deliberately not the collector's palette, so the two machines never read as the same object. |
-| 1 | Spreader tank | **Rain Collector** | The incorporated water. Reuses the collector's tote model, so it is visibly the machine you already built. |
-| 2 | **Sprinkler head** | Machine Frame | The part that sprays (and later spins). Bespoke art. |
-| 3 | **Solar panel** | Solar Panel | On top, unshaded, capping the tower. |
+| 3 (top) | **Solar Panel** | *unchanged* | Unshaded, caps the tower. Shared component. |
+| 2 | **Sprinkler Head** | *unchanged* | Sprays (and later spins). Bespoke art. |
+| 1 | **Rain Collector** | `grass_spreader_tank` | The incorporated water - a literal collector, consumed into the structure. |
+| 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master, and the pump base. **Its own texture** - deliberately not the collector's palette, so the two machines never read as the same object. |
+
+**Two cells keep their own appearance**, which the framework already supports: a `Multiblock.Cell`
+may name the same block as both component and formed. Only the Rain Collector cell actually
+transforms, because a collector is a core with a tank and must not stay one inside another machine.
+
+**The Sprinkler Head and Solar Panel are craftable blocks that also extend `MultiblockDummyBlock`.**
+Standalone they behave like ordinary blocks (`findCore` returns null and every override falls
+through); inside a formed spreader they redirect break and use to the core, which is what keeps the
+machine one object. One block doing both jobs beats a placeable component plus a near-identical
+formed twin.
 
 Built with the shipped framework (`multiblock_system_spec.md`): place the core, and it auto-assembles
 from your inventory if you are carrying the parts, or waits while you stack them by hand.
@@ -55,13 +70,14 @@ for the water thread.
 
 ## New blocks
 
+Four, not six - dropping the frame removed the need for separate formed twins of the head and panel.
+
 | Block | Kind | Notes |
 |---|---|---|
 | `grass_spreader` | core | Holds `FORMED`; runs the conversion tick and the particles. |
-| `grass_spreader_tank` | dummy | Reuses the rain-collector tote model. |
-| `grass_spreader_head` | dummy | The sprinkler head - sprays particles, spins later. |
-| `grass_spreader_panel` | dummy | The formed solar cell. |
-| `solar_panel` | **shared component** | Craftable, placeable, **inert** - see below. |
+| `grass_spreader_tank` | dummy | The formed collector cell; reuses the rain-collector tote model. The only cell that transforms. |
+| `sprinkler_head` | craftable **and** dummy | Sprays particles, spins later. Bespoke art. |
+| `solar_panel` | craftable **and** dummy, **shared** | **Inert** - see below. Reusable by later machines. |
 
 **The solar panel is a recoloured, no-op daylight detector.** It reuses vanilla's
 `template_daylight_detector` model and its texture recoloured to the palette, because vanilla already

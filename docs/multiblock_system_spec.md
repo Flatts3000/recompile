@@ -219,7 +219,14 @@ Reframe as **Rain Collector Core (bottom) + Frame (top)**:
 
 **A four-cell tower, and the machine's identity changed** from a soil hopper to a **sprinkler** that
 constantly spreads water. Bottom to top: **Grass Spreader Core** (its own texture, never the
-collector's) / **Rain Collector** / **Machine Frame -> sprinkler head** / **Solar Panel**.
+collector's) / **Rain Collector** / **Sprinkler Head** / **Solar Panel**.
+
+**No Machine Frame here** - the head is placed directly rather than transformed from a generic
+frame. Two consequences for the framework, both already supported: a `Cell` may name the same block
+as component *and* formed (only the collector cell transforms), and a **craftable block may itself
+extend `MultiblockDummyBlock`** - standalone it behaves normally because `findCore` returns null,
+and inside a machine it redirects to the master. That beats shipping a placeable component plus a
+near-identical formed twin.
 
 - **The Rain Collector is a literal component**, not just an ingredient - you build the spreader
   around the machine you already made. That is the progression beat, and it is the first blueprint to
