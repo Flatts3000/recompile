@@ -126,10 +126,22 @@ prybar/knife stay out of it.
    no-BER line. **If a later machine (a pump, the Gate) needs animation, that machine adds a master
    BER then** - which is exactly IE's split, just deferred to the machine that needs it.
 
+**The formed model is bespoke, and this is the load-bearing correction.** IE's machines *do not look
+like the blocks they are built from* - a formed coke oven reads as a coke oven, not as a stack of the
+sheetmetal you placed. So the per-cell formed models above are **purpose-authored machine slices**,
+not the loose component models restacked. Do not compose a formed machine from its loose parts and
+call it done; that reads as three blocks on a pole, not a device. Corollary: **the earlier "composite
+of component sub-models = minimal new art" claim was wrong.** A formed machine is real per-machine
+art, and per-machine art is exactly the gate on this repo. The one genuine save is the **Rain
+Collector**, whose formed look is the already-shipped tank + catch-tray (`rain_collector_base` +
+`rain_collector_tarp`) - a device silhouette that exists today; the Grass Spreader and every later
+machine need a new formed model.
+
 **What we keep from IE unchanged:** the **master/dummy semantics.** The core is the master; on
 formation the cells above become **dummy blocks** that store their offset to the core, redirect
-breaking and `useItemOn` to it, and drop nothing on their own. That is the piece that makes a formed
-machine "one machine" rather than a stack of loose blocks, and it is worth copying exactly.
+breaking and `useItemOn` to it, and drop nothing on their own, and swap to the machine's bespoke
+formed slices. That is the piece that makes a formed machine "one machine" rather than a stack of
+loose blocks, and it is worth copying exactly.
 
 ---
 
@@ -286,11 +298,14 @@ integration is close). Fold anything better than this spec back into it.
   (each needs a loose model and a formed-cell model, but that is variants of one surface). The Frame
   is genuinely new art even though the Rain Collector ships - the collector's tarp cell is being
   *replaced* by the shared Frame, so the Frame is drawn fresh.
-- **Per machine after that:** one core texture (loose + formed) + one blueprint constant. This is the
-  whole point of the hybrid - the art gate is paid once for the vocabulary, then a single surface per
-  machine.
-- **Rain Collector redesign:** mostly Java (retire the `HALF` block, move behaviour onto the core),
-  reusing the existing base/tarp art for the collector's formed model.
+- **Per machine after that:** the loose core texture **plus a bespoke formed model** (the machine's
+  own device silhouette - see the Rendering correction). This is the real per-machine art cost, and
+  the honest gate on the whole chain - not the near-free "reuse the component models" it was first
+  written as. The shared component vocabulary still amortises the *loose* blocks; the *formed* look
+  does not come free.
+- **Rain Collector redesign:** the cheap one - mostly Java (retire the `HALF` block, move behaviour
+  onto the core), and its formed model is the **already-shipped** base/tarp art (tank + catch tray),
+  so it needs no new formed model. Every other machine does.
 
 ## Design record still owed
 
