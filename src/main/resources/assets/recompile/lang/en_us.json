@@ -69,5 +69,11 @@
   "item.recompile.mattress": "Dirty Mattress",
   "generator.recompile.garbage": "Garbage World",
   "block.recompile.machine_frame": "Machine Frame",
-  "block.recompile.rain_collector_funnel": "Rain Collector Funnel"
+  "block.recompile.rain_collector_funnel": "Rain Collector Funnel",
+  "block.recompile.grass_spreader": "Grass Spreader",
+  "block.recompile.grass_spreader_tank": "Grass Spreader Tank",
+  "block.recompile.grass_spreader_head": "Sprinkler Head",
+  "block.recompile.motor": "Motor",
+  "block.recompile.solar_panel": "Solar Panel",
+  "item.recompile.broken_appliance": "Broken Appliance"
 }

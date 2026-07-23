@@ -47,13 +47,27 @@ final class SortingDataTests {
             helper.succeed();
         });
 
-        // Prying reads the block loot table; today it holds exactly a mattress.
-        RCGameTests.test("sorting_data_reads_bulky_find", 10, helper -> {
+        // Prying reads the block loot table, which now holds two weighted finds - the mattress
+        // (weight 3) and the broken appliance the Motor comes out of (weight 2). This is the
+        // "adding a find is a loot-table line" invariant working: a second find needed no code.
+        RCGameTests.test("sorting_data_reads_bulky_finds", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BULKY);
-            helper.assertTrue(out.size() == 1
-                    && out.get(0).stack().is(RCItems.MATTRESS.get())
-                    && out.get(0).chance() == 1.0f,
-                "Bulky Waste currently finds exactly a mattress at 100%");
+            helper.assertTrue(out.size() == 2,
+                "Bulky Waste should offer both finds, got " + out.size());
+
+            SortingData.Weighted mattress = out.stream()
+                .filter(w -> w.stack().is(RCItems.MATTRESS.get())).findFirst().orElse(null);
+            SortingData.Weighted appliance = out.stream()
+                .filter(w -> w.stack().is(RCItems.BROKEN_APPLIANCE.get())).findFirst().orElse(null);
+            helper.assertTrue(mattress != null, "the mattress must still be a Bulky Waste find");
+            helper.assertTrue(appliance != null,
+                "the broken appliance must be a Bulky Waste find - it is the only source of Motors");
+
+            float sum = mattress.chance() + appliance.chance();
+            helper.assertTrue(Math.abs(sum - 1.0f) < 0.001f,
+                "one pool's chances should sum to ~1, got " + sum);
+            helper.assertTrue(mattress.chance() > appliance.chance(),
+                "the mattress is the commoner find (weight 3 vs 2)");
             helper.succeed();
         });
     }

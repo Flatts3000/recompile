@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "EEE",
+    "PPP"
+  ],
+  "key": {
+    "G": "recompile:cullet_glass",
+    "E": "recompile:e_scrap",
+    "P": "recompile:scrap_plating"
+  },
+  "result": { "id": "recompile:solar_panel", "count": 1 }
+}

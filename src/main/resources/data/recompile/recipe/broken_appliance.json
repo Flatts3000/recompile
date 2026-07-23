@@ -1,0 +1,12 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:broken_appliance",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 120,
+  "results": [
+    { "item": "recompile:motor", "count": 1 },
+    { "item": "recompile:scrap_metal", "count": 3 },
+    { "item": "recompile:plastic_scrap", "count": 2 }
+  ]
+}

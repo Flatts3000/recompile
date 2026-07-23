@@ -7,6 +7,10 @@ import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
+import com.flatts.recompile.content.block.GrassSpreaderHeadBlock;
+import com.flatts.recompile.content.block.GrassSpreaderTankBlock;
+import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.RainCollectorCoreBlock;
 import com.flatts.recompile.content.block.RainCollectorFunnelBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
@@ -210,6 +214,74 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(1.2F)
             .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    // ---------------- Grass Spreader (P2.4-R3): reclamation rung 1, a sprinkler ----------------
+
+    /**
+     * Grass Spreader core: the bottom of a four-cell sprinkler tower that converts dead ground to
+     * grass within a radius, consuming nothing. Its own look - deliberately not the Rain Collector's
+     * palette, so the two machines never read as the same object.
+     */
+    public static final DeferredBlock<GrassSpreaderCoreBlock> GRASS_SPREADER = BLOCKS.registerBlock(
+        "grass_spreader",
+        GrassSpreaderCoreBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.6F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /** The spreader's tank cell: the Rain Collector, incorporated. A dummy - no item. */
+    public static final DeferredBlock<GrassSpreaderTankBlock> GRASS_SPREADER_TANK = BLOCKS.registerBlock(
+        "grass_spreader_tank",
+        GrassSpreaderTankBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.2F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /** The spreader's sprinkler head: what a Motor becomes. Sprays via {@code animateTick}. */
+    public static final DeferredBlock<GrassSpreaderHeadBlock> GRASS_SPREADER_HEAD = BLOCKS.registerBlock(
+        "grass_spreader_head",
+        GrassSpreaderHeadBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.2F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /**
+     * Motor: a shared machine component, salvaged rather than made - it is teardown-only, torn out
+     * of a broken appliance, which is what puts reclamation rung 1 behind the teardown spine.
+     * <b>Inert</b>: no rotation, no kinetics, never requires Create (P2.3).
+     */
+    public static final DeferredBlock<Block> MOTOR = BLOCKS.registerBlock(
+        "motor",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.4F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
+     * Solar Panel: a shared machine component. <b>Inert</b> - no light detection, no redstone, no
+     * power (P3.5: no RF before the Nether). A recoloured vanilla daylight detector, so it costs no
+     * new art.
+     */
+    public static final DeferredBlock<SolarPanelBlock> SOLAR_PANEL = BLOCKS.registerBlock(
+        "solar_panel",
+        SolarPanelBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLUE)
+            .strength(1.0F)
+            .sound(SoundType.GLASS)
             .noOcclusion()
     );
 

@@ -7,7 +7,8 @@
         { "condition": "minecraft:survives_explosion" }
       ],
       "entries": [
-        { "type": "minecraft:item", "name": "recompile:mattress" }
+        { "type": "minecraft:item", "name": "recompile:mattress", "weight": 3 },
+        { "type": "minecraft:item", "name": "recompile:broken_appliance", "weight": 2 }
       ]
     }
   ]
