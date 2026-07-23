@@ -6,25 +6,28 @@ Overworld Gate are built on. Spec only - nothing here is built yet.
 Design source of truth is the pack repo: `../trashlands/docs/design_decisions.md`. This system is
 **not yet recorded there** - see "Design record still owed".
 
-> **Pattern lineage:** modelled on Powah's reactor (one repeated structure, formed in place), not
-> Immersive Engineering's hammer-assembled heterogeneous templates. We copy the *pattern*, never the
-> code: both target 1.20/1.21 not 26.1 (the productive-frogs fluid trap `CLAUDE.md` already records),
-> and neither mod's license has been cleared for source reuse. The final shape is a hybrid of Powah
-> (formed in place, blocks keep their own models) and IE (visible heterogeneous parts), chosen to
-> minimise the one cost that actually gates this repo: **bespoke art per machine.**
+> **Pattern lineage:** the assembly/formation model is **Immersive Engineering's** (verified against
+> its 1.21.1 jar - see Rendering): build heterogeneous component blocks, they become a master + dummy
+> structure on formation. We take IE's **master/dummy semantics** but drop its two heavy pieces (NBT
+> `StructureTemplate` shapes and the master block-entity renderer), because our machines are tiny
+> static stacks - see the two deviations under Rendering. We copy the *pattern*, never the code: IE
+> targets 1.21.1 not 26.1 (the productive-frogs fluid trap `CLAUDE.md` records), and its license is
+> not cleared for source reuse. The whole shape is chosen to minimise the one cost that actually
+> gates this repo: **bespoke art per machine** - hence the shared frame/motor/panel vocabulary and a
+> single bespoke core per machine.
 
 ---
 
 ## The shape of the decision
 
-A machine is a **fixed cuboid of component blocks built around one core block.** You place the
-components and the core; when the exact blueprint is satisfied the machine forms and runs. Break any
-block and it disbands.
+A machine is a **stack of component blocks built around one core block** (a cuboid in general; the
+first two machines are simple vertical columns). You place the core and the components; when the
+exact blueprint is satisfied the machine forms and runs. Break any block and it disbands.
 
 Four decisions are locked:
 
-1. **Heterogeneous parts, not one block type.** Frame, motor, solar panel, rain collector - the
-   machine is visibly assembled from recognisable salvage, which is the mod's whole identity.
+1. **Heterogeneous parts, not one block type.** Frame, motor, solar panel - the machine is visibly
+   assembled from recognisable salvage, which is the mod's whole identity.
 2. **A per-machine core block** is the placeable the structure is built around, and the *only*
    bespoke thing per machine. Everything else is shared.
 3. **A strict per-machine blueprint.** One exact layout per machine, validated position by position.
@@ -48,11 +51,14 @@ Built once, reused by every machine. This is the payoff of the heterogeneous-but
 
 | Block | Role | Source | Notes |
 |---|---|---|---|
-| **Machine Frame** | structural filler | crafted from `scrap_plating` / `rebar` | the cheap bulk of any structure |
-| **Motor Block** | required component | teardown-only (from a `broken_appliance` find) | placed form of the spreader spec's motor |
-| **Solar Panel Block** | required component | crafted from `e_scrap` + `cullet_glass` | placed form of the spreader spec's panel |
-| **Rain Collector** | water component | **already shipped** | reused as-is; its tank/rain fill is the machine's water. Zero new art. |
-| **`<machine>` Core** | identity + controller | per-machine recipe, cheap | holds the formed/unformed state; the only bespoke art per machine |
+| **Frame** | shared component | crafted from `scrap_plating` / `rebar` | the Rain Collector's top cell; the cheap structural block of any stack |
+| **Motor Block** | shared component | teardown-only (from a `broken_appliance` find) | placed form of the spreader spec's motor; the Grass Spreader's middle cell |
+| **Solar Panel Block** | shared component | crafted from `e_scrap` + `cullet_glass` | placed form of the spreader spec's panel; the Grass Spreader's top cell |
+| **`<machine>` Core** | identity + controller | per-machine recipe | the master; holds formed/unformed state; the only bespoke art per machine |
+
+The **Rain Collector is not a shared stack component** - it is a *machine in its own right* (Core +
+Frame, below) and separately a *crafting ingredient* consumed in the Grass Spreader Core's recipe.
+It never sits as a cell inside another machine's stack.
 
 **These are now blocks, not the crafting items the Soil Spreader spec described.** That spec had the
 components *consumed in a recipe*; here they are *placed in the world* and visible. Same economics,
@@ -65,25 +71,65 @@ cell of a blueprint. If either ever gains behaviour that is a new design decisio
 
 ---
 
-## Formation
+## Formation - place the core, assemble the stack
 
-**Auto-form, no tool** (the Powah behaviour, and it needs no new wrench):
+The first two machines are **vertical stacks** (core on the bottom, components straight up), so the
+whole "blueprint" is a column and there is no rotation or footprint to reason about. The flow:
 
-- The **core block owns validation.** On placement, and on any neighbour change within the
-  blueprint's bounding box, the core re-checks the blueprint.
-- **Match -> form:** set the core's `FORMED` blockstate true. Optionally, component blocks flip to a
-  `formed` variant for a visual tell (a config/state boolean, no new blocks).
-- **Any break -> disband:** a broken component fails the next validation and the core clears
-  `FORMED`. Because validation is cheap and driven by neighbour-change events, there is no polling.
+1. **Place the core.** It always places, as an **unformed single block.** The core owns everything;
+   the cells above are the stack.
+2. **Convenience: assemble from inventory.** If the required component block(s) are in the player's
+   inventory when the core is placed, they are **auto-placed up the column and consumed**, and the
+   structure forms in that one action. Placing a Rain Collector Core while carrying a Frame builds
+   the whole collector at once.
+3. **Or complete it by hand.** If the parts are not on hand, the core sits unformed; the player
+   stacks the components on top later and it forms when the column is complete. The auto-place path
+   is a shortcut over manual building, not a separate mechanism - one validation, two ways in.
+   (Decision, 2026-07-23: unformed-until-completed; placement is never refused.)
+4. **Form -> convert to a machine.** On a complete column the core sets `FORMED` and the component
+   cells become **dummy blocks** that belong to the machine (see Architecture). The loose blocks
+   stop being loose blocks - they read as one machine.
+5. **Break anything -> disband.** Breaking the core or any dummy disbands the whole: the dummies
+   redirect the break to the core, the structure drops its component items (and the core its own,
+   carrying any stored state such as the collector's water), and the cells clear.
 
-**Why the core owns it, not a BlockEntity on every part:** only the core needs to know. Components
-are dumb blocks that merely need to *be there*. This mirrors the mod's standing rule - a BlockEntity
-only when something is genuinely stored - and keeps the frame/panel/motor as pure palette blocks.
+**No assembly tool.** IE uses a hammer to avoid accidental formation of large hand-built structures;
+a deliberate core-plus-two-blocks stack has no such risk, so formation is placement-driven and the
+prybar/knife stay out of it.
 
-**Orientation:** the blueprint is stored in **one canonical orientation keyed off the core's
-`FACING`**, so validation rotates the offset table to the core's facing (4 yaw rotations, no mirror).
-This is the one concession to not forcing the player to build facing a fixed compass direction; it is
-a table rotation, not a search.
+---
+
+## Rendering - IE's pattern, and where we deviate
+
+**How IE actually does it** (verified against `ImmersiveEngineering-1.21.1-12.4.2`):
+
+- The shape is a vanilla **`StructureTemplate` NBT file** (`IETemplateMultiblock extends
+  TemplateMultiblock`, `getTemplate` -> `StructureTemplate`).
+- On assembly, `replaceStructureBlock` swaps every built component block for **one generic
+  multiblock-part block**. The block entities are **master or dummy** (`MultiblockBEHelperMaster` /
+  `MultiblockBEHelperDummy`): the master holds the logic/state, dummies store an offset and redirect
+  to it.
+- The whole formed machine is drawn by **one block-entity renderer on the master**
+  (`IEMultiblockRenderer extends IEBlockEntityRenderer<MultiblockBlockEntityMaster>`). The dummy
+  cells render nothing of their own; the master's BER paints the entire model, which is also how IE
+  animates moving parts (crusher bar, bucket wheel).
+
+**Our two deviations, both because the machines are trivially small and static:**
+
+1. **Code blueprint, not an NBT template.** A 2-3 block vertical column is a two-line offset list
+   (Validation, below). IE uses `StructureTemplate` because its structures are large and irregular;
+   ours are not, and an NBT file per machine would be ceremony.
+2. **Per-cell static models, not a master BER.** IE needs the master BER because its machines have
+   moving parts and span dozens of cells. Ours have **no moving parts**, so each cell can carry its
+   own static "formed" model and the column reads as one machine with correct per-cell lighting and
+   culling - the same static-multipart approach the Workbench already uses, and it keeps the mod's
+   no-BER line. **If a later machine (a pump, the Gate) needs animation, that machine adds a master
+   BER then** - which is exactly IE's split, just deferred to the machine that needs it.
+
+**What we keep from IE unchanged:** the **master/dummy semantics.** The core is the master; on
+formation the cells above become **dummy blocks** that store their offset to the core, redirect
+breaking and `useItemOn` to it, and drop nothing on their own. That is the piece that makes a formed
+machine "one machine" rather than a stack of loose blocks, and it is worth copying exactly.
 
 ---
 
@@ -92,49 +138,79 @@ a table rotation, not a search.
 A blueprint is a **static list of `(offset, predicate)`** relative to the core, built once at
 class-init:
 
-- `offset` - a `Vec3i` from the core.
-- `predicate` - "this cell must be Machine Frame" / "Motor Block" / "Solar Panel" / "Rain Collector"
-  / air. Predicates are **block tags**, not block ids, so a pack could sub a reskinned frame.
+- `offset` - a `Vec3i` from the core (for the first two machines, straight up: `(0,1,0)`,
+  `(0,2,0)`).
+- `predicate` - "this cell must be Frame" / "Motor Block" / "Solar Panel" / air. Predicates are
+  **block tags**, not block ids, so a pack could sub a reskinned frame.
 
-Validation walks the list once, rotating each offset by the core's `FACING`, and returns true only
-if every predicate matches. O(cells), no allocation beyond the rotated cursor. This is the whole
-algorithm - a strict blueprint is what makes it this small.
+Validation walks the list once and returns true only if every cell matches. O(cells), no allocation.
+A strict blueprint is what makes it this small. (Kept trivial now; a rotated offset table is the
+additive change if a future machine is not a vertical column - see Deferred.)
 
-**A single source of truth.** The same blueprint object drives three things: runtime validation, the
-Jade/JEI **preview**, and the GameTest that builds a known-good structure. Define it once so the
-preview cannot drift from what the game actually checks.
+**A single source of truth.** The same blueprint object drives runtime validation, the auto-place
+"assemble from inventory" step, the Jade/JEI **preview**, and the GameTest. Define it once so none of
+them can drift.
 
 ---
 
 ## Architecture
 
-- **`Multiblock`** (record/class): the blueprint - its offset/predicate list, its bounding box, and
-  a `place(level, corePos, facing)` helper used only by tests to stamp a valid structure.
-- **`MultiblockCoreBlock`** (abstract): owns `FORMED` + `FACING`, the neighbour-change revalidation,
-  and an abstract `blueprint()` and `onFormed()/onDisbanded()`. Each machine's core extends it.
-- **Component blocks**: `Block` subclasses or even plain `Block`s carrying a tag. No BE.
-- **The machine's actual work** (e.g. the spreader's nearest-first conversion) hangs off the core's
-  formed tick, exactly as the single-block spreader spec described - the multiblock layer only
-  decides *whether* it runs, not *what* it does.
+- **`Multiblock`** (record/class): the blueprint - its offset/predicate list and a
+  `place(level, corePos)` helper used by the auto-assemble step and by tests to stamp a valid stack.
+- **`MultiblockCoreBlock`** (abstract): owns `FORMED`, validation on placement and on the
+  column-cell neighbour changes, the auto-assemble-from-inventory step, disband-on-break, and
+  abstract `blueprint()` + `onFormed()/onDisbanded()`. Each machine's core extends it.
+- **`MultiblockDummyBlock`**: the formed component cell. Holds a link back to its master core
+  (relative offset), redirects break + `useItemOn` to the master, drops nothing on its own. This is
+  the IE dummy/slave, trimmed to a stack.
+- **Component item-blocks** (Frame, Motor, Solar Panel): plain palette blocks in their *loose*
+  state; they become dummies only inside a formed machine. No BE.
+- **The machine's work** hangs off the master core's formed tick - the multiblock layer decides
+  *whether* it runs, not *what* it does.
 
-No `SavedData`. `FORMED` is blockstate; re-derived on load by the same neighbour-change path.
+No `SavedData`. `FORMED` and the dummy links are blockstate/nbt on the blocks; re-derived on load.
 
 ---
 
-## First consumer: the Soil Spreader
+## The two first machines
 
-Rewrites the recipe/placement section of `soil_spreader_spec.md`. The spreader's *behaviour*
-(nearest-first, converts to grass, holds its radius) is unchanged - only how you build it changes.
+Both are vertical stacks assembled by placing the core.
 
-- **Structure (placeholder, for the balance pass):** a small cuboid - e.g. a 3x3 frame base with a
-  Motor Block, a Solar Panel on top, a Rain Collector, and the **Soil Spreader Core**. Exact cells
-  are a blueprint constant, tuned later.
+### 1. Rain Collector - **a redesign of the shipped block**
+
+Today the Rain Collector is a `DoubleBlockHalf` two-cell block (`RainCollectorBlock`): the lower half
+holds the tank (`RainCollectorBlockEntity` - rain fill, fluid capability, glass-bottle draw, and
+water that survives break via a data component), the upper half is the tarp.
+
+Reframe as **Rain Collector Core (bottom) + Frame (top)**:
+
+- **All tank behaviour moves onto the core unchanged** - the BlockEntity, rain fill, capability,
+  bottle interaction, and the water data-component. This is a structural/visual reframe, not a
+  behaviour change; do not regress P1.10.
+- The **Frame** is the shared component block, replacing the bespoke `HALF=UPPER` tarp cell. The
+  existing base+tarp art becomes the formed model.
+- Migration: the old two-`HALF` block is retired. **Pre-existing placed collectors in saved worlds**
+  need handling - simplest is to leave the old block registered as a deprecated form that still
+  works, or accept the break pre-beta and note it. Decide at implementation; flag in the roadmap.
+- It is the smallest possible multiblock (2 cells), which is why it is the first one built - it
+  proves the framework on shipped, already-understood behaviour.
+
+### 2. Grass Spreader (Soil Spreader) - the new machine
+
+**Grass Spreader Core (bottom) + Motor Block (middle) + Solar Panel Block (top).** A 3-cell column.
+
+- **No Rain Collector in the stack.** The water fiction is carried by the **core's recipe**: crafting
+  the Grass Spreader Core *consumes* a Rain Collector (plus structural scrap), so the machine still
+  "is" a rain-fed device without collecting live water, and the Rain Collector stays load-bearing as
+  an ingredient. The Motor and Solar Panel are **not** consumed in the core recipe - they are the
+  *placed* cells of the stack. (This supersedes the spreader spec's original "core consumes rain
+  collector + panel + motor" recipe: panel and motor moved from ingredients to placed blocks.)
+- **The core runs the spread tick only while `FORMED`.** Break the motor or panel and healing stops;
+  the frontier begins to win. That intact-structure requirement is the ongoing "cost" - still no
+  consumable, per the spreader spec's core reversal.
 - **Radius** is a per-machine config constant (`soilSpreaderRadius`), not size-derived.
-- **The core runs the spread tick only while `FORMED`.** Break a panel and healing stops; the
-  frontier starts to win. That is the ongoing "cost" - keeping the machine intact - with still no
-  consumable.
-
-The rest of `soil_spreader_spec.md` (behaviour, eligibility, `mound_bed` interaction, tests) stands.
+- All spreader *behaviour* (nearest-first, converts straight to grass, `mound_bed` interaction,
+  eligibility, tests) is unchanged from `soil_spreader_spec.md`; only construction changes.
 
 ---
 
@@ -151,13 +227,18 @@ The rest of `soil_spreader_spec.md` (behaviour, eligibility, `mound_bed` interac
 The framework is testable independently of any machine, using a throwaway test core + the real
 components on the `empty_5x5x5` plot (may need a larger structure):
 
-1. a fully-built blueprint forms (`FORMED` true)
-2. an incomplete structure does not form
-3. one wrong block in one cell does not form
-4. breaking a component after formation disbands it
-5. the same structure forms in all four core facings (rotation table)
-6. `Multiblock.place` then validate round-trips (guards preview-vs-runtime drift)
-7. the machine's work runs only while formed (spreader: spreads formed, idle when disbanded)
+1. a completed column forms (`FORMED` true), and the cells above become dummies
+2. a core placed alone sits **unformed**, then forms when the last component is stacked by hand
+3. **auto-assemble:** a core placed while the components are in inventory forms in one action and
+   consumes them from inventory
+4. a core placed with the components *absent* from inventory does not consume anything and is not
+   refused - it just sits unformed
+5. one wrong block in a cell does not form
+6. breaking any dummy, or the core, disbands the whole and drops the component items once each (no
+   dupe, no loss); the core drop carries its stored state (collector water)
+7. `Multiblock.place` then validate round-trips (guards preview-vs-runtime drift)
+8. the machine's work runs only while formed (spreader spreads when formed, idle when disbanded;
+   collector fills when formed)
 
 ## Deferred (explicitly, so the door stays open)
 
@@ -179,15 +260,23 @@ components on the `empty_5x5x5` plot (may need a larger structure):
 
 ## Cost of building this
 
-- **Framework Java:** `Multiblock`, `MultiblockCoreBlock`, validation, Jade hint. No art.
-- **Shared components:** Machine Frame, Motor Block, Solar Panel Block = **3 texgen surfaces, once,
-  ever** (Rain Collector already shipped).
-- **Per machine after that:** one core texture + one blueprint constant. This is the whole point of
-  the hybrid - the art gate is paid once for the vocabulary, then a single surface per machine.
+- **Framework Java:** `Multiblock`, `MultiblockCoreBlock`, `MultiblockDummyBlock`, validation,
+  auto-assemble, Jade hint. No art.
+- **Shared components:** Frame, Motor Block, Solar Panel Block = **3 texgen surfaces, once, ever**
+  (each needs a loose model and a formed-cell model, but that is variants of one surface). The Frame
+  is genuinely new art even though the Rain Collector ships - the collector's tarp cell is being
+  *replaced* by the shared Frame, so the Frame is drawn fresh.
+- **Per machine after that:** one core texture (loose + formed) + one blueprint constant. This is the
+  whole point of the hybrid - the art gate is paid once for the vocabulary, then a single surface per
+  machine.
+- **Rain Collector redesign:** mostly Java (retire the `HALF` block, move behaviour onto the core),
+  reusing the existing base/tarp art for the collector's formed model.
 
 ## Design record still owed
 
 Record in `../trashlands/docs/design_decisions.md` once settled, likely folded into **P2.4-R3**
-alongside the spreader: the multiblock pattern (Powah-style formed-in-place, heterogeneous shared
-components + per-machine core, strict blueprint, presence-not-counts), that it supersedes the
-"size drives radius" direction for now, and that components stay inert (no RF, no kinetics).
+alongside the spreader: the multiblock pattern (IE-style master/dummy formed-in-place, heterogeneous
+shared components + per-machine core, strict blueprint, presence-not-counts, place-core-to-assemble
+with unformed-until-completed), the two deviations from IE (code blueprint + per-cell static models,
+both because the machines are small and static), that it supersedes the "size drives radius"
+direction for now, and that components stay inert (no RF, no kinetics).
