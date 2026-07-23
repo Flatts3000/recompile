@@ -58,6 +58,11 @@ public final class RCEncroachment {
     public enum Outcome {
         /** Not takeable soil - either outside the dirt family, or explicitly immune. */
         NOT_A_TARGET,
+        /**
+         * The neighbourhood this decision needs is not fully loaded, so the attempt was
+         * abandoned rather than resolved on incomplete information. Never mutates anything.
+         */
+        UNLOADED,
         /** Takeable, but ringed by healed ground. Safe until the front reaches it. */
         INTERIOR,
         /** Rung 3: a log or leaf holds this ground permanently. */
@@ -103,17 +108,20 @@ public final class RCEncroachment {
                 if (!level.hasChunkAt(column)) {
                     continue;
                 }
-                // Inert outside the garbage regions, so the mod does nothing to a vanilla
-                // overworld (where coarse dirt occurs naturally in badlands and taiga).
-                if (!level.getBiome(column).is(RCTags.ENCROACHES)) {
-                    continue;
-                }
                 // MOTION_BLOCKING_NO_LEAVES rather than WORLD_SURFACE: it steps over flowers and
                 // grasses, so the block we test is the soil itself and not the cover standing on
                 // it. With WORLD_SURFACE every vegetated block would read as "not a target" and
                 // rung 2 would silently never fire.
                 BlockPos surface =
                     level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column).below();
+                // Biome is sampled at the surface, not at the player's Y: biomes are 3D, and
+                // Phase 4 bands garbage regions by distance, so reading the biome at whatever
+                // height the player happens to be standing would eventually target the wrong
+                // ground. Inert outside the garbage regions, so the mod does nothing to a
+                // vanilla overworld (where coarse dirt occurs naturally in badlands and taiga).
+                if (!level.getBiome(surface).is(RCTags.ENCROACHES)) {
+                    continue;
+                }
                 encroachOnce(level, surface);
             }
         }
@@ -139,10 +147,20 @@ public final class RCEncroachment {
         if (isMoist(soil)) {
             return Outcome.NOT_A_TARGET;
         }
+        // Both scans below read outward from pos, and Level.getBlockState resolves through
+        // getChunk(x, z, FULL, true) - load=true - so a cursor crossing into an unloaded chunk
+        // would stall the server thread generating one. Bail before scanning rather than
+        // eroding at the cost of a synchronous chunk load. (The caller's hasChunkAt only
+        // covers the sampled column; the anchor scan reaches treeAnchorRadius past it.)
+        int anchorRadius = RCConfig.TREE_ANCHOR_RADIUS.get();
+        if (!level.hasChunksAt(pos.getX() - anchorRadius, pos.getY(), pos.getZ() - anchorRadius,
+            pos.getX() + anchorRadius, pos.getY() + anchorRadius, pos.getZ() + anchorRadius)) {
+            return Outcome.UNLOADED;
+        }
         if (!isFrontier(level, pos)) {
             return Outcome.INTERIOR;
         }
-        if (hasAnchor(level, pos, RCConfig.TREE_ANCHOR_RADIUS.get())) {
+        if (hasAnchor(level, pos, anchorRadius)) {
             return Outcome.ANCHORED;
         }
 
@@ -167,9 +185,11 @@ public final class RCEncroachment {
      * farmland reusing vanilla's {@code moisture} is covered without being named. This is the one
      * rule a tag cannot express: tags match blocks, and the distinction here is blockstate.
      *
-     * <p>Consequence worth knowing: a crop standing on unwatered farmland goes with it. That is
-     * the intent - water your crops or lose them - but it is the one place encroachment destroys
-     * player investment, so it is deliberately gated behind "you let it dry out".
+     * <p>A crop standing on unwatered farmland goes with the farmland, but it is <em>not</em>
+     * destroyed: reverting the soil fails the crop's {@code canSurvive}, and vanilla's
+     * {@code updateOrDestroy} drops it. So the player loses the plot and the growth progress
+     * but keeps the seed - which is the right severity for a mechanic that fires because you
+     * stopped watering. Asserted by {@code encroachment_drops_the_crop_it_displaces}.
      */
     private static boolean isMoist(BlockState soil) {
         return soil.hasProperty(BlockStateProperties.MOISTURE)

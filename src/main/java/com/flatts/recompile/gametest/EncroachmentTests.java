@@ -5,6 +5,7 @@ import com.flatts.recompile.event.RCEncroachment.Outcome;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCTags;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -189,6 +190,26 @@ final class EncroachmentTests {
             helper.assertTrue(dry == Outcome.REVERTED,
                 "unwatered farmland must be taken, got " + dry);
 
+            helper.succeed();
+        });
+
+        // Taking a farm plot is the one place this displaces player investment, so pin down
+        // exactly how much: the crop comes off with the soil but vanilla's updateOrDestroy
+        // DROPS it, so the loss is the plot and the growth, never the seed. If a future change
+        // reverts soil without a block update this silently becomes real item destruction.
+        RCGameTests.test("encroachment_drops_the_crop_it_displaces", 10, helper -> {
+            helper.setBlock(NEIGHBOUR, Blocks.COARSE_DIRT);
+            helper.setBlock(SOIL, Blocks.FARMLAND.defaultBlockState()
+                .setValue(BlockStateProperties.MOISTURE, 0));
+            helper.setBlock(SOIL.above(), Blocks.WHEAT);
+
+            Outcome outcome = RCEncroachment.encroachOnce(helper.getLevel(), helper.absolutePos(SOIL));
+
+            helper.assertTrue(outcome == Outcome.REVERTED,
+                "dry farmland under a crop must still be taken, got " + outcome);
+            helper.assertTrue(helper.getBlockState(SOIL.above()).isAir(),
+                "the crop must come off with its farmland");
+            helper.assertItemEntityPresent(Items.WHEAT_SEEDS, SOIL, 2.0D);
             helper.succeed();
         });
 

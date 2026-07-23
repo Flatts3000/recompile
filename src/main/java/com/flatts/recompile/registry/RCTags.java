@@ -58,8 +58,10 @@ public final class RCTags {
      *
      * <p>Note this covers plain {@code dirt} as well as grass, which closes a loophole: a
      * rung-1 spreader that leaves bare dirt at the frontier does not get a free pass.
-     * Farmland and dirt paths are deliberately outside it - vanilla does not consider them
-     * substrate, and reverting farmland would destroy standing crops.
+     *
+     * <p><b>Farmland is added on top of the vanilla tag</b> (vanilla does not count it as
+     * substrate), but only dry farmland is ever taken - see {@code RCEncroachment.isMoist}.
+     * <b>Dirt paths are deliberately left out</b> entirely.
      */
     public static final TagKey<Block> ENCROACHABLE = TagKey.create(
         Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "encroachable"));
