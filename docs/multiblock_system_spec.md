@@ -215,22 +215,26 @@ Reframe as **Rain Collector Core (bottom) + Frame (top)**:
 - It is the smallest possible multiblock (2 cells), which is why it is the first one built - it
   proves the framework on shipped, already-understood behaviour.
 
-### 2. Grass Spreader (Soil Spreader) - the new machine
+### 2. Grass Spreader - the next machine (specced, not built)
 
-**Grass Spreader Core (bottom) + Motor Block (middle) + Solar Panel Block (top).** A 3-cell column.
+**A four-cell tower, and the machine's identity changed** from a soil hopper to a **sprinkler** that
+constantly spreads water. Bottom to top: **Grass Spreader Core** (its own texture, never the
+collector's) / **Rain Collector** / **Machine Frame -> sprinkler head** / **Solar Panel**.
 
-- **No Rain Collector in the stack.** The water fiction is carried by the **core's recipe**: crafting
-  the Grass Spreader Core *consumes* a Rain Collector (plus structural scrap), so the machine still
-  "is" a rain-fed device without collecting live water, and the Rain Collector stays load-bearing as
-  an ingredient. The Motor and Solar Panel are **not** consumed in the core recipe - they are the
-  *placed* cells of the stack. (This supersedes the spreader spec's original "core consumes rain
-  collector + panel + motor" recipe: panel and motor moved from ingredients to placed blocks.)
-- **The core runs the spread tick only while `FORMED`.** Break the motor or panel and healing stops;
-  the frontier begins to win. That intact-structure requirement is the ongoing "cost" - still no
-  consumable, per the spreader spec's core reversal.
-- **Radius** is a per-machine config constant (`soilSpreaderRadius`), not size-derived.
-- All spreader *behaviour* (nearest-first, converts straight to grass, `mound_bed` interaction,
-  eligibility, tests) is unchanged from `soil_spreader_spec.md`; only construction changes.
+- **The Rain Collector is a literal component**, not just an ingredient - you build the spreader
+  around the machine you already made. That is the progression beat, and it is the first blueprint to
+  name one of our own machines as a part.
+- **Nothing here needs sky**, because the incorporated collector is fiction rather than a running
+  rain tick. If that ever changes, `canSeeSky(pos.above(2))` comes back and the shape must change.
+- **The core runs only while `FORMED`** - break a cell and healing stops; the frontier begins to win.
+  That intact-structure requirement is the ongoing "cost", with still no consumable.
+- **The solar panel is a recoloured no-op daylight detector** - vanilla already ships a block that
+  *is* a solar panel. Inert: no light detection, no redstone, no power.
+- **This machine is where the BER arrives** (a spinning head), which the Rendering section above
+  deferred to "whatever machine first needs animation". Water particles come first and need no
+  renderer at all.
+
+Full detail, including the conversion behaviour: [`grass_spreader_spec.md`](grass_spreader_spec.md).
 
 ---
 

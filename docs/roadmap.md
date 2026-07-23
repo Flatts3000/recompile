@@ -280,7 +280,7 @@ Discovered as you climb tiers; leans on curation + sibling mods.
 - Reclamation chain: grass -> crops -> trees, one machine per rung (soil spreader -> vegetation
   seeder -> nursery -> animals); nothing renews on its own; the payout is the returning overworld, so
   healed land is a second economy (P2.4 as revised by **P2.4-R**). **Rung 1 (the soil spreader) and
-  the shared multiblock framework are specced** in [`soil_spreader_spec.md`](soil_spreader_spec.md)
+  the shared multiblock framework are specced** in [`grass_spreader_spec.md`](grass_spreader_spec.md)
   and [`multiblock_system_spec.md`](multiblock_system_spec.md) - the machines are IE-style
   multiblocks and the spreader **consumes nothing** (its cost is the one-time build; P1.7-R's erosion
   is the ongoing pressure). Design background + rungs 2-4: [`reclamation_handoff.md`](reclamation_handoff.md).

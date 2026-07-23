@@ -9,7 +9,7 @@ dedicated specs.
 > - **Encroachment shipped** (Phase 2.10, `RCEncroachment`) - the frontier the machines build against.
 > - **The sapling lockout shipped** (P2.4-R2) - saplings are unobtainable, so the tree planter is the
 >   only source of trees.
-> - **Rung 1 and the multiblock framework are specced** in [`soil_spreader_spec.md`](soil_spreader_spec.md)
+> - **Rung 1 and the multiblock framework are specced** in [`grass_spreader_spec.md`](grass_spreader_spec.md)
 >   and [`multiblock_system_spec.md`](multiblock_system_spec.md), which are now the resume point for
 >   implementation. Two decisions there override the "What to build" section below: **the machines are
 >   multiblocks**, and **the soil spreader consumes nothing** (the running cost moved into the recipe
