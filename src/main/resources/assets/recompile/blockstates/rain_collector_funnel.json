@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "recompile:block/rain_collector_tarp" }
+  }
+}

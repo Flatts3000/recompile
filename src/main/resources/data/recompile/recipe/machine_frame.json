@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RPR",
+    "P P",
+    "RPR"
+  ],
+  "key": {
+    "P": "recompile:scrap_plating",
+    "R": "recompile:rebar"
+  },
+  "result": {
+    "id": "recompile:machine_frame",
+    "count": 2
+  }
+}

@@ -1,7 +1,7 @@
 package com.flatts.recompile.gametest;
 
-import com.flatts.recompile.content.block.RainCollectorBlock;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
+import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCItems;
@@ -12,42 +12,114 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
-/** GameTests for the Rain Collector (design P1.10): the two-cell structure and the water tank. */
+/**
+ * GameTests for the Rain Collector (design P1.10), now a two-cell multiblock: a core that holds the
+ * tank plus a Machine Frame that forms into the tarp funnel.
+ *
+ * <p>Two groups here. The <b>structure</b> tests cover the multiblock framework itself - forming,
+ * refusing to form, and disbanding without duping or eating items - and are the first proof of it,
+ * so the grass spreader inherits tested machinery. The <b>tank</b> tests are the P1.10 behaviour
+ * carried over unchanged; they exist to prove the restructure did not regress the water.
+ */
 final class RainCollectorTests {
+
+    /** The core sits here; the frame/funnel cell is directly above. */
+    private static final BlockPos CORE = new BlockPos(1, 1, 1);
 
     private RainCollectorTests() {
     }
 
-    static void register() {
-        // Two cells like a door; breaking one takes the other with it (updateShape, not a hook).
-        RCGameTests.test("rain_collector_places_and_breaks_as_two_halves", 20, helper -> {
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
-                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.LOWER));
-            helper.setBlock(lower.above(), RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
-                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.UPPER));
-            helper.assertBlockPresent(RCBlocks.RAIN_COLLECTOR.get(), lower);
-            helper.assertBlockPresent(RCBlocks.RAIN_COLLECTOR.get(), lower.above());
+    /** Build a formed collector the way the game does: core, frame on top, form. */
+    private static void formCollector(net.minecraft.gametest.framework.GameTestHelper helper) {
+        helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());
+        helper.setBlock(CORE.above(), RCBlocks.MACHINE_FRAME.get());
+        MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(CORE));
+    }
 
-            helper.setBlock(lower, Blocks.AIR);
-            helper.assertBlockPresent(Blocks.AIR, lower.above());
+    static void register() {
+        registerStructure();
+        registerTank();
+    }
+
+    // ---------------- the multiblock framework ----------------
+
+    private static void registerStructure() {
+        // A core alone is inert. If this ever auto-formed, the frame would stop being a real cost.
+        RCGameTests.test("rain_collector_core_alone_is_unformed", 20, helper -> {
+            helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());
+
+            helper.assertTrue(!MultiblockCoreBlock.isFormed(helper.getBlockState(CORE)),
+                "a core with nothing on top must be unformed");
+            helper.assertBlockPresent(Blocks.AIR, CORE.above());
             helper.succeed();
         });
 
+        // Stacking the component by hand forms the machine, and the frame becomes the funnel -
+        // the "loose parts in, machine out" beat the whole system exists for.
+        RCGameTests.test("rain_collector_frame_on_top_forms_it", 20, helper -> {
+            formCollector(helper);
+
+            helper.assertTrue(MultiblockCoreBlock.isFormed(helper.getBlockState(CORE)),
+                "a core with a frame above must form");
+            helper.assertBlockPresent(RCBlocks.RAIN_COLLECTOR_FUNNEL.get(), CORE.above());
+            helper.succeed();
+        });
+
+        // The blueprint is an allowlist: a wrong block above is not a substitute for the frame.
+        RCGameTests.test("rain_collector_wrong_block_does_not_form", 20, helper -> {
+            helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());
+            helper.setBlock(CORE.above(), RCBlocks.PRESSED_JUNK_BLOCK.get());
+            MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(CORE));
+
+            helper.assertTrue(!MultiblockCoreBlock.isFormed(helper.getBlockState(CORE)),
+                "only the blueprint's component may form the machine");
+            helper.succeed();
+        });
+
+        // Breaking the core takes the funnel with it and returns exactly one of each part.
+        // Duping or eating a component here would be invisible in play until someone counted.
+        RCGameTests.test("rain_collector_breaking_core_disbands_once", 40, helper -> {
+            formCollector(helper);
+            helper.getLevel().destroyBlock(helper.absolutePos(CORE), true);
+
+            helper.assertBlockPresent(Blocks.AIR, CORE);
+            helper.assertBlockPresent(Blocks.AIR, CORE.above());
+            helper.succeedWhen(() -> {
+                helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR.get(), CORE, 3.0, 1);
+                helper.assertItemEntityCountIs(RCItems.MACHINE_FRAME.get(), CORE, 3.0, 1);
+            });
+        });
+
+        // ...and the same from the other end. This is the case that recurses if the two removal
+        // handlers ever call destroyBlock on each other instead of dropResources + setBlock.
+        RCGameTests.test("rain_collector_breaking_funnel_disbands_once", 40, helper -> {
+            formCollector(helper);
+            helper.getLevel().destroyBlock(helper.absolutePos(CORE.above()), true);
+
+            helper.assertBlockPresent(Blocks.AIR, CORE);
+            helper.assertBlockPresent(Blocks.AIR, CORE.above());
+            helper.succeedWhen(() -> {
+                helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR.get(), CORE, 3.0, 1);
+                helper.assertItemEntityCountIs(RCItems.MACHINE_FRAME.get(), CORE, 3.0, 1);
+            });
+        });
+    }
+
+    // ---------------- the tank (P1.10 behaviour, must not regress) ----------------
+
+    private static void registerTank() {
         // The tank fills from rain, and a glass bottle draws a water bottle - the whole point.
         // Rain is driven directly (catchRain) since a GameTest can't summon weather.
         RCGameTests.test("rain_collector_catches_rain_then_fills_a_bottle", 40, helper -> {
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get());  // default LOWER - holds the tank
-            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+            formCollector(helper);
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE))
                     instanceof RainCollectorBlockEntity be)) {
-                helper.fail("rain collector base has no BlockEntity");
+                helper.fail("rain collector core has no BlockEntity");
                 return;
             }
             be.catchRain();
@@ -57,43 +129,26 @@ final class RainCollectorTests {
                 "rain should accumulate water, got " + be.storedWater() + " mB");
 
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            Vec3 standing = helper.absoluteVec(lower.above().above().getCenter());
+            Vec3 standing = helper.absoluteVec(CORE.above().above().getCenter());
             player.snapTo(standing.x, standing.y, standing.z);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.GLASS_BOTTLE));
 
             int before = be.storedWater();
-            helper.useBlock(lower, player);
+            helper.useBlock(CORE, player);
 
             helper.assertTrue(hasItem(player, Items.POTION),
                 "a glass bottle at a filled collector must yield a water bottle");
             helper.assertTrue(be.storedWater() == before - 250,
-                "filling a bottle must drain 250 mB, was " + before + " now " + be.storedWater());
+                "filling a bottle must drain 250 mB");
             helper.succeed();
-        });
-
-        // Breaking a collector must return exactly one item, from either half - the loot is
-        // gated to part=lower, and breaking either half rolls loot twice (the broken half plus
-        // the orphan updateShape destroys), so the gate is the only thing filtering to one.
-        RCGameTests.test("rain_collector_broken_drops_one", 40, helper -> {
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
-                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.LOWER));
-            helper.setBlock(lower.above(), RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
-                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.UPPER));
-            helper.getLevel().destroyBlock(helper.absolutePos(lower), true);
-            helper.assertBlockPresent(Blocks.AIR, lower);
-            helper.assertBlockPresent(Blocks.AIR, lower.above());
-            helper.succeedWhen(() ->
-                helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR.get(), lower, 3.0, 1));
         });
 
         // Water-only: a pipe (or anything) pushing a non-water fluid must be rejected by the tank.
         RCGameTests.test("rain_collector_rejects_non_water", 20, helper -> {
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get());
-            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+            helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE))
                     instanceof RainCollectorBlockEntity be)) {
-                helper.fail("rain collector base has no BlockEntity");
+                helper.fail("rain collector core has no BlockEntity");
                 return;
             }
             try (Transaction transaction = Transaction.openRoot()) {
@@ -105,41 +160,56 @@ final class RainCollectorTests {
             helper.succeed();
         });
 
-        // The whole point: it must actually collect rain. Turn on the weather, place it under
-        // open sky, tick, and assert the tank rises - the regression guard for the bug where
-        // it relied on the far-too-rare handlePrecipitation instead of a ticker.
+        // It must actually collect rain - the regression guard for the bug where it relied on the
+        // far-too-rare handlePrecipitation instead of a ticker. Now also proves the ticker runs
+        // when FORMED, since that is what gates it.
         RCGameTests.test("rain_collector_fills_while_raining", 140, helper -> {
             net.minecraft.world.level.saveddata.WeatherData weather = helper.getLevel().getWeatherData();
             weather.setRaining(true);   // isRaining() reads a level that ramps up over ~20 ticks
             weather.setRainTime(100000);
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
-                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.LOWER));
-            helper.setBlock(lower.above(), RCBlocks.RAIN_COLLECTOR.get().defaultBlockState()
-                .setValue(RainCollectorBlock.HALF, DoubleBlockHalf.UPPER));
-            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+            formCollector(helper);
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE))
                     instanceof RainCollectorBlockEntity be)) {
-                helper.fail("rain collector base has no BlockEntity");
+                helper.fail("rain collector core has no BlockEntity");
                 return;
             }
             helper.assertTrue(be.storedWater() == 0, "a fresh collector starts empty");
             helper.runAfterDelay(60, () -> {
                 helper.assertTrue(be.storedWater() > 0,
-                    "a collector under open sky must fill while raining, got " + be.storedWater() + " mB");
+                    "a formed collector under open sky must fill while raining, got "
+                        + be.storedWater() + " mB");
+                helper.succeed();
+            });
+        });
+
+        // The funnel is what catches the rain, so an unformed core must collect nothing. Without
+        // this the unformed state would be purely cosmetic and the frame would be optional.
+        RCGameTests.test("rain_collector_unformed_collects_nothing", 100, helper -> {
+            net.minecraft.world.level.saveddata.WeatherData weather = helper.getLevel().getWeatherData();
+            weather.setRaining(true);
+            weather.setRainTime(100000);
+            helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());   // no frame: unformed
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE))
+                    instanceof RainCollectorBlockEntity be)) {
+                helper.fail("rain collector core has no BlockEntity");
+                return;
+            }
+            helper.runAfterDelay(60, () -> {
+                helper.assertTrue(be.storedWater() == 0,
+                    "an unformed collector must not catch rain, got " + be.storedWater() + " mB");
                 helper.succeed();
             });
         });
 
         // A dry collector refuses: no water bottle, and the glass bottle is not eaten.
         RCGameTests.test("rain_collector_dry_refuses_a_bottle", 20, helper -> {
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get());
+            formCollector(helper);
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            Vec3 standing = helper.absoluteVec(lower.above().above().getCenter());
+            Vec3 standing = helper.absoluteVec(CORE.above().above().getCenter());
             player.snapTo(standing.x, standing.y, standing.z);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.GLASS_BOTTLE));
 
-            helper.useBlock(lower, player);
+            helper.useBlock(CORE, player);
 
             helper.assertFalse(hasItem(player, Items.POTION),
                 "a dry collector must not produce a water bottle");
@@ -152,12 +222,11 @@ final class RainCollectorTests {
         // reach (they never serialize). A wrong child()/serialize pairing would silently drop
         // the water on world reload.
         RCGameTests.test("rain_collector_tank_survives_reload", 20, helper -> {
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get());
+            helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());
             var registries = helper.getLevel().registryAccess();
-            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE))
                     instanceof RainCollectorBlockEntity be)) {
-                helper.fail("rain collector base has no BlockEntity");
+                helper.fail("rain collector core has no BlockEntity");
                 return;
             }
             be.catchRain();
@@ -181,11 +250,10 @@ final class RainCollectorTests {
         // carries the water (the rain_water component the loot table copies off the BlockEntity),
         // and a freshly placed collector refills from it. Reproduces the "loses the water" bug.
         RCGameTests.test("rain_collector_water_survives_break_replace", 20, helper -> {
-            BlockPos lower = new BlockPos(1, 1, 1);
-            helper.setBlock(lower, RCBlocks.RAIN_COLLECTOR.get());
-            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(lower))
+            helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE))
                     instanceof RainCollectorBlockEntity be)) {
-                helper.fail("rain collector base has no BlockEntity");
+                helper.fail("rain collector core has no BlockEntity");
                 return;
             }
             be.catchRain();

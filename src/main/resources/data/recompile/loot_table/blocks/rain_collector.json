@@ -3,14 +3,7 @@
   "pools": [
     {
       "rolls": 1,
-      "conditions": [
-        { "condition": "minecraft:survives_explosion" },
-        {
-          "condition": "minecraft:block_state_property",
-          "block": "recompile:rain_collector",
-          "properties": { "half": "lower" }
-        }
-      ],
+      "conditions": [ { "condition": "minecraft:survives_explosion" } ],
       "entries": [
         {
           "type": "minecraft:item",

@@ -1,6 +1,6 @@
 {
   "variants": {
-    "half=lower": { "model": "recompile:block/rain_collector_base" },
-    "half=upper": { "model": "recompile:block/rain_collector_tarp" }
+    "formed=false": { "model": "recompile:block/rain_collector_base" },
+    "formed=true": { "model": "recompile:block/rain_collector_base" }
   }
 }

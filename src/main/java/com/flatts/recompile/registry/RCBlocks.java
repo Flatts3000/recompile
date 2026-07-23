@@ -7,7 +7,8 @@ import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
-import com.flatts.recompile.content.block.RainCollectorBlock;
+import com.flatts.recompile.content.block.RainCollectorCoreBlock;
+import com.flatts.recompile.content.block.RainCollectorFunnelBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBarrelBlock;
 import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
@@ -182,17 +183,47 @@ public final class RCBlocks {
     );
 
     /**
-     * Rain Collector (P1.10): a scrap frame + tarp that fills a water tank from rain - the
-     * only water source in a world with none. Two cells (base + tarp); the base holds the
-     * BlockEntity. {@code noOcclusion} because the tarp half is not a full cube.
+     * Rain Collector (P1.10): a caged IBC tote that holds the water tank - the only water source in
+     * a world with none. This is the <b>core</b> of a two-cell multiblock: place it, add a Machine
+     * Frame on top, and the frame becomes the tarp funnel that catches the rain. Holds the
+     * BlockEntity; {@code noOcclusion} because the cage is not a solid cube.
      */
-    public static final DeferredBlock<RainCollectorBlock> RAIN_COLLECTOR = BLOCKS.registerBlock(
+    public static final DeferredBlock<RainCollectorCoreBlock> RAIN_COLLECTOR = BLOCKS.registerBlock(
         "rain_collector",
-        RainCollectorBlock::new,
+        RainCollectorCoreBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(1.2F)
             .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /**
+     * Machine Frame: the shared structural component every multiblock machine is completed with.
+     * Loose it is a welded scrap scaffold; inside a formed machine it becomes that machine's own
+     * part (in the Rain Collector, the tarp funnel). Cheap on purpose - it is the bulk piece.
+     */
+    public static final DeferredBlock<Block> MACHINE_FRAME = BLOCKS.registerBlock(
+        "machine_frame",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.2F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /**
+     * The Rain Collector's tarp funnel - the formed machine's upper cell. A dummy: no item, never
+     * crafted, exists only inside an assembled collector, and breaking it takes the machine down.
+     */
+    public static final DeferredBlock<RainCollectorFunnelBlock> RAIN_COLLECTOR_FUNNEL = BLOCKS.registerBlock(
+        "rain_collector_funnel",
+        RainCollectorFunnelBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLUE)
+            .strength(1.2F)
+            .sound(SoundType.WOOL)
             .noOcclusion()
     );
 
