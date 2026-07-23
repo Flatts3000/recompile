@@ -1,11 +1,23 @@
 # Reclamation - implementation handoff
 
-**Written 2026-07-23.** Resume point for the reclamation chain (design P2.4 as revised by
-P2.4-R). Read this before touching terraforming code; it carries decisions made in a design
-session that are not yet reflected anywhere in this repo.
+**Written 2026-07-23.** The design-session record that opened the reclamation chain. Read it for the
+*why* (the P2.4 -> P2.4-R economy shift); for what to build, the detail has since moved into
+dedicated specs.
+
+> **Superseded in part, same day.** After this was written, three things happened and this doc no
+> longer leads:
+> - **Encroachment shipped** (Phase 2.10, `RCEncroachment`) - the frontier the machines build against.
+> - **The sapling lockout shipped** (P2.4-R2) - saplings are unobtainable, so the tree planter is the
+>   only source of trees.
+> - **Rung 1 and the multiblock framework are specced** in [`soil_spreader_spec.md`](soil_spreader_spec.md)
+>   and [`multiblock_system_spec.md`](multiblock_system_spec.md), which are now the resume point for
+>   implementation. Two decisions there override the "What to build" section below: **the machines are
+>   multiblocks**, and **the soil spreader consumes nothing** (the running cost moved into the recipe
+>   and P1.7-R supplies the ongoing pressure). Where this doc and those specs disagree, the specs win.
 
 Design source of truth stays in the pack repo: `../trashlands/docs/design_decisions.md`
-(**P2.4** for the original chain, **P2.4-R** for the 2026-07-23 revision).
+(**P2.4** original chain, **P2.4-R** economy revision, **P1.7-R** encroachment, **P2.4-R2** sapling
+lockout; **P2.4-R3** for the spreader/multiblock decisions is still owed - see the specs).
 
 ---
 
@@ -32,14 +44,18 @@ Two consequences that matter for implementation:
 
 ## What to build
 
-Four machines, one per rung, in this order. Each consumes compost + clean water (+ power at
-tier) per P2.4 item 1, so healing stays a recipe rather than a right-click.
+Four machines, one per rung, in this order.
+
+> **Running-cost model superseded (see the banner above).** This section originally had each machine
+> *consume compost + clean water*. Rung 1 as specced consumes **nothing** - the cost is the one-time
+> multiblock build, and P1.7-R's erosion is the ongoing pressure. Rungs 2-4 are not yet specced;
+> whether they consume anything is open, but the spreader's precedent is "no running cost."
 
 | Rung | Machine | Converts | Requires in range |
 |---|---|---|---|
-| 1 | Soil spreader | coarse dirt -> dirt -> grass, over a radius | nothing |
+| 1 | Soil spreader | coarse dirt **straight to grass** (never via plain dirt), over a radius | nothing |
 | 2 | Vegetation seeder | tall grass + flowers onto healed grass | rung 1 terrain |
-| 3 | Nursery | saplings and trees onto vegetated land | rung 2 terrain |
+| 3 | Nursery / tree planter | saplings and trees onto vegetated land | rung 2 terrain |
 | 4 | Animal rung (**mechanism undecided**) | brings livestock to qualifying land | rung 3 terrain |
 
 **Rungs are also a defence, not only a yield ladder (added 2026-07-23 by P1.7-R).** The junkyard

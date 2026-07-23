@@ -258,6 +258,26 @@ components on the `empty_5x5x5` plot (may need a larger structure):
    Same open question the spreader already carries.
 4. **Naming** - "Machine Frame", "Motor Block", "core" are working names.
 
+## Before implementing: study both jars
+
+Directive (Jason, 2026-07-23): when this gets built, **read both the IE and Powah jars first** for
+placement, validation, and the user-facing guide/preview - do not implement from this spec alone.
+Both are available locally (1.21.1, so 26.1 API deltas apply - port the pattern, not the code; and
+neither license is cleared for source reuse):
+
+- **IE** `ImmersiveEngineering-1.21.1-12.4.2-194.jar` - `blockimpl/MultiblockBEHelperMaster` +
+  `...Dummy` (master/dummy split), `IETemplateMultiblock` / `TemplateMultiblock` (validation against
+  a `StructureTemplate`), `ManualElementMultiblock` (the exploded structure preview in its manual),
+  `IEMultiblockRenderer`. This is the placement/validation/formation reference.
+- **Powah** `Powah-6.2.10.jar` - the reactor's in-place formation and its guide/JEI preview. Compare
+  how it communicates "what to build" to the player against IE's manual element, and take whichever
+  reads cleaner for a first-time builder.
+
+Specifically compare, before locking the implementation: how each **validates** and reports *which
+cell is wrong*, how each drives its **preview/guide** off the structure definition, and whether the
+**auto-assemble-from-inventory** flow this spec wants has a precedent in either (IE's Placers
+integration is close). Fold anything better than this spec back into it.
+
 ## Cost of building this
 
 - **Framework Java:** `Multiblock`, `MultiblockCoreBlock`, `MultiblockDummyBlock`, validation,

@@ -189,10 +189,10 @@ Targets the **whole dirt family, not just grass** (`#minecraft:substrate_overwor
 spreader that leaves bare dirt at the frontier gets no free pass. Two carve-outs: **coarse dirt**
 (the revert target) and **mycelium** (the dump-mushroom substrate - the P1.9 forage economy).
 **Wet farmland holds, dry farmland is taken** - irrigation defends a plot, so P1.10 water becomes a
-reclamation defence and not only an input. Five
-block tags plus a biome tag are the whole tuning surface, each built from other tags so modded
-dirt variants are covered without a mod release; the mod is inert outside the garbage biomes.
-Deliberately **untuned** - the rates join the pre-beta balance pass.
+reclamation defence and not only an input. Five block tags plus a biome tag are the whole tuning
+surface, each built from other tags so modded dirt variants are covered without a mod release; the
+mod is inert outside the garbage biomes. Deliberately **untuned** - the rates join the pre-beta
+balance pass.
 
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 
@@ -247,17 +247,19 @@ mound beds; acceptable pre-beta.
 Discovered as you climb tiers; leans on curation + sibling mods.
 - Tier-2 processing (P2.2): the **Burn Barrel shipped early as Phase 2.9**; the
   excavated-and-repaired furnace (its second rung) is what remains here. Purity-as-yield, no energy.
-- Reclamation chain: compost + clean water + seed -> grass -> crops -> trees. One machine per rung
-  (soil spreader -> vegetation seeder -> nursery -> animals); nothing renews on its own; the payout
-  is the returning overworld, so healed land is a second economy (P2.4 as revised by **P2.4-R**).
-  Resume point + open questions: [`reclamation_handoff.md`](reclamation_handoff.md).
-  **The nursery / tree planter is now the only source of trees in the game** (P2.4-R2, shipped):
-  saplings are stripped from all loot, so they exist only already-planted and only where the planter
-  puts them. Two consequences: a "tree farm" means a planter running on compost + clean water rather
-  than hand-replanting, which keeps wood metered by machine instead of by item scarcity; and **until
-  the planter ships, P1.7-R's rung-3 anchor is unreachable**, so the encroachment frontier currently
-  has no permanent stop. Correct for now (the world has no trees), but it is why the planter is the
-  load-bearing rung rather than the last one.
+- Reclamation chain: grass -> crops -> trees, one machine per rung (soil spreader -> vegetation
+  seeder -> nursery -> animals); nothing renews on its own; the payout is the returning overworld, so
+  healed land is a second economy (P2.4 as revised by **P2.4-R**). **Rung 1 (the soil spreader) and
+  the shared multiblock framework are specced** in [`soil_spreader_spec.md`](soil_spreader_spec.md)
+  and [`multiblock_system_spec.md`](multiblock_system_spec.md) - the machines are IE-style
+  multiblocks and the spreader **consumes nothing** (its cost is the one-time build; P1.7-R's erosion
+  is the ongoing pressure). Design background + rungs 2-4: [`reclamation_handoff.md`](reclamation_handoff.md).
+  **The nursery / tree planter is the only source of trees in the game** (P2.4-R2, shipped): saplings
+  are stripped from all loot, so they exist only already-planted and only where the planter puts them.
+  A "tree farm" is therefore a running planter, not hand-replanting; and **until the planter ships,
+  P1.7-R's rung-3 anchor is unreachable**, so the encroachment frontier currently has no permanent
+  stop. Correct for now (the world has no trees), but it makes the planter the load-bearing rung
+  rather than the last one.
 - E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6).
 - Tier-3 logistics seam: "Recompile converts, Create moves"; never *require* Create (P2.3).
 - Hazmat gating via Mekanism radiation + suit; Recompile ships biome/blocks/caches only (P2.5).
