@@ -62,7 +62,7 @@ public class RainCollectorCoreBlock extends MultiblockCoreBlock implements Entit
     }
 
     @Override
-    public Multiblock blueprint() {
+    protected Multiblock createBlueprint() {
         return Multiblock.stackedOn(RCBlocks.MACHINE_FRAME.get(), RCBlocks.RAIN_COLLECTOR_FUNNEL.get());
     }
 
