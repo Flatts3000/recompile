@@ -49,6 +49,14 @@ CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent j
 
 `household_sprawl` has **all spawner lists empty by design** - the starting biome is creature-free, which is why food comes from tin cans and foraged mushrooms rather than mobs.
 
+**Encroachment: the junkyard fights back, and it needs no saved state** (`RCEncroachment`, design P1.7-R). Healed grass bordering unhealed ground reverts to coarse dirt; the reclamation ladder is the defence (bare grass reverts, cover is stripped *instead*, logs/leaves make it permanent). Three facts make the whole system cheap and are worth keeping in mind:
+
+- **Coarse dirt is the universal world surface** (the `noise_settings` surface rule), so every healed patch is by definition ringed by unhealed ground. The frontier test is a local neighbour check - no mound memory, no `SavedData`, no region tracking.
+- **That same fact is why nothing renews on its own:** vanilla grass cannot spread onto coarse dirt. **So the rung-1 soil spreader must convert coarse dirt *straight* to grass** - leave plain dirt as an intermediate and vanilla spread quietly finishes the job for free, breaking P2.4-R item 3.
+- The sweep samples **around players**, not loaded chunks, so an unattended base cannot rot while its owner is away. The mod has **no mixins**, so vanilla `grass_block` behaviour is not injected; the sweep is the mechanism.
+
+Only the *green* is contested. Encroachment reverts to **plain** coarse dirt, never to the Phase 5 mound bed, so mound retirement stays permanent. Tuning is four tags (`hostile_ground`, `frontier_anchor`, `frontier_cover`, biome `encroaches`) plus the `reclamation` config block - the mechanic is inert outside the garbage biomes. `encroachOnce` is the static test entry point; the sweep owns targeting (config gate, biome, heightmap), which is why the GameTests can run it on a plain plot.
+
 **The data spine.** `TeardownRecipe` registers the public `recompile:teardown` recipe type - JSON in `data/<ns>/recipe/`, with `results` (deterministic core), `extras` (weighted bonus), and `teaches` (recipes to study). It was registered from day one so the Phase 3 knowledge system is never retrofitted into a live schema. **Packs and addons extend the teardown tree through this schema without a mod release - treat it as public API.**
 
 **Config.** `RCConfig` (COMMON). The governing principle is "everything ships config-gated, but defaults are the design" - config is for tuning, not for dodging a decision. `RCDimensionLockout` blocks Nether/End travel (and portal formation) until each themed dimension ships, keeping vanilla dimensions from leaking free resources into the closed trash economy.

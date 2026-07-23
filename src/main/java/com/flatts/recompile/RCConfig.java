@@ -26,6 +26,17 @@ public final class RCConfig {
     public static final ModConfigSpec.BooleanValue NETHER_ENABLED;
     public static final ModConfigSpec.BooleanValue END_ENABLED;
 
+    /**
+     * Encroachment (P1.7-R): the junkyard fights back. Healed grass that borders unhealed
+     * ground reverts to coarse dirt unless the reclamation ladder has stabilised it. The
+     * defaults are the design; these exist so a pack can slow the fight down, not skip it.
+     */
+    public static final ModConfigSpec.BooleanValue ENCROACHMENT_ENABLED;
+    public static final ModConfigSpec.IntValue ENCROACHMENT_INTERVAL_TICKS;
+    public static final ModConfigSpec.IntValue ENCROACHMENT_ATTEMPTS_PER_PLAYER;
+    public static final ModConfigSpec.IntValue ENCROACHMENT_RADIUS;
+    public static final ModConfigSpec.IntValue TREE_ANCHOR_RADIUS;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -42,6 +53,24 @@ public final class RCConfig {
         END_ENABLED = builder
             .comment("Allow travel to the End. Off until the themed End ships (P1.8).")
             .define("endEnabled", false);
+        builder.pop();
+
+        builder.push("reclamation");
+        ENCROACHMENT_ENABLED = builder
+            .comment("Whether unhealed ground reclaims bordering healed grass (P1.7-R).")
+            .define("encroachmentEnabled", true);
+        ENCROACHMENT_INTERVAL_TICKS = builder
+            .comment("Ticks between encroachment sweeps. Higher is slower.")
+            .defineInRange("encroachmentIntervalTicks", 20, 1, 24000);
+        ENCROACHMENT_ATTEMPTS_PER_PLAYER = builder
+            .comment("Columns sampled per player per sweep. Most land on bare ground and do nothing.")
+            .defineInRange("encroachmentAttemptsPerPlayer", 8, 0, 256);
+        ENCROACHMENT_RADIUS = builder
+            .comment("Horizontal radius around each player that the sweep samples, in blocks.")
+            .defineInRange("encroachmentRadius", 48, 1, 128);
+        TREE_ANCHOR_RADIUS = builder
+            .comment("How far a log or leaf block holds the frontier permanently, in blocks.")
+            .defineInRange("treeAnchorRadius", 4, 1, 16);
         builder.pop();
 
         SPEC = builder.build();

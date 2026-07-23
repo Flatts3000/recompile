@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:coarse_dirt",
+    "recompile:garbage_block",
+    "recompile:trash_bag",
+    "recompile:compacted_bale",
+    "recompile:bulky_waste"
+  ]
+}
