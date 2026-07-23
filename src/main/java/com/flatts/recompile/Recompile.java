@@ -7,6 +7,7 @@ import com.flatts.recompile.registry.RCCreativeTabs;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCItems;
+import com.flatts.recompile.registry.RCLootModifiers;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -44,6 +45,10 @@ public final class Recompile {
         // The public data spine (P0.5). Registered from day one so the knowledge
         // axis (P1.4) is never retrofitted into a live schema.
         RCRecipeTypes.register(modEventBus);
+
+        // Sapling lockout (P2.4-R2): saplings only ever exist planted, placed by the tree
+        // planter, so no found sapling can shortcut the reclamation ladder.
+        RCLootModifiers.register(modEventBus);
 
         // In-world GameTests (CI gameTest job runs these).
         RCGameTests.register(modEventBus);

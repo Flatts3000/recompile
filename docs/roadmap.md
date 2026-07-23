@@ -251,6 +251,13 @@ Discovered as you climb tiers; leans on curation + sibling mods.
   (soil spreader -> vegetation seeder -> nursery -> animals); nothing renews on its own; the payout
   is the returning overworld, so healed land is a second economy (P2.4 as revised by **P2.4-R**).
   Resume point + open questions: [`reclamation_handoff.md`](reclamation_handoff.md).
+  **The nursery / tree planter is now the only source of trees in the game** (P2.4-R2, shipped):
+  saplings are stripped from all loot, so they exist only already-planted and only where the planter
+  puts them. Two consequences: a "tree farm" means a planter running on compost + clean water rather
+  than hand-replanting, which keeps wood metered by machine instead of by item scarcity; and **until
+  the planter ships, P1.7-R's rung-3 anchor is unreachable**, so the encroachment frontier currently
+  has no permanent stop. Correct for now (the world has no trees), but it is why the planter is the
+  load-bearing rung rather than the last one.
 - E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6).
 - Tier-3 logistics seam: "Recompile converts, Create moves"; never *require* Create (P2.3).
 - Hazmat gating via Mekanism radiation + suit; Recompile ships biome/blocks/caches only (P2.5).
