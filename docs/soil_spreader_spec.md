@@ -3,6 +3,14 @@
 **Written 2026-07-23.** Rung 1 of the reclamation chain (design P2.4-R). Spec only - nothing here
 is built yet.
 
+> **Superseded in part (2026-07-23, same day):** the reclamation machines are **multiblocks**, per
+> `multiblock_system_spec.md`. The "Recipe and the two new components" section below - where the
+> spreader was one crafted block *consuming* a rain collector, panel and motor - is replaced by that
+> spec: the components become **placed blocks** in a structure built around a Soil Spreader Core, and
+> the core runs the spread tick only while the structure is `FORMED`. Everything else in this doc
+> (behaviour, nearest-first, eligibility, the `mound_bed` interaction, tests) stands unchanged - the
+> multiblock layer decides only *whether* the spreader runs, not *what* it does.
+
 Design source of truth stays in the pack repo: `../trashlands/docs/design_decisions.md`
 (**P2.4** original chain, **P2.4-R** the economy revision, **P1.7-R** encroachment). The decisions
 this spec makes are **not yet recorded there** - see "Design record still owed" at the end.
