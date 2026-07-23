@@ -49,6 +49,18 @@ CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent j
 
 `household_sprawl` has **all spawner lists empty by design** - the starting biome is creature-free, which is why food comes from tin cans and foraged mushrooms rather than mobs.
 
+**Encroachment: the junkyard fights back, and it needs no saved state** (`RCEncroachment`, design P1.7-R). Healed grass bordering unhealed ground reverts to coarse dirt; the reclamation ladder is the defence (bare grass reverts, cover is stripped *instead*, logs/leaves make it permanent). Three facts make the whole system cheap and are worth keeping in mind:
+
+- **Coarse dirt is the universal world surface** (the `noise_settings` surface rule), so every healed patch is by definition ringed by unhealed ground. The frontier test is a local neighbour check - no mound memory, no `SavedData`, no region tracking.
+- **That same fact is why nothing renews on its own:** vanilla grass cannot spread onto coarse dirt. **So the rung-1 soil spreader must convert coarse dirt *straight* to grass** - leave plain dirt as an intermediate and vanilla spread quietly finishes the job for free, breaking P2.4-R item 3.
+- The sweep samples **around players**, not loaded chunks, so an unattended base cannot rot while its owner is away. The mod has **no mixins**, so vanilla `grass_block` behaviour is not injected; the sweep is the mechanism.
+
+Only the *green* is contested. Encroachment reverts to **plain** coarse dirt, never to the Phase 5 mound bed, so mound retirement stays permanent.
+
+**Targeting is an allowlist tag minus a denylist tag, and both are built from other tags** so chisel-style mods that add dirt variants are covered without a mod release. `encroachable` is `#minecraft:substrate_overworld` plus farmland; `encroachment_immune` carves back out **coarse dirt** (the revert target - otherwise the sweep churns bare ground forever) and **mycelium** (the substrate `MyceliumPatchFeature` places and dump mushrooms grow on, so eating it would erode the P1.9 forage economy). Tags can union but not subtract, which is why the second tag exists rather than a shorter first one.
+
+**One rule is blockstate, not block, so no tag can express it:** *wet farmland holds, dry farmland is taken.* Irrigation defends a plot and an abandoned one dries out and goes back to the dump, which makes the P1.10 water economy a reclamation defence rather than only an input. Keyed on `BlockStateProperties.MOISTURE` rather than on `minecraft:farmland`, so modded farmland is covered without being named. It is the one place encroachment displaces player investment, and the severity is bounded: a crop on dry farmland comes off with the soil but vanilla's `updateOrDestroy` **drops** it, so you lose the plot and the growth, never the seed. Tuning is those two plus `hostile_ground`, `frontier_anchor`, `frontier_cover` and the biome tag `encroaches`, over the `reclamation` config block - the mechanic is inert outside the garbage biomes. `encroachOnce` is the static test entry point; the sweep owns targeting (config gate, biome, heightmap), which is why the GameTests can run it on a plain plot.
+
 **The data spine.** `TeardownRecipe` registers the public `recompile:teardown` recipe type - JSON in `data/<ns>/recipe/`, with `results` (deterministic core), `extras` (weighted bonus), and `teaches` (recipes to study). It was registered from day one so the Phase 3 knowledge system is never retrofitted into a live schema. **Packs and addons extend the teardown tree through this schema without a mod release - treat it as public API.**
 
 **Config.** `RCConfig` (COMMON). The governing principle is "everything ships config-gated, but defaults are the design" - config is for tuning, not for dodging a decision. `RCDimensionLockout` blocks Nether/End travel (and portal formation) until each themed dimension ships, keeping vanilla dimensions from leaking free resources into the closed trash economy.
@@ -87,6 +99,7 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - **Event buses are merged.** `@EventBusSubscriber` takes no `bus` parameter; `EventBusSubscriber.Bus` is gone.
 - `net.minecraft.resources.Identifier`, not `ResourceLocation`.
 - **Data directories are singular**: `loot_table/`, `recipe/`, `structure/`, `tags/block/`, `tags/item/`, `worldgen/configured_feature/`, `worldgen/placed_feature/`.
+- **`#minecraft:dirt` is only three blocks now** (dirt, coarse dirt, rooted dirt) - it does *not* contain grass, podzol, mud or moss, so 1.20-era guides that use it as "the dirt family" are wrong. The union that still means "overworld ground" is **`#minecraft:substrate_overworld`** (`#dirt + #mud + #moss_blocks + #grass_blocks`). This fails *silently* - a tag reference resolves fine and simply matches less than you expect, so it surfaces as a mechanic quietly not firing on most of its intended targets (see `RCTags.ENCROACHABLE`).
 - `pack.mcmeta` uses the `min_format`/`max_format` range form (both `84`), not scalar `pack_format`.
 - `Player.displayClientMessage` is gone - use `player.sendSystemMessage(Component)`. `Item.getName()` (no-arg) is gone - use `Component.translatable(item.getDescriptionId())`.
 - `MobEffects.SLOWNESS` / `SPEED` (renamed from `MOVEMENT_*`). `Properties.noCollision()` (one `s`; also clears occlusion).

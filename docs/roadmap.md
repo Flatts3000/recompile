@@ -165,6 +165,35 @@ gating; iron is the gated upgrade - see `../trashlands/docs/material_economy.md`
 Oily Rag + junk. JEI smelting station + a fuel-value item tooltip. The excavated-and-repaired
 vanilla furnace (P2.2's second rung) is still unbuilt.
 
+## Phase 2.10 - Encroachment, the junkyard fights back  *(DONE, design P1.7-R)* - pulled ahead of Phase 5
+
+Healed ground does not stay healed for free. Coarse earth takes back grass that **borders unhealed
+ground**; interior grass and anything built are never touched. The reclamation ladder is the answer:
+bare grass reverts, grass under cover loses the **cover** instead, and grass near logs or leaves is
+**permanent** - so permanence is earned at the top of the chain rather than granted at the bottom,
+and the first forest is what locks a border.
+
+**This reverses P1.6/P1.7's "healed land is permanent"** and is recorded as P1.7-R. What made the
+reversal safe is P2.4-R: healed land became a second economy, so retiring a mound no longer costs
+net income, which was the reason permanence had to be free.
+
+**Only the green is contested.** Encroachment reverts grass to *plain* coarse dirt, never to the
+mound bed below - so mound retirement (Phase 5) stays permanent and the P1.7 endgame thesis ("you
+no longer need the dump") is untouched.
+
+Needs **no saved state**: coarse dirt is the universal surface, so every healed patch is ringed by
+unhealed ground and the frontier test is a local neighbour check. Runs as a player-anchored sampling
+sweep (`RCEncroachment`), not a mixin - so an unattended base cannot rot while its owner is away.
+
+Targets the **whole dirt family, not just grass** (`#minecraft:substrate_overworld`), so a rung-1
+spreader that leaves bare dirt at the frontier gets no free pass. Two carve-outs: **coarse dirt**
+(the revert target) and **mycelium** (the dump-mushroom substrate - the P1.9 forage economy).
+**Wet farmland holds, dry farmland is taken** - irrigation defends a plot, so P1.10 water becomes a
+reclamation defence and not only an input. Five
+block tags plus a biome tag are the whole tuning surface, each built from other tags so modded
+dirt variants are covered without a mod release; the mod is inert outside the garbage biomes.
+Deliberately **untuned** - the rates join the pre-beta balance pass.
+
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 
 Tear a found item down at the **Recompile Workbench** into materials. This is the teardown exit
@@ -192,11 +221,24 @@ Teams sync de-risk spike belongs to that axis, not the shipped materials bench.
 household / scrapyard / e-waste; per-region garbage blocks (the drop table travels with the
 block). One region = one datapack bundle.
 
-## Phase 5 - Mound regrowth + healed-land immunity  *(design P1.6 / P1.7)*
+## Phase 5 - Mound regrowth  *(design P1.6 / P1.7-R)*
 
-"Wait, the mounds grew back." Original-bounds memory per mound; deorbit falling-block delivery
-(reuses P0.3 gravity); grass/built blocks retire a footprint forever. The quarry-vs-heal tension
-is the pack's engine.
+"Wait, the mounds grew back." Deorbit falling-block delivery (reuses P0.3 gravity). The
+quarry-vs-heal tension is the pack's engine.
+
+**Healed-land immunity already shipped, inverted, as Phase 2.10** - the surface is contested, not
+immune. What remains here is the mound layer, whose retirement *is* permanent.
+
+**Original-bounds memory is settled as blockstate, not `SavedData`:** `MoundFeature` writes a
+`recompile:mound_bed` under each footprint cell carrying that cell's original column height in an
+`IntegerProperty` (0-15, matching `MAX_HEIGHT`). Exact footprint and profile, no save file, no
+worldgen-thread concurrency - the same palette-flyweight idiom as `SortableBlock`'s `sorted`. Make
+it **visually distinct** (dark, saturated earth) so the player learns to read the ground: dark means
+this one comes back, which puts the quarry-vs-heal decision underfoot. Rung 1 converting mound bed
+to grass is what retires it forever.
+
+Blocked on the `mound_bed` texture (texgen + art approval). Pre-existing saved worlds will have no
+mound beds; acceptable pre-beta.
 
 ---
 
@@ -205,7 +247,10 @@ is the pack's engine.
 Discovered as you climb tiers; leans on curation + sibling mods.
 - Tier-2 processing (P2.2): the **Burn Barrel shipped early as Phase 2.9**; the
   excavated-and-repaired furnace (its second rung) is what remains here. Purity-as-yield, no energy.
-- Reclamation chain: compost + clean water + seed -> grass -> crops -> trees; yields only land (P2.4).
+- Reclamation chain: compost + clean water + seed -> grass -> crops -> trees. One machine per rung
+  (soil spreader -> vegetation seeder -> nursery -> animals); nothing renews on its own; the payout
+  is the returning overworld, so healed land is a second economy (P2.4 as revised by **P2.4-R**).
+  Resume point + open questions: [`reclamation_handoff.md`](reclamation_handoff.md).
 - E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6).
 - Tier-3 logistics seam: "Recompile converts, Create moves"; never *require* Create (P2.3).
 - Hazmat gating via Mekanism radiation + suit; Recompile ships biome/blocks/caches only (P2.5).

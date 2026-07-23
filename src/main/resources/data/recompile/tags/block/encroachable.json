@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:substrate_overworld",
+    "minecraft:farmland",
+    { "id": "#c:dirt", "required": false }
+  ]
+}
