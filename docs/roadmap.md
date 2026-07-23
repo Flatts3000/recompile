@@ -194,6 +194,36 @@ surface, each built from other tags so modded dirt variants are covered without 
 mod is inert outside the garbage biomes. Deliberately **untuned** - the rates join the pre-beta
 balance pass.
 
+## Phase 2.11 - The multiblock framework + the Rain Collector rebuilt  *(DONE)*
+
+The shared machine framework the reclamation chain (P2.4-R) and the Overworld Gate all need, built
+with the **Rain Collector** as its first consumer. Spec: [`multiblock_system_spec.md`](multiblock_system_spec.md).
+
+**Rain Collector = core + Machine Frame.** The core holds the tank; the frame becomes the tarp
+funnel that catches the rain. Placing the core always succeeds as an inert **unformed** block - if
+you are carrying a frame it is placed and consumed in the same action, otherwise stack one by hand.
+**Collection is gated on being formed**, so the unformed state means something and the funnel is
+visibly the part that does the work.
+
+Three types carry it: `Multiblock` (the blueprint - one source of truth for validation, the
+auto-assemble step and the tests), `MultiblockCoreBlock` (owns `FORMED`, revalidates on neighbour
+change, disbands on break), and `MultiblockDummyBlock` (IE's dummy - redirects use and break to the
+master so a formed machine is *one object*). **No BlockEntity for the structure**: `FORMED` is
+blockstate and cells are read from the world, so nothing serialises and nothing desyncs.
+
+**The formed look is bespoke** - the funnel is a per-machine dummy, not the shared frame restacked
+(vanilla hopper geometry, `hopper_inside` recoloured to tarp blue). The **Machine Frame** is the
+shared, craftable component every later machine reuses.
+
+P1.10 behaviour is intact (tank, fluid capability, bottle draw, water surviving break+replace). Art
+is deterministic recolours of vanilla + existing textures - **no hand-drawn art, and no wood**,
+since this world has no trees.
+
+**Migration:** the old `DoubleBlockHalf` rain collector is retired, so **rain collectors placed in
+existing saved worlds will not resolve and will vanish.** Accepted pre-beta.
+
+Deferred: the grass spreader (rung 1) and rungs 2-4, which reuse this framework.
+
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 
 Tear a found item down at the **Recompile Workbench** into materials. This is the teardown exit

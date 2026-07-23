@@ -1,7 +1,15 @@
 # Multiblock system - implementation spec
 
 **Written 2026-07-23.** The shared framework the reclamation machines (P2.4-R) and later the
-Overworld Gate are built on. Spec only - nothing here is built yet.
+Overworld Gate are built on.
+
+> **Status: the framework and its first machine are SHIPPED (2026-07-23).** `Multiblock`,
+> `MultiblockCoreBlock` and `MultiblockDummyBlock` exist, and the **Rain Collector** is rebuilt on
+> them as core + Machine Frame -> tarp funnel. What this doc still describes as future is the
+> **grass spreader** (deferred) and rungs 2-4. Divergences from the spec as built, all deliberate:
+> the shared component is registered as a plain `Block` (it needs no behaviour), and a machine's
+> formed cell is a **per-machine dummy block** (`rain_collector_funnel`) rather than a variant of
+> the shared frame - which is the "formed look is bespoke" rule made concrete.
 
 Design source of truth is the pack repo: `../trashlands/docs/design_decisions.md`. This system is
 **not yet recorded there** - see "Design record still owed".
