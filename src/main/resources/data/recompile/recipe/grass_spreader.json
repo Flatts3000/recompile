@@ -1,15 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "PMP",
-    "RCR",
+    "PCP",
+    "RMR",
     "PPP"
   ],
   "key": {
     "P": "recompile:scrap_plating",
-    "M": "recompile:pump",
+    "C": "recompile:copper_pipe",
     "R": "recompile:rebar",
-    "C": "recompile:scrap_metal"
+    "M": "recompile:scrap_metal"
   },
   "result": { "id": "recompile:grass_spreader", "count": 1 }
 }

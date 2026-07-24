@@ -58,7 +58,7 @@ final class SortingDataTests {
             SortingData.Weighted mattress = out.stream()
                 .filter(w -> w.stack().is(RCItems.MATTRESS.get())).findFirst().orElse(null);
             SortingData.Weighted appliance = out.stream()
-                .filter(w -> w.stack().is(RCItems.BROKEN_APPLIANCE.get())).findFirst().orElse(null);
+                .filter(w -> w.stack().is(RCItems.WASHING_MACHINE.get())).findFirst().orElse(null);
             helper.assertTrue(mattress != null, "the mattress must still be a Bulky Waste find");
             helper.assertTrue(appliance != null,
                 "the broken appliance must be a Bulky Waste find - it is the only source of Motors");

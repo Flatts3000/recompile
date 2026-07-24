@@ -1,6 +1,6 @@
 {
   "type": "recompile:teardown",
-  "input": "recompile:broken_appliance",
+  "input": "recompile:washing_machine",
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 120,

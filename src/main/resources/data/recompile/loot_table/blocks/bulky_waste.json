@@ -8,7 +8,7 @@
       ],
       "entries": [
         { "type": "minecraft:item", "name": "recompile:mattress", "weight": 3 },
-        { "type": "minecraft:item", "name": "recompile:broken_appliance", "weight": 2 }
+        { "type": "minecraft:item", "name": "recompile:washing_machine", "weight": 2 }
       ]
     }
   ]

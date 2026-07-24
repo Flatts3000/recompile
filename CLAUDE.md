@@ -76,6 +76,11 @@ Two traps in that area:
 - **The GLM directory is `loot_modifiers`, plural** - it is NeoForge's folder, not one of the vanilla dirs 26.1 singularised. "Fixing" it to match `loot_table/` silently stops the modifier loading, with no error anywhere.
 - **A dev run reads resources from `src/main/resources`, not `build/resources/main`.** Deleting a datapack file from the build output does *not* disable it at runtime. To prove a data-driven feature is actually doing something, neuter the **Java** and re-run - a resource-file negative control will lie to you.
 
+**Two traps that cost real time on the machines**, both silent:
+
+- **A non-cube model on a block without `noOcclusion()` punches a hole in the world.** The game still treats it as a full cube for face culling, so it culls the neighbouring block's face and you see straight through the ground. It looks like a rendering glitch with no obvious cause. Every block whose model is not a full cube needs `noOcclusion()`.
+- **A formed multiblock cell must drop the component you placed.** Its loot table is what disband returns, so a stale entry silently downgrades the machine every time it is taken apart - and a disband test that asserts the wrong item will pass and hide it. Check the loot table, not just the test.
+
 **The data spine.** `TeardownRecipe` registers the public `recompile:teardown` recipe type - JSON in `data/<ns>/recipe/`, with `results` (deterministic core), `extras` (weighted bonus), and `teaches` (recipes to study). It was registered from day one so the Phase 3 knowledge system is never retrofitted into a live schema. **Packs and addons extend the teardown tree through this schema without a mod release - treat it as public API.**
 
 **Config.** `RCConfig` (COMMON). The governing principle is "everything ships config-gated, but defaults are the design" - config is for tuning, not for dodging a decision. `RCDimensionLockout` blocks Nether/End travel (and portal formation) until each themed dimension ships, keeping vanilla dimensions from leaking free resources into the closed trash economy.
@@ -114,6 +119,7 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - **Event buses are merged.** `@EventBusSubscriber` takes no `bus` parameter; `EventBusSubscriber.Bus` is gone.
 - `net.minecraft.resources.Identifier`, not `ResourceLocation`.
 - **Data directories are singular**: `loot_table/`, `recipe/`, `structure/`, `tags/block/`, `tags/item/`, `worldgen/configured_feature/`, `worldgen/placed_feature/`.
+- **`DirectionProperty` is gone.** Horizontal facing is `EnumProperty<Direction>` now (`BlockStateProperties.HORIZONTAL_FACING`); the old dedicated class does not exist, so 1.21-era snippets that declare one will not compile.
 - **`GameRules` moved to `net.minecraft.world.level.gamerules`**, and the rules were renamed: `doTileDrops` is now `block_drops` (`GameRules.BLOCK_DROPS`, a `GameRule<Boolean>`).
 - **`#minecraft:dirt` is only three blocks now** (dirt, coarse dirt, rooted dirt) - it does *not* contain grass, podzol, mud or moss, so 1.20-era guides that use it as "the dirt family" are wrong. The union that still means "overworld ground" is **`#minecraft:substrate_overworld`** (`#dirt + #mud + #moss_blocks + #grass_blocks`). This fails *silently* - a tag reference resolves fine and simply matches less than you expect, so it surfaces as a mechanic quietly not firing on most of its intended targets (see `RCTags.ENCROACHABLE`).
 - `pack.mcmeta` uses the `min_format`/`max_format` range form (both `84`), not scalar `pack_format`.

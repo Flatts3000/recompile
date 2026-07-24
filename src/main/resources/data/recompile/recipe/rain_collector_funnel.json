@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [ "recompile:machine_frame", "recompile:plastic_scrap" ],
+  "result": { "id": "recompile:rain_collector_funnel", "count": 1 }
+}

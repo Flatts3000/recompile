@@ -152,6 +152,9 @@ public final class RCItems {
      */
     public static final DeferredItem<BlockItem> MACHINE_FRAME =
         ITEMS.registerSimpleBlockItem("machine_frame", RCBlocks.MACHINE_FRAME);
+    /** A Machine Frame wrapped in plastic sheeting - the collector's catch, crafted then placed. */
+    public static final DeferredItem<BlockItem> RAIN_COLLECTOR_FUNNEL =
+        ITEMS.registerSimpleBlockItem("rain_collector_funnel", RCBlocks.RAIN_COLLECTOR_FUNNEL);
     public static final DeferredItem<BlockItem> GRASS_SPREADER =
         ITEMS.registerSimpleBlockItem("grass_spreader", RCBlocks.GRASS_SPREADER);
     /** Salvaged, never crafted - it comes out of a broken appliance at the workbench. */
@@ -170,8 +173,8 @@ public final class RCItems {
      * it restores the appliance P1.11 dropped when Bulky Waste replaced it, as a find item this
      * time, which is the shape the design settled on. No block: a find is an item in your hand.
      */
-    public static final DeferredItem<Item> BROKEN_APPLIANCE =
-        ITEMS.registerSimpleItem("broken_appliance");
+    public static final DeferredItem<Item> WASHING_MACHINE =
+        ITEMS.registerSimpleItem("washing_machine");
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */
     public static final DeferredItem<StandingAndWallBlockItem> SCRAP_TORCH = ITEMS.registerItem(
         "scrap_torch",

@@ -386,3 +386,17 @@ faces = ["top", "side"]
 [surface.rain_collector_tarp.prompt]
 top = "a full-bleed top-down Minecraft block face: a sagging weathered tarp stretched to catch rain, faded blue-grey plastic sheeting with a shallow puddle of rainwater pooling in the centre, water sheen, grime and creases, muted, fills the whole tile"
 side = "a full-bleed Minecraft block face: the draping edge of a weathered rain-catching tarp, faded blue-grey plastic sheeting sagging in wet folds, grimy and stained, muted, fills the whole tile"
+
+# ---------------------------------------------------------------------------
+# Bulky Waste finds
+# ---------------------------------------------------------------------------
+# A front-loader on purpose: at 16px a top-loading machine is an off-white box
+# and nothing else, while the porthole door gives a silhouette that reads as one
+# specific object. The name is the prompt's whole job - "broken appliance" was
+# too vague to generate against, which is why this shipped as a metal recolour.
+
+[surface.washing_machine]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a dented discarded front-loading washing machine, chipped off-white enamel scuffed with rust streaks, a dark round porthole door, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"

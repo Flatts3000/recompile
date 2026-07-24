@@ -53,9 +53,9 @@ outright. The collector moves into the tank's **recipe**, which keeps the progre
 second brain inside the structure.
 
 **The pump is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
-of a found appliance (`broken_appliance`, a Bulky Waste line) at the Recompile Workbench, never
-crafted. So rung 1 sits behind the teardown spine and a find, which orders progression well: you
-salvage a motor before you can water anything. It also means the spreader cannot be rushed.
+of a found washing machine (`washing_machine`, a Bulky Waste line) at the Recompile Workbench,
+never crafted. So rung 1 sits behind the teardown spine and a find, which orders progression well:
+you salvage a pump before you can water anything. It also means the spreader cannot be rushed.
 
 **The Solar Panel keeps its own appearance** - the framework supports a `Multiblock.Cell` naming the
 same block as component *and* formed, so a cell that does not change costs one block, not two. The
@@ -87,10 +87,10 @@ Three bespoke to this machine, plus two shared components later machines reuse.
 | `grass_spreader` | core, bespoke | Holds `FORMED`; runs the conversion tick and the particles. |
 | `grass_spreader_tank` | dummy, bespoke | The formed collector cell; reuses the rain-collector tote model. |
 | `grass_spreader_head` | dummy, bespoke | The formed motor cell - the sprinkler head. Sprays particles, spins later. |
-| `motor` | **shared component** | **Teardown-only**, from a `broken_appliance` find. Inert - see below. |
+| `pump` | **shared component** | **Teardown-only**, from a `washing_machine` find. Inert - see below. |
 | `solar_panel` | craftable **and** dummy, **shared** | Inert - see below. Reusable by later machines. |
 
-The `broken_appliance` find and its teardown recipe (`-> motor + scrap_metal + plastic_scrap`) come
+The `washing_machine` find and its teardown recipe (`-> pump + scrap_metal + plastic_scrap`) come
 with this machine: one line in `loot_table/blocks/bulky_waste.json` plus one `recompile:teardown`
 recipe, no new systems. It quietly restores the appliance P1.11 dropped when Bulky Waste replaced it,
 as a *find item* this time - the shape the design settled on.
@@ -201,11 +201,41 @@ Leaning on vanilla and what exists, per the strategy that carried the rain colle
 
 ## Data surface
 
-- Tag `recompile:spreadable`.
-- Config under `reclamation`: `grassSpreaderEnabled`, `grassSpreaderRadius`,
-  `grassSpreaderIntervalTicks`, `grassSpreaderIdleIntervalTicks`, `grassSpreaderVerticalTolerance`.
-- Recipes: the core, and the shared `solar_panel`. All numbers are first-pass placeholders and join
-  the **pre-beta balance pass** - do not tune them in isolation.
+- Tag `recompile:spreadable` (coarse dirt + dirt) and `recompile:spread_immune` (mycelium).
+  **`spread_immune` is deliberately not `encroachment_immune`**: that one contains coarse dirt,
+  because coarse dirt is what encroachment reverts *to*. Here it is the primary target. The two
+  systems mean opposite things by "immune", and sharing one tag made the machine refuse the one
+  block it exists to convert.
+- Config under `reclamation`: `grassSpreaderEnabled`, `grassSpreaderRadius` (12),
+  `grassSpreaderIntervalTicks` (40), `grassSpreaderIdleIntervalTicks` (200),
+  `grassSpreaderVerticalTolerance` (3).
+
+### Recipes (prescribed 2026-07-23)
+
+| Piece | Recipe |
+|---|---|
+| **Water Tank** | `PPP / R R / RMR` - plastic scrap, rebar, scrap metal. The shared primitive. |
+| **Rain Collector** | copper pipe over water tank. Literally a tank with a pipe on top. |
+| **Rain Collector Funnel** | shapeless: machine frame + plastic scrap. A frame wrapped in sheeting. |
+| **Machine Frame** | `RPR / P P / RPR` - rebar + scrap plating, yields 2. |
+| **Grass Spreader** | `PCP / RMR / PPP` - plating, copper pipe, rebar, scrap metal. |
+| **Solar Panel** | `GGG / EEE / PPP` - cullet glass, e-scrap, scrap plating. |
+| **Copper Pipe** | `NNN / ... / NNN` - six copper nuggets, yields 3. |
+| **Pump** | No recipe. Teardown of a Washing Machine with the prybar. |
+
+**The tank is the primitive, not the collector.** Building a tank *out of* a collector had the
+dependency backwards - a collector already contains one. Both machines now share the tank part.
+
+**Consequence, and it corrects P2.4-R3:** the spreader no longer consumes a Rain Collector, so
+"no collector, no spreader" is no longer true. Rung 1 is still gated behind two other systems - the
+**Pump** (teardown plus a Bulky Waste find) and **copper** (the Burn Barrel) - so it has not gone
+soft. The collector needing copper also puts *it* behind the Burn Barrel, which is consistent with
+P1.10's "improvised, pre-iron" since copper is this world's first metal, not iron.
+
+**Copper pipe is the most load-bearing part in the mod:** one in the collector, one in the spreader
+core, four more in the drip ring. Both machines together cost 18 scrap metal through the Burn Barrel.
+If the barrel's smelt ratio ever becomes lossy as P2.2 describes (3 scrap to 1 nugget), that number
+triples - the ratio and this yield are the same dial, so tune one, not both.
 
 ## Tests (GameTest)
 

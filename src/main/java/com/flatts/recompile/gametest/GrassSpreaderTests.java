@@ -187,11 +187,16 @@ final class GrassSpreaderTests {
             helper.assertBlockPresent(RCBlocks.GRASS_SPREADER_FRAME.get(), CORE.above(2));
 
             helper.getLevel().destroyBlock(helper.absolutePos(CORE), true);
+            // Every part back, exactly once. This asserted a Rain Collector before, which passed
+            // only because the tank's loot table still dropped one - so taking a spreader apart
+            // handed back a collector instead of the tank, and every rebuild cost another collector.
+            // A disband test that names the wrong item hides exactly the bug it exists to catch.
             helper.succeedWhen(() -> {
                 helper.assertItemEntityCountIs(RCItems.GRASS_SPREADER.get(), CORE, 4.0, 1);
-                helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR.get(), CORE, 4.0, 1);
+                helper.assertItemEntityCountIs(RCItems.WATER_TANK.get(), CORE, 4.0, 1);
                 helper.assertItemEntityCountIs(RCItems.PUMP.get(), CORE, 4.0, 1);
                 helper.assertItemEntityCountIs(RCItems.SOLAR_PANEL.get(), CORE, 4.0, 1);
+                helper.assertItemEntityCountIs(RCItems.COPPER_PIPE.get(), CORE, 4.0, 4);
             });
         });
 

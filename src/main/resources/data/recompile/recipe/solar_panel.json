@@ -6,9 +6,12 @@
     "PPP"
   ],
   "key": {
-    "G": "recompile:cullet_glass",
+    "G": "recompile:cullet_glass_pane",
     "E": "recompile:e_scrap",
     "P": "recompile:scrap_plating"
   },
-  "result": { "id": "recompile:solar_panel", "count": 1 }
+  "result": {
+    "id": "recompile:solar_panel",
+    "count": 1
+  }
 }
