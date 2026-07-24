@@ -176,8 +176,9 @@ public final class RCBlocks {
 
     /**
      * Scrap Bin (P2.9): bulk single-type storage that binds to one salvage type and takes its color.
-     * A full solid cube (four generated faces, tinted per material), so it occludes normally - no
-     * {@code noOcclusion}, which is the cheap correct case for a cube.
+     * A solid four-face cube (tinted per material) with the bound item's own texture on a raised
+     * front placard, chosen by the {@code content} blockstate. {@code noOcclusion} because that
+     * placard sits slightly proud of the front, so the model is not a plain full block.
      */
     public static final DeferredBlock<ScrapBinBlock> SCRAP_BIN = BLOCKS.registerBlock(
         "scrap_bin",
@@ -186,6 +187,7 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(1.4F)
             .sound(SoundType.METAL)
+            .noOcclusion()
     );
 
     /**
