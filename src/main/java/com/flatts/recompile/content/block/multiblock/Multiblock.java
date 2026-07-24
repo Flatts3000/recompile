@@ -101,6 +101,14 @@ public record Multiblock(List<Cell> cells) {
      */
     public void form(Level level, BlockPos core) {
         for (Cell cell : cells) {
+            BlockPos at = cell.at(core);
+            // Preserve stateful components: when the cell's formed block IS its component (the
+            // Workstation's every cell, the Grass Spreader's Solar Panel), the block is already in
+            // place - re-setting it to a default state would wipe a barrel's contents, a bin's
+            // binding, a furnace's smelt. Only touch the cell when the block actually changes.
+            if (level.getBlockState(at).is(cell.formed())) {
+                continue;
+            }
             BlockState formed = cell.formed().defaultBlockState();
             Vec3i offset = cell.offset();
             if (formed.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
@@ -108,7 +116,7 @@ public record Multiblock(List<Cell> cells) {
                 formed = formed.setValue(BlockStateProperties.HORIZONTAL_FACING,
                     Direction.getApproximateNearest(-offset.getX(), 0, -offset.getZ()));
             }
-            level.setBlock(cell.at(core), formed, Block.UPDATE_ALL);
+            level.setBlock(at, formed, Block.UPDATE_ALL);
         }
     }
 

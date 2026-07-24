@@ -66,23 +66,26 @@ Reuse `MultiblockCoreBlock` (blueprint validation + auto-assemble-from-inventory
 `component` for every cell** - the Grass Spreader's Solar Panel already does this for one cell; the
 Workstation does it for all of them, so `form()` swaps nothing.
 
-**The one required framework change: `form()` must preserve stateful components.** Today `form()` calls
-`setBlock(cell.formed().defaultBlockState())` on *every* cell unconditionally. That is fine when a
-component is *replaced* by a different formed block (the Grass Spreader), but for a cell where
-`formed == component` it would **overwrite the existing barrel with a fresh default one - wiping its
-contents, resetting the bins' bindings, clearing the burn barrel's smelt.** The fix is small and safe
-for both machines:
+**The one required framework change: `form()` must not re-set a cell whose block already matches.**
+Today `form()` calls `setBlock(cell.formed().defaultBlockState())` on *every* cell unconditionally.
+That is fine when a component is *replaced* by a different formed block (the Grass Spreader), but for a
+cell where `formed == component` it re-sets the block that is already there. MC keeps a BlockEntity
+across a same-block `setBlock`, so the **contents survive** - but the derived **blockstate snaps to
+default**: a bound bin's `content`/`fill` reset (it renders empty while its BE still holds the scrap),
+the barrel's open state and the furnace's lit state reset, and a wave of redundant block updates
+fires. So the effect is a **visual desync plus churn**, not data loss - still wrong, still worth
+fixing. The fix is small and safe for both machines:
 
 ```java
 BlockPos at = cell.at(core);
-if (!level.getBlockState(at).is(formed.getBlock())) {
-    level.setBlock(at, formed, Block.UPDATE_ALL);   // replace only when the block actually changes
-}
+if (level.getBlockState(at).is(cell.formed())) continue;   // already the right block, leave it alone
+// ... else set the formed block as before
 ```
 
-Grass Spreader: `water_tank != frame` → replaces (unchanged behavior). Workstation: `barrel == barrel`
-→ skipped, state preserved. This is the enabler; without it, forming the workstation resets everything
-in it. **Verify against the existing Grass Spreader / Rain Collector GameTests before leaning on it.**
+Grass Spreader: `water_tank != frame` → replaced (unchanged behavior, its own tests still pass).
+Workstation: `barrel == barrel` → skipped, blockstate preserved. **Done and tested 2026-07-24** -
+`MultiblockTests` pins both sides (blockstate survives when formed == component; a differing cell is
+still replaced), negative-controlled so the preserve test bites without the guard.
 
 ## Network architecture - the shared-storage system
 
