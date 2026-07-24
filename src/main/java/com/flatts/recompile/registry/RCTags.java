@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 
@@ -142,4 +143,15 @@ public final class RCTags {
      */
     public static final TagKey<Block> SPREAD_IMMUNE = TagKey.create(
         Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "spread_immune"));
+
+    /**
+     * What a Scrap Bin accepts (P2.9): the raw materials pulled from garbage. The default membership
+     * (in JSON) is exactly the seven-material vocabulary - scrap metal, plastic, glass shards, muck,
+     * fiber, e-scrap, junk - and excludes the pull stream's non-raw outputs (rebar, tin cans, glass
+     * bottles), crafted intermediates, finds, food, and tools. Open by design: a pack adds modded
+     * scrap to this tag without a mod release. An item tag, not a block tag, because it gates what an
+     * item can become - the bin's contents.
+     */
+    public static final TagKey<Item> BINNABLE = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "binnable"));
 }

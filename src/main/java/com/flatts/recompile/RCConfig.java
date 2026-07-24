@@ -58,6 +58,12 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue GRASS_SPREADER_IDLE_INTERVAL_TICKS;
     public static final ModConfigSpec.IntValue GRASS_SPREADER_VERTICAL_TOLERANCE;
 
+    /**
+     * Scrap Bin (P2.9): how much one bin holds of its bound material. Large by design - the bin is
+     * the tool the hoarding loop wants - and a first-pass number for the pre-beta balance pass.
+     */
+    public static final ModConfigSpec.IntValue SCRAP_BIN_CAPACITY;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -111,6 +117,12 @@ public final class RCConfig {
             .comment("How far above or below the machine a target surface may sit, in blocks,",
                      "so it cannot reach up cliffs or down pits.")
             .defineInRange("grassSpreaderVerticalTolerance", 3, 0, 32);
+        builder.pop();
+
+        builder.push("storage");
+        SCRAP_BIN_CAPACITY = builder
+            .comment("How many of its bound material one Scrap Bin holds (P2.9). 4096 = 64 stacks.")
+            .defineInRange("scrapBinCapacity", 4096, 64, 1_000_000);
         builder.pop();
 
         SPEC = builder.build();

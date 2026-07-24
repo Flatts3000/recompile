@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "fill=0": {
+      "model": "recompile:block/scrap_bin_0"
+    },
+    "fill=1": {
+      "model": "recompile:block/scrap_bin_1"
+    },
+    "fill=2": {
+      "model": "recompile:block/scrap_bin_2"
+    },
+    "fill=3": {
+      "model": "recompile:block/scrap_bin_3"
+    },
+    "fill=4": {
+      "model": "recompile:block/scrap_bin_4"
+    }
+  }
+}

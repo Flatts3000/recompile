@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "recompile:scrap_metal",
+    "recompile:plastic_scrap",
+    "recompile:glass_shards",
+    "recompile:organic_muck",
+    "recompile:fiber_scrap",
+    "recompile:e_scrap",
+    "recompile:junk"
+  ]
+}
