@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["PEP","EFE","PEP"],
+  "key": { "P": "recompile:scrap_plating", "E": "recompile:e_scrap", "F": "recompile:machine_frame" },
+  "result": { "id": "recompile:workstation_core", "count": 1 }
+}
