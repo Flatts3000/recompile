@@ -258,7 +258,9 @@ static entry point per the `sortOnce` / `encroachOnce` convention:
 
 ## Open questions
 
-1. **Core shape** - iterate in-world.
+1. **Core shape** - iterate in-world. (The Water Tank / Rain Collector split shipped and is
+   accepted: the tank is the bare caged tote, the collector adds a copper pipe on top. Closed
+   2026-07-24.)
 2. **Sprinkler head shape** - brewing-stand arms vs something cut down.
 3. **Where the spinning renderer lives** (head cell vs core), when rotation is built.
 4. **Naming** - "Grass Spreader" is the working name; P2.4 item 3 calls it the soil spreader.
@@ -279,5 +281,5 @@ static entry point per the `sortOnce` / `encroachOnce` convention:
 **Recorded 2026-07-23** in `../trashlands/docs/design_decisions.md` as **P2.4-R3**, and revised
 there during the build: rung 1 is a *drip irrigator* fed by an incorporated **Water Tank** (not a
 Rain Collector - no nested cores), the Pump is the teardown-only part and it comes out of a
-**Washing Machine**, and item 8's "no collector, no spreader" ordering is superseded and currently
-lost, since the tank is craftable from raw materials. See that section for the open question.
+**Washing Machine**, and item 8's "no collector, no spreader" ordering is retired: the machines are
+deliberately siblings built from the same Water Tank, not an ordered chain (closed 2026-07-24).

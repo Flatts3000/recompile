@@ -1,8 +1,9 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.9 shipped to `main` - the mod is a playable alpha, tuned against
-real play. Recent tiers: **lighting** (Scrap Torch + Oily Rag, 2.8) and the **Burn Barrel** smelter
-(2.9, the first metal step toward Create) shipped 2026-07-17. Phase 3's **materials teardown** (the
+**Status:** Phases 0 through 2.12 shipped to `main` - the mod is a playable alpha, tuned against
+real play. Recent tiers: the **Burn Barrel** smelter (2.9), **encroachment** (2.10, the junkyard
+fights back), the **multiblock framework + Rain Collector** (2.11), and **reclamation rung 1, the
+Grass Spreader** (2.12, a drip irrigator, shipped 2026-07-24, #21). Phase 3's **materials teardown** (the
 Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis** is the next major decision
 and stays under review (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
 are ordered by
@@ -222,9 +223,9 @@ since this world has no trees.
 **Migration:** the old `DoubleBlockHalf` rain collector is retired, so **rain collectors placed in
 existing saved worlds will not resolve and will vanish.** Accepted pre-beta.
 
-Deferred here: rungs 2-4, which reuse this framework. Rung 1 is Phase 2.12.
+Deferred here: rungs 2-4, which reuse this framework. Rung 1 shipped as Phase 2.12.
 
-## Phase 2.12 - The Grass Spreader, reclamation rung 1  *(IN FLIGHT, design P2.4-R3)*
+## Phase 2.12 - The Grass Spreader, reclamation rung 1  *(DONE 2026-07-24, design P2.4-R3)* (#21)
 
 The first machine that heals ground, and the first consumer of the framework that is not the machine
 it was built with. Spec: [`grass_spreader_spec.md`](grass_spreader_spec.md).
@@ -250,9 +251,10 @@ land as it can reach, and no more.
 behind the teardown spine and a find. The washing machine is placeable and carries its own four-face
 art. Supply analysis: [`pump_sourcing.md`](pump_sourcing.md).
 
-**Known gap:** the Water Tank is craftable from raw materials, so a spreader no longer requires a
-Rain Collector anywhere in its chain. P2.4-R3 item 8's "no collector, no spreader" ordering is
-superseded and currently lost - see that section for the open question.
+**Design note (settled):** the Water Tank is craftable from raw materials, so a spreader does not
+require a Rain Collector anywhere in its chain. The two are deliberately siblings built from the
+same tank, not an ordered chain - P2.4-R3 item 8's "no collector, no spreader" is retired, not a gap.
+Rung 1's gate is the Pump (teardown-only, behind a find) and the multiblock build.
 
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 

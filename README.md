@@ -26,7 +26,7 @@ Shipped: the garbage world (custom preset, coarse-dirt plain, mounds); the Block
 
 **The Recompile Workbench is in** - hold right-click with a found item to break it down into materials, on a timer, with the right tool. That is the *materials* half. The **knowledge** half (studying a recipe, then unlocking it) is the mod's distinct axis and is **not built yet**; its design is under review, because recipe-locking does not survive contact with modded autocrafting. Its data spine - the public `recompile:teardown` recipe type - has been in place since day one, so the schema will not be retrofitted.
 
-In flight: reclamation rung 1, the Grass Spreader. See [`docs/roadmap.md`](docs/roadmap.md) for the build order and per-phase status.
+Reclamation rung 1 (the Grass Spreader) shipped 2026-07-24. Next: the knowledge half of teardown (the mod's distinct axis, design under review), and reclamation rungs 2-4. See [`docs/roadmap.md`](docs/roadmap.md) for the build order and per-phase status.
 
 ## License
 

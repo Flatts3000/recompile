@@ -215,16 +215,20 @@ Reframe as **Rain Collector Core (bottom) + Frame (top)**:
 - It is the smallest possible multiblock (2 cells), which is why it is the first one built - it
   proves the framework on shipped, already-understood behaviour.
 
-### 2. Grass Spreader - the next machine (specced, not built)
+### 2. Grass Spreader - the second machine (SHIPPED 2026-07-24, Phase 2.12, #21)
 
-**A four-cell tower, and the machine's identity changed** from a soil hopper to a **sprinkler** that
-constantly spreads water. Bottom to top: **Grass Spreader Core** (its own texture, never the
-collector's) / **Rain Collector** / **Motor -> sprinkler head** / **Solar Panel**.
+**A four-cell tower, and a drip irrigator** - not the soil hopper the design started from. Bottom to
+top: **Grass Spreader Core** (its own texture, never the collector's) / **Water Tank** / **Pump ->
+manifold** / **Solar Panel**, with four **Copper Pipes** ringing the pump, each forming into a drip
+spigot. It waters the nearest dead ground first and consumes nothing; full design in
+[`grass_spreader_spec.md`](grass_spreader_spec.md).
 
-**No Machine Frame here** - that stays the Rain Collector's component. The moving cell is a
-**Motor**, which forms into the sprinkler head: a motor is what spins one, so the fiction is exact,
-and it makes this the machine that eventually needs rotation. The motor is **teardown-only**, so
-rung 1 sits behind the teardown spine and a find.
+**The water cell is an inert Water Tank, not a Rain Collector** - a machine may not take another
+machine's core as a component (nesting cores makes the inner one assemble itself), a rule the
+framework's `Multiblock` constructor now enforces. The **Pump** is the teardown-only part (out of a
+Washing Machine found in Bulky Waste), so rung 1 sits behind the teardown spine and a find. The
+spinning head is deferred: dripping needs only `animateTick`, and rotation waits on 26.1's block-
+entity renderer as its own task.
 
 Two framework capabilities this leans on, both already supported: a `Cell` may name the same block
 as component *and* formed (the Solar Panel does not change appearance, so it costs one block, not

@@ -9,16 +9,21 @@ dedicated specs.
 > - **Encroachment shipped** (Phase 2.10, `RCEncroachment`) - the frontier the machines build against.
 > - **The sapling lockout shipped** (P2.4-R2) - saplings are unobtainable, so the tree planter is the
 >   only source of trees.
-> - **Rung 1 and the multiblock framework are specced** in [`grass_spreader_spec.md`](grass_spreader_spec.md)
->   and [`multiblock_system_spec.md`](multiblock_system_spec.md), which are now the resume point for
->   implementation. Two decisions there override the "What to build" section below: **the machines are
->   multiblocks**, and **the soil spreader consumes nothing** (the running cost moved into the recipe
->   and P1.7-R supplies the ongoing pressure). Where this doc and those specs disagree, the specs win.
+> - **Rung 1 and the multiblock framework are BUILT** (Phase 2.11 the framework + Rain Collector,
+>   Phase 2.12 the Grass Spreader, #21, 2026-07-24). The specs
+>   [`grass_spreader_spec.md`](grass_spreader_spec.md) and
+>   [`multiblock_system_spec.md`](multiblock_system_spec.md) are the built record. Two decisions there
+>   override the "What to build" section below: **the machines are multiblocks**, and **rung 1
+>   consumes nothing** (the running cost moved into the recipe and P1.7-R supplies the ongoing
+>   pressure). Where this doc and those specs disagree, the specs win.
+>
+> **The resume point is now rungs 2-4** (vegetation seeder, tree planter, the animal rung), which
+> reuse the shipped framework. Rung 1 is the worked example to build them against.
 
 Design source of truth stays in the pack repo: `../trashlands/docs/design_decisions.md`
 (**P2.4** original chain, **P2.4-R** economy revision, **P1.7-R** encroachment, **P2.4-R2** sapling
-lockout, **P2.4-R3** the spreader + multiblock decisions - **recorded 2026-07-23**, and revised in
-the same day's build; read its items 7 and 8 for what changed).
+lockout, **P2.4-R3** the spreader + multiblock decisions - recorded 2026-07-23, built and closed 2026-07-24
+(the Pump-from-a-Washing-Machine find, and item 8: spreader and collector are siblings, not a chain).
 
 ---
 
