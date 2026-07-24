@@ -25,12 +25,13 @@ The change is a **blockstate, never a render**, and that is the whole trick - it
 inside the mod's `no BlockEntityRenderer` rule (design_decisions.md:296; a BER is a per-object draw
 call, and a wall of bins would be a wall of them):
 
-- A `content` blockstate enum (`EMPTY` + one value per known material) selects a **static baked model
-  tinted that material's signature color**. Binding just sets `content=scrap_metal`; the game swaps to
-  the pre-tinted model. Same move as the garbage blocks' `sorted` state. **Color is the primary
-  identifier** - a solid-bodied bin reads by hue across a room, faster than any label, which is the
-  real recycling-station quality. The bin's color also matches what is inside (grey body = scrap
-  metal, teal = glass), so it is self-documenting.
+- A `content` blockstate enum (`EMPTY` + one value per known material) records what the bin is bound
+  to. The **color is applied at render** by a block color handler keyed on that state - the same
+  `tintindex` mechanism vanilla uses for grass and water, which is a **static-model feature, not a
+  BER**. So every material shares **one model and one texture set**; only the tint differs. Binding
+  sets `content=scrap_metal` and the body renders grey. **Color is the primary identifier** - a
+  solid-bodied bin reads by hue across a room, faster than any label, and it matches what is inside
+  (grey = scrap metal, teal = glass), so it is self-documenting.
 - A `fill` blockstate (`EMPTY / LOW / MID / HIGH / FULL`, composter-style) raises a visible pile in a
   small window so a wall of bins can be scanned for what is full. Color says *which*; the window says
   *how much*.
@@ -45,11 +46,12 @@ screen, no BER.
 The seam between the two systems, stated plainly so it is not conflated in the build:
 
 - **Acceptance is tag-driven and open.** The bin accepts an item if and only if it is in
-  `#recompile:binnable`. Default membership is the bulk material vocabulary (`scrap_metal`,
-  `plastic_scrap`, `glass_shards`, `organic_muck`, `fiber_scrap`, `e_scrap`, `junk`, and the
-  processed intermediates `rebar`, `scrap_plating`, `cullet_glass`) - not finds, food, or tools. A
-  pack adds modded scrap to the tag without a mod release. Anything not in the tag is refused on
-  insert.
+  `#recompile:binnable`. Default membership is exactly the **raw materials pulled from garbage**: the
+  P0.4 vocabulary `scrap_metal`, `plastic_scrap`, `glass_shards`, `organic_muck`, `fiber_scrap`,
+  `e_scrap`, `junk`. **Not** the pull stream's non-raw outputs (`rebar`, `tin_can`, `glass_bottle`),
+  not crafted intermediates (`scrap_plating`, `cullet_glass`), not finds, food, or tools - only raw
+  scrap. A pack adds modded scrap to the tag without a mod release; anything not in the tag is refused
+  on insert.
 - **The color is enum-driven and finite.** A blockstate can only show a color for a material that has
   a `content` value. The mod's own vocabulary gets its signature tint; **binnable-but-uncolored modded
   scrap binds to the neutral grey bin.** It is still held, and Jade still names it - it just does not
@@ -138,18 +140,22 @@ P P P
 - `tags/item/binnable.json` - the acceptance allowlist (defaults above).
 - `RCDataComponents` - a `{material, count}` component type; a `copy_components` loot function in
   `loot_table/blocks/scrap_bin.json`.
-- **Blockstate**: `content` x `fill` variants. The unbound state (`content=EMPTY`) is the neutral
-  grey bin; each colored `content` value points at the shared bin model with that material's tint at
-  each `fill` height.
-- **Models**: one bin body shape reused for every material - only the texture tint differs - plus a
-  fill pile visible in the window. The pile height is the only thing `fill` changes, so the five
-  levels are a parameterized template shared across all colors.
-- **Color via retint, no atlas gotcha:** one base bin body PNG (tint-ready, near-greyscale) plus one
-  **retinted** copy per material - the same texgen `retint` backend the cullet glass pane already
-  uses. ~10 deterministic recolors, no fresh generation, and the tint lives on the block texture
-  itself, so the item-atlas-vs-block-atlas trap never applies. The neutral base PNG is the empty,
-  unbound, and modded-fallback appearance. **Colors are material-matched** (each bin takes its own
-  material's signature hue), so no palette is invented and the bin agrees with its contents.
+- **Blockstate**: `content` x `fill`. The model depends only on `fill` - every `content` value uses
+  the same model per fill height, because the color is applied at render, not by swapping textures.
+  `content` exists so the color handler and Jade can read what the bin holds.
+- **One model, one texture set**: a single bin model per `fill` height (five), with the body faces
+  flagged `tintindex: 0`; the steel frame, rivets and glass window are left un-indexed so they keep
+  their own look and only the panels take the material color. The fill pile is part of the same
+  model, its height the only thing `fill` changes.
+- **Color at render - no per-material art, no atlas gotcha:** one authored texture set (near-greyscale
+  on the tinted faces so a multiply reads true), colored in-engine by a client `BlockColor` registered
+  on `RegisterColorHandlersEvent`, keyed on the `content` blockstate - the same mechanism vanilla
+  grass and water use, and explicitly not a BER. Register the matching item color so the held bin is
+  tinted too. This is where a material's color lives: a `material -> int` entry plus its enum value,
+  **no PNG per material**. `EMPTY` and any unknown (modded) `content` return white, so the neutral
+  texture shows through - the empty and modded-fallback bin for free. Colors are **material-matched**.
+- **The color is not GameTest-able** - color handlers are client-only. The tests assert the `content`
+  blockstate (server-side); the actual hues are a `runClient` check.
 
 ## Tests (GameTest)
 
@@ -186,17 +192,19 @@ component, or none, is the Rain-Collector-water failure mode).
 
 ## Decided in the 2026-07-24 session
 
-- **Colors are material-matched**, one per material, via retint - not the bold recycling-convention
+- **Colors are material-matched** and applied as a **render-time tint** over one texture set (a
+  `BlockColor` keyed on the `content` state), not per-material art and not the bold recycling
   palette. The bin agrees with its contents and no palette is invented.
+- **`#binnable` is the raw material vocabulary only** - the seven materials pulled from garbage
+  (`scrap_metal`, `plastic_scrap`, `glass_shards`, `organic_muck`, `fiber_scrap`, `e_scrap`, `junk`).
+  Excludes the pull stream's non-raw outputs (`rebar`, `tin_can`, `glass_bottle`), crafted
+  intermediates (`scrap_plating`, `cullet_glass`), finds, food, and tools.
 - **Placed-and-emptied bins stay bound** (they only unbind when broken while empty). Confirmed.
 - **The modded/uncolored fallback is the neutral grey bin** - the same as the empty appearance, with
   the exact item named by Jade.
 
 ## Open questions
 
-1. **Exact `#binnable` default membership** - the processed intermediates (`rebar`, `scrap_plating`,
-   `cullet_glass`) are in by the draft above, but `scrap_plating` reads more as a building block than
-   bulk scrap you stockpile. A curation call, best made with the material economy in view.
-2. **Fill granularity** - five levels vs more; five matches the composter and is probably enough.
-3. **Sound** - a deposit/withdraw clink; deferred with all polish.
-4. **All numbers** - capacity, recipe cost. Deferred to the balance pass.
+1. **Fill granularity** - five levels vs more; five matches the composter and is probably enough.
+2. **Sound** - a deposit/withdraw clink; deferred with all polish.
+3. **All numbers** - capacity, recipe cost. Deferred to the balance pass.
