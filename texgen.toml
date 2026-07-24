@@ -405,3 +405,21 @@ front = "a full-bleed Minecraft block face: the front of a discarded front-loadi
 side = "a full-bleed Minecraft block face: the plain side panel of a discarded washing machine, flat chipped off-white enamel with a shallow pressed seam near the edges, dents, grime and orange rust streaks running down, muted, flat, no perspective, fills the whole tile"
 top = "a full-bleed top-down Minecraft block face: the lid of a discarded washing machine, flat off-white enamel panel with a recessed control strip along one edge, chipped paint, water rings, dust and rust spots, muted, flat, no perspective, fills the whole tile"
 bottom = "a full-bleed Minecraft block face: the grimy underside of a discarded washing machine, dark oily galvanised steel base pan with four stubby levelling feet at the corners, caked dust and rust, much darker than the enamel sides, muted, flat, no perspective, fills the whole tile"
+
+# ---------------------------------------------------------------------------
+# Scrap Bin (P2.9): bulk single-type storage, color-coded per material
+# ---------------------------------------------------------------------------
+# TINT-READY on purpose. The bin's color is applied at render by a BlockTintSource
+# keyed on the bound material (the grass/water mechanism, not a BER), so these are
+# authored DESATURATED / near-greyscale steel - the live per-material tint colors
+# them. Vivid art here would muddy under the tint. One set, retinted (P2.9).
+[surface.scrap_bin]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["top", "side", "front", "bottom"]
+[surface.scrap_bin.prompt]
+top = "a full-bleed top-down Minecraft block face: the lid of a salvaged scrap sorting bin, a riveted desaturated steel panel with a rectangular drop slot in the centre, worn grey metal with light scuffs, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
+side = "a full-bleed Minecraft block face: the side of a salvaged scrap sorting bin, a plain riveted desaturated steel panel with a welded rim and bolt heads, worn grey metal, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
+front = "a full-bleed Minecraft block face: the front of a salvaged scrap sorting bin, a riveted desaturated steel panel with a blank stencil placard above a low open chute mouth, worn grey metal, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
+bottom = "a full-bleed Minecraft block face: the grimy underside of a salvaged scrap sorting bin, dark oily desaturated steel base with stubby corner feet, caked grime, darker than the sides, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
