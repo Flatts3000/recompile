@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * The Grass Spreader (design P2.4-R3): rung 1 of the reclamation chain, and a <b>sprinkler</b> - a
- * four-cell tower that constantly throws water over the surrounding ground and turns dead earth to
+ * The Grass Spreader (design P2.4-R3): rung 1 of the reclamation chain, and a <b>drip irrigator</b> - a
+ * tower ringed by four copper spigots that patiently water the surrounding ground and turns dead earth to
  * grass, forever, <b>consuming nothing</b>.
  *
  * <p>It consumes nothing because the machine carries its own supply: an actual Rain Collector is
@@ -72,15 +72,28 @@ public class GrassSpreaderCoreBlock extends MultiblockCoreBlock {
 
     @Override
     protected Multiblock createBlueprint() {
-        return new Multiblock(List.of(
-            new Multiblock.Cell(new Vec3i(0, 1, 0),
-                RCBlocks.RAIN_COLLECTOR.get(), RCBlocks.GRASS_SPREADER_TANK.get()),
-            new Multiblock.Cell(new Vec3i(0, 2, 0),
-                RCBlocks.MOTOR.get(), RCBlocks.GRASS_SPREADER_HEAD.get()),
-            // The solar panel keeps its own appearance, so it is both the component and the formed
-            // block - a cell that does not change costs one block, not two.
-            new Multiblock.Cell(new Vec3i(0, 3, 0),
-                RCBlocks.SOLAR_PANEL.get(), RCBlocks.SOLAR_PANEL.get())));
+        List<Multiblock.Cell> cells = new ArrayList<>();
+        // An inert Water Tank, NOT the Rain Collector itself: a machine may never take another
+        // machine's core as a component (see Multiblock's constructor). The collector is consumed
+        // in the tank's recipe instead, so the progression survives without a second live core
+        // inside this structure.
+        cells.add(new Multiblock.Cell(new Vec3i(0, 1, 0),
+            RCBlocks.WATER_TANK.get(), RCBlocks.WATER_TANK.get()));
+        cells.add(new Multiblock.Cell(new Vec3i(0, 2, 0),
+            RCBlocks.PUMP.get(), RCBlocks.GRASS_SPREADER_FRAME.get()));
+        // The drip ring: four copper pipes around the manifold, each becoming a spigot. This is the
+        // first blueprint that is not a plain column - the framework already allowed it, since a
+        // Cell is just an offset.
+        for (Vec3i side : List.of(new Vec3i(1, 2, 0), new Vec3i(-1, 2, 0),
+                                  new Vec3i(0, 2, 1), new Vec3i(0, 2, -1))) {
+            cells.add(new Multiblock.Cell(side,
+                RCBlocks.COPPER_PIPE.get(), RCBlocks.GRASS_SPREADER_SPIGOT.get()));
+        }
+        // The solar panel keeps its own appearance, so it is both the component and the formed
+        // block - a cell that does not change costs one block, not two.
+        cells.add(new Multiblock.Cell(new Vec3i(0, 3, 0),
+            RCBlocks.SOLAR_PANEL.get(), RCBlocks.SOLAR_PANEL.get()));
+        return new Multiblock(List.copyOf(cells));
     }
 
     private static List<Vec3i> buildOffsets(int max) {

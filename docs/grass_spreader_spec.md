@@ -3,8 +3,8 @@
 **Written 2026-07-23.** Rung 1 of the reclamation chain (design P2.4-R). Spec only - not built.
 
 > **Renamed from `soil_spreader_spec.md`, because the machine changed identity.** It is not a soil
-> hopper that spreads dirt; it is a **sprinkler** that spreads *water*, constantly, from a rain
-> collector built into it. How it converts ground is unchanged; what it *is* changed, and with it
+> hopper that spreads dirt; it is a **drip irrigator** that constantly waters the ground from four
+> copper spigots, fed by a tank built from a rain collector. How it converts ground is unchanged; what it *is* changed, and with it
 > the whole silhouette and structure.
 
 Design source of truth is the pack repo: `../trashlands/docs/design_decisions.md` (**P2.4** the
@@ -15,7 +15,7 @@ original chain, **P2.4-R** the economy revision, **P1.7-R** encroachment). The d
 
 ## What it is
 
-A four-block sprinkler tower. It draws water from a Rain Collector built into its own structure and
+A four-block drip-irrigation tower, ringed by four copper spigots. It draws water from a Rain Collector built into its own structure and
 throws it over the surrounding ground, turning dead earth to grass within a radius, forever,
 **consuming nothing**.
 
@@ -41,11 +41,18 @@ shared vocabulary keeps its user; here the moving part is a **Motor**.
 | Cell | You place | Formed as | Notes |
 |---|---|---|---|
 | 3 (top) | **Solar Panel** | *unchanged* | Unshaded, caps the tower. Shared component. |
-| 2 | **Motor** | **sprinkler head** | A motor is what *spins* a sprinkler head - the fiction is exact, and it is why this machine is the one that eventually needs rotation. Bespoke art. |
-| 1 | **Rain Collector** | `grass_spreader_tank` | The incorporated water - a literal collector, consumed into the structure. |
-| 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master, and the pump base. **Its own texture** - deliberately not the collector's palette, so the two machines never read as the same object. |
+| 2 sides x4 | **Copper Pipe** | **drip spigot** | The drip ring. Turned to face the manifold on forming, so all four plumb inward. |
+| 2 | **Pump** | **manifold** | Lifts water to the spigots. |
+| 1 | **Water Tank** | *unchanged* | Crafted **from a Rain Collector**. |
+| 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master. **Its own texture** - never the collector's palette. |
 
-**The motor is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
+**The tank must not be the Rain Collector block itself.** A machine may never take another machine's
+core as a component: the inner core is live, watches its own neighbours, and will try to assemble
+*itself* into cells the outer machine has claimed. `Multiblock`'s constructor now rejects that
+outright. The collector moves into the tank's **recipe**, which keeps the progression without a
+second brain inside the structure.
+
+**The pump is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
 of a found appliance (`broken_appliance`, a Bulky Waste line) at the Recompile Workbench, never
 crafted. So rung 1 sits behind the teardown spine and a find, which orders progression well: you
 salvage a motor before you can water anything. It also means the spreader cannot be rushed.

@@ -2,10 +2,8 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock.Outcome;
-import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import com.flatts.recompile.registry.RCBlocks;
-import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -36,8 +34,14 @@ final class GrassSpreaderTests {
     /** Same, at an arbitrary core position - for tests that need headroom above the machine. */
     private static void formSpreaderAt(GameTestHelper helper, BlockPos core) {
         helper.setBlock(core, RCBlocks.GRASS_SPREADER.get());
-        helper.setBlock(core.above(), RCBlocks.RAIN_COLLECTOR.get());
-        helper.setBlock(core.above(2), RCBlocks.MOTOR.get());
+        helper.setBlock(core.above(), RCBlocks.WATER_TANK.get());
+        helper.setBlock(core.above(2), RCBlocks.PUMP.get());
+        // the drip ring - four copper pipes around the manifold
+        BlockPos manifold = core.above(2);
+        helper.setBlock(manifold.east(), RCBlocks.COPPER_PIPE.get());
+        helper.setBlock(manifold.west(), RCBlocks.COPPER_PIPE.get());
+        helper.setBlock(manifold.south(), RCBlocks.COPPER_PIPE.get());
+        helper.setBlock(manifold.north(), RCBlocks.COPPER_PIPE.get());
         helper.setBlock(core.above(3), RCBlocks.SOLAR_PANEL.get());
         MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core));
     }
@@ -179,48 +183,32 @@ final class GrassSpreaderTests {
             formSpreader(helper);
             helper.assertTrue(MultiblockCoreBlock.isFormed(helper.getBlockState(CORE)),
                 "the four-cell tower must form");
-            helper.assertBlockPresent(RCBlocks.GRASS_SPREADER_TANK.get(), CORE.above());
-            helper.assertBlockPresent(RCBlocks.GRASS_SPREADER_HEAD.get(), CORE.above(2));
+            helper.assertBlockPresent(RCBlocks.WATER_TANK.get(), CORE.above());
+            helper.assertBlockPresent(RCBlocks.GRASS_SPREADER_FRAME.get(), CORE.above(2));
 
             helper.getLevel().destroyBlock(helper.absolutePos(CORE), true);
             helper.succeedWhen(() -> {
                 helper.assertItemEntityCountIs(RCItems.GRASS_SPREADER.get(), CORE, 4.0, 1);
                 helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR.get(), CORE, 4.0, 1);
-                helper.assertItemEntityCountIs(RCItems.MOTOR.get(), CORE, 4.0, 1);
+                helper.assertItemEntityCountIs(RCItems.PUMP.get(), CORE, 4.0, 1);
                 helper.assertItemEntityCountIs(RCItems.SOLAR_PANEL.get(), CORE, 4.0, 1);
             });
         });
 
-        // Forming plumbs the collector into the sprinkler, so it comes back EMPTY. Deliberate, not
-        // a leak - but pin it, so it stays a known behaviour rather than a surprise bug report.
-        RCGameTests.test("grass_spreader_forming_drains_the_collector", 60, helper -> {
-            helper.setBlock(CORE, RCBlocks.GRASS_SPREADER.get());
-            helper.setBlock(CORE.above(), RCBlocks.RAIN_COLLECTOR.get());
-            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(CORE.above()))
-                    instanceof RainCollectorBlockEntity be)) {
-                helper.fail("the collector cell has no BlockEntity");
-                return;
-            }
-            be.catchRain();
-            helper.assertTrue(be.storedWater() > 0, "precondition: the collector held water");
-
-            helper.setBlock(CORE.above(2), RCBlocks.MOTOR.get());
-            helper.setBlock(CORE.above(3), RCBlocks.SOLAR_PANEL.get());
-            MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(CORE));
-            helper.getLevel().destroyBlock(helper.absolutePos(CORE), true);
-
-            helper.succeedWhen(() -> {
-                var dropped = helper.getLevel().getEntities(
-                    net.minecraft.world.entity.EntityType.ITEM,
-                    net.minecraft.world.phys.AABB.encapsulatingFullBlocks(
-                        helper.absolutePos(CORE).offset(-4, -4, -4),
-                        helper.absolutePos(CORE).offset(4, 4, 4)),
-                    e -> e.getItem().is(RCItems.RAIN_COLLECTOR.get()));
-                helper.assertTrue(!dropped.isEmpty(), "the collector must come back");
-                Integer water = dropped.getFirst().getItem().get(RCDataComponents.RAIN_WATER.get());
-                helper.assertTrue(water == null,
-                    "forming plumbs the collector into the machine, so it returns empty; got " + water);
-            });
+        // The tank is an inert component, NOT a Rain Collector core. Nesting cores would mean
+        // the inner one watching its own neighbours and trying to assemble itself into cells this
+        // machine has already claimed - two machines fighting over the same blocks. Multiblock's
+        // constructor now rejects that outright; this asserts the spreader takes the inert block.
+        // (That the tank is not a core is proven by the compiler - WaterTankBlock and
+        // MultiblockCoreBlock are unrelated types - and enforced at runtime by Multiblock's
+        // constructor, so there is nothing left for an assertion to catch. What is worth asserting
+        // is that the machine really assembles around the inert component.)
+        RCGameTests.test("grass_spreader_uses_an_inert_tank_component", 20, helper -> {
+            formSpreader(helper);
+            helper.assertTrue(MultiblockCoreBlock.isFormed(helper.getBlockState(CORE)),
+                "the tower must form with an inert Water Tank in the collector's place");
+            helper.assertBlockPresent(RCBlocks.WATER_TANK.get(), CORE.above());
+            helper.succeed();
         });
     }
 }

@@ -7,7 +7,7 @@
   ],
   "key": {
     "P": "recompile:scrap_plating",
-    "M": "recompile:motor",
+    "M": "recompile:pump",
     "R": "recompile:rebar",
     "C": "recompile:scrap_metal"
   },

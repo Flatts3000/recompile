@@ -155,12 +155,18 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> GRASS_SPREADER =
         ITEMS.registerSimpleBlockItem("grass_spreader", RCBlocks.GRASS_SPREADER);
     /** Salvaged, never crafted - it comes out of a broken appliance at the workbench. */
-    public static final DeferredItem<BlockItem> MOTOR =
-        ITEMS.registerSimpleBlockItem("motor", RCBlocks.MOTOR);
+    public static final DeferredItem<BlockItem> PUMP =
+        ITEMS.registerSimpleBlockItem("pump", RCBlocks.PUMP);
     public static final DeferredItem<BlockItem> SOLAR_PANEL =
         ITEMS.registerSimpleBlockItem("solar_panel", RCBlocks.SOLAR_PANEL);
+    /** Crafted from a Rain Collector - the machine you already built, plumbed into a bigger one. */
+    public static final DeferredItem<BlockItem> WATER_TANK =
+        ITEMS.registerSimpleBlockItem("water_tank", RCBlocks.WATER_TANK);
+    /** Copper's first job - four of these ring a spreader and become its drip spigots. */
+    public static final DeferredItem<BlockItem> COPPER_PIPE =
+        ITEMS.registerSimpleBlockItem("copper_pipe", RCBlocks.COPPER_PIPE);
     /**
-     * The find the Motor comes out of. A Bulky Waste line, torn down at the Recompile Workbench -
+     * The find the Pump comes out of. A Bulky Waste line, torn down at the Recompile Workbench -
      * it restores the appliance P1.11 dropped when Bulky Waste replaced it, as a find item this
      * time, which is the shape the design settled on. No block: a find is an item in your hand.
      */

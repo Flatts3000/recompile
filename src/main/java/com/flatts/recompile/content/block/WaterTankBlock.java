@@ -15,16 +15,16 @@ import com.mojang.serialization.MapCodec;
  * the fiction is that the water is now plumbed into the sprinkler - but it does mean there is no
  * point filling a collector before building a spreader around it.
  */
-public class GrassSpreaderTankBlock extends MultiblockDummyBlock {
+public class WaterTankBlock extends MultiblockDummyBlock {
 
-    public static final MapCodec<GrassSpreaderTankBlock> CODEC = simpleCodec(GrassSpreaderTankBlock::new);
+    public static final MapCodec<WaterTankBlock> CODEC = simpleCodec(WaterTankBlock::new);
 
-    public GrassSpreaderTankBlock(Properties properties) {
+    public WaterTankBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    protected MapCodec<? extends GrassSpreaderTankBlock> codec() {
+    protected MapCodec<? extends WaterTankBlock> codec() {
         return CODEC;
     }
 }

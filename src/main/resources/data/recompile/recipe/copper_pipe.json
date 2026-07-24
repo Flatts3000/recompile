@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [ "NNN" ],
+  "key": { "N": "minecraft:copper_nugget" },
+  "result": { "id": "recompile:copper_pipe", "count": 2 }
+}

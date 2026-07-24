@@ -71,9 +71,18 @@
   "block.recompile.machine_frame": "Machine Frame",
   "block.recompile.rain_collector_funnel": "Rain Collector Funnel",
   "block.recompile.grass_spreader": "Grass Spreader",
-  "block.recompile.grass_spreader_tank": "Grass Spreader Tank",
-  "block.recompile.grass_spreader_head": "Sprinkler Head",
-  "block.recompile.motor": "Motor",
+  "block.recompile.water_tank": "Water Tank",
+  "block.recompile.grass_spreader_frame": "Spreader Manifold",
+  "block.recompile.pump": "Pump",
   "block.recompile.solar_panel": "Solar Panel",
-  "item.recompile.broken_appliance": "Broken Appliance"
+  "item.recompile.broken_appliance": "Broken Appliance",
+  "block.recompile.copper_pipe": "Copper Pipe",
+  "block.recompile.grass_spreader_spigot": "Drip Spigot",
+  "item.recompile.scrap_torch": "Scrap Torch",
+  "jei.recompile.info.grass_spreader": "Waters the ground around it, turning coarse dirt and dirt to grass one block at a time. Build up from the core: Water Tank, Pump, Solar Panel on top, and a Copper Pipe on each side of the Pump. It sits idle until the whole tower is up.",
+  "jei.recompile.info.rain_collector": "Rain is the only source of fresh water in this world. Put a Machine Frame on top and leave it under open sky. Take water out with a bucket or a glass bottle.",
+  "jade.recompile.machine_running": "Running",
+  "jade.recompile.machine_incomplete": "Not built yet",
+  "jade.recompile.machine_needs": "Needs %s",
+  "jade.recompile.spreader_radius": "Reaches %s blocks"
 }

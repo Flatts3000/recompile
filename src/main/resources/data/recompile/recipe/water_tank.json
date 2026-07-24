@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [ "recompile:rain_collector", "recompile:scrap_plating" ],
+  "result": { "id": "recompile:water_tank", "count": 1 }
+}

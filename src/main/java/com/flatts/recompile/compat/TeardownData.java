@@ -35,12 +35,13 @@ public final class TeardownData {
 
     /** The mattress teardown - the one real find today (string + fiber + springs-as-scrap). */
     public static final String MATTRESS = "/data/recompile/recipe/mattress.json";
+    public static final String BROKEN_APPLIANCE = "/data/recompile/recipe/broken_appliance.json";
 
     /** One teardown recipe as JEI needs it: the input, its outputs, and the required tool (or null). */
     public record Entry(ItemStack input, List<SortingData.Weighted> outputs, @Nullable Item tool) {}
 
     /** Every bundled teardown recipe surfaced to viewers (hardcoded, like SortingData's paths). */
-    private static final List<String> ALL_PATHS = List.of(MATTRESS);
+    private static final List<String> ALL_PATHS = List.of(MATTRESS, BROKEN_APPLIANCE);
     private static List<Entry> cached;
 
     private TeardownData() {

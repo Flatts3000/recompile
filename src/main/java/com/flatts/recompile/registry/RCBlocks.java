@@ -8,8 +8,9 @@ import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
-import com.flatts.recompile.content.block.GrassSpreaderHeadBlock;
-import com.flatts.recompile.content.block.GrassSpreaderTankBlock;
+import com.flatts.recompile.content.block.GrassSpreaderFrameBlock;
+import com.flatts.recompile.content.block.GrassSpreaderSpigotBlock;
+import com.flatts.recompile.content.block.WaterTankBlock;
 import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.RainCollectorCoreBlock;
 import com.flatts.recompile.content.block.RainCollectorFunnelBlock;
@@ -235,9 +236,9 @@ public final class RCBlocks {
     );
 
     /** The spreader's tank cell: the Rain Collector, incorporated. A dummy - no item. */
-    public static final DeferredBlock<GrassSpreaderTankBlock> GRASS_SPREADER_TANK = BLOCKS.registerBlock(
-        "grass_spreader_tank",
-        GrassSpreaderTankBlock::new,
+    public static final DeferredBlock<WaterTankBlock> WATER_TANK = BLOCKS.registerBlock(
+        "water_tank",
+        WaterTankBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(1.2F)
@@ -245,10 +246,10 @@ public final class RCBlocks {
             .noOcclusion()
     );
 
-    /** The spreader's sprinkler head: what a Motor becomes. Sprays via {@code animateTick}. */
-    public static final DeferredBlock<GrassSpreaderHeadBlock> GRASS_SPREADER_HEAD = BLOCKS.registerBlock(
-        "grass_spreader_head",
-        GrassSpreaderHeadBlock::new,
+    /** The spreader's sprinkler head: what a Pump becomes. Sprays via {@code animateTick}. */
+    public static final DeferredBlock<GrassSpreaderFrameBlock> GRASS_SPREADER_FRAME = BLOCKS.registerBlock(
+        "grass_spreader_frame",
+        GrassSpreaderFrameBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(1.2F)
@@ -257,17 +258,47 @@ public final class RCBlocks {
     );
 
     /**
-     * Motor: a shared machine component, salvaged rather than made - it is teardown-only, torn out
+     * Pump: a shared machine component, salvaged rather than made - it is teardown-only, torn out
      * of a broken appliance, which is what puts reclamation rung 1 behind the teardown spine.
      * <b>Inert</b>: no rotation, no kinetics, never requires Create (P2.3).
      */
-    public static final DeferredBlock<Block> MOTOR = BLOCKS.registerBlock(
-        "motor",
+    public static final DeferredBlock<Block> PUMP = BLOCKS.registerBlock(
+        "pump",
         Block::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(1.4F)
             .sound(SoundType.METAL)
+            // Required, not cosmetic: the model is not a full cube, so without this the game still
+            // treats it as one and culls the faces of neighbouring blocks it "covers" - which shows
+            // up as a hole punched in the ground underneath.
+            .noOcclusion()
+    );
+
+    /**
+     * Copper Pipe: a shared machine component, and copper's first job. The Burn Barrel already
+     * smelts scrap into copper nuggets (the copper-first inversion, P2.2), so this is what that
+     * metal was for. Four of them ring a Grass Spreader and become its drip spigots.
+     */
+    public static final DeferredBlock<Block> COPPER_PIPE = BLOCKS.registerBlock(
+        "copper_pipe",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_ORANGE)
+            .strength(1.0F)
+            .sound(SoundType.COPPER)
+            .noOcclusion()
+    );
+
+    /** A formed drip spigot: what a Copper Pipe becomes on the side of a spreader. Drips water. */
+    public static final DeferredBlock<GrassSpreaderSpigotBlock> GRASS_SPREADER_SPIGOT = BLOCKS.registerBlock(
+        "grass_spreader_spigot",
+        GrassSpreaderSpigotBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_ORANGE)
+            .strength(1.0F)
+            .sound(SoundType.COPPER)
+            .noOcclusion()
     );
 
     /**
