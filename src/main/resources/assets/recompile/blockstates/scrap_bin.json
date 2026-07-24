@@ -1,0 +1,139 @@
+{
+  "variants": {
+    "content=empty,facing=north": {
+      "model": "recompile:block/scrap_bin_empty"
+    },
+    "content=generic,facing=north": {
+      "model": "recompile:block/scrap_bin_empty"
+    },
+    "content=scrap_metal,facing=north": {
+      "model": "recompile:block/scrap_bin_scrap_metal"
+    },
+    "content=plastic_scrap,facing=north": {
+      "model": "recompile:block/scrap_bin_plastic_scrap"
+    },
+    "content=glass_shards,facing=north": {
+      "model": "recompile:block/scrap_bin_glass_shards"
+    },
+    "content=organic_muck,facing=north": {
+      "model": "recompile:block/scrap_bin_organic_muck"
+    },
+    "content=fiber_scrap,facing=north": {
+      "model": "recompile:block/scrap_bin_fiber_scrap"
+    },
+    "content=e_scrap,facing=north": {
+      "model": "recompile:block/scrap_bin_e_scrap"
+    },
+    "content=junk,facing=north": {
+      "model": "recompile:block/scrap_bin_junk"
+    },
+    "content=empty,facing=east": {
+      "model": "recompile:block/scrap_bin_empty",
+      "y": 90
+    },
+    "content=generic,facing=east": {
+      "model": "recompile:block/scrap_bin_empty",
+      "y": 90
+    },
+    "content=scrap_metal,facing=east": {
+      "model": "recompile:block/scrap_bin_scrap_metal",
+      "y": 90
+    },
+    "content=plastic_scrap,facing=east": {
+      "model": "recompile:block/scrap_bin_plastic_scrap",
+      "y": 90
+    },
+    "content=glass_shards,facing=east": {
+      "model": "recompile:block/scrap_bin_glass_shards",
+      "y": 90
+    },
+    "content=organic_muck,facing=east": {
+      "model": "recompile:block/scrap_bin_organic_muck",
+      "y": 90
+    },
+    "content=fiber_scrap,facing=east": {
+      "model": "recompile:block/scrap_bin_fiber_scrap",
+      "y": 90
+    },
+    "content=e_scrap,facing=east": {
+      "model": "recompile:block/scrap_bin_e_scrap",
+      "y": 90
+    },
+    "content=junk,facing=east": {
+      "model": "recompile:block/scrap_bin_junk",
+      "y": 90
+    },
+    "content=empty,facing=south": {
+      "model": "recompile:block/scrap_bin_empty",
+      "y": 180
+    },
+    "content=generic,facing=south": {
+      "model": "recompile:block/scrap_bin_empty",
+      "y": 180
+    },
+    "content=scrap_metal,facing=south": {
+      "model": "recompile:block/scrap_bin_scrap_metal",
+      "y": 180
+    },
+    "content=plastic_scrap,facing=south": {
+      "model": "recompile:block/scrap_bin_plastic_scrap",
+      "y": 180
+    },
+    "content=glass_shards,facing=south": {
+      "model": "recompile:block/scrap_bin_glass_shards",
+      "y": 180
+    },
+    "content=organic_muck,facing=south": {
+      "model": "recompile:block/scrap_bin_organic_muck",
+      "y": 180
+    },
+    "content=fiber_scrap,facing=south": {
+      "model": "recompile:block/scrap_bin_fiber_scrap",
+      "y": 180
+    },
+    "content=e_scrap,facing=south": {
+      "model": "recompile:block/scrap_bin_e_scrap",
+      "y": 180
+    },
+    "content=junk,facing=south": {
+      "model": "recompile:block/scrap_bin_junk",
+      "y": 180
+    },
+    "content=empty,facing=west": {
+      "model": "recompile:block/scrap_bin_empty",
+      "y": 270
+    },
+    "content=generic,facing=west": {
+      "model": "recompile:block/scrap_bin_empty",
+      "y": 270
+    },
+    "content=scrap_metal,facing=west": {
+      "model": "recompile:block/scrap_bin_scrap_metal",
+      "y": 270
+    },
+    "content=plastic_scrap,facing=west": {
+      "model": "recompile:block/scrap_bin_plastic_scrap",
+      "y": 270
+    },
+    "content=glass_shards,facing=west": {
+      "model": "recompile:block/scrap_bin_glass_shards",
+      "y": 270
+    },
+    "content=organic_muck,facing=west": {
+      "model": "recompile:block/scrap_bin_organic_muck",
+      "y": 270
+    },
+    "content=fiber_scrap,facing=west": {
+      "model": "recompile:block/scrap_bin_fiber_scrap",
+      "y": 270
+    },
+    "content=e_scrap,facing=west": {
+      "model": "recompile:block/scrap_bin_e_scrap",
+      "y": 270
+    },
+    "content=junk,facing=west": {
+      "model": "recompile:block/scrap_bin_junk",
+      "y": 270
+    }
+  }
+}

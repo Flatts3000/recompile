@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "PGP",
+    "PPP"
+  ],
+  "key": {
+    "P": "recompile:scrap_plating",
+    "G": "recompile:cullet_glass"
+  },
+  "result": {
+    "id": "recompile:scrap_bin",
+    "count": 1
+  }
+}

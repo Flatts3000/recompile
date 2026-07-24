@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
+import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -54,6 +55,12 @@ public final class RCBlockEntities {
             "burn_barrel",
             () -> new BlockEntityType<>(BurnBarrelBlockEntity::new, RCBlocks.BURN_BARREL.get()));
 
+    /** The Scrap Bin's contents (design P2.9) - one salvage type, bulk. */
+    public static final Supplier<BlockEntityType<ScrapBinBlockEntity>> SCRAP_BIN =
+        BLOCK_ENTITIES.register(
+            "scrap_bin",
+            () -> new BlockEntityType<>(ScrapBinBlockEntity::new, RCBlocks.SCRAP_BIN.get()));
+
     private RCBlockEntities() {
         // utility class
     }
@@ -69,5 +76,11 @@ public final class RCBlockEntities {
             Capabilities.Fluid.BLOCK,
             RAIN_COLLECTOR.get(),
             (be, side) -> be.fluidHandler());
+        // The Scrap Bin's item handler: insert-only (its extract always returns 0), so a hopper or
+        // sorter can fill a bin from any side but nothing pulls from it - "hopper in, no out" (P2.9).
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            SCRAP_BIN.get(),
+            (be, side) -> be.storageHandler());
     }
 }

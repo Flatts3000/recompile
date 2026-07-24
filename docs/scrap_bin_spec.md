@@ -1,6 +1,7 @@
 # Scrap Bin - spec
 
-**Written 2026-07-24. Design, not built.** A single craftable storage block that binds to one salvage
+**Written 2026-07-24. Built 2026-07-24** (branch `feat/scrap-bin`).
+Stale design notes below are kept where they explain *why*; where the build diverged, the built form is noted inline. A single craftable storage block that binds to one salvage
 type and holds a large amount of it, with a screen-free UX. Real-world model: the labeled bulk bin
 of a sorting operation. Design decisions in this doc are the ones locked in the 2026-07-24 session;
 record them in `../trashlands/docs/design_decisions.md` under a new P-code before building.
@@ -32,9 +33,10 @@ call, and a wall of bins would be a wall of them):
   sets `content=scrap_metal` and the body renders grey. **Color is the primary identifier** - a
   solid-bodied bin reads by hue across a room, faster than any label, and it matches what is inside
   (grey = scrap metal, teal = glass), so it is self-documenting.
-- A `fill` blockstate (`EMPTY / LOW / MID / HIGH / FULL`, composter-style) raises a visible pile in a
-  small window so a wall of bins can be scanned for what is full. Color says *which*; the window says
-  *how much*.
+- **Built:** identification is the render tint (above) **plus the bound item's own texture on a
+  raised front placard**, a per-`content` model variant. Fullness is read via Jade, not a visible
+  pile - the composter-style fill window was tried (an open box, then a front spill) and dropped as
+  visually poor; the `fill` blockstate is still tracked but no longer changes the model.
 - The **BlockEntity holds the exact count** (a BE that *holds* is allowed - the Scrap Barrel does it;
   only rendering is banned), and **Jade** reads it for the exact `Scrap Metal 3,712 / 4,096` on look.
 
@@ -85,26 +87,38 @@ unbound item.
 The bin is the **sink** of a sorting pipeline, never a source a machine pulls from. A future sorter
 can fill it; you spend it by hand.
 
-Implemented as a `WorldlyContainer`:
+**Built as a transfer-API item capability, not a `WorldlyContainer`** - the bin stores a bound
+`Item` + `int amount` directly (so it holds thousands and never scatters on break), and exposes a
+hand-rolled `ResourceHandler<ItemResource>` on `Capabilities.Item.BLOCK`:
 
-- `getSlotsForFace` returns the bin's slot for all faces (the inverse of the Burn Barrel, which
-  returns an empty `int[]` to cut all automation).
-- `canPlaceItemThroughFace` returns true **only** for an item matching the bound material (or, for an
-  unbound bin, any `#binnable` item - the first hopper insert binds it, same as a hand insert).
-- `canTakeItemThroughFace` returns **false**, always. No hopper, Create funnel, or pipe extracts.
+- `insert` is gated to binnable + the bound material (an unbound bin binds on first insert, by hand or
+  by hopper), and is transaction-safe via a `SnapshotJournal` so a rolled-back hopper insert cannot
+  dupe.
+- `extract` **always returns 0** - no hopper, Create funnel, or pipe pulls anything. A player
+  withdraws by hand (left-click), which bypasses the blocked extract.
 
-## Interaction (screen-free)
+26.1's vanilla hoppers route through this capability, so insert-only there is "hopper in, no out".
 
-- **Right-click with matching salvage** - deposit the held stack (up to capacity).
-- **Right-click with matching salvage while sneaking** - deposit every matching stack from the
-  player inventory (bulk dump).
-- **Right-click empty-handed** - withdraw one stack.
-- **Right-click empty-handed while sneaking** - withdraw one item.
-- Right-click with a non-matching `#binnable` item into a bound bin does nothing (wrong bin); into an
-  unbound bin, it binds. A non-`#binnable` item is always refused.
+## Interaction (screen-free) - Functional Storage's scheme
 
-Exact controls are provisional and get felt out in `runClient`; the deposit/withdraw split above is
-the Storage-Drawers convention, which players know.
+Adopted wholesale from Functional Storage, the controls players already know. Right-click inserts,
+left-click extracts, and the granularities mirror each other:
+
+| Input | Result |
+|---|---|
+| **Right-click**, matching salvage | Deposit the held stack; binds an empty bin |
+| **Double right-click**, matching salvage | Dump *every* matching stack from the inventory |
+| **Left-click** (tap) | Extract one item |
+| **Sneak + left-click** | Extract a full stack |
+
+- The double-click is a real second click within ~8 ticks; the bin remembers the last click
+  (transient, per-player) so the second one dumps all - even after the first emptied your hand.
+- Left-click rides the `LeftClickBlock` event (there is no `Block.attack` hook in 26.1), on the
+  initial press only, so one tap is one extract. It does **not** cancel the break: a tap does not
+  chip a strength-1.4 block, but holding left-click still breaks the bin, which is how you pick up a
+  full one (contents ride the drop). Cancelling would trap the contents until you emptied it by hand.
+- A non-matching `#binnable` item into a bound bin does nothing; into an unbound bin it binds. A
+  non-`#binnable` item is always refused.
 
 ## Capacity
 
@@ -180,6 +194,12 @@ the rest set blockstate/BE directly.
 Negative-control the two that can pass silently: the hopper-cannot-extract test (a stray true would
 make it pass as a normal container) and the carry-contents-on-break test (asserting the wrong
 component, or none, is the Rain-Collector-water failure mode).
+
+**Tests.** GameTests cover the mechanic and the interaction (binding, refusal, deposit/
+withdraw, capacity, sticky binding, break-survives, hopper-in/no-out, the double-click
+deposit-all, and left-click extract). The mod's first JUnit unit tests cover the pure logic
+(the content-to-color mapping and the contents-component codec round trip), run by
+`./gradlew test`.
 
 ## Verification
 

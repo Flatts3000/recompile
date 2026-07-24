@@ -17,6 +17,7 @@ import com.flatts.recompile.content.block.RainCollectorCoreBlock;
 import com.flatts.recompile.content.block.RainCollectorFunnelBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBarrelBlock;
+import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.ScrapCraftingTableBlock;
 import com.flatts.recompile.content.block.SortingTarpBlock;
 import com.flatts.recompile.content.block.TrashBagBlock;
@@ -171,6 +172,22 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(1.6F)
             .sound(SoundType.METAL)
+    );
+
+    /**
+     * Scrap Bin (P2.9): bulk single-type storage that binds to one salvage type and takes its color.
+     * A solid four-face cube (tinted per material) with the bound item's own texture on a raised
+     * front placard, chosen by the {@code content} blockstate. {@code noOcclusion} because that
+     * placard sits slightly proud of the front, so the model is not a plain full block.
+     */
+    public static final DeferredBlock<ScrapBinBlock> SCRAP_BIN = BLOCKS.registerBlock(
+        "scrap_bin",
+        ScrapBinBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.4F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
     );
 
     /**

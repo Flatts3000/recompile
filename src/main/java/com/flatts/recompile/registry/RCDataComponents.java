@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.ScrapBinContents;
 import com.mojang.serialization.Codec;
 import java.util.function.Supplier;
 import net.minecraft.core.component.DataComponentType;
@@ -24,6 +25,14 @@ public final class RCDataComponents {
             () -> DataComponentType.<Integer>builder()
                 .persistent(Codec.INT)
                 .networkSynchronized(ByteBufCodecs.VAR_INT)
+                .build());
+
+    /** A filled Scrap Bin's {material, count}, carried on its dropped item (P2.9). */
+    public static final Supplier<DataComponentType<ScrapBinContents>> SCRAP_BIN_CONTENTS =
+        DATA_COMPONENTS.register("scrap_bin_contents",
+            () -> DataComponentType.<ScrapBinContents>builder()
+                .persistent(ScrapBinContents.CODEC)
+                .networkSynchronized(ScrapBinContents.STREAM_CODEC)
                 .build());
 
     private RCDataComponents() {
