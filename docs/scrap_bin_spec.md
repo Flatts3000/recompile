@@ -93,18 +93,26 @@ Implemented as a `WorldlyContainer`:
   unbound bin, any `#binnable` item - the first hopper insert binds it, same as a hand insert).
 - `canTakeItemThroughFace` returns **false**, always. No hopper, Create funnel, or pipe extracts.
 
-## Interaction (screen-free)
+## Interaction (screen-free) - Functional Storage's scheme
 
-- **Right-click with matching salvage** - deposit the held stack (up to capacity).
-- **Right-click with matching salvage while sneaking** - deposit every matching stack from the
-  player inventory (bulk dump).
-- **Right-click empty-handed** - withdraw one stack.
-- **Right-click empty-handed while sneaking** - withdraw one item.
-- Right-click with a non-matching `#binnable` item into a bound bin does nothing (wrong bin); into an
-  unbound bin, it binds. A non-`#binnable` item is always refused.
+Adopted wholesale from Functional Storage, the controls players already know. Right-click inserts,
+left-click extracts, and the granularities mirror each other:
 
-Exact controls are provisional and get felt out in `runClient`; the deposit/withdraw split above is
-the Storage-Drawers convention, which players know.
+| Input | Result |
+|---|---|
+| **Right-click**, matching salvage | Deposit the held stack; binds an empty bin |
+| **Double right-click**, matching salvage | Dump *every* matching stack from the inventory |
+| **Left-click** (tap) | Extract one item |
+| **Sneak + left-click** | Extract a full stack |
+
+- The double-click is a real second click within ~8 ticks; the bin remembers the last click
+  (transient, per-player) so the second one dumps all - even after the first emptied your hand.
+- Left-click rides the `LeftClickBlock` event (there is no `Block.attack` hook in 26.1), on the
+  initial press only, so one tap is one extract. It does **not** cancel the break: a tap does not
+  chip a strength-1.4 block, but holding left-click still breaks the bin, which is how you pick up a
+  full one (contents ride the drop). Cancelling would trap the contents until you emptied it by hand.
+- A non-matching `#binnable` item into a bound bin does nothing; into an unbound bin it binds. A
+  non-`#binnable` item is always refused.
 
 ## Capacity
 
@@ -180,6 +188,12 @@ the rest set blockstate/BE directly.
 Negative-control the two that can pass silently: the hopper-cannot-extract test (a stray true would
 make it pass as a normal container) and the carry-contents-on-break test (asserting the wrong
 component, or none, is the Rain-Collector-water failure mode).
+
+**Tests.** GameTests cover the mechanic and the interaction (binding, refusal, deposit/
+withdraw, capacity, sticky binding, break-survives, hopper-in/no-out, the double-click
+deposit-all, and left-click extract). The mod's first JUnit unit tests cover the pure logic
+(the content-to-color mapping and the contents-component codec round trip), run by
+`./gradlew test`.
 
 ## Verification
 

@@ -13,6 +13,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import java.util.UUID;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -253,6 +255,59 @@ final class ScrapBinTests {
                 "an unmapped item must fall back to GENERIC");
             helper.assertTrue(ScrapBinContent.forItem(RCItems.SCRAP_METAL.get()) == ScrapBinContent.SCRAP_METAL,
                 "a known material must map to its own colored value");
+            helper.succeed();
+        });
+
+        // ---- Functional Storage interaction ----
+
+        // The double-click detector: a second click within the window is a double, and the window is
+        // consumed so a third fast click is not another double. Drives deposit-all.
+        RCGameTests.test("scrap_bin_double_click_window", 20, helper -> {
+            ScrapBinBlockEntity bin = placeBin(helper);
+            UUID p = java.util.UUID.randomUUID();
+            helper.assertTrue(!bin.rightClickIsDouble(p, 100), "the first click is never a double");
+            helper.assertTrue(bin.rightClickIsDouble(p, 105), "a click 5 ticks later is a double");
+            helper.assertTrue(!bin.rightClickIsDouble(p, 106), "the window is consumed - not a triple");
+            helper.assertTrue(!bin.rightClickIsDouble(p, 999), "a click long after is not a double");
+            helper.succeed();
+        });
+
+        // Double right-click deposits every matching stack, including ones the first click could not
+        // reach after it emptied the hand. Driven through the real block interaction (useBlock).
+        RCGameTests.test("scrap_bin_double_right_click_deposits_all", 20, helper -> {
+            ScrapBinBlockEntity bin = placeBin(helper);
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.SCRAP_METAL.get(), 64));
+            player.getInventory().add(new ItemStack(RCItems.SCRAP_METAL.get(), 64));
+            player.getInventory().add(new ItemStack(RCItems.SCRAP_METAL.get(), 64));
+
+            helper.useBlock(BIN, player);   // deposits the held stack, arms the double-click
+            helper.useBlock(BIN, player);   // same tick -> double -> deposits the remaining two
+
+            helper.assertTrue(bin.amount() == 192, "all three stacks should land, got " + bin.amount());
+            helper.assertTrue(!player.getInventory().contains(new ItemStack(RCItems.SCRAP_METAL.get())),
+                "no scrap metal should remain in the inventory");
+            helper.succeed();
+        });
+
+        // Left-click extraction (the LeftClickBlock path, via the shared static entry): a plain click
+        // takes one, a sneak click takes a stack. FS's granularity, the reverse of deposit.
+        RCGameTests.test("scrap_bin_left_click_extracts", 20, helper -> {
+            ScrapBinBlockEntity bin = placeBin(helper);
+            bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 100));
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+            boolean took = ScrapBinBlock.extract(helper.getLevel(), helper.absolutePos(BIN), player);
+            helper.assertTrue(took, "a full bin must extract on a left-click");
+            helper.assertTrue(bin.amount() == 99, "a plain click takes one, got " + (100 - bin.amount()));
+
+            player.setShiftKeyDown(true);
+            ScrapBinBlock.extract(helper.getLevel(), helper.absolutePos(BIN), player);
+            helper.assertTrue(bin.amount() == 35, "a sneak click takes a stack (64), got " + bin.amount());
+
+            helper.assertTrue(!ScrapBinBlock.extract(
+                    helper.getLevel(), helper.absolutePos(new BlockPos(3, 1, 3)), player),
+                "left-clicking where there is no bin extracts nothing");
             helper.succeed();
         });
     }

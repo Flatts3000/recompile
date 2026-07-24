@@ -7,6 +7,7 @@ import com.flatts.recompile.content.block.ScrapBinContent;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCTags;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
@@ -45,9 +46,17 @@ import org.jspecify.annotations.Nullable;
  */
 public class ScrapBinBlockEntity extends BlockEntity {
 
+    /** Right-clicks closer together than this (ticks) count as a double - deposit everything. */
+    private static final long DOUBLE_CLICK_TICKS = 8;
+
     @Nullable
     private Item boundMaterial;
     private int amount;
+
+    // Transient double-click state (not serialized) - see rightClickIsDouble.
+    @Nullable
+    private UUID lastClicker;
+    private long lastClickTick = Long.MIN_VALUE;
 
     private final Storage storage = new Storage();
     private final ContentsJournal journal = new ContentsJournal();
@@ -121,6 +130,23 @@ public class ScrapBinBlockEntity extends BlockEntity {
         }
         Item item = stack.getItem();
         return isBinnable(item) && (boundMaterial == null || boundMaterial == item);
+    }
+
+    /**
+     * Functional Storage's double-click-to-deposit-all: a right-click within a short window of the
+     * same player's last one is a double-click. Transient (not serialized) - it is momentary UI state.
+     * The window is consumed on a double so three fast clicks are not two doubles.
+     */
+    public boolean rightClickIsDouble(UUID player, long gameTime) {
+        boolean isDouble = player.equals(lastClicker) && gameTime - lastClickTick <= DOUBLE_CLICK_TICKS;
+        if (isDouble) {
+            lastClicker = null;
+            lastClickTick = Long.MIN_VALUE;
+        } else {
+            lastClicker = player;
+            lastClickTick = gameTime;
+        }
+        return isDouble;
     }
 
     @Nullable
