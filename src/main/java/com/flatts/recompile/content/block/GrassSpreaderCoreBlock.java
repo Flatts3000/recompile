@@ -59,7 +59,7 @@ public class GrassSpreaderCoreBlock extends MultiblockCoreBlock {
      * right next to it exits almost immediately, and only a fully-healed radius pays for the whole
      * walk - which is exactly the case that then drops to the idle interval.
      */
-    private static final List<Vec3i> OFFSETS = buildOffsets(64);
+    private static final List<Vec3i> OFFSETS = buildOffsets(RCConfig.GRASS_SPREADER_MAX_RADIUS);
 
     public GrassSpreaderCoreBlock(Properties properties) {
         super(properties);

@@ -20,8 +20,8 @@ throws it over the surrounding ground, turning dead earth to grass within a radi
 **consuming nothing**.
 
 **Why it consumes nothing, and why that is now honest.** An earlier draft had it eat compost and
-clean water per P2.4 item 1. That is superseded, and the sprinkler framing is what stops the
-reversal feeling like a shortcut: the machine *contains* a rain collector, so it supplies itself.
+clean water per P2.4 item 1. That is superseded, and the irrigator framing is what stops the
+reversal feeling like a shortcut: the machine *contains* a water tank, so it supplies itself.
 The cost is one steep build, not a drip. The ongoing pressure comes from P1.7-R instead - the
 junkyard takes healed ground back, so a spreader has to out-pace erosion, and permanence still needs
 trees.
@@ -85,15 +85,18 @@ Three bespoke to this machine, plus two shared components later machines reuse.
 | Block | Kind | Notes |
 |---|---|---|
 | `grass_spreader` | core, bespoke | Holds `FORMED`; runs the conversion tick and the particles. |
-| `grass_spreader_tank` | dummy, bespoke | The formed collector cell; reuses the rain-collector tote model. |
-| `grass_spreader_head` | dummy, bespoke | The formed motor cell - the sprinkler head. Sprays particles, spins later. |
+| `water_tank` | **shared component**, and its own formed appearance | The tank cell. Inert here: it holds nothing, and it is NOT a Rain Collector core (no nested cores). |
+| `grass_spreader_frame` | dummy, bespoke | What a Pump becomes: the manifold the drip ring bolts into. Formed-only, no item. |
+| `grass_spreader_spigot` | dummy, bespoke | What each of the four Copper Pipes becomes. Drips via `animateTick`. Formed-only, no item. |
 | `pump` | **shared component** | **Teardown-only**, from a `washing_machine` find. Inert - see below. |
 | `solar_panel` | craftable **and** dummy, **shared** | Inert - see below. Reusable by later machines. |
 
 The `washing_machine` find and its teardown recipe (`-> pump + scrap_metal + plastic_scrap`) come
 with this machine: one line in `loot_table/blocks/bulky_waste.json` plus one `recompile:teardown`
-recipe, no new systems. It quietly restores the appliance P1.11 dropped when Bulky Waste replaced it,
-as a *find item* this time - the shape the design settled on.
+recipe, no new systems. It restores the appliance P1.11 dropped when Bulky Waste replaced it - but as a
+**concrete object**, which is what P1.11 item 1 actually asked for when it called the generic
+appliance "a vague abstraction sitting between the player and a specific thing." A washing machine
+visibly pumps water out, so the teardown needs no explanation.
 
 **Both shared components are inert, and their names invite exactly the opposite** - so state it
 plainly, because either would break locked design:
@@ -161,8 +164,8 @@ A render-state / submit-node architecture, not the old
 `render(be, partialTick, poseStack, buffers, light, overlay)`. **IE's 1.21.1 renderers do not port.**
 It also means giving a cell a BlockEntity purely to hang the renderer on - the first BER in this mod.
 
-**Do these in order and keep them separate.** A sprinkler with a convincing spray and a static head
-reads fine; a spinning head with no water does not. Ship the particles; treat rotation as its own
+**Do these in order and keep them separate.** Drip spigots with convincing water and a static
+manifold read fine; a spinning part with no water does not. Ship the particles; treat rotation as its own
 task with "learn the new BER API" priced in honestly. The multiblock spec already anticipated this
 ("if a later machine needs animation, that machine adds a master BER then") - this is that machine.
 
@@ -273,8 +276,8 @@ static entry point per the `sortOnce` / `encroachOnce` convention:
 
 ## Design record still owed
 
-Record in `../trashlands/docs/design_decisions.md` as **P2.4-R3**: rung 1 is a sprinkler fed by an
-incorporated rain collector; it consumes nothing, and why; rung 1 is machine-only (superseding P2.4
-item 3's manual-first "monument" beat); the shared component vocabulary (Machine Frame, Solar Panel)
-and that those components are **inert** - no RF, no kinetics - which is what keeps P3.5 and P2.3
-intact.
+**Recorded 2026-07-23** in `../trashlands/docs/design_decisions.md` as **P2.4-R3**, and revised
+there during the build: rung 1 is a *drip irrigator* fed by an incorporated **Water Tank** (not a
+Rain Collector - no nested cores), the Pump is the teardown-only part and it comes out of a
+**Washing Machine**, and item 8's "no collector, no spreader" ordering is superseded and currently
+lost, since the tank is craftable from raw materials. See that section for the open question.

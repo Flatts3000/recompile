@@ -31,7 +31,12 @@ steel drum, hoses) - a deep well for future outputs from a single find. A fridge
 pick despite the iconic silhouette: its signature part is a compressor, which reads as a different
 component than a pump, and it drags refrigerant along with it.
 
-The rename also cost nothing, because the icon was a placeholder recolour of scrap metal and had no
+The find is also **placeable**, following the mattress: you can carry one home and put it down
+instead of only feeding it to the Workbench. That is what earns it four faces (front, side, top,
+bottom) rather than one flat icon - the porthole only reads as a washing machine if the front is its
+own face, and the block is oriented so the door faces whoever placed it.
+
+The rename cost nothing, because the icon was a placeholder recolour of scrap metal and had no
 texgen surface at all. That was the vague name showing through: **"a broken appliance" is not a
 prompt you can generate against.** It now has a real surface, drawn as a front-loader - at 16px a
 top-loader is an off-white box and nothing else, while the porthole door reads as one specific

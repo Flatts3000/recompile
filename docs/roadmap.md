@@ -222,7 +222,37 @@ since this world has no trees.
 **Migration:** the old `DoubleBlockHalf` rain collector is retired, so **rain collectors placed in
 existing saved worlds will not resolve and will vanish.** Accepted pre-beta.
 
-Deferred: the grass spreader (rung 1) and rungs 2-4, which reuse this framework.
+Deferred here: rungs 2-4, which reuse this framework. Rung 1 is Phase 2.12.
+
+## Phase 2.12 - The Grass Spreader, reclamation rung 1  *(IN FLIGHT, design P2.4-R3)*
+
+The first machine that heals ground, and the first consumer of the framework that is not the machine
+it was built with. Spec: [`grass_spreader_spec.md`](grass_spreader_spec.md).
+
+**A drip irrigator, not a sprinkler.** A four-cell tower - core, Water Tank, Pump, Solar Panel - with
+four Copper Pipes ringing the pump as drip spigots. It converts the **nearest** eligible ground to
+grass, one block at a time, forever, **consuming nothing**. Nearest-first is the load-bearing rule:
+green reads as growing outward, and ground the frontier just took back is closer than untouched
+ground, so it is repaired before new ground is broken. No repair pass, no stored progress.
+
+**Straight to grass, never via plain dirt.** Vanilla grass cannot spread onto coarse dirt but *can*
+spread onto dirt, so leaving an intermediate would hand the player free healing and break "nothing
+renews on its own."
+
+**No BlockEntity.** Radius and rate are config; the search recomputes from the world. It runs on a
+self-rescheduling block tick, which survives save/load with nothing serialised.
+
+**Radius 12**, which is the real statement: at that reach it repairs roughly 6x faster than
+encroachment erodes, so the constraint is **area, not attrition** - a spreader holds exactly as much
+land as it can reach, and no more.
+
+**The Pump is teardown-only**, out of a **Washing Machine** found in Bulky Waste, so rung 1 sits
+behind the teardown spine and a find. The washing machine is placeable and carries its own four-face
+art. Supply analysis: [`pump_sourcing.md`](pump_sourcing.md).
+
+**Known gap:** the Water Tank is craftable from raw materials, so a spreader no longer requires a
+Rain Collector anywhere in its chain. P2.4-R3 item 8's "no collector, no spreader" ordering is
+superseded and currently lost - see that section for the open question.
 
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 

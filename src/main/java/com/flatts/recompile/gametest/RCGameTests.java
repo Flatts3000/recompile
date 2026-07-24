@@ -70,6 +70,7 @@ public final class RCGameTests {
         EncroachmentTests.register();
         SaplingLockoutTests.register();
         GrassSpreaderTests.register();
+        RegistryCompletenessTests.register();
 
         FUNCTIONS.register(modEventBus);
         modEventBus.addListener(RCGameTests::onRegisterGameTests);

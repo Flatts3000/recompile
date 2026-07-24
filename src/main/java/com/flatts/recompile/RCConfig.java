@@ -43,6 +43,16 @@ public final class RCConfig {
      * it is exactly the land one machine can hold against encroachment.
      */
     public static final ModConfigSpec.BooleanValue GRASS_SPREADER_ENABLED;
+    /**
+     * Hard ceiling on the spreader's radius.
+     *
+     * <p>Shared with {@code GrassSpreaderCoreBlock}, which pre-builds its nearest-first offset table
+     * out to exactly this distance. The two must agree: raising only the config bound would let a
+     * player set a radius the offset table cannot reach, and the machine would silently stop at 64
+     * with nothing anywhere reporting why.
+     */
+    public static final int GRASS_SPREADER_MAX_RADIUS = 64;
+
     public static final ModConfigSpec.IntValue GRASS_SPREADER_RADIUS;
     public static final ModConfigSpec.IntValue GRASS_SPREADER_INTERVAL_TICKS;
     public static final ModConfigSpec.IntValue GRASS_SPREADER_IDLE_INTERVAL_TICKS;
@@ -89,7 +99,7 @@ public final class RCConfig {
         GRASS_SPREADER_RADIUS = builder
             .comment("How far one spreader reaches, in blocks. This is exactly the land it can hold",
                      "against encroachment - beyond it, erosion wins.")
-            .defineInRange("grassSpreaderRadius", 12, 1, 64);
+            .defineInRange("grassSpreaderRadius", 12, 1, GRASS_SPREADER_MAX_RADIUS);
         GRASS_SPREADER_INTERVAL_TICKS = builder
             .comment("Ticks between conversions while there is still ground to heal.")
             .defineInRange("grassSpreaderIntervalTicks", 40, 1, 24000);

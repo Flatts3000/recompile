@@ -74,6 +74,7 @@ Three rules that bite:
 Two traps in that area:
 
 - **The GLM directory is `loot_modifiers`, plural** - it is NeoForge's folder, not one of the vanilla dirs 26.1 singularised. "Fixing" it to match `loot_table/` silently stops the modifier loading, with no error anywhere.
+- **There is no `global_loot_modifiers.json` index in 26.1.** Every JSON in `data/<ns>/loot_modifiers/` is loaded as a modifier by directory scan, so the old `data/neoforge/loot_modifiers/global_loot_modifiers.json` index is not just unnecessary - it gets parsed *as a modifier*, has no `type` field, and logs `Couldn't parse data file 'neoforge:global_loot_modifiers'` at ERROR on every load. The modifier works regardless, so the error is pure noise that points at the wrong thing. Deleted 2026-07-23; the sapling-lockout GameTests (which break a real sapling and can only pass with the modifier live) prove it was never load-bearing.
 - **A dev run reads resources from `src/main/resources`, not `build/resources/main`.** Deleting a datapack file from the build output does *not* disable it at runtime. To prove a data-driven feature is actually doing something, neuter the **Java** and re-run - a resource-file negative control will lie to you.
 
 **Two traps that cost real time on the machines**, both silent:
