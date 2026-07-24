@@ -30,32 +30,31 @@ absence) is recorded so the *why* survives.
 ## The blueprint (locked)
 
 The scrap-interaction blocks only - **no Rain Collector, no Grass Spreader** (those are the water /
-reclamation axis, not scrap).
+reclamation axis, not scrap). A compact **6 wide × 2 deep × 2 tall** box, 18 blocks.
 
-- **Counter (front, hand level, `z=0` `y=0`), 6 wide:** Scrap Crafting Table, Recompile Workbench,
-  Sorting Tarp, Burn Barrel, Scrap Barrel, and the **junk bin** - the bulk filler dropped to hand
-  level for easiest reach.
-- **Shelf (back, high, `z=1`):** six material bins (`y=1`) on six **Machine Frames** (`y=0`).
-- **Core (back-centre, `z=2` `y=0`):** the **Workstation Core**, the controller behind the bench -
-  off the counter so both rows stay 6 wide.
+- **Front counter (`z=0`, `y=0`), 6 wide, hand level:** Scrap Crafting Table, Recompile Workbench,
+  Sorting Tarp, Burn Barrel, Scrap Barrel, and the **junk bin** (bulk filler at hand level).
+- **Back supports (`z=1`, `y=0`), 6 wide:** the **Workstation Core** and five **Machine Frames**.
+- **Back shelf (`z=1`, `y=1`):** six material bins, one sitting on each support - **including one on
+  the core itself** (the core doubles as a shelf leg; it is not a standalone controller).
+- **Above the counter (`z=0`, `y=1`): air.** The bins are only over the back row.
 
 ```
- TOP VIEW (player at the front):
+ TOP VIEW:
 
-  z=2 (back):                [CORE]                        y=0
-  z=1 (shelf):  [bin][bin][bin][bin][bin][bin]             y=1   on [frame]x6 (y=0)
-  z=0 (counter):[craft][wbench][sort][burn][barrel][junk]  y=0
+  z=1 (back):   [core][frame][frame][frame][frame][frame]   y=0  ->  6 bins on top (y=1)
+  z=0 (front):  [craft][wbench][sort][burn][barrel][junk]   y=0  ->  air on top (y=1)
 
- SIDE VIEW:
+ SIDE VIEW (one column):
 
-  y=1                    [ BIN ]                <- shelf, shifted back (z=1)
-  y=0   [ COUNTER ][ FRAME ][ CORE ]           <- hand level; frame under bin; core at back
-         z=0        z=1      z=2
+  y=1:  [air] [bin]             <- bins sit on the back row only
+  y=0:  [work][frame-or-core]   <- counter in front, frame/core support behind
+        z=0   z=1
 ```
 
-6 wide × 3 deep × 2 tall, 19 blocks, 7 bins (6 shelf + junk on the counter). Bins **bind at runtime** -
-the blueprint requires "a Scrap Bin here," not a specific material; you bind each by use, and the
-file-all can bind them for you (below).
+18 blocks: 7 bins (6 shelf + junk on the counter), 5 workstations, 5 frames, 1 core. Bins **bind at
+runtime** - the blueprint requires "a Scrap Bin here," not a specific material; you bind each by use,
+and the file-all can bind them for you (below).
 
 ## Architecture - reuse the core, keep every block
 
@@ -151,7 +150,7 @@ the way" into "you saw the red cell coming."
 
 ## Build UX
 
-- **Auto-assemble**: place the core with all 18 other blocks in your inventory and it places them into
+- **Auto-assemble**: place the core with all 17 other blocks in your inventory and it places them into
   the blueprint (all-or-nothing - if you cannot supply every block, it places none). The outline
   previews placement and flags conflicts.
 - **Manual**: build the shape into the outline; the core forms when the blueprint validates on a
