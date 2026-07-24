@@ -91,9 +91,16 @@ build around.
 Once formed, the core mediates a shared view of the connected storage (the bins + the barrel). Each
 member reads or writes it. Rough order of increasing difficulty (build the cheap ones first):
 
-1. **Sorting Tarp -> bins.** Sifting sends materials into the matching connected bin (overflow / the
-   non-binnable remainder to the barrel) instead of dropping on the floor. *Reverses P1.3's world-drop
-   - the deliberate revision, only while part of a workstation; a standalone tarp still drops.*
+1. **Sorting Tarp -> bins**, two ways. Its normal right-click sifts *garbage* into materials, which
+   now land in the matching connected bin (overflow / the non-binnable remainder to the barrel)
+   instead of dropping on the floor. And **shift-right-click files your loose *materials*** - one
+   action walks the player inventory and sends every `#binnable` stack to its matching bin, overflow
+   or bin-less scrap to the barrel. This is the workstation's payoff QoL: dump a whole scavenging haul
+   into storage with one click. *Both reverse P1.3's world-drop - the deliberate revision, only while
+   part of a workstation; a standalone tarp still drops.*
+   - **Open:** does the file-all **auto-bind an empty bin** for a material it has no bin for (lean:
+     yes, the first empty bin per material), or only fill already-bound bins and send the rest to the
+     barrel (respects bins set aside on purpose)?
 2. **Recompile Workbench -> storage.** Teardown outputs route into the connected bins / barrel instead
    of popping into the world.
 3. **Burn Barrel -> storage.** Smelt outputs move to the connected storage on completion. This is the
