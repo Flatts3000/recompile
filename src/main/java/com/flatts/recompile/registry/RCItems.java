@@ -170,11 +170,12 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("copper_pipe", RCBlocks.COPPER_PIPE);
     /**
      * The find the Pump comes out of. A Bulky Waste line, torn down at the Recompile Workbench -
-     * it restores the appliance P1.11 dropped when Bulky Waste replaced it, as a find item this
-     * time, which is the shape the design settled on. No block: a find is an item in your hand.
+     * it restores the appliance P1.11 dropped when Bulky Waste replaced it. Placeable like the
+     * mattress, the other find: you can carry one home and put it down instead of only feeding it
+     * to the Workbench.
      */
-    public static final DeferredItem<Item> WASHING_MACHINE =
-        ITEMS.registerSimpleItem("washing_machine");
+    public static final DeferredItem<BlockItem> WASHING_MACHINE =
+        ITEMS.registerSimpleBlockItem("washing_machine", RCBlocks.WASHING_MACHINE);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */
     public static final DeferredItem<StandingAndWallBlockItem> SCRAP_TORCH = ITEMS.registerItem(
         "scrap_torch",

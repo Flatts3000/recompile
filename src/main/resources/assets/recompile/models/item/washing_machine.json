@@ -1,4 +1,1 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "recompile:item/washing_machine" }
-}
+{ "parent": "recompile:block/washing_machine" }

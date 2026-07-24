@@ -10,6 +10,7 @@ import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
 import com.flatts.recompile.content.block.GrassSpreaderFrameBlock;
 import com.flatts.recompile.content.block.GrassSpreaderSpigotBlock;
+import com.flatts.recompile.content.block.WashingMachineBlock;
 import com.flatts.recompile.content.block.WaterTankBlock;
 import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.RainCollectorCoreBlock;
@@ -169,6 +170,20 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(1.6F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
+     * Washing Machine: the second Bulky Waste find, and the only source of the Pump. Placeable so a
+     * find can be carried home rather than only consumed, following the mattress. A plain full cube
+     * with no behaviour - the four-face art and the facing are the whole block.
+     */
+    public static final DeferredBlock<WashingMachineBlock> WASHING_MACHINE = BLOCKS.registerBlock(
+        "washing_machine",
+        WashingMachineBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_WHITE)
+            .strength(1.4F)
             .sound(SoundType.METAL)
     );
 

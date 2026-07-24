@@ -89,7 +89,9 @@ Two traps in that area:
 
 ## Textures (texgen)
 
-Textures are **generated, never hand-drawn**, by the shared engine at `../mc-pack-toolkit/texgen/` (install: `pip install -e F:/minecraft-repos/mc-pack-toolkit/texgen`). This repo carries `texgen.toml`, which declares every surface (prompt, backend, variants/faces). Workflow: `texgen generate --surface X` -> `texgen sheet` -> `select X <batch>/<idx>` -> `promote` -> `validate`.
+Textures are **generated, never hand-drawn**, by the shared engine at `../mc-pack-toolkit/texgen/` (install: `pip install -e F:/minecraft-repos/mc-pack-toolkit/texgen`). This repo carries `texgen.toml`, which declares every surface (prompt, backend, variants/faces). Workflow: `texgen generate --surface X` -> `texgen sheet` -> `select X <idx>...` -> `promote` -> `validate`.
+
+`select` takes **one ref per slot, in slot order** - so a 4-face surface takes four refs. Pass **bare indices** (`select washing_machine 3 3 3 2`), which is also what the review page prints. The `<batch>/<idx>` form only resolves for a single-slot surface: a multiface surface pools each face in its own dated directory (`washing_machine_front-<date>/`), so a shared batch prefix resolves to a path that does not exist and `promote` dies with `candidate not found`.
 
 `texgen sheet` builds `gen/recompile_textures_review.html`, the page Jason reviews art in: pending surfaces on top with their `select` commands, approved ones at the bottom. **Re-run it after anything that changes a texture** - it is a build artifact, not a live view. Approval is explicit in `gen/approved.json`; drop a surface's id back out when its art changes so it returns to the pending queue.
 
