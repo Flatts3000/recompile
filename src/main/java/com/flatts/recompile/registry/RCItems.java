@@ -152,6 +152,30 @@ public final class RCItems {
      */
     public static final DeferredItem<BlockItem> MACHINE_FRAME =
         ITEMS.registerSimpleBlockItem("machine_frame", RCBlocks.MACHINE_FRAME);
+    /** A Machine Frame wrapped in plastic sheeting - the collector's catch, crafted then placed. */
+    public static final DeferredItem<BlockItem> RAIN_COLLECTOR_FUNNEL =
+        ITEMS.registerSimpleBlockItem("rain_collector_funnel", RCBlocks.RAIN_COLLECTOR_FUNNEL);
+    public static final DeferredItem<BlockItem> GRASS_SPREADER =
+        ITEMS.registerSimpleBlockItem("grass_spreader", RCBlocks.GRASS_SPREADER);
+    /** Salvaged, never crafted - it comes out of a broken appliance at the workbench. */
+    public static final DeferredItem<BlockItem> PUMP =
+        ITEMS.registerSimpleBlockItem("pump", RCBlocks.PUMP);
+    public static final DeferredItem<BlockItem> SOLAR_PANEL =
+        ITEMS.registerSimpleBlockItem("solar_panel", RCBlocks.SOLAR_PANEL);
+    /** Crafted from a Rain Collector - the machine you already built, plumbed into a bigger one. */
+    public static final DeferredItem<BlockItem> WATER_TANK =
+        ITEMS.registerSimpleBlockItem("water_tank", RCBlocks.WATER_TANK);
+    /** Copper's first job - four of these ring a spreader and become its drip spigots. */
+    public static final DeferredItem<BlockItem> COPPER_PIPE =
+        ITEMS.registerSimpleBlockItem("copper_pipe", RCBlocks.COPPER_PIPE);
+    /**
+     * The find the Pump comes out of. A Bulky Waste line, torn down at the Recompile Workbench -
+     * it restores the appliance P1.11 dropped when Bulky Waste replaced it. Placeable like the
+     * mattress, the other find: you can carry one home and put it down instead of only feeding it
+     * to the Workbench.
+     */
+    public static final DeferredItem<BlockItem> WASHING_MACHINE =
+        ITEMS.registerSimpleBlockItem("washing_machine", RCBlocks.WASHING_MACHINE);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */
     public static final DeferredItem<StandingAndWallBlockItem> SCRAP_TORCH = ITEMS.registerItem(
         "scrap_torch",

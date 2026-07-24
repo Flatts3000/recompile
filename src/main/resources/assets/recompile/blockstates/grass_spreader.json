@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "formed=false": { "model": "recompile:block/grass_spreader" },
+    "formed=true": { "model": "recompile:block/grass_spreader" }
+  }
+}

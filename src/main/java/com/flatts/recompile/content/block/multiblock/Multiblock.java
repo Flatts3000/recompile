@@ -2,12 +2,14 @@ package com.flatts.recompile.content.block.multiblock;
 
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
  * A multiblock blueprint: which block must sit at which offset from the core, and what each cell
@@ -24,6 +26,29 @@ import net.minecraft.world.level.block.state.BlockState;
  * behaves as one object rather than a pile of blocks.
  */
 public record Multiblock(List<Cell> cells) {
+
+    /**
+     * <b>A machine may never take another machine's core as a component.</b>
+     *
+     * <p>Nesting cores looks appealing - "build the spreader around a rain collector" - and it does
+     * not work: the inner core is live. It watches its own neighbours, and the moment one changes it
+     * tries to assemble <em>itself</em>, placing its own components into cells the outer machine has
+     * already claimed. Two machines then fight over the same blocks.
+     *
+     * <p>The fix is to use an inert component and put the other machine in its <em>recipe</em>, which
+     * keeps the progression ("you need a collector first") without putting a second brain inside the
+     * structure. Checked here so the rule fails loudly at the first blueprint build rather than as a
+     * baffling in-world tug of war.
+     */
+    public Multiblock {
+        for (Cell cell : cells) {
+            if (cell.component() instanceof MultiblockCoreBlock) {
+                throw new IllegalArgumentException(
+                    "a multiblock component may not be another machine's core: " + cell.component()
+                        + " - make it an inert block and consume the machine in its recipe instead");
+            }
+        }
+    }
 
     /**
      * One cell of the blueprint.
@@ -66,10 +91,24 @@ public record Multiblock(List<Cell> cells) {
         return true;
     }
 
-    /** Swap every loose component for its formed counterpart. Call only when {@link #matches}. */
+    /**
+     * Swap every loose component for its formed counterpart. Call only when {@link #matches}.
+     *
+     * <p>A formed block that carries {@code HORIZONTAL_FACING} is turned to <b>face the core</b>.
+     * Parts that plumb or bolt into the middle of a machine have to point at it, and a cell already
+     * knows where the core is - so orienting here means no machine has to solve it again, and a
+     * component placed on any side comes out pointing the right way.
+     */
     public void form(Level level, BlockPos core) {
         for (Cell cell : cells) {
-            level.setBlock(cell.at(core), cell.formed().defaultBlockState(), Block.UPDATE_ALL);
+            BlockState formed = cell.formed().defaultBlockState();
+            Vec3i offset = cell.offset();
+            if (formed.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
+                    && (offset.getX() != 0 || offset.getZ() != 0)) {
+                formed = formed.setValue(BlockStateProperties.HORIZONTAL_FACING,
+                    Direction.getApproximateNearest(-offset.getX(), 0, -offset.getZ()));
+            }
+            level.setBlock(cell.at(core), formed, Block.UPDATE_ALL);
         }
     }
 

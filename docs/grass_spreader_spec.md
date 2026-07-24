@@ -3,8 +3,8 @@
 **Written 2026-07-23.** Rung 1 of the reclamation chain (design P2.4-R). Spec only - not built.
 
 > **Renamed from `soil_spreader_spec.md`, because the machine changed identity.** It is not a soil
-> hopper that spreads dirt; it is a **sprinkler** that spreads *water*, constantly, from a rain
-> collector built into it. How it converts ground is unchanged; what it *is* changed, and with it
+> hopper that spreads dirt; it is a **drip irrigator** that constantly waters the ground from four
+> copper spigots, fed by a tank built from a rain collector. How it converts ground is unchanged; what it *is* changed, and with it
 > the whole silhouette and structure.
 
 Design source of truth is the pack repo: `../trashlands/docs/design_decisions.md` (**P2.4** the
@@ -15,13 +15,13 @@ original chain, **P2.4-R** the economy revision, **P1.7-R** encroachment). The d
 
 ## What it is
 
-A four-block sprinkler tower. It draws water from a Rain Collector built into its own structure and
+A four-block drip-irrigation tower, ringed by four copper spigots. It draws water from a Rain Collector built into its own structure and
 throws it over the surrounding ground, turning dead earth to grass within a radius, forever,
 **consuming nothing**.
 
 **Why it consumes nothing, and why that is now honest.** An earlier draft had it eat compost and
-clean water per P2.4 item 1. That is superseded, and the sprinkler framing is what stops the
-reversal feeling like a shortcut: the machine *contains* a rain collector, so it supplies itself.
+clean water per P2.4 item 1. That is superseded, and the irrigator framing is what stops the
+reversal feeling like a shortcut: the machine *contains* a water tank, so it supplies itself.
 The cost is one steep build, not a drip. The ongoing pressure comes from P1.7-R instead - the
 junkyard takes healed ground back, so a spreader has to out-pace erosion, and permanence still needs
 trees.
@@ -41,14 +41,21 @@ shared vocabulary keeps its user; here the moving part is a **Motor**.
 | Cell | You place | Formed as | Notes |
 |---|---|---|---|
 | 3 (top) | **Solar Panel** | *unchanged* | Unshaded, caps the tower. Shared component. |
-| 2 | **Motor** | **sprinkler head** | A motor is what *spins* a sprinkler head - the fiction is exact, and it is why this machine is the one that eventually needs rotation. Bespoke art. |
-| 1 | **Rain Collector** | `grass_spreader_tank` | The incorporated water - a literal collector, consumed into the structure. |
-| 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master, and the pump base. **Its own texture** - deliberately not the collector's palette, so the two machines never read as the same object. |
+| 2 sides x4 | **Copper Pipe** | **drip spigot** | The drip ring. Turned to face the manifold on forming, so all four plumb inward. |
+| 2 | **Pump** | **manifold** | Lifts water to the spigots. |
+| 1 | **Water Tank** | *unchanged* | Crafted **from a Rain Collector**. |
+| 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master. **Its own texture** - never the collector's palette. |
 
-**The motor is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
-of a found appliance (`broken_appliance`, a Bulky Waste line) at the Recompile Workbench, never
-crafted. So rung 1 sits behind the teardown spine and a find, which orders progression well: you
-salvage a motor before you can water anything. It also means the spreader cannot be rushed.
+**The tank must not be the Rain Collector block itself.** A machine may never take another machine's
+core as a component: the inner core is live, watches its own neighbours, and will try to assemble
+*itself* into cells the outer machine has claimed. `Multiblock`'s constructor now rejects that
+outright. The collector moves into the tank's **recipe**, which keeps the progression without a
+second brain inside the structure.
+
+**The pump is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
+of a found washing machine (`washing_machine`, a Bulky Waste line) at the Recompile Workbench,
+never crafted. So rung 1 sits behind the teardown spine and a find, which orders progression well:
+you salvage a pump before you can water anything. It also means the spreader cannot be rushed.
 
 **The Solar Panel keeps its own appearance** - the framework supports a `Multiblock.Cell` naming the
 same block as component *and* formed, so a cell that does not change costs one block, not two. The
@@ -78,15 +85,18 @@ Three bespoke to this machine, plus two shared components later machines reuse.
 | Block | Kind | Notes |
 |---|---|---|
 | `grass_spreader` | core, bespoke | Holds `FORMED`; runs the conversion tick and the particles. |
-| `grass_spreader_tank` | dummy, bespoke | The formed collector cell; reuses the rain-collector tote model. |
-| `grass_spreader_head` | dummy, bespoke | The formed motor cell - the sprinkler head. Sprays particles, spins later. |
-| `motor` | **shared component** | **Teardown-only**, from a `broken_appliance` find. Inert - see below. |
+| `water_tank` | **shared component**, and its own formed appearance | The tank cell. Inert here: it holds nothing, and it is NOT a Rain Collector core (no nested cores). |
+| `grass_spreader_frame` | dummy, bespoke | What a Pump becomes: the manifold the drip ring bolts into. Formed-only, no item. |
+| `grass_spreader_spigot` | dummy, bespoke | What each of the four Copper Pipes becomes. Drips via `animateTick`. Formed-only, no item. |
+| `pump` | **shared component** | **Teardown-only**, from a `washing_machine` find. Inert - see below. |
 | `solar_panel` | craftable **and** dummy, **shared** | Inert - see below. Reusable by later machines. |
 
-The `broken_appliance` find and its teardown recipe (`-> motor + scrap_metal + plastic_scrap`) come
+The `washing_machine` find and its teardown recipe (`-> pump + scrap_metal + plastic_scrap`) come
 with this machine: one line in `loot_table/blocks/bulky_waste.json` plus one `recompile:teardown`
-recipe, no new systems. It quietly restores the appliance P1.11 dropped when Bulky Waste replaced it,
-as a *find item* this time - the shape the design settled on.
+recipe, no new systems. It restores the appliance P1.11 dropped when Bulky Waste replaced it - but as a
+**concrete object**, which is what P1.11 item 1 actually asked for when it called the generic
+appliance "a vague abstraction sitting between the player and a specific thing." A washing machine
+visibly pumps water out, so the teardown needs no explanation.
 
 **Both shared components are inert, and their names invite exactly the opposite** - so state it
 plainly, because either would break locked design:
@@ -154,8 +164,8 @@ A render-state / submit-node architecture, not the old
 `render(be, partialTick, poseStack, buffers, light, overlay)`. **IE's 1.21.1 renderers do not port.**
 It also means giving a cell a BlockEntity purely to hang the renderer on - the first BER in this mod.
 
-**Do these in order and keep them separate.** A sprinkler with a convincing spray and a static head
-reads fine; a spinning head with no water does not. Ship the particles; treat rotation as its own
+**Do these in order and keep them separate.** Drip spigots with convincing water and a static
+manifold read fine; a spinning part with no water does not. Ship the particles; treat rotation as its own
 task with "learn the new BER API" priced in honestly. The multiblock spec already anticipated this
 ("if a later machine needs animation, that machine adds a master BER then") - this is that machine.
 
@@ -194,11 +204,41 @@ Leaning on vanilla and what exists, per the strategy that carried the rain colle
 
 ## Data surface
 
-- Tag `recompile:spreadable`.
-- Config under `reclamation`: `grassSpreaderEnabled`, `grassSpreaderRadius`,
-  `grassSpreaderIntervalTicks`, `grassSpreaderIdleIntervalTicks`, `grassSpreaderVerticalTolerance`.
-- Recipes: the core, and the shared `solar_panel`. All numbers are first-pass placeholders and join
-  the **pre-beta balance pass** - do not tune them in isolation.
+- Tag `recompile:spreadable` (coarse dirt + dirt) and `recompile:spread_immune` (mycelium).
+  **`spread_immune` is deliberately not `encroachment_immune`**: that one contains coarse dirt,
+  because coarse dirt is what encroachment reverts *to*. Here it is the primary target. The two
+  systems mean opposite things by "immune", and sharing one tag made the machine refuse the one
+  block it exists to convert.
+- Config under `reclamation`: `grassSpreaderEnabled`, `grassSpreaderRadius` (12),
+  `grassSpreaderIntervalTicks` (40), `grassSpreaderIdleIntervalTicks` (200),
+  `grassSpreaderVerticalTolerance` (3).
+
+### Recipes (prescribed 2026-07-23)
+
+| Piece | Recipe |
+|---|---|
+| **Water Tank** | `PPP / R R / RMR` - plastic scrap, rebar, scrap metal. The shared primitive. |
+| **Rain Collector** | copper pipe over water tank. Literally a tank with a pipe on top. |
+| **Rain Collector Funnel** | shapeless: machine frame + plastic scrap. A frame wrapped in sheeting. |
+| **Machine Frame** | `RPR / P P / RPR` - rebar + scrap plating, yields 2. |
+| **Grass Spreader** | `PCP / RMR / PPP` - plating, copper pipe, rebar, scrap metal. |
+| **Solar Panel** | `GGG / EEE / PPP` - cullet glass, e-scrap, scrap plating. |
+| **Copper Pipe** | `NNN / ... / NNN` - six copper nuggets, yields 3. |
+| **Pump** | No recipe. Teardown of a Washing Machine with the prybar. |
+
+**The tank is the primitive, not the collector.** Building a tank *out of* a collector had the
+dependency backwards - a collector already contains one. Both machines now share the tank part.
+
+**Consequence, and it corrects P2.4-R3:** the spreader no longer consumes a Rain Collector, so
+"no collector, no spreader" is no longer true. Rung 1 is still gated behind two other systems - the
+**Pump** (teardown plus a Bulky Waste find) and **copper** (the Burn Barrel) - so it has not gone
+soft. The collector needing copper also puts *it* behind the Burn Barrel, which is consistent with
+P1.10's "improvised, pre-iron" since copper is this world's first metal, not iron.
+
+**Copper pipe is the most load-bearing part in the mod:** one in the collector, one in the spreader
+core, four more in the drip ring. Both machines together cost 18 scrap metal through the Burn Barrel.
+If the barrel's smelt ratio ever becomes lossy as P2.2 describes (3 scrap to 1 nugget), that number
+triples - the ratio and this yield are the same dial, so tune one, not both.
 
 ## Tests (GameTest)
 
@@ -236,8 +276,8 @@ static entry point per the `sortOnce` / `encroachOnce` convention:
 
 ## Design record still owed
 
-Record in `../trashlands/docs/design_decisions.md` as **P2.4-R3**: rung 1 is a sprinkler fed by an
-incorporated rain collector; it consumes nothing, and why; rung 1 is machine-only (superseding P2.4
-item 3's manual-first "monument" beat); the shared component vocabulary (Machine Frame, Solar Panel)
-and that those components are **inert** - no RF, no kinetics - which is what keeps P3.5 and P2.3
-intact.
+**Recorded 2026-07-23** in `../trashlands/docs/design_decisions.md` as **P2.4-R3**, and revised
+there during the build: rung 1 is a *drip irrigator* fed by an incorporated **Water Tank** (not a
+Rain Collector - no nested cores), the Pump is the teardown-only part and it comes out of a
+**Washing Machine**, and item 8's "no collector, no spreader" ordering is superseded and currently
+lost, since the tank is craftable from raw materials. See that section for the open question.

@@ -63,7 +63,10 @@ public class RainCollectorCoreBlock extends MultiblockCoreBlock implements Entit
 
     @Override
     protected Multiblock createBlueprint() {
-        return Multiblock.stackedOn(RCBlocks.MACHINE_FRAME.get(), RCBlocks.RAIN_COLLECTOR_FUNNEL.get());
+        // The funnel is crafted, not transformed: you wrap a frame in plastic and place that, so
+        // the component and the formed cell are the same block.
+        return Multiblock.stackedOn(
+            RCBlocks.RAIN_COLLECTOR_FUNNEL.get(), RCBlocks.RAIN_COLLECTOR_FUNNEL.get());
     }
 
     @Override

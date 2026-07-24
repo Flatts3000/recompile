@@ -45,6 +45,18 @@ public abstract class MultiblockCoreBlock extends Block {
     protected abstract Multiblock createBlueprint();
 
     /**
+     * Called once, server-side, right after the machine assembles. Override to start work - a
+     * machine that runs on scheduled ticks books its first one here, so an unformed core costs
+     * nothing at all rather than polling to discover it is still unformed.
+     */
+    protected void onFormed(Level level, BlockPos pos) {
+    }
+
+    /** Called once, server-side, right after the machine comes apart. */
+    protected void onDisbanded(Level level, BlockPos pos) {
+    }
+
+    /**
      * The shape this core assembles into, memoized.
      *
      * <p>Memoized rather than rebuilt because {@link #neighborChanged} calls this, and that fires on
@@ -155,6 +167,7 @@ public abstract class MultiblockCoreBlock extends Block {
         }
         blueprint.form(level, pos);
         level.setBlock(pos, state.setValue(FORMED, true), Block.UPDATE_ALL);
+        core.onFormed(level, pos);
         return true;
     }
 
@@ -167,6 +180,7 @@ public abstract class MultiblockCoreBlock extends Block {
         core.blueprint().disband(level, pos, drop);
         if (isFormed(state)) {
             level.setBlock(pos, state.setValue(FORMED, false), Block.UPDATE_ALL);
+            core.onDisbanded(level, pos);
         }
     }
 

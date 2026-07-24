@@ -74,7 +74,13 @@ Three rules that bite:
 Two traps in that area:
 
 - **The GLM directory is `loot_modifiers`, plural** - it is NeoForge's folder, not one of the vanilla dirs 26.1 singularised. "Fixing" it to match `loot_table/` silently stops the modifier loading, with no error anywhere.
+- **There is no `global_loot_modifiers.json` index in 26.1.** Every JSON in `data/<ns>/loot_modifiers/` is loaded as a modifier by directory scan, so the old `data/neoforge/loot_modifiers/global_loot_modifiers.json` index is not just unnecessary - it gets parsed *as a modifier*, has no `type` field, and logs `Couldn't parse data file 'neoforge:global_loot_modifiers'` at ERROR on every load. The modifier works regardless, so the error is pure noise that points at the wrong thing. Deleted 2026-07-23; the sapling-lockout GameTests (which break a real sapling and can only pass with the modifier live) prove it was never load-bearing.
 - **A dev run reads resources from `src/main/resources`, not `build/resources/main`.** Deleting a datapack file from the build output does *not* disable it at runtime. To prove a data-driven feature is actually doing something, neuter the **Java** and re-run - a resource-file negative control will lie to you.
+
+**Two traps that cost real time on the machines**, both silent:
+
+- **A non-cube model on a block without `noOcclusion()` punches a hole in the world.** The game still treats it as a full cube for face culling, so it culls the neighbouring block's face and you see straight through the ground. It looks like a rendering glitch with no obvious cause. Every block whose model is not a full cube needs `noOcclusion()`.
+- **A formed multiblock cell must drop the component you placed.** Its loot table is what disband returns, so a stale entry silently downgrades the machine every time it is taken apart - and a disband test that asserts the wrong item will pass and hide it. Check the loot table, not just the test.
 
 **The data spine.** `TeardownRecipe` registers the public `recompile:teardown` recipe type - JSON in `data/<ns>/recipe/`, with `results` (deterministic core), `extras` (weighted bonus), and `teaches` (recipes to study). It was registered from day one so the Phase 3 knowledge system is never retrofitted into a live schema. **Packs and addons extend the teardown tree through this schema without a mod release - treat it as public API.**
 
@@ -84,7 +90,9 @@ Two traps in that area:
 
 ## Textures (texgen)
 
-Textures are **generated, never hand-drawn**, by the shared engine at `../mc-pack-toolkit/texgen/` (install: `pip install -e F:/minecraft-repos/mc-pack-toolkit/texgen`). This repo carries `texgen.toml`, which declares every surface (prompt, backend, variants/faces). Workflow: `texgen generate --surface X` -> `texgen sheet` -> `select X <batch>/<idx>` -> `promote` -> `validate`.
+Textures are **generated, never hand-drawn**, by the shared engine at `../mc-pack-toolkit/texgen/` (install: `pip install -e F:/minecraft-repos/mc-pack-toolkit/texgen`). This repo carries `texgen.toml`, which declares every surface (prompt, backend, variants/faces). Workflow: `texgen generate --surface X` -> `texgen sheet` -> `select X <idx>...` -> `promote` -> `validate`.
+
+`select` takes **one ref per slot, in slot order** - so a 4-face surface takes four refs. Pass **bare indices** (`select washing_machine 3 3 3 2`), which is also what the review page prints. The `<batch>/<idx>` form only resolves for a single-slot surface: a multiface surface pools each face in its own dated directory (`washing_machine_front-<date>/`), so a shared batch prefix resolves to a path that does not exist and `promote` dies with `candidate not found`.
 
 `texgen sheet` builds `gen/recompile_textures_review.html`, the page Jason reviews art in: pending surfaces on top with their `select` commands, approved ones at the bottom. **Re-run it after anything that changes a texture** - it is a build artifact, not a live view. Approval is explicit in `gen/approved.json`; drop a surface's id back out when its art changes so it returns to the pending queue.
 
@@ -114,6 +122,7 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - **Event buses are merged.** `@EventBusSubscriber` takes no `bus` parameter; `EventBusSubscriber.Bus` is gone.
 - `net.minecraft.resources.Identifier`, not `ResourceLocation`.
 - **Data directories are singular**: `loot_table/`, `recipe/`, `structure/`, `tags/block/`, `tags/item/`, `worldgen/configured_feature/`, `worldgen/placed_feature/`.
+- **`DirectionProperty` is gone.** Horizontal facing is `EnumProperty<Direction>` now (`BlockStateProperties.HORIZONTAL_FACING`); the old dedicated class does not exist, so 1.21-era snippets that declare one will not compile.
 - **`GameRules` moved to `net.minecraft.world.level.gamerules`**, and the rules were renamed: `doTileDrops` is now `block_drops` (`GameRules.BLOCK_DROPS`, a `GameRule<Boolean>`).
 - **`#minecraft:dirt` is only three blocks now** (dirt, coarse dirt, rooted dirt) - it does *not* contain grass, podzol, mud or moss, so 1.20-era guides that use it as "the dirt family" are wrong. The union that still means "overworld ground" is **`#minecraft:substrate_overworld`** (`#dirt + #mud + #moss_blocks + #grass_blocks`). This fails *silently* - a tag reference resolves fine and simply matches less than you expect, so it surfaces as a mechanic quietly not firing on most of its intended targets (see `RCTags.ENCROACHABLE`).
 - `pack.mcmeta` uses the `min_format`/`max_format` range form (both `84`), not scalar `pack_format`.

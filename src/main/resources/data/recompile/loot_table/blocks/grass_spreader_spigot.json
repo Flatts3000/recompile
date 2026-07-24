@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:block",
+  "pools": [ { "rolls": 1, "conditions": [ { "condition": "minecraft:survives_explosion" } ],
+    "entries": [ { "type": "minecraft:item", "name": "recompile:copper_pipe" } ] } ]
+}

@@ -1,0 +1,137 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "c": "recompile:block/copper_pipe",
+    "particle": "recompile:block/copper_pipe"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        16,
+        6
+      ],
+      "faces": {
+        "down": {
+          "texture": "#c"
+        },
+        "up": {
+          "texture": "#c"
+        },
+        "north": {
+          "texture": "#c"
+        },
+        "south": {
+          "texture": "#c"
+        },
+        "west": {
+          "texture": "#c"
+        },
+        "east": {
+          "texture": "#c"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        0,
+        10
+      ],
+      "to": [
+        11,
+        16,
+        11
+      ],
+      "faces": {
+        "down": {
+          "texture": "#c"
+        },
+        "up": {
+          "texture": "#c"
+        },
+        "north": {
+          "texture": "#c"
+        },
+        "south": {
+          "texture": "#c"
+        },
+        "west": {
+          "texture": "#c"
+        },
+        "east": {
+          "texture": "#c"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        0,
+        6
+      ],
+      "to": [
+        6,
+        16,
+        10
+      ],
+      "faces": {
+        "down": {
+          "texture": "#c"
+        },
+        "up": {
+          "texture": "#c"
+        },
+        "north": {
+          "texture": "#c"
+        },
+        "south": {
+          "texture": "#c"
+        },
+        "west": {
+          "texture": "#c"
+        },
+        "east": {
+          "texture": "#c"
+        }
+      }
+    },
+    {
+      "from": [
+        10,
+        0,
+        6
+      ],
+      "to": [
+        11,
+        16,
+        10
+      ],
+      "faces": {
+        "down": {
+          "texture": "#c"
+        },
+        "up": {
+          "texture": "#c"
+        },
+        "north": {
+          "texture": "#c"
+        },
+        "south": {
+          "texture": "#c"
+        },
+        "west": {
+          "texture": "#c"
+        },
+        "east": {
+          "texture": "#c"
+        }
+      }
+    }
+  ]
+}

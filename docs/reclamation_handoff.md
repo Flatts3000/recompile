@@ -17,7 +17,8 @@ dedicated specs.
 
 Design source of truth stays in the pack repo: `../trashlands/docs/design_decisions.md`
 (**P2.4** original chain, **P2.4-R** economy revision, **P1.7-R** encroachment, **P2.4-R2** sapling
-lockout; **P2.4-R3** for the spreader/multiblock decisions is still owed - see the specs).
+lockout, **P2.4-R3** the spreader + multiblock decisions - **recorded 2026-07-23**, and revised in
+the same day's build; read its items 7 and 8 for what changed).
 
 ---
 
@@ -53,7 +54,7 @@ Four machines, one per rung, in this order.
 
 | Rung | Machine | Converts | Requires in range |
 |---|---|---|---|
-| 1 | Soil spreader | coarse dirt **straight to grass** (never via plain dirt), over a radius | nothing |
+| 1 | Grass Spreader (a drip irrigator; **built**) | coarse dirt **straight to grass** (never via plain dirt), over a radius | nothing |
 | 2 | Vegetation seeder | tall grass + flowers onto healed grass | rung 1 terrain |
 | 3 | Nursery / tree planter | saplings and trees onto vegetated land | rung 2 terrain |
 | 4 | Animal rung (**mechanism undecided**) | brings livestock to qualifying land | rung 3 terrain |
@@ -154,12 +155,9 @@ cost of the pack is a negative return.
 
 ## Doc drift to clean up
 
-These still assert the superseded version and will mislead:
+**Cleared 2026-07-23.** `../trashlands/docs/concept.md` and `../trashlands/CLAUDE.md` both carry the
+P2.4-R / P1.7-R framing now, and `README.md` has its reclamation paragraph. Nothing on the original
+list is outstanding.
 
-- `../trashlands/docs/concept.md` lines 90-91 - frames reclamation as pure income sacrifice with
-  the affordability question open. It is closed.
-- `../trashlands/CLAUDE.md` - "reclamation costs you income."
-- `README.md` (this repo) - no reclamation framing yet; the mod is still described teardown-first.
-
-Already updated: `../trashlands/docs/design_decisions.md` (P2.4-R plus bookmark),
-`../trashlands/docs/feature_matrix.md`, and `docs/roadmap.md` Phase 6.
+Also updated since: `../trashlands/docs/design_decisions.md` (P2.4-R, P1.7-R, P2.4-R2, P2.4-R3 plus
+bookmark), `../trashlands/docs/feature_matrix.md`, `docs/roadmap.md`, and the two specs.

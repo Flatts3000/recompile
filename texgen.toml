@@ -386,3 +386,22 @@ faces = ["top", "side"]
 [surface.rain_collector_tarp.prompt]
 top = "a full-bleed top-down Minecraft block face: a sagging weathered tarp stretched to catch rain, faded blue-grey plastic sheeting with a shallow puddle of rainwater pooling in the centre, water sheen, grime and creases, muted, fills the whole tile"
 side = "a full-bleed Minecraft block face: the draping edge of a weathered rain-catching tarp, faded blue-grey plastic sheeting sagging in wet folds, grimy and stained, muted, fills the whole tile"
+
+# ---------------------------------------------------------------------------
+# Bulky Waste finds
+# ---------------------------------------------------------------------------
+# A front-loader on purpose: at 16px a top-loading machine is an off-white box
+# and nothing else, while the porthole door gives a silhouette that reads as one
+# specific object. The name is the prompt's whole job - "broken appliance" was
+# too vague to generate against, which is why this shipped as a metal recolour.
+
+[surface.washing_machine]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front", "side", "top", "bottom"]
+[surface.washing_machine.prompt]
+front = "a full-bleed Minecraft block face: the front of a discarded front-loading washing machine, a large dark round porthole door with a steel rim and smoked glass set in chipped off-white enamel, a small detergent drawer and control strip above, rust streaks and scuffs, muted, flat, no perspective, fills the whole tile"
+side = "a full-bleed Minecraft block face: the plain side panel of a discarded washing machine, flat chipped off-white enamel with a shallow pressed seam near the edges, dents, grime and orange rust streaks running down, muted, flat, no perspective, fills the whole tile"
+top = "a full-bleed top-down Minecraft block face: the lid of a discarded washing machine, flat off-white enamel panel with a recessed control strip along one edge, chipped paint, water rings, dust and rust spots, muted, flat, no perspective, fills the whole tile"
+bottom = "a full-bleed Minecraft block face: the grimy underside of a discarded washing machine, dark oily galvanised steel base pan with four stubby levelling feet at the corners, caked dust and rust, much darker than the enamel sides, muted, flat, no perspective, fills the whole tile"

@@ -114,4 +114,32 @@ public final class RCTags {
      */
     public static final TagKey<Biome> ENCROACHES = TagKey.create(
         Registries.BIOME, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "encroaches"));
+
+    /**
+     * What the Grass Spreader can turn into grass (P2.4-R3). Ships as coarse dirt and plain dirt.
+     *
+     * <p><b>Plain dirt is in here deliberately.</b> Vanilla grass cannot spread onto coarse dirt but
+     * <em>can</em> spread onto dirt, so if the spreader left dirt as an intermediate, vanilla would
+     * finish the job for free and break P2.4-R item 3's "nothing renews on its own". For the same
+     * reason the conversion goes straight to grass and never stops at dirt.
+     *
+     * <p>Mycelium is excluded via {@link #ENCROACHMENT_IMMUNE} rather than by omission here - it is
+     * inside the vanilla dirt family, and it is the dump-mushroom substrate, so paving it would eat
+     * the P1.9 forage economy. Same carve-out encroachment makes, for the same reason.
+     */
+    public static final TagKey<Block> SPREADABLE = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "spreadable"));
+
+    /**
+     * Carved back out of {@link #SPREADABLE}: mycelium, the dump-mushroom substrate, so a spreader
+     * never paves over the P1.9 forage economy.
+     *
+     * <p><b>Deliberately not {@link #ENCROACHMENT_IMMUNE}</b>, which looks like the same idea and is
+     * not: that tag contains <em>coarse dirt</em>, because coarse dirt is what encroachment reverts
+     * <em>to</em>. Here coarse dirt is the primary target, so reusing that tag would make the machine
+     * refuse the one block it exists to convert. Two tags because the two systems mean opposite
+     * things by "immune".
+     */
+    public static final TagKey<Block> SPREAD_IMMUNE = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "spread_immune"));
 }
