@@ -38,31 +38,33 @@ reclamation axis, not scrap).
 Scrap Crafting Table (craft) · Recompile Workbench (break down) · Sorting Tarp (sort) · Burn Barrel
 (smelt) · Scrap Barrel (bulk / overflow storage).
 
-**Back shelf (high level, shifted back one block) - the bins:**
-one Scrap Bin per material, sitting on **Machine Frames** that hold them up.
+**The bins - seven, split six-and-one:** six on the high back shelf, and `junk` (the bulk filler you
+dump most) at hand level in the counter, so it is in easiest reach. Each shelf bin sits on a **Machine
+Frame** that holds it up. The file-all fills the junk bin the same as any other - position does not
+matter to the network.
 
 ```
  SIDE VIEW (player at the front, left):
 
-  y=1                    [ BIN ]        <- bins, high, shifted back one (z=1)
+  y=1                    [ BIN ]        <- shelf bins, high, shifted back one (z=1)
   y=0   [ WORKSTATION ][ FRAME ]        <- counter at hand level; frame under the bin
          z=0            z=1
 
  TOP VIEW (player approaches from the bottom):
 
-  back  z=1:  [bin][bin][bin][bin][bin][bin][bin]   y=1  (on frames at y=0)
-              [frm][frm][frm][frm][frm][frm][frm]   y=0
-  front z=0:  [craft][wbench][CORE][sort][burn][barrel]   y=0
+  back  z=1:  [bin][bin][bin][bin][bin][bin]                  y=1  (6 material bins, on frames at y=0)
+              [frm][frm][frm][frm][frm][frm]                  y=0
+  front z=0:  [craft][wbench][sort][CORE][burn][barrel][junk] y=0  (5 workstations + core + junk bin)
 ```
 
-Footprint ~7 wide x 2 deep x 2 tall, ~20 blocks.
+Footprint ~7 wide x 2 deep x 2 tall, ~19 blocks. The core sits centre-counter, where you stand to
+build and interact.
 
-**Three blueprint specifics still open (finalize here before building):**
+**Two blueprint specifics still open (finalize here before building):**
 
-1. **Bin count vs counter width.** Seven material bins over a five-block counter - let the shelf
-   overhang, or drop `junk`'s bin (route it to the Scrap Barrel) for a clean six-wide symmetric block?
-2. **The core's position** - front-centre as drawn, or tucked at the back.
-3. **Bins bind at runtime.** The blueprint requires "a Scrap Bin here," not "the scrap-metal bin" -
+1. **The core's exact cell** - centre-counter as drawn is the default; tucked at the back is the
+   alternative.
+2. **Bins bind at runtime.** The blueprint requires "a Scrap Bin here," not "the scrap-metal bin" -
    binding happens when you deposit. So the structure has generic bin slots and you bind each by use.
 
 ## Architecture - reuse the core, keep every block
