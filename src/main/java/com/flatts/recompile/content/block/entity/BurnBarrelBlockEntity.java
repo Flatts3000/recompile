@@ -1,8 +1,10 @@
 package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.registry.RCBlockEntities;
+import com.flatts.recompile.content.block.WorkstationNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -38,6 +40,30 @@ public class BurnBarrelBlockEntity extends AbstractFurnaceBlockEntity {
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
         return new FurnaceMenu(containerId, inventory, this, this.dataAccess);
+    }
+
+    /**
+     * Move any smelted output into the connected workstation storage (P2.10). The Burn Barrel is the
+     * one time-based flow: it accrues output over ticks, and while formed the result slot drains to
+     * the bins / barrel each tick. Bypasses the no-automation face gate on purpose - the workstation
+     * is the machine's own internal mover, not an external hopper. Standalone, output stays put (you
+     * take it by hand through the GUI).
+     */
+    public void drainOutput(ServerLevel level) {
+        ItemStack result = getItem(SLOT_RESULT);
+        if (result.isEmpty()) {
+            return;
+        }
+        BlockPos core = WorkstationNetwork.findCore(level, worldPosition);
+        if (core == null) {
+            return;
+        }
+        ItemStack working = result.copy();
+        WorkstationNetwork.insert(level, core, working, false);
+        if (working.getCount() != result.getCount()) {
+            setItem(SLOT_RESULT, working.isEmpty() ? ItemStack.EMPTY : working);
+            setChanged();
+        }
     }
 
     // No automation: expose no slots to any face, so nothing can pipe items in or out.

@@ -2,6 +2,7 @@ package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
+import com.flatts.recompile.content.block.WorkstationNetwork;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
@@ -222,14 +223,13 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
     }
 
     private void complete(ServerLevel level, TeardownRecipe recipe, ItemStack held, @Nullable Player player) {
-        BlockPos above = worldPosition.above();
         for (TeardownRecipe.ItemResult result : recipe.results()) {
-            Block.popResource(level, above, result.toStack());
+            output(level, result.toStack());
         }
         RandomSource random = level.getRandom();
         for (TeardownRecipe.ChanceResult extra : recipe.extras()) {
             if (random.nextFloat() < extra.chance()) {
-                Block.popResource(level, above, new ItemStack(extra.item()));
+                output(level, new ItemStack(extra.item()));
             }
         }
         recipe.tool().ifPresent(required -> damageRackedTool(level, required));
@@ -238,6 +238,14 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
         }
         SoundType sound = level.getBlockState(worldPosition).getSoundType();
         level.playSound(null, worldPosition, sound.getBreakSound(), SoundSource.BLOCKS, 0.8F, 0.9F);
+    }
+
+    /** A teardown output: into the connected workstation storage if formed, else onto the table (P2.10). */
+    private void output(ServerLevel level, ItemStack stack) {
+        ItemStack remainder = WorkstationNetwork.insertFromMember(level, worldPosition, stack, false);
+        if (!remainder.isEmpty()) {
+            Block.popResource(level, worldPosition.above(), remainder);
+        }
     }
 
     private boolean hasRequiredTool(TeardownRecipe recipe) {

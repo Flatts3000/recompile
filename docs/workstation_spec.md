@@ -110,6 +110,12 @@ seven bins + the Scrap Barrel).
 
 ## Cross-functional behavior - what flows where
 
+**Build status (2026-07-24):** the network (`WorkstationNetwork`: `findCore`, `bins`, `barrel`,
+`insert`) and flows 1-3 + the file-all are **built** on `feat/workstation`; **flow 4
+(craft-from-storage) is the remaining capstone** - a custom crafting menu combining the grid with the
+connected storage, its own focused piece. All of it is verified in `runClient` (the 6-wide structure
+does not fit the 5x5x5 GameTest plot).
+
 All active only while the core is FORMED. Build the cheap ones first; the crafting table is the
 capstone.
 

@@ -9,6 +9,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -45,7 +46,18 @@ public class BurnBarrelBlock extends AbstractFurnaceBlock {
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level,
             BlockState state, BlockEntityType<T> blockEntityType) {
-        return createFurnaceTicker(level, blockEntityType, RCBlockEntities.BURN_BARREL.get());
+        BlockEntityTicker<T> furnace =
+            createFurnaceTicker(level, blockEntityType, RCBlockEntities.BURN_BARREL.get());
+        if (furnace == null || level.isClientSide()) {
+            return furnace;
+        }
+        // Run the furnace, then drain the result slot into a connected workstation (P2.10).
+        return (lvl, pos, st, be) -> {
+            furnace.tick(lvl, pos, st, be);
+            if (be instanceof BurnBarrelBlockEntity barrel && lvl instanceof ServerLevel serverLevel) {
+                barrel.drainOutput(serverLevel);
+            }
+        };
     }
 
     @Override
