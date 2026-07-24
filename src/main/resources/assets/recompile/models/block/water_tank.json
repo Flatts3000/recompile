@@ -4,8 +4,7 @@
     "wood": "recompile:block/pressed_junk",
     "tank": "minecraft:block/white_concrete",
     "cage": "recompile:block/rusted_frame",
-    "particle": "recompile:block/rusted_frame",
-    "pipe": "recompile:block/copper_pipe"
+    "particle": "recompile:block/rusted_frame"
   },
   "elements": [
     {
@@ -837,38 +836,6 @@
         },
         "east": {
           "texture": "#cage"
-        }
-      }
-    },
-    {
-      "from": [
-        6.5,
-        14,
-        6.5
-      ],
-      "to": [
-        9.5,
-        16,
-        9.5
-      ],
-      "faces": {
-        "down": {
-          "texture": "#pipe"
-        },
-        "up": {
-          "texture": "#pipe"
-        },
-        "north": {
-          "texture": "#pipe"
-        },
-        "south": {
-          "texture": "#pipe"
-        },
-        "west": {
-          "texture": "#pipe"
-        },
-        "east": {
-          "texture": "#pipe"
         }
       }
     }
