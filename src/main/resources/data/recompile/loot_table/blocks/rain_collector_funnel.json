@@ -4,7 +4,7 @@
     {
       "rolls": 1,
       "conditions": [ { "condition": "minecraft:survives_explosion" } ],
-      "entries": [ { "type": "minecraft:item", "name": "recompile:machine_frame" } ]
+      "entries": [ { "type": "minecraft:item", "name": "recompile:rain_collector_funnel" } ]
     }
   ]
 }

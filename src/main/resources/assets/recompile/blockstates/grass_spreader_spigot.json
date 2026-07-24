@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "recompile:block/grass_spreader_spigot" },
+    "facing=east":  { "model": "recompile:block/grass_spreader_spigot", "y": 90 },
+    "facing=south": { "model": "recompile:block/grass_spreader_spigot", "y": 180 },
+    "facing=west":  { "model": "recompile:block/grass_spreader_spigot", "y": 270 }
+  }
+}

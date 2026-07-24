@@ -1,6 +1,10 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.MattressBlock;
+import com.flatts.recompile.content.block.WashingMachineBlock;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
@@ -133,6 +137,47 @@ final class BulkyWasteTests {
             helper.succeedWhen(() ->
                 helper.assertItemEntityCountIs(RCItems.MATTRESS.get(), foot, 3.0, 1));
         });
+        // The washing machine must hand BACK a washing machine. This looks trivial and is not:
+        // the water tank shipped with a loot table that dropped a rain collector, and the test
+        // covering it asserted the wrong item and passed. A find whose loot table names the wrong
+        // thing is a silent duplication bug, so the drop is asserted by identity.
+        RCGameTests.test("washing_machine_drops_itself", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.WASHING_MACHINE.get());
+
+            helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
+
+            helper.assertBlockPresent(Blocks.AIR, pos);
+            helper.succeedWhen(() ->
+                helper.assertItemEntityCountIs(RCItems.WASHING_MACHINE.get(), pos, 3.0, 1));
+        });
+
+        // The door faces the player who placed it. Without this the block still places fine and
+        // still works - it just shows a blank enamel side three times out of four, which stops it
+        // reading as a washing machine at all and quietly wastes the one bespoke face it has.
+        // Tests getStateForPlacement directly rather than simulating a click, so a broken override
+        // cannot hide behind placement plumbing.
+        RCGameTests.test("washing_machine_faces_the_player", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            BlockPos abs = helper.absolutePos(pos);
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setYRot(0.0F);       // yaw 0 is due SOUTH, so the door must come out NORTH
+            player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                new ItemStack(RCItems.WASHING_MACHINE.get()));
+
+            BlockHitResult hit = new BlockHitResult(
+                abs.getCenter(), net.minecraft.core.Direction.UP, abs, false);
+            BlockState placed = RCBlocks.WASHING_MACHINE.get().getStateForPlacement(
+                new BlockPlaceContext(new UseOnContext(
+                    player, net.minecraft.world.InteractionHand.MAIN_HAND, hit)));
+
+            helper.assertTrue(placed != null, "placement must produce a state");
+            helper.assertTrue(
+                placed.getValue(WashingMachineBlock.FACING) == net.minecraft.core.Direction.NORTH,
+                "the door must face the player, got " + placed.getValue(WashingMachineBlock.FACING));
+            helper.succeed();
+        });
+
         // The mattress -> string exit moved to the Recompile Workbench (P1.4); its teardown
         // is covered by RecompileWorkbenchTests. The in-hand knife-cut was retired here.
     }

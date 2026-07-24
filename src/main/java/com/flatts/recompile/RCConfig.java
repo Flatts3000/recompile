@@ -37,6 +37,27 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue ENCROACHMENT_RADIUS;
     public static final ModConfigSpec.IntValue TREE_ANCHOR_RADIUS;
 
+    /**
+     * Grass Spreader (P2.4-R3): rung 1 of the reclamation chain. A sprinkler that converts dead
+     * ground to grass within a radius, consuming nothing. The radius is the load-bearing number -
+     * it is exactly the land one machine can hold against encroachment.
+     */
+    public static final ModConfigSpec.BooleanValue GRASS_SPREADER_ENABLED;
+    /**
+     * Hard ceiling on the spreader's radius.
+     *
+     * <p>Shared with {@code GrassSpreaderCoreBlock}, which pre-builds its nearest-first offset table
+     * out to exactly this distance. The two must agree: raising only the config bound would let a
+     * player set a radius the offset table cannot reach, and the machine would silently stop at 64
+     * with nothing anywhere reporting why.
+     */
+    public static final int GRASS_SPREADER_MAX_RADIUS = 64;
+
+    public static final ModConfigSpec.IntValue GRASS_SPREADER_RADIUS;
+    public static final ModConfigSpec.IntValue GRASS_SPREADER_INTERVAL_TICKS;
+    public static final ModConfigSpec.IntValue GRASS_SPREADER_IDLE_INTERVAL_TICKS;
+    public static final ModConfigSpec.IntValue GRASS_SPREADER_VERTICAL_TOLERANCE;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -71,6 +92,25 @@ public final class RCConfig {
         TREE_ANCHOR_RADIUS = builder
             .comment("How far a log or leaf block holds the frontier permanently, in blocks.")
             .defineInRange("treeAnchorRadius", 4, 1, 16);
+
+        GRASS_SPREADER_ENABLED = builder
+            .comment("Whether the Grass Spreader converts ground (P2.4-R3, reclamation rung 1).")
+            .define("grassSpreaderEnabled", true);
+        GRASS_SPREADER_RADIUS = builder
+            .comment("How far one spreader reaches, in blocks. This is exactly the land it can hold",
+                     "against encroachment - beyond it, erosion wins.")
+            .defineInRange("grassSpreaderRadius", 12, 1, GRASS_SPREADER_MAX_RADIUS);
+        GRASS_SPREADER_INTERVAL_TICKS = builder
+            .comment("Ticks between conversions while there is still ground to heal.")
+            .defineInRange("grassSpreaderIntervalTicks", 40, 1, 24000);
+        GRASS_SPREADER_IDLE_INTERVAL_TICKS = builder
+            .comment("Ticks between re-scans once the radius is fully healed. Higher is cheaper;",
+                     "it only has to notice ground the frontier has since taken back.")
+            .defineInRange("grassSpreaderIdleIntervalTicks", 200, 1, 24000);
+        GRASS_SPREADER_VERTICAL_TOLERANCE = builder
+            .comment("How far above or below the machine a target surface may sit, in blocks,",
+                     "so it cannot reach up cliffs or down pits.")
+            .defineInRange("grassSpreaderVerticalTolerance", 3, 0, 32);
         builder.pop();
 
         SPEC = builder.build();

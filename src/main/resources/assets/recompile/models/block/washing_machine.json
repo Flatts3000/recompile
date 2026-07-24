@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/washing_machine_front",
+    "down":  "recompile:block/washing_machine_bottom",
+    "up":    "recompile:block/washing_machine_top",
+    "north": "recompile:block/washing_machine_front",
+    "south": "recompile:block/washing_machine_side",
+    "east":  "recompile:block/washing_machine_side",
+    "west":  "recompile:block/washing_machine_side"
+  }
+}

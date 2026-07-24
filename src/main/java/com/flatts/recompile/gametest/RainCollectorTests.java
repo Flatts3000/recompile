@@ -37,7 +37,7 @@ final class RainCollectorTests {
     /** Build a formed collector the way the game does: core, frame on top, form. */
     private static void formCollector(net.minecraft.gametest.framework.GameTestHelper helper) {
         helper.setBlock(CORE, RCBlocks.RAIN_COLLECTOR.get());
-        helper.setBlock(CORE.above(), RCBlocks.MACHINE_FRAME.get());
+        helper.setBlock(CORE.above(), RCBlocks.RAIN_COLLECTOR_FUNNEL.get());
         MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(CORE));
     }
 
@@ -91,7 +91,7 @@ final class RainCollectorTests {
             helper.assertBlockPresent(Blocks.AIR, CORE.above());
             helper.succeedWhen(() -> {
                 helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR.get(), CORE, 3.0, 1);
-                helper.assertItemEntityCountIs(RCItems.MACHINE_FRAME.get(), CORE, 3.0, 1);
+                helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR_FUNNEL.get(), CORE, 3.0, 1);
             });
         });
 
@@ -142,7 +142,7 @@ final class RainCollectorTests {
             helper.assertBlockPresent(Blocks.AIR, CORE.above());
             helper.succeedWhen(() -> {
                 helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR.get(), CORE, 3.0, 1);
-                helper.assertItemEntityCountIs(RCItems.MACHINE_FRAME.get(), CORE, 3.0, 1);
+                helper.assertItemEntityCountIs(RCItems.RAIN_COLLECTOR_FUNNEL.get(), CORE, 3.0, 1);
             });
         });
     }

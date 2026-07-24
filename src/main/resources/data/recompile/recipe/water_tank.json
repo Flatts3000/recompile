@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "R R",
+    "RMR"
+  ],
+  "key": {
+    "P": "recompile:plastic_scrap",
+    "R": "recompile:rebar",
+    "M": "recompile:scrap_metal"
+  },
+  "result": { "id": "recompile:water_tank", "count": 1 }
+}

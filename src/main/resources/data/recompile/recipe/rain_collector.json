@@ -1,17 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "PPP",
-    "R R",
-    "RMR"
+    "C",
+    "T"
   ],
   "key": {
-    "P": "recompile:plastic_scrap",
-    "R": "recompile:rebar",
-    "M": "recompile:scrap_metal"
+    "C": "recompile:copper_pipe",
+    "T": "recompile:water_tank"
   },
-  "result": {
-    "id": "recompile:rain_collector",
-    "count": 1
-  }
+  "result": { "id": "recompile:rain_collector", "count": 1 }
 }

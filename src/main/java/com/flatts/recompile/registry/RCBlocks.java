@@ -7,6 +7,12 @@ import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
+import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
+import com.flatts.recompile.content.block.GrassSpreaderFrameBlock;
+import com.flatts.recompile.content.block.GrassSpreaderSpigotBlock;
+import com.flatts.recompile.content.block.WashingMachineBlock;
+import com.flatts.recompile.content.block.WaterTankBlock;
+import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.RainCollectorCoreBlock;
 import com.flatts.recompile.content.block.RainCollectorFunnelBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
@@ -168,6 +174,20 @@ public final class RCBlocks {
     );
 
     /**
+     * Washing Machine: the second Bulky Waste find, and the only source of the Pump. Placeable so a
+     * find can be carried home rather than only consumed, following the mattress. A plain full cube
+     * with no behaviour - the four-face art and the facing are the whole block.
+     */
+    public static final DeferredBlock<WashingMachineBlock> WASHING_MACHINE = BLOCKS.registerBlock(
+        "washing_machine",
+        WashingMachineBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_WHITE)
+            .strength(1.4F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
      * Mattress (P1.11): the first find in the Bulky Waste table, and this world's bed -
      * a vanilla bed needs planks, and there are no trees. Two blocks like a bed, soft and
      * quiet, {@code noOcclusion} because it is 5 pixels tall rather than a cube.
@@ -210,6 +230,104 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(1.2F)
             .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    // ---------------- Grass Spreader (P2.4-R3): reclamation rung 1, a sprinkler ----------------
+
+    /**
+     * Grass Spreader core: the bottom of a four-cell sprinkler tower that converts dead ground to
+     * grass within a radius, consuming nothing. Its own look - deliberately not the Rain Collector's
+     * palette, so the two machines never read as the same object.
+     */
+    public static final DeferredBlock<GrassSpreaderCoreBlock> GRASS_SPREADER = BLOCKS.registerBlock(
+        "grass_spreader",
+        GrassSpreaderCoreBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.6F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /** The spreader's tank cell: the Rain Collector, incorporated. A dummy - no item. */
+    public static final DeferredBlock<WaterTankBlock> WATER_TANK = BLOCKS.registerBlock(
+        "water_tank",
+        WaterTankBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.2F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /** The spreader's sprinkler head: what a Pump becomes. Sprays via {@code animateTick}. */
+    public static final DeferredBlock<GrassSpreaderFrameBlock> GRASS_SPREADER_FRAME = BLOCKS.registerBlock(
+        "grass_spreader_frame",
+        GrassSpreaderFrameBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.2F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /**
+     * Pump: a shared machine component, salvaged rather than made - it is teardown-only, torn out
+     * of a broken appliance, which is what puts reclamation rung 1 behind the teardown spine.
+     * <b>Inert</b>: no rotation, no kinetics, never requires Create (P2.3).
+     */
+    public static final DeferredBlock<Block> PUMP = BLOCKS.registerBlock(
+        "pump",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.4F)
+            .sound(SoundType.METAL)
+            // Required, not cosmetic: the model is not a full cube, so without this the game still
+            // treats it as one and culls the faces of neighbouring blocks it "covers" - which shows
+            // up as a hole punched in the ground underneath.
+            .noOcclusion()
+    );
+
+    /**
+     * Copper Pipe: a shared machine component, and copper's first job. The Burn Barrel already
+     * smelts scrap into copper nuggets (the copper-first inversion, P2.2), so this is what that
+     * metal was for. Four of them ring a Grass Spreader and become its drip spigots.
+     */
+    public static final DeferredBlock<Block> COPPER_PIPE = BLOCKS.registerBlock(
+        "copper_pipe",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_ORANGE)
+            .strength(1.0F)
+            .sound(SoundType.COPPER)
+            .noOcclusion()
+    );
+
+    /** A formed drip spigot: what a Copper Pipe becomes on the side of a spreader. Drips water. */
+    public static final DeferredBlock<GrassSpreaderSpigotBlock> GRASS_SPREADER_SPIGOT = BLOCKS.registerBlock(
+        "grass_spreader_spigot",
+        GrassSpreaderSpigotBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_ORANGE)
+            .strength(1.0F)
+            .sound(SoundType.COPPER)
+            .noOcclusion()
+    );
+
+    /**
+     * Solar Panel: a shared machine component. <b>Inert</b> - no light detection, no redstone, no
+     * power (P3.5: no RF before the Nether). A recoloured vanilla daylight detector, so it costs no
+     * new art.
+     */
+    public static final DeferredBlock<SolarPanelBlock> SOLAR_PANEL = BLOCKS.registerBlock(
+        "solar_panel",
+        SolarPanelBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLUE)
+            .strength(1.0F)
+            .sound(SoundType.GLASS)
             .noOcclusion()
     );
 

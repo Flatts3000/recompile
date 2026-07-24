@@ -60,7 +60,7 @@ Built once, reused by every machine. This is the payoff of the heterogeneous-but
 | Block | Role | Source | Notes |
 |---|---|---|---|
 | **Frame** | shared component | crafted from `scrap_plating` / `rebar` | the Rain Collector's top cell; the cheap structural block of any stack |
-| **Motor Block** | shared component | teardown-only (from a `broken_appliance` find) | placed form of the spreader spec's motor; the Grass Spreader's middle cell |
+| **Pump Block** | shared component | teardown-only (from a `washing_machine` find) | placed form of the spreader spec's pump; the Grass Spreader's middle cell |
 | **Solar Panel Block** | shared component | crafted from `e_scrap` + `cullet_glass` | placed form of the spreader spec's panel; the Grass Spreader's top cell |
 | **`<machine>` Core** | identity + controller | per-machine recipe | the master; holds formed/unformed state; the only bespoke art per machine |
 

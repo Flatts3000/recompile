@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.compat.TeardownData;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
 import java.util.List;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -80,13 +81,27 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),
                 SortingData.outputs(SortingData.BULKY))));
 
-        // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1),
-        // so the numbers stay single-sourced in the recipe file. The mattress is the one find.
-        TeardownData.Entry mattress = TeardownData.read(TeardownData.MATTRESS);
-        if (mattress != null) {
-            registration.addRecipes(TEARDOWN, List.of(
-                new SalvageRecipe(mattress.input(), mattress.outputs())));
+        // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
+        // numbers stay single-sourced in the recipe file. Iterating every entry means a new find
+        // shows up here for free, rather than needing this list edited too.
+        List<SalvageRecipe> teardowns = new ArrayList<>();
+        for (TeardownData.Entry entry : TeardownData.all()) {
+            teardowns.add(new SalvageRecipe(entry.input(), entry.outputs()));
         }
+        if (!teardowns.isEmpty()) {
+            registration.addRecipes(TEARDOWN, teardowns);
+        }
+
+        // Machines only, not their parts. A crafted core says nothing about the tower it needs, and
+        // JEI is where a player goes looking. The parts already have recipes here, and the appliance
+        // already has a teardown entry, so a panel on those would only restate what JEI shows.
+        info(registration, RCItems.GRASS_SPREADER.get(), "grass_spreader");
+        info(registration, RCItems.RAIN_COLLECTOR.get(), "rain_collector");
+    }
+
+    private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,
+            String key) {
+        registration.addIngredientInfo(item, Component.translatable("jei.recompile.info." + key));
     }
 
     @Override
