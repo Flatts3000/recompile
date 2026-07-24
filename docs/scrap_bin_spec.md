@@ -1,6 +1,7 @@
 # Scrap Bin - spec
 
-**Written 2026-07-24. Design, not built.** A single craftable storage block that binds to one salvage
+**Written 2026-07-24. Built 2026-07-24** (branch `feat/scrap-bin`).
+Stale design notes below are kept where they explain *why*; where the build diverged, the built form is noted inline. A single craftable storage block that binds to one salvage
 type and holds a large amount of it, with a screen-free UX. Real-world model: the labeled bulk bin
 of a sorting operation. Design decisions in this doc are the ones locked in the 2026-07-24 session;
 record them in `../trashlands/docs/design_decisions.md` under a new P-code before building.
@@ -32,9 +33,10 @@ call, and a wall of bins would be a wall of them):
   sets `content=scrap_metal` and the body renders grey. **Color is the primary identifier** - a
   solid-bodied bin reads by hue across a room, faster than any label, and it matches what is inside
   (grey = scrap metal, teal = glass), so it is self-documenting.
-- A `fill` blockstate (`EMPTY / LOW / MID / HIGH / FULL`, composter-style) raises a visible pile in a
-  small window so a wall of bins can be scanned for what is full. Color says *which*; the window says
-  *how much*.
+- **Built:** identification is the render tint (above) **plus the bound item's own texture on a
+  raised front placard**, a per-`content` model variant. Fullness is read via Jade, not a visible
+  pile - the composter-style fill window was tried (an open box, then a front spill) and dropped as
+  visually poor; the `fill` blockstate is still tracked but no longer changes the model.
 - The **BlockEntity holds the exact count** (a BE that *holds* is allowed - the Scrap Barrel does it;
   only rendering is banned), and **Jade** reads it for the exact `Scrap Metal 3,712 / 4,096` on look.
 
@@ -85,13 +87,17 @@ unbound item.
 The bin is the **sink** of a sorting pipeline, never a source a machine pulls from. A future sorter
 can fill it; you spend it by hand.
 
-Implemented as a `WorldlyContainer`:
+**Built as a transfer-API item capability, not a `WorldlyContainer`** - the bin stores a bound
+`Item` + `int amount` directly (so it holds thousands and never scatters on break), and exposes a
+hand-rolled `ResourceHandler<ItemResource>` on `Capabilities.Item.BLOCK`:
 
-- `getSlotsForFace` returns the bin's slot for all faces (the inverse of the Burn Barrel, which
-  returns an empty `int[]` to cut all automation).
-- `canPlaceItemThroughFace` returns true **only** for an item matching the bound material (or, for an
-  unbound bin, any `#binnable` item - the first hopper insert binds it, same as a hand insert).
-- `canTakeItemThroughFace` returns **false**, always. No hopper, Create funnel, or pipe extracts.
+- `insert` is gated to binnable + the bound material (an unbound bin binds on first insert, by hand or
+  by hopper), and is transaction-safe via a `SnapshotJournal` so a rolled-back hopper insert cannot
+  dupe.
+- `extract` **always returns 0** - no hopper, Create funnel, or pipe pulls anything. A player
+  withdraws by hand (left-click), which bypasses the blocked extract.
+
+26.1's vanilla hoppers route through this capability, so insert-only there is "hopper in, no out".
 
 ## Interaction (screen-free) - Functional Storage's scheme
 
