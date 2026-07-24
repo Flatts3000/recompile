@@ -87,6 +87,8 @@
   "jei.recompile.sorting": "Sorting",
   "jei.recompile.teardown": "Teardown",
   "message.recompile.dimension_locked": "That way is sealed for now.",
+  "message.recompile.multiblock_missing_parts": "You're missing parts to assemble this.",
+  "message.recompile.multiblock_no_room": "Not enough clear space to assemble - clear the footprint and place again.",
   "message.recompile.needs_tool": "You need a %s to open this",
   "tooltip.recompile.fuel": "Fuel: %s items"
 }
