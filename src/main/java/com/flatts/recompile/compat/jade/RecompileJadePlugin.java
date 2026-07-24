@@ -2,6 +2,7 @@ package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
+import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import snownee.jade.api.IWailaClientRegistration;
@@ -30,6 +31,7 @@ public class RecompileJadePlugin implements IWailaPlugin {
         // Server side: send the workbench's racked-tool durability to the client on hover. This is
         // a separate provider from the client component - since MC 1.21.6 one class cannot be both.
         registration.registerBlockDataProvider(WorkbenchDataProvider.INSTANCE, RecompileWorkbenchBlock.class);
+        registration.registerBlockDataProvider(ScrapBinDataProvider.INSTANCE, ScrapBinBlock.class);
     }
 
     @Override
@@ -39,5 +41,6 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(SortProgressProvider.INSTANCE, SortableBlock.class);
         registration.registerBlockComponent(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);
         registration.registerBlockComponent(MachineStatusProvider.INSTANCE, MultiblockCoreBlock.class);
+        registration.registerBlockComponent(ScrapBinProvider.INSTANCE, ScrapBinBlock.class);
     }
 }
