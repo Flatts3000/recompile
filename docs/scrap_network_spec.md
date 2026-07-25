@@ -66,9 +66,9 @@ workbench and crafting table are conductors too, never sinks.
 
 ## Cross-functional behavior - what flows where
 
-**Build status (2026-07-24):** the network and flows 1-3 + the file-all are **built** on
-`feat/workstation` and GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide
-bench never did). **Flow 4 (craft-from-storage) is the remaining capstone.**
+**Build status (2026-07-24):** all four flows + the file-all are **built** on `feat/workstation` and
+GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide bench never did). Flow
+4 shipped with the connected-storage panel - the mod's one custom screen, a recorded design reversal.
 
 1. **Sorting Tarp -> bins, two ways.**
    - **Right-click** sifts *garbage* into materials, which land via `insertFromMember(..., false)`
@@ -82,16 +82,19 @@ bench never did). **Flow 4 (craft-from-storage) is the remaining capstone.**
    `insertFromMember(..., false)`. The one genuinely time-based flow (auto-route, accepted 2026-07-24
    as the piece furthest from the manual-first line - the barrel gains an output route only while
    wired to storage).
-4. **Scrap Crafting Table reads storage (v1) - not built.** Crafting draws ingredients from the player
-   inventory **plus the connected bins plus the Scrap Barrel**. Still manual and player-scoped (the
-   "crafting station" pattern, not an autocrafter). The build work is a crafting menu that presents the
-   flood-collected storage as a combined ingredient source. Its own focused piece.
+4. **Scrap Crafting Table crafts from storage - BUILT.** Shift-clicking the result restocks the grid
+   from the connected network (bins -> barrel -> inventory) between crafts, so one action crafts a whole
+   run straight out of the bins (`ScrapCraftingStationMenu.quickMoveStack` refill). Still manual and
+   player-scoped (the "crafting station" pattern, not an autocrafter).
 
-   **Network visibility ships with this menu** (decided 2026-07-24): the crafting screen gets a
-   **connected-storage side panel** listing the connected bins with their material + count and the
-   barrel - so opening the table shows what the network holds and, implicitly, that it is connected. No
-   separate in-world highlight or Jade readout for now; the panel is the one surface, folded into flow
-   4 rather than built standalone.
+   **The connected-storage panel ships with it** (the Tinkers Crafting Station pattern): the crafting
+   screen has a right-side panel listing the connected bins with material icon + live count, so opening
+   the table shows what the network holds. This is the mod's **one custom screen** - a recorded reversal
+   of the no-custom-machine-screen rule, justified by the proven pattern and scoped to this block.
+   Vanilla `CraftingMenu` hard-locks its `MenuType`, so the menu is reimplemented over
+   `AbstractContainerMenu` with a custom `MenuType` (`RCMenus`) + `ScrapCraftingStationScreen`; the bin
+   BE syncs material + amount to the client for the panel. Panel is read-only in v1 (deposit/withdraw
+   stay on the file-all + hopper-in); the recipe-book button is dropped for v1.
 
 ## Placement guidelines - kept, and generalized to every multiblock
 
