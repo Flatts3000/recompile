@@ -344,7 +344,9 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_BLUE)
             .strength(1.0F)
-            .sound(SoundType.GLASS)
+            // A salvaged metal-and-plastic panel, not a pane: metal like the rest of the machine
+            // chain, even though its cells are glass. Breaking it should clank, not shatter.
+            .sound(SoundType.METAL)
             .noOcclusion()
     );
 
