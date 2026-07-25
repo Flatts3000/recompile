@@ -344,9 +344,9 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_BLUE)
             .strength(1.0F)
-            // A salvaged metal-and-plastic panel, not a pane: metal like the rest of the machine
-            // chain, even though its cells are glass. Breaking it should clank, not shatter.
-            .sound(SoundType.METAL)
+            // It is a recoloured daylight detector, so it breaks like one: WOOD, vanilla's daylight
+            // sensor sound. Not GLASS (it is not a pane) and not METAL - match the block it is built on.
+            .sound(SoundType.WOOD)
             .noOcclusion()
     );
 
