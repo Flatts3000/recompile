@@ -1,6 +1,8 @@
 package com.flatts.recompile.content.block;
 
+import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
@@ -8,9 +10,12 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Scrap crafting table: a tier-zero 3x3 crafting station for the garbage world,
@@ -19,13 +24,34 @@ import net.minecraft.world.phys.BlockHitResult;
  * It opens {@link ScrapCraftingStationMenu} - vanilla 3x3 crafting revalidated against this block,
  * plus craft-from-storage: shift-clicking the result restocks the grid from the connected scrap
  * network, so a whole run crafts straight out of the bins (design P2.10 flow 4).
+ *
+ * <p>It carries a {@link ScrapCraftingTableBlockEntity} solely to keep an in-progress grid across
+ * closing the screen (the Tinkers' Crafting Station QoL); the crafting itself is still menu-driven.
  */
-public class ScrapCraftingTableBlock extends Block {
+public class ScrapCraftingTableBlock extends BaseEntityBlock {
+
+    public static final MapCodec<ScrapCraftingTableBlock> CODEC = simpleCodec(ScrapCraftingTableBlock::new);
 
     private static final Component TITLE = Component.translatable("container.crafting");
 
     public ScrapCraftingTableBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected MapCodec<ScrapCraftingTableBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ScrapCraftingTableBlockEntity(pos, state);
+    }
+
+    /** Render the normal block model - a BaseEntityBlock must say so, or it draws nothing. */
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override

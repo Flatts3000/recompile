@@ -2,6 +2,7 @@ package com.flatts.recompile.content.menu;
 
 import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
+import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
 import com.flatts.recompile.network.ScrapNetworkContentsPayload;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCMenus;
@@ -72,6 +73,8 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     private final Player player;
     private final Level level;
     private final BlockPos pos;
+    /** Whether this menu checked out the table's persistent grid and so must save it back on close. */
+    private boolean ownsTableGrid;
 
     /** Client factory: the block pos is streamed in the open buffer (see {@link RCMenus}). */
     public ScrapCraftingStationMenu(int containerId, Inventory inventory, BlockPos pos) {
@@ -98,6 +101,16 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         }
         for (int col = 0; col < 9; col++) {
             this.addSlot(new Slot(inventory, col, 8 + col * 18, 142));
+        }
+
+        // Restore a grid left in the table - but only the first opener owns it (checks it out). A
+        // concurrent second opener gets a plain transient grid and never persists, so it cannot wipe
+        // the owner's grid. Server-side; the loaded grid syncs to the client with the rest of the menu.
+        if (!level.isClientSide()
+                && level.getBlockEntity(pos) instanceof ScrapCraftingTableBlockEntity table
+                && table.tryCheckOut()) {
+            table.loadInto(this.craftSlots);
+            this.ownsTableGrid = true;
         }
     }
 
@@ -135,7 +148,17 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        this.access.execute((lvl, blockPos) -> this.clearContainer(player, this.craftSlots));
+        this.access.execute((lvl, blockPos) -> {
+            // Only the owner persists back into the table (and releases the check-out). A non-owner, or
+            // an owner whose table is gone (broken while open), falls back to vanilla's give-back-or-drop
+            // so nothing is lost and nothing is overwritten.
+            if (this.ownsTableGrid
+                    && lvl.getBlockEntity(blockPos) instanceof ScrapCraftingTableBlockEntity table) {
+                table.saveFrom(this.craftSlots);
+            } else {
+                this.clearContainer(player, this.craftSlots);
+            }
+        });
     }
 
     @Override
@@ -143,16 +166,26 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         return stillValid(this.access, player, RCBlocks.SCRAP_CRAFTING_TABLE.get());
     }
 
+    /** Button id (never a valid item registry id, which are non-negative) meaning "deposit my cursor". */
+    public static final int DEPOSIT_BUTTON = -1;
+
     /**
-     * Panel withdraw: clicking a material in the connected-storage panel sends a menu-button click
-     * carrying that item's registry id (no custom packet needed). Pull a stack of it out of the network
-     * into the player. Server-only - the client just sends the button. Withdraw-only by design; deposit
-     * stays on the file-all and hopper-in.
+     * Panel interaction, via menu-button clicks so no custom packet is needed (the id travels as a
+     * VAR_INT, so any item id fits). Two actions, both server-authoritative:
+     *
+     * <ul>
+     *   <li><b>{@link #DEPOSIT_BUTTON}</b> - store the cursor stack into the network (matching bin, then
+     *       an empty bin that binds, then the barrel), the same routing the file-all uses.</li>
+     *   <li><b>an item's registry id</b> - withdraw a stack of that item out of the network.</li>
+     * </ul>
      */
     @Override
     public boolean clickMenuButton(Player player, int id) {
         if (this.level.isClientSide()) {
             return false;
+        }
+        if (id == DEPOSIT_BUTTON) {
+            return depositCarried();
         }
         // The id comes off the wire (the panel sends an item's registry id); a malformed client could
         // send anything, so treat an unknown/air id as a no-op rather than trusting it.
@@ -168,6 +201,22 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             player.drop(pulled, false);
         }
         this.level.playSound(null, this.pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 1.2F);
+        return true;
+    }
+
+    /** Store the cursor stack into the connected network (auto-binding an empty bin). Withdraw's mirror. */
+    private boolean depositCarried() {
+        ItemStack carried = this.getCarried().copy();
+        if (carried.isEmpty()) {
+            return false;
+        }
+        int before = carried.getCount();
+        ScrapNetwork.insertFromMember(this.level, this.pos, carried, true);
+        if (carried.getCount() == before) {
+            return false;   // nothing accepted (no matching/empty bin and full/absent barrel)
+        }
+        this.setCarried(carried);
+        this.level.playSound(null, this.pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 0.8F);
         return true;
     }
 

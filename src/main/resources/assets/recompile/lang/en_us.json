@@ -47,6 +47,7 @@
   "container.recompile.bin_count": "%s bins",
   "container.recompile.bins_empty": "(empty)",
   "container.recompile.more": "+%s more",
+  "container.recompile.store_hint": "Click to store",
   "container.recompile.plus_barrel": "+ barrel",
   "container.recompile.burn_barrel": "Burn Barrel",
   "container.recompile.scrap_barrel": "Scrap Barrel",

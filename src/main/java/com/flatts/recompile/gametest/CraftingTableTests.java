@@ -148,6 +148,38 @@ final class CraftingTableTests {
             helper.succeed();
         });
 
+        // Panel deposit: with a stack on the cursor, the deposit button stores it into the network,
+        // auto-binding an empty bin. Mirrors the withdraw; driven through clickMenuButton like the screen.
+        RCGameTests.test("scrap_crafting_table_panel_deposits_the_cursor", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ScrapBinBlockEntity bin = placeBin(helper, new BlockPos(2, 1, 1));   // empty, unbound
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+
+            menu.setCarried(new ItemStack(RCItems.SCRAP_METAL.get(), 30));
+            boolean handled = menu.clickMenuButton(player, ScrapCraftingStationMenu.DEPOSIT_BUTTON);
+
+            helper.assertTrue(handled, "depositing a carried stack into an empty bin must succeed");
+            helper.assertTrue(bin.boundMaterial() == RCItems.SCRAP_METAL.get(), "the empty bin should bind to metal");
+            helper.assertTrue(bin.amount() == 30, "the bin should hold the deposited 30, has " + bin.amount());
+            helper.assertTrue(menu.getCarried().isEmpty(), "the cursor should be emptied by the deposit");
+            helper.succeed();
+        });
+
+        // Negative control: depositing with an empty cursor, or no storage, is a no-op.
+        RCGameTests.test("scrap_crafting_table_panel_deposit_needs_storage", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());   // no bins/barrel connected
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+
+            menu.setCarried(new ItemStack(RCItems.SCRAP_METAL.get(), 30));
+            boolean handled = menu.clickMenuButton(player, ScrapCraftingStationMenu.DEPOSIT_BUTTON);
+
+            helper.assertFalse(handled, "with no connected storage the deposit must be a no-op");
+            helper.assertTrue(menu.getCarried().getCount() == 30, "the cursor stack must be untouched");
+            helper.succeed();
+        });
+
         // Negative control: withdrawing a material the network does not hold does nothing.
         RCGameTests.test("scrap_crafting_table_panel_withdraw_needs_stock", 20, helper -> {
             helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
@@ -160,6 +192,59 @@ final class CraftingTableTests {
 
             helper.assertFalse(handled, "withdrawing a material with no stock must be a no-op");
             helper.assertTrue(countIn(player, RCItems.SCRAP_METAL.get()) == 0, "nothing should be given");
+            helper.succeed();
+        });
+
+        // Grid persistence: a pattern left in the grid survives closing the screen (saved to the table
+        // BE on close, restored on reopen).
+        RCGameTests.test("scrap_crafting_table_grid_persists_across_close", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+            ScrapCraftingStationMenu open = openMenu(helper, player);
+            open.getSlot(1).set(new ItemStack(RCItems.SCRAP_METAL.get()));
+            open.getSlot(2).set(new ItemStack(RCItems.PLASTIC_SCRAP.get()));
+            open.removed(player);   // closes -> saves the grid into the table BE
+
+            ScrapCraftingStationMenu reopened = openMenu(helper, player);   // -> restores from the BE
+            helper.assertTrue(reopened.getSlot(1).getItem().is(RCItems.SCRAP_METAL.get()),
+                "grid slot 1 must restore scrap metal, got " + reopened.getSlot(1).getItem());
+            helper.assertTrue(reopened.getSlot(2).getItem().is(RCItems.PLASTIC_SCRAP.get()),
+                "grid slot 2 must restore plastic, got " + reopened.getSlot(2).getItem());
+            helper.succeed();
+        });
+
+        // Concurrent openers must not wipe the grid: only the first (owner) persists; a second opener
+        // gets an empty transient and never writes back. Regression for the 2-player data-loss case.
+        RCGameTests.test("scrap_crafting_table_grid_survives_a_second_opener", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+            ScrapCraftingStationMenu owner = openMenu(helper, player);          // checks out the grid
+            owner.getSlot(1).set(new ItemStack(RCItems.SCRAP_METAL.get()));
+            ScrapCraftingStationMenu second = openMenu(helper, player);          // checked out -> transient
+            helper.assertTrue(second.getSlot(1).getItem().isEmpty(),
+                "a second opener must not see the checked-out grid");
+
+            owner.removed(player);    // owner saves its grid into the table
+            second.removed(player);   // must NOT overwrite the table with its empty grid
+
+            ScrapCraftingStationMenu reopened = openMenu(helper, player);
+            helper.assertTrue(reopened.getSlot(1).getItem().is(RCItems.SCRAP_METAL.get()),
+                "the owner's grid must survive the second opener's close, got " + reopened.getSlot(1).getItem());
+            helper.succeed();
+        });
+
+        // Breaking the table drops the stored grid - the pattern is never lost.
+        RCGameTests.test("scrap_crafting_table_grid_drops_on_break", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu open = openMenu(helper, player);
+            open.getSlot(1).set(new ItemStack(RCItems.SCRAP_METAL.get()));
+            open.removed(player);   // grid now lives in the BE
+
+            helper.setBlock(TABLE, Blocks.AIR);   // break -> preRemoveSideEffects drops the grid
+            helper.assertItemEntityPresent(RCItems.SCRAP_METAL.get());
             helper.succeed();
         });
 
