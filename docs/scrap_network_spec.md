@@ -99,9 +99,13 @@ GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide 
    real bins + barrel in `broadcastChanges` and pushes a `ScrapNetworkContentsPayload` (one S2C channel,
    `RCPayloads`) to the viewer on change; the screen renders it verbatim and never inspects a block
    entity, so it cannot drift from the world (this replaced an earlier fragile per-block client-sync
-   approach). **Clicking a material withdraws a stack** of it from the network into the player (via a
-   menu-button click carrying the item's registry id); depositing stays on the file-all + hopper-in.
-   The recipe-book button is dropped for v1.
+   approach). The panel is **two-way**: clicking a material withdraws a stack of it into the player,
+   and clicking the panel while holding a stack deposits it into the network (both via a menu-button
+   click - the item's registry id for withdraw, a `-1` sentinel for deposit - so no custom packet). The
+   table also **keeps its grid across close** (a `ScrapCraftingTableBlockEntity` holds the 3x3; the grid
+   is moved into the menu on open and back on close, so it never duplicates and drops on break). The
+   **recipe-book button is deferred** (it would need swapping the menu's base class, risking the tested
+   craft/withdraw/deposit logic; JEI already covers recipe discovery).
 
 ## Placement guidelines - kept, and generalized to every multiblock
 
