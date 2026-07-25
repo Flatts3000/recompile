@@ -57,9 +57,11 @@ public final class WorkstationPlacementPreview {
             return;
         }
         // Where the core would land, and how the blueprint is turned - both exactly as
-        // WorkstationCoreBlock.getStateForPlacement resolves them, so the preview cannot lie.
+        // WorkstationCoreBlock.getStateForPlacement resolves them (facing = opposite of look, via the
+        // shared facingForPlacement), so the preview cannot lie.
         BlockPos corePos = hit.getBlockPos().relative(hit.getDirection());
-        Rotation rotation = WorkstationCoreBlock.rotationFromFacing(player.getDirection());
+        Rotation rotation = WorkstationCoreBlock.rotationFromFacing(
+            WorkstationCoreBlock.facingForPlacement(player.getDirection()));
         Multiblock blueprint = RCBlocks.WORKSTATION_CORE.get().blueprint();
 
         marker(level, corePos);

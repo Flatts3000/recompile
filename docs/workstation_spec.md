@@ -145,10 +145,12 @@ of the hand - except the Burn Barrel's output, the one deliberate exception.
 
 The bench is directional and shows its footprint before you commit.
 
-- **Directional.** The blueprint is authored for a NORTH-facing core (counter along `z = -1`, ahead of
-  the player) and rotated to the core's `HORIZONTAL_FACING` at validate / form / read time.
-  `getStateForPlacement` sets the facing to the player's look direction, so the bench always builds out
-  ahead of them. The rotation is threaded through the framework (`Multiblock.rotate`, and rotation
+- **Directional.** The blueprint is authored for a NORTH-facing core (counter along `z = -1`) and
+  rotated to the core's `HORIZONTAL_FACING` at validate / form / read time. `getStateForPlacement` sets
+  the facing to the **opposite** of the player's look direction (`facingForPlacement`, the single place
+  the reverse lives), so the counter swings around to the player's side: they end up standing at the
+  counter with the shelf behind it, not facing the back of the shelf. The rotation is threaded through
+  the framework (`Multiblock.rotate`, and rotation
   overloads of `matches` / `isFormed` / `form` / `disband` / `roomToAssemble`), so a vertical machine
   passing `Rotation.NONE` is unaffected - the Grass Spreader and Rain Collector still build as before.
   The network rotates a member offset the same way to find its core and its bins/barrel.

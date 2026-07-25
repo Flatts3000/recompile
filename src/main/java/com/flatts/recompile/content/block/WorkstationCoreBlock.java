@@ -32,9 +32,10 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
  * the back row (including one on the core) at {@code y = 1}. 18 blocks, 6 wide x 2 deep x 2 tall.
  *
  * <p><b>Directional.</b> The blueprint is authored for a core facing {@link Direction#NORTH} (the
- * counter runs along {@code z = -1}, in front of the player) and rotated to the core's
- * {@link #FACING} at validate/form/read time. {@link #getStateForPlacement} sets the facing to the
- * player's look direction, so the bench always builds out ahead of them.
+ * counter runs along {@code z = -1}) and rotated to the core's {@link #FACING} at validate/form/read
+ * time. {@link #getStateForPlacement} sets the facing to the <em>opposite</em> of the player's look
+ * direction (see {@link #facingForPlacement}), so the bench builds toward the player: they end up
+ * standing at the counter with the shelf of bins behind it, not facing the back of the shelf.
  */
 public class WorkstationCoreBlock extends MultiblockCoreBlock {
 
@@ -60,7 +61,17 @@ public class WorkstationCoreBlock extends MultiblockCoreBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+        return defaultBlockState().setValue(FACING, facingForPlacement(context.getHorizontalDirection()));
+    }
+
+    /**
+     * The core facing to store for a player looking in {@code look}. The <b>opposite</b> of the look
+     * direction: the counter is authored at {@code z = -1} (behind a NORTH core), so facing the core
+     * away from the player swings the counter around to the player's side. The single place the reverse
+     * lives, so {@link #getStateForPlacement} and the held-item preview stay in lockstep.
+     */
+    public static Direction facingForPlacement(Direction look) {
+        return look.getOpposite();
     }
 
     @Override

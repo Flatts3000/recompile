@@ -59,6 +59,16 @@ class WorkstationBlueprintTest {
     }
 
     @Test
+    void placementFacesTheCoreAwayFromThePlayerSoTheCounterSwingsToTheirSide() {
+        // The stored facing is the opposite of the look direction, so the counter (authored behind a
+        // NORTH core) ends up on the player's side rather than facing the back of the shelf.
+        assertEquals(Direction.SOUTH, WorkstationCoreBlock.facingForPlacement(Direction.NORTH));
+        assertEquals(Direction.WEST, WorkstationCoreBlock.facingForPlacement(Direction.EAST));
+        assertEquals(Direction.NORTH, WorkstationCoreBlock.facingForPlacement(Direction.SOUTH));
+        assertEquals(Direction.EAST, WorkstationCoreBlock.facingForPlacement(Direction.WEST));
+    }
+
+    @Test
     void facingMapsToTheRotationThatBuildsTheBenchAhead() {
         // The blueprint is authored for NORTH; each other facing rotates it by the turn from north.
         assertEquals(Rotation.NONE, WorkstationCoreBlock.rotationFromFacing(Direction.NORTH));
