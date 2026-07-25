@@ -35,20 +35,31 @@ public abstract class MultiblockDummyBlock extends Block {
     }
 
     /**
-     * Find the core this cell belongs to: the nearest {@link MultiblockCoreBlock} below whose
-     * blueprint actually claims this position for this block. Checking the blueprint (not just
-     * "a core is somewhere below") means an unrelated core stacked underneath cannot adopt us.
+     * Find the core this cell belongs to: a {@link MultiblockCoreBlock} nearby whose blueprint actually
+     * claims this position for this block. Checking the blueprint (not just "a core is near") means an
+     * unrelated core cannot adopt us.
+     *
+     * <p>A core sits at or below its cells (cell offsets have {@code y >= 0}) and within one block
+     * horizontally, so this small box covers every shape we build - the vertical towers (Grass Spreader,
+     * Rain Collector) and the Compost Heap's 2x2x2 alike, where cells sit <em>beside</em> the core, not
+     * only above it.
      */
     public static @Nullable BlockPos findCore(Level level, BlockPos pos) {
-        for (int dy = 1; dy <= SEARCH_DEPTH; dy++) {
-            BlockPos candidate = pos.below(dy);
-            BlockState state = level.getBlockState(candidate);
-            if (!(state.getBlock() instanceof MultiblockCoreBlock core)) {
-                continue;
-            }
-            for (Multiblock.Cell cell : core.blueprint().cells()) {
-                if (cell.at(candidate).equals(pos)) {
-                    return candidate;
+        for (int dy = 0; dy <= SEARCH_DEPTH; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dz == 0 && dy == 0) {
+                        continue;   // the cell itself is never the core
+                    }
+                    BlockPos candidate = pos.offset(dx, -dy, dz);
+                    if (!(level.getBlockState(candidate).getBlock() instanceof MultiblockCoreBlock core)) {
+                        continue;
+                    }
+                    for (Multiblock.Cell cell : core.blueprint().cells()) {
+                        if (cell.at(candidate).equals(pos)) {
+                            return candidate;
+                        }
+                    }
                 }
             }
         }
@@ -66,6 +77,17 @@ public abstract class MultiblockDummyBlock extends Block {
         BlockState coreState = level.getBlockState(core);
         return coreState.useItemOn(stack, level, player, hand,
             hit.withPosition(core));
+    }
+
+    /** And an empty-handed right-click on any part is one on the machine (the Compost Heap harvest). */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+            Player player, BlockHitResult hit) {
+        BlockPos core = findCore(level, pos);
+        if (core == null) {
+            return InteractionResult.PASS;
+        }
+        return level.getBlockState(core).useWithoutItem(level, player, hit.withPosition(core));
     }
 
     /**

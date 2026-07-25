@@ -423,3 +423,26 @@ top = "a full-bleed top-down Minecraft block face: the lid of a salvaged scrap s
 side = "a full-bleed Minecraft block face: the side of a salvaged scrap sorting bin, a plain riveted desaturated steel panel with a welded rim and bolt heads, worn grey metal, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
 front = "a full-bleed Minecraft block face: the front of a salvaged scrap sorting bin, a riveted desaturated steel panel with a blank stencil placard above a low open chute mouth, worn grey metal, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
 bottom = "a full-bleed Minecraft block face: the grimy underside of a salvaged scrap sorting bin, dark oily desaturated steel base with stubby corner feet, caked grime, darker than the sides, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
+
+# ---------------------------------------------------------------------------
+# Compost Heap (Mod Jam - the fertilizer tier): a 2x2x2 salvage cage of
+# composting dump organics. compost_heap = the core face; compost_cage = a
+# formed cage cell; fertilizer = the harvested item.
+# ---------------------------------------------------------------------------
+[surface.compost_heap]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face: dark crumbly steaming compost of rotting dump organics packed inside a salvaged wire-mesh and corrugated-scrap frame, damp browns and blacks flecked with shredded fibre and food waste, gritty, muted, flat, no perspective, fills the whole tile"
+
+[surface.compost_cage]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: a salvaged wire-mesh and rusted corrugated-metal compost cage panel, dark rotting compost pressing through the mesh behind it, damp browns and greys, gritty, muted, flat, no perspective, fills the whole tile"
+
+[surface.fertilizer]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small heap of rich dark crumbly finished compost fertilizer, near-black soil flecked with pale bits, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"

@@ -104,8 +104,8 @@ not the exhaustive version `roadmap.md` will eventually build.
 
 ## Open decisions for Jason
 
-1. **Scope ambition** - all five tiers at jam depth (recommended: Animals is the climax, cutting it hurts),
-   or a rock-solid three-tier core (Grass -> Vegetation -> Farming) with Trees + Animals as stretch?
+1. **Scope ambition** - **LOCKED: all five tiers** at jam depth (Animals is the climax + the trailer's
+   closing shot). Decided 2026-07-25.
 2. **Theme depth** - light framing (copy + a few names) vs a stronger re-skin leaning "lost green past"
    (more art, better theme score).
 3. **Trailer** - who records + edits the grey-to-green timelapse (the single highest-leverage asset for the

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "recompile:machine_frame",
+    "recompile:organic_muck",
+    "recompile:organic_muck",
+    "recompile:fiber_scrap",
+    "recompile:fiber_scrap"
+  ],
+  "result": { "id": "recompile:compost_heap", "count": 1 }
+}

@@ -58,6 +58,11 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue GRASS_SPREADER_IDLE_INTERVAL_TICKS;
     public static final ModConfigSpec.IntValue GRASS_SPREADER_VERTICAL_TOLERANCE;
 
+    // ---- Compost Heap (Mod Jam - the fertilizer tier) ----
+    public static final ModConfigSpec.BooleanValue COMPOST_HEAP_ENABLED;
+    public static final ModConfigSpec.IntValue COMPOST_LAYER_COST;
+    public static final ModConfigSpec.IntValue COMPOST_LAYER_TICKS;
+
     /**
      * Scrap Bin (P2.9): how much one bin holds of its bound material. Large by design - the bin is
      * the tool the hoarding loop wants - and a first-pass number for the pre-beta balance pass.
@@ -117,6 +122,16 @@ public final class RCConfig {
             .comment("How far above or below the machine a target surface may sit, in blocks,",
                      "so it cannot reach up cliffs or down pits.")
             .defineInRange("grassSpreaderVerticalTolerance", 3, 0, 32);
+
+        COMPOST_HEAP_ENABLED = builder
+            .comment("Whether the Compost Heap composts organics into Fertilizer.")
+            .define("compostHeapEnabled", true);
+        COMPOST_LAYER_COST = builder
+            .comment("How many organics (muck and/or fiber) form one compost layer.")
+            .defineInRange("compostLayerCost", 4, 1, 64);
+        COMPOST_LAYER_TICKS = builder
+            .comment("Ticks for one layer to finish composting into Fertilizer (1200 = 60s).")
+            .defineInRange("compostLayerTicks", 1200, 1, 24000);
         builder.pop();
 
         builder.push("storage");
