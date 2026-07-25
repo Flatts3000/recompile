@@ -150,14 +150,15 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         }
         ItemStack inSlot = slot.getItem();
         moved = inSlot.copy();
+        // For a craft, snapshot the grid BEFORE the craft consumes it, so the refill (below, after
+        // onTake has decremented the grid) knows what each emptied slot held.
+        Item[] pattern = index == RESULT_SLOT ? capturePattern() : null;
         if (index == RESULT_SLOT) {
-            Item[] pattern = capturePattern();
             inSlot.getItem().onCraftedBy(inSlot, player);
             if (!this.moveItemStackTo(inSlot, GRID_END, INV_END, true)) {
                 return ItemStack.EMPTY;
             }
             slot.onQuickCraft(inSlot, moved);
-            refillGrid(player, pattern);
         } else if (index >= GRID_END && index < INV_END) {
             if (!this.moveItemStackTo(inSlot, GRID_START, GRID_END, false)) {
                 if (index < 37) {
@@ -183,6 +184,12 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         slot.onTake(player, inSlot);
         if (index == RESULT_SLOT) {
             player.drop(inSlot, false);
+            // Now that onTake has emptied the crafted slots, restock them from the network - server
+            // only, so the client never mutates its predicted bins. The result recomputes via the
+            // grid's container callback, so the quick-move loop crafts the whole run in one click.
+            if (!this.level.isClientSide() && pattern != null) {
+                refillGrid(player, pattern);
+            }
         }
         return moved;
     }

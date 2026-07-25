@@ -92,6 +92,41 @@ final class CraftingTableTests {
             helper.succeed();
         });
 
+        // End-to-end through the real quick-move loop: a shift-craft bulk-crafts straight from a bin,
+        // restocking the grid between crafts. This is what refillGrid-in-isolation cannot prove - it
+        // pins the ordering (refill must run AFTER onTake empties the grid, or the run makes one item).
+        // scrap_plating is 4 scrap_metal -> 1, a single-material recipe, so the math is exact.
+        RCGameTests.test("scrap_crafting_table_bulk_crafts_from_a_bin", 40, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ScrapBinBlockEntity bin = placeBin(helper, new BlockPos(2, 1, 1));
+            bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 40));
+
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+            // Fill the top-left 2x2 (menu slots 1,2,4,5) with scrap metal - the shaped recipe pattern.
+            for (int gridSlot : new int[] {1, 2, 4, 5}) {
+                menu.getSlot(gridSlot).set(new ItemStack(RCItems.SCRAP_METAL.get()));
+            }
+            helper.assertTrue(menu.getSlot(0).getItem().is(RCItems.SCRAP_PLATING.get()),
+                "the grid must produce scrap plating, got " + menu.getSlot(0).getItem());
+
+            int crafts = 0;
+            while (menu.getSlot(0).hasItem() && crafts < 200) {
+                ItemStack out = menu.quickMoveStack(player, 0);
+                if (out.isEmpty()) {
+                    break;
+                }
+                crafts++;
+            }
+
+            // 4 in the grid + 40 in the bin = 44 scrap metal = 11 crafts; the bin ends empty.
+            helper.assertTrue(crafts == 11, "should bulk-craft 11 plating from grid+bin, got " + crafts);
+            helper.assertTrue(bin.amount() == 0, "the bin should be fully drained, has " + bin.amount());
+            helper.assertTrue(countIn(player, RCItems.SCRAP_PLATING.get()) == 11,
+                "the player should hold 11 scrap plating, has " + countIn(player, RCItems.SCRAP_PLATING.get()));
+            helper.succeed();
+        });
+
         // Negative control: no connected storage and no inventory copy -> the slot stays empty.
         RCGameTests.test("scrap_crafting_table_refill_does_nothing_without_stock", 20, helper -> {
             helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());

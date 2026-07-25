@@ -34,6 +34,10 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
     private static final int PANEL_PAD = 6;
     private static final int ROW_H = 20;
 
+    /** The connected bins + barrel, refreshed once per tick (not per render frame) - see containerTick. */
+    private List<ScrapBinBlockEntity> bins = List.of();
+    private boolean hasBarrel = false;
+
     public ScrapCraftingStationScreen(ScrapCraftingStationMenu menu, Inventory inventory, Component title) {
         // imageWidth/imageHeight are final in 26.1; the extra panel width is set via the super ctor.
         super(menu, inventory, title, CRAFT_W + PANEL_W, CRAFT_H);
@@ -45,6 +49,20 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         // Match the vanilla crafting table's label placement (its title sits over the grid).
         this.titleLabelX = 29;
         this.inventoryLabelX = 8;
+        refreshNetwork();
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        // Re-flood the network once per tick rather than every render frame - the panel stays live
+        // (a shift-craft's drain shows up within a tick) without a per-frame BFS.
+        refreshNetwork();
+    }
+
+    private void refreshNetwork() {
+        this.bins = this.menu.connectedBins();
+        this.hasBarrel = this.menu.hasConnectedBarrel();
     }
 
     @Override
@@ -63,11 +81,10 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         graphics.text(this.font, Component.translatable("container.recompile.connected"),
             panelX + PANEL_PAD, top + PANEL_PAD, 0xFFD0D0D0);
 
-        List<ScrapBinBlockEntity> bins = this.menu.connectedBins();
         int rowY = top + PANEL_PAD + 12;
         int shown = 0;
         int maxRows = (CRAFT_H - (PANEL_PAD + 12) - PANEL_PAD) / ROW_H;
-        for (ScrapBinBlockEntity bin : bins) {
+        for (ScrapBinBlockEntity bin : this.bins) {
             if (shown >= maxRows) {
                 break;
             }
@@ -83,7 +100,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         if (shown == 0) {
             graphics.text(this.font, Component.translatable("container.recompile.not_connected"),
                 panelX + PANEL_PAD, rowY, 0xFF808080);
-        } else if (this.menu.hasConnectedBarrel()) {
+        } else if (this.hasBarrel) {
             graphics.text(this.font, Component.translatable("container.recompile.plus_barrel"),
                 panelX + PANEL_PAD, top + CRAFT_H - PANEL_PAD - 8, 0xFF808080);
         }
