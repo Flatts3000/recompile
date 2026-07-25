@@ -1,8 +1,7 @@
 package com.flatts.recompile.client;
 
-import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
-import java.util.List;
+import com.flatts.recompile.network.ScrapNetworkContentsPayload;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -13,13 +12,15 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * The Scrap Crafting Table's screen (design P2.10 flow 4): the vanilla 3x3 crafting layout plus a
- * <b>connected-storage panel</b> down the right side, listing the bins wired into the scrap network
- * with their material and count - the Tinkers' Crafting Station affordance, so opening the table shows
- * what the network holds (and, implicitly, that it is connected).
+ * <b>connected-storage panel</b> down the right side - the Tinkers' Crafting Station affordance, so
+ * opening the table shows what the whole network holds (bins <em>and</em> barrel), and that it is
+ * connected.
  *
- * <p>The panel is read-only in v1 (a material shelf you can see; deposit/withdraw stay on the file-all
- * and hopper-in). It reads {@link ScrapCraftingStationMenu#connectedBins()} live - the bins sync their
- * material + amount to the client - so it updates as a shift-craft drains them.
+ * <p>The panel renders {@link ScrapCraftingStationMenu#contents()} verbatim - a snapshot the
+ * <b>server</b> computes from the real bins + barrel and pushes each tick (see
+ * {@code ScrapNetworkContentsPayload}). The screen never inspects block entities itself, so the panel
+ * cannot disagree with the world: no per-block client sync to drift, no empty-bin / hidden-barrel gaps.
+ * Read-only in v1 (deposit/withdraw stay on the file-all and hopper-in).
  *
  * <p>26.1 renders through the retained-mode "extract" model, so the drawing lives in
  * {@link #extractBackground} via {@link GuiGraphicsExtractor}, not a {@code renderBg(GuiGraphics)}.
@@ -34,10 +35,6 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
     private static final int PANEL_PAD = 6;
     private static final int ROW_H = 20;
 
-    /** The connected bins + barrel, refreshed once per tick (not per render frame) - see containerTick. */
-    private List<ScrapBinBlockEntity> bins = List.of();
-    private boolean hasBarrel = false;
-
     public ScrapCraftingStationScreen(ScrapCraftingStationMenu menu, Inventory inventory, Component title) {
         // imageWidth/imageHeight are final in 26.1; the extra panel width is set via the super ctor.
         super(menu, inventory, title, CRAFT_W + PANEL_W, CRAFT_H);
@@ -49,20 +46,6 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         // Match the vanilla crafting table's label placement (its title sits over the grid).
         this.titleLabelX = 29;
         this.inventoryLabelX = 8;
-        refreshNetwork();
-    }
-
-    @Override
-    protected void containerTick() {
-        super.containerTick();
-        // Re-flood the network once per tick rather than every render frame - the panel stays live
-        // (a shift-craft's drain shows up within a tick) without a per-frame BFS.
-        refreshNetwork();
-    }
-
-    private void refreshNetwork() {
-        this.bins = this.menu.connectedBins();
-        this.hasBarrel = this.menu.hasConnectedBarrel();
     }
 
     @Override
@@ -81,28 +64,43 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         graphics.text(this.font, Component.translatable("container.recompile.connected"),
             panelX + PANEL_PAD, top + PANEL_PAD, 0xFFD0D0D0);
 
-        int rowY = top + PANEL_PAD + 12;
-        int shown = 0;
-        int maxRows = (CRAFT_H - (PANEL_PAD + 12) - PANEL_PAD) / ROW_H;
-        for (ScrapBinBlockEntity bin : this.bins) {
-            if (shown >= maxRows) {
-                break;
-            }
-            if (bin.boundMaterial() == null || bin.amount() <= 0) {
-                continue;   // an empty bin has nothing to show on the shelf
-            }
-            graphics.item(new ItemStack(bin.boundMaterial()), panelX + PANEL_PAD, rowY);
-            graphics.text(this.font, Integer.toString(bin.amount()),
+        ScrapNetworkContentsPayload contents = this.menu.contents();
+        if (contents.binCount() == 0 && !contents.hasBarrel()) {
+            graphics.text(this.font, Component.translatable("container.recompile.not_connected"),
+                panelX + PANEL_PAD, top + PANEL_PAD + 12, 0xFF808080);
+            return;
+        }
+
+        // Summary: what is wired in (bins + barrel), independent of whether it holds anything.
+        String summary = "";
+        if (contents.binCount() > 0) {
+            summary = Component.translatable("container.recompile.bin_count", contents.binCount()).getString();
+        }
+        if (contents.hasBarrel()) {
+            summary += (summary.isEmpty() ? "" : " ")
+                + Component.translatable("container.recompile.plus_barrel").getString();
+        }
+        graphics.text(this.font, summary, panelX + PANEL_PAD, top + PANEL_PAD + 12, 0xFF9AA0A6, false);
+
+        // The material shelf: every item available across the network (bins + barrel), merged by item.
+        var materials = contents.materials();
+        int rowY = top + PANEL_PAD + 26;
+        int maxRows = (CRAFT_H - (PANEL_PAD + 26) - PANEL_PAD) / ROW_H;
+        int shown = Math.min(materials.size(), maxRows);
+        for (int i = 0; i < shown; i++) {
+            ScrapNetworkContentsPayload.Material material = materials.get(i);
+            graphics.item(new ItemStack(material.item()), panelX + PANEL_PAD, rowY);
+            graphics.text(this.font, Integer.toString(material.count()),
                 panelX + PANEL_PAD + 20, rowY + 4, 0xFFFFFFFF, false);
             rowY += ROW_H;
-            shown++;
         }
-        if (shown == 0) {
-            graphics.text(this.font, Component.translatable("container.recompile.not_connected"),
+        if (materials.isEmpty()) {
+            graphics.text(this.font, Component.translatable("container.recompile.bins_empty"),
                 panelX + PANEL_PAD, rowY, 0xFF808080);
-        } else if (this.hasBarrel) {
-            graphics.text(this.font, Component.translatable("container.recompile.plus_barrel"),
-                panelX + PANEL_PAD, top + CRAFT_H - PANEL_PAD - 8, 0xFF808080);
+        } else if (materials.size() > shown) {
+            graphics.text(this.font,
+                Component.translatable("container.recompile.more", materials.size() - shown).getString(),
+                panelX + PANEL_PAD, rowY, 0xFF808080, false);
         }
     }
 }

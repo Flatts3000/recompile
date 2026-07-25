@@ -2,9 +2,13 @@ package com.flatts.recompile.content.menu;
 
 import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
+import com.flatts.recompile.network.ScrapNetworkContentsPayload;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCMenus;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
@@ -27,6 +31,8 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The Scrap Crafting Table's menu: a 3x3 crafting station wired to the connected scrap network (design
@@ -35,11 +41,14 @@ import net.minecraft.world.level.Level;
  * <ul>
  *   <li><b>Craft from storage:</b> shift-clicking the result restocks the grid from the connected
  *       network (bins -> barrel -> inventory) between crafts, so one action crafts a whole run.</li>
- *   <li><b>A connected-storage panel:</b> the screen reads {@link #connectedBins()} to show what the
- *       network holds. That requires a custom screen, hence a custom {@code MenuType} - which is why
- *       this reimplements the crafting menu over {@link AbstractContainerMenu} rather than extending
- *       vanilla {@code CraftingMenu} (whose constructor hard-locks itself to {@code MenuType.CRAFTING},
- *       so a subclass can never carry a custom screen).</li>
+ *   <li><b>A connected-storage panel:</b> the server computes what the network holds (bins + barrel,
+ *       merged by item) in {@link #broadcastChanges()} and pushes it to the viewer as a
+ *       {@code ScrapNetworkContentsPayload}; the screen renders {@link #contents()} verbatim, so the
+ *       panel is a single server-owned source of truth and cannot drift from the world. That panel
+ *       requires a custom screen, hence a custom {@code MenuType} - which is why this reimplements the
+ *       crafting menu over {@link AbstractContainerMenu} rather than extending vanilla
+ *       {@code CraftingMenu} (whose constructor hard-locks itself to {@code MenuType.CRAFTING}, so a
+ *       subclass can never carry a custom screen).</li>
  * </ul>
  *
  * <p>The crafting logic (grid, result, recompute, quick-move) is vanilla's, copied from
@@ -253,16 +262,74 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         return ItemStack.EMPTY;
     }
 
-    // ---------------- the connected-storage panel (read by the screen) ----------------
+    // ---------------- the connected-storage panel (server computes, client renders) ----------------
 
-    /** The connected bins, for the screen's material-shelf panel. Both sides can flood the network. */
-    public List<ScrapBinBlockEntity> connectedBins() {
-        return ScrapNetwork.bins(level, ScrapNetwork.collect(level, pos));
+    /** Cap on distinct materials synced to the panel - a sane bound, and the panel shows a few rows. */
+    private static final int MATERIAL_CAP = 18;
+
+    /** Client-side: the last contents the server sent, rendered by the screen. */
+    private ScrapNetworkContentsPayload contents = ScrapNetworkContentsPayload.EMPTY;
+    /** Server-side: the last contents sent, so an unchanged network sends nothing. */
+    @Nullable
+    private ScrapNetworkContentsPayload lastSent;
+
+    /** The contents the screen renders (client side). */
+    public ScrapNetworkContentsPayload contents() {
+        return this.contents;
     }
 
-    /** Whether a Scrap Barrel is connected, for the panel's barrel indicator. */
-    public boolean hasConnectedBarrel() {
-        return !ScrapNetwork.barrels(level, ScrapNetwork.collect(level, pos)).isEmpty();
+    /** Set by the payload handler when the server pushes a fresh snapshot. */
+    public void setContents(ScrapNetworkContentsPayload payload) {
+        this.contents = payload;
+    }
+
+    /**
+     * Each tick the menu is open, recompute what the connected network holds and push it to the viewer
+     * if it changed. The server owns the real bins + barrel, so this is the single source of truth for
+     * the panel - the client renders it verbatim and can never disagree with the world.
+     */
+    @Override
+    public void broadcastChanges() {
+        super.broadcastChanges();
+        if (this.level.isClientSide() || !(this.player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        ScrapNetworkContentsPayload now = computeContents();
+        if (!now.equals(this.lastSent)) {
+            this.lastSent = now;
+            PacketDistributor.sendToPlayer(serverPlayer, now);
+        }
+    }
+
+    /** Aggregate every item available across the connected bins and barrel, merged by item. */
+    private ScrapNetworkContentsPayload computeContents() {
+        List<BlockPos> members = ScrapNetwork.collect(level, pos);
+        List<ScrapBinBlockEntity> bins = ScrapNetwork.bins(level, members);
+        List<Container> barrels = ScrapNetwork.barrels(level, members);
+
+        Map<Item, Integer> totals = new LinkedHashMap<>();
+        for (ScrapBinBlockEntity bin : bins) {
+            if (bin.boundMaterial() != null && bin.amount() > 0) {
+                totals.merge(bin.boundMaterial(), bin.amount(), Integer::sum);
+            }
+        }
+        for (Container barrel : barrels) {
+            for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
+                ItemStack stack = barrel.getItem(slot);
+                if (!stack.isEmpty()) {
+                    totals.merge(stack.getItem(), stack.getCount(), Integer::sum);
+                }
+            }
+        }
+
+        List<ScrapNetworkContentsPayload.Material> materials = new ArrayList<>();
+        for (Map.Entry<Item, Integer> entry : totals.entrySet()) {
+            if (materials.size() >= MATERIAL_CAP) {
+                break;
+            }
+            materials.add(new ScrapNetworkContentsPayload.Material(entry.getKey(), entry.getValue()));
+        }
+        return new ScrapNetworkContentsPayload(bins.size(), !barrels.isEmpty(), materials);
     }
 
     // ---------------- test seams ----------------
