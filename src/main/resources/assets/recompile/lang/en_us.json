@@ -90,6 +90,7 @@
   "jade.recompile.workbench_ready": "Hold right-click to break it down",
   "jei.recompile.chance": "%s%% chance",
   "jei.recompile.cutting": "Cutting",
+  "jei.recompile.info.compost_heap": "A 2x2x2 salvage cage that composts the dump's organics into Fertilizer. Place the core and build the cage from seven Machine Frames. Feed it Organic Muck or Fiber Scrap (either works): every few forms a layer, each layer ripens on its own, and a finished layer is right-clicked out for one Fertilizer. It never has to be full.",
   "jei.recompile.info.grass_spreader": "Waters the ground around it, turning coarse dirt and dirt to grass one block at a time. Build up from the core: Water Tank, Pump, Solar Panel on top, and a Copper Pipe on each side of the Pump. It sits idle until the whole tower is up.",
   "jei.recompile.info.rain_collector": "Rain is the only source of fresh water in this world. Put a Machine Frame on top and leave it under open sky. Take water out with a bucket or a glass bottle.",
   "jei.recompile.prying": "Prying",
