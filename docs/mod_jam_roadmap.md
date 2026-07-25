@@ -40,8 +40,9 @@ living past without stating the hidden hook.)
 The ToS bar is **prior CurseForge publication**, not code age: *"All submitted projects must be new (not
 published on CurseForge prior to the contest Start Date)."* Reusing our own frameworks is not restricted.
 
-- [ ] **Confirm Recompile has never been published on CurseForge.** If it has, it is disqualified - stop.
-- [ ] **Do not publish it to CurseForge before the start date.** Publish it *as* the entry, in the window.
+- [x] **Not previously published.** Recompile is an unpublished, in-development project (local repo, never
+  released on CurseForge), so the "new project" gate is met.
+- [ ] **Publish it *as* the entry, in the window** (not before the start date).
 - [ ] **Re-read the 2026 ToS** to confirm the start date, "new project" wording, and the full judging split
   (the clauses above are from the 2025 ToS).
 
@@ -114,6 +115,6 @@ not the exhaustive version `roadmap.md` will eventually build.
 
 ## Verification / definition of done
 
-- 2026 ToS re-read; Recompile confirmed never published on CurseForge; MC 26.1+ confirmed.
+- 2026 ToS re-read for the judging split; MC 26.1+ confirmed (Recompile is unpublished, so eligibility is met).
 - `build` + `runGameTestServer` green; a full `runClient` grey-to-living first-hour playthrough, no blockers.
 - CurseForge page live under ModJam 2026, GitHub repo linked, entry form submitted, before Sept 1.
