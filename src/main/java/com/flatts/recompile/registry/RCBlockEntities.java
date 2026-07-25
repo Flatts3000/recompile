@@ -6,6 +6,7 @@ import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
+import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -33,6 +34,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "scrap_barrel",
             () -> new BlockEntityType<>(ScrapBarrelBlockEntity::new, RCBlocks.SCRAP_BARREL.get()));
+
+    /** The Scrap Crafting Table's 3x3 grid, kept across close (design P2.10 follow-up). */
+    public static final Supplier<BlockEntityType<ScrapCraftingTableBlockEntity>> SCRAP_CRAFTING_TABLE =
+        BLOCK_ENTITIES.register(
+            "scrap_crafting_table",
+            () -> new BlockEntityType<>(ScrapCraftingTableBlockEntity::new, RCBlocks.SCRAP_CRAFTING_TABLE.get()));
 
     /** The Rain Collector's water tank (design P1.10) - the second holding block. */
     public static final Supplier<BlockEntityType<RainCollectorBlockEntity>> RAIN_COLLECTOR =

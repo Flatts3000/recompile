@@ -2,6 +2,7 @@ package com.flatts.recompile.content.menu;
 
 import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
+import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
 import com.flatts.recompile.network.ScrapNetworkContentsPayload;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCMenus;
@@ -99,6 +100,13 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         for (int col = 0; col < 9; col++) {
             this.addSlot(new Slot(inventory, col, 8 + col * 18, 142));
         }
+
+        // Restore a grid that was left in the table (moved out of the BE, so it lives only in the menu
+        // while open). Server-side; the loaded grid syncs to the client with the rest of the container.
+        if (!level.isClientSide()
+                && level.getBlockEntity(pos) instanceof ScrapCraftingTableBlockEntity table) {
+            table.loadInto(this.craftSlots);
+        }
     }
 
     // ---------------- crafting (copied from vanilla CraftingMenu) ----------------
@@ -135,7 +143,15 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        this.access.execute((lvl, blockPos) -> this.clearContainer(player, this.craftSlots));
+        this.access.execute((lvl, blockPos) -> {
+            // Persist the grid back into the table so it survives closing. If the table is gone (broken
+            // while open), fall back to vanilla's give-back-or-drop so nothing is lost.
+            if (lvl.getBlockEntity(blockPos) instanceof ScrapCraftingTableBlockEntity table) {
+                table.saveFrom(this.craftSlots);
+            } else {
+                this.clearContainer(player, this.craftSlots);
+            }
+        });
     }
 
     @Override

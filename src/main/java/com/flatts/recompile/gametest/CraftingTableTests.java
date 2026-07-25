@@ -195,6 +195,38 @@ final class CraftingTableTests {
             helper.succeed();
         });
 
+        // Grid persistence: a pattern left in the grid survives closing the screen (saved to the table
+        // BE on close, restored on reopen).
+        RCGameTests.test("scrap_crafting_table_grid_persists_across_close", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+            ScrapCraftingStationMenu open = openMenu(helper, player);
+            open.getSlot(1).set(new ItemStack(RCItems.SCRAP_METAL.get()));
+            open.getSlot(2).set(new ItemStack(RCItems.PLASTIC_SCRAP.get()));
+            open.removed(player);   // closes -> saves the grid into the table BE
+
+            ScrapCraftingStationMenu reopened = openMenu(helper, player);   // -> restores from the BE
+            helper.assertTrue(reopened.getSlot(1).getItem().is(RCItems.SCRAP_METAL.get()),
+                "grid slot 1 must restore scrap metal, got " + reopened.getSlot(1).getItem());
+            helper.assertTrue(reopened.getSlot(2).getItem().is(RCItems.PLASTIC_SCRAP.get()),
+                "grid slot 2 must restore plastic, got " + reopened.getSlot(2).getItem());
+            helper.succeed();
+        });
+
+        // Breaking the table drops the stored grid - the pattern is never lost.
+        RCGameTests.test("scrap_crafting_table_grid_drops_on_break", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu open = openMenu(helper, player);
+            open.getSlot(1).set(new ItemStack(RCItems.SCRAP_METAL.get()));
+            open.removed(player);   // grid now lives in the BE
+
+            helper.setBlock(TABLE, Blocks.AIR);   // break -> preRemoveSideEffects drops the grid
+            helper.assertItemEntityPresent(RCItems.SCRAP_METAL.get());
+            helper.succeed();
+        });
+
         // Negative control: no connected storage and no inventory copy -> the slot stays empty.
         RCGameTests.test("scrap_crafting_table_refill_does_nothing_without_stock", 20, helper -> {
             helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
