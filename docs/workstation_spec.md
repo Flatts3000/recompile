@@ -141,28 +141,34 @@ capstone.
 (never needs Create), members keep their manual interfaces. The workstation adds reach, not automation
 of the hand - except the Burn Barrel's output, the one deliberate exception.
 
-## Placement outline - a framework addition (Powah-style)
+## Directional placement + ground guidelines (shipped)
 
-The framework has no build-time preview, and a 19-block structure needs one. **Put it in
-`MultiblockCoreBlock` so every multiblock gets it** - Grass Spreader and Rain Collector included,
-retroactively.
+The bench is directional and shows its footprint before you commit.
 
-- **Hold the core item** → a translucent ghost / wireframe of the blueprint renders at the aimed
-  position, each cell boxed, **green where clear, red where blocked**.
-- Reads the blueprint straight off the core block (already the single source of truth), so it costs no
-  new data - just a client render.
+- **Directional.** The blueprint is authored for a NORTH-facing core (counter along `z = -1`, ahead of
+  the player) and rotated to the core's `HORIZONTAL_FACING` at validate / form / read time.
+  `getStateForPlacement` sets the facing to the player's look direction, so the bench always builds out
+  ahead of them. The rotation is threaded through the framework (`Multiblock.rotate`, and rotation
+  overloads of `matches` / `isFormed` / `form` / `disband` / `roomToAssemble`), so a vertical machine
+  passing `Rotation.NONE` is unaffected - the Grass Spreader and Rain Collector still build as before.
+  The network rotates a member offset the same way to find its core and its bins/barrel.
+- **Ground guidelines.** Holding the core item dusts each cell of the projected footprint at the aimed
+  position - **green where the cell is clear, red where a block is in the way** - rotated to the
+  player's facing (`WorkstationPlacementPreview`, client-only). It reads the blueprint straight off the
+  core (already the single source of truth) and `getStateForPlacement`'s own facing/position math, so
+  the preview cannot drift from where the core actually lands.
 
-A **held-item world preview** (like a schematic mod's ghost), **not a BlockEntityRenderer** - it never
-renders a placed block, so it does not touch the no-BER rule. It is also what makes the build
-tractable: it guides manual placement, and turns auto-assemble from "silently fails if something is in
-the way" into "you saw the red cell coming."
+Particles, **not a translucent wireframe and not a BlockEntityRenderer** - it never renders a placed
+block, so it does not touch the no-BER rule. A world-space wireframe overlay was scoped out: 26.1's
+`RenderLevelStageEvent` dropped the camera / partial-tick hooks a stable outline needs, making it its
+own task; the particle footprint delivers the same "you saw the red cell coming" affordance now.
 
 ## Build UX
 
 - **Auto-assemble**: place the core with all 17 other blocks in your inventory and it places them into
-  the blueprint (all-or-nothing - if you cannot supply every block, it places none). The outline
-  previews placement and flags conflicts.
-- **Manual**: build the shape into the outline; the core forms when the blueprint validates on a
+  the blueprint (all-or-nothing - if you cannot supply every block, it places none). The ground
+  guidelines preview placement and flag conflicts before you commit.
+- **Manual**: build the shape into the footprint; the core forms when the blueprint validates on a
   neighbour change. Thanks to the `form()` fix, functional blocks you placed with contents keep them.
 
 ## Blocks and registry
@@ -193,14 +199,15 @@ balance-pass number.
     auto-binding empties.
   - Craft-from-storage: a recipe craftable only with an ingredient that lives in a connected bin / the
     barrel succeeds while formed, and fails (standalone) when it is not.
-- **Unit tests:** the blueprint's cell math, and the outline's conflict/overlap detection (client-only,
-  so not GameTest-able) - both pure logic.
+- **Unit tests:** the blueprint's cell math, plus the facing → rotation mapping and the rotated cell
+  geometry (`rotationFromFacing`, `Multiblock.rotate`, `Cell.at` under rotation) - pure logic, so
+  covered here rather than in a GameTest (the 6-wide structure does not fit the 5x5x5 plot).
 
 ## Open questions
 
 1. **All numbers**: the Workstation Core recipe/cost, and any per-flow tuning. Pre-beta balance pass.
-2. **Outline render details** (color, opacity, whether it also shows on the placed formed core for a
-   moment) - a `runClient` polish pass.
+2. **Guideline polish** (dust color / density, whether to mark only the ground layer or the full 3D
+   footprint) - a `runClient` polish pass. Currently marks every cell, colored by placeability.
 3. **Overflow when all storage is full**: machine outputs and the file-all return a remainder; confirm
    the fallback is "leave it in hand / drop at the source" rather than the void (default: never void).
 
@@ -208,6 +215,6 @@ balance-pass number.
 
 1. `JAVA_HOME="/c/Program Files/Java/jdk-25" ./gradlew build` - redirect to a file, check `$?`.
 2. `runGameTestServer` - full suite; reported total is ours **plus one**.
-3. `runClient` - place the core, watch the outline, auto-assemble, then confirm the four flows + the
-   file-all by hand.
+3. `runClient` - hold the core to see the ground guidelines, place it facing different ways, auto-assemble,
+   then confirm the four flows + the file-all by hand.
 4. Code review before the PR, not after.

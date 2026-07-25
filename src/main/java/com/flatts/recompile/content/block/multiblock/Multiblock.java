@@ -8,6 +8,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
@@ -62,8 +63,28 @@ public record Multiblock(List<Cell> cells) {
     public record Cell(Vec3i offset, Block component, Block formed) {
 
         public BlockPos at(BlockPos core) {
-            return core.offset(offset);
+            return at(core, Rotation.NONE);
         }
+
+        /** The cell's world position for a core with the given facing rotation. */
+        public BlockPos at(BlockPos core, Rotation rotation) {
+            return core.offset(rotate(offset, rotation));
+        }
+    }
+
+    /**
+     * Rotate an offset about the vertical axis (MC's {@code BlockPos.rotate} convention), so a
+     * blueprint defined for one facing can be placed, validated and read at any of the four. Vertical
+     * columns (the Grass Spreader, Rain Collector) are rotation-invariant and always pass
+     * {@link Rotation#NONE}; the Workstation, a horizontal layout, uses its core's facing.
+     */
+    public static Vec3i rotate(Vec3i offset, Rotation rotation) {
+        return switch (rotation) {
+            case NONE -> offset;
+            case CLOCKWISE_90 -> new Vec3i(-offset.getZ(), offset.getY(), offset.getX());
+            case CLOCKWISE_180 -> new Vec3i(-offset.getX(), offset.getY(), -offset.getZ());
+            case COUNTERCLOCKWISE_90 -> new Vec3i(offset.getZ(), offset.getY(), -offset.getX());
+        };
     }
 
     /** A single cell directly above the core - the shape both first machines use. */
@@ -73,8 +94,12 @@ public record Multiblock(List<Cell> cells) {
 
     /** True when every cell already holds its loose component, ready to form. */
     public boolean matches(BlockGetter level, BlockPos core) {
+        return matches(level, core, Rotation.NONE);
+    }
+
+    public boolean matches(BlockGetter level, BlockPos core, Rotation rotation) {
         for (Cell cell : cells) {
-            if (!level.getBlockState(cell.at(core)).is(cell.component())) {
+            if (!level.getBlockState(cell.at(core, rotation)).is(cell.component())) {
                 return false;
             }
         }
@@ -83,8 +108,12 @@ public record Multiblock(List<Cell> cells) {
 
     /** True when every cell holds its formed block - i.e. this machine is currently assembled. */
     public boolean isFormed(BlockGetter level, BlockPos core) {
+        return isFormed(level, core, Rotation.NONE);
+    }
+
+    public boolean isFormed(BlockGetter level, BlockPos core, Rotation rotation) {
         for (Cell cell : cells) {
-            if (!level.getBlockState(cell.at(core)).is(cell.formed())) {
+            if (!level.getBlockState(cell.at(core, rotation)).is(cell.formed())) {
                 return false;
             }
         }
@@ -100,8 +129,12 @@ public record Multiblock(List<Cell> cells) {
      * component placed on any side comes out pointing the right way.
      */
     public void form(Level level, BlockPos core) {
+        form(level, core, Rotation.NONE);
+    }
+
+    public void form(Level level, BlockPos core, Rotation rotation) {
         for (Cell cell : cells) {
-            BlockPos at = cell.at(core);
+            BlockPos at = cell.at(core, rotation);
             // Preserve stateful components: when the cell's formed block IS its component (the
             // Workstation's every cell, the Grass Spreader's Solar Panel), the block is already in
             // place - re-setting it to a default state would wipe a barrel's contents, a bin's
@@ -110,7 +143,7 @@ public record Multiblock(List<Cell> cells) {
                 continue;
             }
             BlockState formed = cell.formed().defaultBlockState();
-            Vec3i offset = cell.offset();
+            Vec3i offset = rotate(cell.offset(), rotation);
             if (formed.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
                     && (offset.getX() != 0 || offset.getZ() != 0)) {
                 formed = formed.setValue(BlockStateProperties.HORIZONTAL_FACING,
@@ -130,8 +163,12 @@ public record Multiblock(List<Cell> cells) {
      * lives in one place.
      */
     public void disband(Level level, BlockPos core, boolean drop) {
+        disband(level, core, Rotation.NONE, drop);
+    }
+
+    public void disband(Level level, BlockPos core, Rotation rotation, boolean drop) {
         for (Cell cell : cells) {
-            BlockPos pos = cell.at(core);
+            BlockPos pos = cell.at(core, rotation);
             BlockState state = level.getBlockState(pos);
             if (!state.is(cell.formed())) {
                 continue;
@@ -145,8 +182,12 @@ public record Multiblock(List<Cell> cells) {
 
     /** Every cell that is currently air or replaceable - what auto-assemble needs to fill. */
     public boolean roomToAssemble(BlockGetter level, BlockPos core) {
+        return roomToAssemble(level, core, Rotation.NONE);
+    }
+
+    public boolean roomToAssemble(BlockGetter level, BlockPos core, Rotation rotation) {
         for (Cell cell : cells) {
-            if (!level.getBlockState(cell.at(core)).canBeReplaced()) {
+            if (!level.getBlockState(cell.at(core, rotation)).canBeReplaced()) {
                 return false;
             }
         }

@@ -6,8 +6,15 @@ import com.flatts.recompile.registry.RCBlocks;
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 /**
  * The Scrap Workstation's core (design P2.10): the controller that ties the scrap-interaction blocks
@@ -24,13 +31,17 @@ import net.minecraft.world.level.block.Block;
  * {@code z = -1}; a back row of five Machine Frames at {@code z = 0}; and six material bins on top of
  * the back row (including one on the core) at {@code y = 1}. 18 blocks, 6 wide x 2 deep x 2 tall.
  *
- * <p>Fixed orientation for v1 - the blueprint is a fixed set of offsets and the framework does not yet
- * rotate a blueprint by a core's facing (that, and the placement outline, are framework enhancements
- * deferred with this).
+ * <p><b>Directional.</b> The blueprint is authored for a core facing {@link Direction#NORTH} (the
+ * counter runs along {@code z = -1}, in front of the player) and rotated to the core's
+ * {@link #FACING} at validate/form/read time. {@link #getStateForPlacement} sets the facing to the
+ * player's look direction, so the bench always builds out ahead of them.
  */
 public class WorkstationCoreBlock extends MultiblockCoreBlock {
 
     public static final MapCodec<WorkstationCoreBlock> CODEC = simpleCodec(WorkstationCoreBlock::new);
+
+    /** Which way the bench faces; the blueprint (authored for NORTH) is rotated to match. */
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public WorkstationCoreBlock(Properties properties) {
         super(properties);
@@ -39,6 +50,35 @@ public class WorkstationCoreBlock extends MultiblockCoreBlock {
     @Override
     protected MapCodec<? extends WorkstationCoreBlock> codec() {
         return CODEC;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(FACING);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+    }
+
+    @Override
+    protected Rotation rotationFor(BlockState state) {
+        return rotationFromFacing(state.getValue(FACING));
+    }
+
+    /**
+     * The rotation carrying the NORTH-authored blueprint to a core facing {@code facing}. Public so
+     * the network can rotate a member offset back the same way the structure was built.
+     */
+    public static Rotation rotationFromFacing(Direction facing) {
+        return switch (facing) {
+            case EAST -> Rotation.CLOCKWISE_90;
+            case SOUTH -> Rotation.CLOCKWISE_180;
+            case WEST -> Rotation.COUNTERCLOCKWISE_90;
+            default -> Rotation.NONE; // NORTH (and the non-horizontal cases, which placement never sets)
+        };
     }
 
     @Override

@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -45,6 +46,15 @@ public abstract class MultiblockCoreBlock extends Block {
      * a blueprint names other blocks and those are not resolvable while blocks are still registering.
      */
     protected abstract Multiblock createBlueprint();
+
+    /**
+     * How this core's blueprint is rotated for a given state - {@link Rotation#NONE} by default (a
+     * vertical column is rotation-invariant). A directional machine overrides this from its facing so
+     * the structure builds relative to the player.
+     */
+    protected Rotation rotationFor(BlockState state) {
+        return Rotation.NONE;
+    }
 
     /**
      * Called once, server-side, right after the machine assembles. Override to start work - a
@@ -127,7 +137,8 @@ public abstract class MultiblockCoreBlock extends Block {
      */
     private AssembleResult autoAssemble(Level level, BlockPos pos, Player player) {
         Multiblock blueprint = blueprint();
-        if (!blueprint.roomToAssemble(level, pos)) {
+        Rotation rotation = rotationFor(level.getBlockState(pos));
+        if (!blueprint.roomToAssemble(level, pos, rotation)) {
             return AssembleResult.NO_ROOM;
         }
         if (!player.getAbilities().instabuild) {
@@ -143,7 +154,7 @@ public abstract class MultiblockCoreBlock extends Block {
         }
         for (Multiblock.Cell cell : blueprint.cells()) {
             consumeOne(player, cell.component().asItem());
-            level.setBlock(cell.at(pos), cell.component().defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(cell.at(pos, rotation), cell.component().defaultBlockState(), Block.UPDATE_ALL);
         }
         return AssembleResult.ASSEMBLED;
     }
@@ -182,10 +193,11 @@ public abstract class MultiblockCoreBlock extends Block {
         }
         BlockState state = level.getBlockState(pos);
         Multiblock blueprint = core.blueprint();
-        if (isFormed(state) || !blueprint.matches(level, pos)) {
+        Rotation rotation = core.rotationFor(state);
+        if (isFormed(state) || !blueprint.matches(level, pos, rotation)) {
             return false;
         }
-        blueprint.form(level, pos);
+        blueprint.form(level, pos, rotation);
         level.setBlock(pos, state.setValue(FORMED, true), Block.UPDATE_ALL);
         core.onFormed(level, pos);
         return true;
@@ -197,7 +209,7 @@ public abstract class MultiblockCoreBlock extends Block {
             return;
         }
         BlockState state = level.getBlockState(pos);
-        core.blueprint().disband(level, pos, drop);
+        core.blueprint().disband(level, pos, core.rotationFor(state), drop);
         if (isFormed(state)) {
             level.setBlock(pos, state.setValue(FORMED, false), Block.UPDATE_ALL);
             core.onDisbanded(level, pos);
@@ -218,7 +230,7 @@ public abstract class MultiblockCoreBlock extends Block {
             return;
         }
         if (isFormed(state)) {
-            if (!blueprint().isFormed(level, pos)) {
+            if (!blueprint().isFormed(level, pos, rotationFor(state))) {
                 // a cell was taken out from under us - drop back to unformed, nothing left to drop
                 level.setBlock(pos, state.setValue(FORMED, false), Block.UPDATE_ALL);
             }
@@ -233,7 +245,7 @@ public abstract class MultiblockCoreBlock extends Block {
             BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
         if (isFormed(state)) {
-            blueprint().disband(level, pos, true);
+            blueprint().disband(level, pos, rotationFor(state), true);
         }
     }
 }

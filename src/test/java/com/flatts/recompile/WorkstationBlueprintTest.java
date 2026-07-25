@@ -3,10 +3,14 @@ package com.flatts.recompile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.flatts.recompile.content.block.WorkstationCoreBlock;
 import com.flatts.recompile.content.block.multiblock.Multiblock;
 import com.flatts.recompile.registry.RCBlocks;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,6 +56,37 @@ class WorkstationBlueprintTest {
         for (int x = 0; x <= 5; x++) {
             assertBlockAt(x, 1, 0, RCBlocks.SCRAP_BIN.get());       // 6 bins on top, one on the core
         }
+    }
+
+    @Test
+    void facingMapsToTheRotationThatBuildsTheBenchAhead() {
+        // The blueprint is authored for NORTH; each other facing rotates it by the turn from north.
+        assertEquals(Rotation.NONE, WorkstationCoreBlock.rotationFromFacing(Direction.NORTH));
+        assertEquals(Rotation.CLOCKWISE_90, WorkstationCoreBlock.rotationFromFacing(Direction.EAST));
+        assertEquals(Rotation.CLOCKWISE_180, WorkstationCoreBlock.rotationFromFacing(Direction.SOUTH));
+        assertEquals(Rotation.COUNTERCLOCKWISE_90, WorkstationCoreBlock.rotationFromFacing(Direction.WEST));
+    }
+
+    @Test
+    void rotatingTheCounterCellFollowsTheFacing() {
+        // The crafting table sits at (0,0,-1): due north of a NORTH-facing core (in front of the
+        // player). Turn the core and the whole counter turns with it - the same cell lands north,
+        // east, south, west of the core for the four facings, so the bench always builds ahead.
+        Vec3i counter = new Vec3i(0, 0, -1);
+        assertEquals(new Vec3i(0, 0, -1), Multiblock.rotate(counter, Rotation.NONE));            // north
+        assertEquals(new Vec3i(1, 0, 0), Multiblock.rotate(counter, Rotation.CLOCKWISE_90));     // east
+        assertEquals(new Vec3i(0, 0, 1), Multiblock.rotate(counter, Rotation.CLOCKWISE_180));    // south
+        assertEquals(new Vec3i(-1, 0, 0), Multiblock.rotate(counter, Rotation.COUNTERCLOCKWISE_90)); // west
+    }
+
+    @Test
+    void cellWorldPositionRotatesAboutTheCore() {
+        // Cell.at composes the core position with the rotated offset - the shelf bin on the far end
+        // (5,1,0) swings a quarter turn when the core faces east.
+        BlockPos core = new BlockPos(100, 64, 100);
+        Multiblock.Cell farBin = new Multiblock.Cell(new Vec3i(5, 1, 0), RCBlocks.SCRAP_BIN.get(), RCBlocks.SCRAP_BIN.get());
+        assertEquals(core.offset(5, 1, 0), farBin.at(core, Rotation.NONE));
+        assertEquals(core.offset(0, 1, 5), farBin.at(core, Rotation.CLOCKWISE_90));
     }
 
     private void assertBlockAt(int x, int y, int z, Block expected) {

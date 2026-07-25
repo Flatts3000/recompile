@@ -11,6 +11,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -37,11 +38,18 @@ public final class WorkstationNetwork {
     public static BlockPos findCore(Level level, BlockPos memberPos) {
         WorkstationCoreBlock coreBlock = RCBlocks.WORKSTATION_CORE.get();
         Block member = level.getBlockState(memberPos).getBlock();
+        // The bench is directional, so the same member offset points a different way for each facing.
+        // We do not know the core's facing yet (finding it is the point), so for each matching cell we
+        // try all four rotations and accept only a formed core whose own facing produced that rotation.
         for (Multiblock.Cell cell : coreBlock.blueprint().cells()) {
-            if (cell.component() == member) {
-                BlockPos core = memberPos.subtract(cell.offset());
+            if (cell.component() != member) {
+                continue;
+            }
+            for (Rotation rotation : Rotation.values()) {
+                BlockPos core = memberPos.subtract(Multiblock.rotate(cell.offset(), rotation));
                 BlockState state = level.getBlockState(core);
-                if (state.is(coreBlock) && MultiblockCoreBlock.isFormed(state)) {
+                if (state.is(coreBlock) && MultiblockCoreBlock.isFormed(state)
+                        && coreBlock.rotationFor(state) == rotation) {
                     return core;
                 }
             }
@@ -52,9 +60,10 @@ public final class WorkstationNetwork {
     /** The connected bins, in blueprint order. */
     public static List<ScrapBinBlockEntity> bins(Level level, BlockPos core) {
         List<ScrapBinBlockEntity> bins = new ArrayList<>();
+        Rotation rotation = rotationOf(level, core);
         for (Multiblock.Cell cell : RCBlocks.WORKSTATION_CORE.get().blueprint().cells()) {
             if (cell.component() == RCBlocks.SCRAP_BIN.get()
-                    && level.getBlockEntity(cell.at(core)) instanceof ScrapBinBlockEntity bin) {
+                    && level.getBlockEntity(cell.at(core, rotation)) instanceof ScrapBinBlockEntity bin) {
                 bins.add(bin);
             }
         }
@@ -64,13 +73,21 @@ public final class WorkstationNetwork {
     /** The connected Scrap Barrel as a container, or null. */
     @Nullable
     public static Container barrel(Level level, BlockPos core) {
+        Rotation rotation = rotationOf(level, core);
         for (Multiblock.Cell cell : RCBlocks.WORKSTATION_CORE.get().blueprint().cells()) {
             if (cell.component() == RCBlocks.SCRAP_BARREL.get()
-                    && level.getBlockEntity(cell.at(core)) instanceof Container container) {
+                    && level.getBlockEntity(cell.at(core, rotation)) instanceof Container container) {
                 return container;
             }
         }
         return null;
+    }
+
+    /** The rotation the core at {@code core} is built with, or {@link Rotation#NONE} if not a core. */
+    private static Rotation rotationOf(Level level, BlockPos core) {
+        BlockState state = level.getBlockState(core);
+        return state.getBlock() instanceof WorkstationCoreBlock coreBlock
+            ? coreBlock.rotationFor(state) : Rotation.NONE;
     }
 
     /**
