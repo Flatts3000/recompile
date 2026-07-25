@@ -2,7 +2,7 @@ package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
-import com.flatts.recompile.content.block.WorkstationNetwork;
+import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
@@ -240,9 +240,9 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
         level.playSound(null, worldPosition, sound.getBreakSound(), SoundSource.BLOCKS, 0.8F, 0.9F);
     }
 
-    /** A teardown output: into the connected workstation storage if formed, else onto the table (P2.10). */
+    /** A teardown output: into the connected scrap-network storage if any, else onto the table (P2.10). */
     private void output(ServerLevel level, ItemStack stack) {
-        ItemStack remainder = WorkstationNetwork.insertFromMember(level, worldPosition, stack, false);
+        ItemStack remainder = ScrapNetwork.insertFromMember(level, worldPosition, stack, false);
         if (!remainder.isEmpty()) {
             Block.popResource(level, worldPosition.above(), remainder);
         }

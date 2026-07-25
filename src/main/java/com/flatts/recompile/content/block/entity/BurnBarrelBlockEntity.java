@@ -1,7 +1,7 @@
 package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.registry.RCBlockEntities;
-import com.flatts.recompile.content.block.WorkstationNetwork;
+import com.flatts.recompile.content.block.ScrapNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -43,23 +43,19 @@ public class BurnBarrelBlockEntity extends AbstractFurnaceBlockEntity {
     }
 
     /**
-     * Move any smelted output into the connected workstation storage (P2.10). The Burn Barrel is the
-     * one time-based flow: it accrues output over ticks, and while formed the result slot drains to
-     * the bins / barrel each tick. Bypasses the no-automation face gate on purpose - the workstation
-     * is the machine's own internal mover, not an external hopper. Standalone, output stays put (you
-     * take it by hand through the GUI).
+     * Move any smelted output into the connected scrap-network storage (P2.10). The Burn Barrel is the
+     * one time-based flow: it accrues output over ticks, and while wired to a network the result slot
+     * drains to the connected bins / barrel each tick. Bypasses the no-automation face gate on purpose
+     * - the network is the machine's own internal mover, not an external hopper. Standalone (no
+     * connected storage), output stays put (you take it by hand through the GUI).
      */
     public void drainOutput(ServerLevel level) {
         ItemStack result = getItem(SLOT_RESULT);
         if (result.isEmpty()) {
             return;
         }
-        BlockPos core = WorkstationNetwork.findCore(level, worldPosition);
-        if (core == null) {
-            return;
-        }
         ItemStack working = result.copy();
-        WorkstationNetwork.insert(level, core, working, false);
+        ScrapNetwork.insertFromMember(level, worldPosition, working, false);
         if (working.getCount() != result.getCount()) {
             setItem(SLOT_RESULT, working.isEmpty() ? ItemStack.EMPTY : working);
             setChanged();

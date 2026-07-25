@@ -34,7 +34,6 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.BURN_BARREL.get());
                     output.accept(RCItems.RAIN_COLLECTOR.get());
                     output.accept(RCItems.MACHINE_FRAME.get());
-                    output.accept(RCItems.WORKSTATION_CORE.get());
                     output.accept(RCItems.RAIN_COLLECTOR_FUNNEL.get());
                     output.accept(RCItems.GRASS_SPREADER.get());
                     output.accept(RCItems.PUMP.get());

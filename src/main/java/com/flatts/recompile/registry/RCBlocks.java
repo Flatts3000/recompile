@@ -12,7 +12,6 @@ import com.flatts.recompile.content.block.GrassSpreaderFrameBlock;
 import com.flatts.recompile.content.block.GrassSpreaderSpigotBlock;
 import com.flatts.recompile.content.block.WashingMachineBlock;
 import com.flatts.recompile.content.block.WaterTankBlock;
-import com.flatts.recompile.content.block.WorkstationCoreBlock;
 import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.RainCollectorCoreBlock;
 import com.flatts.recompile.content.block.RainCollectorFunnelBlock;
@@ -249,20 +248,6 @@ public final class RCBlocks {
             .strength(1.2F)
             .sound(SoundType.METAL)
             .noOcclusion()
-    );
-
-    /**
-     * Workstation Core (P2.10): the controller you build the scrap bench around. A plain full cube;
-     * while formed it ties the connected barrel, bins, sorter, teardown and smelter into one system.
-     * Every cell of its blueprint is {@code formed == component}, so nothing it forms is replaced.
-     */
-    public static final DeferredBlock<WorkstationCoreBlock> WORKSTATION_CORE = BLOCKS.registerBlock(
-        "workstation_core",
-        WorkstationCoreBlock::new,
-        () -> BlockBehaviour.Properties.of()
-            .mapColor(MapColor.METAL)
-            .strength(2.0F)
-            .sound(SoundType.METAL)
     );
 
     // ---------------- Grass Spreader (P2.4-R3): reclamation rung 1, a sprinkler ----------------

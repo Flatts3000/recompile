@@ -1,0 +1,10 @@
+{
+  "values": [
+    "recompile:scrap_bin",
+    "recompile:scrap_barrel",
+    "recompile:sorting_tarp",
+    "recompile:recompile_workbench",
+    "recompile:burn_barrel",
+    "recompile:scrap_crafting_table"
+  ]
+}

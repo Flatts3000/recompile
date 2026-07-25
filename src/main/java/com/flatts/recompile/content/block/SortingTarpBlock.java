@@ -63,9 +63,9 @@ public class SortingTarpBlock extends Block {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
-        // Shift-right-click on a workstation tarp files your whole scrap haul into the bins (P2.10).
+        // Shift-right-click a networked tarp files your whole scrap haul into the connected bins (P2.10).
         if (player.isSecondaryUseActive()) {
-            return fileAllIfWorkstation(level, pos, player);
+            return fileAllIntoNetwork(level, pos, player);
         }
         if (outputRolls(stack.getItem()) <= 0) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -98,9 +98,9 @@ public class SortingTarpBlock extends Block {
                 if (drop.isEmpty()) {
                     continue;
                 }
-                // In a formed workstation the sorted materials flow into the bins/barrel; standalone
-                // (or when storage is full) they drop on the table, the tarp's usual behavior.
-                ItemStack remainder = WorkstationNetwork.insertFromMember(level, pos, drop, false);
+                // Wired to a scrap network, the sorted materials flow into the connected bins/barrel;
+                // standalone (or when storage is full) they drop on the table, the tarp's usual behavior.
+                ItemStack remainder = ScrapNetwork.insertFromMember(level, pos, drop, false);
                 if (!remainder.isEmpty()) {
                     Block.popResource(level, pos.above(), remainder);
                 }
@@ -112,12 +112,12 @@ public class SortingTarpBlock extends Block {
 
     /**
      * File-all (P2.10): every {@code #binnable} stack in the player's inventory into the connected
-     * bins, auto-binding empties, overflow to the barrel. Only inside a formed workstation; otherwise
-     * a shift-right-click does nothing here (the held item, if any, does its own thing).
+     * bins, auto-binding empties, overflow to the barrel. Only when the tarp is wired to a network
+     * with storage; otherwise a shift-right-click does nothing here (the held item, if any, does its
+     * own thing).
      */
-    private static InteractionResult fileAllIfWorkstation(Level level, BlockPos pos, Player player) {
-        BlockPos core = WorkstationNetwork.findCore(level, pos);
-        if (core == null) {
+    private static InteractionResult fileAllIntoNetwork(Level level, BlockPos pos, Player player) {
+        if (!ScrapNetwork.reachesStorage(level, pos)) {
             return InteractionResult.PASS;
         }
         if (level instanceof ServerLevel serverLevel) {
@@ -127,7 +127,7 @@ public class SortingTarpBlock extends Block {
                 ItemStack stack = inventory.getItem(slot);
                 if (!stack.isEmpty() && stack.is(RCTags.BINNABLE)) {
                     int before = stack.getCount();
-                    WorkstationNetwork.insert(serverLevel, core, stack, true);
+                    ScrapNetwork.insertFromMember(serverLevel, pos, stack, true);
                     filed += before - stack.getCount();
                 }
             }
@@ -144,7 +144,7 @@ public class SortingTarpBlock extends Block {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hit) {
         if (player.isSecondaryUseActive()) {
-            return fileAllIfWorkstation(level, pos, player);
+            return fileAllIntoNetwork(level, pos, player);
         }
         return InteractionResult.PASS;
     }

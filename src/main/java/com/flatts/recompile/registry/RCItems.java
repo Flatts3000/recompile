@@ -154,8 +154,6 @@ public final class RCItems {
      */
     public static final DeferredItem<BlockItem> MACHINE_FRAME =
         ITEMS.registerSimpleBlockItem("machine_frame", RCBlocks.MACHINE_FRAME);
-    public static final DeferredItem<BlockItem> WORKSTATION_CORE =
-        ITEMS.registerSimpleBlockItem("workstation_core", RCBlocks.WORKSTATION_CORE);
     /** A Machine Frame wrapped in plastic sheeting - the collector's catch, crafted then placed. */
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR_FUNNEL =
         ITEMS.registerSimpleBlockItem("rain_collector_funnel", RCBlocks.RAIN_COLLECTOR_FUNNEL);
