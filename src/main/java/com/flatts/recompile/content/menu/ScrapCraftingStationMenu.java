@@ -143,16 +143,26 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         return stillValid(this.access, player, RCBlocks.SCRAP_CRAFTING_TABLE.get());
     }
 
+    /** Button id (never a valid item registry id, which are non-negative) meaning "deposit my cursor". */
+    public static final int DEPOSIT_BUTTON = -1;
+
     /**
-     * Panel withdraw: clicking a material in the connected-storage panel sends a menu-button click
-     * carrying that item's registry id (no custom packet needed). Pull a stack of it out of the network
-     * into the player. Server-only - the client just sends the button. Withdraw-only by design; deposit
-     * stays on the file-all and hopper-in.
+     * Panel interaction, via menu-button clicks so no custom packet is needed (the id travels as a
+     * VAR_INT, so any item id fits). Two actions, both server-authoritative:
+     *
+     * <ul>
+     *   <li><b>{@link #DEPOSIT_BUTTON}</b> - store the cursor stack into the network (matching bin, then
+     *       an empty bin that binds, then the barrel), the same routing the file-all uses.</li>
+     *   <li><b>an item's registry id</b> - withdraw a stack of that item out of the network.</li>
+     * </ul>
      */
     @Override
     public boolean clickMenuButton(Player player, int id) {
         if (this.level.isClientSide()) {
             return false;
+        }
+        if (id == DEPOSIT_BUTTON) {
+            return depositCarried();
         }
         // The id comes off the wire (the panel sends an item's registry id); a malformed client could
         // send anything, so treat an unknown/air id as a no-op rather than trusting it.
@@ -168,6 +178,22 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             player.drop(pulled, false);
         }
         this.level.playSound(null, this.pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 1.2F);
+        return true;
+    }
+
+    /** Store the cursor stack into the connected network (auto-binding an empty bin). Withdraw's mirror. */
+    private boolean depositCarried() {
+        ItemStack carried = this.getCarried().copy();
+        if (carried.isEmpty()) {
+            return false;
+        }
+        int before = carried.getCount();
+        ScrapNetwork.insertFromMember(this.level, this.pos, carried, true);
+        if (carried.getCount() == before) {
+            return false;   // nothing accepted (no matching/empty bin and full/absent barrel)
+        }
+        this.setCarried(carried);
+        this.level.playSound(null, this.pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 0.8F);
         return true;
     }
 

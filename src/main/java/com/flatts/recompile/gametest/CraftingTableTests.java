@@ -148,6 +148,38 @@ final class CraftingTableTests {
             helper.succeed();
         });
 
+        // Panel deposit: with a stack on the cursor, the deposit button stores it into the network,
+        // auto-binding an empty bin. Mirrors the withdraw; driven through clickMenuButton like the screen.
+        RCGameTests.test("scrap_crafting_table_panel_deposits_the_cursor", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ScrapBinBlockEntity bin = placeBin(helper, new BlockPos(2, 1, 1));   // empty, unbound
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+
+            menu.setCarried(new ItemStack(RCItems.SCRAP_METAL.get(), 30));
+            boolean handled = menu.clickMenuButton(player, ScrapCraftingStationMenu.DEPOSIT_BUTTON);
+
+            helper.assertTrue(handled, "depositing a carried stack into an empty bin must succeed");
+            helper.assertTrue(bin.boundMaterial() == RCItems.SCRAP_METAL.get(), "the empty bin should bind to metal");
+            helper.assertTrue(bin.amount() == 30, "the bin should hold the deposited 30, has " + bin.amount());
+            helper.assertTrue(menu.getCarried().isEmpty(), "the cursor should be emptied by the deposit");
+            helper.succeed();
+        });
+
+        // Negative control: depositing with an empty cursor, or no storage, is a no-op.
+        RCGameTests.test("scrap_crafting_table_panel_deposit_needs_storage", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());   // no bins/barrel connected
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+
+            menu.setCarried(new ItemStack(RCItems.SCRAP_METAL.get(), 30));
+            boolean handled = menu.clickMenuButton(player, ScrapCraftingStationMenu.DEPOSIT_BUTTON);
+
+            helper.assertFalse(handled, "with no connected storage the deposit must be a no-op");
+            helper.assertTrue(menu.getCarried().getCount() == 30, "the cursor stack must be untouched");
+            helper.succeed();
+        });
+
         // Negative control: withdrawing a material the network does not hold does nothing.
         RCGameTests.test("scrap_crafting_table_panel_withdraw_needs_stock", 20, helper -> {
             helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());

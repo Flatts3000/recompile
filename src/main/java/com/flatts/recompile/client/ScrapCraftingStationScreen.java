@@ -22,8 +22,8 @@ import net.minecraft.world.item.ItemStack;
  * <b>server</b> computes from the real bins + barrel and pushes each tick (see
  * {@code ScrapNetworkContentsPayload}). The screen never inspects block entities itself, so the panel
  * cannot disagree with the world: no per-block client sync to drift, no empty-bin / hidden-barrel gaps.
- * <b>Click a material to withdraw a stack</b> of it (the row lights up on hover); depositing stays on
- * the file-all and hopper-in.
+ * <b>Click a material to withdraw a stack</b> of it (the row lights up on hover), or <b>click the
+ * panel holding a stack to store it</b> into the network - the two halves of Tinkers-style interaction.
  *
  * <p>26.1 renders through the retained-mode "extract" model, so the drawing lives in
  * {@link #extractBackground} via {@link GuiGraphicsExtractor}, not a {@code renderBg(GuiGraphics)}.
@@ -112,10 +112,23 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
                 Component.translatable("container.recompile.more", materials.size() - shown).getString(),
                 panelX + PANEL_PAD, tailY, 0xFF808080, false);
         }
+
+        // Holding a stack? Prompt that clicking the panel stores it. (Empty cursor: click a row to pull.)
+        if (!this.menu.getCarried().isEmpty()) {
+            graphics.text(this.font, Component.translatable("container.recompile.store_hint"),
+                panelX + PANEL_PAD, top + CRAFT_H - PANEL_PAD - 8, 0xFF7FD07F);
+        }
     }
 
     private int maxRows() {
         return (CRAFT_H - SHELF_TOP - PANEL_PAD) / ROW_H;
+    }
+
+    /** Whether the mouse is anywhere over the connected-storage panel. */
+    private boolean overPanel(double mouseX, double mouseY) {
+        int panelX = this.leftPos + CRAFT_W;
+        return mouseX >= panelX && mouseX < panelX + PANEL_W
+            && mouseY >= this.topPos && mouseY < this.topPos + CRAFT_H;
     }
 
     /** Whether the mouse is over material row {@code i} in the panel (the clickable strip). */
@@ -127,19 +140,28 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == 0 && this.minecraft != null && this.minecraft.gameMode != null) {
+        if (event.button() == 0 && this.minecraft != null && this.minecraft.gameMode != null
+                && overPanel(event.x(), event.y())) {
+            // Holding a stack over the panel deposits it into the network (and stops vanilla from
+            // dropping the cursor into the world, which a panel click would otherwise do).
+            if (!this.menu.getCarried().isEmpty()) {
+                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
+                    ScrapCraftingStationMenu.DEPOSIT_BUTTON);
+                return true;
+            }
+            // Empty cursor: clicking a material row withdraws a stack of it. The button id IS the item's
+            // registry id, so the server withdraws that exact item (no index-drift race if a tick stale).
             var materials = this.menu.contents().materials();
             int panelX = this.leftPos + CRAFT_W;
             int shown = Math.min(materials.size(), maxRows());
             for (int i = 0; i < shown; i++) {
                 if (overRow(panelX, this.topPos, i, event.x(), event.y())) {
-                    // The button id IS the item's registry id, so the server withdraws that exact item
-                    // (no index-drift race if the panel is a tick stale).
                     int itemId = BuiltInRegistries.ITEM.getId(materials.get(i).item());
                     this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, itemId);
                     return true;
                 }
             }
+            return true;   // consume other panel clicks so an empty cursor click does nothing here
         }
         return super.mouseClicked(event, doubleClick);
     }
