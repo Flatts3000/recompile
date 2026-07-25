@@ -87,6 +87,12 @@ bench never did). **Flow 4 (craft-from-storage) is the remaining capstone.**
    "crafting station" pattern, not an autocrafter). The build work is a crafting menu that presents the
    flood-collected storage as a combined ingredient source. Its own focused piece.
 
+   **Network visibility ships with this menu** (decided 2026-07-24): the crafting screen gets a
+   **connected-storage side panel** listing the connected bins with their material + count and the
+   barrel - so opening the table shows what the network holds and, implicitly, that it is connected. No
+   separate in-world highlight or Jade readout for now; the panel is the one surface, folded into flow
+   4 rather than built standalone.
+
 ## Placement guidelines - kept, and generalized to every multiblock
 
 The held-item footprint preview the workstation introduced is **kept**, but since the network is no
