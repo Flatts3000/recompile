@@ -154,8 +154,10 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         if (this.level.isClientSide()) {
             return false;
         }
+        // The id comes off the wire (the panel sends an item's registry id); a malformed client could
+        // send anything, so treat an unknown/air id as a no-op rather than trusting it.
         Item item = BuiltInRegistries.ITEM.byId(id);
-        if (item == Items.AIR) {
+        if (item == null || item == Items.AIR) {
             return false;
         }
         ItemStack pulled = withdrawStack(item);
