@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
@@ -60,10 +59,10 @@ final class CraftingTableTests {
 
             // Prime a grid slot, capture the pattern, then empty it as a craft would.
             menu.getSlot(FIRST_GRID_SLOT).set(new ItemStack(RCItems.SCRAP_METAL.get()));
-            Item[] pattern = menu.capturePattern();
+            Item[] pattern = menu.capturePatternForTest();
             menu.getSlot(FIRST_GRID_SLOT).set(ItemStack.EMPTY);
 
-            menu.refillGrid(player, pattern);
+            menu.refillGridForTest(player, pattern);
 
             helper.assertTrue(menu.getSlot(FIRST_GRID_SLOT).getItem().is(RCItems.SCRAP_METAL.get()),
                 "the emptied grid slot must restock scrap metal from the bin");
@@ -83,9 +82,9 @@ final class CraftingTableTests {
             ScrapCraftingStationMenu menu = openMenu(helper, player);
 
             menu.getSlot(FIRST_GRID_SLOT).set(new ItemStack(RCItems.SCRAP_METAL.get()));
-            Item[] pattern = menu.capturePattern();
+            Item[] pattern = menu.capturePatternForTest();
             menu.getSlot(FIRST_GRID_SLOT).set(ItemStack.EMPTY);
-            menu.refillGrid(player, pattern);
+            menu.refillGridForTest(player, pattern);
 
             helper.assertTrue(bin.amount() == 3, "the bin should be drained first, has " + bin.amount());
             helper.assertTrue(countIn(player, RCItems.SCRAP_METAL.get()) == invBefore,
@@ -100,9 +99,9 @@ final class CraftingTableTests {
             ScrapCraftingStationMenu menu = openMenu(helper, player);
 
             menu.getSlot(FIRST_GRID_SLOT).set(new ItemStack(RCItems.SCRAP_METAL.get()));
-            Item[] pattern = menu.capturePattern();
+            Item[] pattern = menu.capturePatternForTest();
             menu.getSlot(FIRST_GRID_SLOT).set(ItemStack.EMPTY);
-            menu.refillGrid(player, pattern);
+            menu.refillGridForTest(player, pattern);
 
             helper.assertTrue(menu.getSlot(FIRST_GRID_SLOT).getItem().isEmpty(),
                 "with no bin, barrel or inventory copy the grid slot must stay empty");
@@ -112,8 +111,7 @@ final class CraftingTableTests {
 
     private static ScrapCraftingStationMenu openMenu(GameTestHelper helper, Player player) {
         BlockPos abs = helper.absolutePos(TABLE);
-        ContainerLevelAccess access = ContainerLevelAccess.create(helper.getLevel(), abs);
-        return new ScrapCraftingStationMenu(1, player.getInventory(), access, helper.getLevel(), abs);
+        return new ScrapCraftingStationMenu(1, player.getInventory(), helper.getLevel(), abs);
     }
 
     private static ScrapBinBlockEntity placeBin(GameTestHelper helper, BlockPos pos) {

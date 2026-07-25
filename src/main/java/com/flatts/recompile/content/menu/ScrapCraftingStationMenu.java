@@ -3,48 +3,127 @@ package com.flatts.recompile.content.menu;
 import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCMenus;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
 /**
- * The Scrap Crafting Table's menu: vanilla 3x3 crafting, revalidated against the scrap table, plus
- * <b>craft-from-storage</b> (design P2.10 flow 4, the Tinkers' Crafting Station pattern). Shift-click
- * the result and the grid restocks from the connected scrap network between crafts, so one action
- * crafts a whole run straight out of your bins.
+ * The Scrap Crafting Table's menu: a 3x3 crafting station wired to the connected scrap network (design
+ * P2.10 flow 4, the Tinkers' Crafting Station pattern). Two additions over a plain crafting table:
  *
- * <p>This is the server-side functional core. It reuses vanilla {@link CraftingMenu} wholesale (the
- * client still builds a stock {@code CraftingMenu} + screen under {@code MenuType.CRAFTING}, so no
- * registration is needed, exactly as the old {@code ScrapCraftingMenu} did); the only addition is the
- * refill, which fills the grid through the public slot list, letting {@code TransientCraftingContainer}
- * recompute the result for free. The connected-storage <b>panel</b> is a separate step (it needs a
- * custom menu type + screen); this piece makes the crafting itself pull from the network.
+ * <ul>
+ *   <li><b>Craft from storage:</b> shift-clicking the result restocks the grid from the connected
+ *       network (bins -> barrel -> inventory) between crafts, so one action crafts a whole run.</li>
+ *   <li><b>A connected-storage panel:</b> the screen reads {@link #connectedBins()} to show what the
+ *       network holds. That requires a custom screen, hence a custom {@code MenuType} - which is why
+ *       this reimplements the crafting menu over {@link AbstractContainerMenu} rather than extending
+ *       vanilla {@code CraftingMenu} (whose constructor hard-locks itself to {@code MenuType.CRAFTING},
+ *       so a subclass can never carry a custom screen).</li>
+ * </ul>
+ *
+ * <p>The crafting logic (grid, result, recompute, quick-move) is vanilla's, copied from
+ * {@code CraftingMenu}. The recipe-book button is dropped for v1 (it would need
+ * {@code RecipeBookMenu} + its screen); every crafting recipe still works by hand.
  */
-public class ScrapCraftingStationMenu extends CraftingMenu {
+public class ScrapCraftingStationMenu extends AbstractContainerMenu {
 
-    /** Grid slots are 1..9 in {@link CraftingMenu} (slot 0 is the result). */
+    public static final int RESULT_SLOT = 0;
     private static final int GRID_START = 1;
     private static final int GRID_SIZE = 9;
+    private static final int GRID_END = 10;
+    private static final int INV_END = 46;
 
+    private final CraftingContainer craftSlots = new TransientCraftingContainer(this, 3, 3);
+    private final ResultContainer resultSlots = new ResultContainer();
     private final ContainerLevelAccess access;
+    private final Player player;
     private final Level level;
     private final BlockPos pos;
 
-    public ScrapCraftingStationMenu(int containerId, Inventory inventory,
-            ContainerLevelAccess access, Level level, BlockPos pos) {
-        super(containerId, inventory, access);
-        this.access = access;
+    /** Client factory: the block pos is streamed in the open buffer (see {@link RCMenus}). */
+    public ScrapCraftingStationMenu(int containerId, Inventory inventory, BlockPos pos) {
+        this(containerId, inventory, inventory.player.level(), pos);
+    }
+
+    public ScrapCraftingStationMenu(int containerId, Inventory inventory, Level level, BlockPos pos) {
+        super(RCMenus.SCRAP_CRAFTING_STATION.get(), containerId);
+        this.access = ContainerLevelAccess.create(level, pos);
+        this.player = inventory.player;
         this.level = level;
         this.pos = pos;
+
+        this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 124, 35));
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                this.addSlot(new Slot(this.craftSlots, col + row * 3, 30 + col * 18, 17 + row * 18));
+            }
+        }
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                this.addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+            }
+        }
+        for (int col = 0; col < 9; col++) {
+            this.addSlot(new Slot(inventory, col, 8 + col * 18, 142));
+        }
+    }
+
+    // ---------------- crafting (copied from vanilla CraftingMenu) ----------------
+
+    private static void slotChangedCraftingGrid(AbstractContainerMenu menu, Level level, Player player,
+            CraftingContainer craftSlots, ResultContainer resultSlots, RecipeHolder<CraftingRecipe> last) {
+        if (level.isClientSide() || !(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        CraftingInput input = craftSlots.asCraftInput();
+        ItemStack result = ItemStack.EMPTY;
+        Optional<RecipeHolder<CraftingRecipe>> recipe = level.getServer()
+            .getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level, last);
+        if (recipe.isPresent()) {
+            RecipeHolder<CraftingRecipe> holder = recipe.get();
+            resultSlots.setRecipeUsed(holder);
+            ItemStack assembled = holder.value().assemble(input);
+            if (assembled.isItemEnabled(level.enabledFeatures())) {
+                result = assembled;
+            }
+        }
+        resultSlots.setItem(0, result);
+        menu.setRemoteSlot(0, result);
+        serverPlayer.connection.send(
+            new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, result));
+    }
+
+    @Override
+    public void slotsChanged(Container container) {
+        this.access.execute((lvl, blockPos) ->
+            slotChangedCraftingGrid(this, lvl, this.player, this.craftSlots, this.resultSlots, null));
+    }
+
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        this.access.execute((lvl, blockPos) -> this.clearContainer(player, this.craftSlots));
     }
 
     @Override
@@ -52,25 +131,66 @@ public class ScrapCraftingStationMenu extends CraftingMenu {
         return stillValid(this.access, player, RCBlocks.SCRAP_CRAFTING_TABLE.get());
     }
 
+    @Override
+    public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
+        return slot.container != this.resultSlots && super.canTakeItemForPickAll(stack, slot);
+    }
+
     /**
-     * Shift-clicking the result crafts, then refills the emptied grid slots from the connected network.
-     * The vanilla quick-move loop ({@code AbstractContainerMenu.doClick}) keeps calling this while the
-     * result slot still holds the same item, so a restocked grid means the whole run crafts in one
-     * click - the craft-from-storage payoff. Every other slot behaves exactly like vanilla.
+     * Vanilla crafting quick-move, plus craft-from-storage: shift-clicking the result crafts, then
+     * refills the emptied grid slots from the connected network. The quick-move loop keeps calling this
+     * while the result slot still holds the same item, so a restocked grid crafts the whole run.
      */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        if (index != RESULT_SLOT || level.isClientSide()) {
-            return super.quickMoveStack(player, index);
+        ItemStack moved = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot == null || !slot.hasItem()) {
+            return moved;
         }
-        Item[] pattern = capturePattern();
-        ItemStack moved = super.quickMoveStack(player, index);   // vanilla craft + move + grid decrement
-        refillGrid(player, pattern);
+        ItemStack inSlot = slot.getItem();
+        moved = inSlot.copy();
+        if (index == RESULT_SLOT) {
+            Item[] pattern = capturePattern();
+            inSlot.getItem().onCraftedBy(inSlot, player);
+            if (!this.moveItemStackTo(inSlot, GRID_END, INV_END, true)) {
+                return ItemStack.EMPTY;
+            }
+            slot.onQuickCraft(inSlot, moved);
+            refillGrid(player, pattern);
+        } else if (index >= GRID_END && index < INV_END) {
+            if (!this.moveItemStackTo(inSlot, GRID_START, GRID_END, false)) {
+                if (index < 37) {
+                    if (!this.moveItemStackTo(inSlot, 37, INV_END, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(inSlot, GRID_END, 37, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+        } else if (!this.moveItemStackTo(inSlot, GRID_END, INV_END, false)) {
+            return ItemStack.EMPTY;
+        }
+
+        if (inSlot.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        if (inSlot.getCount() == moved.getCount()) {
+            return ItemStack.EMPTY;
+        }
+        slot.onTake(player, inSlot);
+        if (index == RESULT_SLOT) {
+            player.drop(inSlot, false);
+        }
         return moved;
     }
 
-    /** The item in each grid slot, so an emptied slot can be restocked with the same one. Test seam. */
-    public Item[] capturePattern() {
+    // ---------------- craft-from-storage refill ----------------
+
+    /** The item in each grid slot, so an emptied slot can be restocked with the same one. */
+    private Item[] capturePattern() {
         Item[] pattern = new Item[GRID_SIZE];
         for (int i = 0; i < GRID_SIZE; i++) {
             ItemStack stack = this.slots.get(GRID_START + i).getItem();
@@ -79,8 +199,8 @@ public class ScrapCraftingStationMenu extends CraftingMenu {
         return pattern;
     }
 
-    /** Restock each emptied grid slot with its pattern item, from bins -> barrel -> inventory. Test seam. */
-    public void refillGrid(Player player, Item[] pattern) {
+    /** Restock each emptied grid slot with its pattern item, from bins -> barrel -> inventory. */
+    private void refillGrid(Player player, Item[] pattern) {
         List<BlockPos> members = ScrapNetwork.collect(level, pos);
         List<ScrapBinBlockEntity> bins = ScrapNetwork.bins(level, members);
         List<Container> barrels = ScrapNetwork.barrels(level, members);
@@ -97,7 +217,6 @@ public class ScrapCraftingStationMenu extends CraftingMenu {
         }
     }
 
-    /** One {@code want} from a bound bin, else a barrel, else the player's inventory; empty if none. */
     private ItemStack pullOne(Item want, List<ScrapBinBlockEntity> bins, List<Container> barrels, Player player) {
         for (ScrapBinBlockEntity bin : bins) {
             if (bin.boundMaterial() == want && bin.amount() > 0) {
@@ -125,5 +244,29 @@ public class ScrapCraftingStationMenu extends CraftingMenu {
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    // ---------------- the connected-storage panel (read by the screen) ----------------
+
+    /** The connected bins, for the screen's material-shelf panel. Both sides can flood the network. */
+    public List<ScrapBinBlockEntity> connectedBins() {
+        return ScrapNetwork.bins(level, ScrapNetwork.collect(level, pos));
+    }
+
+    /** Whether a Scrap Barrel is connected, for the panel's barrel indicator. */
+    public boolean hasConnectedBarrel() {
+        return !ScrapNetwork.barrels(level, ScrapNetwork.collect(level, pos)).isEmpty();
+    }
+
+    // ---------------- test seams ----------------
+
+    /** Test seam: the current grid pattern. */
+    public Item[] capturePatternForTest() {
+        return capturePattern();
+    }
+
+    /** Test seam: refill emptied grid slots from the network, as after a craft. */
+    public void refillGridForTest(Player player, Item[] pattern) {
+        refillGrid(player, pattern);
     }
 }

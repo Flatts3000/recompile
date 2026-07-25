@@ -9,9 +9,14 @@ import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCTags;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -196,7 +201,24 @@ public class ScrapBinBlockEntity extends BlockEntity {
         setChanged();
         if (level != null && !level.isClientSide()) {
             syncState();
+            // The FILL blockstate only moves per quartile, but the crafting-station panel shows the
+            // exact count, so push a BlockEntity data packet on every change to keep it live.
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
+    }
+
+    // ---------------- client sync (for the crafting-station panel) ----------------
+
+    /** Sync the bound material + amount to the client so the Scrap Crafting Table panel can show them. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveCustomOnly(registries);
+    }
+
+    @Override
+    @Nullable
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     // ---------------- persistence ----------------

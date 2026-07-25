@@ -7,7 +7,6 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,9 +35,8 @@ public class ScrapCraftingTableBlock extends Block {
             return InteractionResult.SUCCESS;
         }
         player.openMenu(new SimpleMenuProvider(
-            (id, inventory, opener) -> new ScrapCraftingStationMenu(
-                id, inventory, ContainerLevelAccess.create(level, pos), level, pos),
-            TITLE));
+            (id, inventory, opener) -> new ScrapCraftingStationMenu(id, inventory, level, pos),
+            TITLE), buffer -> buffer.writeBlockPos(pos));
         player.awardStat(Stats.INTERACT_WITH_CRAFTING_TABLE);
         return InteractionResult.CONSUME;
     }
