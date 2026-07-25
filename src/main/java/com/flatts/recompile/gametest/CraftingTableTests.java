@@ -5,6 +5,7 @@ import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -124,6 +125,41 @@ final class CraftingTableTests {
             helper.assertTrue(bin.amount() == 0, "the bin should be fully drained, has " + bin.amount());
             helper.assertTrue(countIn(player, RCItems.SCRAP_PLATING.get()) == 11,
                 "the player should hold 11 scrap plating, has " + countIn(player, RCItems.SCRAP_PLATING.get()));
+            helper.succeed();
+        });
+
+        // Panel withdraw: clicking a material pulls a stack of it out of the network into the player.
+        // Driven through clickMenuButton (the button id is the item's registry id), as the screen does.
+        RCGameTests.test("scrap_crafting_table_panel_withdraws_a_stack", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ScrapBinBlockEntity bin = placeBin(helper, new BlockPos(2, 1, 1));
+            bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 100));
+
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+
+            int id = BuiltInRegistries.ITEM.getId(RCItems.SCRAP_METAL.get());
+            boolean handled = menu.clickMenuButton(player, id);
+
+            helper.assertTrue(handled, "clicking a stocked material must withdraw");
+            helper.assertTrue(countIn(player, RCItems.SCRAP_METAL.get()) == 64,
+                "should pull a full stack, player has " + countIn(player, RCItems.SCRAP_METAL.get()));
+            helper.assertTrue(bin.amount() == 36, "the bin should drop by a stack, has " + bin.amount());
+            helper.succeed();
+        });
+
+        // Negative control: withdrawing a material the network does not hold does nothing.
+        RCGameTests.test("scrap_crafting_table_panel_withdraw_needs_stock", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            placeBin(helper, new BlockPos(2, 1, 1));   // empty, unbound
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+
+            int id = BuiltInRegistries.ITEM.getId(RCItems.SCRAP_METAL.get());
+            boolean handled = menu.clickMenuButton(player, id);
+
+            helper.assertFalse(handled, "withdrawing a material with no stock must be a no-op");
+            helper.assertTrue(countIn(player, RCItems.SCRAP_METAL.get()) == 0, "nothing should be given");
             helper.succeed();
         });
 

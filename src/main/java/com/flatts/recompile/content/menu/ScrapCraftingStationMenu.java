@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -138,6 +141,54 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return stillValid(this.access, player, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+    }
+
+    /**
+     * Panel withdraw: clicking a material in the connected-storage panel sends a menu-button click
+     * carrying that item's registry id (no custom packet needed). Pull a stack of it out of the network
+     * into the player. Server-only - the client just sends the button. Withdraw-only by design; deposit
+     * stays on the file-all and hopper-in.
+     */
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (this.level.isClientSide()) {
+            return false;
+        }
+        Item item = BuiltInRegistries.ITEM.byId(id);
+        if (item == Items.AIR) {
+            return false;
+        }
+        ItemStack pulled = withdrawStack(item);
+        if (pulled.isEmpty()) {
+            return false;
+        }
+        if (!player.getInventory().add(pulled)) {
+            player.drop(pulled, false);
+        }
+        this.level.playSound(null, this.pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4F, 1.2F);
+        return true;
+    }
+
+    /** Pull up to a stack of {@code item} from the network - the first matching bin, else a barrel slot. */
+    private ItemStack withdrawStack(Item item) {
+        List<BlockPos> members = ScrapNetwork.collect(level, pos);
+        for (ScrapBinBlockEntity bin : ScrapNetwork.bins(level, members)) {
+            if (bin.boundMaterial() == item && bin.amount() > 0) {
+                return bin.withdraw(false);   // up to a stack
+            }
+        }
+        int max = new ItemStack(item).getMaxStackSize();
+        for (Container barrel : ScrapNetwork.barrels(level, members)) {
+            for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
+                ItemStack stack = barrel.getItem(slot);
+                if (stack.is(item)) {
+                    ItemStack out = stack.split(Math.min(stack.getCount(), max));
+                    barrel.setChanged();
+                    return out;
+                }
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override

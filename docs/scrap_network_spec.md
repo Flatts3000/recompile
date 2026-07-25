@@ -88,13 +88,20 @@ GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide 
    player-scoped (the "crafting station" pattern, not an autocrafter).
 
    **The connected-storage panel ships with it** (the Tinkers Crafting Station pattern): the crafting
-   screen has a right-side panel listing the connected bins with material icon + live count, so opening
-   the table shows what the network holds. This is the mod's **one custom screen** - a recorded reversal
-   of the no-custom-machine-screen rule, justified by the proven pattern and scoped to this block.
-   Vanilla `CraftingMenu` hard-locks its `MenuType`, so the menu is reimplemented over
-   `AbstractContainerMenu` with a custom `MenuType` (`RCMenus`) + `ScrapCraftingStationScreen`; the bin
-   BE syncs material + amount to the client for the panel. Panel is read-only in v1 (deposit/withdraw
-   stay on the file-all + hopper-in); the recipe-book button is dropped for v1.
+   screen has a right-side panel showing the whole network's contents - bins **and** barrel, merged by
+   item with exact totals - plus a "N bins (+ barrel)" summary, so opening the table shows what the
+   network holds. This is the mod's **one custom screen** - a recorded reversal of the
+   no-custom-machine-screen rule, justified by the proven pattern and scoped to this block. Vanilla
+   `CraftingMenu` hard-locks its `MenuType`, so the menu is reimplemented over `AbstractContainerMenu`
+   with a custom `MenuType` (`RCMenus`) + `ScrapCraftingStationScreen`.
+
+   **The panel is a single server-owned source of truth:** the server computes the contents from the
+   real bins + barrel in `broadcastChanges` and pushes a `ScrapNetworkContentsPayload` (one S2C channel,
+   `RCPayloads`) to the viewer on change; the screen renders it verbatim and never inspects a block
+   entity, so it cannot drift from the world (this replaced an earlier fragile per-block client-sync
+   approach). **Clicking a material withdraws a stack** of it from the network into the player (via a
+   menu-button click carrying the item's registry id); depositing stays on the file-all + hopper-in.
+   The recipe-book button is dropped for v1.
 
 ## Placement guidelines - kept, and generalized to every multiblock
 
