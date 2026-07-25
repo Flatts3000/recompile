@@ -30,8 +30,27 @@ public class ScrapCraftingTableBlockEntity extends BlockEntity {
 
     private final NonNullList<ItemStack> grid = NonNullList.withSize(GRID_SIZE, ItemStack.EMPTY);
 
+    /**
+     * Whether an open menu currently owns the grid. Transient (not saved) - it only guards concurrent
+     * openers. The first opener checks out and owns the persistent grid; a second opener while it is
+     * checked out gets a plain transient grid that never writes back, so it cannot wipe the owner's.
+     */
+    private boolean checkedOut;
+
     public ScrapCraftingTableBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.SCRAP_CRAFTING_TABLE.get(), pos, state);
+    }
+
+    /**
+     * Claim the grid for one opener. Returns true (and the caller should {@link #loadInto} + persist on
+     * close) only if no one else holds it; false means open a non-persisting transient grid instead.
+     */
+    public boolean tryCheckOut() {
+        if (this.checkedOut) {
+            return false;
+        }
+        this.checkedOut = true;
+        return true;
     }
 
     /** Move the stored grid into the menu's craft container, emptying this BE (the grid is now live). */
@@ -43,11 +62,12 @@ public class ScrapCraftingTableBlockEntity extends BlockEntity {
         setChanged();
     }
 
-    /** Write the menu's craft container back into this BE (on close). */
+    /** Write the owner's craft container back into this BE and release the check-out (on close). */
     public void saveFrom(CraftingContainer craftSlots) {
         for (int i = 0; i < GRID_SIZE; i++) {
             this.grid.set(i, craftSlots.getItem(i));
         }
+        this.checkedOut = false;
         setChanged();
     }
 

@@ -73,6 +73,8 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     private final Player player;
     private final Level level;
     private final BlockPos pos;
+    /** Whether this menu checked out the table's persistent grid and so must save it back on close. */
+    private boolean ownsTableGrid;
 
     /** Client factory: the block pos is streamed in the open buffer (see {@link RCMenus}). */
     public ScrapCraftingStationMenu(int containerId, Inventory inventory, BlockPos pos) {
@@ -101,11 +103,14 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(inventory, col, 8 + col * 18, 142));
         }
 
-        // Restore a grid that was left in the table (moved out of the BE, so it lives only in the menu
-        // while open). Server-side; the loaded grid syncs to the client with the rest of the container.
+        // Restore a grid left in the table - but only the first opener owns it (checks it out). A
+        // concurrent second opener gets a plain transient grid and never persists, so it cannot wipe
+        // the owner's grid. Server-side; the loaded grid syncs to the client with the rest of the menu.
         if (!level.isClientSide()
-                && level.getBlockEntity(pos) instanceof ScrapCraftingTableBlockEntity table) {
+                && level.getBlockEntity(pos) instanceof ScrapCraftingTableBlockEntity table
+                && table.tryCheckOut()) {
             table.loadInto(this.craftSlots);
+            this.ownsTableGrid = true;
         }
     }
 
@@ -144,9 +149,11 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     public void removed(Player player) {
         super.removed(player);
         this.access.execute((lvl, blockPos) -> {
-            // Persist the grid back into the table so it survives closing. If the table is gone (broken
-            // while open), fall back to vanilla's give-back-or-drop so nothing is lost.
-            if (lvl.getBlockEntity(blockPos) instanceof ScrapCraftingTableBlockEntity table) {
+            // Only the owner persists back into the table (and releases the check-out). A non-owner, or
+            // an owner whose table is gone (broken while open), falls back to vanilla's give-back-or-drop
+            // so nothing is lost and nothing is overwritten.
+            if (this.ownsTableGrid
+                    && lvl.getBlockEntity(blockPos) instanceof ScrapCraftingTableBlockEntity table) {
                 table.saveFrom(this.craftSlots);
             } else {
                 this.clearContainer(player, this.craftSlots);

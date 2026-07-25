@@ -214,6 +214,27 @@ final class CraftingTableTests {
             helper.succeed();
         });
 
+        // Concurrent openers must not wipe the grid: only the first (owner) persists; a second opener
+        // gets an empty transient and never writes back. Regression for the 2-player data-loss case.
+        RCGameTests.test("scrap_crafting_table_grid_survives_a_second_opener", 20, helper -> {
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+            ScrapCraftingStationMenu owner = openMenu(helper, player);          // checks out the grid
+            owner.getSlot(1).set(new ItemStack(RCItems.SCRAP_METAL.get()));
+            ScrapCraftingStationMenu second = openMenu(helper, player);          // checked out -> transient
+            helper.assertTrue(second.getSlot(1).getItem().isEmpty(),
+                "a second opener must not see the checked-out grid");
+
+            owner.removed(player);    // owner saves its grid into the table
+            second.removed(player);   // must NOT overwrite the table with its empty grid
+
+            ScrapCraftingStationMenu reopened = openMenu(helper, player);
+            helper.assertTrue(reopened.getSlot(1).getItem().is(RCItems.SCRAP_METAL.get()),
+                "the owner's grid must survive the second opener's close, got " + reopened.getSlot(1).getItem());
+            helper.succeed();
+        });
+
         // Breaking the table drops the stored grid - the pattern is never lost.
         RCGameTests.test("scrap_crafting_table_grid_drops_on_break", 20, helper -> {
             helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
