@@ -42,6 +42,12 @@
   "block.recompile.wall_scrap_torch": "Scrap Torch",
   "block.recompile.washing_machine": "Washing Machine",
   "block.recompile.water_tank": "Water Tank",
+  "container.recompile.connected": "Connected",
+  "container.recompile.not_connected": "No storage connected",
+  "container.recompile.bin_count": "%s bins",
+  "container.recompile.bins_empty": "(empty)",
+  "container.recompile.more": "+%s more",
+  "container.recompile.plus_barrel": "+ barrel",
   "container.recompile.burn_barrel": "Burn Barrel",
   "container.recompile.scrap_barrel": "Scrap Barrel",
   "generator.recompile.garbage": "Garbage World",
@@ -86,6 +92,8 @@
   "jei.recompile.sorting": "Sorting",
   "jei.recompile.teardown": "Teardown",
   "message.recompile.dimension_locked": "That way is sealed for now.",
+  "message.recompile.multiblock_missing_parts": "You're missing parts to assemble this.",
+  "message.recompile.multiblock_no_room": "Not enough clear space to assemble - clear the footprint and place again.",
   "message.recompile.needs_tool": "You need a %s to open this",
   "tooltip.recompile.fuel": "Fuel: %s items"
 }

@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.registry.RCItems;
+import com.flatts.recompile.registry.RCTags;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -62,6 +63,10 @@ public class SortingTarpBlock extends Block {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
+        // Shift-right-click a networked tarp files your whole scrap haul into the connected bins (P2.10).
+        if (player.isSecondaryUseActive()) {
+            return fileAllIntoNetwork(level, pos, player);
+        }
         if (outputRolls(stack.getItem()) <= 0) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
@@ -90,13 +95,58 @@ public class SortingTarpBlock extends Block {
         for (int i = 0; i < rolls; i++) {
             List<ItemStack> pulled = table.getRandomItems(params);
             for (ItemStack drop : pulled) {
-                if (!drop.isEmpty()) {
-                    Block.popResource(level, pos.above(), drop);
+                if (drop.isEmpty()) {
+                    continue;
+                }
+                // Wired to a scrap network, the sorted materials flow into the connected bins/barrel;
+                // standalone (or when storage is full) they drop on the table, the tarp's usual behavior.
+                ItemStack remainder = ScrapNetwork.insertFromMember(level, pos, drop, false);
+                if (!remainder.isEmpty()) {
+                    Block.popResource(level, pos.above(), remainder);
                 }
             }
         }
         SoundType sound = level.getBlockState(pos).getSoundType();
         level.playSound(null, pos, sound.getHitSound(), SoundSource.BLOCKS, 0.6F, 0.9F);
+    }
+
+    /**
+     * File-all (P2.10): every {@code #binnable} stack in the player's inventory into the connected
+     * bins, auto-binding empties, overflow to the barrel. Only when the tarp is wired to a network
+     * with storage; otherwise a shift-right-click does nothing here (the held item, if any, does its
+     * own thing).
+     */
+    private static InteractionResult fileAllIntoNetwork(Level level, BlockPos pos, Player player) {
+        if (!ScrapNetwork.reachesStorage(level, pos)) {
+            return InteractionResult.PASS;
+        }
+        if (level instanceof ServerLevel serverLevel) {
+            int filed = 0;
+            var inventory = player.getInventory();
+            for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+                ItemStack stack = inventory.getItem(slot);
+                if (!stack.isEmpty() && stack.is(RCTags.BINNABLE)) {
+                    int before = stack.getCount();
+                    ScrapNetwork.insertFromMember(serverLevel, pos, stack, true);
+                    filed += before - stack.getCount();
+                }
+            }
+            if (filed > 0) {
+                SoundType sound = level.getBlockState(pos).getSoundType();
+                level.playSound(null, pos, sound.getPlaceSound(), SoundSource.BLOCKS, 0.7F, 1.1F);
+            }
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    /** Empty-handed shift-right-click also files (the common case: you have no scrap in hand). */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+            Player player, BlockHitResult hit) {
+        if (player.isSecondaryUseActive()) {
+            return fileAllIntoNetwork(level, pos, player);
+        }
+        return InteractionResult.PASS;
     }
 
     /** Single entry point for interactions and gametests: sift one {@code input} at the tarp. */

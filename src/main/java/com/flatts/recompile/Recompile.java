@@ -4,6 +4,7 @@ import com.flatts.recompile.gametest.RCGameTests;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCCreativeTabs;
+import com.flatts.recompile.registry.RCMenus;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCItems;
@@ -39,6 +40,7 @@ public final class Recompile {
         RCItems.register(modEventBus);
         RCDataComponents.register(modEventBus);
         RCBlockEntities.register(modEventBus);
+        RCMenus.register(modEventBus);
         RCCreativeTabs.register(modEventBus);
         RCFeatures.register(modEventBus);
 

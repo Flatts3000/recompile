@@ -344,7 +344,9 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_BLUE)
             .strength(1.0F)
-            .sound(SoundType.GLASS)
+            // It is a recoloured daylight detector, so it breaks like one: WOOD, vanilla's daylight
+            // sensor sound. Not GLASS (it is not a pane) and not METAL - match the block it is built on.
+            .sound(SoundType.WOOD)
             .noOcclusion()
     );
 

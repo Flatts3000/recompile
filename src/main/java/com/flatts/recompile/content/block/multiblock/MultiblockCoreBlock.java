@@ -1,12 +1,15 @@
 package com.flatts.recompile.content.block.multiblock;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -43,6 +46,15 @@ public abstract class MultiblockCoreBlock extends Block {
      * a blueprint names other blocks and those are not resolvable while blocks are still registering.
      */
     protected abstract Multiblock createBlueprint();
+
+    /**
+     * How this core's blueprint is rotated for a given state - {@link Rotation#NONE} by default (a
+     * vertical column is rotation-invariant). A directional machine overrides this from its facing so
+     * the structure builds relative to the player.
+     */
+    protected Rotation rotationFor(BlockState state) {
+        return Rotation.NONE;
+    }
 
     /**
      * Called once, server-side, right after the machine assembles. Override to start work - a
@@ -100,50 +112,69 @@ public abstract class MultiblockCoreBlock extends Block {
         // component, so assembly would always fire and there would be no way to get the unformed
         // block (for a partial build, or just as decor).
         if (by instanceof Player player && !player.isShiftKeyDown()) {
-            autoAssemble(level, pos, player);
+            AssembleResult result = autoAssemble(level, pos, player);
+            // Legible failure: a large blueprint silently doing nothing reads as "it's broken". Say
+            // why (interim, until the placement outline ships). NO_ROOM shows in creative too - it is
+            // the likely creative failure (the fixed footprint hitting terrain); only MISSING_PARTS is
+            // creative-irrelevant, since creative always has the parts.
+            if (result == AssembleResult.NO_ROOM) {
+                player.sendSystemMessage(Component.translatable("message.recompile.multiblock_no_room"));
+            } else if (result == AssembleResult.MISSING_PARTS && !player.getAbilities().instabuild) {
+                player.sendSystemMessage(Component.translatable("message.recompile.multiblock_missing_parts"));
+            }
         }
         tryForm(level, pos);
     }
 
+    /** What auto-assembly did, so the placer can be told why nothing appeared. */
+    protected enum AssembleResult { ASSEMBLED, NO_ROOM, MISSING_PARTS }
+
     /**
-     * Place each missing component from the player's inventory, consuming it. Does nothing unless
-     * <em>every</em> cell can be filled - a half-built machine from a partial inventory would be a
-     * worse outcome than leaving the core plainly unformed.
+     * Place the whole blueprint from the player's inventory, consuming it. All-or-nothing: a
+     * half-built machine from a partial inventory would be a worse outcome than a plainly unformed
+     * core. Quantity-correct - a component that appears in N cells needs N of the item, so a
+     * blueprint with four copper pipes cannot be built from one.
      */
-    private void autoAssemble(Level level, BlockPos pos, Player player) {
+    private AssembleResult autoAssemble(Level level, BlockPos pos, Player player) {
         Multiblock blueprint = blueprint();
-        if (!blueprint.roomToAssemble(level, pos)) {
-            return;
+        Rotation rotation = rotationFor(level.getBlockState(pos));
+        if (!blueprint.roomToAssemble(level, pos, rotation)) {
+            return AssembleResult.NO_ROOM;
         }
-        for (Multiblock.Cell cell : blueprint.cells()) {
-            if (!hasComponent(player, cell)) {
-                return;   // can't complete it - leave the core unformed rather than half-built
+        if (!player.getAbilities().instabuild) {
+            java.util.Map<Item, Integer> needed = new java.util.HashMap<>();
+            for (Multiblock.Cell cell : blueprint.cells()) {
+                needed.merge(cell.component().asItem(), 1, Integer::sum);
+            }
+            for (java.util.Map.Entry<Item, Integer> entry : needed.entrySet()) {
+                if (countIn(player, entry.getKey()) < entry.getValue()) {
+                    return AssembleResult.MISSING_PARTS;
+                }
             }
         }
         for (Multiblock.Cell cell : blueprint.cells()) {
-            consumeComponent(player, cell);
-            level.setBlock(cell.at(pos), cell.component().defaultBlockState(), Block.UPDATE_ALL);
+            consumeOne(player, cell.component().asItem());
+            level.setBlock(cell.at(pos, rotation), cell.component().defaultBlockState(), Block.UPDATE_ALL);
         }
+        return AssembleResult.ASSEMBLED;
     }
 
-    private static boolean hasComponent(Player player, Multiblock.Cell cell) {
-        if (player.getAbilities().instabuild) {
-            return true;   // creative: build it without taking anything
-        }
+    private static int countIn(Player player, Item item) {
+        int total = 0;
         for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
-            if (stack.is(cell.component().asItem()) && !stack.isEmpty()) {
-                return true;
+            if (stack.is(item)) {
+                total += stack.getCount();
             }
         }
-        return false;
+        return total;
     }
 
-    private static void consumeComponent(Player player, Multiblock.Cell cell) {
+    private static void consumeOne(Player player, Item item) {
         if (player.getAbilities().instabuild) {
             return;
         }
         for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
-            if (stack.is(cell.component().asItem()) && !stack.isEmpty()) {
+            if (stack.is(item) && !stack.isEmpty()) {
                 stack.shrink(1);
                 return;
             }
@@ -162,10 +193,11 @@ public abstract class MultiblockCoreBlock extends Block {
         }
         BlockState state = level.getBlockState(pos);
         Multiblock blueprint = core.blueprint();
-        if (isFormed(state) || !blueprint.matches(level, pos)) {
+        Rotation rotation = core.rotationFor(state);
+        if (isFormed(state) || !blueprint.matches(level, pos, rotation)) {
             return false;
         }
-        blueprint.form(level, pos);
+        blueprint.form(level, pos, rotation);
         level.setBlock(pos, state.setValue(FORMED, true), Block.UPDATE_ALL);
         core.onFormed(level, pos);
         return true;
@@ -177,7 +209,7 @@ public abstract class MultiblockCoreBlock extends Block {
             return;
         }
         BlockState state = level.getBlockState(pos);
-        core.blueprint().disband(level, pos, drop);
+        core.blueprint().disband(level, pos, core.rotationFor(state), drop);
         if (isFormed(state)) {
             level.setBlock(pos, state.setValue(FORMED, false), Block.UPDATE_ALL);
             core.onDisbanded(level, pos);
@@ -198,7 +230,7 @@ public abstract class MultiblockCoreBlock extends Block {
             return;
         }
         if (isFormed(state)) {
-            if (!blueprint().isFormed(level, pos)) {
+            if (!blueprint().isFormed(level, pos, rotationFor(state))) {
                 // a cell was taken out from under us - drop back to unformed, nothing left to drop
                 level.setBlock(pos, state.setValue(FORMED, false), Block.UPDATE_ALL);
             }
@@ -213,7 +245,7 @@ public abstract class MultiblockCoreBlock extends Block {
             BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
         if (isFormed(state)) {
-            blueprint().disband(level, pos, true);
+            blueprint().disband(level, pos, rotationFor(state), true);
         }
     }
 }

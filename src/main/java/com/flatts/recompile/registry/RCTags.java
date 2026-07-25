@@ -154,4 +154,19 @@ public final class RCTags {
      */
     public static final TagKey<Item> BINNABLE = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "binnable"));
+
+    /**
+     * The scrap blocks that join into one network by adjacency (P2.10): bins, barrel, sorter,
+     * workbench, burn barrel and the scrap crafting table. Placed sharing a face they become one
+     * connected cluster; {@code ScrapNetwork} floods this tag to route junk between them, with no
+     * controller and no saved structure. A block tag, and open by design - a pack adds a modded
+     * scrap block to the network without a mod release.
+     *
+     * <p>Membership means "conducts the network", not "is storage": only two of the six are routing
+     * sinks (a Scrap Bin, and the Scrap Barrel matched by block id). The Burn Barrel is in the tag so
+     * a smelter wired into the cluster still conducts, but it is deliberately never a sink - it is a
+     * furnace {@code WorldlyContainer}, and routing must not land in its smelt slots.
+     */
+    public static final TagKey<Block> SCRAP_CONNECTABLE = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "scrap_connectable"));
 }
