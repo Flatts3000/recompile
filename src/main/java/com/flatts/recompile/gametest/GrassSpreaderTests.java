@@ -141,6 +141,40 @@ final class GrassSpreaderTests {
             helper.succeed();
         });
 
+        // The other half of "drip irrigator": farmland in range is kept moist, so a plot inside the
+        // radius grows crops and (because encroachment spares moist farmland) is defended from the sweep.
+        // Keyed on the MOISTURE property, so dry farmland in range goes to moisture 7 and out-of-band
+        // farmland is left dry.
+        RCGameTests.test("grass_spreader_irrigates_farmland_in_range", 40, helper -> {
+            formSpreader(helper);
+            BlockPos plot = new BlockPos(3, 1, 1);
+            helper.setBlock(plot, Blocks.FARMLAND.defaultBlockState()
+                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.MOISTURE, 0));
+
+            int watered = GrassSpreaderCoreBlock.irrigateOnce(helper.getLevel(), helper.absolutePos(CORE));
+
+            helper.assertTrue(watered >= 1, "it must water at least the one dry plot in range, watered " + watered);
+            helper.assertTrue(helper.getBlockState(plot)
+                    .getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.MOISTURE) == 7,
+                "farmland in range must be moist, got moisture "
+                    + helper.getBlockState(plot).getValue(
+                        net.minecraft.world.level.block.state.properties.BlockStateProperties.MOISTURE));
+            helper.succeed();
+        });
+
+        // An unformed spreader must not water either - a bare core is a crate, not a sprinkler.
+        RCGameTests.test("grass_spreader_unformed_does_not_irrigate", 40, helper -> {
+            helper.setBlock(CORE, RCBlocks.GRASS_SPREADER.get());   // no tower
+            BlockPos plot = new BlockPos(3, 1, 1);
+            helper.setBlock(plot, Blocks.FARMLAND.defaultBlockState()
+                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.MOISTURE, 0));
+
+            int watered = GrassSpreaderCoreBlock.irrigateOnce(helper.getLevel(), helper.absolutePos(CORE));
+
+            helper.assertTrue(watered == 0, "an unformed core must not irrigate, watered " + watered);
+            helper.succeed();
+        });
+
         // An unformed core does nothing. The tower is the machine; a bare core is a crate.
         RCGameTests.test("grass_spreader_unformed_does_nothing", 40, helper -> {
             helper.setBlock(CORE, RCBlocks.GRASS_SPREADER.get());   // no tower

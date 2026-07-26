@@ -103,6 +103,16 @@ public class CompostHeapBlockEntity extends BlockEntity {
         return new ItemStack(RCItems.FERTILIZER.get());
     }
 
+    /**
+     * A compost volunteer: after a layer is harvested, roll the config chance that a seed came up in the
+     * pile (real compost sprouts volunteers from kitchen scraps). Rolled per harvested layer, so the
+     * default {@code 1 in 8} averages one Unknown Seedling per eight layers.
+     */
+    public boolean rollVolunteer() {
+        return level != null
+            && level.getRandom().nextInt(Math.max(1, RCConfig.COMPOST_VOLUNTEER_CHANCE.get())) == 0;
+    }
+
     /** Advance each unfinished layer by one tick; the blockstate follows when fill/cooking changes. */
     public static void serverTick(Level level, BlockPos pos, BlockState state, CompostHeapBlockEntity be) {
         int ticks = layerTicks();

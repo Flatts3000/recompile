@@ -62,6 +62,7 @@ public final class RCConfig {
     public static final ModConfigSpec.BooleanValue COMPOST_HEAP_ENABLED;
     public static final ModConfigSpec.IntValue COMPOST_LAYER_COST;
     public static final ModConfigSpec.IntValue COMPOST_LAYER_TICKS;
+    public static final ModConfigSpec.IntValue COMPOST_VOLUNTEER_CHANCE;
 
     // ---- Vegetation tier (rung 2 - Fertilizer scatters plants) ----
     public static final ModConfigSpec.BooleanValue VEGETATION_ENABLED;
@@ -140,6 +141,10 @@ public final class RCConfig {
         COMPOST_LAYER_TICKS = builder
             .comment("Ticks for one layer to finish composting into Fertilizer (1200 = 60s).")
             .defineInRange("compostLayerTicks", 1200, 1, 24000);
+        COMPOST_VOLUNTEER_CHANCE = builder
+            .comment("Chance (1 in N) that harvesting a compost layer also yields an Unknown Seedling -",
+                     "a volunteer crop that sprouted in the pile. 8 = about one seedling per 8 layers.")
+            .defineInRange("compostVolunteerChance", 8, 1, 1000);
 
         VEGETATION_ENABLED = builder
             .comment("Whether Fertilizer scatters plants (grass -> weeds/flowers, mycelium -> mushrooms).")

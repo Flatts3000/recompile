@@ -489,3 +489,25 @@ prompt = "a tall slender fireweed stalk topped with a spike of small magenta-pin
 # Farming tier (rung 3): Composted Soil - crafted from fertilizer + dirt, placed
 # to make farmland (vanilla farmland has no item, so this item places it).
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Seeds (Farming tier): a scavenged seed packet that opens to a random farmland
+# crop starter. The only non-wheat crop-seed source (wheat comes from grass).
+# ---------------------------------------------------------------------------
+
+[surface.seed_packet]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small faded worn paper garden seed packet envelope, torn at one corner, a simple washed-out illustration of a sprouting plant on the front, grubby and scavenged from the trash, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------
+# Seeds (Farming tier): the Unknown Seedling - a compost "volunteer" that plants
+# like a seed and becomes a random vanilla crop at plant time.
+# ---------------------------------------------------------------------------
+
+[surface.unknown_seedling]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a single small unidentified green seedling sprout, two tiny fresh leaves on a thin pale stem with a clump of dark soil at the base, a mystery volunteer plant, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"

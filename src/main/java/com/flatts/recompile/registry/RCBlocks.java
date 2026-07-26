@@ -394,8 +394,9 @@ public final class RCBlocks {
 
     /**
      * Dump mushroom (P1.9): the forageable plant. Grows on vanilla mycelium in any
-     * light; breaking it drops the edible {@code dump_mushroom} item. No block-item -
-     * it is worldgen-placed and foraged, not planted (farming is a later tier).
+     * light; breaking it drops the edible {@code dump_mushroom} item, which is a
+     * {@code BlockItem} (parity with vanilla mushrooms) so it can be replanted on
+     * mycelium or dirt - foraging is a renewable loop, not a one-way strip.
      */
     public static final DeferredBlock<DumpMushroomBlock> DUMP_MUSHROOM = BLOCKS.registerBlock(
         "dump_mushroom",

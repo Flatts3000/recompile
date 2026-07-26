@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.item.FertilizerItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
+import com.flatts.recompile.content.item.UnknownSeedlingItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
 import net.minecraft.core.Direction;
@@ -50,6 +51,9 @@ public final class RCItems {
      */
     public static final DeferredItem<FertilizerItem> FERTILIZER =
         ITEMS.registerItem("fertilizer", FertilizerItem::new);
+    // A compost volunteer: plant it like a seed and it becomes a random vanilla crop at plant time.
+    public static final DeferredItem<UnknownSeedlingItem> UNKNOWN_SEEDLING =
+        ITEMS.registerItem("unknown_seedling", UnknownSeedlingItem::new);
 
     // Oily Rag (P1.4-A): fiber + muck, the trash world's "coal" - a general fuel that burns in
     // any furnace (charcoal parity) and is the head of the Scrap Torch. No consumer forces it
@@ -115,9 +119,13 @@ public final class RCItems {
     public static final DeferredItem<Item> TIN_CAN_OPEN = ITEMS.registerItem(
         "tin_can_open",
         props -> new OpenedCanItem(props.food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.3F).build())));
+    // A BlockItem for the dump mushroom block, so it has parity with vanilla mushrooms: forage it,
+    // then replant it on mycelium or dirt. Still food (eat it by right-clicking with no block targeted),
+    // still the block's item form - one id that both places and feeds.
     public static final DeferredItem<Item> DUMP_MUSHROOM = ITEMS.registerItem(
         "dump_mushroom",
-        props -> new Item(props.food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1F).build())));
+        props -> new BlockItem(RCBlocks.DUMP_MUSHROOM.get(),
+            props.food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1F).build())));
 
     /** Food items in creative-tab order. */
     public static final List<DeferredItem<Item>> FOOD = List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM);

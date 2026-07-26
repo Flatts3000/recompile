@@ -46,20 +46,22 @@ public final class FertilizerScatter {
     private FertilizerScatter() {
     }
 
-    // Grass-dominant: mostly weeds and grasses, flowers a sparse accent (~80% grasses, ~20% flowers).
-    // Real-weed wildflowers only (dandelion/poppy/oxeye/cornflower); the two custom pioneers ride along.
+    // Grass-dominant: overwhelmingly weeds and grasses, flowers a rare treat. Weighted so one fertilizer
+    // averages 1-2 flowers (~6% of the pool is flowers; the rest is grasses and the custom pioneers).
+    // Real-weed wildflowers only (dandelion/poppy/oxeye/cornflower); fireweed is the custom flowering
+    // pioneer and is kept just as rare.
     private static List<Weighted> grassScatter() {
         return List.of(
-            new Weighted(Blocks.SHORT_GRASS, 25),
-            new Weighted(RCBlocks.WEEDGRASS.get(), 20),
-            new Weighted(Blocks.FERN, 12),
+            new Weighted(Blocks.SHORT_GRASS, 28),
+            new Weighted(RCBlocks.WEEDGRASS.get(), 22),
+            new Weighted(Blocks.FERN, 13),
             new Weighted(Blocks.TALL_GRASS, 6),
             new Weighted(Blocks.LARGE_FERN, 3),
-            new Weighted(Blocks.DANDELION, 4),
-            new Weighted(Blocks.POPPY, 4),
-            new Weighted(Blocks.OXEYE_DAISY, 3),
-            new Weighted(Blocks.CORNFLOWER, 2),
-            new Weighted(RCBlocks.FIREWEED.get(), 3));
+            new Weighted(Blocks.DANDELION, 1),
+            new Weighted(Blocks.POPPY, 1),
+            new Weighted(Blocks.OXEYE_DAISY, 1),
+            new Weighted(Blocks.CORNFLOWER, 1),
+            new Weighted(RCBlocks.FIREWEED.get(), 1));
     }
 
     private static List<Weighted> mushroomScatter() {

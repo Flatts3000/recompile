@@ -195,13 +195,9 @@ final class CompostHeapTests {
             helper.getLevel().getBlockState(cageAbs).useWithoutItem(helper.getLevel(), player, hit);
             helper.assertTrue(be.layers() == 0,
                 "an empty-handed right-click on a cage cell must harvest the ripe layer, layers=" + be.layers());
-            int fertilizer = 0;
-            for (ItemStack s : player.getInventory().getNonEquipmentItems()) {
-                if (s.is(RCItems.FERTILIZER.get())) {
-                    fertilizer += s.getCount();
-                }
-            }
-            helper.assertTrue(fertilizer >= 1, "the harvest must yield Fertilizer, got " + fertilizer);
+            // The produce turns out into the world (popResourceFromFace), like the vanilla composter's
+            // bonemeal - not into the player's inventory. It pops out the clicked face of the core.
+            helper.assertItemEntityPresent(RCItems.FERTILIZER.get(), core, 3.0);
             helper.succeed();
         });
 

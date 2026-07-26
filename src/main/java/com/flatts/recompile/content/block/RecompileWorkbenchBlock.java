@@ -3,11 +3,13 @@ package com.flatts.recompile.content.block;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -16,7 +18,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
@@ -46,14 +50,23 @@ public class RecompileWorkbenchBlock extends BaseEntityBlock {
 
     public static final MapCodec<RecompileWorkbenchBlock> CODEC = simpleCodec(RecompileWorkbenchBlock::new);
 
+    /** Which way the bench faces - the racked-tool sprites lie with their handles on this side. */
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty HAS_KNIFE = BooleanProperty.create("has_knife");
     public static final BooleanProperty HAS_PRYBAR = BooleanProperty.create("has_prybar");
 
     public RecompileWorkbenchBlock(BlockBehaviour.Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any()
+            .setValue(FACING, Direction.NORTH)
             .setValue(HAS_KNIFE, false)
             .setValue(HAS_PRYBAR, false));
+    }
+
+    /** Faces the player who placed it, so the tool handles rack toward them (front). */
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
@@ -63,7 +76,7 @@ public class RecompileWorkbenchBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(HAS_KNIFE, HAS_PRYBAR);
+        builder.add(FACING, HAS_KNIFE, HAS_PRYBAR);
     }
 
     @Override

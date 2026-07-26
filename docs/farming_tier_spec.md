@@ -34,11 +34,24 @@ whole feature is a recipe plus a one-line hoe lockout.
 - **Water tie kept**: it *is* vanilla farmland, so it dries without water and the sweep takes it when dry
   (P1.7-R item 0a). Irrigate (Rain Collector) to hold a plot.
 
-## Seeds (open thread, not blocking)
+## Seeds - compost volunteers (shipped 2026-07-26)
 
-Wheat seeds already close: Fertilizer's vegetation scatter drops vanilla `short_grass` / `tall_grass`,
-which drop wheat seeds when hand-broken. Other crop seeds (carrot / potato / beetroot) obtainability is a
-separate thread (loot, teardown), out of scope here.
+Wheat seeds already come from grass (the vegetation scatter drops `short_grass` / `tall_grass`, which
+drop wheat seeds when hand-broken). The other farmland crops come from the compost, matching how real
+compost heaps sprout "volunteers" from kitchen scraps:
+
+- **The Compost Heap drops an `Unknown Seedling` on harvest**, `1 in N` layers (`compostVolunteerChance`,
+  default 8 - about one per eight layers). Rolled per harvested layer in `CompostHeapBlockEntity.rollVolunteer`,
+  granted alongside the Fertilizer in the core's harvest handler.
+- **`Unknown Seedling`** (`UnknownSeedlingItem`): you plant it on farmland like a seed, but you don't know
+  what it is - **at plant time it resolves to a random vanilla crop** (age 0) and grows as that crop. The
+  pick is server-only (no client desync). Pool: **wheat, carrot, potato, beetroot, melon, pumpkin** (all
+  six farmland crops - wheat included per the owner's call for true "you never know" randomness, even
+  though grass also drops wheat seeds). Carrots/potatoes plant as themselves; melon/pumpkin as their stems.
+
+The knock-on: a volunteer is the *bootstrap*. Once it gives you, say, potatoes, you replant that crop's
+own seed deterministically - the RNG is only the entry point, not a permanent tax. Whole plants and
+cuttings (bamboo, sugar cane, sweet berries, cactus) were deliberately deferred out of this sprint.
 
 ## Not this
 

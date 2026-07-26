@@ -56,10 +56,7 @@ final class RegistryCompletenessTests {
         "grass_spreader_frame",
         "grass_spreader_spigot",
         // A formed cell of the Compost Heap's 2x2x2 cage - disband returns the Machine Frame, not this.
-        "compost_cage",
-        // The mushroom's item is a plain food Item sharing the id, not a BlockItem, so the block
-        // is worldgen-only and a held mushroom cannot be planted. See ForageTests.
-        "dump_mushroom"
+        "compost_cage"
     );
 
     private RegistryCompletenessTests() {
