@@ -119,9 +119,13 @@ public final class RCItems {
     public static final DeferredItem<Item> TIN_CAN_OPEN = ITEMS.registerItem(
         "tin_can_open",
         props -> new OpenedCanItem(props.food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.3F).build())));
+    // A BlockItem for the dump mushroom block, so it has parity with vanilla mushrooms: forage it,
+    // then replant it on mycelium or dirt. Still food (eat it by right-clicking with no block targeted),
+    // still the block's item form - one id that both places and feeds.
     public static final DeferredItem<Item> DUMP_MUSHROOM = ITEMS.registerItem(
         "dump_mushroom",
-        props -> new Item(props.food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1F).build())));
+        props -> new BlockItem(RCBlocks.DUMP_MUSHROOM.get(),
+            props.food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1F).build())));
 
     /** Food items in creative-tab order. */
     public static final List<DeferredItem<Item>> FOOD = List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM);
