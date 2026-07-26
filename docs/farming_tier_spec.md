@@ -22,8 +22,10 @@ whole feature is a recipe plus a one-line hoe lockout.
 
 ## Implementation
 
-- **Recipe** (`data/recompile/recipe/farmland.json`): shapeless `recompile:fertilizer + minecraft:dirt
-  -> minecraft:farmland`. JEI shows it automatically.
+- **Two recipes** (both shapeless -> `minecraft:farmland`, shown in JEI), a cost gradient by ground
+  quality: `farmland_from_dirt` = **dirt + 1 fertilizer** (cheap - real dirt, e.g. from breaking
+  reclaimed grass); `farmland_from_coarse_dirt` = **coarse dirt + 4 fertilizer** (expensive - coarse dirt
+  is the raw dead dump the player has in bulk, so making it fertile costs more compost).
 - **Hoe lockout** (`RCFarming`): an `@EventBusSubscriber` handler cancels NeoForge's
   `BlockEvent.BlockToolModificationEvent` when the ability is `ItemAbilities.HOE_TILL` and
   `disableHoeTilling` is set. No hoe exists in the base mod, so this is defensive - it keeps the compost
