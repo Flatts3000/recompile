@@ -1,13 +1,18 @@
 {
   "multipart": [
-    { "apply": { "model": "recompile:block/recompile_workbench" } },
-    {
-      "when": { "has_knife": "true" },
-      "apply": { "model": "recompile:block/recompile_workbench_knife" }
-    },
-    {
-      "when": { "has_prybar": "true" },
-      "apply": { "model": "recompile:block/recompile_workbench_prybar" }
-    }
+    { "when": { "facing": "north" }, "apply": { "model": "recompile:block/recompile_workbench" } },
+    { "when": { "facing": "east" },  "apply": { "model": "recompile:block/recompile_workbench", "y": 90 } },
+    { "when": { "facing": "south" }, "apply": { "model": "recompile:block/recompile_workbench", "y": 180 } },
+    { "when": { "facing": "west" },  "apply": { "model": "recompile:block/recompile_workbench", "y": 270 } },
+
+    { "when": { "facing": "north", "has_knife": "true" }, "apply": { "model": "recompile:block/recompile_workbench_knife" } },
+    { "when": { "facing": "east",  "has_knife": "true" }, "apply": { "model": "recompile:block/recompile_workbench_knife", "y": 90 } },
+    { "when": { "facing": "south", "has_knife": "true" }, "apply": { "model": "recompile:block/recompile_workbench_knife", "y": 180 } },
+    { "when": { "facing": "west",  "has_knife": "true" }, "apply": { "model": "recompile:block/recompile_workbench_knife", "y": 270 } },
+
+    { "when": { "facing": "north", "has_prybar": "true" }, "apply": { "model": "recompile:block/recompile_workbench_prybar" } },
+    { "when": { "facing": "east",  "has_prybar": "true" }, "apply": { "model": "recompile:block/recompile_workbench_prybar", "y": 90 } },
+    { "when": { "facing": "south", "has_prybar": "true" }, "apply": { "model": "recompile:block/recompile_workbench_prybar", "y": 180 } },
+    { "when": { "facing": "west",  "has_prybar": "true" }, "apply": { "model": "recompile:block/recompile_workbench_prybar", "y": 270 } }
   ]
 }
