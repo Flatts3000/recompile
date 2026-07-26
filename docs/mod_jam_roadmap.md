@@ -63,7 +63,7 @@ Confirmed from the 2025 ToS: **Originality = 30%**; the rest (fun, polish, theme
 |---|---|---|---|
 | **1. Grass** | Grass Spreader (reclamation rung 1) heals dead ground to grass; encroachment fights back | **SHIPPED** | polish + make it the on-ramp |
 | **2. Vegetation** | Fertilizer scatters weeds/wildflowers on reclaimed grass + mushrooms on mycelium (rung 2; plants are `frontier_cover`) | **SHIPPED** | done - fancy-bonemeal scatter, 3s ripple, weeds-only flowers |
-| **3. Farming** | crops on reclaimed + irrigated land; the Rain Collector (water) is shipped | partial | **build the farming beat** |
+| **3. Farming** | farmland from `Fertilizer + dirt` (no hoe in this world); vanilla crops + the Rain Collector's wet/dry irrigation defense | **SHIPPED** (in-ground path) | done - compost recipe + hoe-till lockout; seeds via the veg scatter |
 | **4. Trees** | the tree planter machine - saplings are machine-only, so the planter is the only forest source | design only | **build (jam-scoped)** |
 | **5. Animals** | reclaimed / living land brings passive animals back (the start biome is creature-free by design) | not built | **build the return trigger** |
 

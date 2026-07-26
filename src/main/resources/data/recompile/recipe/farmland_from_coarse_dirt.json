@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:coarse_dirt",
+    "recompile:fertilizer",
+    "recompile:fertilizer",
+    "recompile:fertilizer",
+    "recompile:fertilizer"
+  ],
+  "result": { "id": "minecraft:farmland", "count": 1 }
+}
