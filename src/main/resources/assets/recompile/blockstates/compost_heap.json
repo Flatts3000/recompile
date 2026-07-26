@@ -1,0 +1,232 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "hi_x": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_west"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_east"
+      }
+    },
+    {
+      "when": {
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_north"
+      }
+    },
+    {
+      "when": {
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_south"
+      }
+    },
+    {
+      "when": {
+        "hi_y": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_floor"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "false",
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_nw"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true",
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_ne"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "false",
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_sw"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true",
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_se"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "1|2|3|4|5|6|7|8",
+        "ripe": "0"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_0"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "1|2|3|4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_0"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "2|3|4|5|6|7|8",
+        "ripe": "0|1"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_1"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "2|3|4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_1"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "3|4|5|6|7|8",
+        "ripe": "0|1|2"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_2"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "3|4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_2"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "4|5|6|7|8",
+        "ripe": "0|1|2|3"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_3"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_3"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "5|6|7|8",
+        "ripe": "0|1|2|3|4"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_4"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_4"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "6|7|8",
+        "ripe": "0|1|2|3|4|5"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_5"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_5"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "7|8",
+        "ripe": "0|1|2|3|4|5|6"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_6"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_6"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "fill": "8",
+        "ripe": "0|1|2|3|4|5|6|7"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_7"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "ripe": "8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_7"
+      }
+    }
+  ]
+}

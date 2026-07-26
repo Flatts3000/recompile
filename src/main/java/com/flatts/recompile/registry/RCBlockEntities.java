@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
+import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
@@ -55,6 +56,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "recompile_workbench",
             () -> new BlockEntityType<>(RecompileWorkbenchBlockEntity::new, RCBlocks.RECOMPILE_WORKBENCH.get()));
+
+    /** The Compost Heap's composting layers (Mod Jam - the fertilizer tier). */
+    public static final Supplier<BlockEntityType<CompostHeapBlockEntity>> COMPOST_HEAP =
+        BLOCK_ENTITIES.register(
+            "compost_heap",
+            () -> new BlockEntityType<>(CompostHeapBlockEntity::new, RCBlocks.COMPOST_HEAP.get()));
 
     /** The Burn Barrel's furnace inventory (design P2.2) - a manual-only smelter. */
     public static final Supplier<BlockEntityType<BurnBarrelBlockEntity>> BURN_BARREL =

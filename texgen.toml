@@ -423,3 +423,44 @@ top = "a full-bleed top-down Minecraft block face: the lid of a salvaged scrap s
 side = "a full-bleed Minecraft block face: the side of a salvaged scrap sorting bin, a plain riveted desaturated steel panel with a welded rim and bolt heads, worn grey metal, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
 front = "a full-bleed Minecraft block face: the front of a salvaged scrap sorting bin, a riveted desaturated steel panel with a blank stencil placard above a low open chute mouth, worn grey metal, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
 bottom = "a full-bleed Minecraft block face: the grimy underside of a salvaged scrap sorting bin, dark oily desaturated steel base with stubby corner feet, caked grime, darker than the sides, near-greyscale and tint-ready, muted, flat, no perspective, fills the whole tile"
+
+# ---------------------------------------------------------------------------
+# Compost Heap (Mod Jam - the fertilizer tier): a 2x2x2 salvage cage of
+# composting dump organics. compost_heap = the core face; compost_cage = a
+# formed cage cell; fertilizer = the harvested item.
+# ---------------------------------------------------------------------------
+# The compost FILL that sits inside the wire cage (the cage frame + mesh are real
+# model geometry now, so this is pure compost - no painted frame or mesh).
+[surface.compost_heap]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face of dark crumbly steaming compost, rotting dump organics, damp browns and blacks flecked with shredded fibre and food waste, gritty, muted, flat, no perspective, no frame, no border, fills the whole tile edge to edge"
+
+# The see-through chicken-wire SHELL of the Compost Heap cage. The cage is a real multiblock model:
+# thin wire panels on the outer faces (connected - wire only on the exposed shell, no interior lattice)
+# with the compost layer-bands sitting inset behind them, visible and countable through the mesh.
+#
+# FINALIZE NOTE: gpt-image-1 cannot emit a mesh with real alpha holes - it returns an all-opaque tile
+# (dark-grey holes) or an all-blank one (the same limit the cullet_glass note above hits). So the
+# committed block/compost_wire.png is derived by script: luminance-key the promoted mesh so the wire is
+# kept opaque and the holes go to alpha (threshold ~126). Re-`promote` alone gives the raw opaque mesh -
+# re-run the key or the cage stops being see-through.
+#
+# block/compost_dark.png is compost_heap darkened ~40%, the alternate band tint that makes the stacked
+# layers read as distinct strata. Derived by script, not a surface.
+#
+# block/compost_ripe.png is compost_heap warmed + enriched + higher-contrast (a "finished compost" look),
+# used for the bottom bands once they ripen so ready-to-harvest layers read differently. Derived, not a surface.
+[surface.compost_wire]
+kind = "block"
+transparent = true
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block texture tile of galvanized chicken-wire mesh, thin pale steel wire twisted into a regular hexagonal mesh grid, the openings between the wires completely empty and transparent showing nothing behind them, only the thin wire strands are opaque, flat straight-on front view, no compost, no background, fills the tile edge to edge and tiles seamlessly"
+
+[surface.fertilizer]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small heap of rich dark crumbly finished compost fertilizer, near-black soil flecked with pale bits, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"

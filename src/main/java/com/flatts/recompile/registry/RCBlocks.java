@@ -3,6 +3,8 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
+import com.flatts.recompile.content.block.CompostCageBlock;
+import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
@@ -265,6 +267,31 @@ public final class RCBlocks {
             .strength(1.6F)
             .sound(SoundType.METAL)
             .noOcclusion()
+    );
+
+    /**
+     * Compost Heap core (Mod Jam - the fertilizer tier): the master of a 2x2x2 salvage cage that
+     * composts muck + fiber into Fertilizer, the gate to Vegetation and Farming. Carries the layer BE.
+     */
+    public static final DeferredBlock<CompostHeapCoreBlock> COMPOST_HEAP = BLOCKS.registerBlock(
+        "compost_heap",
+        CompostHeapCoreBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.DIRT)
+            .strength(1.2F)
+            .sound(SoundType.GRAVEL)
+            .noOcclusion()  // see-through wire shell + inset compost bands - not a full cube
+    );
+
+    /** A formed cell of the Compost Heap's cage. A dummy - no item; drops a Machine Frame on disband. */
+    public static final DeferredBlock<CompostCageBlock> COMPOST_CAGE = BLOCKS.registerBlock(
+        "compost_cage",
+        CompostCageBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.DIRT)
+            .strength(1.2F)
+            .sound(SoundType.GRAVEL)
+            .noOcclusion()  // see-through wire shell + inset compost bands - not a full cube
     );
 
     /** The spreader's tank cell: the Rain Collector, incorporated. A dummy - no item. */

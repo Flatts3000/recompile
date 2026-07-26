@@ -97,6 +97,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         // already has a teardown entry, so a panel on those would only restate what JEI shows.
         info(registration, RCItems.GRASS_SPREADER.get(), "grass_spreader");
         info(registration, RCItems.RAIN_COLLECTOR.get(), "rain_collector");
+        info(registration, RCItems.COMPOST_HEAP.get(), "compost_heap");
     }
 
     private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,

@@ -43,6 +43,12 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> BASE_MATERIALS = List.of(
         SCRAP_METAL, PLASTIC_SCRAP, GLASS_SHARDS, ORGANIC_MUCK, FIBER_SCRAP, E_SCRAP, JUNK);
 
+    /**
+     * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +
+     * fiber. It is the gate the Vegetation and Farming tiers consume - never crafted, only composted.
+     */
+    public static final DeferredItem<Item> FERTILIZER = ITEMS.registerItem("fertilizer", Item::new);
+
     // Oily Rag (P1.4-A): fiber + muck, the trash world's "coal" - a general fuel that burns in
     // any furnace (charcoal parity) and is the head of the Scrap Torch. No consumer forces it
     // yet (no furnace/burn barrel exists), so it is the fuel primitive, ready for the burn tier.
@@ -159,6 +165,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("rain_collector_funnel", RCBlocks.RAIN_COLLECTOR_FUNNEL);
     public static final DeferredItem<BlockItem> GRASS_SPREADER =
         ITEMS.registerSimpleBlockItem("grass_spreader", RCBlocks.GRASS_SPREADER);
+    public static final DeferredItem<BlockItem> COMPOST_HEAP =
+        ITEMS.registerSimpleBlockItem("compost_heap", RCBlocks.COMPOST_HEAP);
     /** Salvaged, never crafted - it comes out of a broken appliance at the workbench. */
     public static final DeferredItem<BlockItem> PUMP =
         ITEMS.registerSimpleBlockItem("pump", RCBlocks.PUMP);
