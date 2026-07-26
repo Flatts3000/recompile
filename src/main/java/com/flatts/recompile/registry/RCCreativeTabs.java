@@ -49,6 +49,8 @@ public final class RCCreativeTabs {
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
                     output.accept(RCItems.COMPOST_HEAP.get());
                     output.accept(RCItems.FERTILIZER.get());
+                    output.accept(RCItems.WEEDGRASS.get());
+                    output.accept(RCItems.FIREWEED.get());
                     output.accept(RCItems.OILY_RAG.get());
                     RCItems.FOOD.forEach(food -> output.accept(food.get()));
                 })

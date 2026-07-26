@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.item.FertilizerItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
@@ -47,7 +48,8 @@ public final class RCItems {
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +
      * fiber. It is the gate the Vegetation and Farming tiers consume - never crafted, only composted.
      */
-    public static final DeferredItem<Item> FERTILIZER = ITEMS.registerItem("fertilizer", Item::new);
+    public static final DeferredItem<FertilizerItem> FERTILIZER =
+        ITEMS.registerItem("fertilizer", FertilizerItem::new);
 
     // Oily Rag (P1.4-A): fiber + muck, the trash world's "coal" - a general fuel that burns in
     // any furnace (charcoal parity) and is the head of the Scrap Torch. No consumer forces it
@@ -134,6 +136,12 @@ public final class RCItems {
      */
     public static final DeferredItem<BlockItem> BULKY_WASTE =
         ITEMS.registerSimpleBlockItem("bulky_waste", RCBlocks.BULKY_WASTE);
+    // Vegetation tier (rung 2): the custom pioneer weeds. Block-items so a plant retrieved with shears
+    // can be replaced by hand.
+    public static final DeferredItem<BlockItem> WEEDGRASS =
+        ITEMS.registerSimpleBlockItem("weedgrass", RCBlocks.WEEDGRASS);
+    public static final DeferredItem<BlockItem> FIREWEED =
+        ITEMS.registerSimpleBlockItem("fireweed", RCBlocks.FIREWEED);
     /**
      * The mattress: place it and it is a bed, or tear it down at the Recompile Workbench
      * (P1.4) for string. Never craftable - the dump gives you the bed (P1.11).
