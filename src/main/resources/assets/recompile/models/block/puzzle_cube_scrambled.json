@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "up": "recompile:block/puzzle_cube_scrambled_up",
+    "down": "recompile:block/puzzle_cube_scrambled_down",
+    "north": "recompile:block/puzzle_cube_scrambled_north",
+    "south": "recompile:block/puzzle_cube_scrambled_south",
+    "east": "recompile:block/puzzle_cube_scrambled_east",
+    "west": "recompile:block/puzzle_cube_scrambled_west",
+    "particle": "recompile:block/puzzle_cube_scrambled_north"
+  }
+}

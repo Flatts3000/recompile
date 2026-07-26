@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "recompile:puzzle_cube_scrambled"
+  ],
+  "result": { "id": "recompile:puzzle_cube", "count": 1 }
+}

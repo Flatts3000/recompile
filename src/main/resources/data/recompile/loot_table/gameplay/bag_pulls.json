@@ -33,6 +33,11 @@
           "type": "minecraft:item",
           "name": "recompile:tin_can",
           "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:puzzle_cube_piece",
+          "weight": 1
         }
       ]
     }

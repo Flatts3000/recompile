@@ -54,6 +54,10 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.UNKNOWN_SEEDLING.get());
                     output.accept(RCItems.OILY_RAG.get());
                     RCItems.FOOD.forEach(food -> output.accept(food.get()));
+                    output.accept(RCItems.DISPLAY_PEDESTAL.get());
+                    RCItems.COLLECTIBLES.forEach(collectible -> output.accept(collectible.get()));
+                    output.accept(RCItems.PUZZLE_CUBE.get());
+                    output.accept(RCItems.PUZZLE_CUBE_SCRAMBLED.get());
                 })
                 .build()
         );

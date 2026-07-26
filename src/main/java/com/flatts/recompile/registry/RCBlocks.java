@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
+import com.flatts.recompile.content.block.DisplayPedestalBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
@@ -147,6 +148,46 @@ public final class RCBlocks {
             .strength(2.0F)
             .sound(SoundType.METAL)
             .noOcclusion()
+    );
+
+    /**
+     * Display Pedestal (Collectibles, design I-2): a plinth that shows off one finished collectible
+     * trophy. Not a full cube, so {@code noOcclusion()}; the trophy on top is drawn by the mod's one
+     * BlockEntityRenderer (scoped reversal of P1.11.6).
+     */
+    public static final DeferredBlock<DisplayPedestalBlock> DISPLAY_PEDESTAL = BLOCKS.registerBlock(
+        "display_pedestal",
+        DisplayPedestalBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE)
+            .strength(2.0F)
+            .sound(SoundType.STONE)
+            .noOcclusion()
+    );
+
+    /**
+     * The Puzzle Cube (Collectibles, design I-2): a placeable 3x3 twisty-cube block. A full cube - each
+     * of its six faces is its own 3x3 sticker texture, so it renders as a real 3D cube everywhere (in
+     * hand, in inventory, and spinning on a Display Pedestal). Two states, {@code puzzle_cube} (solved)
+     * and {@code puzzle_cube_scrambled}, craft into each other to swap.
+     */
+    public static final DeferredBlock<Block> PUZZLE_CUBE = BLOCKS.registerBlock(
+        "puzzle_cube",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.SNOW)
+            .strength(1.0F)
+            .sound(SoundType.STONE)
+    );
+
+    /** The scrambled state of the {@link #PUZZLE_CUBE} - craft one into the other to swap. */
+    public static final DeferredBlock<Block> PUZZLE_CUBE_SCRAMBLED = BLOCKS.registerBlock(
+        "puzzle_cube_scrambled",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_RED)
+            .strength(1.0F)
+            .sound(SoundType.STONE)
     );
 
     /**
