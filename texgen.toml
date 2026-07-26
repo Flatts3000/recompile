@@ -464,3 +464,38 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "a small heap of rich dark crumbly finished compost fertilizer, near-black soil flecked with pale bits, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------
+# Vegetation tier (rung 2): dump-friendly pioneer plants that Fertilizer scatters
+# onto reclaimed grass. Cross-model sprites like dump_mushroom - kind="block" so
+# the sprite lands in the blocks atlas the cross model reads, transparent=true to
+# hold the alpha. The item icon reuses the same block sprite (vanilla flower pattern).
+# ---------------------------------------------------------------------------
+
+[surface.weedgrass]
+kind = "block"
+transparent = true
+backend = "ai"
+size = 16
+prompt = "a small scraggly clump of tall weedy crabgrass, wispy pale green and dry tan blades, a hardy scrubby wasteland weed tuft, simple bold Minecraft cross-plant sprite, centered, plain transparent background, no scene"
+
+[surface.dump_dandelion]
+kind = "block"
+transparent = true
+backend = "ai"
+size = 16
+prompt = "a scruffy yellow dandelion and coltsfoot weed, a couple of ragged green leaves and one bright yellow flower head on a thin stem, a hardy roadside pioneer weed, simple bold Minecraft cross-plant sprite, centered, plain transparent background, no scene"
+
+[surface.fireweed]
+kind = "block"
+transparent = true
+backend = "ai"
+size = 16
+prompt = "a tall slender fireweed stalk topped with a spike of small magenta-pink flowers, narrow green leaves up the stem, a pioneer plant that colonizes scorched wasteland, simple bold Minecraft cross-plant sprite, centered, plain transparent background, no scene"
+
+[surface.can_sprout]
+kind = "block"
+transparent = true
+backend = "ai"
+size = 16
+prompt = "a hardy green weed with a few bright fresh leaves sprouting up out of a crushed dented rusty tin can half-buried in dirt, life growing out of the trash, simple bold Minecraft cross-plant sprite, centered, plain transparent background, no scene"
