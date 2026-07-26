@@ -68,6 +68,9 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue FERTILIZER_ATTEMPTS;
     public static final ModConfigSpec.IntValue FERTILIZER_RIPPLE_TICKS;
 
+    // ---- Farming tier (rung 3 - farmland from compost, not from a hoe) ----
+    public static final ModConfigSpec.BooleanValue DISABLE_HOE_TILLING;
+
     /**
      * Scrap Bin (P2.9): how much one bin holds of its bound material. Large by design - the bin is
      * the tool the hoarding loop wants - and a first-pass number for the pre-beta balance pass.
@@ -147,6 +150,11 @@ public final class RCConfig {
         FERTILIZER_RIPPLE_TICKS = builder
             .comment("Ticks over which the scatter ripples outward from the click (120 = 6s).")
             .defineInRange("fertilizerRippleTicks", 120, 0, 1200);
+
+        DISABLE_HOE_TILLING = builder
+            .comment("Block hoe-tilling of farmland, so farmland comes only from the compost recipe",
+                     "(Fertilizer + dirt). The base mod has no hoe; this holds even in a pack that adds one.")
+            .define("disableHoeTilling", true);
         builder.pop();
 
         builder.push("storage");
