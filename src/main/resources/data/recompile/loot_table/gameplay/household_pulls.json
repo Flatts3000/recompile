@@ -63,12 +63,14 @@
           "type": "minecraft:item",
           "name": "minecraft:glass_bottle",
           "weight": 3
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:puzzle_cube_piece",
-          "weight": 2
         }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:empty", "weight": 999 },
+        { "type": "minecraft:item", "name": "recompile:puzzle_cube_piece", "weight": 1 }
       ]
     }
   ]

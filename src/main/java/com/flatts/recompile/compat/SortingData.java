@@ -57,10 +57,10 @@ public final class SortingData {
                 JsonArray entries = poolEl.getAsJsonObject().getAsJsonArray("entries");
                 int total = 0;
                 for (JsonElement e : entries) {
-                    JsonObject o = e.getAsJsonObject();
-                    if (isItem(o)) {
-                        total += weight(o);
-                    }
+                    // Count EVERY entry's weight, including minecraft:empty. A rare-bonus pool (a big
+                    // empty weight + one rare item) has to divide by the full weight, or the item reads
+                    // as 100% of its pool instead of its true 1-in-N odds.
+                    total += weight(e.getAsJsonObject());
                 }
                 if (total == 0) {
                     continue;
