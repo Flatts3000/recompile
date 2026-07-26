@@ -1,1 +1,80 @@
-{ "variants": { "": { "model": "recompile:block/compost_cage" } } }
+{
+  "multipart": [
+    {
+      "when": {
+        "hi_x": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_west"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_east"
+      }
+    },
+    {
+      "when": {
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_north"
+      }
+    },
+    {
+      "when": {
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_south"
+      }
+    },
+    {
+      "when": {
+        "hi_y": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_floor"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "false",
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_nw"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true",
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_ne"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "false",
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_sw"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true",
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_se"
+      }
+    }
+  ]
+}

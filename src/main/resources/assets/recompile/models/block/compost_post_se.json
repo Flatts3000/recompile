@@ -1,0 +1,38 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "post": "recompile:block/rusted_frame",
+    "particle": "recompile:block/rusted_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        14,
+        0,
+        14
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#post"
+        },
+        "north": {
+          "texture": "#post"
+        },
+        "south": {
+          "texture": "#post"
+        },
+        "west": {
+          "texture": "#post"
+        },
+        "east": {
+          "texture": "#post"
+        }
+      }
+    }
+  ]
+}

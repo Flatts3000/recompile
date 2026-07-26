@@ -1,0 +1,30 @@
+{
+  "render_type": "minecraft:cutout",
+  "ambientocclusion": false,
+  "textures": {
+    "wire": "recompile:block/compost_wire",
+    "particle": "recompile:block/compost_wire"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        0,
+        15
+      ],
+      "to": [
+        14,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#wire"
+        },
+        "south": {
+          "texture": "#wire"
+        }
+      }
+    }
+  ]
+}

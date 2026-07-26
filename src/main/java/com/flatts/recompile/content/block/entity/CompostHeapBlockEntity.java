@@ -115,17 +115,23 @@ public class CompostHeapBlockEntity extends BlockEntity {
         }
         if (advanced) {
             be.setChanged();
-            be.syncState();   // cheap: only rewrites the blockstate when FILL/COOKING actually change
         }
+        // Sync every tick, not only when a layer advanced: a heap loaded from save with finished
+        // (no-longer-ripening) layers must still push its LOAD onto the cells, and updateFillVisual is
+        // a no-op that rewrites nothing when the fill and cooking are already right.
+        be.syncState();
     }
 
-    /** Push the layer count (FILL) + whether anything is ripening (COOKING) onto the core's blockstate. */
+    /**
+     * Push the fill level onto every cell of the 2x2x2 (compost rises up the whole cage) and whether
+     * anything is ripening (COOKING, the steam) onto the core. Delegated to the core because only it
+     * knows the blueprint; cheap to call per tick (it rewrites only the cells that actually changed).
+     */
     private void syncState() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        BlockState state = getBlockState();
-        if (!(state.getBlock() instanceof CompostHeapCoreBlock)) {
+        if (!(getBlockState().getBlock() instanceof CompostHeapCoreBlock core)) {
             return;
         }
         boolean cooking = false;
@@ -136,12 +142,7 @@ public class CompostHeapBlockEntity extends BlockEntity {
                 break;
             }
         }
-        BlockState updated = state
-            .setValue(CompostHeapCoreBlock.FILL, layerCount)
-            .setValue(CompostHeapCoreBlock.COOKING, cooking);
-        if (updated != state) {
-            level.setBlock(worldPosition, updated, Block.UPDATE_CLIENTS);
-        }
+        core.updateFillVisual(level, worldPosition, layerCount, readyLayers(), cooking);
     }
 
     // ---------------- persistence ----------------
@@ -166,6 +167,35 @@ public class CompostHeapBlockEntity extends BlockEntity {
             layers[i] = i < layerCount ? active.get(i) : 0;
         }
         inputAccumulator = input.getIntOr("input", 0);
+    }
+
+    /** Re-push the cage visual (bands + shell faces) - called on assembly so a formed cage is whole at once. */
+    public void refreshVisual() {
+        syncState();
+    }
+
+    // ---------------- Jade readouts ----------------
+
+    /** How many layers are in the heap right now (0..MAX). */
+    public int layers() {
+        return layerCount;
+    }
+
+    /** The cap a heap fills to. */
+    public int maxLayers() {
+        return MAX_LAYERS;
+    }
+
+    /** How many layers have finished ripening and can be harvested. */
+    public int readyLayers() {
+        int ticks = layerTicks();
+        int ready = 0;
+        for (int i = 0; i < layerCount; i++) {
+            if (layers[i] >= ticks) {
+                ready++;
+            }
+        }
+        return ready;
     }
 
     // ---------------- test seams ----------------

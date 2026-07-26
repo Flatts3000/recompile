@@ -1,6 +1,8 @@
 package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.CompostCageBlock;
+import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.SortableBlock;
@@ -32,6 +34,9 @@ public class RecompileJadePlugin implements IWailaPlugin {
         // a separate provider from the client component - since MC 1.21.6 one class cannot be both.
         registration.registerBlockDataProvider(WorkbenchDataProvider.INSTANCE, RecompileWorkbenchBlock.class);
         registration.registerBlockDataProvider(ScrapBinDataProvider.INSTANCE, ScrapBinBlock.class);
+        // The heap's layer state is on the core BE; the cage variant lets any hovered cell resolve it.
+        registration.registerBlockDataProvider(CompostHeapDataProvider.INSTANCE, CompostHeapCoreBlock.class);
+        registration.registerBlockDataProvider(CompostHeapDataProvider.INSTANCE, CompostCageBlock.class);
     }
 
     @Override
@@ -42,5 +47,7 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);
         registration.registerBlockComponent(MachineStatusProvider.INSTANCE, MultiblockCoreBlock.class);
         registration.registerBlockComponent(ScrapBinProvider.INSTANCE, ScrapBinBlock.class);
+        registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostHeapCoreBlock.class);
+        registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostCageBlock.class);
     }
 }

@@ -1,1 +1,216 @@
-{ "variants": { "": { "model": "recompile:block/compost_heap" } } }
+{
+  "multipart": [
+    {
+      "when": {
+        "hi_x": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_west"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_east"
+      }
+    },
+    {
+      "when": {
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_north"
+      }
+    },
+    {
+      "when": {
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_wire_south"
+      }
+    },
+    {
+      "when": {
+        "hi_y": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_floor"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "false",
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_nw"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true",
+        "hi_z": "false"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_ne"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "false",
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_sw"
+      }
+    },
+    {
+      "when": {
+        "hi_x": "true",
+        "hi_z": "true"
+      },
+      "apply": {
+        "model": "recompile:block/compost_post_se"
+      }
+    },
+    {
+      "when": {
+        "fill": "1|2|3|4|5|6|7|8",
+        "ripe": "0"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_0"
+      }
+    },
+    {
+      "when": {
+        "ripe": "1|2|3|4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_0"
+      }
+    },
+    {
+      "when": {
+        "fill": "2|3|4|5|6|7|8",
+        "ripe": "0|1"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_1"
+      }
+    },
+    {
+      "when": {
+        "ripe": "2|3|4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_1"
+      }
+    },
+    {
+      "when": {
+        "fill": "3|4|5|6|7|8",
+        "ripe": "0|1|2"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_2"
+      }
+    },
+    {
+      "when": {
+        "ripe": "3|4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_2"
+      }
+    },
+    {
+      "when": {
+        "fill": "4|5|6|7|8",
+        "ripe": "0|1|2|3"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_3"
+      }
+    },
+    {
+      "when": {
+        "ripe": "4|5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_3"
+      }
+    },
+    {
+      "when": {
+        "fill": "5|6|7|8",
+        "ripe": "0|1|2|3|4"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_4"
+      }
+    },
+    {
+      "when": {
+        "ripe": "5|6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_4"
+      }
+    },
+    {
+      "when": {
+        "fill": "6|7|8",
+        "ripe": "0|1|2|3|4|5"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_5"
+      }
+    },
+    {
+      "when": {
+        "ripe": "6|7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_5"
+      }
+    },
+    {
+      "when": {
+        "fill": "7|8",
+        "ripe": "0|1|2|3|4|5|6"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_6"
+      }
+    },
+    {
+      "when": {
+        "ripe": "7|8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_6"
+      }
+    },
+    {
+      "when": {
+        "fill": "8",
+        "ripe": "0|1|2|3|4|5|6|7"
+      },
+      "apply": {
+        "model": "recompile:block/compost_band_7"
+      }
+    },
+    {
+      "when": {
+        "ripe": "8"
+      },
+      "apply": {
+        "model": "recompile:block/compost_ripe_band_7"
+      }
+    }
+  ]
+}

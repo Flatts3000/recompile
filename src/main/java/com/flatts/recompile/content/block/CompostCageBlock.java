@@ -6,7 +6,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 
 /**
  * A formed cell of the Compost Heap's 2x2x2 cage (Mod Jam - the fertilizer tier). A pure dummy: it
@@ -26,6 +28,27 @@ public class CompostCageBlock extends MultiblockDummyBlock {
     @Override
     protected MapCodec<? extends CompostCageBlock> codec() {
         return CODEC;
+    }
+
+    // Let light through like glass (0 dampening, skylight straight down) - the see-through cage must
+    // not shade its own interior. (26.1 renamed getLightBlock -> getLightDampening.)
+    @Override
+    protected int getLightDampening(BlockState state) {
+        return 0;
+    }
+
+    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return true;
+    }
+
+    // A cage cell draws only its shell (wire / post / floor), never compost - the core draws the whole
+    // compost column as one piece. It shares the core's HI_* face booleans so the core can stamp which
+    // of this cell's faces are the outer shell (each cell is a fixed corner of the 2x2x2).
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(CompostHeapCoreBlock.HI_X, CompostHeapCoreBlock.HI_Y, CompostHeapCoreBlock.HI_Z);
     }
 
     @Override

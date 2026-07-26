@@ -280,6 +280,7 @@ public final class RCBlocks {
             .mapColor(MapColor.DIRT)
             .strength(1.2F)
             .sound(SoundType.GRAVEL)
+            .noOcclusion()  // see-through wire shell + inset compost bands - not a full cube
     );
 
     /** A formed cell of the Compost Heap's cage. A dummy - no item; drops a Machine Frame on disband. */
@@ -290,6 +291,7 @@ public final class RCBlocks {
             .mapColor(MapColor.DIRT)
             .strength(1.2F)
             .sound(SoundType.GRAVEL)
+            .noOcclusion()  // see-through wire shell + inset compost bands - not a full cube
     );
 
     /** The spreader's tank cell: the Rain Collector, incorporated. A dummy - no item. */

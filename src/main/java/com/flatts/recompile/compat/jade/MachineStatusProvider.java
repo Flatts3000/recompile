@@ -2,6 +2,7 @@ package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
 import com.flatts.recompile.content.block.multiblock.Multiblock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
@@ -34,6 +35,13 @@ public enum MachineStatusProvider implements IBlockComponentProvider {
             return;
         }
         boolean formed = MultiblockCoreBlock.isFormed(accessor.getBlockState());
+
+        // The Compost Heap has its own status line (layers / ready) from CompostHeapProvider, so a bare
+        // "Running" here would just be noise above it. Still show "not built yet" + the missing part.
+        if (formed && core instanceof CompostHeapCoreBlock) {
+            return;
+        }
+
         tooltip.add(Component.translatable(
             formed ? "jade.recompile.machine_running" : "jade.recompile.machine_incomplete"));
 

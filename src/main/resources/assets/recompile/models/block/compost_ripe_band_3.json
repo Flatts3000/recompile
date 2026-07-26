@@ -1,0 +1,173 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "r": "recompile:block/compost_ripe",
+    "particle": "recompile:block/compost_ripe"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        12,
+        2
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "west": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#r",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        16,
+        12,
+        2
+      ],
+      "to": [
+        30,
+        16,
+        16
+      ],
+      "faces": {
+        "east": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#r",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        12,
+        16
+      ],
+      "to": [
+        16,
+        16,
+        30
+      ],
+      "faces": {
+        "west": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#r",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        16,
+        12,
+        16
+      ],
+      "to": [
+        30,
+        16,
+        30
+      ],
+      "faces": {
+        "east": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#r",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#r",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        }
+      }
+    }
+  ]
+}
