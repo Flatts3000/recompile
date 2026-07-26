@@ -45,9 +45,9 @@ compost heaps sprout "volunteers" from kitchen scraps:
   granted alongside the Fertilizer in the core's harvest handler.
 - **`Unknown Seedling`** (`UnknownSeedlingItem`): you plant it on farmland like a seed, but you don't know
   what it is - **at plant time it resolves to a random vanilla crop** (age 0) and grows as that crop. The
-  pick is server-only (no client desync). Pool: **carrot, potato, beetroot, melon, pumpkin** (wheat left
-  out since grass covers it, so every volunteer is a crop you can't otherwise get). Carrots/potatoes plant
-  as themselves; melon/pumpkin as their stems.
+  pick is server-only (no client desync). Pool: **wheat, carrot, potato, beetroot, melon, pumpkin** (all
+  six farmland crops - wheat included per the owner's call for true "you never know" randomness, even
+  though grass also drops wheat seeds). Carrots/potatoes plant as themselves; melon/pumpkin as their stems.
 
 The knock-on: a volunteer is the *bootstrap*. Once it gives you, say, potatoes, you replant that crop's
 own seed deterministically - the RNG is only the entry point, not a permanent tax. Whole plants and

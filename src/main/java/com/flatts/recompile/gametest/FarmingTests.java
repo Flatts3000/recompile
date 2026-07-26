@@ -55,7 +55,7 @@ final class FarmingTests {
             RCItems.UNKNOWN_SEEDLING.get().useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(fAbs), Direction.UP, fAbs, false)));
             BlockState planted = helper.getBlockState(farmland.above());
-            boolean isCrop = planted.is(Blocks.CARROTS) || planted.is(Blocks.POTATOES)
+            boolean isCrop = planted.is(Blocks.WHEAT) || planted.is(Blocks.CARROTS) || planted.is(Blocks.POTATOES)
                 || planted.is(Blocks.BEETROOTS) || planted.is(Blocks.MELON_STEM) || planted.is(Blocks.PUMPKIN_STEM);
             helper.assertTrue(isCrop, "the seedling must plant one of the vanilla crops, got " + planted);
             helper.succeed();

@@ -14,15 +14,14 @@ import net.minecraft.world.level.block.Blocks;
 /**
  * The Unknown Seedling (Farming tier): a compost "volunteer" - a seed that came up in the pile from the
  * kitchen scraps you fed it. You plant it on farmland like any seed, but you don't know what it is: at
- * <b>plant time</b> it resolves to a random vanilla crop and grows as that crop. Wheat is left out of the
- * pool (grass already drops wheat seeds), so a volunteer is always a crop you can't otherwise get - the
- * bootstrap into farming, after which you replant that crop's own seed deterministically.
+ * <b>plant time</b> it resolves to a random vanilla crop and grows as that crop - the bootstrap into
+ * farming, after which you replant that crop's own seed deterministically.
  */
 public class UnknownSeedlingItem extends Item {
 
     /** What a volunteer can turn out to be. Carrots/potatoes plant as themselves; melon/pumpkin as stems. */
     private static final Block[] CROPS = {
-        Blocks.CARROTS, Blocks.POTATOES, Blocks.BEETROOTS, Blocks.MELON_STEM, Blocks.PUMPKIN_STEM
+        Blocks.WHEAT, Blocks.CARROTS, Blocks.POTATOES, Blocks.BEETROOTS, Blocks.MELON_STEM, Blocks.PUMPKIN_STEM
     };
 
     public UnknownSeedlingItem(Properties properties) {
