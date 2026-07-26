@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
+import com.flatts.recompile.content.block.entity.DisplayPedestalBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
@@ -29,6 +30,12 @@ public final class RCBlockEntities {
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
         DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Recompile.MOD_ID);
+
+    /** The Display Pedestal's single displayed trophy (Collectibles, design I-2). Renders via a BER. */
+    public static final Supplier<BlockEntityType<DisplayPedestalBlockEntity>> DISPLAY_PEDESTAL =
+        BLOCK_ENTITIES.register(
+            "display_pedestal",
+            () -> new BlockEntityType<>(DisplayPedestalBlockEntity::new, RCBlocks.DISPLAY_PEDESTAL.get()));
 
     /** The Scrap Barrel's 27-slot inventory (design: storage without wood). */
     public static final Supplier<BlockEntityType<ScrapBarrelBlockEntity>> SCRAP_BARREL =

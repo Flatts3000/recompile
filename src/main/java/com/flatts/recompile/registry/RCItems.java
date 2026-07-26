@@ -130,6 +130,22 @@ public final class RCItems {
     /** Food items in creative-tab order. */
     public static final List<DeferredItem<Item>> FOOD = List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM);
 
+    // ---------------- Collectibles (design I-2) ----------------
+    // Artifacts from the past, assembled from thematic pieces the player finds in the garbage. A piece
+    // is a rare pull-stream drop; a set of them crafts the trophy at the Scrap Crafting Table. The
+    // Puzzle Cube is v1: nine pieces fill the 3x3 grid (the grid IS the cube's face). Adding a
+    // collectible is a piece item + a trophy item + a recipe + loot lines - no new code.
+    public static final DeferredItem<Item> PUZZLE_CUBE_PIECE = ITEMS.registerItem("puzzle_cube_piece", Item::new);
+    // The Puzzle Cube is a placeable block (two states), so these are block-items - they render as the
+    // real 3D cube in hand, inventory, and on a Display Pedestal. Craft one into the other to swap states.
+    public static final DeferredItem<BlockItem> PUZZLE_CUBE =
+        ITEMS.registerSimpleBlockItem("puzzle_cube", RCBlocks.PUZZLE_CUBE);
+    public static final DeferredItem<BlockItem> PUZZLE_CUBE_SCRAMBLED =
+        ITEMS.registerSimpleBlockItem("puzzle_cube_scrambled", RCBlocks.PUZZLE_CUBE_SCRAMBLED);
+
+    /** The collectible piece (item); the cube blocks are placed via their own block-items. */
+    public static final List<DeferredItem<Item>> COLLECTIBLES = List.of(PUZZLE_CUBE_PIECE);
+
     // ---------------- Blocks-as-items ----------------
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
@@ -162,6 +178,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("sorting_tarp", RCBlocks.SORTING_TARP);
     public static final DeferredItem<BlockItem> RECOMPILE_WORKBENCH =
         ITEMS.registerSimpleBlockItem("recompile_workbench", RCBlocks.RECOMPILE_WORKBENCH);
+    public static final DeferredItem<BlockItem> DISPLAY_PEDESTAL =
+        ITEMS.registerSimpleBlockItem("display_pedestal", RCBlocks.DISPLAY_PEDESTAL);
     public static final DeferredItem<BlockItem> SCRAP_BARREL =
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> SCRAP_BIN =

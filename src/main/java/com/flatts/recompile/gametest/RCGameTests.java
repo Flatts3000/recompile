@@ -73,6 +73,7 @@ public final class RCGameTests {
         CompostHeapTests.register();
         VegetationTests.register();
         FarmingTests.register();
+        CollectiblesTests.register();
         MultiblockTests.register();
         ScrapBinTests.register();
         ScrapNetworkTests.register();

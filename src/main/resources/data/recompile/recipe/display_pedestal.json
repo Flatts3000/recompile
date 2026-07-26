@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    " R ",
+    "PPP"
+  ],
+  "key": {
+    "P": "recompile:pressed_junk_block",
+    "R": "recompile:rebar"
+  },
+  "result": {
+    "id": "recompile:display_pedestal",
+    "count": 1
+  }
+}

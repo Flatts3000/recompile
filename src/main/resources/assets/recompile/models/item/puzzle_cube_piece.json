@@ -1,0 +1,27 @@
+{
+  "comment": "A single found cubie: a small 3D cube with three coloured faces (the visible corner) and a dark internal face. A model, not a downsampled sprite, so it renders crisp. block/block gives the standard 3D item display transforms.",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "up": "recompile:item/puzzle_piece_green",
+    "down": "recompile:item/puzzle_piece_dark",
+    "north": "recompile:item/puzzle_piece_blue",
+    "south": "recompile:item/puzzle_piece_blue",
+    "east": "recompile:item/puzzle_piece_red",
+    "west": "recompile:item/puzzle_piece_red",
+    "particle": "recompile:item/puzzle_piece_green"
+  },
+  "elements": [
+    {
+      "from": [3, 3, 3],
+      "to": [13, 13, 13],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#north" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#south" },
+        "east": { "uv": [0, 0, 16, 16], "texture": "#east" },
+        "west": { "uv": [0, 0, 16, 16], "texture": "#west" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#up" },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#down" }
+      }
+    }
+  ]
+}

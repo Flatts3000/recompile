@@ -491,17 +491,6 @@ prompt = "a tall slender fireweed stalk topped with a spike of small magenta-pin
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# Seeds (Farming tier): a scavenged seed packet that opens to a random farmland
-# crop starter. The only non-wheat crop-seed source (wheat comes from grass).
-# ---------------------------------------------------------------------------
-
-[surface.seed_packet]
-kind = "item"
-backend = "ai"
-size = 16
-prompt = "a small faded worn paper garden seed packet envelope, torn at one corner, a simple washed-out illustration of a sprouting plant on the front, grubby and scavenged from the trash, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
-
-# ---------------------------------------------------------------------------
 # Seeds (Farming tier): the Unknown Seedling - a compost "volunteer" that plants
 # like a seed and becomes a random vanilla crop at plant time.
 # ---------------------------------------------------------------------------
@@ -511,3 +500,149 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "a single small unidentified green seedling sprout, two tiny fresh leaves on a thin pale stem with a clump of dark soil at the base, a mystery volunteer plant, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------
+# Collectibles (design I-2) - artifacts from the past, assembled from found pieces
+# ---------------------------------------------------------------------------
+
+# The Puzzle Cube Piece is a small 3D cubie MODEL (a downsampled sprite came out fuzzy), so it needs
+# single-sticker face textures: three coloured (the visible corner) + a dark internal face.
+[surface.puzzle_piece_green]
+kind = "item"
+backend = "procedural"
+size = 16
+[surface.puzzle_piece_green.procedural]
+style = "single_sticker"
+palette = ["#18B25C"]
+
+[surface.puzzle_piece_blue]
+kind = "item"
+backend = "procedural"
+size = 16
+[surface.puzzle_piece_blue.procedural]
+style = "single_sticker"
+palette = ["#1868D6"]
+
+[surface.puzzle_piece_red]
+kind = "item"
+backend = "procedural"
+size = 16
+[surface.puzzle_piece_red.procedural]
+style = "single_sticker"
+palette = ["#D62A36"]
+
+[surface.puzzle_piece_dark]
+kind = "item"
+backend = "procedural"
+size = 16
+[surface.puzzle_piece_dark.procedural]
+style = "single_sticker"
+palette = ["#2A2A30"]
+
+# The Puzzle Cube is a placeable 3D block, so each of its six faces is its own 16px 3x3 sticker grid
+# (the 3D read comes from the block geometry, not a projected icon). Twelve faces: six solved (each a
+# solid colour) + six scrambled (mixed). A single-colour palette = a solved face; the full six = scrambled.
+[surface.puzzle_cube_up]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_up.procedural]
+style = "sticker_face"
+palette = ["#FAFAFA"]
+
+[surface.puzzle_cube_down]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_down.procedural]
+style = "sticker_face"
+palette = ["#FFDC3C"]
+
+[surface.puzzle_cube_north]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_north.procedural]
+style = "sticker_face"
+palette = ["#1868D6"]
+
+[surface.puzzle_cube_south]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_south.procedural]
+style = "sticker_face"
+palette = ["#18B25C"]
+
+[surface.puzzle_cube_east]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_east.procedural]
+style = "sticker_face"
+palette = ["#D62A36"]
+
+[surface.puzzle_cube_west]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_west.procedural]
+style = "sticker_face"
+palette = ["#FF8420"]
+
+[surface.puzzle_cube_scrambled_up]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_scrambled_up.procedural]
+style = "sticker_face"
+palette = ["#FAFAFA", "#FFDC3C", "#1868D6", "#18B25C", "#D62A36", "#FF8420"]
+
+[surface.puzzle_cube_scrambled_down]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_scrambled_down.procedural]
+style = "sticker_face"
+palette = ["#FAFAFA", "#FFDC3C", "#1868D6", "#18B25C", "#D62A36", "#FF8420"]
+
+[surface.puzzle_cube_scrambled_north]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_scrambled_north.procedural]
+style = "sticker_face"
+palette = ["#FAFAFA", "#FFDC3C", "#1868D6", "#18B25C", "#D62A36", "#FF8420"]
+
+[surface.puzzle_cube_scrambled_south]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_scrambled_south.procedural]
+style = "sticker_face"
+palette = ["#FAFAFA", "#FFDC3C", "#1868D6", "#18B25C", "#D62A36", "#FF8420"]
+
+[surface.puzzle_cube_scrambled_east]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_scrambled_east.procedural]
+style = "sticker_face"
+palette = ["#FAFAFA", "#FFDC3C", "#1868D6", "#18B25C", "#D62A36", "#FF8420"]
+
+[surface.puzzle_cube_scrambled_west]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.puzzle_cube_scrambled_west.procedural]
+style = "sticker_face"
+palette = ["#FAFAFA", "#FFDC3C", "#1868D6", "#18B25C", "#D62A36", "#FF8420"]
+
+# A tiered plinth tiles a framed texture badly, so it uses a clean uniform carved stone. Procedural
+# plinth: candidates span stone tones (light polished, mid concrete, dark charcoal, warm limestone, cool).
+[surface.display_pedestal]
+kind = "block"
+backend = "procedural"
+size = 16
+[surface.display_pedestal.procedural]
+style = "plinth"
