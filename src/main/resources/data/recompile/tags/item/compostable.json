@@ -1,0 +1,47 @@
+{
+  "replace": false,
+  "values": [
+    "recompile:organic_muck",
+    "recompile:fiber_scrap",
+    "recompile:weedgrass",
+    "recompile:fireweed",
+    "recompile:dump_mushroom",
+
+    "#minecraft:leaves",
+    "#minecraft:saplings",
+    "#minecraft:small_flowers",
+    "minecraft:sunflower",
+    "minecraft:lilac",
+    "minecraft:rose_bush",
+    "minecraft:peony",
+
+    "minecraft:short_grass",
+    "minecraft:tall_grass",
+    "minecraft:fern",
+    "minecraft:large_fern",
+    "minecraft:dead_bush",
+    "minecraft:vine",
+    "minecraft:hanging_roots",
+    "minecraft:moss_block",
+    "minecraft:moss_carpet",
+    "minecraft:cactus",
+    "minecraft:sugar_cane",
+    "minecraft:bamboo",
+    "minecraft:brown_mushroom",
+    "minecraft:red_mushroom",
+    "minecraft:sweet_berries",
+    "minecraft:glow_berries",
+
+    "minecraft:wheat",
+    "minecraft:wheat_seeds",
+    "minecraft:beetroot",
+    "minecraft:beetroot_seeds",
+    "minecraft:melon_slice",
+    "minecraft:melon_seeds",
+    "minecraft:pumpkin",
+    "minecraft:pumpkin_seeds",
+    "minecraft:carrot",
+    "minecraft:potato",
+    "minecraft:apple"
+  ]
+}

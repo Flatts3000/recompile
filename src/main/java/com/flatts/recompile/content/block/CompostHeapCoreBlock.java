@@ -6,10 +6,12 @@ import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
+import com.flatts.recompile.registry.RCTags;
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -183,7 +185,7 @@ public class CompostHeapCoreBlock extends MultiblockCoreBlock implements EntityB
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
         if (!isFormed(state)
-                || !(stack.is(RCItems.ORGANIC_MUCK.get()) || stack.is(RCItems.FIBER_SCRAP.get()))
+                || !stack.is(RCTags.COMPOSTABLE)
                 || !(level.getBlockEntity(pos) instanceof CompostHeapBlockEntity be)) {
             // Not a feed: hand this to the empty-hand path (the harvest). Returning PASS instead would
             // stop the game ever calling useWithoutItem in 26.1, so an empty-handed right-click could
@@ -216,16 +218,15 @@ public class CompostHeapCoreBlock extends MultiblockCoreBlock implements EntityB
         if (!level.isClientSide()) {
             ItemStack out = be.harvest();
             if (!out.isEmpty()) {
-                if (!player.getInventory().add(out)) {
-                    player.drop(out, false);
-                }
+                // Pop the produce out the face the player clicked, like the vanilla composter spits bonemeal
+                // out its top - the compost is turned out of the bin, not teleported into a pocket.
+                Direction face = hit.getDirection();
+                Block.popResourceFromFace(level, pos, face, out);
                 level.playSound(null, pos, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 0.8F, 1.0F);
-                // A volunteer may have come up in the layer with the fertilizer.
+                // A volunteer may have come up in the layer with the fertilizer; it turns out too.
                 if (be.rollVolunteer()) {
-                    ItemStack seedling = new ItemStack(RCItems.UNKNOWN_SEEDLING.get());
-                    if (!player.getInventory().add(seedling)) {
-                        player.drop(seedling, false);
-                    }
+                    Block.popResourceFromFace(level, pos, face,
+                        new ItemStack(RCItems.UNKNOWN_SEEDLING.get()));
                 }
             }
         }

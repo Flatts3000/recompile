@@ -156,6 +156,21 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "binnable"));
 
     /**
+     * What the Compost Heap will take as feed (Mod Jam - the fertilizer tier). Ships with the two organics
+     * the dump yields ({@code organic_muck}, {@code fiber_scrap}) plus the obvious vanilla compostables -
+     * leaves, saplings, flowers, grasses and ferns, the small mushrooms, and crop matter (crops, seeds,
+     * berries), pulled in through vanilla item tags where they exist so modded variants ride along. Any one
+     * alone forms a layer; there is no greens/browns puzzle. Still an allowlist rather than "anything
+     * organic", so an unrecognised modded item is never silently compostable by default.
+     *
+     * <p>Open by design and the whole reason this is a tag and not a hardcoded list: a pack adds its own
+     * compostables to this tag without a mod release, exactly as a real heap would take them. An item tag,
+     * not a block tag - it gates what an item in hand can do.
+     */
+    public static final TagKey<Item> COMPOSTABLE = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "compostable"));
+
+    /**
      * The scrap blocks that join into one network by adjacency (P2.10): bins, barrel, sorter,
      * workbench, burn barrel and the scrap crafting table. Placed sharing a face they become one
      * connected cluster; {@code ScrapNetwork} floods this tag to route junk between them, with no
