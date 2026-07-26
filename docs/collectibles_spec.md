@@ -12,10 +12,18 @@ the system is a data-driven catalog, so more are add-a-line.
 
 ## The Puzzle Cube (reference implementation)
 
-- **Piece** (`puzzle_cube_piece`): a rare drop in the pull streams (`household_pulls` weight 2,
-  `bag_pulls` weight 1 - deliberately low, so a find is an event; pre-beta placeholder weights). It is a
-  small **3D cubie model** (a real cube with three coloured faces + a dark internal face), not a flat
-  icon - a downsampled sprite came out fuzzy, so the piece is modelled the same way the cube is.
+- **Piece** (`puzzle_cube_piece`): a rare bonus in the pull streams - a **dedicated 1-in-1000 pool** (a
+  big `minecraft:empty` weight + the piece) in `household_pulls` and `bag_pulls`, so it drops *alongside*
+  a material, not instead of one, and the rate is a single clean tunable (not a weight fighting the
+  material pool's granularity). It is a small **3D cubie model** (three coloured faces + a dark internal
+  face), not a flat icon - a downsampled sprite came out fuzzy, so the piece is modelled like the cube.
+
+  **Rarity target - all nine pieces in ~20 hours.** Model: a Sorting Tarp yields ~5 material pulls per
+  garbage block, so 1/1000 per pull is ~1/200 per block -> 9 pieces is ~1,800 garbage blocks, ~20 hours
+  at a moderate ~90 blocks/hour of active reclaiming (bags add a little on top). **This is a pre-beta
+  placeholder**: the real pull rate is only known from playtest, so measure it and adjust the `1000`
+  denominator - it is the one number that moves the whole target. (`SortingData` counts the empty weight
+  so JEI shows the true odds.)
 - **Craft**: nine pieces **fill the 3x3 crafting grid** at the Scrap Crafting Table into the solved
   **Puzzle Cube** block.
 - **The Puzzle Cube is a placeable full block, not an item trophy.** Two states -
