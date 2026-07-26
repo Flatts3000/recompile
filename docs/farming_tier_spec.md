@@ -50,11 +50,15 @@ compost heaps sprout "volunteers" from kitchen scraps:
   though grass also drops wheat seeds). Carrots/potatoes plant as themselves; melon/pumpkin as their stems.
 
 The knock-on: a volunteer is the *bootstrap*. Once it gives you, say, potatoes, you replant that crop's
-own seed deterministically - the RNG is only the entry point, not a permanent tax. Whole plants and
-cuttings (bamboo, sugar cane, sweet berries, cactus) were deliberately deferred out of this sprint.
+own seed deterministically - the RNG is only the entry point, not a permanent tax.
 
-## Not this
+## Not this (deferred, with a home)
 
+- **Whole-plant farmables (sugar cane, bamboo, cactus, sweet berries) are held for a later hydroponics
+  option**, not this in-ground tier (owner's call 2026-07-26). They are the payload of a mid/late
+  progression system - a hydroponic grower that unlocks the cuttings - rather than something the player
+  finds and plants in dirt now. So the in-ground farming tier ships the six seed-crops only, and the
+  cuttings arrive when hydroponics does. Do not add a found/teardown source for them in the meantime.
 - No bespoke farmland block, no placer item, no custom texture (farmland's own item covers it).
 - The P1.9 scrap planter (potted muck-compost food-grower) is untouched and still deferred; this
   in-ground path coexists with it.

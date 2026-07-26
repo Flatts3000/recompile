@@ -256,6 +256,31 @@ require a Rain Collector anywhere in its chain. The two are deliberately sibling
 same tank, not an ordered chain - P2.4-R3 item 8's "no collector, no spreader" is retired, not a gap.
 Rung 1's gate is the Pump (teardown-only, behind a find) and the multiblock build.
 
+## Phase 2.13 - Vegetation, reclamation rung 2  *(DONE 2026-07-26, design P2.4-R2)* (#25, #26)
+
+Fertilizer, composted in the **Compost Heap** (a 2x2x2 salvage-cage multiblock; feed it anything in
+`#recompile:compostable`, harvest one Fertilizer per ripe layer), is a **surface-aware "fancy
+bonemeal"**: right-click reclaimed grass to scatter weeds and wildflowers, mycelium to scatter
+mushrooms, over a short outward ripple. Custom dump plants (weedgrass, fireweed) ride along with vanilla
+weeds and grasses; flowers are a rare accent (~1-2 per Fertilizer). The scattered plants are
+`frontier_cover`, so encroachment strips them before it takes the grass - green visibly goes bare before
+it goes brown. No BlockEntity, no saved state (the ripple is a static queue drained on the server tick).
+Spec: [`vegetation_tier_spec.md`](vegetation_tier_spec.md).
+
+## Phase 2.14 - Farming, reclamation rung 3  *(DONE 2026-07-26, design P2.4-R3)* (#27, #28)
+
+Farmland is gated behind compost, not a hoe: **`Fertilizer + dirt`** (or coarse dirt + 4) crafts vanilla
+`minecraft:farmland`, and hoe-tilling is disabled, so the compost recipe is the only path. Seeds come
+from **compost volunteers** - the Heap drops an **Unknown Seedling** (~1 in 8 layers) that resolves to a
+random one of the six farmland crops at plant time. Irrigation is the **Grass Spreader** (it pins
+farmland moisture across its radius) plus rain; an unwatered plot dries and the junkyard takes it, so the
+water economy is a reclamation defence. Foraged **Dump Mushrooms replant** (a placeable BlockItem), so
+forage is renewable. Spec: [`farming_tier_spec.md`](farming_tier_spec.md).
+
+**Deferred with a home:** whole-plant farmables (sugar cane, bamboo, cactus, sweet berries) are held for
+a later **hydroponics** option rather than an in-ground source now - so this tier ships the six
+seed-crops only. The P1.9 scrap planter stays parked as an alternate grower.
+
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 
 Tear a found item down at the **Recompile Workbench** into materials. This is the teardown exit
