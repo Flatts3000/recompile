@@ -220,6 +220,13 @@ public class CompostHeapCoreBlock extends MultiblockCoreBlock implements EntityB
                     player.drop(out, false);
                 }
                 level.playSound(null, pos, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 0.8F, 1.0F);
+                // A volunteer may have come up in the layer with the fertilizer.
+                if (be.rollVolunteer()) {
+                    ItemStack seedling = new ItemStack(RCItems.UNKNOWN_SEEDLING.get());
+                    if (!player.getInventory().add(seedling)) {
+                        player.drop(seedling, false);
+                    }
+                }
             }
         }
         return InteractionResult.SUCCESS;

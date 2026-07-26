@@ -72,6 +72,7 @@
   "item.recompile.scrap_metal": "Scrap Metal",
   "item.recompile.scrap_torch": "Scrap Torch",
   "item.recompile.tin_can": "Tin Can",
+  "item.recompile.unknown_seedling": "Unknown Seedling",
   "item.recompile.tin_can_open": "Opened Tin Can",
   "itemGroup.recompile": "Recompile",
   "config.jade.plugin_recompile.tool_hint": "Salvage tool hint",

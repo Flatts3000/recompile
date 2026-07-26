@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.item.FertilizerItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
+import com.flatts.recompile.content.item.UnknownSeedlingItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
 import net.minecraft.core.Direction;
@@ -50,6 +51,9 @@ public final class RCItems {
      */
     public static final DeferredItem<FertilizerItem> FERTILIZER =
         ITEMS.registerItem("fertilizer", FertilizerItem::new);
+    // A compost volunteer: plant it like a seed and it becomes a random vanilla crop at plant time.
+    public static final DeferredItem<UnknownSeedlingItem> UNKNOWN_SEEDLING =
+        ITEMS.registerItem("unknown_seedling", UnknownSeedlingItem::new);
 
     // Oily Rag (P1.4-A): fiber + muck, the trash world's "coal" - a general fuel that burns in
     // any furnace (charcoal parity) and is the head of the Scrap Torch. No consumer forces it
