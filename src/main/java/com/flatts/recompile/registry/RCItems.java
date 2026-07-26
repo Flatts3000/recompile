@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.item.FertilizerItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.SealedCanItem;
 import java.util.List;
@@ -47,7 +48,8 @@ public final class RCItems {
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +
      * fiber. It is the gate the Vegetation and Farming tiers consume - never crafted, only composted.
      */
-    public static final DeferredItem<Item> FERTILIZER = ITEMS.registerItem("fertilizer", Item::new);
+    public static final DeferredItem<FertilizerItem> FERTILIZER =
+        ITEMS.registerItem("fertilizer", FertilizerItem::new);
 
     // Oily Rag (P1.4-A): fiber + muck, the trash world's "coal" - a general fuel that burns in
     // any furnace (charcoal parity) and is the head of the Scrap Torch. No consumer forces it

@@ -63,6 +63,11 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue COMPOST_LAYER_COST;
     public static final ModConfigSpec.IntValue COMPOST_LAYER_TICKS;
 
+    // ---- Vegetation tier (rung 2 - Fertilizer scatters plants) ----
+    public static final ModConfigSpec.BooleanValue VEGETATION_ENABLED;
+    public static final ModConfigSpec.IntValue FERTILIZER_ATTEMPTS;
+    public static final ModConfigSpec.IntValue FERTILIZER_RIPPLE_TICKS;
+
     /**
      * Scrap Bin (P2.9): how much one bin holds of its bound material. Large by design - the bin is
      * the tool the hoarding loop wants - and a first-pass number for the pre-beta balance pass.
@@ -132,6 +137,16 @@ public final class RCConfig {
         COMPOST_LAYER_TICKS = builder
             .comment("Ticks for one layer to finish composting into Fertilizer (1200 = 60s).")
             .defineInRange("compostLayerTicks", 1200, 1, 24000);
+
+        VEGETATION_ENABLED = builder
+            .comment("Whether Fertilizer scatters plants (grass -> weeds/flowers, mycelium -> mushrooms).")
+            .define("vegetationEnabled", true);
+        FERTILIZER_ATTEMPTS = builder
+            .comment("Scatter attempts per Fertilizer use (vanilla bonemeal uses 128).")
+            .defineInRange("fertilizerAttempts", 128, 1, 512);
+        FERTILIZER_RIPPLE_TICKS = builder
+            .comment("Ticks over which the scatter ripples outward from the click (60 = 3s).")
+            .defineInRange("fertilizerRippleTicks", 60, 0, 1200);
         builder.pop();
 
         builder.push("storage");
