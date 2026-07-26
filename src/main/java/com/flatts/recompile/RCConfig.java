@@ -145,8 +145,8 @@ public final class RCConfig {
             .comment("Scatter attempts per Fertilizer use (vanilla bonemeal uses 128).")
             .defineInRange("fertilizerAttempts", 128, 1, 512);
         FERTILIZER_RIPPLE_TICKS = builder
-            .comment("Ticks over which the scatter ripples outward from the click (60 = 3s).")
-            .defineInRange("fertilizerRippleTicks", 60, 0, 1200);
+            .comment("Ticks over which the scatter ripples outward from the click (120 = 6s).")
+            .defineInRange("fertilizerRippleTicks", 120, 0, 1200);
         builder.pop();
 
         builder.push("storage");

@@ -45,8 +45,8 @@ public final class FertilizerScatter {
     private FertilizerScatter() {
     }
 
-    // Grass-dominant weeds + real-weed wildflowers (dandelion/poppy/oxeye/cornflower); the two custom
-    // pioneers ride alongside vanilla. ~65% grasses/weeds, ~35% flowers.
+    // Grass-dominant: mostly weeds and grasses, flowers a sparse accent (~80% grasses, ~20% flowers).
+    // Real-weed wildflowers only (dandelion/poppy/oxeye/cornflower); the two custom pioneers ride along.
     private static List<Weighted> grassScatter() {
         return List.of(
             new Weighted(Blocks.SHORT_GRASS, 25),
@@ -54,11 +54,11 @@ public final class FertilizerScatter {
             new Weighted(Blocks.FERN, 12),
             new Weighted(Blocks.TALL_GRASS, 6),
             new Weighted(Blocks.LARGE_FERN, 3),
-            new Weighted(Blocks.DANDELION, 8),
-            new Weighted(Blocks.POPPY, 8),
-            new Weighted(Blocks.OXEYE_DAISY, 6),
-            new Weighted(Blocks.CORNFLOWER, 5),
-            new Weighted(RCBlocks.FIREWEED.get(), 5));
+            new Weighted(Blocks.DANDELION, 4),
+            new Weighted(Blocks.POPPY, 4),
+            new Weighted(Blocks.OXEYE_DAISY, 3),
+            new Weighted(Blocks.CORNFLOWER, 2),
+            new Weighted(RCBlocks.FIREWEED.get(), 3));
     }
 
     private static List<Weighted> mushroomScatter() {
