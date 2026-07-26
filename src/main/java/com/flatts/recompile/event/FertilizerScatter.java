@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
@@ -154,8 +155,10 @@ public final class FertilizerScatter {
         MinecraftServer server = event.getServer();
         QUEUE.removeIf(p -> {
             ServerLevel level = server.getLevel(p.dim());
-            if (level == null) {
-                return true;   // dimension gone - drop it
+            // Drop rather than force a synchronous chunk load: if the player walked off during the
+            // ripple the far cells just do not sprout, which is fine for cosmetic timing.
+            if (level == null || !level.hasChunkAt(p.pos())) {
+                return true;
             }
             if (level.getGameTime() < p.placeAt()) {
                 return false;  // not due yet
@@ -165,5 +168,11 @@ public final class FertilizerScatter {
             }
             return true;   // placed, or no longer valid - drop from the queue
         });
+    }
+
+    /** Pending ripples do not survive a world change - they carry a dimension key and a game time. */
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        QUEUE.clear();
     }
 }
