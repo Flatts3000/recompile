@@ -16,12 +16,16 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
  * The Grass Spreader (design P2.4-R3): rung 1 of the reclamation chain, and a <b>drip irrigator</b> - a
  * tower ringed by four copper spigots that patiently water the surrounding ground and turns dead earth to
- * grass, forever, <b>consuming nothing</b>.
+ * grass, forever, <b>consuming nothing</b>. The same water keeps any farmland in range moist
+ * ({@link #irrigateOnce}), so the spreader doubles as a farm irrigator and, since encroachment spares
+ * moist farmland, its radius defends a plot the way it defends the grass.
  *
  * <p>It consumes nothing because the machine carries its own supply: an actual Rain Collector is
  * built into the structure. The cost is one steep build, and the ongoing pressure comes from P1.7-R
@@ -122,6 +126,10 @@ public class GrassSpreaderCoreBlock extends MultiblockCoreBlock {
         if (outcome == Outcome.UNFORMED) {
             return;
         }
+        // Same tower, same water: keep any farmland in range moist. This is what makes the spreader a
+        // real irrigator and not only a lawn - a watered plot grows crops and, because encroachment
+        // spares moist farmland, the spreader's radius defends the farm exactly as it defends the grass.
+        irrigateOnce(level, pos);
         schedule(level, pos, outcome == Outcome.IDLE
             ? RCConfig.GRASS_SPREADER_IDLE_INTERVAL_TICKS.get()
             : RCConfig.GRASS_SPREADER_INTERVAL_TICKS.get());
@@ -205,6 +213,49 @@ public class GrassSpreaderCoreBlock extends MultiblockCoreBlock {
         }
         BlockState above = level.getBlockState(pos.above());
         return !above.isSolidRender() && level.getRawBrightness(pos.above(), 0) >= 4;
+    }
+
+    /**
+     * Moisten every farmland block in range - the irrigation half of "drip irrigator". Returns how many
+     * plots it actually watered (skipping already-wet ones), so a GameTest can assert it, matching the
+     * {@link #spreadOnce} entry-point convention.
+     *
+     * <p>Keyed on the {@code MOISTURE} property, not on {@code minecraft:farmland}, so modded farmland is
+     * covered without being named - the same block-agnostic test encroachment uses to decide what holds.
+     * Sets the moisture directly rather than placing a water source: the machine <em>is</em> the water
+     * supply (its built-in Rain Collector), so it waters the soil the way rain does, and re-setting each
+     * pulse keeps a plot wet against vanilla's slow dry-out even with no water block anywhere near.
+     */
+    public static int irrigateOnce(ServerLevel level, BlockPos corePos) {
+        if (!RCConfig.GRASS_SPREADER_ENABLED.get() || !isFormed(level.getBlockState(corePos))) {
+            return 0;
+        }
+        int radius = RCConfig.GRASS_SPREADER_RADIUS.get();
+        int tolerance = RCConfig.GRASS_SPREADER_VERTICAL_TOLERANCE.get();
+        int radiusSq = radius * radius;
+        int watered = 0;
+        for (Vec3i offset : OFFSETS) {
+            if (offset.getX() * offset.getX() + offset.getZ() * offset.getZ() > radiusSq) {
+                break;   // sorted nearest-first, so the first miss ends the walk
+            }
+            BlockPos column = corePos.offset(offset);
+            if (!level.hasChunkAt(column)) {
+                continue;   // never pull a chunk in just to water it
+            }
+            for (int dy = tolerance; dy >= -tolerance; dy--) {
+                BlockState state = level.getBlockState(column.above(dy));
+                if (state.hasProperty(BlockStateProperties.MOISTURE)) {
+                    if (state.getValue(BlockStateProperties.MOISTURE) < FarmlandBlock.MAX_MOISTURE) {
+                        level.setBlock(column.above(dy),
+                            state.setValue(BlockStateProperties.MOISTURE, FarmlandBlock.MAX_MOISTURE),
+                            Block.UPDATE_CLIENTS);
+                        watered++;
+                    }
+                    break;   // at most one ground block per column
+                }
+            }
+        }
+        return watered;
     }
 
     @Override
