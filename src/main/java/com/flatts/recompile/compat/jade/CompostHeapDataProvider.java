@@ -2,6 +2,7 @@ package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
+import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import com.flatts.recompile.content.block.multiblock.MultiblockDummyBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -31,7 +32,9 @@ public enum CompostHeapDataProvider implements IServerDataProvider<BlockAccessor
     @Override
     public void appendServerData(CompoundTag data, BlockAccessor accessor) {
         CompostHeapBlockEntity heap = resolve(accessor);
-        if (heap != null) {
+        // Only report on a formed heap: an unformed core still carries a BE, and sending "0 layers"
+        // would read "Empty - feed it muck or fiber" under MachineStatusProvider's "Not built yet".
+        if (heap != null && MultiblockCoreBlock.isFormed(heap.getBlockState())) {
             data.putInt("layers", heap.layers());
             data.putInt("max", heap.maxLayers());
             data.putInt("ready", heap.readyLayers());
