@@ -8,6 +8,7 @@ import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
+import com.flatts.recompile.content.block.DumpPlantBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
 import com.flatts.recompile.content.block.GrassSpreaderFrameBlock;
@@ -401,6 +402,29 @@ public final class RCBlocks {
         DumpMushroomBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_GRAY)
+            .noCollision()
+            .instabreak()
+            .sound(SoundType.GRASS)
+            .pushReaction(PushReaction.DESTROY)
+    );
+
+    // Vegetation tier (rung 2): custom dump-friendly pioneer weeds that Fertilizer scatters onto
+    // reclaimed grass. Vanilla grasses/ferns/flowers fill out the rest of the scatter (no blocks here).
+    public static final DeferredBlock<DumpPlantBlock> WEEDGRASS = BLOCKS.registerBlock(
+        "weedgrass",
+        DumpPlantBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.PLANT)
+            .noCollision()
+            .instabreak()
+            .sound(SoundType.GRASS)
+            .pushReaction(PushReaction.DESTROY)
+    );
+    public static final DeferredBlock<DumpPlantBlock> FIREWEED = BLOCKS.registerBlock(
+        "fireweed",
+        DumpPlantBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_PINK)
             .noCollision()
             .instabreak()
             .sound(SoundType.GRASS)

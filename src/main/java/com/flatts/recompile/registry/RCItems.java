@@ -134,6 +134,12 @@ public final class RCItems {
      */
     public static final DeferredItem<BlockItem> BULKY_WASTE =
         ITEMS.registerSimpleBlockItem("bulky_waste", RCBlocks.BULKY_WASTE);
+    // Vegetation tier (rung 2): the custom pioneer weeds. Block-items so a plant retrieved with shears
+    // can be replaced by hand.
+    public static final DeferredItem<BlockItem> WEEDGRASS =
+        ITEMS.registerSimpleBlockItem("weedgrass", RCBlocks.WEEDGRASS);
+    public static final DeferredItem<BlockItem> FIREWEED =
+        ITEMS.registerSimpleBlockItem("fireweed", RCBlocks.FIREWEED);
     /**
      * The mattress: place it and it is a bed, or tear it down at the Recompile Workbench
      * (P1.4) for string. Never craftable - the dump gives you the bed (P1.11).
