@@ -1,6 +1,9 @@
 plugins {
     id 'java'
     id 'net.neoforged.moddev' version '2.0.141'
+    // CurseForgeGradle: wraps the CurseForge Upload API so `./gradlew publishCurseForge`
+    // uploads the built jar. Mirrors the productive-frogs setup.
+    id 'net.darkhax.curseforgegradle' version '1.2.30'
 }
 
 base {
@@ -187,4 +190,75 @@ tasks.register('prepareAllRuns') {
     dependsOn 'prepareClientRun',
               'prepareServerRun',
               'prepareGameTestServerRun'
+}
+
+// CurseForge publish task (mirrors productive-frogs).
+//
+// Invocation: `./gradlew publishCurseForge` (after a successful `build`).
+//
+// API key sources (first hit wins):
+//   1. .env at repo root (CURSEFORGE_API_KEY=...) - preferred, gitignored
+//   2. env var CURSEFORGE_API_KEY
+//   3. gradle property cfApiToken (e.g. in ~/.gradle/gradle.properties)
+//
+// Uploads build/libs/<artifact>-<version>.jar with the per-version CHANGELOG
+// section as the file changelog. Alpha, MC 26.1.2 / NeoForge / Java 25.
+
+def readDotEnv(File envFile) {
+    def map = [:]
+    if (!envFile.exists()) return map
+    envFile.eachLine { line ->
+        def trim = line.trim()
+        if (!trim || trim.startsWith('#')) return
+        def eq = trim.indexOf('=')
+        if (eq <= 0) return
+        def k = trim.substring(0, eq).trim()
+        def v = trim.substring(eq + 1).trim().replaceAll(/^["']|["']$/, '')
+        map[k] = v
+    }
+    return map
+}
+
+def resolveCfApiToken() {
+    def envMap = readDotEnv(file("${rootDir}/.env"))
+    return envMap['CURSEFORGE_API_KEY'] ?: System.getenv('CURSEFORGE_API_KEY') ?: findProperty('cfApiToken')
+}
+
+// Extract the top section of CHANGELOG.md (from `## v<current>` to the next
+// `## v` heading or EOF).
+def extractChangelogSection(File changelogFile, String version) {
+    if (!changelogFile.exists()) return "Release ${version}"
+    def text = changelogFile.text
+    def startMarker = "## v${version}"
+    def startIdx = text.indexOf(startMarker)
+    if (startIdx < 0) return "Release ${version}"
+    def endIdx = text.indexOf("\n## v", startIdx + startMarker.length())
+    if (endIdx < 0) endIdx = text.length()
+    return text.substring(startIdx, endIdx).trim()
+}
+
+tasks.register('publishCurseForge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    group = 'publishing'
+    description = 'Upload the built jar to CurseForge (project 1625740).'
+    dependsOn tasks.named('build')
+
+    apiToken = resolveCfApiToken()
+
+    def primary = upload(1625740, tasks.jar.archiveFile)
+    primary.releaseType = 'alpha'
+    primary.addGameVersion('26.1.2')
+    primary.addModLoader('NeoForge')
+    primary.addJavaVersion('Java 25')
+    // Tag both environments so the file lists as Client + Server (server spawns/
+    // economy, client render/JEI/guidebook).
+    primary.addEnvironment('Client', 'Server')
+    primary.changelog = extractChangelogSection(file("${rootDir}/CHANGELOG.md"), mod_version)
+    primary.changelogType = 'markdown'
+    primary.displayName = "${mod_name} ${mod_version}"
+
+    doFirst {
+        if (!apiToken) {
+            throw new GradleException("CURSEFORGE_API_KEY not set. Put it in .env at repo root, set the env var, or add cfApiToken to ~/.gradle/gradle.properties.")
+        }
+    }
 }
