@@ -15,7 +15,9 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -50,7 +52,127 @@ final class CompostHeapTests {
         return (CompostHeapBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(core));
     }
 
+    /** Total Machine Frames lying as item entities near the core - what a break returned. */
+    private static int framesDropped(GameTestHelper helper, BlockPos coreAbs) {
+        return itemsDropped(helper, coreAbs, RCItems.MACHINE_FRAME.get());
+    }
+
+    /** Total of a given item lying as entities near the core. */
+    private static int itemsDropped(GameTestHelper helper, BlockPos coreAbs, net.minecraft.world.item.Item item) {
+        int n = 0;
+        for (ItemEntity e : helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(coreAbs).inflate(8))) {
+            if (e.getItem().is(item)) {
+                n += e.getItem().getCount();
+            }
+        }
+        return n;
+    }
+
+    /** Total Machine Frames in a player's inventory. */
+    private static int framesHeld(ServerPlayer player) {
+        int n = 0;
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+            if (stack.is(RCItems.MACHINE_FRAME.get())) {
+                n += stack.getCount();
+            }
+        }
+        return n;
+    }
+
     static void register() {
+        // REPRO (dupe glitch): placing the core while carrying the parts auto-assembles the 2x2x2 and
+        // must consume EXACTLY seven Machine Frames from the inventory - the real setPlacedBy path the
+        // tryForm-based helper never exercised. A build that under-consumes + a break that returns seven
+        // is the duplication.
+        RCGameTests.test("compost_heap_autoassemble_consumes_seven", 40, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            var level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(core);
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);   // real players build in survival
+            player.getInventory().add(new ItemStack(RCItems.MACHINE_FRAME.get(), 32));
+            int before = framesHeld(player);
+            level.setBlock(abs, RCBlocks.COMPOST_HEAP.get().defaultBlockState(), 3);
+            RCBlocks.COMPOST_HEAP.get().setPlacedBy(level, abs, level.getBlockState(abs), player,
+                new ItemStack(RCBlocks.COMPOST_HEAP.get()));
+            int consumed = before - framesHeld(player);
+            helper.assertTrue(MultiblockCoreBlock.isFormed(level.getBlockState(abs)),
+                "the heap must auto-assemble and form, consumed " + consumed);
+            helper.assertTrue(consumed == 7,
+                "auto-assemble must consume exactly 7 Machine Frames, consumed " + consumed);
+            helper.succeed();
+        });
+
+        // REPRO (dupe glitch): the full round-trip - carry parts, place (auto-assemble), break the core -
+        // and the inventory+drops must net to what you started with. This is the exact loop in the clip.
+        RCGameTests.test("compost_heap_place_then_break_conserves", 60, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            var level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(core);
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);   // real players build in survival
+            player.getInventory().add(new ItemStack(RCItems.MACHINE_FRAME.get(), 32));
+            int before = framesHeld(player);
+            level.setBlock(abs, RCBlocks.COMPOST_HEAP.get().defaultBlockState(), 3);
+            RCBlocks.COMPOST_HEAP.get().setPlacedBy(level, abs, level.getBlockState(abs), player,
+                new ItemStack(RCBlocks.COMPOST_HEAP.get()));
+            level.destroyBlock(abs, true);
+            int net = framesHeld(player) + framesDropped(helper, abs);   // held after + dropped on break
+            helper.assertTrue(net == before,
+                "place+break must conserve Machine Frames: started " + before + ", ended " + net);
+            helper.succeed();
+        });
+
+        // REPRO (dupe glitch): breaking the CORE of a formed 2x2x2 must return exactly the seven
+        // Machine Frames it was built from - no more. Uses the real destroyBlock path (drops + the
+        // removal handlers), which is what the BE-only tests never exercised.
+        RCGameTests.test("compost_heap_break_core_returns_seven_frames", 40, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            placeAndFormFullHeap(helper, core);
+            BlockPos coreAbs = helper.absolutePos(core);
+            helper.getLevel().destroyBlock(coreAbs, true);
+            int frames = framesDropped(helper, coreAbs);
+            int cores = itemsDropped(helper, coreAbs, RCBlocks.COMPOST_HEAP.get().asItem());
+            helper.assertTrue(frames == 7, "breaking the core must return exactly 7 Machine Frames, got " + frames);
+            helper.assertTrue(cores == 1, "breaking the core must return exactly 1 Compost Heap core, got " + cores);
+            helper.succeed();
+        });
+
+        // REPRO (dupe glitch): breaking a CAGE cell (the dummy path) must also return exactly seven.
+        RCGameTests.test("compost_heap_break_cage_returns_seven_frames", 40, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            placeAndFormFullHeap(helper, core);
+            BlockPos coreAbs = helper.absolutePos(core);
+            helper.getLevel().destroyBlock(helper.absolutePos(core.offset(1, 0, 0)), true);
+            int frames = framesDropped(helper, coreAbs);
+            int cores = itemsDropped(helper, coreAbs, RCBlocks.COMPOST_HEAP.get().asItem());
+            helper.assertTrue(frames == 7, "breaking a cage cell must return exactly 7 Machine Frames, got " + frames);
+            helper.assertTrue(cores == 1, "breaking a cage cell must return exactly 1 Compost Heap core, got " + cores);
+            helper.succeed();
+        });
+
+        // REPRO (dupe glitch): the same, but the machine was assembled the REAL way (setPlacedBy from a
+        // survival inventory) rather than via tryForm. If the disband re-entrancy differs by how the
+        // machine formed, this catches it. Breaking a cage must still return exactly 1 core + 7 frames.
+        RCGameTests.test("compost_heap_autoassembled_break_cage_no_dupe", 60, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            var level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(core);
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            player.getInventory().add(new ItemStack(RCItems.MACHINE_FRAME.get(), 32));
+            level.setBlock(abs, RCBlocks.COMPOST_HEAP.get().defaultBlockState(), 3);
+            RCBlocks.COMPOST_HEAP.get().setPlacedBy(level, abs, level.getBlockState(abs), player,
+                new ItemStack(RCBlocks.COMPOST_HEAP.get()));
+            helper.assertTrue(MultiblockCoreBlock.isFormed(level.getBlockState(abs)), "must be formed");
+            level.destroyBlock(helper.absolutePos(core.offset(1, 0, 0)), true);
+            int frames = framesDropped(helper, abs);
+            int cores = itemsDropped(helper, abs, RCBlocks.COMPOST_HEAP.get().asItem());
+            helper.assertTrue(frames == 7, "auto-assembled cage break must return 7 frames, got " + frames);
+            helper.assertTrue(cores == 1, "auto-assembled cage break must return 1 core, got " + cores);
+            helper.succeed();
+        });
+
         // Feeding the per-layer cost forms exactly one layer; short of it, none.
         RCGameTests.test("compost_heap_forms_a_layer_at_the_cost", 20, helper -> {
             CompostHeapBlockEntity be = placeFormedHeap(helper);

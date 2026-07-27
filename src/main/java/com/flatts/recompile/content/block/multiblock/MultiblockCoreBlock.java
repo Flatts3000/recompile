@@ -203,15 +203,29 @@ public abstract class MultiblockCoreBlock extends Block {
         return true;
     }
 
-    /** Clear the machine's cells (dropping their loot) and mark the core unformed. */
+    /**
+     * Clear the machine's cells (dropping their loot) and mark the core unformed.
+     *
+     * <p><b>Unform the core BEFORE clearing the cells.</b> Clearing a cell is {@code setBlock(AIR)}, and
+     * in 26.1 that fires the removed cell's {@code affectNeighborsAfterRemoval} - the dummy's disband
+     * hook. Reached from the dummy break path (breaking a cell), the core is still standing, so each
+     * sibling cleared here would re-enter that hook and, finding the core still <em>formed</em>, drop
+     * the core's loot again: one core item per cell, the duplication. Flipping {@code FORMED} off first
+     * means every re-entry bails at the dummy's {@code isFormed} guard, so a cell break drops exactly one
+     * core. (Breaking the core directly is already safe - the core block is gone before its cells clear,
+     * so the re-entrant lookups find no core at all.)
+     */
     public static void disband(Level level, BlockPos pos, boolean drop) {
         if (!(level.getBlockState(pos).getBlock() instanceof MultiblockCoreBlock core)) {
             return;
         }
         BlockState state = level.getBlockState(pos);
-        core.blueprint().disband(level, pos, core.rotationFor(state), drop);
-        if (isFormed(state)) {
+        boolean wasFormed = isFormed(state);
+        if (wasFormed) {
             level.setBlock(pos, state.setValue(FORMED, false), Block.UPDATE_ALL);
+        }
+        core.blueprint().disband(level, pos, core.rotationFor(state), drop);
+        if (wasFormed) {
             core.onDisbanded(level, pos);
         }
     }

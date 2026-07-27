@@ -234,6 +234,27 @@ final class GrassSpreaderTests {
             });
         });
 
+        // Breaking a DUMMY cell (not the core) must also return each part exactly once. This is the
+        // path the core-break test above misses: a spreader has seven dummy cells, and disbanding from
+        // one clears its six siblings - each of which, in 26.1, re-enters the dummy break hook while the
+        // core is still standing. Before the framework unformed the core first, that dropped the core's
+        // item once per sibling (the Compost Heap dupe). Break a spigot (a formed Copper Pipe, which has
+        // three siblings in the drip ring) and every part must come back once - the core especially.
+        RCGameTests.test("grass_spreader_breaking_a_cell_disbands_once", 60, helper -> {
+            formSpreader(helper);
+            BlockPos spigot = CORE.above(2).east();   // a formed Copper Pipe in the drip ring
+            helper.assertBlockPresent(RCBlocks.GRASS_SPREADER_SPIGOT.get(), spigot);
+
+            helper.getLevel().destroyBlock(helper.absolutePos(spigot), true);
+            helper.succeedWhen(() -> {
+                helper.assertItemEntityCountIs(RCItems.GRASS_SPREADER.get(), CORE, 5.0, 1);   // the dupe check
+                helper.assertItemEntityCountIs(RCItems.WATER_TANK.get(), CORE, 5.0, 1);
+                helper.assertItemEntityCountIs(RCItems.PUMP.get(), CORE, 5.0, 1);
+                helper.assertItemEntityCountIs(RCItems.SOLAR_PANEL.get(), CORE, 5.0, 1);
+                helper.assertItemEntityCountIs(RCItems.COPPER_PIPE.get(), CORE, 5.0, 4);
+            });
+        });
+
         // The tank is an inert component, NOT a Rain Collector core. Nesting cores would mean
         // the inner one watching its own neighbours and trying to assemble itself into cells this
         // machine has already claimed - two machines fighting over the same blocks. Multiblock's
