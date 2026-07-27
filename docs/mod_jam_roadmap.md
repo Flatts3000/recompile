@@ -40,11 +40,13 @@ living past without stating the hidden hook.)
 The ToS bar is **prior CurseForge publication**, not code age: *"All submitted projects must be new (not
 published on CurseForge prior to the contest Start Date)."* Reusing our own frameworks is not restricted.
 
-- [x] **Not previously published.** Recompile is an unpublished, in-development project (local repo, never
-  released on CurseForge), so the "new project" gate is met.
-- [ ] **Publish it *as* the entry, in the window** (not before the start date).
-- [ ] **Re-read the 2026 ToS** to confirm the start date, "new project" wording, and the full judging split
-  (the clauses above are from the 2025 ToS).
+- [x] **Not previously published.** Recompile was unpublished (local repo, never on CurseForge) up to the
+  contest Start Date, so the "new project" gate is met.
+- [x] **Published *as* the entry, in the window.** v0.1.0 uploaded to CurseForge project 1625740 (alpha, MC
+  26.1.2 / NeoForge / Java 25) on 2026-07-27, with a matching GitHub prerelease (v0.1.0). The ModJam entry
+  is submitted.
+- [x] **Re-read the 2026 ToS** for the start date, "new project" wording, and the judging split (confirmed
+  before submission).
 
 ## Judging - what we optimize for
 

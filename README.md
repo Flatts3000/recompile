@@ -20,13 +20,13 @@ Recompile is the engine; **Trashlands** is its showcase modpack (the Productive 
 
 ## Status
 
-**Alpha, playable** (2026-07-23). Built against MC `26.1.2` / NeoForge `26.1.2.76`.
+**Alpha - released.** **v0.1.0** shipped 2026-07-27 to CurseForge and [GitHub Releases](https://github.com/Flatts3000/recompile/releases), built against MC `26.1.2` / NeoForge `26.1.2.76`. Recompile is the CurseForge ModJam 2026 ("Echoes of the Past") entry.
 
-Shipped: the garbage world (custom preset, coarse-dirt plain, mounds); the Blocks of Garbage and their variants (bags, bales, Bulky Waste); the trash-tier tools; the Sorting Tarp; dimension lockout; storage (the Scrap Barrel); the food tier (scavenged tin cans, foraged dump mushrooms); shelter (a mattress dug out of the trash); the building-block tier; lighting; the Burn Barrel (a manual-only smelter); water (the Rain Collector); encroachment; and the multiblock framework.
+Shipped: the garbage world and pick-through loop (Blocks of Garbage, bags, bales, Bulky Waste); trash-tier tools; the workstations (Scrap Crafting Table, Sorting Tarp, Recompile Workbench, Burn Barrel) and storage (Scrap Barrel, Scrap Bin, the Scrap Network); food, water (Rain Collector), lighting, smelting, and building blocks; encroachment and the multiblock framework; the full **reclamation ladder** (Grass Spreader, Vegetation, Farming, Compost Heap); **collectibles** (the Puzzle Cube, ported voxel curios, the Display Pedestal); and an in-game **guidebook** (Modonomicon).
 
 **The Recompile Workbench is in** - hold right-click with a found item to break it down into materials, on a timer, with the right tool. That is the *materials* half. The **knowledge** half (studying a recipe, then unlocking it) is the mod's distinct axis and is **not built yet**; its design is under review, because recipe-locking does not survive contact with modded autocrafting. Its data spine - the public `recompile:teardown` recipe type - has been in place since day one, so the schema will not be retrofitted.
 
-Reclamation rung 1 (the Grass Spreader) shipped 2026-07-24. Next: the knowledge half of teardown (the mod's distinct axis, design under review), and reclamation rungs 2-4. See [`docs/roadmap.md`](docs/roadmap.md) for the build order and per-phase status.
+Next: the knowledge half of teardown (the mod's distinct axis, design under review) and the remaining reclamation rungs (trees, animals). See [`docs/roadmap.md`](docs/roadmap.md) for the build order and per-phase status.
 
 ## License
 

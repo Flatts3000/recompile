@@ -1,8 +1,9 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.15 shipped to `main` - the mod is a playable alpha, tuned against
-real play. Recent tiers: the **multiblock framework + Rain Collector** (2.11), **reclamation rungs
-1-3** - the Grass Spreader, Vegetation, and Farming (2.12-2.14), and **Collectibles** (2.15, the
+**Status:** Phases 0 through 2.15 shipped to `main`, and **v0.1.0 is released** (2026-07-27: CurseForge
+alpha + GitHub prerelease) as the CurseForge ModJam 2026 entry. The mod is a playable alpha, tuned
+against real play. Recent tiers: the **multiblock framework + Rain Collector** (2.11), **reclamation
+rungs 1-3** - the Grass Spreader, Vegetation, and Farming (2.12-2.14), and **Collectibles** (2.15, the
 Puzzle Cube + ported voxel curios on Display Pedestals). Phase 3's **materials teardown** (the
 Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis** is the next major decision
 and stays under review (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
