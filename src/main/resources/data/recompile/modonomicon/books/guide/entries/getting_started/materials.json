@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:getting_started/materials",
+  "category": "recompile:getting_started",
+  "name": "book.recompile.guide.getting_started.materials.name",
+  "icon": {
+    "id": "recompile:scrap_metal"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 0
+}

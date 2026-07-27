@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "intro",
+  "sort_number": 0,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.reclamation.farming.intro.text",
+  "title": "book.recompile.guide.reclamation.farming.intro.title"
+}

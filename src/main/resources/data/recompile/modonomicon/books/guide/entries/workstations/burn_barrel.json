@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:workstations/burn_barrel",
+  "category": "recompile:workstations",
+  "name": "book.recompile.guide.workstations.burn_barrel.name",
+  "icon": {
+    "id": "recompile:burn_barrel"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 1,
+  "y": 1
+}

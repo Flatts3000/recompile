@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:survival/water",
+  "category": "recompile:survival",
+  "name": "book.recompile.guide.survival.water.name",
+  "icon": {
+    "id": "recompile:rain_collector"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 0
+}

@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "intro",
+  "sort_number": 0,
+  "item": "recompile:scrap_bin",
+  "title": "book.recompile.guide.workstations.scrap_bin.intro.title",
+  "text": "book.recompile.guide.workstations.scrap_bin.intro.text"
+}

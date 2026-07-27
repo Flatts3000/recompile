@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:collectibles/puzzle_cube",
+  "category": "recompile:collectibles",
+  "name": "book.recompile.guide.collectibles.puzzle_cube.name",
+  "icon": {
+    "id": "recompile:puzzle_cube"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 0,
+  "y": 0
+}

@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:workstations/workbench",
+  "category": "recompile:workstations",
+  "name": "book.recompile.guide.workstations.workbench.name",
+  "icon": {
+    "id": "recompile:recompile_workbench"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 0
+}

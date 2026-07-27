@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "select",
+  "sort_number": 1,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.getting_started.the_world.select.text",
+  "title": "book.recompile.guide.getting_started.the_world.select.title"
+}
