@@ -210,6 +210,10 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("grass_spreader", RCBlocks.GRASS_SPREADER);
     public static final DeferredItem<BlockItem> COMPOST_HEAP =
         ITEMS.registerSimpleBlockItem("compost_heap", RCBlocks.COMPOST_HEAP);
+
+    /** Tree Nursery core item (reclamation rung 4). Placing it auto-assembles the 2x2x1 wall. */
+    public static final DeferredItem<BlockItem> TREE_NURSERY =
+        ITEMS.registerSimpleBlockItem("tree_nursery", RCBlocks.TREE_NURSERY);
     /** Salvaged, never crafted - it comes out of a broken appliance at the workbench. */
     public static final DeferredItem<BlockItem> PUMP =
         ITEMS.registerSimpleBlockItem("pump", RCBlocks.PUMP);

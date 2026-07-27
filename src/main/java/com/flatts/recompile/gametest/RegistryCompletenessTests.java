@@ -56,7 +56,9 @@ final class RegistryCompletenessTests {
         "grass_spreader_frame",
         "grass_spreader_spigot",
         // A formed cell of the Compost Heap's 2x2x2 cage - disband returns the Machine Frame, not this.
-        "compost_cage"
+        "compost_cage",
+        // The Tree Nursery's formed tank cell - disband returns the Water Tank you placed, not this.
+        "tree_nursery_tank"
     );
 
     private RegistryCompletenessTests() {

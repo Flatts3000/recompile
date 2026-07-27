@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
@@ -26,10 +27,11 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
  *
  * <p>Client-only and purely visual: it reads {@link Minecraft#hitResult} and the core's blueprint,
  * spawns particles, and touches no world state. The blueprint is the multiblock system's single
- * source of truth, so the preview costs no new data. It renders at {@code Rotation.NONE} (the shipped
- * cores are rotation-invariant vertical columns); it is particles, not a render-pipeline overlay,
- * because 26.1's {@code RenderLevelStageEvent} lost the camera / partial-tick hooks a world-space
- * outline needs.
+ * source of truth, so the preview costs no new data. It rotates the footprint to the facing the core
+ * would take on placement (via {@link MultiblockCoreBlock#placementRotation}, so a facing machine like
+ * the Tree Nursery previews where it will actually form); it is particles, not a render-pipeline
+ * overlay, because 26.1's {@code RenderLevelStageEvent} lost the camera / partial-tick hooks a
+ * world-space outline needs.
  */
 @EventBusSubscriber(modid = Recompile.MOD_ID, value = Dist.CLIENT)
 public final class MultiblockPlacementPreview {
@@ -50,30 +52,32 @@ public final class MultiblockPlacementPreview {
         if (player == null || level == null) {
             return;
         }
-        Multiblock blueprint = heldCoreBlueprint(player);
-        if (blueprint == null || player.tickCount % EMIT_INTERVAL_TICKS != 0) {
+        MultiblockCoreBlock core = heldCore(player);
+        if (core == null || player.tickCount % EMIT_INTERVAL_TICKS != 0) {
             return;
         }
         if (!(mc.hitResult instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK) {
             return;
         }
-        // Where the core would land: the block face the player is aiming at.
+        // Where the core would land: the block face the player is aiming at. The cells rotate around it
+        // by the facing the core would take, so a facing machine previews its real footprint.
         BlockPos corePos = hit.getBlockPos().relative(hit.getDirection());
+        Rotation rotation = core.placementRotation(player);
         marker(level, corePos);
-        for (Multiblock.Cell cell : blueprint.cells()) {
-            marker(level, cell.at(corePos));
+        for (Multiblock.Cell cell : core.blueprint().cells()) {
+            marker(level, cell.at(corePos, rotation));
         }
     }
 
-    /** The blueprint of the multiblock core the player is holding, or null. */
-    private static Multiblock heldCoreBlueprint(Player player) {
-        Multiblock fromMain = coreBlueprint(player.getMainHandItem());
-        return fromMain != null ? fromMain : coreBlueprint(player.getOffhandItem());
+    /** The multiblock core block the player is holding, or null. */
+    private static MultiblockCoreBlock heldCore(Player player) {
+        MultiblockCoreBlock fromMain = coreOf(player.getMainHandItem());
+        return fromMain != null ? fromMain : coreOf(player.getOffhandItem());
     }
 
-    private static Multiblock coreBlueprint(ItemStack stack) {
+    private static MultiblockCoreBlock coreOf(ItemStack stack) {
         return stack.getItem() instanceof BlockItem item
-            && item.getBlock() instanceof MultiblockCoreBlock core ? core.blueprint() : null;
+            && item.getBlock() instanceof MultiblockCoreBlock core ? core : null;
     }
 
     /** Dust the cell: green if a block could be placed there, red if something is already in the way. */

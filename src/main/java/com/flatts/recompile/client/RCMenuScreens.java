@@ -8,9 +8,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 /**
- * Binds the mod's one custom menu to its screen (client-only). The Scrap Crafting Table is the sole
- * block that needs a bespoke screen - for its connected-storage panel (design P2.10 flow 4); every
- * other container reuses a vanilla screen.
+ * Binds the mod's custom menus to their screens (client-only). Two blocks need a bespoke screen: the
+ * Scrap Crafting Table (its connected-storage panel, P2.10 flow 4) and the Tree Nursery (its species
+ * picker, reclamation rung 4). Every other container reuses a vanilla screen.
  */
 @EventBusSubscriber(modid = Recompile.MOD_ID, value = Dist.CLIENT)
 public final class RCMenuScreens {
@@ -21,5 +21,6 @@ public final class RCMenuScreens {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(RCMenus.SCRAP_CRAFTING_STATION.get(), ScrapCraftingStationScreen::new);
+        event.register(RCMenus.TREE_NURSERY.get(), TreeNurseryScreen::new);
     }
 }

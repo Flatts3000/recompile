@@ -466,6 +466,42 @@ size = 16
 prompt = "a small heap of rich dark crumbly finished compost fertilizer, near-black soil flecked with pale bits, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # ---------------------------------------------------------------------------
+# Tree Nursery (reclamation rung 4): a salvaged propagation cabinet that raises
+# saplings from water + Fertilizer + an Unknown Seedling. A facing block - the
+# front is the interactive viewing face, the sides the scrap exterior, the bottom
+# a drip tray. Its top is capped by a Solar Panel in the formed wall, so the model
+# reuses the side for the top face. Rendered via a facing-oriented cube.
+# select order: front side bottom
+# ---------------------------------------------------------------------------
+[surface.tree_nursery]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front", "side", "bottom"]
+[surface.tree_nursery.prompt]
+front = "a full-bleed Minecraft block face: the front of a salvaged tree nursery cabinet, a scratched glass viewing window set in a riveted rusty scrap-metal frame, behind the glass a tiny green sapling sprouting from dark soil lit by a warm grow-light, muted greys and browns with a small pop of green and a warm light glow, flat, straight-on, no perspective, fills the whole tile edge to edge"
+side = "a full-bleed Minecraft block face: the side of a salvaged tree nursery cabinet, riveted weathered scrap-metal panels with a vertical corrugated seam and a thin copper water pipe running down one edge, grime streaks and rust, muted greys and rusty browns, flat, straight-on, no perspective, fills the whole tile edge to edge"
+bottom = "a full-bleed top-down Minecraft block face: the underside of a salvaged tree nursery, a dirty galvanized metal drip tray on a scrap pallet base, soil crumbs and water stains, muted greys and browns, flat, no perspective, fills the whole tile edge to edge"
+
+# The RUNNING front - swapped in by the ACTIVE blockstate while a sapling is cooking (the furnace-LIT
+# analogue). Reads brighter and greener than the calm idle front so the state is obvious at 16px: the
+# grow-light blazing, a vivid sapling, condensation on the glass.
+[surface.tree_nursery_front_active]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the front of a salvaged tree nursery cabinet actively running, a scratched glass viewing window in a riveted rusty scrap-metal frame, behind the glass a vivid bright green sapling growing vigorously under an intense bright warm-white grow-light that floods the whole window with a strong luminous glow, faint condensation and light rays on the glass, the rusty grey frame around a brilliantly lit green interior, clearly brighter and greener than a dim window, flat, straight-on, no perspective, fills the whole tile edge to edge"
+
+# The Tree Nursery's formed tank cell (a full block): reads as the white PLASTIC water tank the player
+# placed, not dark machine metal - so it must look like the caged plastic IBC tote, framed to sit in the
+# machine. Used on the four sides + top of tree_nursery_tank; the bottom reuses tree_nursery_bottom.
+[surface.tree_nursery_tank]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the side of a water tank built into a machine, a pale off-white translucent plastic IBC tote tank panel with faint blue water visible inside and subtle horizontal ribs, wrapped in a dark rusty scrap-metal cage frame to match the machine, the plastic clearly white and translucent not metal, muted, flat, straight-on, no perspective, fills the whole tile edge to edge"
+
+# ---------------------------------------------------------------------------
 # Vegetation tier (rung 2): dump-friendly pioneer plants that Fertilizer scatters
 # onto reclaimed grass. Cross-model sprites like dump_mushroom - kind="block" so
 # the sprite lands in the blocks atlas the cross model reads, transparent=true to

@@ -9,6 +9,7 @@ import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
+import com.flatts.recompile.content.block.entity.TreeNurseryBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -82,6 +83,12 @@ public final class RCBlockEntities {
             "scrap_bin",
             () -> new BlockEntityType<>(ScrapBinBlockEntity::new, RCBlocks.SCRAP_BIN.get()));
 
+    /** The Tree Nursery's water tank + slots + species + cook progress (reclamation rung 4). */
+    public static final Supplier<BlockEntityType<TreeNurseryBlockEntity>> TREE_NURSERY =
+        BLOCK_ENTITIES.register(
+            "tree_nursery",
+            () -> new BlockEntityType<>(TreeNurseryBlockEntity::new, RCBlocks.TREE_NURSERY.get()));
+
     private RCBlockEntities() {
         // utility class
     }
@@ -103,5 +110,11 @@ public final class RCBlockEntities {
             Capabilities.Item.BLOCK,
             SCRAP_BIN.get(),
             (be, side) -> be.storageHandler());
+        // The Tree Nursery's water tank: a pipe or pump from a Rain Collector fills it (items stay
+        // manual - the BE exposes no item capability, so hoppers cannot touch the slots).
+        event.registerBlockEntity(
+            Capabilities.Fluid.BLOCK,
+            TREE_NURSERY.get(),
+            (be, side) -> be.fluidHandler());
     }
 }

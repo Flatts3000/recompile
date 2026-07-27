@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/tree_nursery_front_active",
+    "north": "recompile:block/tree_nursery_front_active",
+    "south": "recompile:block/tree_nursery_side",
+    "east": "recompile:block/tree_nursery_side",
+    "west": "recompile:block/tree_nursery_side",
+    "up": "recompile:block/tree_nursery_side",
+    "down": "recompile:block/tree_nursery_bottom"
+  }
+}

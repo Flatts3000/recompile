@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/tree_nursery_tank",
+    "bottom": "recompile:block/tree_nursery_bottom",
+    "side": "recompile:block/tree_nursery_tank"
+  }
+}

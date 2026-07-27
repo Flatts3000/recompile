@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
+import com.flatts.recompile.content.menu.TreeNurseryMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -26,6 +27,11 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<ScrapCraftingStationMenu>> SCRAP_CRAFTING_STATION =
         MENUS.register("scrap_crafting_station", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new ScrapCraftingStationMenu(id, inventory, buffer.readBlockPos())));
+
+    /** The Tree Nursery's menu (reclamation rung 4): the mod's second bespoke screen, for the species picker. */
+    public static final DeferredHolder<MenuType<?>, MenuType<TreeNurseryMenu>> TREE_NURSERY =
+        MENUS.register("tree_nursery", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new TreeNurseryMenu(id, inventory)));
 
     private RCMenus() {
     }
