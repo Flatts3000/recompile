@@ -1,10 +1,10 @@
 {
   "type": "modonomicon:content",
-  "id": "recompile:reclamation/saplings",
-  "category": "recompile:reclamation",
-  "name": "book.recompile.guide.reclamation.saplings.name",
+  "id": "recompile:survival/water",
+  "category": "recompile:survival",
+  "name": "book.recompile.guide.survival.water.name",
   "icon": {
-    "id": "minecraft:oak_sapling"
+    "id": "recompile:rain_collector"
   },
   "background": {
     "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
@@ -12,5 +12,5 @@
     "height": 26
   },
   "x": 2,
-  "y": 1
+  "y": 0
 }

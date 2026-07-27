@@ -1,10 +1,10 @@
 {
   "type": "modonomicon:content",
-  "id": "recompile:reclamation/vegetation",
-  "category": "recompile:reclamation",
-  "name": "book.recompile.guide.reclamation.vegetation.name",
+  "id": "recompile:workstations/scrap_barrel",
+  "category": "recompile:workstations",
+  "name": "book.recompile.guide.workstations.scrap_barrel.name",
   "icon": {
-    "id": "recompile:weedgrass"
+    "id": "recompile:scrap_barrel"
   },
   "background": {
     "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",

@@ -1,10 +1,10 @@
 {
   "type": "modonomicon:content",
-  "id": "recompile:reclamation/saplings",
-  "category": "recompile:reclamation",
-  "name": "book.recompile.guide.reclamation.saplings.name",
+  "id": "recompile:getting_started/materials",
+  "category": "recompile:getting_started",
+  "name": "book.recompile.guide.getting_started.materials.name",
   "icon": {
-    "id": "minecraft:oak_sapling"
+    "id": "recompile:scrap_metal"
   },
   "background": {
     "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
@@ -12,5 +12,5 @@
     "height": 26
   },
   "x": 2,
-  "y": 1
+  "y": 0
 }
