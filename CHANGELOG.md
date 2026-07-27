@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.2.0
+
+Two more rungs of the reclamation ladder, trees and animals, plus a multiblock dupe fix.
+
+### Reclamation
+- **Tree Nursery (rung 4):** a 2x2x1 machine (a core and a water tank, solar panels on top) that raises a vanilla sapling of your choice from water, Fertilizer, and an Unknown Seedling. Pick the species on its screen; the cook is slow and the machine glows while it works. Water can be piped in, Fertilizer and Seedlings go in by hand. Eight species: oak, birch, spruce, jungle, acacia, dark oak, cherry, and mangrove.
+- **Animal bait (rung 5):** herbivore, carnivore, and omnivore bait, each with a Rich grade. Place one on grass and leave; when no player is near, one of that diet's animals settles onto the spot and the bait is spent. Rich bait seeds a breeding pair. Two baits too close together, or a nearby player, hold it instead of firing. Crafted from apples so the animal tier waits on trees: herbivore from an apple and wheat, carnivore from apples and any raw meat, omnivore from one of each. JEI and Jade show every reason a bait is held.
+
+### Fixes
+- Breaking one cell of a formed multiblock (Rain Collector, Compost Heap) no longer duplicated the core block.
+
+### Tweaks
+- The creative-tab and JEI item list is grouped into categories and ordered to match play order.
+
 ## v0.1.0
 
 First public alpha. Recompile is a standalone NeoForge mod for Minecraft 26.1.2: you spawn in a world made of garbage, with no ores, no trees, and no animals. Everything you need is picked out of the trash and torn back down into materials.
