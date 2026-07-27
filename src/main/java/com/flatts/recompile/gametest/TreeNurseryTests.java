@@ -7,9 +7,13 @@ import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
@@ -49,7 +53,43 @@ final class TreeNurseryTests {
         }
     }
 
+    /** Total of a given item lying as entities near the core - what a break returned. */
+    private static int dropped(GameTestHelper helper, BlockPos coreAbs, Item item) {
+        int n = 0;
+        for (ItemEntity e : helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(coreAbs).inflate(8))) {
+            if (e.getItem().is(item)) {
+                n += e.getItem().getCount();
+            }
+        }
+        return n;
+    }
+
     static void register() {
+        // Breaking a DUMMY cell of the formed 2x2x1 wall must return each part exactly once - the nursery
+        // is a 3-dummy machine, the class of build the core-dupe fix (framework) exists for. Break the clad
+        // tank cell (which has the two solar cells as siblings) and confirm no part multiplies.
+        RCGameTests.test("tree_nursery_breaking_a_cell_disbands_once", 60, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            helper.setBlock(core, RCBlocks.TREE_NURSERY.get());   // FACING=NORTH default -> rotation NONE
+            helper.setBlock(core.offset(new Vec3i(1, 0, 0)), RCBlocks.WATER_TANK.get());
+            helper.setBlock(core.offset(new Vec3i(0, 1, 0)), RCBlocks.SOLAR_PANEL.get());
+            helper.setBlock(core.offset(new Vec3i(1, 1, 0)), RCBlocks.SOLAR_PANEL.get());
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the 2x2x1 wall must form from a Water Tank + two Solar Panels");
+
+            BlockPos coreAbs = helper.absolutePos(core);
+            helper.getLevel().destroyBlock(helper.absolutePos(core.offset(new Vec3i(1, 0, 0))), true);
+            helper.succeedWhen(() -> {
+                helper.assertTrue(dropped(helper, coreAbs, RCBlocks.TREE_NURSERY.get().asItem()) == 1,
+                    "breaking a cell must return exactly 1 Tree Nursery core, got "
+                        + dropped(helper, coreAbs, RCBlocks.TREE_NURSERY.get().asItem()));
+                helper.assertTrue(dropped(helper, coreAbs, RCItems.WATER_TANK.get()) == 1,
+                    "the tank cell must return 1 Water Tank");
+                helper.assertTrue(dropped(helper, coreAbs, RCItems.SOLAR_PANEL.get()) == 2,
+                    "the two solar cells must return 2 Solar Panels");
+            });
+        });
+
         // The base case: fully supplied, a full cook raises exactly one sapling of the selected species,
         // and consumes exactly one Fertilizer, one Seedling, and waterPerSapling mB.
         RCGameTests.test("tree_nursery_raises_a_sapling", 40, helper -> {
