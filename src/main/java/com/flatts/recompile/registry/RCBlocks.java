@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
+import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.DisplayPedestalBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
@@ -371,6 +372,21 @@ public final class RCBlocks {
             .strength(1.2F)
             .sound(SoundType.GRAVEL)
             .noOcclusion()  // see-through wire shell + inset compost bands - not a full cube
+    );
+
+    /**
+     * Tree Nursery core (reclamation rung 4): the master of a 2x2x1 wall (core + inert Water Tank on the
+     * bottom, two Solar Panels on top) that raises saplings from water + Fertilizer + an Unknown
+     * Seedling. Carries the nursery BE and the bespoke GUI; the loot strip keeps its saplings un-findable
+     * so this is their only source.
+     */
+    public static final DeferredBlock<TreeNurseryCoreBlock> TREE_NURSERY = BLOCKS.registerBlock(
+        "tree_nursery",
+        TreeNurseryCoreBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.PODZOL)
+            .strength(1.5F)
+            .sound(SoundType.GRAVEL)
     );
 
     /** A formed cell of the Compost Heap's cage. A dummy - no item; drops a Machine Frame on disband. */

@@ -72,6 +72,12 @@ public final class RCConfig {
     // ---- Farming tier (rung 3 - farmland from compost, not from a hoe) ----
     public static final ModConfigSpec.BooleanValue DISABLE_HOE_TILLING;
 
+    // ---- Tree Nursery (rung 4 - saplings from water + Fertilizer + Unknown Seedling) ----
+    public static final ModConfigSpec.BooleanValue TREE_NURSERY_ENABLED;
+    public static final ModConfigSpec.IntValue TREE_NURSERY_COOK_TICKS;
+    public static final ModConfigSpec.IntValue TREE_NURSERY_WATER_PER_SAPLING;
+    public static final ModConfigSpec.IntValue TREE_NURSERY_TANK_CAPACITY;
+
     /**
      * Scrap Bin (P2.9): how much one bin holds of its bound material. Large by design - the bin is
      * the tool the hoarding loop wants - and a first-pass number for the pre-beta balance pass.
@@ -160,6 +166,19 @@ public final class RCConfig {
             .comment("Block hoe-tilling of farmland, so farmland comes only from the compost recipe",
                      "(Fertilizer + dirt). The base mod has no hoe; this holds even in a pack that adds one.")
             .define("disableHoeTilling", true);
+
+        TREE_NURSERY_ENABLED = builder
+            .comment("Whether the Tree Nursery raises saplings (reclamation rung 4).")
+            .define("treeNurseryEnabled", true);
+        TREE_NURSERY_COOK_TICKS = builder
+            .comment("Ticks to raise one sapling. Deliberately long - wood stays treasure (2400 = 120s).")
+            .defineInRange("treeNurseryCookTicks", 2400, 1, 240000);
+        TREE_NURSERY_WATER_PER_SAPLING = builder
+            .comment("Water (mB) consumed per sapling. 250 = a quarter bucket.")
+            .defineInRange("treeNurseryWaterPerSapling", 250, 0, 100000);
+        TREE_NURSERY_TANK_CAPACITY = builder
+            .comment("The nursery's internal water tank capacity, mB. 4000 = four buckets.")
+            .defineInRange("treeNurseryTankCapacity", 4000, 1000, 1000000);
         builder.pop();
 
         builder.push("storage");

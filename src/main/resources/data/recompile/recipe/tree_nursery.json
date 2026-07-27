@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "PCP",
+    "PPP"
+  ],
+  "key": {
+    "G": "recompile:cullet_glass",
+    "P": "recompile:scrap_plating",
+    "C": "recompile:copper_pipe"
+  },
+  "result": {
+    "id": "recompile:tree_nursery"
+  }
+}
