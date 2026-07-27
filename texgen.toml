@@ -683,3 +683,30 @@ size = 16
 [surface.display_pedestal.procedural]
 style = "plinth"
 
+
+# ---------------------------------------------------------------------------
+# Animal bait (reclamation rung 5): three diet lures + the placed bait block.
+# ---------------------------------------------------------------------------
+[surface.herbivore_bait]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small tied bundle of grazer bait, a handful of dry golden hay and wheat stalks with a few scattered seeds, warm tan and gold, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.carnivore_bait]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a hunter's bait, a glistening raw red meat chunk tied to a small pale bone, dark red and bone-white, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.omnivore_bait]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a mixed feed bait, a small bundle of grain, chopped roots and food scraps tied together, muddled browns and tans with a bit of green, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.animal_bait]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face of a small scattered pile of animal bait feed spread on bare ground, loose grain, hay wisps and food scraps on dirt, muted tans and browns, flat, no perspective, fills the whole tile edge to edge"

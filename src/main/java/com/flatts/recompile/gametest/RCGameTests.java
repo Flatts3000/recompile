@@ -72,6 +72,7 @@ public final class RCGameTests {
         GrassSpreaderTests.register();
         CompostHeapTests.register();
         TreeNurseryTests.register();
+        AnimalBaitTests.register();
         VegetationTests.register();
         FarmingTests.register();
         CollectiblesTests.register();

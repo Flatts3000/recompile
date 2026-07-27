@@ -1,6 +1,8 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.AnimalBaitBlock.Diet;
+import com.flatts.recompile.content.item.AnimalBaitItem;
 import com.flatts.recompile.content.item.FertilizerItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.UnknownSeedlingItem;
@@ -214,6 +216,21 @@ public final class RCItems {
     /** Tree Nursery core item (reclamation rung 4). Placing it auto-assembles the 2x2x1 wall. */
     public static final DeferredItem<BlockItem> TREE_NURSERY =
         ITEMS.registerSimpleBlockItem("tree_nursery", RCBlocks.TREE_NURSERY);
+
+    // Animal bait (reclamation rung 5): three diets, each with a Rich grade that seeds a pair. All place
+    // the one animal_bait block with their diet + grade set.
+    public static final DeferredItem<AnimalBaitItem> HERBIVORE_BAIT = ITEMS.registerItem("herbivore_bait",
+        props -> new AnimalBaitItem(RCBlocks.ANIMAL_BAIT.get(), props, Diet.HERBIVORE, false));
+    public static final DeferredItem<AnimalBaitItem> CARNIVORE_BAIT = ITEMS.registerItem("carnivore_bait",
+        props -> new AnimalBaitItem(RCBlocks.ANIMAL_BAIT.get(), props, Diet.CARNIVORE, false));
+    public static final DeferredItem<AnimalBaitItem> OMNIVORE_BAIT = ITEMS.registerItem("omnivore_bait",
+        props -> new AnimalBaitItem(RCBlocks.ANIMAL_BAIT.get(), props, Diet.OMNIVORE, false));
+    public static final DeferredItem<AnimalBaitItem> RICH_HERBIVORE_BAIT = ITEMS.registerItem("rich_herbivore_bait",
+        props -> new AnimalBaitItem(RCBlocks.ANIMAL_BAIT.get(), props, Diet.HERBIVORE, true));
+    public static final DeferredItem<AnimalBaitItem> RICH_CARNIVORE_BAIT = ITEMS.registerItem("rich_carnivore_bait",
+        props -> new AnimalBaitItem(RCBlocks.ANIMAL_BAIT.get(), props, Diet.CARNIVORE, true));
+    public static final DeferredItem<AnimalBaitItem> RICH_OMNIVORE_BAIT = ITEMS.registerItem("rich_omnivore_bait",
+        props -> new AnimalBaitItem(RCBlocks.ANIMAL_BAIT.get(), props, Diet.OMNIVORE, true));
     /** Salvaged, never crafted - it comes out of a broken appliance at the workbench. */
     public static final DeferredItem<BlockItem> PUMP =
         ITEMS.registerSimpleBlockItem("pump", RCBlocks.PUMP);

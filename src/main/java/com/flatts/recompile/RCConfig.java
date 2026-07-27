@@ -78,6 +78,12 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue TREE_NURSERY_WATER_PER_SAPLING;
     public static final ModConfigSpec.IntValue TREE_NURSERY_TANK_CAPACITY;
 
+    // ---- Animal bait (rung 5 - wildlife returns to healed grass) ----
+    public static final ModConfigSpec.BooleanValue ANIMAL_BAIT_ENABLED;
+    public static final ModConfigSpec.IntValue ANIMAL_BAIT_SETTLE_INTERVAL_TICKS;
+    public static final ModConfigSpec.DoubleValue ANIMAL_BAIT_PLAYER_RADIUS;
+    public static final ModConfigSpec.IntValue ANIMAL_BAIT_SPACING;
+
     /**
      * Scrap Bin (P2.9): how much one bin holds of its bound material. Large by design - the bin is
      * the tool the hoarding loop wants - and a first-pass number for the pre-beta balance pass.
@@ -179,6 +185,21 @@ public final class RCConfig {
         TREE_NURSERY_TANK_CAPACITY = builder
             .comment("The nursery's internal water tank capacity, mB. 4000 = four buckets.")
             .defineInRange("treeNurseryTankCapacity", 4000, 1000, 1000000);
+
+        ANIMAL_BAIT_ENABLED = builder
+            .comment("Whether animal bait can draw wildlife back to healed grass (reclamation rung 5).")
+            .define("animalBaitEnabled", true);
+        ANIMAL_BAIT_SETTLE_INTERVAL_TICKS = builder
+            .comment("Ticks per settle stage; a bait fires after 7 undisturbed stages. Deliberately slow -",
+                     "you place it and leave. 300 = 15s/stage = about 1.75 min total.")
+            .defineInRange("animalBaitSettleIntervalTicks", 300, 1, 24000);
+        ANIMAL_BAIT_PLAYER_RADIUS = builder
+            .comment("How near a player holds (and resets) a bait's settling, in blocks. Wildlife will not",
+                     "come while watched, so you must step away.")
+            .defineInRange("animalBaitPlayerRadius", 16.0, 1.0, 128.0);
+        ANIMAL_BAIT_SPACING = builder
+            .comment("Minimum distance between working baits, in blocks - they do not stack up a spot.")
+            .defineInRange("animalBaitSpacing", 8, 1, 64);
         builder.pop();
 
         builder.push("storage");

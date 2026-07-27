@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBinBlock;
+import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
@@ -56,5 +57,6 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostCageBlock.class);
         registration.registerBlockComponent(TreeNurseryProvider.INSTANCE, TreeNurseryCoreBlock.class);
         registration.registerBlockComponent(TreeNurseryProvider.INSTANCE, TreeNurseryTankBlock.class);
+        registration.registerBlockComponent(AnimalBaitProvider.INSTANCE, AnimalBaitBlock.class);
     }
 }
