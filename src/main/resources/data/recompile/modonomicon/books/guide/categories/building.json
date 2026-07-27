@@ -1,0 +1,13 @@
+{
+  "name": "book.recompile.guide.category.building",
+  "icon": {
+    "id": "recompile:pressed_junk_block"
+  },
+  "sort_number": 900,
+  "background": "modonomicon:textures/gui/dark_slate_seamless.png",
+  "background_width": 512,
+  "background_height": 512,
+  "max_scroll_x": 512,
+  "max_scroll_y": 512,
+  "show_category_button": true
+}

@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:collectibles/pedestal",
+  "category": "recompile:collectibles",
+  "name": "book.recompile.guide.collectibles.pedestal.name",
+  "icon": {
+    "id": "recompile:display_pedestal"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 0
+}

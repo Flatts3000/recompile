@@ -1,0 +1,13 @@
+{
+  "name": "book.recompile.guide.category.water",
+  "icon": {
+    "id": "recompile:rain_collector"
+  },
+  "sort_number": 1000,
+  "background": "modonomicon:textures/gui/dark_slate_seamless.png",
+  "background_width": 512,
+  "background_height": 512,
+  "max_scroll_x": 512,
+  "max_scroll_y": 512,
+  "show_category_button": true
+}

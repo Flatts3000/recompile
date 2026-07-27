@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "farmland",
+  "sort_number": 1,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.reclamation.encroachment.farmland.text",
+  "title": "book.recompile.guide.reclamation.encroachment.farmland.title"
+}

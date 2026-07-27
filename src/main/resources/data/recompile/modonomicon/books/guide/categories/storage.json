@@ -1,0 +1,13 @@
+{
+  "name": "book.recompile.guide.category.storage",
+  "icon": {
+    "id": "recompile:scrap_barrel"
+  },
+  "sort_number": 500,
+  "background": "modonomicon:textures/gui/dark_slate_seamless.png",
+  "background_width": 512,
+  "background_height": 512,
+  "max_scroll_x": 512,
+  "max_scroll_y": 512,
+  "show_category_button": true
+}

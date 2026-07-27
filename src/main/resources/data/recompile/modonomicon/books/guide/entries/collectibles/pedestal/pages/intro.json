@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "intro",
+  "sort_number": 0,
+  "item": "recompile:display_pedestal",
+  "title": "book.recompile.guide.collectibles.pedestal.intro.title",
+  "text": "book.recompile.guide.collectibles.pedestal.intro.text"
+}

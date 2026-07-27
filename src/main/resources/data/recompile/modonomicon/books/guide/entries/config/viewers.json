@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:config/viewers",
+  "category": "recompile:config",
+  "name": "book.recompile.guide.config.viewers.name",
+  "icon": {
+    "id": "recompile:scrap_knife"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 1,
+  "y": 0
+}

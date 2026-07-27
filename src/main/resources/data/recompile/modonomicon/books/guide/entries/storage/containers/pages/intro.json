@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "intro",
+  "sort_number": 0,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.storage.containers.intro.text",
+  "title": "book.recompile.guide.storage.containers.intro.title"
+}

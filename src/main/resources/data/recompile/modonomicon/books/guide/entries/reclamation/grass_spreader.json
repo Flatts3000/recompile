@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:reclamation/grass_spreader",
+  "category": "recompile:reclamation",
+  "name": "book.recompile.guide.reclamation.grass_spreader.name",
+  "icon": {
+    "id": "recompile:grass_spreader"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 1,
+  "y": 0
+}
