@@ -1,1 +1,1 @@
-{ "type":"minecraft:crafting_shapeless","ingredients":["minecraft:wheat","minecraft:wheat","minecraft:wheat_seeds"],"result":{"id":"recompile:herbivore_bait"} }
+{ "type":"minecraft:crafting_shapeless","ingredients":["minecraft:apple","minecraft:wheat","minecraft:wheat"],"result":{"id":"recompile:herbivore_bait"} }

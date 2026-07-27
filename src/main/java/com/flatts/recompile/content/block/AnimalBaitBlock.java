@@ -187,7 +187,8 @@ public class AnimalBaitBlock extends Block {
         int total = 0;
         for (var holder : tag.get()) {
             EntityType<?> type = holder.value();
-            int weight = 2 + (AFFINITY.getOrDefault(type, Terrain.NONE) == dominant ? 5 : 0);
+            int weight = WEIGHT.getOrDefault(type, DEFAULT_WEIGHT)
+                + (AFFINITY.getOrDefault(type, Terrain.NONE) == dominant ? TERRAIN_BONUS : 0);
             types.add(type);
             weights.add(weight);
             total += weight;
@@ -230,25 +231,6 @@ public class AnimalBaitBlock extends Block {
         return Terrain.GRASS;
     }
 
-    /** The single highest-weighted mob for the current terrain - what Jade shows as "expecting". Deterministic. */
-    public static @Nullable EntityType<?> mostLikely(net.minecraft.world.level.LevelReader level, BlockPos pos, Diet diet) {
-        java.util.Optional<HolderSet.Named<EntityType<?>>> tag = BuiltInRegistries.ENTITY_TYPE.get(diet.tag());
-        if (tag.isEmpty() || tag.get().size() == 0) {
-            return null;
-        }
-        Terrain dominant = scan(level, pos);
-        EntityType<?> best = null;
-        int bestWeight = -1;
-        for (var holder : tag.get()) {
-            int weight = 2 + (AFFINITY.getOrDefault(holder.value(), Terrain.NONE) == dominant ? 5 : 0);
-            if (weight > bestWeight) {
-                bestWeight = weight;
-                best = holder.value();
-            }
-        }
-        return best;
-    }
-
     // ---------------- gates ----------------
 
     public static boolean onGrass(BlockGetter level, BlockPos pos) {
@@ -260,15 +242,25 @@ public class AnimalBaitBlock extends Block {
         return level.hasNearbyAlivePlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, r);
     }
 
+    /**
+     * Whether this bait is crowded out - i.e. it should hold rather than settle because a nearby bait
+     * has priority. It yields only to a bait that sorts <b>earlier</b> by position (a deterministic total
+     * order), so in any cluster exactly one bait - the earliest - is never crowded and settles; when it
+     * fires and is gone, the next-earliest takes over. That resolves a cluster one at a time instead of
+     * deadlocking it (every bait blocking every other, so none ever fire).
+     */
     public static boolean baitNear(Level level, BlockPos pos) {
         int r = RCConfig.ANIMAL_BAIT_SPACING.get();
+        long self = pos.asLong();
         for (int dx = -r; dx <= r; dx++) {
             for (int dz = -r; dz <= r; dz++) {
                 for (int dy = -2; dy <= 2; dy++) {
                     if (dx == 0 && dy == 0 && dz == 0) {
                         continue;
                     }
-                    if (level.getBlockState(pos.offset(dx, dy, dz)).getBlock() instanceof AnimalBaitBlock) {
+                    BlockPos other = pos.offset(dx, dy, dz);
+                    if (level.getBlockState(other).getBlock() instanceof AnimalBaitBlock
+                            && other.asLong() < self) {
                         return true;
                     }
                 }
@@ -354,5 +346,33 @@ public class AnimalBaitBlock extends Block {
         Map.entry(EntityType.FOX, Terrain.LEAVES),
         Map.entry(EntityType.PARROT, Terrain.LEAVES),
         Map.entry(EntityType.OCELOT, Terrain.LEAVES)
+    );
+
+    private static final int DEFAULT_WEIGHT = 5;
+    private static final int TERRAIN_BONUS = 5;
+
+    /**
+     * Per-mob base spawn weight: common farm animals turn up far more often than rare or special ones
+     * (a bait finds a cow long before a Sniffer). Terrain affinity ({@link #TERRAIN_BONUS}) adds on top.
+     * Unlisted / pack-added mobs get {@link #DEFAULT_WEIGHT}. Data-driven weights are a follow-up; this
+     * is the shippable default.
+     */
+    private static final Map<EntityType<?>, Integer> WEIGHT = Map.ofEntries(
+        Map.entry(EntityType.COW, 10),
+        Map.entry(EntityType.SHEEP, 10),
+        Map.entry(EntityType.RABBIT, 8),
+        Map.entry(EntityType.HORSE, 5),
+        Map.entry(EntityType.DONKEY, 3),
+        Map.entry(EntityType.MULE, 2),
+        Map.entry(EntityType.CAMEL, 3),
+        Map.entry(EntityType.MOOSHROOM, 1),
+        Map.entry(EntityType.SNIFFER, 1),
+        Map.entry(EntityType.CAT, 8),
+        Map.entry(EntityType.FOX, 8),
+        Map.entry(EntityType.OCELOT, 4),
+        Map.entry(EntityType.ARMADILLO, 3),
+        Map.entry(EntityType.CHICKEN, 10),
+        Map.entry(EntityType.PIG, 10),
+        Map.entry(EntityType.PARROT, 4)
     );
 }

@@ -1,1 +1,1 @@
-{ "type":"minecraft:crafting_shapeless","ingredients":["recompile:carnivore_bait","minecraft:beef"],"result":{"id":"recompile:rich_carnivore_bait"} }
+{ "type":"minecraft:crafting_shapeless","ingredients":["recompile:carnivore_bait","recompile:carnivore_bait"],"result":{"id":"recompile:rich_carnivore_bait"} }

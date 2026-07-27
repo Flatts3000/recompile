@@ -32,6 +32,7 @@
   "tooltip.recompile.animal_bait.diet.carnivore": "Attracts hunters.",
   "tooltip.recompile.animal_bait.diet.omnivore": "Attracts mixed feeders.",
   "tooltip.recompile.animal_bait.rich": "Rich: brings a bonded pair.",
+  "jade.recompile.bait_disabled": "Disabled in the config",
   "jade.recompile.bait_no_grass": "Needs grass beneath it",
   "jade.recompile.bait_crowded": "Too close to another bait",
   "jade.recompile.bait_waiting": "Waiting - step away",

@@ -1,0 +1,9 @@
+{
+  "textures": { "all": "recompile:block/animal_bait_omnivore", "particle": "recompile:block/animal_bait_omnivore" },
+  "elements": [
+    { "from": [2,0,2], "to": [14,2,14], "faces": {
+      "down": {"texture":"#all","cullface":"down"}, "up": {"texture":"#all"},
+      "north":{"texture":"#all"},"south":{"texture":"#all"},"west":{"texture":"#all"},"east":{"texture":"#all"}
+    }}
+  ]
+}

@@ -89,15 +89,25 @@ final class AnimalBaitTests {
             Outcome outcome = AnimalBaitBlock.settleOnce(helper.getLevel(), abs);
             helper.assertTrue(outcome == Outcome.PLAYER_NEAR, "a nearby player must hold settling, got " + outcome);
             helper.assertTrue(baitStillThere(helper, abs), "the bait must not fire with a player near");
+            // Discard the mock player before finishing: gametest plots sit within one player-radius of
+            // each other, and a lingering alive player would trip PLAYER_NEAR on a neighbouring plot's
+            // bait (the spacing test in particular). discard() flips isAlive() off synchronously, so the
+            // next test body in plot order no longer sees it.
+            player.discard();
             helper.succeed();
         });
 
-        // Two baits too close: the second cannot settle.
-        RCGameTests.test("animal_bait_spacing_blocks_settling", 40, helper -> {
+        // Two baits too close resolve one at a time (no deadlock): the earlier-sorted bait wins and
+        // settles; the later one yields. BAIT (2,2,2) sorts before (4,2,2), so BAIT is the winner.
+        RCGameTests.test("animal_bait_spacing_resolves_a_cluster", 40, helper -> {
             placeBait(helper, BAIT, Diet.HERBIVORE, false);
             placeBait(helper, BAIT.offset(2, 0, 0), Diet.HERBIVORE, false);
-            Outcome outcome = AnimalBaitBlock.settleOnce(helper.getLevel(), helper.absolutePos(BAIT));
-            helper.assertTrue(outcome == Outcome.CROWDED, "a nearby bait must block settling, got " + outcome);
+            ServerLevel level = helper.getLevel();
+            Outcome later = AnimalBaitBlock.settleOnce(level, helper.absolutePos(BAIT.offset(2, 0, 0)));
+            helper.assertTrue(later == Outcome.CROWDED, "the later bait must yield, got " + later);
+            Outcome earlier = AnimalBaitBlock.settleOnce(level, helper.absolutePos(BAIT));
+            helper.assertTrue(earlier == Outcome.SETTLING,
+                "the earlier bait must still settle (no deadlock), got " + earlier);
             helper.succeed();
         });
 

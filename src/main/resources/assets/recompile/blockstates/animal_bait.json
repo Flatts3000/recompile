@@ -1,1 +1,7 @@
-{ "variants": { "": { "model": "recompile:block/animal_bait" } } }
+{
+  "variants": {
+    "diet=herbivore": { "model": "recompile:block/animal_bait_herbivore" },
+    "diet=carnivore": { "model": "recompile:block/animal_bait_carnivore" },
+    "diet=omnivore": { "model": "recompile:block/animal_bait_omnivore" }
+  }
+}
