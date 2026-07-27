@@ -56,23 +56,40 @@ that a rung-1 grass edge could be anchored with a nursery tree without building 
 
 ---
 
-## Structure - the multiblock
+## Structure - a 2x2x1 wall (Jason, this session)
 
-Reuses the shipped framework (`multiblock_system_spec.md`) and the Grass Spreader's parts vocabulary.
-**Minimal blueprint** - core + an inert tank cell + a frame, nothing art-heavy:
+A **wall: 2 wide, 2 tall, 1 deep** (4 blocks). Bottom row is the core and the water tank; the top row
+is two solar panels. Reuses the shipped framework (`multiblock_system_spec.md`) and the Grass
+Spreader's exact parts - Water Tank and Solar Panel, both already inert no-op decorators - so **no new
+component art and no Machine Frame** in this machine.
 
-| Cell | You place | Formed as | Notes |
+```
+[Solar] [Solar]      top row  (y = 1)
+[Core ] [Tank ]      bottom   (y = 0)
+```
+
+| Offset (x,y,z) | You place | Formed as | Notes |
 |---|---|---|---|
-| 0 (core) | *(the core itself)* | **Tree Nursery Core** | The master. Holds the BE (water tank, slots, species, output) and opens the GUI. Its own texture. |
-| tank | **Water Tank** | *unchanged* | **Inert** - the shared `water_tank` dummy, reused as-is. Holds no fluid; it is decoration and structure. The **core** stores and accepts the water. |
-| frame | **Machine Frame** | **nursery frame** (or unchanged) | Shared component. Gives the machine bulk so it reads as a nursery bench, not a single block. |
+| (0,0,0) core | *(the core itself)* | **Tree Nursery Core** | The master, bottom row. Holds the BE (water tank, slots, species, output), opens the GUI, and accepts the bucket. Its own texture. |
+| (1,0,0) | **Water Tank** | *unchanged* | Bottom, beside the core. **Inert** - the shared `water_tank` dummy, reused as-is; holds no fluid. The **core** stores and accepts the water. |
+| (0,1,0) | **Solar Panel** | *unchanged* | Top, above the core. Shared inert no-op decorator (craftable + dummy), same as the Grass Spreader's cap. |
+| (1,1,0) | **Solar Panel** | *unchanged* | Top, above the tank. |
 
-Exact offsets settle in-world (start with the tank beside the core and the frame above, adjust for
-silhouette). Auto-assembles from inventory when you place the core carrying the parts; sneak-place
-gives a bare core; breaking any cell disbands and returns every part (the framework handles all of
-this). Same "no BlockEntity for the structure" rule - `FORMED` is blockstate; the BE holds only the
-machine's *contents* (water, items, species), which is the sanctioned exception the Rain Collector
-and Scrap Barrel already sit on.
+Auto-assembles from **1 Water Tank + 2 Solar Panels** carried in inventory when you place the core;
+sneak-place gives a bare core; breaking any cell disbands and returns every part (the framework
+handles all of this). Same "no BlockEntity for the structure" rule - `FORMED` is blockstate; the BE
+holds only the machine's *contents* (water, items, species), the sanctioned exception the Rain
+Collector and Scrap Barrel already sit on.
+
+**Facing:** the wall is flat (1 deep), so unlike the rotation-invariant towers it has a front. Give
+the core `HORIZONTAL_FACING` and a `rotationFor` so the blueprint builds relative to the player and
+the GUI face reads front-on (the framework already rotates blueprints per `rotationFor`; the
+Workstation was the first directional user). The "wide" axis is the core's left-right; "deep" (1) is
+front-back.
+
+**Solar panels are inert.** Two on top read as "this machine is powered", but per P3.5 (no RF before
+the Nether) they do **not** generate or gate power - the nursery runs on its inputs, not on daylight.
+Same standing rule the Grass Spreader's panel follows.
 
 **Why the tank is inert and the core holds the water** (Jason, this session). One BE, no new
 fluid-storage block. The core carries a water-only `FluidStacksResourceHandler` (the Rain Collector's
@@ -181,10 +198,12 @@ item.
 | BE `tree_nursery` | BlockEntity | Water tank (`FluidStacksResourceHandler`, water-only) + Fertilizer/Seedling/output slots + selected-species field + cook progress. Save/load via `ValueOutput`/`ValueInput` (Scrap Barrel pattern). |
 | `TreeNurseryMenu` | menu | Custom `MenuType` in `RCMenus`. |
 | `TreeNurseryScreen` | screen | Registered in `RCMenuScreens`, client-only. |
-| `tree_nursery_frame` | dummy, optional | If the frame cell needs a distinct formed look; else reuse Machine Frame unchanged. |
 | `minecraft:bucket` | vanilla item | New copper crafting recipe only - no new item. |
-| `water_tank` | existing shared dummy | **Reused inert**, no change. |
-| `machine_frame` | existing shared component | Reused. |
+| `water_tank` | existing shared dummy | **Reused inert** (bottom cell), no change. |
+| `solar_panel` | existing shared component | **Reused** for both top cells, no change. |
+
+No Machine Frame and no new component blocks - the wall is core + Water Tank + 2 Solar Panels, all
+existing.
 
 No new sapling items in the default plan (vanilla saplings are the output). The custom gated-sapling
 lives only in the alternative branch of the open question above.
@@ -203,8 +222,8 @@ lives only in the alternative branch of the open question above.
     exact shape with the other machines).
   - **Bucket** - `C C / _C_` copper ingots (above).
   - Fertilizer, Unknown Seedling - already ship from the Compost Heap; no change.
-- **Loot:** core drops itself; the tank/frame cells disband-return their components (check the loot
-  table returns the placed component, per the "formed cell must drop what you placed" trap).
+- **Loot:** core drops itself; the tank and both solar cells disband-return their components (Water
+  Tank / Solar Panel) - they are unchanged cells, so their existing loot tables already do this.
 - **Tags:** `#recompile:scrap_connectable`? No - the nursery is a reclamation machine, not a
   scrap-network member. Leave it off the network tag.
 - **Lang** for the block, the GUI title, and any species-button tooltips.
@@ -218,7 +237,7 @@ Lean on vanilla + existing, per the strategy that carried the other machines:
 - **Core** - bespoke, iterated in-world (no real-world reference for "garbage-world tree nursery";
   start from a planter/bench silhouette). Must not reuse the collector or spreader palette.
 - **Tank cell** - the shipped `water_tank` model, unchanged.
-- **Frame** - Machine Frame, or a light reskin if the formed look needs it.
+- **Solar panels** - the shipped `solar_panel` model, unchanged (two on top).
 - **GUI background** - a bespoke 176-wide panel following the Scrap Crafting Station's texture layout
   (slots + picker row + water gauge + arrow).
 - **Bucket** - vanilla icon (copper reskin deferred).
