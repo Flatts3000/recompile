@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "modonomicon"
+    }
+  ],
+  "ingredients": [
+    "recompile:e_scrap",
+    "recompile:fiber_scrap"
+  ],
+  "result": {
+    "id": "modonomicon:modonomicon",
+    "count": 1,
+    "components": {
+      "modonomicon:book_id": "recompile:guide"
+    }
+  }
+}

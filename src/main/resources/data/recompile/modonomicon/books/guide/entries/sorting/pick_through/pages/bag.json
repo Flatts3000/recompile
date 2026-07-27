@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "bag",
+  "sort_number": 1,
+  "item": "recompile:trash_bag",
+  "title": "book.recompile.guide.sorting.pick_through.bag.title",
+  "text": "book.recompile.guide.sorting.pick_through.bag.text"
+}

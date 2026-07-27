@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:building/families",
+  "category": "recompile:building",
+  "name": "book.recompile.guide.building.families.name",
+  "icon": {
+    "id": "recompile:pressed_junk_block"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 0,
+  "y": 0
+}

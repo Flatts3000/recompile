@@ -76,6 +76,13 @@ repositories {
         url = 'https://api.modrinth.com/maven'
         content { includeGroup 'maven.modrinth' }
     }
+    // Modonomicon (the in-game guidebook engine) - klikli-dev's Cloudsmith maven.
+    // Scoped to the one group so it never shadows others.
+    maven {
+        name = 'Cloudsmith klikli-dev'
+        url = 'https://dl.cloudsmith.io/public/klikli-dev/mods/maven/'
+        content { includeGroup 'com.klikli_dev' }
+    }
 }
 
 dependencies {
@@ -91,6 +98,14 @@ dependencies {
     // so the same coordinate serves compile and runtime.
     compileOnly "maven.modrinth:jade:gWlwZzoj"
     runtimeOnly "maven.modrinth:jade:gWlwZzoj"
+
+    // Modonomicon (modid `modonomicon`) - the in-game guidebook engine. runtimeOnly
+    // ONLY and NOT bundled in the published jar: the guide (book id `recompile:guide`)
+    // is pure datapack data under data/recompile/modonomicon/books/guide/, with no
+    // compile-time reference. Pulled into dev runs so runClient renders the book; the
+    // book is inert data when the engine is absent (soft-dep). { transitive = false }
+    // keeps Modonomicon's own deps out of our graph - it brings them itself at runtime.
+    runtimeOnly("com.klikli_dev:modonomicon-26.1.2-neoforge:2.1.0") { transitive = false }
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'

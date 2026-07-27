@@ -1,0 +1,9 @@
+{
+  "name": "book.recompile.guide.name",
+  "tooltip": "book.recompile.guide.tooltip",
+  "generate_book_item": true,
+  "model": "modonomicon:modonomicon_green",
+  "display_mode": "node",
+  "page_display_mode": "double_page",
+  "creative_tab": "recompile:recompile"
+}

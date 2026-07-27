@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:reclamation/vegetation",
+  "category": "recompile:reclamation",
+  "name": "book.recompile.guide.reclamation.vegetation.name",
+  "icon": {
+    "id": "recompile:weedgrass"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 0
+}
