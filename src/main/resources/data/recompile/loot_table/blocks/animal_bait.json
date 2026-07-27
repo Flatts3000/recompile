@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "recompile:herbivore_bait",
+              "conditions": [ { "condition": "minecraft:block_state_property", "block": "recompile:animal_bait", "properties": { "diet": "herbivore" } } ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "recompile:carnivore_bait",
+              "conditions": [ { "condition": "minecraft:block_state_property", "block": "recompile:animal_bait", "properties": { "diet": "carnivore" } } ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "recompile:omnivore_bait"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

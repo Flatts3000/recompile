@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
+import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.DisplayPedestalBlock;
@@ -390,6 +391,22 @@ public final class RCBlocks {
             .sound(SoundType.GRAVEL)
             // The grow-light glows while a sapling is cooking - light 13, like a lit furnace / Burn Barrel.
             .lightLevel(state -> state.getValue(TreeNurseryCoreBlock.ACTIVE) ? 13 : 0)
+    );
+
+    /**
+     * Animal bait (reclamation rung 5): a flat lure placed on healed grass. Settles undisturbed, then
+     * spawns wildlife from its diet tag and consumes itself. A no-collision plate; its item forms are the
+     * three (six with Rich) {@code AnimalBaitItem}s in RCItems, so no auto block-item here.
+     */
+    public static final DeferredBlock<AnimalBaitBlock> ANIMAL_BAIT = BLOCKS.registerBlock(
+        "animal_bait",
+        AnimalBaitBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.PLANT)
+            .strength(0.2F)
+            .sound(SoundType.GRASS)
+            .noCollision()
+            .instabreak()
     );
 
     /** The Tree Nursery's formed water-tank cell: a full block clad in the machine's panels. A dummy. */
