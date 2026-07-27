@@ -1,8 +1,0 @@
-{
-  "type": "modonomicon:text",
-  "id": "intro",
-  "sort_number": 0,
-  "show_title_separator": true,
-  "text": "book.recompile.guide.config.viewers.intro.text",
-  "title": "book.recompile.guide.config.viewers.intro.title"
-}

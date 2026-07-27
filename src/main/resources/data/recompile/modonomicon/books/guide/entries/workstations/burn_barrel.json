@@ -1,16 +1,16 @@
 {
   "type": "modonomicon:content",
-  "id": "recompile:reclamation/saplings",
-  "category": "recompile:reclamation",
-  "name": "book.recompile.guide.reclamation.saplings.name",
+  "id": "recompile:workstations/burn_barrel",
+  "category": "recompile:workstations",
+  "name": "book.recompile.guide.workstations.burn_barrel.name",
   "icon": {
-    "id": "minecraft:oak_sapling"
+    "id": "recompile:burn_barrel"
   },
   "background": {
     "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
     "width": 26,
     "height": 26
   },
-  "x": 2,
+  "x": 1,
   "y": 1
 }

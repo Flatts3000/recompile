@@ -3,7 +3,7 @@
   "icon": {
     "id": "recompile:prybar"
   },
-  "sort_number": 200,
+  "sort_number": 100,
   "background": "modonomicon:textures/gui/dark_slate_seamless.png",
   "background_width": 512,
   "background_height": 512,

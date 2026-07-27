@@ -1,8 +1,0 @@
-{
-  "type": "modonomicon:spotlight",
-  "id": "intro",
-  "sort_number": 0,
-  "item": "recompile:sorting_tarp",
-  "title": "book.recompile.guide.sorting.tarp.intro.title",
-  "text": "book.recompile.guide.sorting.tarp.intro.text"
-}

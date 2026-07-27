@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "mushroom",
+  "sort_number": 1,
+  "item": "recompile:dump_mushroom",
+  "title": "book.recompile.guide.survival.food.mushroom.title",
+  "text": "book.recompile.guide.survival.food.mushroom.text"
+}

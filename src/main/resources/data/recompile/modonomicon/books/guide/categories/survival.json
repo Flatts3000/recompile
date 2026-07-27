@@ -1,9 +1,9 @@
 {
-  "name": "book.recompile.guide.category.reclamation",
+  "name": "book.recompile.guide.category.survival",
   "icon": {
-    "id": "recompile:fertilizer"
+    "id": "recompile:tin_can"
   },
-  "sort_number": 400,
+  "sort_number": 300,
   "background": "modonomicon:textures/gui/dark_slate_seamless.png",
   "background_width": 512,
   "background_height": 512,

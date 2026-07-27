@@ -99,17 +99,24 @@ dependencies {
     compileOnly "maven.modrinth:jade:gWlwZzoj"
     runtimeOnly "maven.modrinth:jade:gWlwZzoj"
 
-    // Modonomicon (modid `modonomicon`) - the in-game guidebook engine. runtimeOnly
-    // ONLY and NOT bundled in the published jar: the guide (book id `recompile:guide`)
-    // is pure datapack data under data/recompile/modonomicon/books/guide/, with no
-    // compile-time reference. Pulled into dev runs so runClient renders the book; the
-    // book is inert data when the engine is absent (soft-dep). { transitive = false }
-    // keeps Modonomicon's own deps out of our graph - it brings them itself at runtime.
-    runtimeOnly("com.klikli_dev:modonomicon-26.1.2-neoforge:2.1.0") { transitive = false }
-
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Modonomicon (the in-game guidebook engine) - client-render-only, added to every run
+// EXCEPT the headless gameTestServer. Loaded there, its book-data sync fires on player
+// events and throws "sync_book_data may not be sent to the client" (a dedicated test
+// server has no client to receive it), which flakily fails player-spawning GameTests.
+// runClient still gets it so the book renders; the book is inert datapack data when the
+// engine is absent, and the guide recipe is gated `mod_loaded: modonomicon`. runtimeOnly
+// only, so it is never bundled in the published jar. { transitive = false } keeps
+// Modonomicon's own deps out of our graph.
+boolean isGameTest = gradle.startParameter.taskNames.any { it.toLowerCase().contains('gametest') }
+if (!isGameTest) {
+    dependencies {
+        runtimeOnly("com.klikli_dev:modonomicon-26.1.2-neoforge:2.1.0") { transitive = false }
+    }
 }
 
 tasks.named('test', Test) {

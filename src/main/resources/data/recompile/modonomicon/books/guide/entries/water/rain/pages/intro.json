@@ -1,8 +1,0 @@
-{
-  "type": "modonomicon:spotlight",
-  "id": "intro",
-  "sort_number": 0,
-  "item": "recompile:rain_collector",
-  "title": "book.recompile.guide.water.rain.intro.title",
-  "text": "book.recompile.guide.water.rain.intro.text"
-}

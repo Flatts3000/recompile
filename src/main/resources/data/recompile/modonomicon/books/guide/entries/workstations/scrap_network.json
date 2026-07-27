@@ -1,10 +1,10 @@
 {
   "type": "modonomicon:content",
-  "id": "recompile:reclamation/saplings",
-  "category": "recompile:reclamation",
-  "name": "book.recompile.guide.reclamation.saplings.name",
+  "id": "recompile:workstations/scrap_network",
+  "category": "recompile:workstations",
+  "name": "book.recompile.guide.workstations.scrap_network.name",
   "icon": {
-    "id": "minecraft:oak_sapling"
+    "id": "recompile:scrap_bin"
   },
   "background": {
     "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",

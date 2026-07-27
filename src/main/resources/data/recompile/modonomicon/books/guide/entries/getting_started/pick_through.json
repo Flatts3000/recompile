@@ -1,16 +1,16 @@
 {
   "type": "modonomicon:content",
-  "id": "recompile:reclamation/vegetation",
-  "category": "recompile:reclamation",
-  "name": "book.recompile.guide.reclamation.vegetation.name",
+  "id": "recompile:getting_started/pick_through",
+  "category": "recompile:getting_started",
+  "name": "book.recompile.guide.getting_started.pick_through.name",
   "icon": {
-    "id": "recompile:weedgrass"
+    "id": "recompile:garbage_block"
   },
   "background": {
     "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
     "width": 26,
     "height": 26
   },
-  "x": 3,
+  "x": 1,
   "y": 0
 }
