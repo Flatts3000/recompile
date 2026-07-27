@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
@@ -19,6 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
@@ -146,7 +148,14 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
         if (!RCConfig.TREE_NURSERY_ENABLED.get()) {
             return;
         }
-        if (be.produceTick()) {
+        boolean changed = be.produceTick();
+        // Mirror "is cooking" onto the ACTIVE blockstate so the front lights up + the machine glows.
+        boolean active = be.cookProgress > 0;
+        if (state.hasProperty(TreeNurseryCoreBlock.ACTIVE)
+                && state.getValue(TreeNurseryCoreBlock.ACTIVE) != active) {
+            level.setBlock(pos, state.setValue(TreeNurseryCoreBlock.ACTIVE, active), Block.UPDATE_ALL);
+        }
+        if (changed) {
             be.setChanged();
         }
     }
@@ -337,9 +346,29 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
         }
     }
 
-    /** Test seam: current stored water, mB. */
+    /** Current stored water, mB. */
     public int waterStored() {
         return tank.getAmountAsInt(0);
+    }
+
+    /** The water tank's capacity, mB (for the GUI gauge and Jade). */
+    public int waterCapacity() {
+        return tankCapacity();
+    }
+
+    /** Current cook progress, ticks (0 = idle). */
+    public int cookProgress() {
+        return cookProgress;
+    }
+
+    /** Ticks for a full cook (one sapling). */
+    public int cookTotal() {
+        return cookTicks();
+    }
+
+    /** The selected species index. */
+    public int selectedSpecies() {
+        return selectedSpecies;
     }
 
     /** Test seam: current cook progress, ticks. */

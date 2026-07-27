@@ -6,6 +6,8 @@ import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
+import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
@@ -37,6 +39,9 @@ public class RecompileJadePlugin implements IWailaPlugin {
         // The heap's layer state is on the core BE; the cage variant lets any hovered cell resolve it.
         registration.registerBlockDataProvider(CompostHeapDataProvider.INSTANCE, CompostHeapCoreBlock.class);
         registration.registerBlockDataProvider(CompostHeapDataProvider.INSTANCE, CompostCageBlock.class);
+        // The nursery's state is on the core BE; the clad tank cell lets a hovered tank resolve it too.
+        registration.registerBlockDataProvider(TreeNurseryDataProvider.INSTANCE, TreeNurseryCoreBlock.class);
+        registration.registerBlockDataProvider(TreeNurseryDataProvider.INSTANCE, TreeNurseryTankBlock.class);
     }
 
     @Override
@@ -49,5 +54,7 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(ScrapBinProvider.INSTANCE, ScrapBinBlock.class);
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostHeapCoreBlock.class);
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostCageBlock.class);
+        registration.registerBlockComponent(TreeNurseryProvider.INSTANCE, TreeNurseryCoreBlock.class);
+        registration.registerBlockComponent(TreeNurseryProvider.INSTANCE, TreeNurseryTankBlock.class);
     }
 }

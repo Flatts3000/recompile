@@ -4,6 +4,7 @@ import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
+import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.multiblock.Multiblock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import net.minecraft.core.BlockPos;
@@ -36,9 +37,9 @@ public enum MachineStatusProvider implements IBlockComponentProvider {
         }
         boolean formed = MultiblockCoreBlock.isFormed(accessor.getBlockState());
 
-        // The Compost Heap has its own status line (layers / ready) from CompostHeapProvider, so a bare
-        // "Running" here would just be noise above it. Still show "not built yet" + the missing part.
-        if (formed && core instanceof CompostHeapCoreBlock) {
+        // The Compost Heap and Tree Nursery each own a richer status line (from their own providers), so
+        // a bare "Running" here would just duplicate it. Still show "not built yet" + the missing part.
+        if (formed && (core instanceof CompostHeapCoreBlock || core instanceof TreeNurseryCoreBlock)) {
             return;
         }
 

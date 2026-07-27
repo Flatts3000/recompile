@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
@@ -53,11 +54,15 @@ public class TreeNurseryCoreBlock extends MultiblockCoreBlock implements EntityB
     /** The wall is flat, so it has a front - the face the player placed it looking at. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
+    /** Running: a sapling is cooking. Swaps the front to the lit grow-light texture and emits light. */
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+
     public TreeNurseryCoreBlock(Properties properties) {
         super(properties);
         registerDefaultState(this.stateDefinition.any()
             .setValue(FORMED, false)
-            .setValue(FACING, Direction.NORTH));
+            .setValue(FACING, Direction.NORTH)
+            .setValue(ACTIVE, false));
     }
 
     @Override
@@ -68,7 +73,7 @@ public class TreeNurseryCoreBlock extends MultiblockCoreBlock implements EntityB
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);   // FORMED
-        builder.add(FACING);
+        builder.add(FACING, ACTIVE);
     }
 
     @Override
@@ -87,13 +92,19 @@ public class TreeNurseryCoreBlock extends MultiblockCoreBlock implements EntityB
         };
     }
 
+    /** Preview footprint: the facing this core would take is the same one {@link #getStateForPlacement} sets. */
+    @Override
+    public Rotation placementRotation(Player player) {
+        return rotationFor(defaultBlockState().setValue(FACING, player.getDirection().getOpposite()));
+    }
+
     @Override
     protected Multiblock createBlueprint() {
         // A 2x2x1 wall: core at the origin, the inert Water Tank beside it, two Solar Panels on top.
         // Water Tank and Solar Panel are reused unchanged (component == formed), so the cells never
         // transform - the shared inert parts the Grass Spreader already uses.
         return new Multiblock(List.of(
-            new Multiblock.Cell(new Vec3i(1, 0, 0), RCBlocks.WATER_TANK.get(), RCBlocks.WATER_TANK.get()),
+            new Multiblock.Cell(new Vec3i(1, 0, 0), RCBlocks.WATER_TANK.get(), RCBlocks.TREE_NURSERY_TANK.get()),
             new Multiblock.Cell(new Vec3i(0, 1, 0), RCBlocks.SOLAR_PANEL.get(), RCBlocks.SOLAR_PANEL.get()),
             new Multiblock.Cell(new Vec3i(1, 1, 0), RCBlocks.SOLAR_PANEL.get(), RCBlocks.SOLAR_PANEL.get())
         ));

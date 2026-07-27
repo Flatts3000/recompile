@@ -1,8 +1,12 @@
 {
   "variants": {
-    "facing=north": { "model": "recompile:block/tree_nursery" },
-    "facing=east":  { "model": "recompile:block/tree_nursery", "y": 90 },
-    "facing=south": { "model": "recompile:block/tree_nursery", "y": 180 },
-    "facing=west":  { "model": "recompile:block/tree_nursery", "y": 270 }
+    "active=false,facing=north": { "model": "recompile:block/tree_nursery" },
+    "active=false,facing=east":  { "model": "recompile:block/tree_nursery", "y": 90 },
+    "active=false,facing=south": { "model": "recompile:block/tree_nursery", "y": 180 },
+    "active=false,facing=west":  { "model": "recompile:block/tree_nursery", "y": 270 },
+    "active=true,facing=north":  { "model": "recompile:block/tree_nursery_active" },
+    "active=true,facing=east":   { "model": "recompile:block/tree_nursery_active", "y": 90 },
+    "active=true,facing=south":  { "model": "recompile:block/tree_nursery_active", "y": 180 },
+    "active=true,facing=west":   { "model": "recompile:block/tree_nursery_active", "y": 270 }
   }
 }

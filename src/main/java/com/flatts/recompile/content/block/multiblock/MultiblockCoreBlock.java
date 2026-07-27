@@ -57,6 +57,16 @@ public abstract class MultiblockCoreBlock extends Block {
     }
 
     /**
+     * The rotation this core's blueprint would take if the given player placed it right now - so the
+     * placement preview's footprint matches where the machine will actually form. Default
+     * {@link Rotation#NONE} (the rotation-invariant towers); a facing machine overrides it from the
+     * direction it would face on placement.
+     */
+    public Rotation placementRotation(Player player) {
+        return Rotation.NONE;
+    }
+
+    /**
      * Called once, server-side, right after the machine assembles. Override to start work - a
      * machine that runs on scheduled ticks books its first one here, so an unformed core costs
      * nothing at all rather than polling to discover it is still unformed.
