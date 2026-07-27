@@ -142,6 +142,15 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("puzzle_cube", RCBlocks.PUZZLE_CUBE);
     public static final DeferredItem<BlockItem> PUZZLE_CUBE_SCRAMBLED =
         ITEMS.registerSimpleBlockItem("puzzle_cube_scrambled", RCBlocks.PUZZLE_CUBE_SCRAMBLED);
+    /** Collectibles ported from open-source CC0 3D models via the voxel porter. */
+    public static final DeferredItem<BlockItem> AVOCADO =
+        ITEMS.registerSimpleBlockItem("avocado", RCBlocks.AVOCADO);
+    public static final DeferredItem<BlockItem> PRESENT =
+        ITEMS.registerSimpleBlockItem("present", RCBlocks.PRESENT);
+    public static final DeferredItem<BlockItem> GOLD_COIN =
+        ITEMS.registerSimpleBlockItem("gold_coin", RCBlocks.GOLD_COIN);
+    public static final DeferredItem<BlockItem> TOY_CAR =
+        ITEMS.registerSimpleBlockItem("toy_car", RCBlocks.TOY_CAR);
 
     /** The collectible piece (item); the cube blocks are placed via their own block-items. */
     public static final List<DeferredItem<Item>> COLLECTIBLES = List.of(PUZZLE_CUBE_PIECE);

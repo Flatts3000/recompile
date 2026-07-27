@@ -6,9 +6,15 @@ found curios. "The world called this worthless and I proved it wrong," made disp
 
 ## What it is
 
-**Artifacts from points in time**, assembled from **thematic pieces** the player finds rare in the
-garbage. v1 ships one artifact, the **Puzzle Cube** (a twisty cube), as the reference implementation;
-the system is a data-driven catalog, so more are add-a-line.
+**Curios the player finds in the garbage and displays** - the WALL-E hoard. Two acquisition shapes:
+
+- **Assembled** - found as thematic **pieces** that craft into the finished artifact. The **Puzzle
+  Cube** (a twisty cube) is the reference: nine pieces fill the grid into the cube. Pieces are earned
+  only where assembly is the point.
+- **Found whole** - intact objects dug straight out of the pull streams and set on a pedestal. This is
+  how the **ported voxel collectibles** (below) work: a gold coin is not built from coin-shards.
+
+The system is a data-driven catalog either way, so more are add-a-line (or add-a-model).
 
 ## The Puzzle Cube (reference implementation)
 
@@ -36,6 +42,32 @@ the system is a data-driven catalog, so more are add-a-line.
 
 **Adding a collectible is data**: a piece item + a cube block (or two, if it has states) + a recipe +
 loot lines + face textures. Nothing hard-coded.
+
+## Ported collectibles (voxel-porter)
+
+Beyond hand-authored artifacts, collectibles can be **ported from open-source 3D models**. The
+**voxel-porter** (`../../mc-pack-toolkit/voxel-porter`) voxelizes a CC0/CC-BY model - mesh or `.vox` -
+to Minecraft's 16px grid, samples color per voxel, greedy-meshes it, and emits the block model, a
+generated palette texture, and every data file. Adding one is `voxel-porter emit <model> <id> <res>`,
+then register the block + lang + creative-tab line + one loot line.
+
+v1 ports four, all **CC0**: **avocado** (Khronos glTF sample), **present**, **gold coin**, and
+**toy car** (Kenney Holiday + Toy Car kits). Each is a placeable block that displays on a pedestal.
+
+**Acquisition - found whole, ~1-in-4000 per pull.** These are intact objects, so they drop complete
+from the same pick-through streams as cube pieces (`household_pulls` + `bag_pulls`), each in a
+dedicated empty-weighted pool at 1/4000 - a few times rarer than a Puzzle Cube piece (1/1000). No
+pieces, no recipe: the Puzzle Cube is the one artifact that earns an assembly step, because a puzzle
+is literally assembled. Pre-beta placeholder rate; tune the denominators after playtest.
+
+**What ports well:** simple, iconic, colorful objects whose identity survives 16px (a coin, an
+avocado). Detailed / grey / complex models mush at block scale - see the voxel-porter README.
+Licensing: **CC0 or CC-BY only**, generic names, attribution file for CC-BY.
+
+**Era artifacts, tried and dropped (2026-07-26):** an earlier pass hand-authored four blocky
+period-piece artifacts (obelisk, column, chalice, hourglass). They read as museum decor rather than
+desirable finds, so they were cut in favor of ported real objects. The lesson: a collectible is
+desirable when it is an iconic object you recognize, not a generic shape.
 
 ## Textures - procedural, not AI
 
@@ -81,5 +113,5 @@ The renderers are a client concern verified in `runClient`.
 
 ## v2 candidates
 
-More artifacts spanning eras (cassette, floppy disk, wind-up robot, rubber duck, ...); region-flavored
-piece rarity (Phase 4); a completion advancement per collectible and a collection view.
+More ported collectibles from CC0 kits; region-flavored drop rarity (Phase 4); a completion
+advancement per collectible and a collection view.
