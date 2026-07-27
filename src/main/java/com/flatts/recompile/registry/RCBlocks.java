@@ -191,6 +191,54 @@ public final class RCBlocks {
     );
 
     /**
+     * Avocado (Collectibles I-2): the first ported collectible - an open-source CC0 3D model
+     * (Khronos glTF sample) voxelized to Minecraft's 16px grid via the voxel porter. A per-voxel
+     * greedy-meshed model with a generated palette texture; not a full cube, so {@code noOcclusion()}.
+     */
+    public static final DeferredBlock<Block> AVOCADO = BLOCKS.registerBlock(
+        "avocado",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GREEN)
+            .strength(0.5F)
+            .sound(SoundType.WOOD)
+            .noOcclusion()
+    );
+
+    /** Present (Collectibles I-2): a wrapped gift box, ported CC0 model via the voxel porter. */
+    public static final DeferredBlock<Block> PRESENT = BLOCKS.registerBlock(
+        "present",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.SNOW)
+            .strength(0.3F)
+            .sound(SoundType.WOOL)
+            .noOcclusion()
+    );
+
+    /** Gold Coin (Collectibles I-2): a standing gold coin, ported CC0 model via the voxel porter. */
+    public static final DeferredBlock<Block> GOLD_COIN = BLOCKS.registerBlock(
+        "gold_coin",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.GOLD)
+            .strength(0.5F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /** Toy Car (Collectibles I-2): a die-cast vintage racer, ported CC0 model via the voxel porter. */
+    public static final DeferredBlock<Block> TOY_CAR = BLOCKS.registerBlock(
+        "toy_car",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_PURPLE)
+            .strength(0.5F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    /**
      * Burn Barrel (P2.2): the first smelter - a drum you burn refuse in. A vanilla-furnace reskin
      * that is manual-only (no automation). Glows and lights (13) while burning. Metal, full cube.
      */

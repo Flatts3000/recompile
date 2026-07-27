@@ -1,9 +1,9 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.12 shipped to `main` - the mod is a playable alpha, tuned against
-real play. Recent tiers: the **Burn Barrel** smelter (2.9), **encroachment** (2.10, the junkyard
-fights back), the **multiblock framework + Rain Collector** (2.11), and **reclamation rung 1, the
-Grass Spreader** (2.12, a drip irrigator, shipped 2026-07-24, #21). Phase 3's **materials teardown** (the
+**Status:** Phases 0 through 2.15 shipped to `main` - the mod is a playable alpha, tuned against
+real play. Recent tiers: the **multiblock framework + Rain Collector** (2.11), **reclamation rungs
+1-3** - the Grass Spreader, Vegetation, and Farming (2.12-2.14), and **Collectibles** (2.15, the
+Puzzle Cube + ported voxel curios on Display Pedestals). Phase 3's **materials teardown** (the
 Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis** is the next major decision
 and stays under review (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
 are ordered by
@@ -280,6 +280,19 @@ forage is renewable. Spec: [`farming_tier_spec.md`](farming_tier_spec.md).
 **Deferred with a home:** whole-plant farmables (sugar cane, bamboo, cactus, sweet berries) are held for
 a later **hydroponics** option rather than an in-ground source now - so this tier ships the six
 seed-crops only. The P1.9 scrap planter stays parked as an alternate grower.
+
+## Phase 2.15 - Collectibles  *(DONE 2026-07-26, design I-2)*
+
+Curios the player finds in the garbage and displays - the WALL-E hoard. Two acquisition shapes: the
+**Puzzle Cube** is *assembled* (nine found `puzzle_cube_piece` -> a solved/scrambled cube block, ~1/1000
+per pull for a piece, all nine in ~20h), and **ported voxel collectibles** are *found whole*. The latter
+come from the **voxel-porter** (`../mc-pack-toolkit/voxel-porter`): it voxelizes an open-source CC0 model
+(mesh or `.vox`) to Minecraft's 16px grid, samples per-voxel colour, greedy-meshes it, and emits the block
+model + palette texture + data files. v1 ports four CC0 objects - **avocado, present, gold_coin, toy_car** -
+each a rare whole find (~1/4000 per pull in `household_pulls`/`bag_pulls`, a few times rarer than a cube
+piece) that displays on the **Display Pedestal** (a ProjectE-style plinth, the mod's one BlockEntityRenderer).
+An earlier hand-authored **era-artifact** set (obelisk/column/chalice/hourglass) read as museum decor and was
+dropped for ported real objects. Spec: [`collectibles_spec.md`](collectibles_spec.md).
 
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 

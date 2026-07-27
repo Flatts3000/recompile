@@ -58,6 +58,10 @@ public final class RCCreativeTabs {
                     RCItems.COLLECTIBLES.forEach(collectible -> output.accept(collectible.get()));
                     output.accept(RCItems.PUZZLE_CUBE.get());
                     output.accept(RCItems.PUZZLE_CUBE_SCRAMBLED.get());
+                    output.accept(RCItems.AVOCADO.get());
+                    output.accept(RCItems.PRESENT.get());
+                    output.accept(RCItems.GOLD_COIN.get());
+                    output.accept(RCItems.TOY_CAR.get());
                 })
                 .build()
         );
