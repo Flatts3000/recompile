@@ -1,1 +1,8 @@
-{ "variants": { "": { "model": "recompile:block/tree_nursery" } } }
+{
+  "variants": {
+    "facing=north": { "model": "recompile:block/tree_nursery" },
+    "facing=east":  { "model": "recompile:block/tree_nursery", "y": 90 },
+    "facing=south": { "model": "recompile:block/tree_nursery", "y": 180 },
+    "facing=west":  { "model": "recompile:block/tree_nursery", "y": 270 }
+  }
+}

@@ -1,8 +1,12 @@
 {
-  "parent": "minecraft:block/cube_bottom_top",
+  "parent": "minecraft:block/cube",
   "textures": {
-    "top": "recompile:block/pressed_junk",
-    "bottom": "recompile:block/pressed_junk",
-    "side": "recompile:block/scrap_plating"
+    "particle": "recompile:block/tree_nursery_front",
+    "north": "recompile:block/tree_nursery_front",
+    "south": "recompile:block/tree_nursery_side",
+    "east": "recompile:block/tree_nursery_side",
+    "west": "recompile:block/tree_nursery_side",
+    "up": "recompile:block/tree_nursery_side",
+    "down": "recompile:block/tree_nursery_bottom"
   }
 }
