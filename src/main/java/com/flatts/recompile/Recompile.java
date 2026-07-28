@@ -1,6 +1,7 @@
 package com.flatts.recompile;
 
 import com.flatts.recompile.gametest.RCGameTests;
+import com.flatts.recompile.registry.RCBiomeSources;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCCreativeTabs;
@@ -43,6 +44,7 @@ public final class Recompile {
         RCMenus.register(modEventBus);
         RCCreativeTabs.register(modEventBus);
         RCFeatures.register(modEventBus);
+        RCBiomeSources.register(modEventBus);
 
         // The public data spine (P0.5). Registered from day one so the knowledge
         // axis (P1.4) is never retrofitted into a live schema.
