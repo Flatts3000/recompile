@@ -1,0 +1,12 @@
+{
+  "textures": { "steel": "minecraft:block/iron_block", "particle": "minecraft:block/iron_block" },
+  "elements": [
+    { "from": [5, 11, 5], "to": [11, 16, 11], "faces": {
+      "north": {"uv": [5,0,11,5], "texture": "#steel"},
+      "south": {"uv": [5,0,11,5], "texture": "#steel"},
+      "east":  {"uv": [5,0,11,5], "texture": "#steel"},
+      "west":  {"uv": [5,0,11,5], "texture": "#steel"},
+      "up":    {"uv": [5,5,11,11], "texture": "#steel"}
+    }}
+  ]
+}

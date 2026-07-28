@@ -12,7 +12,7 @@ import com.flatts.recompile.content.block.DisplayPedestalBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
-import net.minecraft.world.level.block.RotatedPillarBlock;
+import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.DumpPlantBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
@@ -110,13 +110,14 @@ public final class RCBlocks {
      * log). Solid, {@code requiresCorrectToolForDrops}, cut only by the Cutting Torch (not the sledgehammer -
      * you cut steel, not crush it). Its loot is raw iron in bulk; see {@code loot_table/blocks/steel_i_beam}.
      */
-    public static final DeferredBlock<RotatedPillarBlock> STEEL_I_BEAM = BLOCKS.registerBlock(
+    public static final DeferredBlock<SteelBeamBlock> STEEL_I_BEAM = BLOCKS.registerBlock(
         "steel_i_beam",
-        RotatedPillarBlock::new,
+        SteelBeamBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(3.0F, 6.0F)
             .requiresCorrectToolForDrops()
+            .noOcclusion()
             .sound(SoundType.METAL)
     );
 

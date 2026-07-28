@@ -13,6 +13,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -82,6 +83,19 @@ final class DemolitionYardTests {
                 "the sledgehammer must NOT cut steel (you crush concrete, you cut steel)");
             helper.assertFalse(ItemStack.EMPTY.isCorrectToolForDrops(state),
                 "a bare hand must not cut steel");
+            helper.succeed();
+        });
+
+        // Steel I-Beams auto-connect: placing a beam next to another updates that neighbour's connection
+        // toward it (the PipeBlock/updateShape path that assembles the frame).
+        RCGameTests.test("steel_i_beam_connects_to_neighbour", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos a = helper.absolutePos(new BlockPos(2, 2, 2));
+            BlockPos b = a.east();
+            level.setBlock(a, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+            level.setBlock(b, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+            helper.assertTrue(level.getBlockState(a).getValue(PipeBlock.EAST),
+                "a steel beam must auto-connect toward an adjacent beam");
             helper.succeed();
         });
     }
