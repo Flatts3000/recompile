@@ -12,9 +12,9 @@
             { "biome": "recompile:demolition_yard", "onset": 512 }
           ],
           "core_radius": 512,
-          "falloff": 2048.0,
-          "household_floor": 0.15,
-          "noise_scale": 0.0025
+          "falloff": 768.0,
+          "household_floor": 0.2,
+          "noise_scale": 0.5
         }
       }
     },

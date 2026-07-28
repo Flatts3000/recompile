@@ -37,7 +37,7 @@ final class RegionBiomeSourceTests {
 
             RegionBiomeSource source = new RegionBiomeSource(household,
                 List.of(new RegionBiomeSource.FrontierEntry(demolition, CORE_RADIUS)),
-                CORE_RADIUS, 2048.0F, 0.15F, 0.0025, 2611L);
+                CORE_RADIUS, 768.0F, 0.2F, 0.5, 2611L);
 
             boolean sawFrontier = false;
             // Quart coords: 1 quart = 4 blocks. Sweep out to 1600 blocks (400 quart) so the frontier is

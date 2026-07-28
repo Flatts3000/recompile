@@ -48,9 +48,12 @@ public class RegionBiomeSource extends BiomeSource {
         Biome.CODEC.fieldOf("household").forGetter(s -> s.household),
         FrontierEntry.CODEC.listOf().optionalFieldOf("frontier", List.of()).forGetter(s -> s.frontier),
         Codec.INT.optionalFieldOf("core_radius", 512).forGetter(s -> s.coreRadius),
-        Codec.FLOAT.optionalFieldOf("falloff", 2048.0F).forGetter(s -> s.falloff),
-        Codec.FLOAT.optionalFieldOf("household_floor", 0.15F).forGetter(s -> s.householdFloor),
-        Codec.DOUBLE.optionalFieldOf("noise_scale", 0.0025).forGetter(s -> s.noiseScale),
+        Codec.FLOAT.optionalFieldOf("falloff", 768.0F).forGetter(s -> s.falloff),
+        Codec.FLOAT.optionalFieldOf("household_floor", 0.2F).forGetter(s -> s.householdFloor),
+        // Blob size: features span roughly 128/noise_scale blocks (the first-octave wavelength over the
+        // coord scale). ~0.5 gives a few-hundred-block mix; tiny values give world-spanning blobs that
+        // collapse the gradient into visible concentric rings (the noise stops varying across the map).
+        Codec.DOUBLE.optionalFieldOf("noise_scale", 0.5).forGetter(s -> s.noiseScale),
         Codec.LONG.optionalFieldOf("seed", 2611L).forGetter(s -> s.seed)
     ).apply(inst, RegionBiomeSource::new));
 
