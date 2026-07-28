@@ -32,7 +32,10 @@ survival placement lands with #49.
 ### Loot (`loot_table/blocks/steel_i_beam.json`)
 - Drops **raw iron in bulk** - `minecraft:raw_iron`, uniform **2-4** (tune #36). This is the world's only
   `raw_iron` source (no mining), and it smelts to iron the vanilla way, so the Burn Barrel handles it now
-  and the Makeshift Forge (#50) automates it in bulk. Reusing `raw_iron` avoids a redundant "steel" item.
+  and the Makeshift Forge (#50) automates it in bulk.
+- **No dedicated steel output - the yield is iron** (owner call, 2026-07-28). A "steel ingot" tier is a
+  possible future consideration **if/when Mekanism is integrated** (it ships a steel tier); revisit then,
+  not now. Until then, "Steel I-Beam" is the block's flavour and the material it yields is iron.
 - No secondary pool for v1 (keep it clean); a rare bonus can join in the balance pass.
 
 ## 2. Cutting Torch (tool)
@@ -42,11 +45,12 @@ survival placement lands with #49.
   cutter, not a general tool, and **not** a tier ladder (single tool).
 - **Custom single `ToolMaterial` `TORCH_TIER`** (like the sledgehammer's `COPPER_TIER`): iron-ish mining
   level so it cuts steel, modest durability (the fuel tank, see below), repair via copper or iron ingots.
-- **Fuel model - durability for v1.** The torch's durability *is* its fuel tank: it cuts a bounded number
-  of beams, then is spent and re-crafted (which re-spends an Oily Rag). This keeps it a standard `Item`
-  with no event hooks or fuel-component plumbing. **Deferred alternative (#36 / follow-up):** consume an
-  Oily Rag from the inventory per cut (a `BlockEvent.BreakEvent`/`destroyBlock` hook), so the torch is
-  reusable and the sink is the rag, not the tool. Ship durability; note the hook path.
+- **Fuel model - durability for v1** (owner had no strong preference, 2026-07-28: ship the simple one). The
+  torch's durability *is* its fuel tank: it cuts a bounded number of beams, then is spent and re-crafted
+  (which re-spends an Oily Rag). This keeps it a standard `Item` with no event hooks or fuel-component
+  plumbing. **Deferred alternative (#36 / follow-up):** consume an Oily Rag from the inventory per cut (a
+  `BlockEvent.BreakEvent`/`destroyBlock` hook), so the torch is reusable and the sink is the rag, not the
+  tool. Ship durability; the hook path stays open.
 - Low attack (it is a torch, not a weapon) and a slow-ish mine speed on steel.
 
 ### Recipe (`recipe/cutting_torch.json`) - gated one step past first-iron
