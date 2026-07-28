@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "B",
+    "S",
+    "S"
+  ],
+  "key": {
+    "B": "minecraft:iron_block",
+    "S": "minecraft:stick"
+  },
+  "result": { "id": "recompile:iron_sledgehammer" }
+}

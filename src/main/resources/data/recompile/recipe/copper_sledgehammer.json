@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "B",
+    "S",
+    "S"
+  ],
+  "key": {
+    "B": "minecraft:copper_block",
+    "S": "minecraft:stick"
+  },
+  "result": { "id": "recompile:copper_sledgehammer" }
+}

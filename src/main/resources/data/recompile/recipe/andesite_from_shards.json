@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:andesite_shard",
+    "recompile:andesite_shard",
+    "recompile:andesite_shard",
+    "recompile:andesite_shard"
+  ],
+  "result": { "id": "minecraft:andesite", "count": 1 }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:diorite_shard",
+    "recompile:diorite_shard",
+    "recompile:diorite_shard",
+    "recompile:diorite_shard"
+  ],
+  "result": { "id": "minecraft:diorite", "count": 1 }
+}

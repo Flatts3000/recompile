@@ -15,6 +15,10 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.ToolMaterial;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.component.Weapon;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -46,6 +50,21 @@ public final class RCItems {
     /** The seven base materials in canonical order (creative tab + docs use this). */
     public static final List<DeferredItem<Item>> BASE_MATERIALS = List.of(
         SCRAP_METAL, PLASTIC_SCRAP, GLASS_SHARDS, ORGANIC_MUCK, FIBER_SCRAP, E_SCRAP, JUNK);
+
+    // ---------------- Demolition yard: stone shards (frontier) ----------------
+    // Sifted out of Rubble (one per vanilla stone type), assembled back into their stone block at the
+    // Scrap Crafting Table. The stone half of the demolition yard's "stone + iron" goal.
+    public static final DeferredItem<Item> STONE_SHARD = ITEMS.registerItem("stone_shard", Item::new);
+    public static final DeferredItem<Item> GRANITE_SHARD = ITEMS.registerItem("granite_shard", Item::new);
+    public static final DeferredItem<Item> DIORITE_SHARD = ITEMS.registerItem("diorite_shard", Item::new);
+    public static final DeferredItem<Item> ANDESITE_SHARD = ITEMS.registerItem("andesite_shard", Item::new);
+    public static final DeferredItem<Item> DEEPSLATE_SHARD = ITEMS.registerItem("deepslate_shard", Item::new);
+    public static final DeferredItem<Item> TUFF_SHARD = ITEMS.registerItem("tuff_shard", Item::new);
+    public static final DeferredItem<Item> CALCITE_SHARD = ITEMS.registerItem("calcite_shard", Item::new);
+
+    /** Stone shards in creative-tab order. */
+    public static final List<DeferredItem<Item>> STONE_SHARDS = List.of(
+        STONE_SHARD, GRANITE_SHARD, DIORITE_SHARD, ANDESITE_SHARD, DEEPSLATE_SHARD, TUFF_SHARD, CALCITE_SHARD);
 
     /**
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +
@@ -113,6 +132,34 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> TRASH_TOOLS = List.of(
         SCRAP_KNIFE, PRYBAR, JUNK_SHOVEL);
 
+    // ---------------- Demolition yard: the Sledgehammer (frontier) ----------------
+    // Crushes Reinforced Concrete for rebar + aggregate. Copper tier is the entry rung of the
+    // copper->iron->diamond->netherite ladder (later tiers land as their materials become reachable).
+    // Repairs with copper ingots via the NeoForge common tag. Between stone (131 durability) and iron.
+    public static final ToolMaterial COPPER_TIER = new ToolMaterial(
+        BlockTags.INCORRECT_FOR_STONE_TOOL, 200, 5.0F, 1.5F, 12,
+        TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots/copper")));
+
+    // Slow, hard-hitting: high attack damage, negative speed. Mines only #recompile:mineable/sledgehammer.
+    // The full tier ladder ships; copper + iron are reachable now, diamond + netherite light up when their
+    // materials do (the crystals gap #46 / the Nether unlock) - a designed ladder, top rungs future-gated.
+    public static final DeferredItem<Item> COPPER_SLEDGEHAMMER = ITEMS.registerItem(
+        "copper_sledgehammer",
+        props -> new Item(props.tool(COPPER_TIER, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 5.0F, -3.2F, 0.0F)));
+    public static final DeferredItem<Item> IRON_SLEDGEHAMMER = ITEMS.registerItem(
+        "iron_sledgehammer",
+        props -> new Item(props.tool(ToolMaterial.IRON, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 6.0F, -3.2F, 0.0F)));
+    public static final DeferredItem<Item> DIAMOND_SLEDGEHAMMER = ITEMS.registerItem(
+        "diamond_sledgehammer",
+        props -> new Item(props.tool(ToolMaterial.DIAMOND, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 7.0F, -3.2F, 0.0F)));
+    public static final DeferredItem<Item> NETHERITE_SLEDGEHAMMER = ITEMS.registerItem(
+        "netherite_sledgehammer",
+        props -> new Item(props.tool(ToolMaterial.NETHERITE, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 8.0F, -3.2F, 0.0F)));
+
+    /** The Sledgehammer tier ladder, in creative-tab order. */
+    public static final List<DeferredItem<Item>> SLEDGEHAMMERS = List.of(
+        COPPER_SLEDGEHAMMER, IRON_SLEDGEHAMMER, DIAMOND_SLEDGEHAMMER, NETHERITE_SLEDGEHAMMER);
+
     // ---------------- Food (P1.9) ----------------
     // Scavenged tin cans: a sealed can opens with a scrap knife into an opened can
     // that eats like Suspicious Stew (a random effect - the risk staple). The dump
@@ -160,6 +207,12 @@ public final class RCItems {
     // ---------------- Blocks-as-items ----------------
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
+    /** Rubble: the demolition yard's pick-through stone-shard source. */
+    public static final DeferredItem<BlockItem> RUBBLE =
+        ITEMS.registerSimpleBlockItem("rubble", RCBlocks.RUBBLE);
+    /** Reinforced Concrete: sledged for rebar + aggregate. */
+    public static final DeferredItem<BlockItem> REINFORCED_CONCRETE =
+        ITEMS.registerSimpleBlockItem("reinforced_concrete", RCBlocks.REINFORCED_CONCRETE);
     public static final DeferredItem<BlockItem> TRASH_BAG =
         ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
     public static final DeferredItem<BlockItem> COMPACTED_BALE =

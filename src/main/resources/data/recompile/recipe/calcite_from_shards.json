@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:calcite_shard",
+    "recompile:calcite_shard",
+    "recompile:calcite_shard",
+    "recompile:calcite_shard"
+  ],
+  "result": { "id": "minecraft:calcite", "count": 1 }
+}

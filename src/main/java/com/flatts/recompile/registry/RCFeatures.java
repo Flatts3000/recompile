@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.MoundFeature;
 import com.flatts.recompile.content.worldgen.MyceliumPatchFeature;
+import com.flatts.recompile.content.worldgen.RubblePileFeature;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -22,6 +23,10 @@ public final class RCFeatures {
     /** Forageable mycelium patches with dump mushrooms (design P1.9). */
     public static final Supplier<Feature<NoneFeatureConfiguration>> MYCELIUM_PATCH =
         FEATURES.register("mycelium_patch", MyceliumPatchFeature::new);
+
+    /** Low piles of Rubble in the demolition yard - the bare-hand stone-shard source. */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> RUBBLE_PILE =
+        FEATURES.register("rubble_pile", RubblePileFeature::new);
 
     private RCFeatures() {
         // utility class

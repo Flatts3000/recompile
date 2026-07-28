@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:deepslate_shard",
+    "recompile:deepslate_shard",
+    "recompile:deepslate_shard",
+    "recompile:deepslate_shard"
+  ],
+  "result": { "id": "minecraft:deepslate", "count": 1 }
+}

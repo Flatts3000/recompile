@@ -79,6 +79,8 @@ public final class RCGameTests {
         MultiblockTests.register();
         ScrapBinTests.register();
         ScrapNetworkTests.register();
+        RegionBiomeSourceTests.register();
+        DemolitionYardTests.register();
         RegistryCompletenessTests.register();
 
         FUNCTIONS.register(modEventBus);

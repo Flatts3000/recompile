@@ -34,13 +34,17 @@ public final class RCCreativeTabs {
 
                     // --- Raw garbage: the source blocks you pick through ---
                     RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
+                    output.accept(RCItems.RUBBLE.get());
+                    output.accept(RCItems.REINFORCED_CONCRETE.get());
 
-                    // --- Tools: the starter trio ---
+                    // --- Tools: the starter trio + the demolition sledgehammer ladder ---
                     RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
+                    RCItems.SLEDGEHAMMERS.forEach(hammer -> output.accept(hammer.get()));
 
                     // --- Base materials + the universal component ---
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
                     output.accept(RCItems.REBAR.get());
+                    RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
 
                     // --- Workstations: place these to sort, craft, store, and smelt scrap ---
                     output.accept(RCItems.SCRAP_CRAFTING_TABLE.get());

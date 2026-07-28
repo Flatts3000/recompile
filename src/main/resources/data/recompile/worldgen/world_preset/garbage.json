@@ -6,8 +6,15 @@
         "type": "minecraft:noise",
         "settings": "recompile:garbage",
         "biome_source": {
-          "type": "minecraft:fixed",
-          "biome": "recompile:household_sprawl"
+          "type": "recompile:region",
+          "household": "recompile:household_sprawl",
+          "frontier": [
+            { "biome": "recompile:demolition_yard", "onset": 512 }
+          ],
+          "core_radius": 512,
+          "falloff": 256.0,
+          "household_floor": 0.2,
+          "noise_scale": 0.5
         }
       }
     },

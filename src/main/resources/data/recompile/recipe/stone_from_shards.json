@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:stone_shard",
+    "recompile:stone_shard",
+    "recompile:stone_shard",
+    "recompile:stone_shard"
+  ],
+  "result": { "id": "minecraft:stone", "count": 1 }
+}

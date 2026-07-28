@@ -11,6 +11,7 @@ import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.DisplayPedestalBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
+import com.flatts.recompile.content.block.RubbleBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.DumpPlantBlock;
 import com.flatts.recompile.content.block.GarbageBlock;
@@ -73,6 +74,34 @@ public final class RCBlocks {
             .mapColor(MapColor.DIRT)
             .strength(0.6F)
             .sound(SoundType.GRAVEL)
+    );
+
+    /**
+     * Rubble (demolition yard, reclamation frontier): a pick-through pile like a Block of Garbage, but
+     * its pull stream is stone shards. Bare-hand sift; see {@link RubbleBlock}.
+     */
+    public static final DeferredBlock<RubbleBlock> RUBBLE = BLOCKS.registerBlock(
+        "rubble",
+        RubbleBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE)
+            .strength(0.8F)
+            .sound(SoundType.GRAVEL)
+    );
+
+    /**
+     * Reinforced Concrete (demolition yard): the husk's standing bones. Solid and
+     * {@code requiresCorrectToolForDrops} - only the Sledgehammer crushes it (bare hands and the wrong
+     * tool yield nothing). Its loot is aggregate + rebar; see {@code loot_table/blocks/reinforced_concrete}.
+     */
+    public static final DeferredBlock<Block> REINFORCED_CONCRETE = BLOCKS.registerBlock(
+        "reinforced_concrete",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE)
+            .strength(2.2F, 6.0F)
+            .requiresCorrectToolForDrops()
+            .sound(SoundType.STONE)
     );
 
     /** Trash bag (P1.1): soft surface litter. Instant hand-break, quiet. */
