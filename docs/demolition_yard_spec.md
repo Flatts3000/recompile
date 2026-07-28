@@ -88,23 +88,47 @@ ground. The optional **Sanctuary Ward** (a placeable spawn-suppression block for
 
 ---
 
-## 3. The Building Husk (worldgen feature)
+## 3. Worldgen features: husks + piles
 
-A **procedural** `BuildingHuskFeature` (a `Feature<NoneFeatureConfiguration>` in `RCFeatures`, same shape as
+The demolition yard scatters **three** feature types - a few standing husks in a field of debris:
+
+**(a) Building Husks** (rare landmarks). A **procedural** `BuildingHuskFeature` (a `Feature<NoneFeatureConfiguration>` in `RCFeatures`, same shape as
 `MoundFeature`) - **no NBT structure templates** (keeps the mod's no-hand-authored-structures record; and
-ruins are the one structure procedural gen nails, because raggedness *is* the aesthetic).
+ruins are the one structure procedural gen nails, because raggedness *is* the aesthetic). Grounded in real
+demolition morphology - the **concrete/steel skeleton frame** (reference: Rio's "Skeleton Hotel", Hotel
+Esqueleto): a husk is a **skeleton, not a pile** - you see straight through it.
 
-- **Silhouette: taller than wide, hollow, open-air** - the husk of a collapsed building, not a pile.
-  Height ~6-16, footprint ~3x3-7x7, seed-varied.
-- **Walls of Reinforced Concrete** with a **wall-integrity %** punching random gaps (missing chunks, open
-  faces). **0-3 partial floor slabs**; columns / exposed rebar left standing where walls fell.
-- **Rubble spilled** at the base and through the interior.
-- **Role split, made physical:** Reinforced Concrete = the **standing bones** (up in the air, sledged for
-  iron); Rubble = the **basal debris** (sifted for stone). The shape makes the two materials legible on sight.
-- **Dark hollow interior = a daytime spawn pocket** for the biome's hostiles (the danger is "don't go inside").
+- **A steel-frame skeleton wearing broken concrete floors.** Vertical **Steel I-Beam** columns on a grid
+  (spacing ~3-4), horizontal I-beam girders across their tops per story, and **partial Reinforced Concrete
+  floor slabs** laid on the frame (some cells intact, some sheared off, some collapsed). The repeating grid IS
+  the "it's a building" read - not a rounded blob.
+- **Taller than wide, mostly open air.** Height ~6-16, footprint ~3x3-7x7. Walls almost entirely gone (rare
+  standing wall/facade fragments; the stair/elevator **core** is the most-intact vertical element). Seed-varied.
+- **Ragged, uneven top** - floor-by-floor demolition leaves an irregular height profile; the top story is
+  always half-present, columns and beams ending at different heights.
+- **Exposed rebar at every concrete break** - protruding bars at snapped column tops and slab edges.
+- **Rubble spilled** at the base and across the partial floors.
+- **Role split, made physical:** Steel I-Beams = the **frame** (bulk iron); Reinforced Concrete = **columns +
+  floor decks** (concrete + rebar iron); Rubble = the **basal debris** (stone shards). The shape makes all
+  three materials legible on sight.
+- **Dark open interior = a daytime spawn pocket** for the biome's hostiles (the danger is "don't go inside").
 - **Density: sparse landmarks** you travel between, not every-chunk clutter (sparser than garbage mounds).
-- **Tuning:** the collapse look needs a `runClient` pass to read as deliberate rather than noisy - the one
-  part that cannot be nailed on paper. One parameterized generator for v1 (archetypes later if wanted).
+- **Tuning:** the skeleton needs a `runClient` pass to read as a deliberate gutted building rather than noise -
+  the one part that cannot be fully nailed on paper. One parameterized generator for v1 (archetypes later).
+
+**(b) Rubble piles** and **(c) Steel piles** (common). Low mounds - of the **Rubble** block, and of **Steel
+I-Beam / twisted-steel** debris respectively - reusing the `MoundFeature` shape (like garbage mounds). These
+are the **workaday resource source** (stone shards from rubble, bulk iron from steel) and they carry the
+biome's read: a debris field with hostiles already looks like a demolition site. Crucially they are the **easy
+part** - a pile is just a mound of a block and looks right immediately.
+
+**The difficulty is confined to the husk, and it is not load-bearing.** Build the piles first: the biome ships
+correct, functional (both stone and iron flow from the piles), and demolition-flavoured without the husk. The
+husk is an enhancement layered on - if procedural husks fight us, the biome still works. Husk de-risk order:
+mock the silhouette on paper, add a debug `/place` command for second-by-second iteration in a flat world,
+lean on the three cheap cues (grid + rebar + ragged top), and fall back to hand-tuned archetypes or a small
+NBT template set if pure-procedural will not behave (ruins are forgiving; the no-template rule was an
+inference, not a hard constraint).
 
 ---
 
@@ -123,6 +147,12 @@ ruins are the one structure procedural gen nails, because raggedness *is* the ae
   drops **rebar**.
 - Solid + tool-gated, so **iron is the deeper, gated prize** (the sledgehammer is tree-gated, S6).
 
+### 4.3 Steel I-Beam (the bulk-iron path)
+- The husk's structural steel - a directional block (vertical column / horizontal girder), and the bulk of the
+  **Steel piles**. `requiresCorrectToolForDrops`, harvested **only with the Cutting Torch** - *not* the
+  sledgehammer (you crush concrete, you **cut** steel). Carries `#recompile:mineable/cutting_torch`.
+- Loot: **steel / raw iron in bulk** - the **higher-volume iron source** vs the incidental rebar from concrete.
+
 ---
 
 ## 5. Items / materials
@@ -130,7 +160,9 @@ ruins are the one structure procedural gen nails, because raggedness *is* the ae
 - **Stone shards** (7 items, one per stone type) - a base-material vocabulary parallel to the 7 scrap
   materials. **Assemble by crafting** into their vanilla stone block (e.g. shapeless/shaped N shards -> 1
   block; count tuned in the pre-beta pass, #36). This is the **stone** payoff.
-- **Rebar** - the reinforcement; the **iron** feedstock. Rebar -> Makeshift Forge -> iron ingot.
+- **Rebar** (common, from crushing concrete) and **steel** (bulk, from cutting Steel I-Beams) - the two
+  **iron** feedstocks. Both -> Makeshift Forge -> iron ingot. Rebar bootstraps your first iron; the Cutting
+  Torch + I-beams scale it up.
 - **Concrete powder (grayscale ramp: white / light gray / gray / black)** -> concrete via vanilla water. The
   world's masonry, and the crafting material for the Makeshift Forge. (Full 16 colors rejected - pink concrete
   breaks the demolition read.)
@@ -138,7 +170,11 @@ ruins are the one structure procedural gen nails, because raggedness *is* the ae
 
 ---
 
-## 6. The Sledgehammer (tool)
+## 6. Tools: Sledgehammer (crush) + Cutting Torch (cut)
+
+Two demolition verbs, two tools - you crush concrete but you cut steel.
+
+### Sledgehammer (crush -> concrete + rebar)
 
 - **Tiered ladder: copper -> iron -> diamond -> netherite**, upgraded the vanilla way. Climbs as far as
   materials exist: **copper (you have it) and iron (this biome) are reachable now**; **diamond and netherite
@@ -150,6 +186,15 @@ ruins are the one structure procedural gen nails, because raggedness *is* the ae
   the knife/prybar already use. Copper needs a custom `ToolMaterial`; iron/diamond/netherite use vanilla ones.
 - It gives the world back its one **quarry-like verb** - but you dismantle *ruins*, not natural stone, so it
   stays on-theme rather than importing vanilla mining.
+
+### Cutting Torch (cut -> steel / bulk iron)
+
+- Harvests **Steel I-Beams** (the `#recompile:mineable/cutting_torch` tag) - a sledgehammer cannot; steel is
+  cut, not crushed. Single tool, not a tier ladder (an upgrade path is a later option).
+- **Consumes fuel as it cuts** - burns **Oily Rag** (the P1.4-A fuel), turning that line into a real sink; a
+  gas-canister item is an alternative. (Plain durability is the simpler fallback - a balance-pass call, #36.)
+- **Recipe takes a little iron**, so it sits one step past first-iron: the sledgehammer + rebar bootstraps your
+  starting iron, then the torch unlocks bulk steel. Crafted from copper + iron + the fuel head.
 
 ---
 
@@ -173,30 +218,35 @@ ruins are the one structure procedural gen nails, because raggedness *is* the ae
 
 ```
 reclamation ladder (grass -> veg -> farm -> TREES) ->  sticks
-sticks + copper           -> Copper Sledgehammer
+sticks + copper            -> Copper Sledgehammer
 travel to demolition yard (survive hostiles)
-  sift Rubble (bare hand) -> stone shards -> assemble -> STONE        [ungated once you can survive the trip]
-  sledge Reinforced Concrete -> rebar     -> Makeshift Forge -> IRON  [gated behind trees, via the hammer]
+  sift Rubble (bare hand)     -> stone shards -> assemble -> STONE       [ungated once you survive the trip]
+  sledge Reinforced Concrete  -> rebar        -> Forge     -> first IRON  [gated behind trees, via the hammer]
+  first iron + copper + fuel  -> Cutting Torch
+  cut Steel I-Beams           -> steel        -> Forge     -> bulk IRON   [gated behind the torch]
 iron -> Iron Sledgehammer (faster) ; diamond/netherite rungs await #46 / the Nether
 ```
 
-Stone is the entry reward; iron is the deeper, tree-gated prize.
+Stone is the entry reward; rebar-iron bootstraps; steel-iron via the torch is the bulk, deepest tier.
 
 ---
 
 ## 9. Textures (texgen surfaces)
 
-`rubble`, `reinforced_concrete`, the 7 `*_shard` items, the sledgehammer heads (copper/iron/diamond/netherite
-- or one head recoloured per tier), `makeshift_forge` (lit + unlit fronts, like the Burn Barrel). Concrete
-powder/concrete are vanilla. All procedural/AI per the texgen pipeline; only finalized 16px PNGs committed.
+`rubble`, `reinforced_concrete`, `steel_i_beam` (column + girder), the 7 `*_shard` items, `rebar`, the
+sledgehammer heads (per tier), the `cutting_torch`, `makeshift_forge` (lit + unlit fronts, like the Burn
+Barrel). Concrete powder/concrete are vanilla. All procedural/AI per the texgen pipeline; only finalized 16px
+PNGs committed.
 
 ---
 
 ## 10. Registry / config / tests / compat
 
-- **Registry:** `RCBlocks` (rubble, reinforced_concrete, makeshift_forge + BE), `RCItems` (shards x7, rebar,
-  the 4 sledgehammer tiers, block-items), `RCBlockEntities` (forge), `RCFeatures` (BuildingHuskFeature),
-  `RCTags` (`mineable/sledgehammer`), `RCCreativeTabs` (slot the new items into the existing categories),
+- **Registry:** `RCBlocks` (rubble, reinforced_concrete, steel_i_beam, makeshift_forge + BE), `RCItems`
+  (shards x7, rebar, steel, the 4 sledgehammer tiers, the cutting_torch, block-items), `RCBlockEntities`
+  (forge), `RCFeatures` (BuildingHuskFeature + rubble/steel pile features), `RCTags`
+  (`mineable/sledgehammer`, `mineable/cutting_torch`), `RCCreativeTabs` (slot the new items into the existing
+  categories),
   `RCDataComponents`/`RCMenus` as needed. New `RegionBiomeSource` registered as a `BiomeSource` codec.
 - **Config (`RCConfig`):** `DEMOLITION_YARD_ENABLED`, `REGION_CORE_RADIUS` (512), region ring table + noise
   scale, husk density, rubble pull weights, reinforced-concrete drop rates, rebar chance, forge speed.
