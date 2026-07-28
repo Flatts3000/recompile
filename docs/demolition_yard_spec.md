@@ -18,18 +18,17 @@ P2.4 material economy). This is the engineering spec. Everything ships config-ga
   decoration.
 - **The stone path** (S3(b), S4.1, S5): **Rubble** (bare-hand `SortableBlock`) -> 7 **stone shards** ->
   assemble into vanilla stone; the **rubble-pile feature** makes it survival-obtainable. Textures approved.
-- **The iron entry** (S4.2, S6 copper rung): **Reinforced Concrete** (sledgehammer-only, `requiresCorrectToolForDrops`)
-  -> aggregate + rebar; the **Copper Sledgehammer** (custom copper `ToolMaterial`, stick handle = tree gate);
-  **rebar -> iron** smelting.
+- **The iron entry** (S4.2, S5, S6): **Reinforced Concrete** (sledgehammer-only, `requiresCorrectToolForDrops`)
+  -> aggregate + rebar; the **full Sledgehammer ladder** (copper/iron/diamond/netherite - copper is a custom
+  `ToolMaterial`, each crafts as a metal block on two sticks, handle = tree gate; textures are the vanilla
+  mace two-zone-retinted per tier with a wood handle); **rebar -> iron** smelting.
 
 **Remaining**:
 - **Reinforced Concrete placement** - creative-only until the **Building Husk** feature (S3(a), the hard one)
   + steel piles place it in-world.
 - **Steel I-Beam + Cutting Torch** (S4.3, S6-torch) - the bulk-iron path.
 - **Makeshift Forge** (S7) - the automatable blast-furnace tier.
-- **Higher Sledgehammer tiers** (iron/diamond/netherite).
-- **Textures** - reinforced_concrete + copper_sledgehammer are on vanilla placeholders pending a texgen pass;
-  the biome's final palette.
+- **Textures** - reinforced_concrete is on a vanilla placeholder pending a texgen pass; the biome's final palette.
 
 ---
 
