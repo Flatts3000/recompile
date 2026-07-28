@@ -2,12 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "tools",
   "pattern": [
-    "III",
-    " I ",
-    " S "
+    "B",
+    "S",
+    "S"
   ],
   "key": {
-    "I": "minecraft:copper_ingot",
+    "B": "minecraft:copper_block",
     "S": "minecraft:stick"
   },
   "result": { "id": "recompile:copper_sledgehammer" }

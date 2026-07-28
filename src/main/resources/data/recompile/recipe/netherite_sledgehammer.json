@@ -1,7 +1,14 @@
 {
-  "type": "minecraft:smithing_transform",
-  "template": "minecraft:netherite_upgrade_smithing_template",
-  "base": "recompile:diamond_sledgehammer",
-  "addition": "minecraft:netherite_ingot",
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "B",
+    "S",
+    "S"
+  ],
+  "key": {
+    "B": "minecraft:netherite_block",
+    "S": "minecraft:stick"
+  },
   "result": { "id": "recompile:netherite_sledgehammer" }
 }

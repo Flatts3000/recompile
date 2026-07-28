@@ -805,3 +805,45 @@ prompt = "a small sharp chip of near-white calcite, simple bold Minecraft item i
 [surface.calcite_shard.procedural]
 style = "lump"
 palette = ["#dcdcd8", "#e8e8e4", "#c8c8c4", "#f0f0ec"]
+
+# ---------------------------------------------------------------------------
+# Demolition yard - the Sledgehammer tier ladder
+# ---------------------------------------------------------------------------
+# Recolour the vanilla mace per tier, two-zone: the flanged metal head (rows 0-7) takes the
+# tier metal, the handle (rows 8-15) stays wood - so the head recolours but the handle doesn't.
+
+[surface.copper_sledgehammer]
+kind = "item"
+backend = "retint"
+size = 16
+tint = "#b5683a"
+source = "item/mace"
+handle_tint = "#7a4a24"
+handle_from = 8
+
+[surface.iron_sledgehammer]
+kind = "item"
+backend = "retint"
+size = 16
+tint = "#cececf"
+source = "item/mace"
+handle_tint = "#7a4a24"
+handle_from = 8
+
+[surface.diamond_sledgehammer]
+kind = "item"
+backend = "retint"
+size = 16
+tint = "#4dd0c8"
+source = "item/mace"
+handle_tint = "#7a4a24"
+handle_from = 8
+
+[surface.netherite_sledgehammer]
+kind = "item"
+backend = "retint"
+size = 16
+tint = "#4a4148"
+source = "item/mace"
+handle_tint = "#7a4a24"
+handle_from = 8
