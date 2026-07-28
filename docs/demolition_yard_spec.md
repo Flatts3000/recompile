@@ -1,12 +1,35 @@
 # Demolition Yard + the Region System - spec
 
-**Status: design locked (2026-07-27), not built.** The demolition yard is the first **frontier region**: the
+**Status: partially built (2026-07-28).** The demolition yard is the first **frontier region**: the
 dangerous, gated place you travel to for the two structural materials the closed economy withholds -
 **stone and iron**. It also introduces the **region system** (a distance-gated, noise-filled `BiomeSource`),
 which is the reusable Phase 4 foundation every future region plugs into.
 
 Design source of truth stays in the pack repo (`../trashlands/docs/design_decisions.md`, P1.5 regions,
 P2.4 material economy). This is the engineering spec. Everything ships config-gated; defaults are the design.
+
+### Build status
+
+**Built** (branch `feat/region-worldgen`):
+- **Region system** (S1): `RegionBiomeSource` - guaranteed household core to 512, then a distance gradient
+  into a noise-mixed frontier; playtested and tuned for on-foot reachability (`core 512 / falloff 256 /
+  floor 0.2 / noise_scale 0.5`). Proven by a safe-core sweep gametest.
+- **The demolition_yard biome** (S2): hostile spawners + a placeholder dusty-grey palette; rubble-pile
+  decoration.
+- **The stone path** (S3(b), S4.1, S5): **Rubble** (bare-hand `SortableBlock`) -> 7 **stone shards** ->
+  assemble into vanilla stone; the **rubble-pile feature** makes it survival-obtainable. Textures approved.
+- **The iron entry** (S4.2, S6 copper rung): **Reinforced Concrete** (sledgehammer-only, `requiresCorrectToolForDrops`)
+  -> aggregate + rebar; the **Copper Sledgehammer** (custom copper `ToolMaterial`, stick handle = tree gate);
+  **rebar -> iron** smelting.
+
+**Remaining**:
+- **Reinforced Concrete placement** - creative-only until the **Building Husk** feature (S3(a), the hard one)
+  + steel piles place it in-world.
+- **Steel I-Beam + Cutting Torch** (S4.3, S6-torch) - the bulk-iron path.
+- **Makeshift Forge** (S7) - the automatable blast-furnace tier.
+- **Higher Sledgehammer tiers** (iron/diamond/netherite).
+- **Textures** - reinforced_concrete + copper_sledgehammer are on vanilla placeholders pending a texgen pass;
+  the biome's final palette.
 
 ---
 
