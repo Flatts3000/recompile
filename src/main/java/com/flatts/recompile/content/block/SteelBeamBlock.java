@@ -39,12 +39,12 @@ public class SteelBeamBlock extends PipeBlock {
     private static final EnumMap<Direction, VoxelShape> ARM = new EnumMap<>(Direction.class);
 
     static {
-        ARM.put(Direction.UP, Block.box(5, 11, 5, 11, 16, 11));
-        ARM.put(Direction.DOWN, Block.box(5, 0, 5, 11, 5, 11));
-        ARM.put(Direction.NORTH, Block.box(5, 5, 0, 11, 11, 5));
-        ARM.put(Direction.SOUTH, Block.box(5, 5, 11, 11, 11, 16));
-        ARM.put(Direction.EAST, Block.box(11, 5, 5, 16, 11, 11));
-        ARM.put(Direction.WEST, Block.box(0, 5, 5, 5, 11, 11));
+        ARM.put(Direction.UP, Block.box(4, 11, 4, 12, 16, 12));
+        ARM.put(Direction.DOWN, Block.box(4, 0, 4, 12, 5, 12));
+        ARM.put(Direction.NORTH, Block.box(4, 4, 0, 12, 12, 5));
+        ARM.put(Direction.SOUTH, Block.box(4, 4, 11, 12, 12, 16));
+        ARM.put(Direction.EAST, Block.box(11, 4, 4, 16, 12, 12));
+        ARM.put(Direction.WEST, Block.box(0, 4, 4, 5, 12, 12));
     }
 
     public SteelBeamBlock(Properties properties) {

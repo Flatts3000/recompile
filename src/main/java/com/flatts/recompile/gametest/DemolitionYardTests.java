@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * GameTests for the demolition yard's stone path (demolition_yard_spec.md S4.1): Rubble is a
@@ -86,16 +88,49 @@ final class DemolitionYardTests {
             helper.succeed();
         });
 
-        // Steel I-Beams auto-connect: placing a beam next to another updates that neighbour's connection
-        // toward it (the PipeBlock/updateShape path that assembles the frame).
-        RCGameTests.test("steel_i_beam_connects_to_neighbour", 20, helper -> {
+        // Steel I-Beams auto-connect on EVERY face (all 6 - up/down included, not just n/e/s/w) and
+        // disconnect when the neighbour goes. Test-driven so connection is provably correct per direction.
+        RCGameTests.test("steel_beam_connects_and_disconnects_all_faces", 40, helper -> {
             ServerLevel level = helper.getLevel();
-            BlockPos a = helper.absolutePos(new BlockPos(2, 2, 2));
-            BlockPos b = a.east();
-            level.setBlock(a, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
-            level.setBlock(b, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
-            helper.assertTrue(level.getBlockState(a).getValue(PipeBlock.EAST),
-                "a steel beam must auto-connect toward an adjacent beam");
+            BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
+            level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+            for (Direction dir : Direction.values()) {
+                BlockPos n = center.relative(dir);
+                level.setBlock(n, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+                helper.assertTrue(level.getBlockState(center).getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(dir)),
+                    "center beam must connect " + dir + " when a beam is placed on that face");
+                level.setBlock(n, Blocks.AIR.defaultBlockState(), 3);
+                helper.assertFalse(level.getBlockState(center).getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(dir)),
+                    "center beam must disconnect " + dir + " when that beam is removed");
+            }
+            helper.succeed();
+        });
+
+        // Only beams connect - a stone neighbour does not.
+        RCGameTests.test("steel_beam_ignores_non_beams", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
+            level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+            level.setBlock(center.east(), Blocks.STONE.defaultBlockState(), 3);
+            helper.assertFalse(level.getBlockState(center).getValue(PipeBlock.EAST),
+                "a steel beam must not connect to a non-beam neighbour");
+            helper.succeed();
+        });
+
+        // The hitbox tracks connections: an isolated beam is just the core; a connected face adds an arm
+        // reaching it, so beams are clickable/solid (the runClient bug that started this).
+        RCGameTests.test("steel_beam_shape_tracks_connections", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
+            level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+            VoxelShape core = level.getBlockState(center).getShape(level, center);
+            helper.assertFalse(core.isEmpty(), "an isolated beam must still have a hitbox (the core)");
+            helper.assertTrue(core.max(Direction.Axis.Y) <= 0.7,
+                "an isolated beam's hitbox is just the core, got maxY " + core.max(Direction.Axis.Y));
+            level.setBlock(center.above(), RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+            VoxelShape up = level.getBlockState(center).getShape(level, center);
+            helper.assertTrue(up.max(Direction.Axis.Y) >= 0.99,
+                "a beam connected up must have an arm reaching the top, got maxY " + up.max(Direction.Axis.Y));
             helper.succeed();
         });
     }
