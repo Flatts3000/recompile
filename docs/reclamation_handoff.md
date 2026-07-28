@@ -4,6 +4,15 @@
 *why* (the P2.4 -> P2.4-R economy shift); for what to build, the detail has since moved into
 dedicated specs.
 
+> **COMPLETE 2026-07-27 - all five rungs shipped (v0.2.0).** The chain this doc opened is finished end to
+> end: rung 1 Grass Spreader, rung 2 Vegetation, rung 3 Farming, rung 4 the **Tree Nursery**, rung 5
+> **animal baits**. This file is kept as the historical *why*; the built record is in the per-tier specs
+> (`grass_spreader_spec.md`, `tree_nursery_spec.md`, `animals_tier_spec.md`) and the Phase 2.12-2.17
+> entries in [`roadmap.md`](roadmap.md). The "resume point" and open questions below are answered - read
+> them as the record of what was open on 2026-07-23, not as live work. (The one genuine carry-over: the
+> Farming rung shipped the in-ground path only; whole-plant farmables are held for a later hydroponics
+> option.)
+
 > **Superseded in part, same day.** After this was written, three things happened and this doc no
 > longer leads:
 > - **Encroachment shipped** (Phase 2.10, `RCEncroachment`) - the frontier the machines build against.

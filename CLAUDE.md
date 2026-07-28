@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **What this is:** a standalone **NeoForge** mod (MC 26.1.2). Core mechanic: **teardown-as-knowledge** - disassemble items to recover their recipes, not just their materials. Also ships the garbage-world systems (worldgen, Blocks of Garbage, sorting, mound regrowth) that the **Trashlands** modpack is built on. Mod id / package: `recompile` / `com.flatts.recompile`.
 
-**Status:** Phases 0 through 2.15 are shipped (through Collectibles + the in-game guidebook) and **v0.1.0 is released** (2026-07-27: CurseForge alpha + GitHub prerelease). `docs/roadmap.md` is the engineering build order and tracks per-phase status; Phase 3 (teardown-as-knowledge, the distinct axis) is the next major system and is **not built yet** - only its data spine exists.
+**Status:** Phases 0 through 2.17 are shipped (through the full reclamation ladder - Grass, Vegetation, Farming, Trees, Animals) and **v0.2.0 is released** (2026-07-27: CurseForge alpha + GitHub prerelease; v0.1.0 the same day). The grey-to-living arc the ModJam entry is built around now plays end to end. `docs/roadmap.md` is the engineering build order and tracks per-phase status; Phase 3 (teardown-as-knowledge, the distinct axis) is the next major system and is **not built yet** - only its data spine exists.
 
 ## Build and test
 

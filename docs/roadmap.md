@@ -1,10 +1,13 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.15 shipped to `main`, and **v0.1.0 is released** (2026-07-27: CurseForge
-alpha + GitHub prerelease) as the CurseForge ModJam 2026 entry. The mod is a playable alpha, tuned
-against real play. Recent tiers: the **multiblock framework + Rain Collector** (2.11), **reclamation
-rungs 1-3** - the Grass Spreader, Vegetation, and Farming (2.12-2.14), and **Collectibles** (2.15, the
-Puzzle Cube + ported voxel curios on Display Pedestals). Phase 3's **materials teardown** (the
+**Status:** Phases 0 through 2.17 shipped to `main`, and **v0.2.0 is released** (2026-07-27: CurseForge
+alpha + GitHub prerelease; v0.1.0 the same morning) as the CurseForge ModJam 2026 entry. The mod is a
+playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
+Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
+around now plays through. Recent tiers: the **multiblock framework + Rain Collector** (2.11),
+**reclamation rungs 1-3** - the Grass Spreader, Vegetation, and Farming (2.12-2.14), **Collectibles**
+(2.15, the Puzzle Cube + ported voxel curios on Display Pedestals), the **Tree Nursery** (2.16, rung 4),
+and **animal baits** (2.17, rung 5). Phase 3's **materials teardown** (the
 Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis** is the next major decision
 and stays under review (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
 are ordered by
@@ -294,6 +297,32 @@ each a rare whole find (~1/4000 per pull in `household_pulls`/`bag_pulls`, a few
 piece) that displays on the **Display Pedestal** (a ProjectE-style plinth, the mod's one BlockEntityRenderer).
 An earlier hand-authored **era-artifact** set (obelisk/column/chalice/hourglass) read as museum decor and was
 dropped for ported real objects. Spec: [`collectibles_spec.md`](collectibles_spec.md).
+
+## Phase 2.16 - The Tree Nursery, reclamation rung 4  *(DONE 2026-07-27, design P2.4)* (#38, #40)
+
+Trees are machine-only: a global loot modifier (`StripSaplingsModifier`, P2.4-R2) strips saplings from
+every roll, so the player never holds one loose - the **Tree Nursery** is the sole forest source. It is a
+**2x2x1 wall multiblock** (a core + a water tank on the bottom row, two solar panels on top) that raises a
+**vanilla sapling of the player's choice** from **water + Fertilizer + an Unknown Seedling** over a slow
+cook, and **glows while it works** (a furnace-shaped producer). Eight species (oak, birch, spruce, jungle,
+acacia, dark oak, cherry, mangrove) picked in its **bespoke screen** - the mod's second custom menu, a
+scoped reversal like the Scrap Crafting Table's, because a species picker + water gauge + progress arrow is
+not a vanilla screen. Water is the one automatable input (a fluid capability, pipe/pump-fed); Fertilizer
+and Seedlings go in by hand, saplings come out by hand. A **copper bucket** (copper, not iron - iron is
+scarce here) moves water into it. Spec: [`tree_nursery_spec.md`](tree_nursery_spec.md).
+
+## Phase 2.17 - Animals, reclamation rung 5  *(DONE 2026-07-27, design P2.4)* (#41, #42)
+
+The start biome is creature-free by design (P1.9), so animals return only through **bait**, never ambient
+spawns. Three diets - **herbivore, carnivore, omnivore** - each with a **Rich** grade, each placed on grass:
+when **no player is near** and it is **not crowded by another bait**, it settles over a countdown and spawns
+**one allowlisted mob** from its diet tag (`#recompile:bait/<diet>`), then is spent. **Rich bait seeds a
+breeding pair** (one an adult, one a baby). Per-mob **spawn weights** make common livestock turn up far more
+than rare picks; **per-diet placed textures** read the bait apart on the ground. A cluster resolves one at a
+time (a bait yields only to an earlier-sorted neighbour, so no mutual deadlock). **Apple-gated recipes** put
+the tier behind trees: herbivore = apple + wheat, carnivore = apples + any `#recompile:raw_meat`, omnivore =
+one of each, Rich = two of the basic. **JEI and Jade list every reason a bait is held** (disabled, off
+grass, player near, crowded). Spec: [`animals_tier_spec.md`](animals_tier_spec.md).
 
 ## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
 

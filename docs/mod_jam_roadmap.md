@@ -66,12 +66,17 @@ Confirmed from the 2025 ToS: **Originality = 30%**; the rest (fun, polish, theme
 | **1. Grass** | Grass Spreader (reclamation rung 1) heals dead ground to grass; encroachment fights back | **SHIPPED** | polish + make it the on-ramp |
 | **2. Vegetation** | Fertilizer scatters weeds/wildflowers on reclaimed grass + mushrooms on mycelium (rung 2; plants are `frontier_cover`) | **SHIPPED** | done - fancy-bonemeal scatter, 3s ripple, weeds-only flowers |
 | **3. Farming** | farmland from `Fertilizer + dirt` (no hoe in this world); the six seed-crops, seeds via compost volunteers; Grass Spreader (and rain) irrigate & defend a plot | **SHIPPED** (in-ground path) | done - compost recipe + hoe-till lockout; Unknown Seedling volunteers; spreader irrigation. Whole-plant farmables (cane/bamboo/cactus/berries) held for a later **hydroponics** option |
-| **4. Trees** | the tree planter machine - saplings are machine-only, so the planter is the only forest source | design only | **build (jam-scoped)** |
-| **5. Animals** | reclaimed / living land brings passive animals back (the start biome is creature-free by design) | not built | **build the return trigger** |
+| **4. Trees** | the Tree Nursery (2x2x1 multiblock) raises a chosen vanilla sapling from water + Fertilizer + an Unknown Seedling; saplings are machine-only, so it is the only forest source | **SHIPPED** (v0.2.0, #40) | done - bespoke screen, slow cook, glows while working, 8 species |
+| **5. Animals** | diet baits (herbivore/carnivore/omnivore, each with a Rich grade) placed on grass settle an allowlisted mob when no player is near; apple-gated so it waits on trees | **SHIPPED** (v0.2.0, #42) | done - per-diet look, spawn weights, cluster + player gates, JEI/Jade held-reasons |
 
 Each new tier reuses the shipped multiblock framework; the salvage/teardown loop (shipped) feeds their
 recipes. **Jam depth, not full-phase depth** - every tier is one satisfying beat, tuned for a short demo,
 not the exhaustive version `roadmap.md` will eventually build.
+
+**Build status (2026-07-27): all five tiers are SHIPPED (v0.2.0).** The reclamation ladder plays end to
+end, grey to living. Remaining jam work is **presentation** (the grey-to-green trailer, the gallery, the
+CurseForge page) and the **pre-beta balance pass** (#36), not new tiers - the build is done, the pitch is
+what is left.
 
 ## Milestones (work backward from Sept 1)
 
