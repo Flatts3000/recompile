@@ -24,22 +24,26 @@ stack: **garbage** (salvage), **healed land** (biological), **frontier** (struct
 
 ## 1. The region system (reusable - the Phase 4 foundation)
 
-### 1.1 Model: rings-with-noise, cumulative pool
+### 1.1 Model: distance gradient + noise
 
-A custom `BiomeSource` (`RegionBiomeSource`) places overworld biomes by distance from world origin:
+A custom `BiomeSource` (`RegionBiomeSource`) places overworld biomes by a **continuous distance gradient** from
+world origin - not discrete rings:
 
-- **Core, `0 <= d < coreRadius` (512): pure household_sprawl.** No noise. This is the guaranteed safe +
-  resource-complete home. `coreRadius = 512` so the entire hostile mob-spawn range (~128 blocks, plus margin
-  for simulation distance and a roomy homeland) is guaranteed inside the empty-spawner biome: **standing at
-  spawn you are 100% protected from natural hostile spawns**, and you have a civilization-sized safe area.
-- **Ring 1+, `d >= coreRadius`: a noise pick over a cumulative pool.** Household stays in the pool; each ring
-  boundary adds one more biome. Pool at distance `d` = `{household} union {biome_i : ringRadius_i <= d}`.
-  - v1 (only region built): `demolition_yard` enters at `d = 512`. So beyond the core it is a noise mix of
-    `{household_sprawl, demolition_yard}` outward to infinity, until a third region is added at a later ring.
+- **Core, `d < coreRadius` (512): P(household) = 100%.** Guaranteed pure household_sprawl - the safe,
+  resource-complete home. `coreRadius = 512` puts the whole hostile spawn range (~128 blocks, plus margin for
+  simulation distance and a roomy homeland) inside the empty-spawner biome, so **standing at spawn you are 100%
+  protected from natural hostile spawns**, with a civilization-sized safe area.
+- **Beyond, `d >= coreRadius`: P(household) decays with distance** from ~100% at the core edge toward a small
+  non-zero floor - so safe household patches *thin* outward but never fully vanish (remote homes stay
+  possible). Frontier biomes take the complementary share, each **ramping in from its own onset distance**
+  (demolition yard earliest; exotic regions further out), so biome **variety grows with distance** too.
+- A **low-frequency noise** picks the local patch, weighted by those distance-dependent probabilities. Result:
+  household forms large regions near the core and rare islands far out; the demolition yard does the opposite;
+  and the core edge **blends** - demolition starts as rare patches in a household sea, not an abrupt wall at
+  512.
 
-**Emergent gradient (the point):** because each added region dilutes every biome's share, **safe household
-patches get rarer the further out you travel** - a natural danger/rarity curve with no hard difficulty wall.
-Distance decides *which biomes are possible*; the noise decides *the local patch*.
+This is the natural danger/rarity curve - safe ground rarer the further you push - with no hard boundary
+anywhere. Distance sets *the odds*; noise sets *the patch*.
 
 ### 1.2 Why custom Java (not data-only)
 
@@ -50,9 +54,10 @@ selects the ring pool, and samples a low-frequency noise to pick a coherent biom
 
 ### 1.3 Data-driven edges
 
-The source reads a small config/JSON: `coreRadius` + an ordered `rings: [{radius, biome}]`. A new region (or a
-pack) adds **one entry**, no Java. Noise frequency (blob size) is a config field. Spawn is pinned to origin so
-the player always starts in the core.
+The source reads a small config/JSON: `coreRadius` (512), a `falloff` distance (how fast P(household) decays
+past the core), a `householdFloor` (its minimum far-out share), the noise frequency (blob size), and a
+`frontier: [{biome, onset}]` list (each region's onset distance). A new region (or a pack) adds **one frontier
+entry**, no Java. Spawn is pinned to origin so the player always starts in the core.
 
 ### 1.4 Multiplayer
 
@@ -206,7 +211,7 @@ powder/concrete are vanilla. All procedural/AI per the texgen pipeline; only fin
 
 ## 11. Build order + risks
 
-1. **Region system first** (`RegionBiomeSource` + ring config + world_preset switch) - it is the foundation and
+1. **Region system first** (`RegionBiomeSource` + gradient config + world_preset switch) - it is the foundation and
    the biggest unknown; validate the 512 safe-core guarantee with a headless biome sweep before anything else.
 2. **The demolition_yard biome** (spawners, coarse-dirt shared surface) - trivial once the source exists.
 3. **Blocks + items + loot** (Rubble/shards, Reinforced Concrete/drops, rebar) - reuses `SortableBlock`.
