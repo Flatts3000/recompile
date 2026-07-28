@@ -2,13 +2,8 @@
   "parent": "minecraft:block/block",
   "textures": { "steel": "minecraft:block/iron_block", "particle": "minecraft:block/iron_block" },
   "elements": [
-    { "from": [5, 0, 5], "to": [11, 16, 11], "faces": {
-      "north": {"uv": [5,0,11,16], "texture": "#steel"},
-      "south": {"uv": [5,0,11,16], "texture": "#steel"},
-      "east":  {"uv": [5,0,11,16], "texture": "#steel"},
-      "west":  {"uv": [5,0,11,16], "texture": "#steel"},
-      "up":    {"uv": [5,5,11,11], "texture": "#steel"},
-      "down":  {"uv": [5,5,11,11], "texture": "#steel"}
-    }}
+    { "from": [4, 0, 4],  "to": [12, 16, 6],  "faces": { "north":{"texture":"#steel"},"south":{"texture":"#steel"},"east":{"texture":"#steel"},"west":{"texture":"#steel"},"up":{"texture":"#steel"},"down":{"texture":"#steel"} } },
+    { "from": [4, 0, 10], "to": [12, 16, 12], "faces": { "north":{"texture":"#steel"},"south":{"texture":"#steel"},"east":{"texture":"#steel"},"west":{"texture":"#steel"},"up":{"texture":"#steel"},"down":{"texture":"#steel"} } },
+    { "from": [7, 0, 6],  "to": [9, 16, 10],  "faces": { "north":{"texture":"#steel"},"south":{"texture":"#steel"},"east":{"texture":"#steel"},"west":{"texture":"#steel"},"up":{"texture":"#steel"},"down":{"texture":"#steel"} } }
   ]
 }
