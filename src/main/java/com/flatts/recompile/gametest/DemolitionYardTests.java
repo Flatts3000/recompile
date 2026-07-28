@@ -3,6 +3,7 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -10,7 +11,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 /**
@@ -49,6 +52,19 @@ final class DemolitionYardTests {
                 }
             }
             helper.assertTrue(shards > 0, "sifting rubble must drop at least one stone shard, got " + shards);
+            helper.succeed();
+        });
+
+        // Reinforced Concrete drops only to the Sledgehammer - you crush concrete, bare hands do nothing.
+        RCGameTests.test("reinforced_concrete_needs_sledgehammer", 20, helper -> {
+            BlockState state = RCBlocks.REINFORCED_CONCRETE.get().defaultBlockState();
+            helper.assertTrue(state.requiresCorrectToolForDrops(),
+                "reinforced concrete must require the correct tool for drops");
+            ItemStack hammer = new ItemStack(RCItems.COPPER_SLEDGEHAMMER.get());
+            helper.assertTrue(hammer.isCorrectToolForDrops(state),
+                "the copper sledgehammer must be the correct tool for reinforced concrete");
+            helper.assertFalse(ItemStack.EMPTY.isCorrectToolForDrops(state),
+                "a bare hand must not be the correct tool for reinforced concrete");
             helper.succeed();
         });
     }

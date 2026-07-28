@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:gravel", "weight": 30 },
+        { "type": "minecraft:item", "name": "minecraft:sand", "weight": 20 },
+        { "type": "minecraft:item", "name": "minecraft:white_concrete_powder", "weight": 12 },
+        { "type": "minecraft:item", "name": "minecraft:light_gray_concrete_powder", "weight": 18 },
+        { "type": "minecraft:item", "name": "minecraft:gray_concrete_powder", "weight": 18 },
+        { "type": "minecraft:item", "name": "minecraft:black_concrete_powder", "weight": 12 }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:empty", "weight": 65 },
+        { "type": "minecraft:item", "name": "recompile:rebar", "weight": 35 }
+      ]
+    }
+  ]
+}

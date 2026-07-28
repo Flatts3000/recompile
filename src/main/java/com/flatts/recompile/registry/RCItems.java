@@ -15,6 +15,10 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.ToolMaterial;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.component.Weapon;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -128,6 +132,19 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> TRASH_TOOLS = List.of(
         SCRAP_KNIFE, PRYBAR, JUNK_SHOVEL);
 
+    // ---------------- Demolition yard: the Sledgehammer (frontier) ----------------
+    // Crushes Reinforced Concrete for rebar + aggregate. Copper tier is the entry rung of the
+    // copper->iron->diamond->netherite ladder (later tiers land as their materials become reachable).
+    // Repairs with copper ingots via the NeoForge common tag. Between stone (131 durability) and iron.
+    public static final ToolMaterial COPPER_TIER = new ToolMaterial(
+        BlockTags.INCORRECT_FOR_STONE_TOOL, 200, 5.0F, 1.5F, 12,
+        TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots/copper")));
+
+    // Slow, hard-hitting: high attack damage, negative speed. Mines only #recompile:mineable/sledgehammer.
+    public static final DeferredItem<Item> COPPER_SLEDGEHAMMER = ITEMS.registerItem(
+        "copper_sledgehammer",
+        props -> new Item(props.tool(COPPER_TIER, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 5.0F, -3.2F, 0.0F)));
+
     // ---------------- Food (P1.9) ----------------
     // Scavenged tin cans: a sealed can opens with a scrap knife into an opened can
     // that eats like Suspicious Stew (a random effect - the risk staple). The dump
@@ -178,6 +195,9 @@ public final class RCItems {
     /** Rubble: the demolition yard's pick-through stone-shard source. */
     public static final DeferredItem<BlockItem> RUBBLE =
         ITEMS.registerSimpleBlockItem("rubble", RCBlocks.RUBBLE);
+    /** Reinforced Concrete: sledged for rebar + aggregate. */
+    public static final DeferredItem<BlockItem> REINFORCED_CONCRETE =
+        ITEMS.registerSimpleBlockItem("reinforced_concrete", RCBlocks.REINFORCED_CONCRETE);
     public static final DeferredItem<BlockItem> TRASH_BAG =
         ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
     public static final DeferredItem<BlockItem> COMPACTED_BALE =
