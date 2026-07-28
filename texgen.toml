@@ -724,3 +724,84 @@ kind = "block"
 backend = "ai"
 size = 16
 prompt = "a full-bleed top-down Minecraft block face of scattered mixed bait feed on bare ground, grain, chopped orange roots, green scraps and food bits spread on dirt, muddled browns and tans with a little green, flat, no perspective, fills the whole tile edge to edge"
+
+# ---------------------------------------------------------------------------
+# Demolition yard (frontier) - stone path
+# ---------------------------------------------------------------------------
+
+# Rubble: a pick-through pile like a Block of Garbage, but stone debris. Reuses the
+# procedural "rubble" style (as garbage_block does), on a cool stone-grey palette.
+[surface.rubble]
+kind = "block"
+backend = "procedural"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face of broken concrete-and-stone rubble: crushed grey aggregate chunks, dust and grit, cool stone greys"
+vanilla_ref = "block/gravel"
+[surface.rubble.procedural]
+style = "rubble"
+palette = ["#8a8a8e", "#9a9a9e", "#77777c", "#6a6a70", "#b0b0b4", "#5c5c62", "#a0a09c"]
+
+# Stone shards - one per vanilla stone type, tinted so they read apart at 16px. Procedural
+# "lump" icon on transparent; flip to backend = "ai" to match the base-material icons.
+[surface.stone_shard]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small sharp chip of plain grey stone, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.stone_shard.procedural]
+style = "lump"
+palette = ["#9a9a9e", "#8a8a8e", "#aaaaae", "#77777c"]
+
+[surface.granite_shard]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small sharp chip of pink-brown granite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.granite_shard.procedural]
+style = "lump"
+palette = ["#a67e70", "#b68e80", "#966a5e", "#c69e90"]
+
+[surface.diorite_shard]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small sharp chip of white-grey diorite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.diorite_shard.procedural]
+style = "lump"
+palette = ["#cccccc", "#dcdcdc", "#b4b4b4", "#e4e4e4"]
+
+[surface.andesite_shard]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small sharp chip of flat mid-grey andesite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.andesite_shard.procedural]
+style = "lump"
+palette = ["#8c8c90", "#9c9ca0", "#7c7c80", "#6c6c70"]
+
+[surface.deepslate_shard]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small sharp chip of dark blue-grey deepslate, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.deepslate_shard.procedural]
+style = "lump"
+palette = ["#4a4a52", "#5a5a62", "#3a3a42", "#6a6a72"]
+
+[surface.tuff_shard]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small sharp chip of olive-grey tuff, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.tuff_shard.procedural]
+style = "lump"
+palette = ["#6e6e60", "#7e7e70", "#5e5e50", "#8a8a7a"]
+
+[surface.calcite_shard]
+kind = "item"
+backend = "procedural"
+size = 16
+prompt = "a small sharp chip of near-white calcite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.calcite_shard.procedural]
+style = "lump"
+palette = ["#dcdcd8", "#e8e8e4", "#c8c8c4", "#f0f0ec"]
