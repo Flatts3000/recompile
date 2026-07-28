@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:item", "name": "recompile:stone_shard", "weight": 100 },
+        { "type": "minecraft:item", "name": "recompile:granite_shard", "weight": 60 },
+        { "type": "minecraft:item", "name": "recompile:diorite_shard", "weight": 60 },
+        { "type": "minecraft:item", "name": "recompile:andesite_shard", "weight": 60 },
+        { "type": "minecraft:item", "name": "recompile:deepslate_shard", "weight": 40 },
+        { "type": "minecraft:item", "name": "recompile:tuff_shard", "weight": 30 },
+        { "type": "minecraft:item", "name": "recompile:calcite_shard", "weight": 20 }
+      ]
+    }
+  ]
+}

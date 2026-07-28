@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "sorted=0": { "model": "recompile:block/rubble" },
+    "sorted=1": { "model": "recompile:block/rubble" },
+    "sorted=2": { "model": "recompile:block/rubble" },
+    "sorted=3": { "model": "recompile:block/rubble" }
+  }
+}

@@ -80,6 +80,7 @@ public final class RCGameTests {
         ScrapBinTests.register();
         ScrapNetworkTests.register();
         RegionBiomeSourceTests.register();
+        DemolitionYardTests.register();
         RegistryCompletenessTests.register();
 
         FUNCTIONS.register(modEventBus);

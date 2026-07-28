@@ -1,0 +1,11 @@
+{
+  "values": [
+    "recompile:stone_shard",
+    "recompile:granite_shard",
+    "recompile:diorite_shard",
+    "recompile:andesite_shard",
+    "recompile:deepslate_shard",
+    "recompile:tuff_shard",
+    "recompile:calcite_shard"
+  ]
+}

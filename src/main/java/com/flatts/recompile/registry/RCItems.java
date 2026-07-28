@@ -47,6 +47,21 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> BASE_MATERIALS = List.of(
         SCRAP_METAL, PLASTIC_SCRAP, GLASS_SHARDS, ORGANIC_MUCK, FIBER_SCRAP, E_SCRAP, JUNK);
 
+    // ---------------- Demolition yard: stone shards (frontier) ----------------
+    // Sifted out of Rubble (one per vanilla stone type), assembled back into their stone block at the
+    // Scrap Crafting Table. The stone half of the demolition yard's "stone + iron" goal.
+    public static final DeferredItem<Item> STONE_SHARD = ITEMS.registerItem("stone_shard", Item::new);
+    public static final DeferredItem<Item> GRANITE_SHARD = ITEMS.registerItem("granite_shard", Item::new);
+    public static final DeferredItem<Item> DIORITE_SHARD = ITEMS.registerItem("diorite_shard", Item::new);
+    public static final DeferredItem<Item> ANDESITE_SHARD = ITEMS.registerItem("andesite_shard", Item::new);
+    public static final DeferredItem<Item> DEEPSLATE_SHARD = ITEMS.registerItem("deepslate_shard", Item::new);
+    public static final DeferredItem<Item> TUFF_SHARD = ITEMS.registerItem("tuff_shard", Item::new);
+    public static final DeferredItem<Item> CALCITE_SHARD = ITEMS.registerItem("calcite_shard", Item::new);
+
+    /** Stone shards in creative-tab order. */
+    public static final List<DeferredItem<Item>> STONE_SHARDS = List.of(
+        STONE_SHARD, GRANITE_SHARD, DIORITE_SHARD, ANDESITE_SHARD, DEEPSLATE_SHARD, TUFF_SHARD, CALCITE_SHARD);
+
     /**
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +
      * fiber. It is the gate the Vegetation and Farming tiers consume - never crafted, only composted.
@@ -160,6 +175,9 @@ public final class RCItems {
     // ---------------- Blocks-as-items ----------------
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
+    /** Rubble: the demolition yard's pick-through stone-shard source. */
+    public static final DeferredItem<BlockItem> RUBBLE =
+        ITEMS.registerSimpleBlockItem("rubble", RCBlocks.RUBBLE);
     public static final DeferredItem<BlockItem> TRASH_BAG =
         ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
     public static final DeferredItem<BlockItem> COMPACTED_BALE =

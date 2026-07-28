@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:tuff_shard",
+    "recompile:tuff_shard",
+    "recompile:tuff_shard",
+    "recompile:tuff_shard"
+  ],
+  "result": { "id": "minecraft:tuff", "count": 1 }
+}
