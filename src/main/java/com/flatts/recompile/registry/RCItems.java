@@ -141,9 +141,24 @@ public final class RCItems {
         TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots/copper")));
 
     // Slow, hard-hitting: high attack damage, negative speed. Mines only #recompile:mineable/sledgehammer.
+    // The full tier ladder ships; copper + iron are reachable now, diamond + netherite light up when their
+    // materials do (the crystals gap #46 / the Nether unlock) - a designed ladder, top rungs future-gated.
     public static final DeferredItem<Item> COPPER_SLEDGEHAMMER = ITEMS.registerItem(
         "copper_sledgehammer",
         props -> new Item(props.tool(COPPER_TIER, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 5.0F, -3.2F, 0.0F)));
+    public static final DeferredItem<Item> IRON_SLEDGEHAMMER = ITEMS.registerItem(
+        "iron_sledgehammer",
+        props -> new Item(props.tool(ToolMaterial.IRON, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 6.0F, -3.2F, 0.0F)));
+    public static final DeferredItem<Item> DIAMOND_SLEDGEHAMMER = ITEMS.registerItem(
+        "diamond_sledgehammer",
+        props -> new Item(props.tool(ToolMaterial.DIAMOND, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 7.0F, -3.2F, 0.0F)));
+    public static final DeferredItem<Item> NETHERITE_SLEDGEHAMMER = ITEMS.registerItem(
+        "netherite_sledgehammer",
+        props -> new Item(props.tool(ToolMaterial.NETHERITE, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 8.0F, -3.2F, 0.0F)));
+
+    /** The Sledgehammer tier ladder, in creative-tab order. */
+    public static final List<DeferredItem<Item>> SLEDGEHAMMERS = List.of(
+        COPPER_SLEDGEHAMMER, IRON_SLEDGEHAMMER, DIAMOND_SLEDGEHAMMER, NETHERITE_SLEDGEHAMMER);
 
     // ---------------- Food (P1.9) ----------------
     // Scavenged tin cans: a sealed can opens with a scrap knife into an opened can

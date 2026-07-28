@@ -7,8 +7,8 @@
     " S "
   ],
   "key": {
-    "I": "minecraft:copper_ingot",
+    "I": "minecraft:iron_ingot",
     "S": "minecraft:stick"
   },
-  "result": { "id": "recompile:copper_sledgehammer" }
+  "result": { "id": "recompile:iron_sledgehammer" }
 }
