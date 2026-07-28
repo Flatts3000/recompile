@@ -67,5 +67,22 @@ final class DemolitionYardTests {
                 "a bare hand must not be the correct tool for reinforced concrete");
             helper.succeed();
         });
+
+        // Steel I-Beam drops only to the Cutting Torch - you cut steel, and the sledgehammer (which crushes
+        // concrete) explicitly cannot. Two verbs, two tools.
+        RCGameTests.test("steel_i_beam_needs_cutting_torch", 20, helper -> {
+            BlockState state = RCBlocks.STEEL_I_BEAM.get().defaultBlockState();
+            helper.assertTrue(state.requiresCorrectToolForDrops(),
+                "steel i-beam must require the correct tool for drops");
+            ItemStack torch = new ItemStack(RCItems.CUTTING_TORCH.get());
+            helper.assertTrue(torch.isCorrectToolForDrops(state),
+                "the cutting torch must be the correct tool for steel");
+            ItemStack hammer = new ItemStack(RCItems.COPPER_SLEDGEHAMMER.get());
+            helper.assertFalse(hammer.isCorrectToolForDrops(state),
+                "the sledgehammer must NOT cut steel (you crush concrete, you cut steel)");
+            helper.assertFalse(ItemStack.EMPTY.isCorrectToolForDrops(state),
+                "a bare hand must not cut steel");
+            helper.succeed();
+        });
     }
 }

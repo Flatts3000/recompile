@@ -36,10 +36,12 @@ public final class RCCreativeTabs {
                     RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
                     output.accept(RCItems.RUBBLE.get());
                     output.accept(RCItems.REINFORCED_CONCRETE.get());
+                    output.accept(RCItems.STEEL_I_BEAM.get());
 
                     // --- Tools: the starter trio + the demolition sledgehammer ladder ---
                     RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
                     RCItems.SLEDGEHAMMERS.forEach(hammer -> output.accept(hammer.get()));
+                    output.accept(RCItems.CUTTING_TORCH.get());
 
                     // --- Base materials + the universal component ---
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));

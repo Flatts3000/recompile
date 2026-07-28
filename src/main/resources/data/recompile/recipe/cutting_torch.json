@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [ "I", "C", "R" ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:copper_ingot",
+    "R": "recompile:oily_rag"
+  },
+  "result": { "id": "recompile:cutting_torch" }
+}

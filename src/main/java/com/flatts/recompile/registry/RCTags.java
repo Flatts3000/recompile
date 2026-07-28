@@ -48,6 +48,14 @@ public final class RCTags {
     public static final TagKey<Block> MINEABLE_WITH_SLEDGEHAMMER = TagKey.create(
         Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "mineable/sledgehammer"));
 
+    /**
+     * Blocks the Cutting Torch cuts (demolition yard): Steel I-Beams. You crush concrete but you <em>cut</em>
+     * steel, so this is the torch's tag, separate from {@code mineable/sledgehammer}. Solid,
+     * {@code requiresCorrectToolForDrops}, so bare hands, the sledgehammer, and the wrong tool yield nothing.
+     */
+    public static final TagKey<Block> MINEABLE_WITH_CUTTING_TORCH = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "mineable/cutting_torch"));
+
     // ---------------- Encroachment (P1.7-R): the junkyard fights back ----------------
     // Every side of the contested frontier is a tag rather than a hardcoded block list, and
     // each of those tags is itself built from *other* tags wherever one exists. That is what

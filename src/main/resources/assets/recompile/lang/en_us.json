@@ -19,6 +19,8 @@
   "block.recompile.garbage_block": "Block of Garbage",
   "block.recompile.rubble": "Rubble",
   "block.recompile.reinforced_concrete": "Reinforced Concrete",
+  "block.recompile.steel_i_beam": "Steel I-Beam",
+  "item.recompile.cutting_torch": "Cutting Torch",
   "item.recompile.copper_sledgehammer": "Copper Sledgehammer",
   "item.recompile.iron_sledgehammer": "Iron Sledgehammer",
   "item.recompile.diamond_sledgehammer": "Diamond Sledgehammer",

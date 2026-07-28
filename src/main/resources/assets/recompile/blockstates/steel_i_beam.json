@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "axis=y": { "model": "recompile:block/steel_i_beam" },
+    "axis=z": { "model": "recompile:block/steel_i_beam_horizontal", "x": 90 },
+    "axis=x": { "model": "recompile:block/steel_i_beam_horizontal", "x": 90, "y": 90 }
+  }
+}
