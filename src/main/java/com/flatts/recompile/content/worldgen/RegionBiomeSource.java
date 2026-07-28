@@ -3,7 +3,6 @@ package com.flatts.recompile.content.worldgen;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import net.minecraft.core.Holder;
@@ -113,18 +112,28 @@ public class RegionBiomeSource extends BiomeSource {
             return household;
         }
 
-        // Frontier: only biomes whose onset this location has reached are eligible.
-        List<Holder<Biome>> eligible = new ArrayList<>();
+        // Frontier: only biomes whose onset this location has reached are eligible. Two passes over the
+        // small frontier list (count, then select) avoid allocating a list on this per-quart hot path.
+        int eligible = 0;
         for (FrontierEntry entry : frontier) {
             if (d >= entry.onset()) {
-                eligible.add(entry.biome());
+                eligible++;
             }
         }
-        if (eligible.isEmpty()) {
+        if (eligible == 0) {
             return household;
         }
         double pick = (pickNoise.getValue(x * noiseScale, 0.0, z * noiseScale) + 1.0) / 2.0;
-        int index = Mth.clamp((int) (pick * eligible.size()), 0, eligible.size() - 1);
-        return eligible.get(index);
+        int target = Mth.clamp((int) (pick * eligible), 0, eligible - 1);
+        int i = 0;
+        for (FrontierEntry entry : frontier) {
+            if (d >= entry.onset()) {
+                if (i == target) {
+                    return entry.biome();
+                }
+                i++;
+            }
+        }
+        return household;   // unreachable: target < eligible
     }
 }
