@@ -3,6 +3,8 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
+import com.flatts.recompile.content.item.CuttingTorchItem;
+import com.flatts.recompile.event.RCTorchFuel;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
@@ -11,12 +13,14 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -47,6 +51,17 @@ final class DemolitionYardTests {
         helper.assertTrue(Math.abs(min - expectedMin) < 1.0E-6 && Math.abs(max - expectedMax) < 1.0E-6,
             what + " " + axis + " must span " + expectedMin + ".." + expectedMax + ", got " + min + ".." + max
                 + " (the Java VoxelShape and the block model have drifted apart)");
+    }
+
+    /** How many of an item a player is carrying. */
+    private static int countIn(ServerPlayer player, Item item) {
+        int total = 0;
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+            if (stack.is(item)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
     }
 
     static void register() {
@@ -100,6 +115,95 @@ final class DemolitionYardTests {
                 "the sledgehammer must NOT cut steel (you crush concrete, you cut steel)");
             helper.assertFalse(ItemStack.EMPTY.isCorrectToolForDrops(state),
                 "a bare hand must not cut steel");
+            helper.succeed();
+        });
+
+        // The torch is CHARGED with rags ahead of time and cuts off its own stored fuel - it never reaches
+        // into the pack mid-cut. Driven through the same entry points the use() and break hooks call.
+        RCGameTests.test("cutting_torch_charges_from_rags", 40, helper -> {
+            ItemStack torch = new ItemStack(RCItems.CUTTING_TORCH.get());
+
+            // A freshly crafted torch carries the rag its recipe already spent - it is not born empty.
+            helper.assertTrue(CuttingTorchItem.fuel(torch) == CuttingTorchItem.CUTS_PER_RAG,
+                "a new torch must hold one rag's worth, got " + CuttingTorchItem.fuel(torch));
+
+            CuttingTorchItem.addRag(torch);
+            helper.assertTrue(CuttingTorchItem.fuel(torch) == CuttingTorchItem.CUTS_PER_RAG * 2,
+                "charging must add a whole rag, got " + CuttingTorchItem.fuel(torch));
+
+            // Fill to capacity, then confirm it refuses a rag that would be partly wasted rather than
+            // clamping - a clamped top-up silently burns most of a rag with nothing on screen to show it.
+            while (CuttingTorchItem.hasRoomForRag(torch)) {
+                CuttingTorchItem.addRag(torch);
+            }
+            helper.assertTrue(CuttingTorchItem.fuel(torch) == CuttingTorchItem.CAPACITY,
+                "topping up must reach exactly capacity, got " + CuttingTorchItem.fuel(torch));
+            helper.assertFalse(CuttingTorchItem.hasRoomForRag(torch),
+                "a full torch must not accept another rag");
+            helper.succeed();
+        });
+
+        // Charging through the REAL interaction, not the helper. The tests above call addRag directly, so
+        // use() - the only thing a player actually touches - would keep them all green if it broke.
+        RCGameTests.test("cutting_torch_use_charges_from_the_pack", 40, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            ItemStack torch = new ItemStack(RCItems.CUTTING_TORCH.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, torch);
+
+            // No rags: refused, and nothing is added.
+            helper.assertFalse(CuttingTorchItem.hasRag(player), "the test player must start with no rags");
+            RCItems.CUTTING_TORCH.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(CuttingTorchItem.fuel(player.getMainHandItem()) == CuttingTorchItem.CUTS_PER_RAG,
+                "charging with an empty pack must not add fuel, got "
+                    + CuttingTorchItem.fuel(player.getMainHandItem()));
+
+            // With a rag: the rag is spent and the charge rises by exactly one rag's worth.
+            player.getInventory().add(new ItemStack(RCItems.OILY_RAG.get(), 1));
+            RCItems.CUTTING_TORCH.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(CuttingTorchItem.fuel(player.getMainHandItem()) == CuttingTorchItem.CUTS_PER_RAG * 2,
+                "use() must add one rag's worth, got " + CuttingTorchItem.fuel(player.getMainHandItem()));
+            helper.assertTrue(countIn(player, RCItems.OILY_RAG.get()) == 0,
+                "use() must spend the rag, got " + countIn(player, RCItems.OILY_RAG.get()) + " left");
+
+            player.discard();
+            helper.succeed();
+        });
+
+        // Cutting draws down the stored charge, and an empty torch refuses outright.
+        RCGameTests.test("cutting_torch_spends_its_charge", 40, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            // Survival explicitly: creative is exempt from fuel by design, and the mock player does not
+            // default to survival, so without this the test would assert the exemption rather than the rule.
+            player.setGameMode(GameType.SURVIVAL);
+            ItemStack torch = new ItemStack(RCItems.CUTTING_TORCH.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, torch);
+            BlockState beam = RCBlocks.STEEL_I_BEAM.get().defaultBlockState();
+
+            helper.assertFalse(player.getAbilities().instabuild, "the test player must be in survival");
+            helper.assertTrue(RCTorchFuel.cutCostsFuel(player, beam),
+                "cutting steel with the torch must cost fuel");
+            helper.assertFalse(RCTorchFuel.cutCostsFuel(player, Blocks.DIRT.defaultBlockState()),
+                "breaking a block the torch does not cut must be free");
+
+            int charge = CuttingTorchItem.fuel(torch);
+            for (int cut = 0; cut < charge; cut++) {
+                helper.assertTrue(RCTorchFuel.spendFuel(player), "cut " + cut + " must draw on the charge");
+            }
+            helper.assertTrue(CuttingTorchItem.fuel(player.getMainHandItem()) == 0,
+                "the charge must be spent exactly, got " + CuttingTorchItem.fuel(player.getMainHandItem()));
+            helper.assertFalse(RCTorchFuel.spendFuel(player), "a dry torch must refuse the cut");
+
+            player.discard();
+            helper.succeed();
+        });
+
+        // The torch is the tool, not the consumable: the rag is the sink, so durability must not double-tax
+        // the same cut. A damageable torch would silently reintroduce the v1 fuel model alongside this one.
+        RCGameTests.test("cutting_torch_never_wears_out", 20, helper -> {
+            ItemStack torch = new ItemStack(RCItems.CUTTING_TORCH.get());
+            helper.assertFalse(torch.isDamageableItem(),
+                "the torch must be unbreakable - its fuel is the rag, not its own durability");
             helper.succeed();
         });
 
