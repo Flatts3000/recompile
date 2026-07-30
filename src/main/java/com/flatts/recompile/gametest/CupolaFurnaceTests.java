@@ -85,6 +85,19 @@ final class CupolaFurnaceTests {
                     "the cupola must smelt what the barrel refuses, output was " + cupola.getItem(2)));
         });
 
+        // You can get it back. It costs a Burn Barrel to build, so a Cupola that cannot be picked up is a
+        // machine you lose forever by placing it in the wrong spot. requiresCorrectToolForDrops reads as
+        // the obvious call for a stone machine and is exactly the trap here - this world has no pickaxe, so
+        // "correct tool" would mean no tool exists. Asserted through a real drop-yielding break.
+        RCGameTests.test("cupola_can_be_picked_back_up", 40, helper -> {
+            BlockPos pos = new BlockPos(5, 1, 3);
+            helper.setBlock(pos, RCBlocks.CUPOLA_FURNACE.get());
+            BlockPos abs = helper.absolutePos(pos);
+            // destroyBlock on the LEVEL, not the helper - the helper's passes dropBlock=false.
+            helper.getLevel().destroyBlock(abs, true);
+            helper.succeedWhen(() -> helper.assertItemEntityPresent(RCItems.CUPOLA_FURNACE.get(), pos, 2.0));
+        });
+
         // The other half of the upgrade: this one automates. The Burn Barrel exposes no slots to any face
         // on purpose and a hopper under it pulls nothing; a hopper under this one must pull, or the
         // machine tier is only a metal tier.

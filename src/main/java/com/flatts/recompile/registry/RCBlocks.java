@@ -303,7 +303,10 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .strength(3.5F)
-            .requiresCorrectToolForDrops()
+            // NO requiresCorrectToolForDrops. It reads as the right call for a stone machine and is a trap
+            // here: this world has no pickaxe, and nothing is in mineable/cutting_torch except steel, so
+            // "correct tool" would mean *no* tool exists and breaking it would drop nothing - losing the
+            // player's most expensive machine, which ate their Burn Barrel to build.
             .sound(SoundType.STONE)
             .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
 

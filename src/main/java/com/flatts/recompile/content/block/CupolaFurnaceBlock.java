@@ -5,6 +5,8 @@ import com.flatts.recompile.registry.RCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
@@ -67,8 +69,7 @@ public class CupolaFurnaceBlock extends AbstractFurnaceBlock {
         double y = pos.getY();
         double z = pos.getZ() + 0.5;
         if (random.nextDouble() < 0.1) {
-            level.playLocalSound(x, y, z, net.minecraft.sounds.SoundEvents.BLASTFURNACE_FIRE_CRACKLE,
-                net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 1.0F, false);
+            level.playLocalSound(x, y, z, SoundEvents.BLASTFURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
         }
         level.addParticle(ParticleTypes.SMOKE, x + random.nextDouble() * 0.4 - 0.2, y + 1.0,
             z + random.nextDouble() * 0.4 - 0.2, 0.0, 0.0, 0.0);
