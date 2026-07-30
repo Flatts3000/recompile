@@ -7,6 +7,7 @@ import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
@@ -49,6 +50,7 @@ public class RecompileJadePlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, SortableBlock.class);
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, BulkyWasteBlock.class);
+        registration.registerBlockComponent(ToolHintProvider.INSTANCE, SteelBeamBlock.class);
         registration.registerBlockComponent(SortProgressProvider.INSTANCE, SortableBlock.class);
         registration.registerBlockComponent(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);
         registration.registerBlockComponent(MachineStatusProvider.INSTANCE, MultiblockCoreBlock.class);

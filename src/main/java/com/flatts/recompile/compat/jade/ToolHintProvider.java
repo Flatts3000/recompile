@@ -3,6 +3,7 @@ package com.flatts.recompile.compat.jade;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -41,6 +42,9 @@ public enum ToolHintProvider implements IBlockComponentProvider {
         }
         if (block instanceof BulkyWasteBlock) {
             return RCItems.PRYBAR.get();
+        }
+        if (block instanceof SteelBeamBlock) {
+            return RCItems.CUTTING_TORCH.get();
         }
         return null;
     }

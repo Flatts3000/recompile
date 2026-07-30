@@ -38,6 +38,9 @@ public final class SortingData {
     /** Bulky Waste's find table (broken open with the prybar). */
     public static final String BULKY = "/data/recompile/loot_table/blocks/bulky_waste.json";
 
+    /** What a Cutting Torch gets out of a Steel I-Beam. */
+    public static final String STEEL_BEAM = "/data/recompile/loot_table/blocks/steel_i_beam.json";
+
     /** One possible output and how likely it is (0..1). */
     public record Weighted(ItemStack stack, float chance) {}
 

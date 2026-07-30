@@ -70,5 +70,15 @@ final class SortingDataTests {
                 "the mattress is the commoner find (weight 3 vs 2)");
             helper.succeed();
         });
+
+        // The Steel I-Beam's drop feeds JEI's Cutting category, so the offcut has a visible SOURCE -
+        // block drops are otherwise invisible to JEI, and an item you can only use is half an item.
+        RCGameTests.test("sorting_data_reads_the_steel_beam", 10, helper -> {
+            List<SortingData.Weighted> out = SortingData.outputs(SortingData.STEEL_BEAM);
+            helper.assertTrue(!out.isEmpty(), "the steel beam's drop table must parse to outputs");
+            helper.assertTrue(out.stream().allMatch(w -> w.stack().is(RCItems.STEEL_OFFCUT.get())),
+                "a cut beam must show steel offcuts and nothing else, got " + out);
+            helper.succeed();
+        });
     }
 }
