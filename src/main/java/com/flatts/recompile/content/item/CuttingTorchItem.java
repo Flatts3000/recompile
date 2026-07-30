@@ -2,6 +2,7 @@ package com.flatts.recompile.content.item;
 
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCItems;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -10,6 +11,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 /**
@@ -97,6 +100,24 @@ public class CuttingTorchItem extends Item {
                 SoundEvents.FLINTANDSTEEL_USE, SoundSource.PLAYERS, 0.8F, 1.2F);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * The charge, in words as well as on the bar.
+     *
+     * <p>The bar alone says "some fuel left" but never how much, and it is easy to miss on a hotbar item.
+     * The tooltip is where a player checks before walking out to a husk with 3 cuts in the tank.
+     */
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            java.util.function.Consumer<Component> adder, TooltipFlag flag) {
+        int charge = fuel(stack);
+        adder.accept(Component.translatable("tooltip.recompile.torch_fuel", charge, CAPACITY)
+            .withStyle(charge > 0 ? ChatFormatting.GOLD : ChatFormatting.RED));
+        if (charge <= 0) {
+            adder.accept(Component.translatable("tooltip.recompile.torch_charge_hint")
+                .withStyle(ChatFormatting.DARK_GRAY));
+        }
     }
 
     // The fuel gauge. The torch is UNBREAKABLE, so this bar is free real estate - nothing else is using it,

@@ -21,6 +21,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.component.Weapon;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -176,7 +177,12 @@ public final class RCItems {
         "cutting_torch",
         props -> new CuttingTorchItem(props.tool(TORCH_TIER, RCTags.MINEABLE_WITH_CUTTING_TORCH,
                 1.0F, -2.8F, 0.0F)
-            .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)));
+            .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
+            // Hide the "Unbreakable" line. It is true of the tool and false of the experience - the torch
+            // absolutely does stop working, it just runs out of fuel rather than wearing out - and the
+            // fuel line right above it says the useful thing.
+            .component(DataComponents.TOOLTIP_DISPLAY,
+                TooltipDisplay.DEFAULT.withHidden(DataComponents.UNBREAKABLE, true))));
 
     // ---------------- Food (P1.9) ----------------
     // Scavenged tin cans: a sealed can opens with a scrap knife into an opened can
