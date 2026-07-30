@@ -73,13 +73,15 @@ survival placement lands with #49.
 
 ### Recipe (`recipe/cutting_torch.json`) - gated past first-COPPER (owner, 2026-07-30)
 ```
-. C      C = copper ingot   - the cutting nozzle (real torch tips are brass/copper)
+. C      C = copper pipe    - the torch tube and nozzle
 P R      P = plastic scrap  - the hose, feeding R = rebar, the body/handle
 . O      O = oily rag       - the fuel, and the torch's first charge
 ```
-Each component is a part of the real object, and **all four are obtainable before any iron exists**:
-copper from scrap metal in the Burn Barrel, rebar and plastic scrap from the pull streams, the rag from
-fiber + muck.
+Each component is a part of the real object, and **all four are obtainable before any iron exists**: the
+pipe is 2 copper nuggets (6 nuggets -> 3 pipes) and nuggets come straight from scrap metal in the Burn
+Barrel, rebar and plastic scrap come from the pull streams, and the rag from fiber + muck. The pipe is
+deliberately cheaper than a copper ingot would be - 2 nuggets against 9 - so the torch sits just past
+first-copper rather than a full ingot's worth beyond it.
 
 **Why not iron.** The torch used to cost an iron ingot, bootstrapped by smelting rebar in the Burn Barrel.
 That stopped working when iron moved behind the Cupola Furnace (#50) - the torch would have needed iron to
