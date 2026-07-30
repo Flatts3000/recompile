@@ -38,6 +38,13 @@ public class RecompileJeiPlugin implements IModPlugin {
         RecipeType.create(Recompile.MOD_ID, "sorting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> CUTTING =
         RecipeType.create(Recompile.MOD_ID, "cutting", SalvageRecipe.class);
+    /**
+     * Torch cutting is its OWN category, not a second entry under CUTTING. JEI catalysts attach to a
+     * category, never to a single recipe, so sharing one would advertise the scrap knife as a way to cut
+     * steel and the torch as a way to open a tin can. Two tools, two categories.
+     */
+    static final RecipeType<SalvageRecipe> TORCH_CUTTING =
+        RecipeType.create(Recompile.MOD_ID, "torch_cutting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> PRYING =
         RecipeType.create(Recompile.MOD_ID, "prying", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> TEARDOWN =
@@ -58,6 +65,8 @@ public class RecompileJeiPlugin implements IModPlugin {
                 gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true),
             new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false),
+            new SalvageCategory(TORCH_CUTTING, Component.translatable("jei.recompile.torch_cutting"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true),
             new SalvageCategory(PRYING, Component.translatable("jei.recompile.prying"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true),
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
@@ -73,12 +82,14 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageRecipe(new ItemStack(RCItems.COMPACTED_BALE.get()), household),
             new SalvageRecipe(new ItemStack(RCItems.TRASH_BAG.get()), bag)));
 
-        // Cutting covers both cutters: the knife's item transforms and the torch's steel. A Steel Offcut
-        // has a smelting recipe so JEI can already say what it BECOMES, but nothing said where it comes
-        // from - block drops are invisible to JEI, so without this the offcut has no source at all.
         registration.addRecipes(CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.TIN_CAN.get()),
-                List.of(new SortingData.Weighted(new ItemStack(RCItems.TIN_CAN_OPEN.get()), 1.0f))),
+                List.of(new SortingData.Weighted(new ItemStack(RCItems.TIN_CAN_OPEN.get()), 1.0f)))));
+
+        // A Steel Offcut has a smelting recipe, so JEI could already say what it BECOMES - but nothing
+        // said where it comes FROM, because block drops are invisible to JEI. An item with a use and no
+        // source reads like a bug.
+        registration.addRecipes(TORCH_CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.STEEL_I_BEAM.get()),
                 SortingData.outputs(SortingData.STEEL_BEAM))));
 
@@ -132,7 +143,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.TRASH_BAG.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.COMPACTED_BALE.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_KNIFE.get()), CUTTING);
-        registration.addRecipeCatalyst(new ItemStack(RCItems.CUTTING_TORCH.get()), CUTTING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.CUTTING_TORCH.get()), TORCH_CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
         // The Burn Barrel is this world's furnace - register it as a smelting station so scrap ->
