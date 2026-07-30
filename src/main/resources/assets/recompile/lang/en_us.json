@@ -126,7 +126,7 @@
   "config.jade.plugin_recompile.scrap_bin": "Scrap Bin contents",
   "config.jade.plugin_recompile.compost_heap": "Compost Heap status",
   "config.jade.plugin_recompile.tree_nursery": "Tree Nursery status",
-  "config.jade.plugin_recompile.animal_bait": "Animal bait status",
+  "config.jade.plugin_recompile.animal_bait": "Animal Bait status",
   "jade.recompile.compost_empty": "Empty - feed it muck or fiber",
   "jade.recompile.compost_layers": "Composting: %s / %s",
   "jade.recompile.nursery_running": "Running - %ss left",
