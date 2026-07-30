@@ -89,13 +89,17 @@ public class SteelBeamBlock extends Block implements SimpleWaterloggedBlock {
     // runs. Java shapes and the JSON models are two hand-kept copies of one geometry, so DemolitionYardTests
     // asserts these bounds exactly - a retune is meant to fail the tests.
     //
-    // The braces ENCLOSE the flanges (y0-6 and y10-16 against flanges at y3-5 and y11-13) rather than
+    // The braces ENCLOSE the flanges (y0-8 and y8-16 against flanges at y3-5 and y11-13) rather than
     // abutting them, and that overlap is load-bearing: see the note on the cross case in buildShape.
+    //
+    // They also MEET at y8 rather than stopping short, so a junction with structure above and below is
+    // one continuous plate over the full block height. Stopping at y6/y10 left the web showing through
+    // between them, which read as two separate pads bolted either side of the beam.
     private static final VoxelShape POLE = Block.box(4, 0, 4, 12, 16, 12);
     private static final VoxelShape BEAM_X = Block.box(0, 3, 4, 16, 13, 12);
     private static final VoxelShape BEAM_Z = Block.box(4, 3, 0, 12, 13, 16);
-    private static final VoxelShape BRACE_TOP = Block.box(3, 10, 3, 13, 16, 13);
-    private static final VoxelShape BRACE_BOTTOM = Block.box(3, 0, 3, 13, 6, 13);
+    private static final VoxelShape BRACE_TOP = Block.box(3, 8, 3, 13, 16, 13);
+    private static final VoxelShape BRACE_BOTTOM = Block.box(3, 0, 3, 13, 8, 13);
 
     /** Shapes for all 16 x/z/top/bottom combinations, indexed by {@link #shapeIndex}. */
     private static final VoxelShape[] SHAPES = buildShapes();

@@ -1,13 +1,13 @@
 {
   "textures": {
-    "steel": "minecraft:block/iron_block",
-    "particle": "minecraft:block/iron_block"
+    "gusset": "recompile:block/steel_beam_gusset",
+    "particle": "recompile:block/steel_beam_flange"
   },
   "elements": [
     {
       "from": [
         3,
-        10,
+        8,
         3
       ],
       "to": [
@@ -17,22 +17,58 @@
       ],
       "faces": {
         "north": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "south": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "east": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "west": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "up": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "down": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         }
       }
     },
@@ -44,27 +80,63 @@
       ],
       "to": [
         13,
-        6,
+        8,
         13
       ],
       "faces": {
         "north": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "south": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "east": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "west": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "up": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         },
         "down": {
-          "texture": "#steel"
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#gusset"
         }
       }
     }

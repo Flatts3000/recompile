@@ -1,8 +1,9 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "steel": "minecraft:block/iron_block",
-    "particle": "minecraft:block/iron_block"
+    "flange": "recompile:block/steel_beam_flange",
+    "web": "recompile:block/steel_beam_web",
+    "particle": "recompile:block/steel_beam_flange"
   },
   "elements": [
     {
@@ -18,22 +19,22 @@
       ],
       "faces": {
         "north": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "south": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "east": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "west": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "up": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "down": {
-          "texture": "#steel"
+          "texture": "#flange"
         }
       }
     },
@@ -50,22 +51,22 @@
       ],
       "faces": {
         "north": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "south": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "east": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "west": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "up": {
-          "texture": "#steel"
+          "texture": "#flange"
         },
         "down": {
-          "texture": "#steel"
+          "texture": "#flange"
         }
       }
     },
@@ -82,16 +83,16 @@
       ],
       "faces": {
         "east": {
-          "texture": "#steel"
+          "texture": "#web"
         },
         "west": {
-          "texture": "#steel"
+          "texture": "#web"
         },
         "up": {
-          "texture": "#steel"
+          "texture": "#web"
         },
         "down": {
-          "texture": "#steel"
+          "texture": "#web"
         }
       }
     }

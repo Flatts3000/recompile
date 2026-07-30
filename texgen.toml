@@ -847,3 +847,56 @@ tint = "#4a4148"
 source = "item/mace"
 handle_tint = "#7a4a24"
 handle_from = 8
+
+# ---------------------------------------------------------------------------
+# Demolition yard - Steel I-Beam + Cutting Torch (#48)
+# ---------------------------------------------------------------------------
+# Three surfaces, one per PART of the beam, because fasteners belong on the connector and nowhere else.
+#
+# Create solves this with a single 32x32 UV atlas: every model face carries an explicit uv rect, so the
+# gusset samples a patch that has rivets drawn on it and the web samples a patch that does not. We cannot
+# do that here - texgen generates whole surfaces per id, and our boxes use auto-UV - so the split lives in
+# the texture ids instead. Each one must therefore read correctly at ANY offset, since auto-UV decides which
+# band of the texture a given face samples: uniform and tileable, never a sprite sheet.
+#
+# The web is the ONLY one generated from a prompt. The flange and gusset derive from it with `reference`,
+# which edits the web's raw source at high input fidelity instead of generating blind - the same mechanism
+# tin_can_open uses on tin_can, and for the same reason. Three independent generations produced three
+# different greys (one blue, one warm, one green) that read as three materials bolted together rather than
+# one beam. Deriving keeps a single palette by construction, so the parts cannot drift.
+#
+# Scale drives the prompts. The flange faces are 2px tall and the web 2px wide, so anything busy becomes
+# noise once sliced. Only the gusset is a large enough flat area to carry rivet heads.
+[surface.steel_beam_web]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block texture: plain grey painted structural steel plate, smooth and unadorned with NO bolts and NO rivets, faint vertical rust streaks and lightly chipped paint, flat, no perspective, uniform across the whole tile, tiles seamlessly"
+
+# Derived: same plate, one step darker so the I-profile reads as flange-web-flange rather than one slab.
+# The generation came back far too dark (~37 luminance below the web, and asking for "slightly darker"
+# in the prompt produced anything from -38 to -80). brightness pulls it back deterministically to a
+# separation you can actually tune, instead of regenerating and hoping.
+[surface.steel_beam_flange]
+kind = "block"
+backend = "ai"
+size = 16
+reference = "steel_beam_web"
+match_hue = "steel_beam_web"
+brightness = 1.18
+prompt = "keep this exact steel plate, its palette and all its markings unchanged - only darken it slightly and add a little extra surface wear. Add NO bolts, NO rivets and no new features. It must still tile seamlessly and stay uniform across the whole tile"
+
+# Derived: the same plate with the beam's ONLY fasteners added.
+[surface.steel_beam_gusset]
+kind = "block"
+backend = "ai"
+size = 16
+reference = "steel_beam_web"
+match_hue = "steel_beam_web"
+prompt = "keep this exact steel plate, its palette and its base colour unchanged, and add a regular evenly spaced grid of round rivet heads on top of it, each rivet catching a highlight with a little rust bleeding beneath it. Change nothing else about the plate. It must still tile seamlessly"
+
+[surface.cutting_torch]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "an oxy-acetylene cutting torch: a metal handle with a curved brass nozzle tipped by a small blue flame, two hose valves, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
