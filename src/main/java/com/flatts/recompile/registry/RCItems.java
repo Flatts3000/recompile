@@ -160,6 +160,17 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> SLEDGEHAMMERS = List.of(
         COPPER_SLEDGEHAMMER, IRON_SLEDGEHAMMER, DIAMOND_SLEDGEHAMMER, NETHERITE_SLEDGEHAMMER);
 
+    // The Cutting Torch: cuts Steel I-Beams (a sledgehammer cannot - you crush concrete, you cut steel).
+    // Single tool, not a tier ladder. Durability is its fuel tank (v1); the Oily Rag in its recipe is the
+    // fuel. Iron in the recipe gates it one step past first-iron (rebar bootstrap).
+    public static final ToolMaterial TORCH_TIER = new ToolMaterial(
+        BlockTags.INCORRECT_FOR_STONE_TOOL, 180, 6.0F, 1.0F, 12,
+        TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots/copper")));
+
+    public static final DeferredItem<Item> CUTTING_TORCH = ITEMS.registerItem(
+        "cutting_torch",
+        props -> new Item(props.tool(TORCH_TIER, RCTags.MINEABLE_WITH_CUTTING_TORCH, 1.0F, -2.8F, 0.0F)));
+
     // ---------------- Food (P1.9) ----------------
     // Scavenged tin cans: a sealed can opens with a scrap knife into an opened can
     // that eats like Suspicious Stew (a random effect - the risk staple). The dump
@@ -213,6 +224,9 @@ public final class RCItems {
     /** Reinforced Concrete: sledged for rebar + aggregate. */
     public static final DeferredItem<BlockItem> REINFORCED_CONCRETE =
         ITEMS.registerSimpleBlockItem("reinforced_concrete", RCBlocks.REINFORCED_CONCRETE);
+    /** Steel I-Beam: cut with the Cutting Torch for bulk raw iron. */
+    public static final DeferredItem<BlockItem> STEEL_I_BEAM =
+        ITEMS.registerSimpleBlockItem("steel_i_beam", RCBlocks.STEEL_I_BEAM);
     public static final DeferredItem<BlockItem> TRASH_BAG =
         ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
     public static final DeferredItem<BlockItem> COMPACTED_BALE =
