@@ -130,7 +130,7 @@ final class DemolitionYardTests {
                 .setValue(SteelBeamBlock.X, true), 3);
             VoxelShape beam = level.getBlockState(center).getShape(level, center);
             assertBounds(helper, beam, Direction.Axis.X, 0.0, 1.0, "X beam spans the block");
-            assertBounds(helper, beam, Direction.Axis.Y, 4 / 16.0, 12 / 16.0, "X beam (I profile)");
+            assertBounds(helper, beam, Direction.Axis.Y, 3 / 16.0, 13 / 16.0, "X beam (I profile)");
             helper.succeed();
         });
 
@@ -188,7 +188,7 @@ final class DemolitionYardTests {
             helper.assertTrue(level.getBlockState(center).getValue(SteelBeamBlock.TOP),
                 "a column above a horizontal run must raise a gusset");
             VoxelShape joined = level.getBlockState(center).getShape(level, center);
-            assertBounds(helper, joined, Direction.Axis.Y, 4 / 16.0, 1.0,
+            assertBounds(helper, joined, Direction.Axis.Y, 3 / 16.0, 1.0,
                 "gusset must reach the top face (block/steel_beam_top.json)");
             helper.succeed();
         });

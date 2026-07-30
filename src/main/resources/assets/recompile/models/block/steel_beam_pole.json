@@ -80,12 +80,6 @@
         10
       ],
       "faces": {
-        "north": {
-          "texture": "#steel"
-        },
-        "south": {
-          "texture": "#steel"
-        },
         "east": {
           "texture": "#steel"
         },

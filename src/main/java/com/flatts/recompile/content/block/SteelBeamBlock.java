@@ -84,15 +84,18 @@ public class SteelBeamBlock extends Block implements SimpleWaterloggedBlock {
     public static final EnumProperty<Axis> AXIS = BlockStateProperties.AXIS;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    // These MUST mirror models/block/steel_beam_{pole,x,z,top,bottom,cross}.json 1:1. One I-profile, 8x8
-    // bounding: two 2-thick flanges at the extremes and a 2-wide web down the middle, swept the full 16 along
-    // whichever axis the member runs. Java shapes and the JSON models are two hand-kept copies of one
-    // geometry, so DemolitionYardTests asserts these bounds exactly - a retune is meant to fail the tests.
+    // These MUST mirror models/block/steel_beam_{pole,x,z,top,bottom,cross}.json 1:1. One I-profile, 8 wide:
+    // two 2-thick flanges and a 2-wide web between them, swept the full 16 along whichever axis the member
+    // runs. Java shapes and the JSON models are two hand-kept copies of one geometry, so DemolitionYardTests
+    // asserts these bounds exactly - a retune is meant to fail the tests.
+    //
+    // The braces ENCLOSE the flanges (y0-6 and y10-16 against flanges at y3-5 and y11-13) rather than
+    // abutting them, and that overlap is load-bearing: see the note on the cross case in buildShape.
     private static final VoxelShape POLE = Block.box(4, 0, 4, 12, 16, 12);
-    private static final VoxelShape BEAM_X = Block.box(0, 4, 4, 16, 12, 12);
-    private static final VoxelShape BEAM_Z = Block.box(4, 4, 0, 12, 12, 16);
-    private static final VoxelShape BRACE_TOP = Block.box(3, 12, 3, 13, 16, 13);
-    private static final VoxelShape BRACE_BOTTOM = Block.box(3, 0, 3, 13, 4, 13);
+    private static final VoxelShape BEAM_X = Block.box(0, 3, 4, 16, 13, 12);
+    private static final VoxelShape BEAM_Z = Block.box(4, 3, 0, 12, 13, 16);
+    private static final VoxelShape BRACE_TOP = Block.box(3, 10, 3, 13, 16, 13);
+    private static final VoxelShape BRACE_BOTTOM = Block.box(3, 0, 3, 13, 6, 13);
 
     /** Shapes for all 16 x/z/top/bottom combinations, indexed by {@link #shapeIndex}. */
     private static final VoxelShape[] SHAPES = buildShapes();
@@ -133,7 +136,10 @@ public class SteelBeamBlock extends Block implements SimpleWaterloggedBlock {
     /** Mirrors the blockstate's multipart cases exactly, so the hitbox is always what is drawn. */
     private static VoxelShape buildShape(boolean x, boolean z, boolean top, boolean bottom) {
         if (x && z) {
-            // A cross always gets both gussets - that is what makes the junction read as a joint.
+            // A cross ALWAYS gets both gussets, ignoring top/bottom, and that is not a style choice: the two
+            // members' flanges land at identical heights over the central 8x8, so their outward faces are
+            // coplanar AND same-facing there - textbook z-fighting. The braces enclose those faces and hide
+            // them. Making these conditional would flicker on any cross with nothing above or below it.
             return Shapes.or(BEAM_X, BEAM_Z, BRACE_TOP, BRACE_BOTTOM);
         }
         if (!x && !z) {

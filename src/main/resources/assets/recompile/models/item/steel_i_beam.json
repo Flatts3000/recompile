@@ -1,9 +1,99 @@
 {
   "parent": "minecraft:block/block",
-  "textures": { "steel": "minecraft:block/iron_block", "particle": "minecraft:block/iron_block" },
+  "textures": {
+    "steel": "minecraft:block/iron_block",
+    "particle": "minecraft:block/iron_block"
+  },
   "elements": [
-    { "from": [4, 0, 4],  "to": [12, 16, 6],  "faces": { "north":{"texture":"#steel"},"south":{"texture":"#steel"},"east":{"texture":"#steel"},"west":{"texture":"#steel"},"up":{"texture":"#steel"},"down":{"texture":"#steel"} } },
-    { "from": [4, 0, 10], "to": [12, 16, 12], "faces": { "north":{"texture":"#steel"},"south":{"texture":"#steel"},"east":{"texture":"#steel"},"west":{"texture":"#steel"},"up":{"texture":"#steel"},"down":{"texture":"#steel"} } },
-    { "from": [7, 0, 6],  "to": [9, 16, 10],  "faces": { "north":{"texture":"#steel"},"south":{"texture":"#steel"},"east":{"texture":"#steel"},"west":{"texture":"#steel"},"up":{"texture":"#steel"},"down":{"texture":"#steel"} } }
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        16,
+        6
+      ],
+      "faces": {
+        "north": {
+          "texture": "#steel"
+        },
+        "south": {
+          "texture": "#steel"
+        },
+        "east": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "down": {
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        0,
+        10
+      ],
+      "to": [
+        12,
+        16,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#steel"
+        },
+        "south": {
+          "texture": "#steel"
+        },
+        "east": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "down": {
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        0,
+        6
+      ],
+      "to": [
+        9,
+        16,
+        10
+      ],
+      "faces": {
+        "east": {
+          "texture": "#steel"
+        },
+        "west": {
+          "texture": "#steel"
+        },
+        "up": {
+          "texture": "#steel"
+        },
+        "down": {
+          "texture": "#steel"
+        }
+      }
+    }
   ]
 }
