@@ -12,12 +12,16 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
@@ -96,6 +100,32 @@ final class DemolitionYardTests {
                 "the sledgehammer must NOT cut steel (you crush concrete, you cut steel)");
             helper.assertFalse(ItemStack.EMPTY.isCorrectToolForDrops(state),
                 "a bare hand must not cut steel");
+            helper.succeed();
+        });
+
+        // The clicked face picks the orientation: a floor click stands a column up, a wall click runs a
+        // girder out of that wall. This is the beam's headline behaviour and the ONLY rule that reads
+        // BlockPlaceContext, so every other test in this file - which all set states directly - would keep
+        // passing if getStateForPlacement broke. Hence driving the real placement path here.
+        RCGameTests.test("steel_beam_placement_takes_axis_from_clicked_face", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos anchor = helper.absolutePos(new BlockPos(3, 3, 3));
+            level.setBlock(anchor, Blocks.STONE.defaultBlockState(), 3);
+            ItemStack beam = new ItemStack(RCItems.STEEL_I_BEAM.get());
+
+            for (Direction face : new Direction[] { Direction.UP, Direction.EAST, Direction.NORTH }) {
+                BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(anchor), face, anchor, false);
+                BlockState placed = RCBlocks.STEEL_I_BEAM.get().getStateForPlacement(
+                    new BlockPlaceContext(level, null, InteractionHand.MAIN_HAND, beam, hit));
+
+                helper.assertTrue(placed.getValue(SteelBeamBlock.AXIS) == face.getAxis(),
+                    "clicking the " + face + " face must orient the beam on that axis, got "
+                        + placed.getValue(SteelBeamBlock.AXIS));
+                helper.assertTrue(placed.getValue(SteelBeamBlock.X) == (face.getAxis() == Direction.Axis.X),
+                    "X must be set only for a run along X, clicked " + face);
+                helper.assertTrue(placed.getValue(SteelBeamBlock.Z) == (face.getAxis() == Direction.Axis.Z),
+                    "Z must be set only for a run along Z, clicked " + face);
+            }
             helper.succeed();
         });
 
