@@ -31,8 +31,13 @@ survival placement lands with #49.
 
 ### Loot (`loot_table/blocks/steel_i_beam.json`)
 - Drops **raw iron in bulk** - `minecraft:raw_iron`, uniform **2-4** (tune #36). This is the world's only
-  `raw_iron` source (no mining), and it smelts to iron the vanilla way, so the Burn Barrel handles it now
-  and the Makeshift Forge (#50) automates it in bulk.
+  `raw_iron` source (no mining). **It no longer smelts in the Burn Barrel** (refuse only, 2026-07-30), so
+  nothing refines it until the Cupola Furnace (#50) ships - it stockpiles in the meantime, by design.
+- **The drop item is OPEN, not settled** (owner, 2026-07-30: "rethink raw iron entirely"). Raw iron is
+  metallurgically backwards - recycled structural steel becomes graded scrap (ISRI Plate & Structural) and
+  is *remelted*, never returning to ore. The likely replacement is a steel-offcut item that only the Cupola
+  turns into iron. Parked with #50 because that is where its consumer lives; see
+  `trashlands/docs/material_economy.md` for the research.
 - **No dedicated steel output - the yield is iron** (owner call, 2026-07-28). A "steel ingot" tier is a
   possible future consideration **if/when Mekanism is integrated** (it ships a steel tier); revisit then,
   not now. Until then, "Steel I-Beam" is the block's flavour and the material it yields is iron.
