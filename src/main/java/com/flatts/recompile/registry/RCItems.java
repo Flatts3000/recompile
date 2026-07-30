@@ -12,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.ToolMaterial;
@@ -167,9 +168,13 @@ public final class RCItems {
         BlockTags.INCORRECT_FOR_STONE_TOOL, 180, 6.0F, 1.0F, 12,
         TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots/copper")));
 
+    // UNBREAKABLE is deliberate: the torch's fuel is an Oily Rag spent per cut (see RCTorchFuel), so the
+    // sink is the rag line, not the tool. Leaving durability on would tax the same action twice. The
+    // ToolMaterial still supplies the mine tier, speed and attack stats - only its durability is moot.
     public static final DeferredItem<Item> CUTTING_TORCH = ITEMS.registerItem(
         "cutting_torch",
-        props -> new Item(props.tool(TORCH_TIER, RCTags.MINEABLE_WITH_CUTTING_TORCH, 1.0F, -2.8F, 0.0F)));
+        props -> new Item(props.tool(TORCH_TIER, RCTags.MINEABLE_WITH_CUTTING_TORCH, 1.0F, -2.8F, 0.0F)
+            .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)));
 
     // ---------------- Food (P1.9) ----------------
     // Scavenged tin cans: a sealed can opens with a scrap knife into an opened can

@@ -44,13 +44,20 @@ survival placement lands with #49.
   RCTags.MINEABLE_WITH_CUTTING_TORCH, attack, speed, 0F)`. Mines **only** the cutting-torch tag; it is a
   cutter, not a general tool, and **not** a tier ladder (single tool).
 - **Custom single `ToolMaterial` `TORCH_TIER`** (like the sledgehammer's `COPPER_TIER`): iron-ish mining
-  level so it cuts steel, modest durability (the fuel tank, see below), repair via copper or iron ingots.
-- **Fuel model - durability for v1** (owner had no strong preference, 2026-07-28: ship the simple one). The
-  torch's durability *is* its fuel tank: it cuts a bounded number of beams, then is spent and re-crafted
-  (which re-spends an Oily Rag). This keeps it a standard `Item` with no event hooks or fuel-component
-  plumbing. **Deferred alternative (#36 / follow-up):** consume an Oily Rag from the inventory per cut (a
-  `BlockEvent.BreakEvent`/`destroyBlock` hook), so the torch is reusable and the sink is the rag, not the
-  tool. Ship durability; the hook path stays open.
+  level so it cuts steel. Its durability is **moot** - the torch carries `UNBREAKABLE` (see below) - but the
+  material still supplies the mining tier, speed and attack stats.
+- **Fuel model - an Oily Rag per cut** (owner call, 2026-07-30, superseding the v1 durability model below).
+  The torch is `UNBREAKABLE` and cutting a block in `#recompile:mineable/cutting_torch` spends one Oily Rag
+  from the player's inventory (`RCTorchFuel`, on NeoForge's `BreakBlockEvent`). No rag means the cut is
+  **refused outright** and the player gets an action-bar nudge - the block is left standing rather than
+  broken-with-no-drops, because silently eating the steel gives the player no way to learn the rule.
+  Creative is exempt, and blocks outside the tag are free, so breaking dirt with a torch in hand costs
+  nothing.
+  - **Why the change:** under durability the torch was the consumable and wore down whether or not you had
+    fuel, which made the rag a one-off *crafting* cost rather than an ongoing one. The sink is now the
+    P1.4-A oily-rag line, which is what "consumes fuel as it cuts" meant in #48 all along.
+  - **Superseded (v1, 2026-07-28):** durability *was* the fuel tank - the torch cut a bounded number of
+    beams, then was spent and re-crafted. Kept here as the record of what changed and why, not as an option.
 - Low attack (it is a torch, not a weapon) and a slow-ish mine speed on steel.
 
 ### Recipe (`recipe/cutting_torch.json`) - gated one step past first-iron
