@@ -1,11 +1,11 @@
 package com.flatts.recompile.event;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.item.CuttingTorchItem;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -14,10 +14,14 @@ import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 /**
  * The Cutting Torch burns an Oily Rag per cut (spec {@code docs/steel_cutting_torch_spec.md}).
  *
- * <p>This replaces the v1 durability-as-fuel-tank model. Under that model the torch was the consumable and
- * ran down whether or not you had any fuel, which made the rag a one-off crafting cost rather than an
- * ongoing one. Here the torch is {@code UNBREAKABLE} and the rag is the real sink, so cutting steel draws
- * continuously on the P1.4-A oily-rag line - and a torch with no rag simply will not cut.
+ * <p>The torch carries its own charge, fed by rags ahead of time ({@link CuttingTorchItem}), so cutting
+ * spends from the tool rather than reaching into the player's pack. Fuelling is a deliberate act you can
+ * see on the item's gauge, and a torch you forgot to charge is empty when you find the steel - which is a
+ * legible failure, where silently eating rags out of the pack mid-swing is not.
+ *
+ * <p>This replaces the v1 durability-as-fuel-tank model, where the torch was the consumable and ran down
+ * whether or not you had fuel - making the rag a one-off crafting cost rather than an ongoing one. The torch
+ * is now {@code UNBREAKABLE} and the rag line is the real sink.
  *
  * <p>Only blocks in {@code #recompile:mineable/cutting_torch} cost fuel, so breaking dirt while holding the
  * torch is free. Creative is exempt.
@@ -54,14 +58,8 @@ public final class RCTorchFuel {
             && state.is(RCTags.MINEABLE_WITH_CUTTING_TORCH);
     }
 
-    /** Spends one Oily Rag, or reports that the player has none. */
+    /** Spends one charge from the held torch, or reports that it is dry. */
     public static boolean spendFuel(Player player) {
-        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
-            if (!stack.isEmpty() && stack.is(RCItems.OILY_RAG.get())) {
-                stack.shrink(1);
-                return true;
-            }
-        }
-        return false;
+        return CuttingTorchItem.spendCut(player.getMainHandItem());
     }
 }

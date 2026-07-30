@@ -46,18 +46,29 @@ survival placement lands with #49.
 - **Custom single `ToolMaterial` `TORCH_TIER`** (like the sledgehammer's `COPPER_TIER`): iron-ish mining
   level so it cuts steel. Its durability is **moot** - the torch carries `UNBREAKABLE` (see below) - but the
   material still supplies the mining tier, speed and attack stats.
-- **Fuel model - an Oily Rag per cut** (owner call, 2026-07-30, superseding the v1 durability model below).
-  The torch is `UNBREAKABLE` and cutting a block in `#recompile:mineable/cutting_torch` spends one Oily Rag
-  from the player's inventory (`RCTorchFuel`, on NeoForge's `BreakBlockEvent`). No rag means the cut is
-  **refused outright** and the player gets an action-bar nudge - the block is left standing rather than
-  broken-with-no-drops, because silently eating the steel gives the player no way to learn the rule.
-  Creative is exempt, and blocks outside the tag are free, so breaking dirt with a torch in hand costs
-  nothing.
-  - **Why the change:** under durability the torch was the consumable and wore down whether or not you had
-    fuel, which made the rag a one-off *crafting* cost rather than an ongoing one. The sink is now the
-    P1.4-A oily-rag line, which is what "consumes fuel as it cuts" meant in #48 all along.
+- **Fuel model - a charged torch** (owner call, 2026-07-30, superseding both earlier models). The torch is
+  `UNBREAKABLE` and carries its own charge in a `torch_fuel` data component. You **feed it rags ahead of
+  time** (right-click with the torch in hand, `CuttingTorchItem`), and cutting a block in
+  `#recompile:mineable/cutting_torch` spends one charge (`RCTorchFuel`, on NeoForge's `BreakBlockEvent`).
+  - **Numbers (first-pass, balance is #36):** 1 Oily Rag = **8 cuts**; capacity **64 cuts** (8 rags).
+  - **A new torch is not empty.** With no stored value the torch reads as one rag's worth, because its
+    recipe already spends an Oily Rag. A spent torch stores an explicit 0, so the default only ever applies
+    to a torch that has never been used.
+  - **Charging refuses to overfill rather than clamping.** A rag that would be partly wasted is simply not
+    taken, and the torch says it is full. Clamping would silently burn most of a rag with nothing on screen
+    to show it.
+  - **The charge is visible** as an orange bar on the item, using the durability-bar slot that
+    `UNBREAKABLE` leaves free. A charge you cannot see is one players run out of mid-cut without warning.
+  - **Empty means the cut is refused outright** - the block is left standing with an action-bar nudge,
+    rather than broken with no drops, because silently eating the steel gives no way to learn the rule.
+  - Creative is exempt, and blocks outside the tag are free, so breaking dirt with a torch in hand costs
+    nothing.
+  - **Why a charge rather than draining the pack:** fuelling becomes a deliberate act with a visible gauge,
+    and running dry is discovered when you charge rather than mid-swing. Reaching into the player's
+    inventory on every break is invisible in the moment and reads as rags going missing.
   - **Superseded (v1, 2026-07-28):** durability *was* the fuel tank - the torch cut a bounded number of
-    beams, then was spent and re-crafted. Kept here as the record of what changed and why, not as an option.
+    beams, then was spent and re-crafted. **Superseded (v2, 2026-07-30):** a rag consumed from the
+    inventory per cut. Kept as the record of what changed and why, not as live options.
 - Low attack (it is a torch, not a weapon) and a slow-ish mine speed on steel.
 
 ### Recipe (`recipe/cutting_torch.json`) - gated one step past first-iron

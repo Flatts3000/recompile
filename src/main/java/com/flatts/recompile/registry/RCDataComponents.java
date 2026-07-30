@@ -27,6 +27,17 @@ public final class RCDataComponents {
                 .networkSynchronized(ByteBufCodecs.VAR_INT)
                 .build());
 
+    /**
+     * The Cutting Torch's remaining charge, in cuts (see CuttingTorchItem). Absent means "never used",
+     * which reads as one rag's worth, because the torch's recipe already spends a rag.
+     */
+    public static final Supplier<DataComponentType<Integer>> TORCH_FUEL =
+        DATA_COMPONENTS.register("torch_fuel",
+            () -> DataComponentType.<Integer>builder()
+                .persistent(Codec.INT)
+                .networkSynchronized(ByteBufCodecs.VAR_INT)
+                .build());
+
     /** A filled Scrap Bin's {material, count}, carried on its dropped item (P2.9). */
     public static final Supplier<DataComponentType<ScrapBinContents>> SCRAP_BIN_CONTENTS =
         DATA_COMPONENTS.register("scrap_bin_contents",

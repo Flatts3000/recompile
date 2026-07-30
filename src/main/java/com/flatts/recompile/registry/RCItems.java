@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.AnimalBaitBlock.Diet;
 import com.flatts.recompile.content.item.AnimalBaitItem;
+import com.flatts.recompile.content.item.CuttingTorchItem;
 import com.flatts.recompile.content.item.FertilizerItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.UnknownSeedlingItem;
@@ -171,9 +172,10 @@ public final class RCItems {
     // UNBREAKABLE is deliberate: the torch's fuel is an Oily Rag spent per cut (see RCTorchFuel), so the
     // sink is the rag line, not the tool. Leaving durability on would tax the same action twice. The
     // ToolMaterial still supplies the mine tier, speed and attack stats - only its durability is moot.
-    public static final DeferredItem<Item> CUTTING_TORCH = ITEMS.registerItem(
+    public static final DeferredItem<CuttingTorchItem> CUTTING_TORCH = ITEMS.registerItem(
         "cutting_torch",
-        props -> new Item(props.tool(TORCH_TIER, RCTags.MINEABLE_WITH_CUTTING_TORCH, 1.0F, -2.8F, 0.0F)
+        props -> new CuttingTorchItem(props.tool(TORCH_TIER, RCTags.MINEABLE_WITH_CUTTING_TORCH,
+                1.0F, -2.8F, 0.0F)
             .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)));
 
     // ---------------- Food (P1.9) ----------------
