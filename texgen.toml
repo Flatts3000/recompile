@@ -326,6 +326,22 @@ prompt = "a full-bleed Minecraft block face of the front of a salvaged metal wor
 
 # The Burn Barrel side: the Scrap Barrel's metal drum, retinted rusty so the body matches the
 # rusty top (retint sources the mod's own promoted scrap_barrel_side, not a vanilla texture).
+# The Cupola Furnace (#50): a retint of the vanilla blast furnace, not AI. A cupola IS recognisably a
+# stack furnace with a hot mouth, so vanilla's shape is already right and only the palette is wrong -
+# retint keeps the silhouette, the brick courses and the glowing front, and shifts them to weathered
+# sooty firebrick. Deterministic and offline: no API call, and it cannot drift between the four faces.
+[surface.cupola_furnace]
+kind = "block_multiface"
+backend = "retint"
+size = 16
+faces = ["top", "front", "front_on", "side"]
+tint = "#a08d78"
+[surface.cupola_furnace.source]
+top = "block/blast_furnace_top"
+front = "block/blast_furnace_front"
+front_on = "block/blast_furnace_front_on"
+side = "block/blast_furnace_side"
+
 [surface.burn_barrel_side]
 kind = "block"
 backend = "retint"
@@ -894,6 +910,16 @@ size = 16
 reference = "steel_beam_web"
 match_hue = "steel_beam_web"
 prompt = "keep this exact steel plate, its palette and its base colour unchanged, and add a regular evenly spaced grid of round rivet heads on top of it, each rivet catching a highlight with a little rust bleeding beneath it. Change nothing else about the plate. It must still tile seamlessly"
+
+# The offcut is cut FROM the beam, so it must be the same steel. match_hue re-casts the generated icon
+# onto the web's colour at promote time, which is cheaper and more reliable than hoping two separate
+# generations land on the same grey - they did not, last time we tried.
+[surface.steel_offcut]
+kind = "item"
+backend = "ai"
+size = 16
+match_hue = "steel_beam_web"
+prompt = "a single short offcut of a steel I-beam, one stubby chunk of grey steel at a three-quarter angle, the I-shaped cross-section reading as a bold clear notch on the near cut end, the piece large in frame and filling most of the icon, torch-cut edges, a touch of rust, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.cutting_torch]
 kind = "item"

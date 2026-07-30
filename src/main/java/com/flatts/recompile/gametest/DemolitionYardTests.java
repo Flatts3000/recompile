@@ -9,6 +9,7 @@ import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -19,8 +20,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -229,6 +232,28 @@ final class DemolitionYardTests {
                     "X must be set only for a run along X, clicked " + face);
                 helper.assertTrue(placed.getValue(SteelBeamBlock.Z) == (face.getAxis() == Direction.Axis.Z),
                     "Z must be set only for a run along Z, clicked " + face);
+            }
+            helper.succeed();
+        });
+
+        // Cutting a beam yields STEEL OFFCUTS, not ore. Recycled structural steel is already-reduced
+        // metal - it becomes graded scrap and is remelted, never returned to ore - so raw_iron was
+        // backwards, quite apart from handing the gated metal straight to a basic furnace.
+        RCGameTests.test("steel_beam_drops_offcuts_not_ore", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos pos = helper.absolutePos(new BlockPos(3, 3, 3));
+            BlockState beam = RCBlocks.STEEL_I_BEAM.get().defaultBlockState();
+            level.setBlock(pos, beam, 3);
+
+            // Rolled with the torch in hand, since the beam requires the correct tool for drops.
+            List<ItemStack> drops = Block.getDrops(beam, level, pos, null, null,
+                new ItemStack(RCItems.CUTTING_TORCH.get()));
+
+            helper.assertFalse(drops.isEmpty(), "cutting a beam with the torch must drop something");
+            for (ItemStack drop : drops) {
+                helper.assertTrue(drop.is(RCItems.STEEL_OFFCUT.get()),
+                    "a beam must yield steel offcuts, got " + drop);
+                helper.assertFalse(drop.is(Items.RAW_IRON), "a beam must not vend vanilla ore");
             }
             helper.succeed();
         });

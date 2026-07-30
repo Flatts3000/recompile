@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
@@ -291,6 +292,24 @@ public final class RCBlocks {
      * Burn Barrel (P2.2): the first smelter - a drum you burn refuse in. A vanilla-furnace reskin
      * that is manual-only (no automation). Glows and lights (13) while burning. Metal, full cube.
      */
+    /**
+     * Cupola Furnace (#50): the second smelter, and the only machine that makes iron. Runs BLASTING and
+     * automates through its faces - both the rewards the Burn Barrel deliberately withholds. Stone-built,
+     * so it is heavier than the drum it replaces.
+     */
+    public static final DeferredBlock<CupolaFurnaceBlock> CUPOLA_FURNACE = BLOCKS.registerBlock(
+        "cupola_furnace",
+        CupolaFurnaceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE)
+            .strength(3.5F)
+            // NO requiresCorrectToolForDrops. It reads as the right call for a stone machine and is a trap
+            // here: this world has no pickaxe, and nothing is in mineable/cutting_torch except steel, so
+            // "correct tool" would mean *no* tool exists and breaking it would drop nothing - losing the
+            // player's most expensive machine, which ate their Burn Barrel to build.
+            .sound(SoundType.STONE)
+            .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
+
     public static final DeferredBlock<BurnBarrelBlock> BURN_BARREL = BLOCKS.registerBlock(
         "burn_barrel",
         BurnBarrelBlock::new,

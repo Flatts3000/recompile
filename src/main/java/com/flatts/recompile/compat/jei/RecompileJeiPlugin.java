@@ -122,5 +122,8 @@ public class RecompileJeiPlugin implements IModPlugin {
         // The Burn Barrel is this world's furnace - register it as a smelting station so scrap ->
         // copper shows up on it, not only on the (uncraftable) vanilla furnace.
         registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), RecipeTypes.SMELTING);
+        // The Cupola is the other furnace - and the unrestricted one, so it is where JEI should send
+        // a player looking to smelt anything the barrel refuses.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.SMELTING);
     }
 }

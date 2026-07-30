@@ -30,9 +30,21 @@ survival placement lands with #49.
   CLAUDE.md occlusion trap).
 
 ### Loot (`loot_table/blocks/steel_i_beam.json`)
-- Drops **raw iron in bulk** - `minecraft:raw_iron`, uniform **2-4** (tune #36). This is the world's only
-  `raw_iron` source (no mining), and it smelts to iron the vanilla way, so the Burn Barrel handles it now
-  and the Makeshift Forge (#50) automates it in bulk.
+- Drops **Steel Offcut** - `recompile:steel_offcut`, uniform **2-4** (tune #36). Settled 2026-07-30,
+  replacing `raw_iron`, which has left the mod entirely - it only ever existed because the beam vended it.
+- **Why not raw iron.** It was metallurgically backwards: recycled structural steel is already-reduced
+  metal, so it becomes graded scrap (ISRI calls this grade Plate & Structural) and is *remelted*, never
+  returned to ore. It also handed the gated metal straight to a basic furnace, since `raw_iron` smelts the
+  vanilla way. The offcut is what a torch actually leaves behind.
+- **It remelts to iron only in the Cupola Furnace (#50)** (`recipe/iron_from_steel_offcut.json`). The
+  recipe is ordinary `minecraft:smelting`; what gates it is that the **Burn Barrel refuses it** (refuse-only
+  allowlist) and **no other furnace exists in this world**. A vanilla furnace needs
+  `#minecraft:stone_crafting_materials` - cobblestone, cobbled deepslate or blackstone - none of which this
+  world produces: there is no cobblestone anywhere, and no pickaxe with which to turn shard-built deepslate
+  into cobbled deepslate. **That is load-bearing and fragile.** Adding any cobblestone source, or any
+  pickaxe before iron, opens the gate silently.
+- The texture derives from the beam's own steel via texgen `match_hue`, so the offcut reads as cut from the
+  block it drops out of (measured hue gap: 5.7).
 - **No dedicated steel output - the yield is iron** (owner call, 2026-07-28). A "steel ingot" tier is a
   possible future consideration **if/when Mekanism is integrated** (it ships a steel tier); revisit then,
   not now. Until then, "Steel I-Beam" is the block's flavour and the material it yields is iron.
@@ -71,14 +83,28 @@ survival placement lands with #49.
     inventory per cut. Kept as the record of what changed and why, not as live options.
 - Low attack (it is a torch, not a weapon) and a slow-ish mine speed on steel.
 
-### Recipe (`recipe/cutting_torch.json`) - gated one step past first-iron
+### Recipe (`recipe/cutting_torch.json`) - gated past first-COPPER (owner, 2026-07-30)
 ```
-I     iron ingot   (the cutting nozzle - needs the rebar-iron bootstrap first)
-C     copper ingot (the body)
-R     oily_rag     (the fuel / wick)
+. C      C = copper pipe    - the torch tube and nozzle
+P R      P = plastic scrap  - the hose, feeding R = rebar, the body/handle
+. O      O = oily rag       - the fuel, and the torch's first charge
 ```
-A 1x3 shaped recipe (iron / copper / oily_rag, top to bottom). So: sledgehammer + rebar -> your first iron
--> craft the torch -> cut I-beams -> bulk iron. The Oily Rag ties the P1.4-A fuel line into the tool.
+Each component is a part of the real object, and **all four are obtainable before any iron exists**: the
+pipe is 2 copper nuggets (6 nuggets -> 3 pipes) and nuggets come straight from scrap metal in the Burn
+Barrel, rebar and plastic scrap come from the pull streams, and the rag from fiber + muck. The pipe is
+deliberately cheaper than a copper ingot would be - 2 nuggets against 9 - so the torch sits just past
+first-copper rather than a full ingot's worth beyond it.
+
+**Why not iron.** The torch used to cost an iron ingot, bootstrapped by smelting rebar in the Burn Barrel.
+That stopped working when iron moved behind the Cupola Furnace (#50) - the torch would have needed iron to
+cut the steel that is the only source of iron. Substituting copper breaks the circle: copper is the everyman
+metal (`material_economy.md`), so the torch sits one step past first-copper and the demolition yard is
+reachable without the Cupola. What still waits on the Cupola is *refining* what you cut - beams drop raw
+iron, and nothing smelts it until that machine exists. That is a deliberate "you found it, now build the
+smelter" beat rather than a lockout.
+
+The Oily Rag ties the P1.4-A fuel line into the tool, and is why a freshly crafted torch arrives with one
+rag's charge already in it.
 
 ## 3. New tag
 

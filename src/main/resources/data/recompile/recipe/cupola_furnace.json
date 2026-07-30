@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "SSS",
+    "PBP",
+    "SSS"
+  ],
+  "key": {
+    "S": "#c:concretes",
+    "P": "recompile:copper_pipe",
+    "B": "recompile:burn_barrel"
+  },
+  "result": {
+    "id": "recompile:cupola_furnace"
+  }
+}

@@ -90,6 +90,14 @@ public final class RCItems {
     // purpose (nothing to mine). The knife cuts bales, the prybar digs out Bulky Waste
     // (and is a weak weapon), the junk shovel digs garbage fast.
     public static final DeferredItem<Item> REBAR = ITEMS.registerItem("rebar", Item::new);
+    /**
+     * Steel Offcut: what a Cutting Torch leaves behind when it cuts a Steel I-Beam. Graded scrap, the way
+     * real demolition steel comes off a site (ISRI calls it Plate &amp; Structural), NOT ore - recycled
+     * structural steel is already-reduced metal and is remelted, never returned to ore. It remelts to iron
+     * in the Cupola Furnace (#50) and nowhere else, which is what makes iron a gated upgrade.
+     */
+    public static final DeferredItem<Item> STEEL_OFFCUT = ITEMS.registerItem("steel_offcut", Item::new);
+
     public static final DeferredItem<Item> JUNK_SHOVEL = ITEMS.registerItem(
         "junk_shovel", props -> new Item(props.shovel(ToolMaterial.STONE, 1.5F, -3.0F)));
     // The knife is a cutting tool, not a sword: it mines its own tag
@@ -275,6 +283,9 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> SCRAP_BIN =
         ITEMS.registerSimpleBlockItem("scrap_bin", RCBlocks.SCRAP_BIN);
+    public static final DeferredItem<BlockItem> CUPOLA_FURNACE =
+        ITEMS.registerSimpleBlockItem("cupola_furnace", RCBlocks.CUPOLA_FURNACE);
+
     public static final DeferredItem<BlockItem> BURN_BARREL =
         ITEMS.registerSimpleBlockItem("burn_barrel", RCBlocks.BURN_BARREL);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =

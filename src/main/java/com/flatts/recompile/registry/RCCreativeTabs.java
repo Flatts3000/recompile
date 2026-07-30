@@ -46,6 +46,7 @@ public final class RCCreativeTabs {
                     // --- Base materials + the universal component ---
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
                     output.accept(RCItems.REBAR.get());
+                    output.accept(RCItems.STEEL_OFFCUT.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
 
                     // --- Workstations: place these to sort, craft, store, and smelt scrap ---
@@ -55,6 +56,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SCRAP_BARREL.get());
                     output.accept(RCItems.SCRAP_BIN.get());
                     output.accept(RCItems.BURN_BARREL.get());
+                    output.accept(RCItems.CUPOLA_FURNACE.get());
 
                     // --- Machines + multiblock parts: water, power, and the reclamation machines ---
                     output.accept(RCItems.MACHINE_FRAME.get());
