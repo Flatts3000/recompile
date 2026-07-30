@@ -1,11 +1,14 @@
 {
   "multipart": [
-    { "apply": { "model": "recompile:block/steel_beam_node" } },
-    { "when": { "north": "true" }, "apply": { "model": "recompile:block/steel_beam_arm" } },
-    { "when": { "east": "true" },  "apply": { "model": "recompile:block/steel_beam_arm", "y": 90,  "uvlock": true } },
-    { "when": { "south": "true" }, "apply": { "model": "recompile:block/steel_beam_arm", "y": 180, "uvlock": true } },
-    { "when": { "west": "true" },  "apply": { "model": "recompile:block/steel_beam_arm", "y": 270, "uvlock": true } },
-    { "when": { "up": "true" },    "apply": { "model": "recompile:block/steel_beam_arm", "x": 270, "uvlock": true } },
-    { "when": { "down": "true" },  "apply": { "model": "recompile:block/steel_beam_arm", "x": 90,  "uvlock": true } }
+    { "when": { "x": "false", "z": "false" }, "apply": { "model": "recompile:block/steel_beam_pole" } },
+    { "when": { "x": "true" },  "apply": { "model": "recompile:block/steel_beam_x" } },
+    { "when": { "z": "true" },  "apply": { "model": "recompile:block/steel_beam_z" } },
+
+    { "when": { "top": "true",    "x": "true",  "z": "false" }, "apply": { "model": "recompile:block/steel_beam_top" } },
+    { "when": { "bottom": "true", "x": "true",  "z": "false" }, "apply": { "model": "recompile:block/steel_beam_bottom" } },
+    { "when": { "top": "true",    "x": "false", "z": "true" },  "apply": { "model": "recompile:block/steel_beam_top" } },
+    { "when": { "bottom": "true", "x": "false", "z": "true" },  "apply": { "model": "recompile:block/steel_beam_bottom" } },
+
+    { "when": { "x": "true", "z": "true" }, "apply": { "model": "recompile:block/steel_beam_cross" } }
   ]
 }

@@ -2,11 +2,13 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
@@ -14,7 +16,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -32,6 +33,16 @@ final class DemolitionYardTests {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "stone_shards"));
 
     private DemolitionYardTests() {
+    }
+
+    /** Asserts a shape's extent on one axis to within a voxel-rounding epsilon. */
+    private static void assertBounds(GameTestHelper helper, VoxelShape shape, Direction.Axis axis,
+            double expectedMin, double expectedMax, String what) {
+        double min = shape.min(axis);
+        double max = shape.max(axis);
+        helper.assertTrue(Math.abs(min - expectedMin) < 1.0E-6 && Math.abs(max - expectedMax) < 1.0E-6,
+            what + " " + axis + " must span " + expectedMin + ".." + expectedMax + ", got " + min + ".." + max
+                + " (the Java VoxelShape and the block model have drifted apart)");
     }
 
     static void register() {
@@ -88,49 +99,97 @@ final class DemolitionYardTests {
             helper.succeed();
         });
 
-        // Steel I-Beams auto-connect on EVERY face (all 6 - up/down included, not just n/e/s/w) and
-        // disconnect when the neighbour goes. Test-driven so connection is provably correct per direction.
-        RCGameTests.test("steel_beam_connects_and_disconnects_all_faces", 40, helper -> {
+        // A lone beam is a FULL-HEIGHT COLUMN, not a stub. This is the whole point of the X/Z/AXIS scheme
+        // over a node-plus-arms one: geometry is drawn for the run the block belongs to, not only toward
+        // connected faces, so a single placed beam looks like the item you placed.
+        RCGameTests.test("steel_beam_alone_is_a_full_column", 20, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
             level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
-            for (Direction dir : Direction.values()) {
-                BlockPos n = center.relative(dir);
-                level.setBlock(n, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
-                helper.assertTrue(level.getBlockState(center).getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(dir)),
-                    "center beam must connect " + dir + " when a beam is placed on that face");
-                level.setBlock(n, Blocks.AIR.defaultBlockState(), 3);
-                helper.assertFalse(level.getBlockState(center).getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(dir)),
-                    "center beam must disconnect " + dir + " when that beam is removed");
-            }
+            BlockState state = level.getBlockState(center);
+            helper.assertFalse(state.getValue(SteelBeamBlock.X), "a lone beam is not part of an X run");
+            helper.assertFalse(state.getValue(SteelBeamBlock.Z), "a lone beam is not part of a Z run");
+            VoxelShape pole = state.getShape(level, center);
+            assertBounds(helper, pole, Direction.Axis.Y, 0.0, 1.0, "lone beam (pole model)");
+            assertBounds(helper, pole, Direction.Axis.X, 4 / 16.0, 12 / 16.0, "lone beam (I profile)");
+            assertBounds(helper, pole, Direction.Axis.Z, 4 / 16.0, 12 / 16.0, "lone beam (I profile)");
             helper.succeed();
         });
 
-        // Only beams connect - a stone neighbour does not.
-        RCGameTests.test("steel_beam_ignores_non_beams", 20, helper -> {
+        // A horizontal member spans its block face to face, so a run has no seam and no short end.
+        //
+        // Bounds are asserted EXACTLY against models/block/steel_beam_{pole,x,cross}.json. The Java
+        // VoxelShapes and the JSON models are two hand-kept copies of one geometry, and a loose bound lets
+        // them drift apart silently - which is how a 6px wireframe once ended up drawn around a 2px nub.
+        // If you retune the models, this test is meant to fail.
+        RCGameTests.test("steel_beam_horizontal_run_spans_the_block", 20, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
-            level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
-            level.setBlock(center.east(), Blocks.STONE.defaultBlockState(), 3);
-            helper.assertFalse(level.getBlockState(center).getValue(PipeBlock.EAST),
-                "a steel beam must not connect to a non-beam neighbour");
+            level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState()
+                .setValue(SteelBeamBlock.AXIS, Direction.Axis.X)
+                .setValue(SteelBeamBlock.X, true), 3);
+            VoxelShape beam = level.getBlockState(center).getShape(level, center);
+            assertBounds(helper, beam, Direction.Axis.X, 0.0, 1.0, "X beam spans the block");
+            assertBounds(helper, beam, Direction.Axis.Y, 4 / 16.0, 12 / 16.0, "X beam (I profile)");
             helper.succeed();
         });
 
-        // The hitbox tracks connections: an isolated beam is just the core; a connected face adds an arm
-        // reaching it, so beams are clickable/solid (the runClient bug that started this).
-        RCGameTests.test("steel_beam_shape_tracks_connections", 20, helper -> {
+        // A cross junction gets both gussets, so a beam crossing a beam reads as a joint.
+        RCGameTests.test("steel_beam_cross_gets_both_gussets", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
+            level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState()
+                .setValue(SteelBeamBlock.AXIS, Direction.Axis.X)
+                .setValue(SteelBeamBlock.X, true)
+                .setValue(SteelBeamBlock.Z, true), 3);
+            VoxelShape cross = level.getBlockState(center).getShape(level, center);
+            assertBounds(helper, cross, Direction.Axis.X, 0.0, 1.0, "cross spans X");
+            assertBounds(helper, cross, Direction.Axis.Z, 0.0, 1.0, "cross spans Z");
+            assertBounds(helper, cross, Direction.Axis.Y, 0.0, 1.0, "cross gussets reach both faces");
+            helper.succeed();
+        });
+
+        // A column picks up a horizontal run passing through it, and drops it again when the run is pulled
+        // out - so a girder cannot be left hanging in the air with nothing holding it up.
+        RCGameTests.test("steel_beam_column_joins_and_leaves_a_run", 40, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
             level.setBlock(center, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
-            VoxelShape core = level.getBlockState(center).getShape(level, center);
-            helper.assertFalse(core.isEmpty(), "an isolated beam must still have a hitbox (the core)");
-            helper.assertTrue(core.max(Direction.Axis.Y) <= 0.7,
-                "an isolated beam's hitbox is just the core, got maxY " + core.max(Direction.Axis.Y));
+            helper.assertFalse(level.getBlockState(center).getValue(SteelBeamBlock.X),
+                "a lone column is not part of an X run yet");
+
+            level.setBlock(center.east(), RCBlocks.STEEL_I_BEAM.get().defaultBlockState()
+                .setValue(SteelBeamBlock.AXIS, Direction.Axis.X)
+                .setValue(SteelBeamBlock.X, true), 3);
+            helper.assertTrue(level.getBlockState(center).getValue(SteelBeamBlock.X),
+                "a column must join a horizontal run that reaches it");
+
+            level.setBlock(center.east(), Blocks.AIR.defaultBlockState(), 3);
+            helper.assertFalse(level.getBlockState(center).getValue(SteelBeamBlock.X),
+                "the run must retract when it is no longer supported");
+            helper.succeed();
+        });
+
+        // Where a horizontal run meets a column, a gusset joins them instead of the two shapes just
+        // intersecting. A stone neighbour is NOT structure and gets no gusset.
+        RCGameTests.test("steel_beam_gussets_a_beam_above_only", 40, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos center = helper.absolutePos(new BlockPos(3, 3, 3));
+            BlockState horizontal = RCBlocks.STEEL_I_BEAM.get().defaultBlockState()
+                .setValue(SteelBeamBlock.AXIS, Direction.Axis.X)
+                .setValue(SteelBeamBlock.X, true);
+
+            level.setBlock(center, horizontal, 3);
+            level.setBlock(center.above(), Blocks.STONE.defaultBlockState(), 3);
+            helper.assertFalse(level.getBlockState(center).getValue(SteelBeamBlock.TOP),
+                "plain stone above a beam is not structure and must not raise a gusset");
+
             level.setBlock(center.above(), RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
-            VoxelShape up = level.getBlockState(center).getShape(level, center);
-            helper.assertTrue(up.max(Direction.Axis.Y) >= 0.99,
-                "a beam connected up must have an arm reaching the top, got maxY " + up.max(Direction.Axis.Y));
+            helper.assertTrue(level.getBlockState(center).getValue(SteelBeamBlock.TOP),
+                "a column above a horizontal run must raise a gusset");
+            VoxelShape joined = level.getBlockState(center).getShape(level, center);
+            assertBounds(helper, joined, Direction.Axis.Y, 4 / 16.0, 1.0,
+                "gusset must reach the top face (block/steel_beam_top.json)");
             helper.succeed();
         });
     }
