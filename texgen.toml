@@ -895,6 +895,16 @@ reference = "steel_beam_web"
 match_hue = "steel_beam_web"
 prompt = "keep this exact steel plate, its palette and its base colour unchanged, and add a regular evenly spaced grid of round rivet heads on top of it, each rivet catching a highlight with a little rust bleeding beneath it. Change nothing else about the plate. It must still tile seamlessly"
 
+# The offcut is cut FROM the beam, so it must be the same steel. match_hue re-casts the generated icon
+# onto the web's colour at promote time, which is cheaper and more reliable than hoping two separate
+# generations land on the same grey - they did not, last time we tried.
+[surface.steel_offcut]
+kind = "item"
+backend = "ai"
+size = 16
+match_hue = "steel_beam_web"
+prompt = "a single short offcut of a steel I-beam, one stubby chunk of grey steel at a three-quarter angle, the I-shaped cross-section reading as a bold clear notch on the near cut end, the piece large in frame and filling most of the icon, torch-cut edges, a touch of rust, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.cutting_torch]
 kind = "item"
 backend = "ai"
