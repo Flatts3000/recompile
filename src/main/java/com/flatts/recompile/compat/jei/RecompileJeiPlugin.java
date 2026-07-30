@@ -38,6 +38,13 @@ public class RecompileJeiPlugin implements IModPlugin {
         RecipeType.create(Recompile.MOD_ID, "sorting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> CUTTING =
         RecipeType.create(Recompile.MOD_ID, "cutting", SalvageRecipe.class);
+    /**
+     * Torch cutting is its OWN category, not a second entry under CUTTING. JEI catalysts attach to a
+     * category, never to a single recipe, so sharing one would advertise the scrap knife as a way to cut
+     * steel and the torch as a way to open a tin can. Two tools, two categories.
+     */
+    static final RecipeType<SalvageRecipe> TORCH_CUTTING =
+        RecipeType.create(Recompile.MOD_ID, "torch_cutting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> PRYING =
         RecipeType.create(Recompile.MOD_ID, "prying", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> TEARDOWN =
@@ -58,6 +65,8 @@ public class RecompileJeiPlugin implements IModPlugin {
                 gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true),
             new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false),
+            new SalvageCategory(TORCH_CUTTING, Component.translatable("jei.recompile.torch_cutting"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true),
             new SalvageCategory(PRYING, Component.translatable("jei.recompile.prying"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true),
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
@@ -77,6 +86,13 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageRecipe(new ItemStack(RCItems.TIN_CAN.get()),
                 List.of(new SortingData.Weighted(new ItemStack(RCItems.TIN_CAN_OPEN.get()), 1.0f)))));
 
+        // A Steel Offcut has a smelting recipe, so JEI could already say what it BECOMES - but nothing
+        // said where it comes FROM, because block drops are invisible to JEI. An item with a use and no
+        // source reads like a bug.
+        registration.addRecipes(TORCH_CUTTING, List.of(
+            new SalvageRecipe(new ItemStack(RCItems.STEEL_I_BEAM.get()),
+                SortingData.outputs(SortingData.STEEL_BEAM))));
+
         registration.addRecipes(PRYING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),
                 SortingData.outputs(SortingData.BULKY))));
@@ -95,6 +111,16 @@ public class RecompileJeiPlugin implements IModPlugin {
         // Machines only, not their parts. A crafted core says nothing about the tower it needs, and
         // JEI is where a player goes looking. The parts already have recipes here, and the appliance
         // already has a teardown entry, so a panel on those would only restate what JEI shows.
+        // The Burn Barrel is a catalyst for SMELTING, but since it went refuse-only that is only true of
+        // SOME smelting recipes - JEI has no way to attach a catalyst to a subset, so it would otherwise
+        // tell a player they can smelt iron or glass in a barrel that refuses both. The panel is where
+        // that gets said. Same for the two mechanics no recipe expresses: the torch's charge, and the
+        // Cupola being the machine that lifts the barrel's restriction.
+        info(registration, RCItems.BURN_BARREL.get(), "burn_barrel");
+        info(registration, RCItems.CUPOLA_FURNACE.get(), "cupola_furnace");
+        info(registration, RCItems.CUTTING_TORCH.get(), "cutting_torch");
+        info(registration, RCItems.STEEL_OFFCUT.get(), "steel_offcut");
+
         info(registration, RCItems.GRASS_SPREADER.get(), "grass_spreader");
         info(registration, RCItems.RAIN_COLLECTOR.get(), "rain_collector");
         info(registration, RCItems.COMPOST_HEAP.get(), "compost_heap");
@@ -117,6 +143,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.TRASH_BAG.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.COMPACTED_BALE.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_KNIFE.get()), CUTTING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.CUTTING_TORCH.get()), TORCH_CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
         // The Burn Barrel is this world's furnace - register it as a smelting station so scrap ->
