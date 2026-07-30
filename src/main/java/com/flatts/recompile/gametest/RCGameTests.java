@@ -67,6 +67,7 @@ public final class RCGameTests {
         RecompileWorkbenchTests.register();
         LightingTests.register();
         BurnBarrelTests.register();
+        CupolaFurnaceTests.register();
         EncroachmentTests.register();
         SaplingLockoutTests.register();
         GrassSpreaderTests.register();

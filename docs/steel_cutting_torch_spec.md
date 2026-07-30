@@ -36,10 +36,13 @@ survival placement lands with #49.
   metal, so it becomes graded scrap (ISRI calls this grade Plate & Structural) and is *remelted*, never
   returned to ore. It also handed the gated metal straight to a basic furnace, since `raw_iron` smelts the
   vanilla way. The offcut is what a torch actually leaves behind.
-- **It remelts to iron only in the Cupola Furnace (#50)**, on `BLASTING`
-  (`recipe/iron_from_steel_offcut.json`). Blasting is otherwise unreachable in this world, because a vanilla
-  blast furnace costs 5 iron ingots. So the beam is the iron *source* and the Cupola is the iron *gate*, and
-  until #50 ships offcuts stockpile unrefined by design.
+- **It remelts to iron only in the Cupola Furnace (#50)** (`recipe/iron_from_steel_offcut.json`). The
+  recipe is ordinary `minecraft:smelting`; what gates it is that the **Burn Barrel refuses it** (refuse-only
+  allowlist) and **no other furnace exists in this world**. A vanilla furnace needs
+  `#minecraft:stone_crafting_materials` - cobblestone, cobbled deepslate or blackstone - none of which this
+  world produces: there is no cobblestone anywhere, and no pickaxe with which to turn shard-built deepslate
+  into cobbled deepslate. **That is load-bearing and fragile.** Adding any cobblestone source, or any
+  pickaxe before iron, opens the gate silently.
 - The texture derives from the beam's own steel via texgen `match_hue`, so the offcut reads as cut from the
   block it drops out of (measured hue gap: 5.7).
 - **No dedicated steel output - the yield is iron** (owner call, 2026-07-28). A "steel ingot" tier is a

@@ -276,5 +276,7 @@
   "tooltip.recompile.torch_fuel": "Fuel: %s / %s cuts",
   "tooltip.recompile.torch_charge_hint": "Right-click with an Oily Rag to charge",
   "message.recompile.torch_too_full": "The torch is too full to take a whole rag",
-  "item.recompile.steel_offcut": "Steel Offcut"
+  "item.recompile.steel_offcut": "Steel Offcut",
+  "block.recompile.cupola_furnace": "Cupola Furnace",
+  "container.recompile.cupola_furnace": "Cupola Furnace"
 }

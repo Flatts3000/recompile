@@ -283,6 +283,9 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> SCRAP_BIN =
         ITEMS.registerSimpleBlockItem("scrap_bin", RCBlocks.SCRAP_BIN);
+    public static final DeferredItem<BlockItem> CUPOLA_FURNACE =
+        ITEMS.registerSimpleBlockItem("cupola_furnace", RCBlocks.CUPOLA_FURNACE);
+
     public static final DeferredItem<BlockItem> BURN_BARREL =
         ITEMS.registerSimpleBlockItem("burn_barrel", RCBlocks.BURN_BARREL);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =

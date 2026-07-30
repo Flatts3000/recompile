@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "recompile:block/cupola_furnace_top",
+    "front": "recompile:block/cupola_furnace_front",
+    "side": "recompile:block/cupola_furnace_side"
+  }
+}

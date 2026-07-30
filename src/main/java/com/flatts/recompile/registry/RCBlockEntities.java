@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
 import com.flatts.recompile.content.block.entity.DisplayPedestalBlockEntity;
@@ -72,6 +73,12 @@ public final class RCBlockEntities {
             () -> new BlockEntityType<>(CompostHeapBlockEntity::new, RCBlocks.COMPOST_HEAP.get()));
 
     /** The Burn Barrel's furnace inventory (design P2.2) - a manual-only smelter. */
+    /** The Cupola Furnace's contents (#50) - a blasting furnace, and the iron gate. */
+    public static final Supplier<BlockEntityType<CupolaFurnaceBlockEntity>> CUPOLA_FURNACE =
+        BLOCK_ENTITIES.register(
+            "cupola_furnace",
+            () -> new BlockEntityType<>(CupolaFurnaceBlockEntity::new, RCBlocks.CUPOLA_FURNACE.get()));
+
     public static final Supplier<BlockEntityType<BurnBarrelBlockEntity>> BURN_BARREL =
         BLOCK_ENTITIES.register(
             "burn_barrel",
