@@ -68,33 +68,53 @@ public class CuttingTorchItem extends Item {
         stack.set(RCDataComponents.TORCH_FUEL.get(), Math.min(CAPACITY, fuel(stack) + CUTS_PER_RAG));
     }
 
-    private static boolean takeRagFrom(Player player) {
+    /** Whether the player could supply a rag. Creative always can, without spending one. */
+    public static boolean hasRag(Player player) {
         if (player.getAbilities().instabuild) {
             return true;   // creative charges without spending, as the Sealed Can does
         }
         for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
             if (!stack.isEmpty() && stack.is(RCItems.OILY_RAG.get())) {
-                stack.shrink(1);
                 return true;
             }
         }
         return false;
     }
 
+    private static void takeRagFrom(Player player) {
+        if (player.getAbilities().instabuild) {
+            return;
+        }
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+            if (!stack.isEmpty() && stack.is(RCItems.OILY_RAG.get())) {
+                stack.shrink(1);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Charges the torch. Both refusal checks run on BOTH sides on purpose: the client knows the torch's
+     * charge and the player's inventory, so letting it decide too keeps it from swinging the arm on a
+     * charge the server is about to refuse.
+     */
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack torch = player.getItemInHand(hand);
         if (!hasRoomForRag(torch)) {
             if (!level.isClientSide()) {
-                player.sendOverlayMessage(Component.translatable("message.recompile.torch_full"));
+                player.sendOverlayMessage(Component.translatable("message.recompile.torch_too_full"));
+            }
+            return InteractionResult.PASS;
+        }
+        if (!hasRag(player)) {
+            if (!level.isClientSide()) {
+                player.sendOverlayMessage(Component.translatable("message.recompile.torch_needs_rag"));
             }
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
-            if (!takeRagFrom(player)) {
-                player.sendOverlayMessage(Component.translatable("message.recompile.torch_needs_rag"));
-                return InteractionResult.PASS;
-            }
+            takeRagFrom(player);
             addRag(torch);
             level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.FLINTANDSTEEL_USE, SoundSource.PLAYERS, 0.8F, 1.2F);

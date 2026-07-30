@@ -143,6 +143,33 @@ final class DemolitionYardTests {
             helper.succeed();
         });
 
+        // Charging through the REAL interaction, not the helper. The tests above call addRag directly, so
+        // use() - the only thing a player actually touches - would keep them all green if it broke.
+        RCGameTests.test("cutting_torch_use_charges_from_the_pack", 40, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            ItemStack torch = new ItemStack(RCItems.CUTTING_TORCH.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, torch);
+
+            // No rags: refused, and nothing is added.
+            helper.assertFalse(CuttingTorchItem.hasRag(player), "the test player must start with no rags");
+            RCItems.CUTTING_TORCH.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(CuttingTorchItem.fuel(player.getMainHandItem()) == CuttingTorchItem.CUTS_PER_RAG,
+                "charging with an empty pack must not add fuel, got "
+                    + CuttingTorchItem.fuel(player.getMainHandItem()));
+
+            // With a rag: the rag is spent and the charge rises by exactly one rag's worth.
+            player.getInventory().add(new ItemStack(RCItems.OILY_RAG.get(), 1));
+            RCItems.CUTTING_TORCH.get().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(CuttingTorchItem.fuel(player.getMainHandItem()) == CuttingTorchItem.CUTS_PER_RAG * 2,
+                "use() must add one rag's worth, got " + CuttingTorchItem.fuel(player.getMainHandItem()));
+            helper.assertTrue(countIn(player, RCItems.OILY_RAG.get()) == 0,
+                "use() must spend the rag, got " + countIn(player, RCItems.OILY_RAG.get()) + " left");
+
+            player.discard();
+            helper.succeed();
+        });
+
         // Cutting draws down the stored charge, and an empty torch refuses outright.
         RCGameTests.test("cutting_torch_spends_its_charge", 40, helper -> {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();

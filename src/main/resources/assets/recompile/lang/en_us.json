@@ -273,7 +273,7 @@
   "book.recompile.guide.reference.viewers.intro.title": "The mechanics that are not recipes",
   "message.recompile.torch_no_fuel": "The torch is empty - right-click with an Oily Rag to charge it",
   "message.recompile.torch_needs_rag": "You need an Oily Rag to charge the torch",
-  "message.recompile.torch_full": "The torch is full",
   "tooltip.recompile.torch_fuel": "Fuel: %s / %s cuts",
-  "tooltip.recompile.torch_charge_hint": "Right-click with an Oily Rag to charge"
+  "tooltip.recompile.torch_charge_hint": "Right-click with an Oily Rag to charge",
+  "message.recompile.torch_too_full": "The torch is too full to take a whole rag"
 }
