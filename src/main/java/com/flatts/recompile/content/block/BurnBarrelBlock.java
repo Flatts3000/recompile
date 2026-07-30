@@ -52,10 +52,25 @@ public class BurnBarrelBlock extends AbstractFurnaceBlock {
             return furnace;
         }
         // Run the furnace, then drain the result slot into a connected workstation (P2.10).
+        //
+        // The furnace tick is GATED on BurnBarrelBlockEntity.burns: the barrel only handles refuse, so an
+        // ore or a stack of sand in the input slot simply does nothing - no progress, no fuel burned.
+        //
+        // Gating here rather than on the slot is not a shortcut, it is the only seam. Container.canPlaceItem
+        // would be the obvious home, but 26.1's Slot.mayPlace returns true unconditionally and the vanilla
+        // FurnaceMenu uses a plain Slot, so the container is never asked. Overriding recipe lookup is not
+        // available either - AbstractFurnaceBlockEntity keeps quickCheck and recipeType private and its
+        // serverTick is static. Skipping the tick is what is left, and it fails closed.
         return (lvl, pos, st, be) -> {
-            furnace.tick(lvl, pos, st, be);
-            if (be instanceof BurnBarrelBlockEntity barrel && lvl instanceof ServerLevel serverLevel) {
-                barrel.drainOutput(serverLevel);
+            if (be instanceof BurnBarrelBlockEntity barrel) {
+                if (barrel.burnsCurrentInput()) {
+                    furnace.tick(lvl, pos, st, be);
+                }
+                if (lvl instanceof ServerLevel serverLevel) {
+                    barrel.drainOutput(serverLevel);
+                }
+            } else {
+                furnace.tick(lvl, pos, st, be);
             }
         };
     }

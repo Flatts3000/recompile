@@ -183,6 +183,18 @@ public final class RCTags {
      * compostables to this tag without a mod release, exactly as a real heap would take them. An item tag,
      * not a block tag - it gates what an item in hand can do.
      */
+    /**
+     * What the Burn Barrel will burn, beyond food (which it takes by the FOOD component, so every vanilla
+     * and modded edible works without being listed). This tag is the rest: the mod's scrap smelting, plus
+     * inputs whose product is edible although they are not - kelp, notably.
+     *
+     * <p>The barrel is an ALLOWLIST on purpose. A denylist would need a new entry every time vanilla or a
+     * pack adds a recipe, and a missed entry leaks silently - which is exactly how iron ended up
+     * ungated. This one fails closed.
+     */
+    public static final TagKey<Item> BURN_BARREL_SMELTABLE = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "burn_barrel_smeltable"));
+
     public static final TagKey<Item> COMPOSTABLE = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "compostable"));
 

@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
  * GameTests for the Burn Barrel (design P2.2): a vanilla-furnace reskin that smelts scrap into
@@ -32,6 +33,58 @@ final class BurnBarrelTests {
             helper.succeedWhen(() ->
                 helper.assertTrue(barrel.getItem(2).is(Items.COPPER_NUGGET),
                     "the burn barrel must smelt scrap metal into copper, output was " + barrel.getItem(2)));
+        });
+
+        // Refuse only. The barrel handles food and scrap; it will not smelt ore, sand, stone or logs,
+        // so it cannot quietly hand out what the economy gates behind better machines.
+        RCGameTests.test("burn_barrel_burns_refuse_only", 20, helper -> {
+            // Food matches on the FOOD component, so every vanilla and modded edible works unlisted.
+            helper.assertTrue(BurnBarrelBlockEntity.burns(new ItemStack(Items.BEEF)),
+                "the barrel must cook food");
+            helper.assertTrue(BurnBarrelBlockEntity.burns(new ItemStack(Items.POTATO)),
+                "the barrel must cook food");
+            // The tag carries the rest: this mod's scrap, and inputs whose product is edible (kelp).
+            helper.assertTrue(BurnBarrelBlockEntity.burns(new ItemStack(RCItems.SCRAP_METAL.get())),
+                "the barrel must reclaim scrap metal");
+            helper.assertTrue(BurnBarrelBlockEntity.burns(new ItemStack(Items.KELP)),
+                "the barrel must dry kelp");
+
+            // Everything else fails closed. raw_iron and rebar are the iron path and belong to the
+            // Cupola Furnace (#50); sand, cobble and logs are ordinary furnace work this world does not get.
+            helper.assertFalse(BurnBarrelBlockEntity.burns(new ItemStack(Items.RAW_IRON)),
+                "raw iron must be gated behind the Cupola Furnace, not the barrel");
+            helper.assertFalse(BurnBarrelBlockEntity.burns(new ItemStack(RCItems.REBAR.get())),
+                "rebar must smelt only in the Cupola Furnace");
+            helper.assertFalse(BurnBarrelBlockEntity.burns(new ItemStack(Items.SAND)),
+                "the barrel must not make glass");
+            helper.assertFalse(BurnBarrelBlockEntity.burns(new ItemStack(Items.COBBLESTONE)),
+                "the barrel must not make stone");
+            helper.assertFalse(BurnBarrelBlockEntity.burns(new ItemStack(Items.OAK_LOG)),
+                "the barrel must not make charcoal");
+            helper.succeed();
+        });
+
+        // ...and the gate is actually WIRED, not just a predicate sitting unused. A blocked input must
+        // never light the barrel: no progress and, critically, no fuel burned. Asserted through the real
+        // ticker, because a correct predicate nobody calls would pass the test above and change nothing.
+        RCGameTests.test("burn_barrel_will_not_light_for_ore", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.BURN_BARREL.get());
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(pos))
+                    instanceof BurnBarrelBlockEntity barrel)) {
+                helper.fail("the burn barrel has no BlockEntity");
+                return;
+            }
+            barrel.setItem(0, new ItemStack(Items.RAW_IRON));
+            barrel.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
+            helper.runAfterDelay(20, () -> {
+                helper.assertBlockProperty(pos, BlockStateProperties.LIT, false);
+                helper.assertTrue(barrel.getItem(2).isEmpty(),
+                    "ore must produce nothing in the barrel, got " + barrel.getItem(2));
+                helper.assertTrue(barrel.getItem(1).getCount() == 8,
+                    "a refused input must not burn fuel, got " + barrel.getItem(1).getCount() + " of 8");
+                helper.succeed();
+            });
         });
 
         // The whole point of "worse": no automation. A hopper below must NOT pull the output -

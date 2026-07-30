@@ -71,14 +71,26 @@ survival placement lands with #49.
     inventory per cut. Kept as the record of what changed and why, not as live options.
 - Low attack (it is a torch, not a weapon) and a slow-ish mine speed on steel.
 
-### Recipe (`recipe/cutting_torch.json`) - gated one step past first-iron
+### Recipe (`recipe/cutting_torch.json`) - gated past first-COPPER (owner, 2026-07-30)
 ```
-I     iron ingot   (the cutting nozzle - needs the rebar-iron bootstrap first)
-C     copper ingot (the body)
-R     oily_rag     (the fuel / wick)
+. C      C = copper ingot   - the cutting nozzle (real torch tips are brass/copper)
+P R      P = plastic scrap  - the hose, feeding R = rebar, the body/handle
+. O      O = oily rag       - the fuel, and the torch's first charge
 ```
-A 1x3 shaped recipe (iron / copper / oily_rag, top to bottom). So: sledgehammer + rebar -> your first iron
--> craft the torch -> cut I-beams -> bulk iron. The Oily Rag ties the P1.4-A fuel line into the tool.
+Each component is a part of the real object, and **all four are obtainable before any iron exists**:
+copper from scrap metal in the Burn Barrel, rebar and plastic scrap from the pull streams, the rag from
+fiber + muck.
+
+**Why not iron.** The torch used to cost an iron ingot, bootstrapped by smelting rebar in the Burn Barrel.
+That stopped working when iron moved behind the Cupola Furnace (#50) - the torch would have needed iron to
+cut the steel that is the only source of iron. Substituting copper breaks the circle: copper is the everyman
+metal (`material_economy.md`), so the torch sits one step past first-copper and the demolition yard is
+reachable without the Cupola. What still waits on the Cupola is *refining* what you cut - beams drop raw
+iron, and nothing smelts it until that machine exists. That is a deliberate "you found it, now build the
+smelter" beat rather than a lockout.
+
+The Oily Rag ties the P1.4-A fuel line into the tool, and is why a freshly crafted torch arrives with one
+rag's charge already in it.
 
 ## 3. New tag
 
