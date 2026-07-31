@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.MoundFeature;
 import com.flatts.recompile.content.worldgen.MyceliumPatchFeature;
 import com.flatts.recompile.content.worldgen.RubblePileFeature;
+import com.flatts.recompile.content.worldgen.SteelPileFeature;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -27,6 +28,10 @@ public final class RCFeatures {
     /** Low piles of Rubble in the demolition yard - the bare-hand stone-shard source. */
     public static final Supplier<Feature<NoneFeatureConfiguration>> RUBBLE_PILE =
         FEATURES.register("rubble_pile", RubblePileFeature::new);
+
+    /** Collapsed structural steel + broken deck: the survival source of beams AND reinforced concrete. */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> STEEL_PILE =
+        FEATURES.register("steel_pile", SteelPileFeature::new);
 
     private RCFeatures() {
         // utility class
