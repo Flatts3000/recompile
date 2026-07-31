@@ -61,6 +61,7 @@ public final class RCGameTests {
         CraftingTableTests.register();
         ScrapBarrelTests.register();
         VanillaParityTests.register();
+        PowerTierTests.register();
         BulkyWasteTests.register();
         BuildingBlockTests.register();
         SortingDataTests.register();

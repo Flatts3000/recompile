@@ -134,6 +134,111 @@
     "content=junk,facing=west": {
       "model": "recompile:block/scrap_bin_junk",
       "y": 270
+    },
+    "content=stone_shard,facing=north": {
+      "model": "recompile:block/scrap_bin_stone_shard"
+    },
+    "content=stone_shard,facing=east": {
+      "model": "recompile:block/scrap_bin_stone_shard",
+      "y": 90
+    },
+    "content=stone_shard,facing=south": {
+      "model": "recompile:block/scrap_bin_stone_shard",
+      "y": 180
+    },
+    "content=stone_shard,facing=west": {
+      "model": "recompile:block/scrap_bin_stone_shard",
+      "y": 270
+    },
+    "content=granite_shard,facing=north": {
+      "model": "recompile:block/scrap_bin_granite_shard"
+    },
+    "content=granite_shard,facing=east": {
+      "model": "recompile:block/scrap_bin_granite_shard",
+      "y": 90
+    },
+    "content=granite_shard,facing=south": {
+      "model": "recompile:block/scrap_bin_granite_shard",
+      "y": 180
+    },
+    "content=granite_shard,facing=west": {
+      "model": "recompile:block/scrap_bin_granite_shard",
+      "y": 270
+    },
+    "content=diorite_shard,facing=north": {
+      "model": "recompile:block/scrap_bin_diorite_shard"
+    },
+    "content=diorite_shard,facing=east": {
+      "model": "recompile:block/scrap_bin_diorite_shard",
+      "y": 90
+    },
+    "content=diorite_shard,facing=south": {
+      "model": "recompile:block/scrap_bin_diorite_shard",
+      "y": 180
+    },
+    "content=diorite_shard,facing=west": {
+      "model": "recompile:block/scrap_bin_diorite_shard",
+      "y": 270
+    },
+    "content=andesite_shard,facing=north": {
+      "model": "recompile:block/scrap_bin_andesite_shard"
+    },
+    "content=andesite_shard,facing=east": {
+      "model": "recompile:block/scrap_bin_andesite_shard",
+      "y": 90
+    },
+    "content=andesite_shard,facing=south": {
+      "model": "recompile:block/scrap_bin_andesite_shard",
+      "y": 180
+    },
+    "content=andesite_shard,facing=west": {
+      "model": "recompile:block/scrap_bin_andesite_shard",
+      "y": 270
+    },
+    "content=deepslate_shard,facing=north": {
+      "model": "recompile:block/scrap_bin_deepslate_shard"
+    },
+    "content=deepslate_shard,facing=east": {
+      "model": "recompile:block/scrap_bin_deepslate_shard",
+      "y": 90
+    },
+    "content=deepslate_shard,facing=south": {
+      "model": "recompile:block/scrap_bin_deepslate_shard",
+      "y": 180
+    },
+    "content=deepslate_shard,facing=west": {
+      "model": "recompile:block/scrap_bin_deepslate_shard",
+      "y": 270
+    },
+    "content=tuff_shard,facing=north": {
+      "model": "recompile:block/scrap_bin_tuff_shard"
+    },
+    "content=tuff_shard,facing=east": {
+      "model": "recompile:block/scrap_bin_tuff_shard",
+      "y": 90
+    },
+    "content=tuff_shard,facing=south": {
+      "model": "recompile:block/scrap_bin_tuff_shard",
+      "y": 180
+    },
+    "content=tuff_shard,facing=west": {
+      "model": "recompile:block/scrap_bin_tuff_shard",
+      "y": 270
+    },
+    "content=calcite_shard,facing=north": {
+      "model": "recompile:block/scrap_bin_calcite_shard"
+    },
+    "content=calcite_shard,facing=east": {
+      "model": "recompile:block/scrap_bin_calcite_shard",
+      "y": 90
+    },
+    "content=calcite_shard,facing=south": {
+      "model": "recompile:block/scrap_bin_calcite_shard",
+      "y": 180
+    },
+    "content=calcite_shard,facing=west": {
+      "model": "recompile:block/scrap_bin_calcite_shard",
+      "y": 270
     }
   }
 }

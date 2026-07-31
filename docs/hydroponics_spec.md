@@ -50,12 +50,18 @@ Two consequences worth stating because they collapse a lot of apparent complexit
 **Species swap freely** - change the input, change what it grows. One machine covers everything once
 unlocked. Deliberately *not* the Scrap Bin's bind-on-first-use pattern.
 
-## 2. The power tier
+## 2. The power tier - SHIPPED
 
-Arrives with this machine. **Two generators**, both new:
+**Built 2026-07-31 (#72).** The machine below still has to be written; the energy layer it consumes now exists. **Two generators**, both new:
 
-- A **burner generator** - burns Oily Rags / refuse, tying energy back into the existing fuel economy.
-- The **Solar Panel becomes a real generator**, stopping being an inert prop.
+- The **Burner Generator** - burns anything in the vanilla fuel data map, so it tracks the Burn Barrel's
+  fuel list rather than keeping its own. Fed by right-click, no screen and no inventory. 20 FE/tick.
+- The **Solar Panel is a real generator** - 2 FE/tick scaled by actual daylight, using vanilla's own
+  daylight-detector maths so night, dusk and weather all fall out of one expression.
+
+Both **push to adjacent consumers** each tick rather than waiting to be pulled, so the mod works with no
+pipe mod installed: put a generator against a machine and it runs. A pipe mod is then an upgrade for
+reaching further, not a requirement for having power.
 
 ### The Solar Panel's existing instances
 

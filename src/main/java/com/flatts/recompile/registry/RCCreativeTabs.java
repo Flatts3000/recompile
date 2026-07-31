@@ -56,6 +56,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SCRAP_BARREL.get());
                     output.accept(RCItems.SCRAP_BIN.get());
                     output.accept(RCItems.BURN_BARREL.get());
+                    output.accept(RCItems.BURNER_GENERATOR.get());
                     output.accept(RCItems.CUPOLA_FURNACE.get());
 
                     // --- Machines + multiblock parts: water, power, and the reclamation machines ---

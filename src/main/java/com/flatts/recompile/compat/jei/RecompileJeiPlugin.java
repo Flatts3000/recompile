@@ -172,6 +172,13 @@ public class RecompileJeiPlugin implements IModPlugin {
         info(registration, RCItems.RAIN_COLLECTOR.get(), "rain_collector");
         info(registration, RCItems.COMPOST_HEAP.get(), "compost_heap");
         info(registration, RCItems.FERTILIZER.get(), "fertilizer");
+
+        // The power tier (#72). Both need a panel for the same reason: no recipe expresses what they do.
+        // The Solar Panel especially - it shipped inert for the mod's whole life and is a machine part in
+        // three blueprints, so "this now generates on its own" is exactly the thing a returning player
+        // will not think to check.
+        info(registration, RCItems.SOLAR_PANEL.get(), "solar_panel");
+        info(registration, RCItems.BURNER_GENERATOR.get(), "burner_generator");
     }
 
     private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,

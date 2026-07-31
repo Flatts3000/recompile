@@ -6,7 +6,13 @@ import com.flatts.recompile.content.block.ScrapBinContent;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCDataComponents;
+import com.flatts.recompile.content.block.ScrapBinContent;
 import com.flatts.recompile.registry.RCItems;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.minecraft.world.item.Item;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -370,6 +376,55 @@ final class ScrapBinTests {
                 "left-clicking where there is no bin extracts nothing");
             helper.succeed();
         });
+
+        // #69 widened #binnable to the stone shards but never gave them a look, so a shard-bound bin
+        // fell through to the neutral GENERIC state and appeared unchanged - reported in playtest as
+        // "bins change for scrap, but do not change for rubble shards".
+        //
+        // Each shard gets its OWN content, not a shared stone one: the shard art is tinted per stone
+        // type specifically so the seven read apart at 16px (texgen.toml), and a bin that cannot tell
+        // granite from deepslate throws that away. Asserting distinctness is the point - a mapping where
+        // all seven returned the same value would satisfy "not GENERIC" and still be the bug.
+        RCGameTests.test("scrap_bin_shows_each_stone_shard", 20, helper -> {
+            Map<Item, ScrapBinContent> seen = new LinkedHashMap<>();
+            for (Item shard : List.of(RCItems.STONE_SHARD.get(), RCItems.GRANITE_SHARD.get(),
+                    RCItems.DIORITE_SHARD.get(), RCItems.ANDESITE_SHARD.get(),
+                    RCItems.DEEPSLATE_SHARD.get(), RCItems.TUFF_SHARD.get(),
+                    RCItems.CALCITE_SHARD.get())) {
+                seen.put(shard, ScrapBinContent.forItem(shard));
+            }
+            List<String> generic = seen.entrySet().stream()
+                .filter(e -> e.getValue() == ScrapBinContent.GENERIC)
+                .map(e -> e.getKey().toString()).toList();
+            helper.assertTrue(generic.isEmpty(),
+                "these shards still show no material on the bin: " + generic);
+            helper.assertTrue(Set.copyOf(seen.values()).size() == seen.size(),
+                "every shard must map to its OWN content, got " + seen.values());
+
+            List<String> uncoloured = seen.values().stream()
+                .filter(c -> c.color() == 0xFFFFFF).map(Enum::name).toList();
+            helper.assertTrue(uncoloured.isEmpty(),
+                "these contents have no tint, so the bin body stays neutral: " + uncoloured);
+
+            // ...and the COLOURS must differ, not just the enum values. Seven distinct constants that
+            // all render the same grey would satisfy every assertion above and still be the bug: a
+            // granite bin has to look like granite, not merely be called granite.
+            Set<Integer> colours = seen.values().stream().map(ScrapBinContent::color)
+                .collect(java.util.stream.Collectors.toSet());
+            helper.assertTrue(colours.size() == seen.size(),
+                "every shard must have its own tint, got " + colours.size() + " distinct across "
+                    + seen.size() + " shards");
+            helper.succeed();
+        });
+
+        // ...and the fallback still works, or widening the mapping would have quietly swallowed it.
+        RCGameTests.test("scrap_bin_still_falls_back_to_generic", 20, helper -> {
+            ScrapBinContent content = ScrapBinContent.forItem(Items.IRON_INGOT);
+            helper.assertTrue(content == ScrapBinContent.GENERIC,
+                "an unknown material must still map to GENERIC, got " + content);
+            helper.succeed();
+        });
+
     }
 
     /** The scrap-bin ItemStack that fell in the plot, or empty if none. */

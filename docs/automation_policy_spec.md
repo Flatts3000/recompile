@@ -63,6 +63,8 @@ face and the suite passes while asserting nothing.
 | **Display Pedestal** | plain `BlockEntity` | **none** | **none** | Holds one item and is **never hopper-fed** by design - placing and taking is the interaction. |
 | **Compost Heap**, **Recompile Workbench**, **Scrap Crafting Table** | plain `BlockEntity` | n/a | n/a | Not `Container`s. Nothing to expose. |
 | **Sorting Tarp** | *no block entity* | n/a | n/a | Stateless by identity - no input slot, no output buffer. |
+| **Solar Panel** | plain `BlockEntity` | n/a | **energy out** | Holds no items, so no item capability. Exposes `Capabilities.Energy.BLOCK` and pushes to neighbours each tick, so a generator against a machine works with no pipe mod installed at all. |
+| **Burner Generator** | `WorldlyContainer` (5 fuel slots) | **fuel in, nothing out** | **fuel in, nothing out**, plus **energy out** | Has a bespoke screen for its power meter (see CLAUDE.md on the three exceptions); the automation rules below are unaffected by that. `canPlaceItem` is "is this fuel", so neither a player nor a pipe can park something unburnable in the buffer, and `canTakeItemThroughFace` refuses every face - a pipe pulling fuel back out of the generator it just filled is nobody's intent. **Null side returns no handler**, the Burn Barrel's lesson: `WorldlyContainerWrapper` skips `getSlotsForFace` entirely on a non-sided query. |
 
 ---
 
@@ -82,6 +84,8 @@ face and the suite passes while asserting nothing.
 
 ## Changelog
 
+- **2026-07-31** - Power tier (#72) added two energy-only rows. Neither generator holds items, so neither
+  exposes an item capability; the Burner is fed by hand.
 - **2026-07-31** - Created. Captures the parity rule, the Burn Barrel exception, the Scrap Bin's P2.9
   reversal, and the two-door model. Written after the Cupola was found unreachable to every pipe mod
   despite advertising automation, and the Burn Barrel was found accepting pipes despite advertising the

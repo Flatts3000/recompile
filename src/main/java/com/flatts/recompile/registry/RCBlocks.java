@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
+import com.flatts.recompile.content.block.BurnerGeneratorBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
@@ -310,6 +311,19 @@ public final class RCBlocks {
             // player's most expensive machine, which ate their Burn Barrel to build.
             .sound(SoundType.STONE)
             .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
+
+    /**
+     * Burner Generator (#72): burns refuse into FE, the half of the power tier that works at night.
+     * Fed by right-click, so it needs no screen and no menu.
+     */
+    public static final DeferredBlock<BurnerGeneratorBlock> BURNER_GENERATOR = BLOCKS.registerBlock(
+        "burner_generator",
+        BurnerGeneratorBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
+            .sound(SoundType.METAL)
+            .lightLevel(state -> state.getValue(BurnerGeneratorBlock.LIT) ? 13 : 0));
 
     public static final DeferredBlock<BurnBarrelBlock> BURN_BARREL = BLOCKS.registerBlock(
         "burn_barrel",

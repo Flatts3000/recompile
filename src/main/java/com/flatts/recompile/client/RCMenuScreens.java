@@ -21,6 +21,7 @@ public final class RCMenuScreens {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(RCMenus.SCRAP_CRAFTING_STATION.get(), ScrapCraftingStationScreen::new);
+        event.register(RCMenus.BURNER_GENERATOR.get(), BurnerGeneratorScreen::new);
         event.register(RCMenus.TREE_NURSERY.get(), TreeNurseryScreen::new);
     }
 }

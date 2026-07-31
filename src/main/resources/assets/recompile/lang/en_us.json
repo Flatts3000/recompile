@@ -284,5 +284,20 @@
   "jei.recompile.info.cutting_torch": "Right-click holding the torch to feed it an Oily Rag. Each rag is worth 8 cuts and it holds 64. Cutting steel spends one charge; with an empty torch the cut is refused.",
   "jei.recompile.info.steel_offcut": "Cut off a Steel I-Beam with a Cutting Torch. Remelt it into iron in a Cupola Furnace - the Burn Barrel will not take it.",
   "jei.recompile.torch_cutting": "Torch Cutting",
-  "jei.recompile.burning": "Burning"
+  "jei.recompile.burning": "Burning",
+  "block.recompile.burner_generator": "Burner Generator",
+  "jei.recompile.info.burner_generator": "Burns refuse for power. Right-click to open its fuel buffer and load anything a furnace would burn - an Oily Rag will do. It takes one item at a time, so a stack lasts, and hoppers or pipes can keep it stocked. Energy goes straight into whatever it is touching; hover it to see how much it is holding.",
+  "jade.recompile.energy_stored": "Stored: %s / %s FE",
+  "jade.recompile.energy_idle": "Not generating",
+  "jade.recompile.burn_remaining": "Burning: %ss left",
+  "jei.recompile.info.solar_panel": "Generates power from daylight, and needs an open sky - a block overhead stops it. Output falls off at dusk and in bad weather rather than cutting out. It also still works as a machine part: a panel inside a Grass Spreader or Tree Nursery generates as well, and those machines do not need power to run.",
+  "jade.recompile.energy_rate": "Generating %s FE/t",
+  "container.recompile.burner_generator": "Burner Generator",
+  "tooltip.recompile.energy_stored": "%s / %s FE",
+  "tooltip.recompile.water_stored": "%s / %s mB",
+  "tooltip.recompile.cook_remaining": "%ss remaining",
+  "tooltip.recompile.cook_idle": "Idle",
+  "tooltip.recompile.generator_generating": "Generating",
+  "tooltip.recompile.generator_buffer_full": "Buffer full - nothing is drawing power",
+  "tooltip.recompile.generator_out_of_fuel": "Out of fuel"
 }

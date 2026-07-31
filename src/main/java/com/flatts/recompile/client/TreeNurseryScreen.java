@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -158,6 +159,19 @@ public class TreeNurseryScreen extends AbstractContainerScreen<TreeNurseryMenu> 
         if (mouseX >= gx && mouseX < gx + 8 && mouseY >= gy && mouseY < gy + GAUGE_H) {
             graphics.setTooltipForNextFrame(this.font, Component.translatable(
                 "container.recompile.nursery_water", this.menu.water(), this.menu.waterCapacity()),
+                mouseX, mouseY);
+            return;
+        }
+        // ...and the cook arrow, which had none. The arrow reads as a proportion, and the decision it
+        // drives - can I walk away - is answered by seconds, not by a fraction.
+        int ax = this.leftPos + ARROW_X;
+        int ay = this.topPos + ARROW_Y;
+        if (mouseX >= ax && mouseX < ax + 24 && mouseY >= ay && mouseY < ay + 16) {
+            int total = Math.max(1, this.menu.cookTotal());
+            int progress = Math.max(0, Math.min(this.menu.cookProgress(), total));
+            graphics.setTooltipForNextFrame(this.font, progress > 0
+                ? Component.translatable("tooltip.recompile.cook_remaining", (total - progress + 19) / 20)
+                : Component.translatable("tooltip.recompile.cook_idle").withStyle(ChatFormatting.DARK_GRAY),
                 mouseX, mouseY);
         }
     }

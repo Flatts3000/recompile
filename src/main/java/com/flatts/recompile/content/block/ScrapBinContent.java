@@ -26,6 +26,17 @@ public enum ScrapBinContent implements StringRepresentable {
     FIBER_SCRAP("fiber_scrap", 0xB8A57E),
     E_SCRAP("e_scrap", 0x3E7A4E),
     JUNK("junk", 0x7A6E5C),
+    // The demolition yard's shards, one content each. They are tinted to read apart at 16px by
+    // design (see texgen.toml), so collapsing them to a single stone look would throw away a
+    // distinction the art deliberately makes - granite bins look like granite. Colours are the
+    // lead stop of each shard's own procedural palette, so bin and item agree.
+    STONE_SHARD("stone_shard", 0x9A9A9E),
+    GRANITE_SHARD("granite_shard", 0xA67E70),
+    DIORITE_SHARD("diorite_shard", 0xCCCCCC),
+    ANDESITE_SHARD("andesite_shard", 0x8C8C90),
+    DEEPSLATE_SHARD("deepslate_shard", 0x4A4A52),
+    TUFF_SHARD("tuff_shard", 0x6E6E60),
+    CALCITE_SHARD("calcite_shard", 0xDCDCD8),
     GENERIC("generic", 0xFFFFFF);
 
     private final String name;
