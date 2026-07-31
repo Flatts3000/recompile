@@ -120,7 +120,11 @@ line. Same two-class split as the Compost Heap / Tree Nursery.
   and one Jade provider cover all baits; the item carries the diet.
 - **Spawn** through `finalizeSpawn` for variants; herd-seeding spawns 1-2 with the baby flag set.
 - **Tags** own the allowlists (`#recompile:bait/*`) and the environment weights are a datapack table -
-  no Java edit to retune. `SpawnPlacements`/`checkSpawnRules` validate the mob can legally stand there.
+  no Java edit to retune. **Shipped as a NeoForge data map** (#45): `recompile:bait_weight` over the
+  entity-type registry, values in `data/recompile/data_maps/entity_type/bait_weight.json`, one entry per
+  mob carrying `weight` and an optional `terrain` affinity. Both fields are optional and a mob with no
+  entry rides `DEFAULT_WEIGHT` unaffiliated, so a pack makes a mob reachable with a diet tag alone and
+  tunes it only if it wants to. `SpawnPlacements`/`checkSpawnRules` validate the mob can legally stand there.
 - **No mixins**, consistent with the rest of the mod; the tick + `finalizeSpawn` are the mechanism.
 
 ## Config (`RCConfig`, `reclamation`)
@@ -135,7 +139,7 @@ line. Same two-class split as the Compost Heap / Tree Nursery.
 
 - Three bait items (+ Rich grade) with recipes; the `animal_bait` block (blockstate `diet` + `settle`,
   models, loot = drops itself if broken before firing, lang).
-- Entity-type tags `bait/herbivore|carnivore|omnivore`; the environment-weight datapack table.
+- Entity-type tags `bait/herbivore|carnivore|omnivore`; the `recompile:bait_weight` data map.
 - texgen surfaces: the three bait items + the placed bait block (a small baited lure on the ground).
 - Jade lang for the status lines.
 

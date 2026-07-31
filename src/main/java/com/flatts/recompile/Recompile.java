@@ -5,6 +5,7 @@ import com.flatts.recompile.registry.RCBiomeSources;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCCreativeTabs;
+import com.flatts.recompile.registry.RCDataMaps;
 import com.flatts.recompile.registry.RCMenus;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCFeatures;
@@ -53,6 +54,9 @@ public final class Recompile {
         // Sapling lockout (P2.4-R2): saplings only ever exist planted, placed by the tree
         // planter, so no found sapling can shortcut the reclamation ladder.
         RCLootModifiers.register(modEventBus);
+
+        // Per-entry values packs retune without a mod release (Animal Bait spawn weights).
+        RCDataMaps.register(modEventBus);
 
         // In-world GameTests (CI gameTest job runs these).
         RCGameTests.register(modEventBus);
