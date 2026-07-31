@@ -14,7 +14,7 @@ candidate_count = 5
 
 # Backend note (owner call, 2026-07-30): AI beats procedural clearly on these material blocks, judged
 # side by side - 4 of each, same slots, same brightness. The procedural palettes below are kept as the
-# offline fallback, not as the intent. garbage_block and rubble both SAID procedural while garbage had been
+# offline fallback, not as the intent. garbage_block and stone_rubble both SAID procedural while garbage had been
 # shipping AI art for months; the manifest was lying about its own output.
 # ---------------------------------------------------------------------------
 # Blocks
@@ -749,14 +749,14 @@ prompt = "a full-bleed top-down Minecraft block face of scattered mixed bait fee
 # Demolition yard (frontier) - stone path
 # ---------------------------------------------------------------------------
 
-# Rubble: a pick-through pile like a Block of Garbage, but stone debris. Reuses the
-# procedural "rubble" style (as garbage_block does), on a cool stone-grey palette.
+# Stone Rubble: a pick-through pile like a Block of Garbage, but stone debris. Renamed from `rubble`
+# (block id and surface id both) in #61. The fallback reuses garbage_block's procedural "rubble" style.
 [surface.stone_rubble]
 kind = "block"
 backend = "ai"
 size = 16
-# Same variant strategy as garbage_block. Kept procedural rather than switched to AI: its 7-colour palette
-# already reads correctly, and the repetition was the actual complaint, not the material.
+# Same variant strategy as garbage_block. Switched procedural -> AI in the 2026-07-30 side-by-side (see the
+# backend note at the top); the procedural block below is the offline fallback, not what ships.
 variants = 3
 prompt = "a full-bleed top-down Minecraft block face of broken concrete-and-stone rubble: crushed grey aggregate chunks, dust and grit, cool stone greys"
 vanilla_ref = "block/gravel"
