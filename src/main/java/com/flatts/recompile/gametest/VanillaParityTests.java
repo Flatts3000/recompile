@@ -125,11 +125,53 @@ final class VanillaParityTests {
             helper.succeed();
         });
 
-        // Fuel goes in the side slot on a furnace; the Cupola must take it the same way or it cannot be
-        // fed by automation at all, only stocked by hand - which is the barrel's behaviour, not its own.
-        RCGameTests.test("cupola_matches_vanilla_furnace_for_fuel", 20, helper -> {
-            assertInsertParity(helper, RCBlocks.CUPOLA_FURNACE.get(), Blocks.FURNACE,
-                ItemResource.of(RCItems.OILY_RAG.get()), "cupola fuel");
+        // The ONE documented departure from furnace parity (owner call, 2026-07-31): automation cannot
+        // insert what cannot be smelted. Asserted as a difference on purpose - vanilla accepting the jam
+        // is what makes the departure necessary, so this test proves both halves and fails loudly if
+        // either the exception or vanilla's behaviour changes underneath it.
+        RCGameTests.test("cupola_refuses_unsmeltable_where_vanilla_accepts", 20, helper -> {
+            helper.setBlock(OURS, RCBlocks.CUPOLA_FURNACE.get());
+            helper.setBlock(VANILLA, Blocks.FURNACE);
+            // Both jams seen in playtest: an Iron Ingot (the machine's own output, looped back) and an
+            // Oily Rag piped at the top face, which vanilla files into the SMELT slot rather than the
+            // fuel slot. Neither is a smelting input, so neither may enter slot 0 by automation.
+            for (ItemResource jam : List.of(ItemResource.of(net.minecraft.world.item.Items.IRON_INGOT),
+                    ItemResource.of(RCItems.OILY_RAG.get()))) {
+                helper.setBlock(OURS, Blocks.AIR);
+                helper.setBlock(OURS, RCBlocks.CUPOLA_FURNACE.get());
+                int oursSlotZero = probeInsert(handler(helper, OURS, Direction.UP), jam, 4);
+                helper.assertTrue(oursSlotZero <= 0,
+                    "the Cupola must refuse " + jam.getItem() + " into the input slot from automation,"
+                        + " took " + oursSlotZero);
+            }
+            // ...and vanilla must still take it, or the departure has nothing to depart from.
+            int vanillaSlotZero = probeInsert(handler(helper, VANILLA, Direction.UP),
+                ItemResource.of(net.minecraft.world.item.Items.IRON_INGOT), 4);
+            helper.assertTrue(vanillaSlotZero > 0,
+                "vanilla must still accept the jam, or this exception has no reason to exist (got "
+                    + vanillaSlotZero + ")");
+            helper.succeed();
+        });
+
+        // Fuel must still be automatable, or the Cupola can only be stocked by hand - which is the
+        // barrel's behaviour, not its own. Asserted as "reaches the fuel slot from some face" rather than
+        // face-by-face equality: the input-slot filter deliberately refuses fuel on the face that maps to
+        // slot 0, and pinning which face that is would hardcode vanilla's mapping into the test.
+        RCGameTests.test("cupola_still_accepts_fuel_from_automation", 20, helper -> {
+            helper.setBlock(OURS, RCBlocks.CUPOLA_FURNACE.get());
+            helper.setBlock(VANILLA, Blocks.FURNACE);
+            ItemResource rag = ItemResource.of(RCItems.OILY_RAG.get());
+
+            int ours = -1;
+            int vanilla = -1;
+            for (Direction side : faces()) {
+                ours = Math.max(ours, probeInsert(handler(helper, OURS, side), rag, 4));
+                vanilla = Math.max(vanilla, probeInsert(handler(helper, VANILLA, side), rag, 4));
+            }
+            helper.assertTrue(vanilla > 0, "vanilla must take fuel from automation somewhere");
+            helper.assertTrue(ours == vanilla,
+                "the Cupola must take just as much fuel as vanilla on its best face - ours " + ours
+                    + ", vanilla " + vanilla);
             helper.succeed();
         });
     }
