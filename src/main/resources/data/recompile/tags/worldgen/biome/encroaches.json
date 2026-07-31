@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "recompile:household_sprawl"
+    "recompile:household_sprawl",
+    "recompile:demolition_yard"
   ]
 }

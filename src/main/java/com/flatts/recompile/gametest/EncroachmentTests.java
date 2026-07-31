@@ -5,7 +5,15 @@ import com.flatts.recompile.event.RCEncroachment.Outcome;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCTags;
 import net.minecraft.core.BlockPos;
+import com.flatts.recompile.Recompile;
+import com.flatts.recompile.registry.RCTags;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -260,5 +268,32 @@ final class EncroachmentTests {
                 "short grass must count as cover");
             helper.succeed();
         });
+        // Every garbage biome is contested, not just the starting one.
+        //
+        // The GameTests drive encroachOnce directly, which bypasses biome gating by design - so the
+        // behaviour tests above would pass identically whether or not a biome is tagged, and the tag is
+        // the ONLY thing deciding where the mechanic runs. That gap is not theoretical: the demolition
+        // yard shipped untagged, grass never reverted there, and it reached us as a playtest bug report
+        // because a rule that holds in one biome and silently not in another reads as broken.
+        RCGameTests.test("every_garbage_biome_encroaches", 20, helper -> {
+            Registry<Biome> biomes = helper.getLevel().registryAccess()
+                .lookupOrThrow(net.minecraft.core.registries.Registries.BIOME);
+            List<String> missing = new ArrayList<>();
+            for (String path : List.of("household_sprawl", "demolition_yard")) {
+                Identifier id = Identifier.fromNamespaceAndPath(Recompile.MOD_ID, path);
+                boolean tagged = biomes.get(ResourceKey.create(
+                        net.minecraft.core.registries.Registries.BIOME, id))
+                    .map(holder -> holder.is(RCTags.ENCROACHES))
+                    .orElse(false);
+                if (!tagged) {
+                    missing.add(path);
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "these biomes are not in #recompile:encroaches, so the dump never pushes back there: "
+                    + missing);
+            helper.succeed();
+        });
+
     }
 }

@@ -105,8 +105,18 @@ ground. The optional **Sanctuary Ward** (a placeable spawn-suppression block for
 - **Hostile spawns: on.** Populated `monster` spawner list (zombie, skeleton, spider, creeper); creature and
   other lists stay empty. This is the mod's first hostile-spawning biome (scoped intro of the #46 threat axis).
 - **Features:** the Building Husk feature (S3) + surface rubble scatter. Not the garbage mound.
-- **Not encroaching** - stays out of the `#recompile:encroaches` tag (it is a resource region, not contested
-  green).
+- **Encroaching** - in the `#recompile:encroaches` tag, so healed ground is contested here exactly as it is
+  in the sprawl (owner call, **2026-07-31**, reversing the original decision below).
+  - *Superseded:* "Not encroaching - stays out of the tag (it is a resource region, not contested green)."
+    The reasoning was that the yard is somewhere you travel to and strip rather than somewhere you reclaim,
+    so contesting green there would add upkeep to a trip already gated behind travel and hostile mobs.
+  - **What overturned it:** the asymmetry was undiscoverable. Nothing tells a player that grass behaves
+    differently in the two biomes, so a player who learns "grass reverts unless you anchor it" in the
+    sprawl carries that rule here, watches it not happen, and reads the *design* as a bug - which is
+    exactly how this surfaced, as a playtest bug report. One rule everywhere is worth more than the
+    tuning the exception bought.
+  - The yard shares household's coarse-dirt surface rule, so nothing else has to change: the same
+    frontier test, the same reclamation ladder, the same defences.
 
 ---
 
