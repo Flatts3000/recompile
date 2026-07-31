@@ -343,8 +343,9 @@ public class AnimalBaitBlock extends Block {
     /**
      * The terrain a mob is drawn to - keys the spawn weighting.
      *
-     * <p>{@link #NONE} means no affinity. {@link #scan} never returns it (bare ground reads as
-     * {@link #GRASS}), so an unaffiliated mob simply never collects the terrain bonus.
+     * <p>{@link #NONE} means no affinity, not a terrain to be matched against:
+     * {@link AnimalBaitBlock#weightOf} refuses to pay the bonus on it. {@link AnimalBaitBlock#scan} also
+     * never returns it (bare ground reads as {@link #GRASS}), but the guard does not depend on that.
      */
     public enum Terrain implements StringRepresentable {
         GRASS, SAND, LEAVES, NONE;

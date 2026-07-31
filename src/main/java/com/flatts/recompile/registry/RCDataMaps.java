@@ -29,6 +29,12 @@ public final class RCDataMaps {
      * pack-added one, or one a pack tags into a diet without tuning it - falls back to
      * {@link AnimalBaitBlock#DEFAULT_WEIGHT} and no terrain affinity, so tagging alone is enough to make a
      * mob reachable and an entry here is purely tuning.
+     *
+     * <p><b>Deliberately not synced.</b> The draw happens server-side in {@code AnimalBaitBlock.pick}, and
+     * the Jade provider reads only blockstate and placement, so the client never needs these values. If a
+     * client-side consumer is ever added - the spec's {@code Expecting: <weighted shortlist>} line is the
+     * obvious candidate - this must gain a {@code .synced(...)} call, or {@code getData} will return null
+     * on the client and every mob will silently read as {@link AnimalBaitBlock#DEFAULT_WEIGHT}.
      */
     public static final DataMapType<EntityType<?>, BaitWeight> BAIT_WEIGHT = DataMapType
         .builder(Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "bait_weight"), Registries.ENTITY_TYPE,
@@ -51,12 +57,18 @@ public final class RCDataMaps {
      */
     public record BaitWeight(int weight, AnimalBaitBlock.Terrain terrain) {
 
+        /** Ceiling on a single mob's weight; see the codec below. */
+        public static final int MAX_WEIGHT = 100_000;
+
         /**
          * Both fields are optional so a pack can state only what it means to change. An entry that sets just
          * a terrain still gets the default weight, and one that sets just a weight stays unaffiliated.
          */
         public static final Codec<BaitWeight> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.intRange(1, Integer.MAX_VALUE)
+            // Upper bound is a guard, not a design limit: pick() sums every candidate's weight into an
+            // int, so unbounded pack values could overflow the total negative and make random.nextInt
+            // throw mid-spawn. 100k is far past any sane tuning and cannot overflow across a diet tag.
+            Codec.intRange(1, MAX_WEIGHT)
                 .optionalFieldOf("weight", AnimalBaitBlock.DEFAULT_WEIGHT)
                 .forGetter(BaitWeight::weight),
             AnimalBaitBlock.Terrain.CODEC
