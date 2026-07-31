@@ -137,22 +137,10 @@ final class BurnBarrelTests {
                 // The capability is registered on purpose (RCBlockEntities), so a missing handler means
                 // that registration was dropped - and this test would silently stop proving anything,
                 // which is exactly what it did before the wrapper was wired up.
-                if (side == null) {
-                    // No non-sided handler at all is the correct answer here, and the only safe one -
-                    // any handler built for a null side ignores the lockout by construction.
-                    helper.assertTrue(handler == null,
-                        "the barrel must expose NO non-sided handler; a null side bypasses getSlotsForFace");
-                    continue;
-                }
-                helper.assertTrue(handler != null,
-                    "the barrel must expose an item handler on " + side + " for this test to mean anything");
-                int accepted;
-                try (Transaction tx = Transaction.openRoot()) {
-                    accepted = handler.insert(ItemResource.of(RCItems.SCRAP_METAL.get()), 8, tx);
-                    tx.commit();
-                }
-                helper.assertTrue(accepted == 0,
-                    "the barrel must refuse automation on " + side + ", took " + accepted);
+                // Absence, not refusal. A handler that merely says no still makes a pipe connect to the
+                // block, which looks like a machine that is broken rather than one that is manual.
+                helper.assertTrue(handler == null,
+                    "the barrel must expose no item handler at all on " + side + ", so pipes do not connect");
             }
             helper.succeed();
         });

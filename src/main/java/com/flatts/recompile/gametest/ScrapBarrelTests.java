@@ -8,6 +8,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /** GameTests for the Scrap Barrel: storage in a world with no wood. */
 final class ScrapBarrelTests {
@@ -57,5 +61,31 @@ final class ScrapBarrelTests {
                     + state.getProperties());
             helper.succeed();
         });
+        // The Scrap Barrel is the network's overflow sink, so it is the one member that should be
+        // freely automatable - both ways. It is a plain Container, so hoppers always worked through the
+        // vanilla path; a pipe needs the item capability, and without it a pipe would not even connect.
+        RCGameTests.test("scrap_barrel_capability_moves_both_ways", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.SCRAP_BARREL.get());
+            ResourceHandler<ItemResource> handler = helper.getLevel()
+                .getCapability(Capabilities.Item.BLOCK, helper.absolutePos(pos), null);
+            helper.assertTrue(handler != null, "the barrel must expose an item handler, or pipes cannot connect");
+
+            int accepted;
+            try (Transaction tx = Transaction.openRoot()) {
+                accepted = handler.insert(ItemResource.of(RCItems.SCRAP_METAL.get()), 32, tx);
+                tx.commit();
+            }
+            helper.assertTrue(accepted == 32, "a pipe must fill the barrel, got " + accepted);
+
+            int extracted;
+            try (Transaction tx = Transaction.openRoot()) {
+                extracted = handler.extract(ItemResource.of(RCItems.SCRAP_METAL.get()), 12, tx);
+                tx.commit();
+            }
+            helper.assertTrue(extracted == 12, "a pipe must pull from the barrel, got " + extracted);
+            helper.succeed();
+        });
+
     }
 }
