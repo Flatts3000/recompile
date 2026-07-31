@@ -99,10 +99,12 @@ public class RecompileJeiPlugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         List<SortingData.Weighted> household = SortingData.outputs(SortingData.HOUSEHOLD);
         List<SortingData.Weighted> bag = SortingData.outputs(SortingData.BAG);
+        List<SortingData.Weighted> rubble = SortingData.outputs(SortingData.RUBBLE);
         registration.addRecipes(SORTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.GARBAGE_BLOCK.get()), household),
             new SalvageRecipe(new ItemStack(RCItems.COMPACTED_BALE.get()), household),
-            new SalvageRecipe(new ItemStack(RCItems.TRASH_BAG.get()), bag)));
+            new SalvageRecipe(new ItemStack(RCItems.TRASH_BAG.get()), bag),
+            new SalvageRecipe(new ItemStack(RCItems.STONE_RUBBLE.get()), rubble)));
 
         registration.addRecipes(CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.TIN_CAN.get()),

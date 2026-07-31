@@ -167,9 +167,22 @@ public final class RCTags {
      * bottles), crafted intermediates, finds, food, and tools. Open by design: a pack adds modded
      * scrap to this tag without a mod release. An item tag, not a block tag, because it gates what an
      * item can become - the bin's contents.
+     *
+     * <p>Since #68 it also includes {@link #STONE_SHARDS} by tag reference, so the demolition yard's
+     * base materials store like the household ones. The rule is "base material of a pull stream", not
+     * "household material" - a shard is what sifting rubble yields, exactly as scrap metal is what
+     * sifting garbage yields. Cut products and crafted intermediates (Steel Offcut, ingots, rebar) stay
+     * out, same as they always were on the household side.
      */
     public static final TagKey<Item> BINNABLE = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "binnable"));
+
+    /**
+     * The demolition yard's seven stone shards - what Sifting Rubble yields, and the crafting input for
+     * the vanilla stone family. Already shipped as JSON; declared here so Java can assert against it.
+     */
+    public static final TagKey<Item> STONE_SHARDS = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "stone_shards"));
 
     /**
      * What the Compost Heap will take as feed (Mod Jam - the fertilizer tier). Ships with the two organics

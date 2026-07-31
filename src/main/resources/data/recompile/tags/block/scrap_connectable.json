@@ -5,6 +5,7 @@
     "recompile:sorting_tarp",
     "recompile:recompile_workbench",
     "recompile:burn_barrel",
-    "recompile:scrap_crafting_table"
+    "recompile:scrap_crafting_table",
+    "recompile:cupola_furnace"
   ]
 }
