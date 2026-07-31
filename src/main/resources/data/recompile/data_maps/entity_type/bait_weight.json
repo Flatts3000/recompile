@@ -1,0 +1,20 @@
+{
+  "values": {
+    "minecraft:cow": { "weight": 10, "terrain": "grass" },
+    "minecraft:sheep": { "weight": 10, "terrain": "grass" },
+    "minecraft:chicken": { "weight": 10 },
+    "minecraft:pig": { "weight": 10 },
+    "minecraft:rabbit": { "weight": 8, "terrain": "sand" },
+    "minecraft:cat": { "weight": 8 },
+    "minecraft:fox": { "weight": 8, "terrain": "leaves" },
+    "minecraft:horse": { "weight": 5, "terrain": "grass" },
+    "minecraft:ocelot": { "weight": 4, "terrain": "leaves" },
+    "minecraft:parrot": { "weight": 4, "terrain": "leaves" },
+    "minecraft:donkey": { "weight": 3, "terrain": "grass" },
+    "minecraft:camel": { "weight": 3, "terrain": "sand" },
+    "minecraft:armadillo": { "weight": 3, "terrain": "sand" },
+    "minecraft:mule": { "weight": 2, "terrain": "grass" },
+    "minecraft:mooshroom": { "weight": 1, "terrain": "grass" },
+    "minecraft:sniffer": { "weight": 1, "terrain": "grass" }
+  }
+}

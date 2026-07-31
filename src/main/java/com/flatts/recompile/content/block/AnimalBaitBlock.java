@@ -1,11 +1,13 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.registry.RCDataMaps;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -187,8 +189,7 @@ public class AnimalBaitBlock extends Block {
         int total = 0;
         for (var holder : tag.get()) {
             EntityType<?> type = holder.value();
-            int weight = WEIGHT.getOrDefault(type, DEFAULT_WEIGHT)
-                + (AFFINITY.getOrDefault(type, Terrain.NONE) == dominant ? TERRAIN_BONUS : 0);
+            int weight = weightOf(holder, dominant);
             types.add(type);
             weights.add(weight);
             total += weight;
@@ -201,6 +202,23 @@ public class AnimalBaitBlock extends Block {
             }
         }
         return types.get(types.size() - 1);
+    }
+
+    /**
+     * One mob's draw weight on the given terrain, read from the {@code recompile:bait_weight} data map.
+     *
+     * <p>A mob with no entry rides {@link #DEFAULT_WEIGHT} with no affinity, so a pack can make a mob
+     * reachable with nothing but a diet tag and tune it later.
+     */
+    public static int weightOf(Holder<EntityType<?>> holder, Terrain dominant) {
+        RCDataMaps.BaitWeight data = holder.getData(RCDataMaps.BAIT_WEIGHT);
+        int base = data == null ? DEFAULT_WEIGHT : data.weight();
+        Terrain affinity = data == null ? Terrain.NONE : data.terrain();
+        // NONE is "no affinity", not a terrain to match against - an unaffiliated mob must never collect
+        // the bonus. Guarding it here rather than relying on scan() never returning NONE, so the rule holds
+        // for every caller of this method rather than only for the one that happens to feed it today.
+        boolean drawn = affinity != Terrain.NONE && affinity == dominant;
+        return base + (drawn ? TERRAIN_BONUS : 0);
     }
 
     /** What the land around the bait mostly is - the terrain the spawn weighting keys on. */
@@ -322,57 +340,25 @@ public class AnimalBaitBlock extends Block {
         }
     }
 
-    /** The terrain a mob is drawn to - keys the spawn weighting. */
-    public enum Terrain {
-        GRASS, SAND, LEAVES, NONE
+    /**
+     * The terrain a mob is drawn to - keys the spawn weighting.
+     *
+     * <p>{@link #NONE} means no affinity, not a terrain to be matched against:
+     * {@link AnimalBaitBlock#weightOf} refuses to pay the bonus on it. {@link AnimalBaitBlock#scan} also
+     * never returns it (bare ground reads as {@link #GRASS}), but the guard does not depend on that.
+     */
+    public enum Terrain implements StringRepresentable {
+        GRASS, SAND, LEAVES, NONE;
+
+        public static final Codec<Terrain> CODEC = StringRepresentable.fromEnum(Terrain::values);
+
+        @Override
+        public String getSerializedName() {
+            return name().toLowerCase(java.util.Locale.ROOT);
+        }
     }
 
-    /**
-     * Which terrain each mob is weighted toward. Grazers to grass, desert animals to sand, climbers to
-     * leaves; everything else is unweighted (Terrain.NONE) and rides the base weight. Data-driven weights
-     * are a follow-up; this table is the shippable default.
-     */
-    private static final Map<EntityType<?>, Terrain> AFFINITY = Map.ofEntries(
-        Map.entry(EntityType.COW, Terrain.GRASS),
-        Map.entry(EntityType.SHEEP, Terrain.GRASS),
-        Map.entry(EntityType.HORSE, Terrain.GRASS),
-        Map.entry(EntityType.DONKEY, Terrain.GRASS),
-        Map.entry(EntityType.MULE, Terrain.GRASS),
-        Map.entry(EntityType.MOOSHROOM, Terrain.GRASS),
-        Map.entry(EntityType.SNIFFER, Terrain.GRASS),
-        Map.entry(EntityType.RABBIT, Terrain.SAND),
-        Map.entry(EntityType.CAMEL, Terrain.SAND),
-        Map.entry(EntityType.ARMADILLO, Terrain.SAND),
-        Map.entry(EntityType.FOX, Terrain.LEAVES),
-        Map.entry(EntityType.PARROT, Terrain.LEAVES),
-        Map.entry(EntityType.OCELOT, Terrain.LEAVES)
-    );
-
-    private static final int DEFAULT_WEIGHT = 5;
+    /** Draw weight for a mob with no {@code bait_weight} entry - enough to be reachable, not favoured. */
+    public static final int DEFAULT_WEIGHT = 5;
     private static final int TERRAIN_BONUS = 5;
-
-    /**
-     * Per-mob base spawn weight: common farm animals turn up far more often than rare or special ones
-     * (a bait finds a cow long before a Sniffer). Terrain affinity ({@link #TERRAIN_BONUS}) adds on top.
-     * Unlisted / pack-added mobs get {@link #DEFAULT_WEIGHT}. Data-driven weights are a follow-up; this
-     * is the shippable default.
-     */
-    private static final Map<EntityType<?>, Integer> WEIGHT = Map.ofEntries(
-        Map.entry(EntityType.COW, 10),
-        Map.entry(EntityType.SHEEP, 10),
-        Map.entry(EntityType.RABBIT, 8),
-        Map.entry(EntityType.HORSE, 5),
-        Map.entry(EntityType.DONKEY, 3),
-        Map.entry(EntityType.MULE, 2),
-        Map.entry(EntityType.CAMEL, 3),
-        Map.entry(EntityType.MOOSHROOM, 1),
-        Map.entry(EntityType.SNIFFER, 1),
-        Map.entry(EntityType.CAT, 8),
-        Map.entry(EntityType.FOX, 8),
-        Map.entry(EntityType.OCELOT, 4),
-        Map.entry(EntityType.ARMADILLO, 3),
-        Map.entry(EntityType.CHICKEN, 10),
-        Map.entry(EntityType.PIG, 10),
-        Map.entry(EntityType.PARROT, 4)
-    );
 }

@@ -3,8 +3,11 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.AnimalBaitBlock.Diet;
 import com.flatts.recompile.content.block.AnimalBaitBlock.Outcome;
+import com.flatts.recompile.content.block.AnimalBaitBlock.Terrain;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -136,5 +139,42 @@ final class AnimalBaitTests {
             helper.assertTrue(babies == 1, "Rich bait's pair must include one baby, got " + babies);
             helper.succeed();
         });
+
+        // The weights are data now, so the thing worth proving is that the JSON actually reaches the draw.
+        // A hardcoded fallback would satisfy "cow is heavier than sniffer" just as well, so these assert the
+        // shipped file's exact numbers - they fail if the data map stops loading rather than silently
+        // reverting to DEFAULT_WEIGHT for everything.
+        // Probed on SAND, which neither mob is affine to, so these are base weights with no bonus in play.
+        // (Probing on NONE would not isolate anything: an entry-less mob also reads as NONE, so the two
+        // cases would coincide and the assertion would hold whether or not the file loaded.)
+        RCGameTests.test("bait_weights_come_from_the_data_map", 1, helper -> {
+            int cow = AnimalBaitBlock.weightOf(holderOf(EntityType.COW), Terrain.SAND);
+            int sniffer = AnimalBaitBlock.weightOf(holderOf(EntityType.SNIFFER), Terrain.SAND);
+            helper.assertTrue(cow == 10, "cow's data-map weight must be 10, got " + cow);
+            helper.assertTrue(sniffer == 1, "sniffer's data-map weight must be 1, got " + sniffer);
+            helper.succeed();
+        });
+
+        // Terrain affinity rides the same entry: the bonus lands only on the terrain the mob is keyed to.
+        RCGameTests.test("bait_weight_terrain_bonus_is_terrain_specific", 1, helper -> {
+            int onGrass = AnimalBaitBlock.weightOf(holderOf(EntityType.COW), Terrain.GRASS);
+            int onSand = AnimalBaitBlock.weightOf(holderOf(EntityType.COW), Terrain.SAND);
+            helper.assertTrue(onGrass == 15, "a grass-affine cow on grass must be 10+5, got " + onGrass);
+            helper.assertTrue(onSand == 10, "a grass-affine cow on sand must take no bonus, got " + onSand);
+            helper.succeed();
+        });
+
+        // A mob with no entry stays reachable rather than dropping to zero - what lets a pack make a mob
+        // spawnable with a diet tag alone. Wolf is deliberately absent from the shipped file.
+        RCGameTests.test("bait_weight_falls_back_for_unlisted_mobs", 1, helper -> {
+            int wolf = AnimalBaitBlock.weightOf(holderOf(EntityType.WOLF), Terrain.GRASS);
+            helper.assertTrue(wolf == AnimalBaitBlock.DEFAULT_WEIGHT,
+                "an untuned mob must ride DEFAULT_WEIGHT with no affinity, got " + wolf);
+            helper.succeed();
+        });
+    }
+
+    private static Holder<EntityType<?>> holderOf(EntityType<?> type) {
+        return BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(type);
     }
 }
