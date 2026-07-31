@@ -56,6 +56,13 @@ public class RecompileJeiPlugin implements IModPlugin {
      */
     static final RecipeType<SalvageRecipe> BURNING =
         RecipeType.create(Recompile.MOD_ID, "burning", SalvageRecipe.class);
+
+    /**
+     * Vanilla's smelting recipe type, spelled out because {@code RecipeType} in this file is JEI's - the two
+     * share a simple name and cannot both be imported.
+     */
+    private static final net.minecraft.world.item.crafting.RecipeType<SmeltingRecipe> VANILLA_SMELTING =
+        net.minecraft.world.item.crafting.RecipeType.SMELTING;
     static final RecipeType<SalvageRecipe> TORCH_CUTTING =
         RecipeType.create(Recompile.MOD_ID, "torch_cutting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> PRYING =
@@ -110,7 +117,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         List<SalvageRecipe> burnable = new ArrayList<>();
         RecipeMap synced = RCSyncedRecipes.get();
         if (synced != null) {
-            for (RecipeHolder<SmeltingRecipe> holder : synced.byType(net.minecraft.world.item.crafting.RecipeType.SMELTING)) {
+            for (RecipeHolder<SmeltingRecipe> holder : synced.byType(VANILLA_SMELTING)) {
                 SmeltingRecipe recipe = holder.value();
                 recipe.input().items().forEach(item -> {
                     ItemStack in = new ItemStack(item);
