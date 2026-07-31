@@ -3,7 +3,7 @@
   "textures": {
     "top": "recompile:block/burner_generator_top",
     "bottom": "recompile:block/burner_generator_bottom",
-    "front": "recompile:block/burner_generator_front",
+    "front": "recompile:block/burner_generator_front_on",
     "side": "recompile:block/burner_generator_side"
   }
 }

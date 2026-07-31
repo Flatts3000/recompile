@@ -346,6 +346,26 @@ front = "block/blast_furnace_front"
 front_on = "block/blast_furnace_front_on"
 side = "block/blast_furnace_side"
 
+# The Burner Generator (#72): the power tier's fuel-burning half.
+#
+# Prompts rewritten 2026-07-31 after the first set was rejected. The first set failed the way grey
+# industrial prompts always fail here: "riveted dented plating with a small vent grille and a bolted
+# seam" is three small features and one colour, and at 16px that resolves to noise. These name ONE
+# dominant shape per face and give each face its own colour anchor - warm copper top, rust-orange
+# firebox, near-black finned sides - so the faces read apart at block scale instead of averaging into
+# the same grey square.
+[surface.burner_generator]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["top", "front", "front_on", "side", "bottom"]
+[surface.burner_generator.prompt]
+top = "a full-bleed top-down Minecraft block face: one large round copper exhaust flange centred on dark steel, warm copper and green verdigris ring, a black open pipe mouth in the middle, soot smudges around it, bold and simple"
+front = "a full-bleed Minecraft block face of a heavy iron firebox door filling the tile: a wide dark slotted grate across the centre, thick rust-orange steel frame, one bolt at each corner, cold and soot-stained, bold and simple"
+front_on = "a full-bleed Minecraft block face of a heavy iron firebox door filling the tile: fire roaring behind a wide slotted grate across the centre, bright orange and yellow glow pouring through the dark slots, thick rust-orange steel frame, one bolt at each corner, hot and glowing"
+side = "a full-bleed Minecraft block face of bold vertical cooling fins: a row of thick near-black steel ridges with deep shadow between each one, rust streaks running down from the top, strong repeating vertical pattern, high contrast"
+bottom = "a full-bleed Minecraft block face of a plain heavy steel base plate: flat dark grey metal, one large bolt in each corner, oil stains and grime, deliberately plain and uncluttered"
+
 [surface.burn_barrel_side]
 kind = "block"
 backend = "retint"
