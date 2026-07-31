@@ -102,6 +102,14 @@ dependencies {
     compileOnly "maven.modrinth:jade:gWlwZzoj"
     runtimeOnly "maven.modrinth:jade:gWlwZzoj"
 
+    // Pipez - item/fluid/energy pipes, runtimeOnly and dev-only. There is no compile
+    // dependency and no plugin: Pipez moves things through NeoForge's own capabilities,
+    // so anything this mod exposes is already reachable by it. It is here so a dev run
+    // can prove that BOTH directions hold - that the Cupola accepts automation and the
+    // Burn Barrel still refuses it, which is the Cupola's whole reason to exist.
+    // Standalone: all four of its Modrinth dependencies are optional.
+    runtimeOnly "maven.modrinth:pipez:1hVEeHBs"
+
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

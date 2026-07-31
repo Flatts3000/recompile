@@ -4,9 +4,14 @@ import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /**
  * GameTests for the Cupola Furnace (#50): the machine that makes iron reachable, and the machine that
@@ -115,6 +120,30 @@ final class CupolaFurnaceTests {
                         + cupola.getItem(2));
                 helper.succeed();
             });
+        });
+
+        // The exact inverse of burn_barrel_refuses_pipe_insertion, through the same capability a pipe
+        // mod uses. The pair is what makes the upgrade real: if both refused, the Cupola would buy only
+        // a metal tier; if both accepted, the barrel's manual-only rule would be decoration.
+        RCGameTests.test("cupola_accepts_pipe_insertion", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.CUPOLA_FURNACE.get());
+            BlockPos abs = helper.absolutePos(pos);
+
+            int total = 0;
+            for (Direction side : Direction.values()) {
+                ResourceHandler<ItemResource> handler = helper.getLevel()
+                    .getCapability(Capabilities.Item.BLOCK, abs, side);
+                if (handler == null) {
+                    continue;
+                }
+                try (Transaction tx = Transaction.openRoot()) {
+                    total += handler.insert(ItemResource.of(RCItems.STEEL_OFFCUT.get()), 1, tx);
+                    tx.commit();
+                }
+            }
+            helper.assertTrue(total > 0, "the Cupola must accept automation on at least one face");
+            helper.succeed();
         });
     }
 }

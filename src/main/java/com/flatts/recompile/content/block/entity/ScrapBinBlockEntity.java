@@ -34,9 +34,9 @@ import org.jspecify.annotations.Nullable;
  * at a stack and scatters its contents on break; this bin holds thousands and must carry them onto
  * its dropped item instead. So it stores a bound {@link Item} plus an {@code int} amount directly,
  * and exposes a hand-rolled {@link ResourceHandler}&lt;{@link ItemResource}&gt; for automation. That
- * handler is <b>insert-only</b> - {@link Storage#extract} always returns zero - which is the design's
- * "hopper in, no automation out": a sorter can fill a bin, nothing pulls from it, and you spend the
- * stockpile by hand.
+ * handler moves items <b>both ways</b> (owner call, 2026-07-31): a pipe or sorter fills a bin, and a
+ * pipe pulls the stockpile back out. This reverses P2.9's original "hopper in, no automation out", which
+ * made a wall of bins a place materials went to die.
  *
  * <p><b>The binding outlives an empty bin.</b> Withdrawing the last item leaves {@link #boundMaterial}
  * set, so a placed bin stays bound and refills without re-binding. Only breaking it while empty clears
@@ -246,7 +246,7 @@ public class ScrapBinBlockEntity extends BlockEntity {
         }
     }
 
-    // ---------------- the automation handler (insert-only) ----------------
+    // ---------------- the automation handler (in and out) ----------------
 
     private final class Storage implements ResourceHandler<ItemResource> {
 
@@ -292,10 +292,27 @@ public class ScrapBinBlockEntity extends BlockEntity {
             return accepted;
         }
 
-        /** No automation out - the bin is a sink. A player withdraws by hand via {@link #withdraw}. */
+        /**
+         * Pipes take from the bin as well as fill it (owner call, 2026-07-31, reversing P2.9's
+         * "hopper in, no out").
+         *
+         * <p>The bin stays <b>bound</b> through an empty: extracting to zero leaves {@code boundMaterial}
+         * set, so a pipe draining a bin does not silently un-type it and let the next unrelated insert
+         * re-bind it to something else. Un-binding remains a deliberate player action.
+         */
         @Override
         public int extract(int index, ItemResource resource, int extracted, TransactionContext transaction) {
-            return 0;
+            if (index != 0 || extracted <= 0 || resource.isEmpty()
+                    || boundMaterial == null || resource.getItem() != boundMaterial) {
+                return 0;
+            }
+            int taken = Math.min(extracted, amount);
+            if (taken <= 0) {
+                return 0;
+            }
+            journal.updateSnapshots(transaction);
+            amount -= taken;
+            return taken;
         }
 
         /** Accept only binnable salvage, and once bound only the bound material. */

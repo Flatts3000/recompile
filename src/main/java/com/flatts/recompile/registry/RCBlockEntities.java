@@ -18,6 +18,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
+import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 
 /**
  * Block-entity registry.
@@ -111,8 +113,8 @@ public final class RCBlockEntities {
             Capabilities.Fluid.BLOCK,
             RAIN_COLLECTOR.get(),
             (be, side) -> be.fluidHandler());
-        // The Scrap Bin's item handler: insert-only (its extract always returns 0), so a hopper or
-        // sorter can fill a bin from any side but nothing pulls from it - "hopper in, no out" (P2.9).
+        // The Scrap Bin's item handler: in and out (owner call, 2026-07-31, reversing P2.9's
+        // "hopper in, no out"). Extraction keeps the binding, so draining a bin does not un-type it.
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             SCRAP_BIN.get(),
@@ -123,5 +125,34 @@ public final class RCBlockEntities {
             Capabilities.Fluid.BLOCK,
             TREE_NURSERY.get(),
             (be, side) -> be.fluidHandler());
+        // The BURN BARREL deliberately registers NOTHING here, and that absence is the feature.
+        //
+        // Two rounds of playtest got this wrong. Exposing a WorldlyContainerWrapper looked right - the
+        // barrel's getSlotsForFace returns an empty int[], so the wrapper refuses every insert - but a
+        // pipe decides whether to CONNECT by whether a handler exists at all, not by whether it accepts.
+        // So the barrel refused items while pipes visibly hooked up to it, which reads as a broken
+        // machine rather than a manual one. (The null side leaked outright: WorldlyContainerWrapper.size()
+        // short-circuits on null and returns getContainerSize() without ever calling getSlotsForFace.)
+        //
+        // No capability means no connection, no insert, and no ambiguity. Hoppers are unaffected - they
+        // use the vanilla Container path, where the empty getSlotsForFace already stops them.
+        // burn_barrel_refuses_pipe_insertion asserts the absence on all six faces and on null.
+        //
+        // The CUPOLA is the opposite case, and the half that was actually broken: it advertises "unlike
+        // the barrel it takes hoppers", and hoppers did work, but no capability-based pipe could reach
+        // it at all. Sided wrapper, so it automates exactly like the vanilla furnace it reskins - minus
+        // one documented departure, the input-slot filter on its BlockEntity.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            CUPOLA_FURNACE.get(),
+            (be, side) -> new WorldlyContainerWrapper(be, side));
+        // The Scrap Barrel is bulk overflow storage - the thing the network dumps into - so it is the
+        // one member that should be freely automatable. It is a plain Container (chest-shaped), not a
+        // WorldlyContainer, so hoppers already worked through the vanilla path while pipes could not
+        // even connect: nothing exposed the item capability they look for.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            SCRAP_BARREL.get(),
+            (be, side) -> VanillaContainerWrapper.of(be));
     }
 }

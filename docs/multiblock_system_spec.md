@@ -77,6 +77,8 @@ the cost now lives in the placed structure.
 kinetics (P2.3). They are structural blocks whose only job is to be the right block in the right
 cell of a blueprint. If either ever gains behaviour that is a new design decision.
 
+**RF status changed 2026-07-31.** P3.5's "no RF before the Nether" was reversed: the energy tier now arrives with hydroponics, and the Solar Panel becomes a real generator. See `../trashlands/docs/design_decisions.md` P3.5 and `docs/hydroponics_spec.md`. The **Pump stays inert** - that is P2.3, a separate decision.
+
 ---
 
 ## Formation - place the core, assemble the stack
