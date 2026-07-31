@@ -4,7 +4,10 @@ import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -174,5 +177,25 @@ final class PowerTierTests {
                 "and the buffer must drop by exactly that, got " + generator.stored());
             helper.succeed();
         });
+        // Jade and JEI copy is a silent failure: a missing key renders as the raw key itself, which looks
+        // like a typo rather than a bug and only shows in a client the tests never run. These are the
+        // keys the power tier's panels and tooltips name, so a rename that misses one fails here instead.
+        RCGameTests.test("power_tier_lang_keys_resolve", 20, helper -> {
+            List<String> missing = new ArrayList<>();
+            for (String key : List.of(
+                    "jade.recompile.energy_stored", "jade.recompile.energy_rate",
+                    "jade.recompile.energy_idle", "jade.recompile.burn_remaining",
+                    "jei.recompile.info.solar_panel", "jei.recompile.info.burner_generator",
+                    "message.recompile.burner_needs_fuel", "message.recompile.burner_still_burning")) {
+                String rendered = Component.translatable(key).getString();
+                if (rendered.equals(key)) {
+                    missing.add(key);
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "these keys render as their own name, so they are missing from en_us.json: " + missing);
+            helper.succeed();
+        });
+
     }
 }
