@@ -288,6 +288,8 @@ public final class RCItems {
 
     public static final DeferredItem<BlockItem> BURN_BARREL =
         ITEMS.registerSimpleBlockItem("burn_barrel", RCBlocks.BURN_BARREL);
+    public static final DeferredItem<BlockItem> BURNER_GENERATOR =
+        ITEMS.registerSimpleBlockItem("burner_generator", RCBlocks.BURNER_GENERATOR);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
         ITEMS.registerSimpleBlockItem("rain_collector", RCBlocks.RAIN_COLLECTOR);
     /**

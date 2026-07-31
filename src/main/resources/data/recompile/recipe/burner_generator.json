@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MMM",
+    "CRC",
+    "MMM"
+  ],
+  "key": {
+    "M": "recompile:corrugated_metal",
+    "C": "recompile:copper_pipe",
+    "R": "recompile:rebar"
+  },
+  "result": {
+    "id": "recompile:burner_generator",
+    "count": 1
+  }
+}

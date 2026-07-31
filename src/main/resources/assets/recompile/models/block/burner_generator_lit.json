@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/burn_barrel_top_lit",
+    "bottom": "recompile:block/corrugated_metal",
+    "side": "recompile:block/corrugated_metal"
+  }
+}

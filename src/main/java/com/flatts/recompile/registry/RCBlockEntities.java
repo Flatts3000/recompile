@@ -5,6 +5,8 @@ import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
 import com.flatts.recompile.content.block.entity.DisplayPedestalBlockEntity;
+import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
+import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
@@ -52,6 +54,21 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "scrap_crafting_table",
             () -> new BlockEntityType<>(ScrapCraftingTableBlockEntity::new, RCBlocks.SCRAP_CRAFTING_TABLE.get()));
+
+    /**
+     * The Solar Panel's energy buffer (#72). Every placed panel has one, including the panels inside a
+     * formed Grass Spreader or Tree Nursery - they generate, those machines just do not consume.
+     */
+    public static final Supplier<BlockEntityType<SolarPanelBlockEntity>> SOLAR_PANEL =
+        BLOCK_ENTITIES.register(
+            "solar_panel",
+            () -> new BlockEntityType<>(SolarPanelBlockEntity::new, RCBlocks.SOLAR_PANEL.get()));
+
+    /** The Burner Generator's burn timer and buffer (#72). No inventory - it is fed by right-click. */
+    public static final Supplier<BlockEntityType<BurnerGeneratorBlockEntity>> BURNER_GENERATOR =
+        BLOCK_ENTITIES.register(
+            "burner_generator",
+            () -> new BlockEntityType<>(BurnerGeneratorBlockEntity::new, RCBlocks.BURNER_GENERATOR.get()));
 
     /** The Rain Collector's water tank (design P1.10) - the second holding block. */
     public static final Supplier<BlockEntityType<RainCollectorBlockEntity>> RAIN_COLLECTOR =
@@ -154,5 +171,15 @@ public final class RCBlockEntities {
             Capabilities.Item.BLOCK,
             SCRAP_BARREL.get(),
             (be, side) -> VanillaContainerWrapper.of(be));
+        // The power tier (#72). Energy only - neither generator holds items, so neither exposes an item
+        // capability, and the Burner is fed by right-click rather than through a slot.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            SOLAR_PANEL.get(),
+            (be, side) -> be.energyHandler());
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            BURNER_GENERATOR.get(),
+            (be, side) -> be.energyHandler());
     }
 }

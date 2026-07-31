@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "lit=false": { "model": "recompile:block/burner_generator" },
+    "lit=true": { "model": "recompile:block/burner_generator_lit" }
+  }
+}
