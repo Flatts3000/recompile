@@ -30,6 +30,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import java.util.Optional;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 
 /**
  * GameTests for the demolition yard's stone path (demolition_yard_spec.md S4.1): Rubble is a
@@ -351,5 +356,21 @@ final class DemolitionYardTests {
                 "gusset must reach the top face (block/steel_beam_top.json)");
             helper.succeed();
         });
+        // Three gravel press into a flint. Gravel comes only from sledgehammering Reinforced Concrete,
+        // so this is yard-tier, and it is the world's ONLY flint - vanilla's 10% gravel drop needs a
+        // gravel block to mine, which nothing here places.
+        RCGameTests.test("three_gravel_craft_a_flint", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            CraftingInput input = CraftingInput.of(3, 1, List.of(
+                new ItemStack(Items.GRAVEL), new ItemStack(Items.GRAVEL), new ItemStack(Items.GRAVEL)));
+            Optional<RecipeHolder<CraftingRecipe>> recipe = level.getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, level, (RecipeHolder<CraftingRecipe>) null);
+            helper.assertTrue(recipe.isPresent(), "three gravel must have a crafting recipe");
+            ItemStack result = recipe.get().value().assemble(input);
+            helper.assertTrue(result.is(Items.FLINT), "three gravel must yield flint, got " + result);
+            helper.assertTrue(result.getCount() == 1, "one flint, got " + result.getCount());
+            helper.succeed();
+        });
+
     }
 }

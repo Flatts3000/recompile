@@ -4,10 +4,15 @@ import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /**
  * GameTests for the Burn Barrel (design P2.2): a vanilla-furnace reskin that smelts scrap into
@@ -105,6 +110,35 @@ final class BurnBarrelTests {
                     "a hopper must not pull from the burn barrel - it is manual-only");
                 helper.succeed();
             });
+        });
+
+        // The automation lockout, tested through the capability rather than through a hopper.
+        // getSlotsForFace returns an empty int[], and this is what actually reads it - the same door
+        // Pipez and every other pipe mod come through. Load-bearing for progression, not just tidiness:
+        // "unlike the barrel it takes hoppers" is the Cupola's stated reason to be built, so a pipe that
+        // can feed a barrel deletes the upgrade. Every face is checked because one open side is a hole.
+        RCGameTests.test("burn_barrel_refuses_pipe_insertion", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.BURN_BARREL.get());
+            BlockPos abs = helper.absolutePos(pos);
+
+            for (Direction side : Direction.values()) {
+                ResourceHandler<ItemResource> handler = helper.getLevel()
+                    .getCapability(Capabilities.Item.BLOCK, abs, side);
+                // The capability is registered on purpose (RCBlockEntities), so a missing handler means
+                // that registration was dropped - and this test would silently stop proving anything,
+                // which is exactly what it did before the wrapper was wired up.
+                helper.assertTrue(handler != null,
+                    "the barrel must expose an item handler on " + side + " for this test to mean anything");
+                int accepted;
+                try (Transaction tx = Transaction.openRoot()) {
+                    accepted = handler.insert(ItemResource.of(RCItems.SCRAP_METAL.get()), 8, tx);
+                    tx.commit();
+                }
+                helper.assertTrue(accepted == 0,
+                    "the barrel must refuse automation on " + side + ", took " + accepted);
+            }
+            helper.succeed();
         });
     }
 }
