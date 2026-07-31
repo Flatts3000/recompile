@@ -3,8 +3,11 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.Recompile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import org.jspecify.annotations.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -143,6 +146,20 @@ final class RegistryCompletenessTests {
             helper.succeed();
         });
 
+        // The Cupola shipped advertising automation that no pipe mod could reach, because nothing
+        // asserted that a block which HOLDS things exposes the capability to move them. Hoppers use a
+        // different path and worked, so the gap was invisible. docs/automation_policy_spec.md already
+        // states the intended answer per block; this makes that document executable.
+        RCGameTests.test("every_container_block_declares_its_automation", 20, helper -> {
+            checkContainersDeclareCapabilities(helper);
+            helper.succeed();
+        });
+
+        RCGameTests.test("every_texture_a_model_names_exists", 20, helper -> {
+            checkModelTexturesExist(helper);
+            helper.succeed();
+        });
+
         RCGameTests.test("every_client_item_model_resolves", 20, helper -> {
             checkClientItemModelsResolve(helper);
             helper.succeed();
@@ -181,7 +198,8 @@ final class RegistryCompletenessTests {
             String json = readResource("/assets/" + id.getNamespace() + "/models/item/"
                 + id.getPath() + ".json");
             if (json == null) {
-                return;   // absence is already reported by the item-form check
+                return;   // the model file itself is covered by every_client_item_model_resolves,
+                          // which checks the model each client definition names
             }
             Matcher m = PARENT.matcher(json);
             while (m.find()) {
@@ -232,6 +250,174 @@ final class RegistryCompletenessTests {
         });
         report(helper, broken, "client item definitions naming a model that does not exist");
     }
+
+    /**
+     * Every texture a shipped model names must exist on disk.
+     *
+     * <p>The gap this closes is the loudest-in-game, quietest-in-CI failure the mod has: a missing PNG is
+     * a pink-and-black block for the player and a green build for everyone else. Nothing compiles a model,
+     * so a renamed or never-promoted texture is invisible until somebody looks at it - which is exactly
+     * how the Stone Rubble item shipped broken, and how a texture that is generated but not yet promoted
+     * would ship broken again.
+     *
+     * <p><b>Reached through the classpath, not the source tree.</b> The first version of this walked
+     * {@code src/main/resources} with a relative path, and the gametest server does not run from the
+     * project root - so it scanned nothing and passed against a deliberately broken reference. It is
+     * called out here because that is the failure this whole file exists to prevent, and it took a RED
+     * check to notice rather than a reading.
+     *
+     * <p>Models are discovered the way the game finds them: from every blockstate and every client item
+     * definition, then following {@code parent} up the chain. That also reaches models nothing else
+     * names directly - the bin's per-material labels, the burner's lit variant.
+     */
+    private static void checkModelTexturesExist(GameTestHelper helper) {
+        Set<String> models = new java.util.LinkedHashSet<>();
+        forEachModBlock((id, block) -> collectModels(
+            readResource("/assets/" + id.getNamespace() + "/blockstates/" + id.getPath() + ".json"),
+            models));
+        forEachModItem((id, item) -> {
+            collectModels(readResource("/assets/" + id.getNamespace() + "/items/"
+                + id.getPath() + ".json"), models);
+            if (resourceExists("/assets/" + id.getNamespace() + "/models/item/" + id.getPath() + ".json")) {
+                models.add("item/" + id.getPath());
+            }
+        });
+
+        // Follow parents, so a model that only inherits its textures is still checked.
+        List<String> queue = new ArrayList<>(models);
+        for (int i = 0; i < queue.size(); i++) {
+            String json = readResource("/assets/" + Recompile.MOD_ID + "/models/" + queue.get(i) + ".json");
+            if (json == null) {
+                continue;
+            }
+            Matcher parents = PARENT.matcher(json);
+            while (parents.find()) {
+                String parent = parents.group(1);
+                if (parent.startsWith(Recompile.MOD_ID + ":")) {
+                    String path = parent.substring(parent.indexOf(':') + 1);
+                    if (models.add(path)) {
+                        queue.add(path);
+                    }
+                }
+            }
+        }
+
+        // Non-vacuous by construction: if discovery finds nothing, that is the bug, not a pass.
+        helper.assertTrue(models.size() > 20,
+            "only " + models.size() + " models were reached - discovery is broken, so this test would "
+                + "pass against any missing texture");
+
+        List<String> missing = new ArrayList<>();
+        for (String model : models) {
+            String json = readResource("/assets/" + Recompile.MOD_ID + "/models/" + model + ".json");
+            if (json == null) {
+                continue;   // a model named but absent is reported by the resolve checks
+            }
+            Matcher m = TEXTURE_REF.matcher(json);
+            while (m.find()) {
+                if (!"parent".equals(m.group(1))) {
+                    String ref = m.group(2);
+                    if (ref.startsWith(Recompile.MOD_ID + ":")
+                            && !resourceExists("/assets/" + Recompile.MOD_ID + "/textures/"
+                                + ref.substring(ref.indexOf(':') + 1) + ".png")) {
+                        missing.add(model + " -> " + ref);
+                    }
+                }
+            }
+        }
+        report(helper, missing, "textures named by a model but absent from the jar");
+    }
+
+    /**
+     * Blocks that hold items but deliberately expose no item capability, each with its reason.
+     *
+     * <p>This is the {@code automation_policy_spec.md} table in executable form. An entry here is a
+     * design decision; adding one to silence a failure rather than to state a fact defeats the test.
+     */
+    private static final List<String> NO_ITEM_CAPABILITY = List.of(
+        // Manual-only by design, and the reason the Cupola is worth building. Exposing ANY handler -
+        // even one that refuses - makes pipes visually connect, so it exposes none at all.
+        "burn_barrel",
+        // Items stay manual; only its water tank is automatable.
+        "tree_nursery",
+        // Holds one displayed item and is never hopper-fed - placing and taking is the interaction.
+        "display_pedestal"
+    );
+
+    /**
+     * Every block with a container BlockEntity either exposes {@code Capabilities.Item.BLOCK} or is
+     * named above.
+     *
+     * <p>Catches the Cupola bug: a machine that advertises automation while no capability-based pipe
+     * can reach it. Hoppers travel the vanilla {@code Container} path and never consult the capability,
+     * so "it works with a hopper" proves nothing about pipes.
+     */
+    private static void checkContainersDeclareCapabilities(GameTestHelper helper) {
+        net.minecraft.server.level.ServerLevel level = helper.getLevel();
+        List<String> undeclared = new ArrayList<>();
+        int containers = 0;
+        for (var type : BuiltInRegistries.BLOCK_ENTITY_TYPE) {
+            Identifier typeId = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(type);
+            if (typeId == null || !Recompile.MOD_ID.equals(typeId.getNamespace())) {
+                continue;
+            }
+            for (Block block : type.getValidBlocks()) {
+                Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+                BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
+                level.setBlock(pos, block.defaultBlockState(), Block.UPDATE_ALL);
+                // try/finally, not a clear at the end of the body: every early exit below has to put the
+                // plot back. Leaving a block behind is not cosmetic here - gametest plots sit close
+                // together, and debris from one test is the next test's starting world.
+                try {
+                    if (!(level.getBlockEntity(pos) instanceof net.minecraft.world.Container)) {
+                        continue;   // holds no items, so there is nothing to declare
+                    }
+                    containers++;
+                    if (NO_ITEM_CAPABILITY.contains(id.getPath())) {
+                        continue;
+                    }
+                    boolean exposed = false;
+                    for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+                        if (level.getCapability(
+                                net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK,
+                                pos, side) != null) {
+                            exposed = true;
+                            break;
+                        }
+                    }
+                    if (!exposed) {
+                        undeclared.add(id.getPath());
+                    }
+                } finally {
+                    level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL);
+                }
+            }
+        }
+        helper.assertTrue(containers > 2,
+            "only " + containers + " container blocks were found - discovery is broken, so this test "
+                + "would pass against any missing capability");
+        report(helper, undeclared,
+            "blocks that hold items but expose no item capability, so no pipe can reach them");
+    }
+
+    /** Every {@code "model": "recompile:..."} in a blockstate or client item definition. */
+    private static void collectModels(@Nullable String json, Set<String> into) {
+        if (json == null) {
+            return;
+        }
+        Matcher m = MODEL_REF.matcher(json);
+        while (m.find()) {
+            String ref = m.group(1);
+            if (ref.startsWith(Recompile.MOD_ID + ":")) {
+                into.add(ref.substring(ref.indexOf(':') + 1));
+            }
+        }
+    }
+
+    /** A {@code "name": "value"} pair inside a model's textures block. */
+    private static final Pattern TEXTURE_REF =
+        Pattern.compile("\"(\\w+)\"\\s*:\\s*\"([^\"]+)\"");
 
     private static final Pattern PARENT = Pattern.compile("\"parent\"\s*:\s*\"([^\"]+)\"");
 

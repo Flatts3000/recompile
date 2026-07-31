@@ -68,6 +68,19 @@ face and the suite passes while asserting nothing.
 
 ---
 
+## What is enforced, and what is not
+
+`every_container_block_declares_its_automation` makes this table executable: every block whose
+BlockEntity is a `Container` must expose `Capabilities.Item.BLOCK`, or appear in that test's
+`NO_ITEM_CAPABILITY` list with a reason. It exists because the Cupola shipped advertising automation
+that no capability-based pipe could reach - hoppers use the vanilla `Container` path and worked, so
+nothing looked wrong.
+
+**Still not enforced, and worth knowing:** the test checks that a capability *exists*, not that its
+sided behaviour matches the row above. Direction-by-direction rules are covered per block
+(`burn_barrel_refuses_pipe_insertion`, `VanillaParityTests`) rather than swept, so a new block can
+satisfy the sweep and still get its faces wrong.
+
 ## Adding a block that holds items
 
 1. **Is it a reskin of a vanilla block?** Then parity is the answer. Register the matching wrapper

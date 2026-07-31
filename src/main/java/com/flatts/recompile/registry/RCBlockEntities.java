@@ -160,6 +160,7 @@ public final class RCBlockEntities {
         // the barrel it takes hoppers", and hoppers did work, but no capability-based pipe could reach
         // it at all. Sided wrapper, so it automates exactly like the vanilla furnace it reskins - minus
         // one documented departure, the input-slot filter on its BlockEntity.
+
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             CUPOLA_FURNACE.get(),
