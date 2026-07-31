@@ -42,8 +42,8 @@ import net.minecraft.world.level.block.state.BlockState;
  *
  * <p><b>One deliberate departure from furnace parity: automation cannot insert what cannot be smelted</b>
  * (owner call, 2026-07-31, spec {@code docs/automation_policy_spec.md}). Vanilla lets anything into the
- * input slot - verified, {@code cupola_matches_vanilla_furnace_for_unsmeltables} used to assert exactly
- * that - which is harmless when a human is loading it and destructive when a pipe is. A pipe pushing a
+ * input slot - verified, {@code cupola_refuses_unsmeltable_where_vanilla_accepts} asserts that vanilla
+ * still does - which is harmless when a human is loading it and destructive when a pipe is. A pipe pushing a
  * non-smeltable fills the input slot and <b>bricks the machine</b> until someone empties it by hand;
  * found in playtest with the Cupola's own iron output looped back into its input.
  *
@@ -52,6 +52,10 @@ import net.minecraft.world.level.block.state.BlockState;
  * the slot still can.
  */
 public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
+
+    public CupolaFurnaceBlockEntity(BlockPos worldPosition, BlockState blockState) {
+        super(RCBlockEntities.CUPOLA_FURNACE.get(), worldPosition, blockState, RecipeType.SMELTING);
+    }
 
     /**
      * Automation may only insert into the input slot what a smelting recipe actually consumes.
@@ -75,10 +79,6 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
             }
         }
         return super.canPlaceItemThroughFace(slot, stack, side);
-    }
-
-    public CupolaFurnaceBlockEntity(BlockPos worldPosition, BlockState blockState) {
-        super(RCBlockEntities.CUPOLA_FURNACE.get(), worldPosition, blockState, RecipeType.SMELTING);
     }
 
     @Override

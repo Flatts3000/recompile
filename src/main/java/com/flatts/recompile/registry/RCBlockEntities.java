@@ -17,9 +17,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
  * Block-entity registry.
@@ -125,17 +125,6 @@ public final class RCBlockEntities {
             Capabilities.Fluid.BLOCK,
             TREE_NURSERY.get(),
             (be, side) -> be.fluidHandler());
-        // Both furnaces expose their sided container to the item capability, which is the door pipe
-        // mods come through (hoppers use the vanilla Container path instead and never consult this).
-        //
-        // Registering the BARREL here looks backwards for a manual-only machine, and is the point: its
-        // getSlotsForFace returns an empty int[], so the wrapper refuses every face and the SAME rule
-        // now locks out hoppers and pipes alike. Before this, pipes were blocked only because no
-        // capability existed - an accident that would have quietly become a hole the first time anyone
-        // added one, and that made the lockout test pass against a null handler while asserting nothing.
-        //
-        // The Cupola is the half that was actually broken: it advertises "unlike the barrel it takes
-        // hoppers", and hoppers did work, but no capability-based pipe could reach it at all.
         // The BURN BARREL deliberately registers NOTHING here, and that absence is the feature.
         //
         // Two rounds of playtest got this wrong. Exposing a WorldlyContainerWrapper looked right - the
@@ -148,6 +137,11 @@ public final class RCBlockEntities {
         // No capability means no connection, no insert, and no ambiguity. Hoppers are unaffected - they
         // use the vanilla Container path, where the empty getSlotsForFace already stops them.
         // burn_barrel_refuses_pipe_insertion asserts the absence on all six faces and on null.
+        //
+        // The CUPOLA is the opposite case, and the half that was actually broken: it advertises "unlike
+        // the barrel it takes hoppers", and hoppers did work, but no capability-based pipe could reach
+        // it at all. Sided wrapper, so it automates exactly like the vanilla furnace it reskins - minus
+        // one documented departure, the input-slot filter on its BlockEntity.
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             CUPOLA_FURNACE.get(),
