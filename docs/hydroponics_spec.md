@@ -1,8 +1,11 @@
 # Hydroponics + the power tier - spec (issue #43)
 
 **Status: design locked 2026-07-31, not built.** Captured from a design session; every numbered item is an
-owner call made there. Parent issue #43, which was originally scoped only to the four whole-plant
-farmables and is now **substantially larger than its title** - it carries the mod's first energy tier.
+owner call made there.
+
+**Two issues, one spec.** The power tier is **#72** and the hydroponics machine is **#43**; #43 is blocked
+on #72, since the machine consumes RF and nothing generates it yet. They were split on 2026-07-31 because
+#43 had quietly grown from four plants into an energy layer plus a reversed design lock.
 
 Design source of truth for the reversal this depends on: `../trashlands/docs/design_decisions.md` P3.5.
 
