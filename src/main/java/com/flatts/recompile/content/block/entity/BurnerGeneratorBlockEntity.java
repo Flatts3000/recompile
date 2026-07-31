@@ -11,7 +11,8 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.HopperMenu;
+import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -29,8 +30,10 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * The Burner Generator (#72): burns refuse for power, and the half of the power tier that works at night.
  *
  * <p><b>It has a fuel buffer and a screen</b> (owner call, 2026-07-31): if the Burn Barrel gets a UI for
- * holding fuel, so does this. It reuses vanilla's {@link HopperMenu} - a five-slot row is exactly a fuel
- * buffer - so no bespoke screen is minted and the mod's "reuse a vanilla screen" rule holds.
+ * holding fuel, so does this. The screen is bespoke ({@link BurnerGeneratorMenu}) because it carries a
+ * <b>power meter</b>, and no vanilla screen has one - a generator whose stored energy is invisible is a
+ * machine you cannot reason about. It borrowed vanilla's hopper screen first; that showed the fuel and
+ * not the power, which was the half that mattered.
  *
  * <p>The buffer is the real gain over the right-click-to-feed version this replaces: the generator runs
  * unattended, and <b>automation can fuel it</b>, which one-item-at-a-time by hand could never support.
@@ -49,7 +52,7 @@ public class BurnerGeneratorBlockEntity extends BaseContainerBlockEntity impleme
     public static final int FE_PER_TICK = 20;
     /** Buffer. Larger than the panel's: this one runs in bursts and must not waste a rag's tail. */
     public static final int CAPACITY = 20_000;
-    /** Fuel slots - {@link HopperMenu#CONTAINER_SIZE}, because that is the screen it borrows. */
+    /** Fuel slots - one row on the screen. */
     public static final int FUEL_SLOTS = 5;
     private static final int TRANSFER_PER_TICK = 256;
 
@@ -172,9 +175,27 @@ public class BurnerGeneratorBlockEntity extends BaseContainerBlockEntity impleme
         return Component.translatable("container.recompile.burner_generator");
     }
 
+    /** Feeds the screen's power meter. Capacity is a constant, so only the two live values cross. */
+    private final ContainerData data = new ContainerData() {
+        @Override
+        public int get(int index) {
+            return index == 0 ? battery.getAmountAsInt() : burnTime;
+        }
+
+        @Override
+        public void set(int index, int value) {
+            // Server-authoritative: the client mirrors these, it never writes them.
+        }
+
+        @Override
+        public int getCount() {
+            return BurnerGeneratorMenu.DATA_SIZE;
+        }
+    };
+
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
-        return new HopperMenu(containerId, inventory, this);
+        return new BurnerGeneratorMenu(containerId, inventory, this, data);
     }
 
     /** Only fuel, so neither a player nor a pipe can park something unburnable in the buffer. */

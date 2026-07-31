@@ -5,6 +5,10 @@ import com.flatts.recompile.registry.RCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -92,6 +96,28 @@ public class BurnerGeneratorBlock extends Block implements EntityBlock {
         }
         return (BlockEntityTicker<T>) (BlockEntityTicker<BurnerGeneratorBlockEntity>)
             BurnerGeneratorBlockEntity::serverTick;
+    }
+
+    /**
+     * Smoke from the top while it runs, the Burn Barrel's tell.
+     *
+     * <p>Client-only and purely cosmetic, but it is the only cue visible from a distance: the LIT texture
+     * is on the front, so a generator seen from behind or above otherwise looks idle while it is working.
+     */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!state.getValue(LIT)) {
+            return;
+        }
+        double x = pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.3;
+        double y = pos.getY() + 1.0;
+        double z = pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.3;
+        level.addParticle(ParticleTypes.LARGE_SMOKE, x, y, z, 0.0, 0.02, 0.0);
+        if (random.nextInt(4) == 0) {
+            level.addParticle(ParticleTypes.SMOKE, x, y, z, 0.0, 0.04, 0.0);
+            level.playLocalSound(x, y, z, SoundEvents.FURNACE_FIRE_CRACKLE, SoundSource.BLOCKS,
+                0.4F, 1.0F, false);
+        }
     }
 
     /**
