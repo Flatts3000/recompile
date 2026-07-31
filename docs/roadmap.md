@@ -1,7 +1,8 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.17 shipped to `main`, and **v0.2.0 is released** (2026-07-27: CurseForge
-alpha + GitHub prerelease; v0.1.0 the same morning) as the CurseForge ModJam 2026 entry. The mod is a
+**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 4's region system and its first frontier
+region shipped**, and **v0.3.0 is released** (2026-07-30; v0.1.0 and v0.2.0 on 2026-07-27, the latter
+as the CurseForge ModJam 2026 entry). The mod is a
 playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
 Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
 around now plays through. Recent tiers: the **multiblock framework + Rain Collector** (2.11),
