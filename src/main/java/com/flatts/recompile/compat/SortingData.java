@@ -35,6 +35,9 @@ public final class SortingData {
     public static final String HOUSEHOLD = "/data/recompile/loot_table/gameplay/household_pulls.json";
     /** The trash-bag pull stream. */
     public static final String BAG = "/data/recompile/loot_table/gameplay/bag_pulls.json";
+
+    /** The demolition yard's stream: stone shards rather than household scrap. */
+    public static final String RUBBLE = "/data/recompile/loot_table/gameplay/rubble_pulls.json";
     /** Bulky Waste's find table (broken open with the prybar). */
     public static final String BULKY = "/data/recompile/loot_table/blocks/bulky_waste.json";
 

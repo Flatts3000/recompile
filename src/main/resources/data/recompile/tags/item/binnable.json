@@ -7,6 +7,7 @@
     "recompile:organic_muck",
     "recompile:fiber_scrap",
     "recompile:e_scrap",
-    "recompile:junk"
+    "recompile:junk",
+    "#recompile:stone_shards"
   ]
 }

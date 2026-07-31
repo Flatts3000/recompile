@@ -63,6 +63,51 @@ final class ScrapNetworkTests {
             helper.succeed();
         });
 
+        // #68: the Cupola is a cluster member, so upgrading a Burn Barrel does not sever the cluster it
+        // was linking. The tarp and the barrel touch nothing but the Cupola here, so the stack can only
+        // arrive by flooding THROUGH it - tag membership is the whole mechanism being tested.
+        RCGameTests.test("scrap_network_reaches_through_a_cupola", 20, helper -> {
+            helper.setBlock(new BlockPos(1, 1, 1), RCBlocks.SORTING_TARP.get());
+            helper.setBlock(new BlockPos(2, 1, 1), RCBlocks.CUPOLA_FURNACE.get());
+            Container barrel = placeBarrel(helper, new BlockPos(3, 1, 1));
+
+            ItemStack remainder = ScrapNetwork.insertFromMember(helper.getLevel(),
+                helper.absolutePos(new BlockPos(1, 1, 1)),
+                new ItemStack(RCItems.SCRAP_METAL.get(), 6), false);
+
+            helper.assertTrue(remainder.isEmpty(), "the stack must cross the Cupola to reach the barrel");
+            helper.assertTrue(countIn(barrel, RCItems.SCRAP_METAL.get()) == 6,
+                "the barrel should hold 6 scrap metal, has " + countIn(barrel, RCItems.SCRAP_METAL.get()));
+            helper.succeed();
+        });
+
+        // ...and the Cupola is a member, NOT a sink. It is an unrestricted furnace that accepts
+        // automation, so a route landing in its smelt slots would feed it whatever passed by - the exact
+        // trap the Burn Barrel is excluded from routing to avoid. Only bins and the barrel are sinks.
+        RCGameTests.test("scrap_network_never_routes_into_a_cupola", 20, helper -> {
+            helper.setBlock(new BlockPos(1, 1, 1), RCBlocks.SORTING_TARP.get());
+            helper.setBlock(new BlockPos(2, 1, 1), RCBlocks.CUPOLA_FURNACE.get());
+
+            ItemStack stack = new ItemStack(RCItems.SCRAP_METAL.get(), 4);
+            ItemStack remainder = ScrapNetwork.insertFromMember(helper.getLevel(),
+                helper.absolutePos(new BlockPos(1, 1, 1)), stack, true);
+
+            helper.assertTrue(remainder.getCount() == 4,
+                "with no bin or barrel the stack must come back whole, got " + remainder.getCount());
+            // Asserted, not guarded by an `if`: a furnace BE that stopped being a Container would make
+            // a conditional check vanish silently, and this test would keep passing while covering
+            // nothing. If the type changes, this should fail loudly and be rewritten.
+            helper.assertTrue(
+                helper.getLevel().getBlockEntity(helper.absolutePos(new BlockPos(2, 1, 1)))
+                    instanceof Container,
+                "the Cupola must expose a Container for this test to mean anything");
+            Container cupola = (Container) helper.getLevel()
+                .getBlockEntity(helper.absolutePos(new BlockPos(2, 1, 1)));
+            helper.assertTrue(countIn(cupola, RCItems.SCRAP_METAL.get()) == 0,
+                "nothing may be routed into the Cupola's slots");
+            helper.succeed();
+        });
+
         // File-all's autoBind: an empty bin binds to and takes the item.
         RCGameTests.test("scrap_network_autobind_fills_an_empty_bin", 20, helper -> {
             helper.setBlock(new BlockPos(1, 1, 1), RCBlocks.SORTING_TARP.get());

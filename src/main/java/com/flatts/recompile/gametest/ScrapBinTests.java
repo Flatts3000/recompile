@@ -72,6 +72,31 @@ final class ScrapBinTests {
             helper.succeed();
         });
 
+        // #68: the yard's base material stores like the household ones. A shard is what sifting rubble
+        // yields, exactly as scrap metal is what sifting garbage yields, so the bin takes it and binds.
+        RCGameTests.test("scrap_bin_accepts_stone_shards", 20, helper -> {
+            ScrapBinBlockEntity bin = placeBin(helper);
+            int accepted = bin.deposit(new ItemStack(RCItems.STONE_SHARD.get(), 12));
+
+            helper.assertTrue(accepted == 12, "a stone shard is #binnable and must be taken, got " + accepted);
+            helper.assertTrue(bin.boundMaterial() == RCItems.STONE_SHARD.get(),
+                "the bin must bind to the shard it took");
+            helper.succeed();
+        });
+
+        // The Steel Offcut is deliberately NOT binnable: #binnable is base materials out of a pull
+        // stream, and the offcut is a cut product that remelts to iron. Pinned so widening the tag to
+        // cover the yard does not quietly sweep in the yard's intermediates too.
+        RCGameTests.test("scrap_bin_still_refuses_steel_offcut", 20, helper -> {
+            ScrapBinBlockEntity bin = placeBin(helper);
+            ItemStack offcut = new ItemStack(RCItems.STEEL_OFFCUT.get(), 8);
+            int accepted = bin.deposit(offcut);
+
+            helper.assertTrue(accepted == 0, "the Steel Offcut is a cut product, not a base material");
+            helper.assertTrue(bin.boundMaterial() == null, "a refused item must not bind the bin");
+            helper.succeed();
+        });
+
         // Once bound, a different binnable material is refused too (the binding gates it).
         RCGameTests.test("scrap_bin_refuses_a_second_material", 20, helper -> {
             ScrapBinBlockEntity bin = placeBin(helper);
