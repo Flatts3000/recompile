@@ -873,6 +873,11 @@ kind = "block"
 backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block texture: a broken slab of pale dusty grey reinforced concrete, rusty orange steel rebar rods exposed through a cracked face, coarse aggregate and chipped edges showing, construction dust, flat, no perspective, fills the whole tile, tiles seamlessly"
+# Darkened deterministically rather than by re-prompting. Generated it sat at luminance 126 against Stone
+# Rubble's 138 and the steel beam's 136 - three materials within 12 points, which is not a separable
+# difference at 16px, so concrete simply vanished into the rubble it lies among. 0.75 puts it near 95:
+# about 43 below rubble, and still clearly mid-grey rather than the near-black the vanilla placeholder gave.
+brightness = 0.75
 
 # ---------------------------------------------------------------------------
 # Demolition yard - Steel I-Beam + Cutting Torch (#48)
