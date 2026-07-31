@@ -19,9 +19,6 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGeneratorMenu> {
 
-    private static final int W = 176;
-    private static final int H = 133;
-
     private static final int BODY = 0xFFC6C6C6;
     private static final int LIGHT = 0xFFFFFFFF;
     private static final int DARK = 0xFF555555;
@@ -32,11 +29,20 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
     private static final int POWER_LIT = 0xFFFF9A2B;
     private static final int POWER_IDLE = 0xFF8A5A2B;
 
-    private static final int METER_X = 16;
-    private static final int METER_Y = 16;
-    private static final int METER_W = 12;
-    private static final int METER_H = 26;
-    private static final int CELL = 18;
+    // Geometry lives on the menu, which is where the slots are placed from. Two copies of it is how the
+    // first version of this screen drew its readout through the fuel row.
+    private static final int W = BurnerGeneratorMenu.W;
+    private static final int H = BurnerGeneratorMenu.H;
+    private static final int CELL = BurnerGeneratorMenu.CELL;
+    private static final int FUEL_X = BurnerGeneratorMenu.FUEL_X;
+    private static final int FUEL_Y = BurnerGeneratorMenu.FUEL_Y;
+    private static final int INV_Y = BurnerGeneratorMenu.INV_Y;
+    private static final int HOTBAR_Y = BurnerGeneratorMenu.HOTBAR_Y;
+    private static final int METER_X = BurnerGeneratorMenu.METER_X;
+    private static final int METER_Y = BurnerGeneratorMenu.METER_Y;
+    private static final int METER_W = BurnerGeneratorMenu.METER_W;
+    private static final int METER_H = BurnerGeneratorMenu.METER_H;
+    private static final int READOUT_Y = BurnerGeneratorMenu.READOUT_Y;
 
     public BurnerGeneratorScreen(BurnerGeneratorMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, W, H);
@@ -47,7 +53,7 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
         super.init();
         this.titleLabelX = 8;
         this.inventoryLabelX = 8;
-        this.inventoryLabelY = H - 94;
+        this.inventoryLabelY = 72;
     }
 
     @Override
@@ -59,15 +65,15 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
         panel(graphics, x, y);
 
         for (int i = 0; i < BurnerGeneratorMenu.FUEL_SLOTS; i++) {
-            slot(graphics, x + 44 + i * CELL, y + 20);
+            slot(graphics, x + FUEL_X + i * CELL, y + FUEL_Y);
         }
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                slot(graphics, x + 8 + col * CELL, y + 51 + row * CELL);
+                slot(graphics, x + BurnerGeneratorMenu.INV_X + col * CELL, y + INV_Y + row * CELL);
             }
         }
         for (int col = 0; col < 9; col++) {
-            slot(graphics, x + 8 + col * CELL, y + 109);
+            slot(graphics, x + BurnerGeneratorMenu.INV_X + col * CELL, y + HOTBAR_Y);
         }
 
         // The power meter.
@@ -81,11 +87,10 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
                 this.menu.isLit() ? POWER_LIT : POWER_IDLE);
         }
         // The number, because a bar says "roughly" and a player deciding whether to walk away wants
-        // "exactly". Grouped digits read faster than a run of numerals.
-        graphics.text(this.font, String.format("%,d FE", stored), x + METER_X + METER_W + 6, y + METER_Y + 4,
-            0xFF404040, false);
-        graphics.text(this.font, String.format("of %,d", capacity), x + METER_X + METER_W + 6,
-            y + METER_Y + 14, 0xFF707070, false);
+        // "exactly". One line UNDER the fuel row: beside the meter it collided with the slots, which is
+        // how this screen shipped broken the first time.
+        graphics.text(this.font, String.format("%,d / %,d FE", stored, capacity),
+            x + FUEL_X, y + READOUT_Y, 0xFF404040, false);
     }
 
     private static void panel(GuiGraphicsExtractor graphics, int x, int y) {

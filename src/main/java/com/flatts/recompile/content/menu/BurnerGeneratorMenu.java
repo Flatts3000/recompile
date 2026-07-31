@@ -30,6 +30,35 @@ public class BurnerGeneratorMenu extends AbstractContainerMenu {
     /** {@code [0]} stored FE, {@code [1]} ticks of burn left. Capacity is a constant, so it is not synced. */
     public static final int DATA_SIZE = 2;
 
+    /**
+     * The screen's layout, owned here rather than in the client class.
+     *
+     * <p>The menu places slots and the screen draws them, so duplicating these was two copies of one
+     * truth - and they drifted immediately: the first version drew the readout at x=34 while the fuel row
+     * started at x=43, so the numbers ran straight through the slots. Sharing them lets a server-side
+     * test check the layout, which a client-only class could never be asked about.
+     *
+     * <p>Vanilla's furnace geometry (176x166), so there is room for a meter, a fuel row, a readout and
+     * the player inventory without any of them landing on each other.
+     */
+    public static final int W = 176;
+    public static final int H = 166;
+    public static final int CELL = 18;
+    public static final int FUEL_X = 43;
+    public static final int FUEL_Y = 30;
+    public static final int INV_X = 8;
+    public static final int INV_Y = 84;
+    public static final int HOTBAR_Y = 142;
+    public static final int METER_X = 8;
+    public static final int METER_Y = 17;
+    public static final int METER_W = 14;
+    public static final int METER_H = 54;
+    public static final int READOUT_X = FUEL_X;
+    public static final int READOUT_Y = 56;
+    /** Font line height, and a generous width for "20,000 / 20,000 FE". */
+    public static final int READOUT_H = 9;
+    public static final int READOUT_W = 120;
+
     private static final int INV_START = FUEL_SLOTS;
     private static final int INV_MAIN_END = INV_START + 27;
     private static final int INV_END = INV_START + 36;
@@ -51,7 +80,7 @@ public class BurnerGeneratorMenu extends AbstractContainerMenu {
         // One row of fuel, centred. mayPlace defers to the container so the "only fuel" rule lives in
         // exactly one place and a pipe and a player cannot disagree about it.
         for (int i = 0; i < FUEL_SLOTS; i++) {
-            this.addSlot(new Slot(container, i, 44 + i * 18, 20) {
+            this.addSlot(new Slot(container, i, FUEL_X + i * CELL, FUEL_Y) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return container.canPlaceItem(this.getContainerSlot(), stack);
@@ -60,11 +89,11 @@ public class BurnerGeneratorMenu extends AbstractContainerMenu {
         }
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 51 + row * 18));
+                this.addSlot(new Slot(inventory, col + row * 9 + 9, INV_X + col * CELL, INV_Y + row * CELL));
             }
         }
         for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(inventory, col, 8 + col * 18, 109));
+            this.addSlot(new Slot(inventory, col, INV_X + col * CELL, HOTBAR_Y));
         }
         this.addDataSlots(data);
     }

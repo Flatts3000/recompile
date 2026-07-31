@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
+import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import java.util.ArrayList;
@@ -217,6 +218,54 @@ final class PowerTierTests {
             }
             helper.assertTrue(missing.isEmpty(),
                 "these keys render as their own name, so they are missing from en_us.json: " + missing);
+            helper.succeed();
+        });
+
+        // The Burner Generator's screen shipped broken once: the FE readout was drawn at x=34 while the
+        // fuel row started at x=43, so the numbers ran straight through the slots, and the inventory
+        // label landed on the fuel row. A screen cannot be rendered in a gametest - but now that the
+        // menu owns the geometry, the layout CAN be checked, and overlapping rectangles are exactly the
+        // kind of mistake that is obvious in a screenshot and invisible in a diff.
+        RCGameTests.test("burner_generator_screen_layout_does_not_overlap", 20, helper -> {
+            List<int[]> rects = new ArrayList<>();
+            for (int i = 0; i < BurnerGeneratorMenu.FUEL_SLOTS; i++) {
+                rects.add(new int[] {BurnerGeneratorMenu.FUEL_X + i * BurnerGeneratorMenu.CELL,
+                    BurnerGeneratorMenu.FUEL_Y, 18, 18});
+            }
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 9; col++) {
+                    rects.add(new int[] {BurnerGeneratorMenu.INV_X + col * BurnerGeneratorMenu.CELL,
+                        BurnerGeneratorMenu.INV_Y + row * BurnerGeneratorMenu.CELL, 18, 18});
+                }
+            }
+            for (int col = 0; col < 9; col++) {
+                rects.add(new int[] {BurnerGeneratorMenu.INV_X + col * BurnerGeneratorMenu.CELL,
+                    BurnerGeneratorMenu.HOTBAR_Y, 18, 18});
+            }
+            int slotCount = rects.size();
+            rects.add(new int[] {BurnerGeneratorMenu.METER_X, BurnerGeneratorMenu.METER_Y,
+                BurnerGeneratorMenu.METER_W, BurnerGeneratorMenu.METER_H});
+            rects.add(new int[] {BurnerGeneratorMenu.READOUT_X, BurnerGeneratorMenu.READOUT_Y,
+                BurnerGeneratorMenu.READOUT_W, BurnerGeneratorMenu.READOUT_H});
+
+            List<String> clashes = new ArrayList<>();
+            for (int a = 0; a < rects.size(); a++) {
+                int[] ra = rects.get(a);
+                if (ra[0] < 0 || ra[1] < 0
+                        || ra[0] + ra[2] > BurnerGeneratorMenu.W || ra[1] + ra[3] > BurnerGeneratorMenu.H) {
+                    clashes.add("element at " + ra[0] + "," + ra[1] + " leaves the panel");
+                }
+                for (int b = a + 1; b < rects.size(); b++) {
+                    int[] rb = rects.get(b);
+                    boolean overlap = ra[0] < rb[0] + rb[2] && rb[0] < ra[0] + ra[2]
+                        && ra[1] < rb[1] + rb[3] && rb[1] < ra[1] + ra[3];
+                    // Neighbouring slots share a 1px border by design; only real overlap counts.
+                    if (overlap && !(a < slotCount && b < slotCount)) {
+                        clashes.add(ra[0] + "," + ra[1] + " overlaps " + rb[0] + "," + rb[1]);
+                    }
+                }
+            }
+            helper.assertTrue(clashes.isEmpty(), "screen layout collisions: " + clashes);
             helper.succeed();
         });
 
