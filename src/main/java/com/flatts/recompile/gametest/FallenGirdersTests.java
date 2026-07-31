@@ -20,13 +20,13 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * concrete, concrete is what the Cupola Furnace recipe takes, and the Cupola is the only iron machine. If
  * this feature stops placing concrete, iron quietly becomes unreachable in survival.
  */
-final class SteelPileTests {
+final class FallenGirdersTests {
 
-    private SteelPileTests() {
+    private FallenGirdersTests() {
     }
 
     static void register() {
-        RCGameTests.test("steel_pile_places_steel_and_concrete", 40, helper -> {
+        RCGameTests.test("fallen_girders_place_steel_and_concrete", 40, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos origin = helper.absolutePos(new BlockPos(3, 2, 3));
 
@@ -35,7 +35,7 @@ final class SteelPileTests {
             Set<Block> found = new HashSet<>();
             for (int attempt = 0; attempt < 8; attempt++) {
                 RandomSource random = RandomSource.create(attempt);
-                RCFeatures.STEEL_PILE.get().place(new FeaturePlaceContext<>(
+                RCFeatures.FALLEN_GIRDERS.get().place(new FeaturePlaceContext<>(
                     java.util.Optional.empty(), level, level.getChunkSource().getGenerator(),
                     random, origin, NoneFeatureConfiguration.INSTANCE));
                 for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-4, 0, -4), origin.offset(4, 4, 4))) {
@@ -44,21 +44,21 @@ final class SteelPileTests {
             }
 
             helper.assertTrue(found.contains(RCBlocks.STEEL_I_BEAM.get()),
-                "a steel pile must place Steel I-Beams");
+                "a wreck must place Steel I-Beams");
             helper.assertTrue(found.contains(RCBlocks.REINFORCED_CONCRETE.get()),
-                "a steel pile must place Reinforced Concrete - it is the ONLY survival source, and the "
+                "a wreck must place Reinforced Concrete - it is the ONLY survival source, and the "
                     + "Cupola Furnace (and therefore all iron) depends on it");
             helper.succeed();
         });
 
         // The beams must land on MIXED axes. A heap of default-state beams would be neat upright columns,
         // which reads as a manufactured frame rather than a collapse.
-        RCGameTests.test("steel_pile_beams_are_tangled", 40, helper -> {
+        RCGameTests.test("fallen_girders_run_on_one_axis_each", 40, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos origin = helper.absolutePos(new BlockPos(3, 2, 3));
             Set<Direction.Axis> axes = new HashSet<>();
             for (int attempt = 0; attempt < 12; attempt++) {
-                RCFeatures.STEEL_PILE.get().place(new FeaturePlaceContext<>(
+                RCFeatures.FALLEN_GIRDERS.get().place(new FeaturePlaceContext<>(
                     java.util.Optional.empty(), level, level.getChunkSource().getGenerator(),
                     RandomSource.create(attempt), origin, NoneFeatureConfiguration.INSTANCE));
                 for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-4, 0, -4), origin.offset(4, 4, 4))) {
@@ -69,7 +69,7 @@ final class SteelPileTests {
                 }
             }
             helper.assertTrue(axes.size() > 1,
-                "a collapse must leave beams on more than one axis, got " + axes);
+                "across several wrecks, girders must fall on more than one axis, got " + axes);
             helper.succeed();
         });
     }

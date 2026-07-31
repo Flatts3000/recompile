@@ -1,9 +1,13 @@
 {
-  "feature": "recompile:steel_pile",
+  "feature": "recompile:fallen_girders",
   "placement": [
     {
+      "type": "minecraft:rarity_filter",
+      "chance": 3
+    },
+    {
       "type": "minecraft:count",
-      "count": 3
+      "count": 1
     },
     {
       "type": "minecraft:in_square"
