@@ -1,0 +1,161 @@
+name: Release
+
+# Tag-driven release for a Gradle mod. Cut one with:
+#   (bump mod_version in gradle.properties + add the CHANGELOG section, commit, then)
+#   git tag vX.Y.Z && git push origin vX.Y.Z
+#
+# Builds the jar, creates a GitHub release carrying the matching CHANGELOG section, and
+# uploads to CurseForge.
+#
+# CurseForge is OPTIONAL and self-activating. It needs two repo settings:
+#   secret  CF_API_TOKEN   - the CurseForge *upload* token (sky-frogs uses the same name)
+#   var     CF_PROJECT_ID  - the numeric project id from the CurseForge project page
+# With either missing the step warns and skips; the GitHub release still ships and the jar
+# can be uploaded by hand. Nothing here needs editing when you add them.
+#
+# Ported from sky-frogs/.github/workflows/release.yml. Differences: Gradle instead of packwiz,
+# version read from gradle.properties, alpha instead of beta for 0.x, and the game-version ids
+# are RESOLVED FROM THE API rather than hardcoded - the pack workflow hardcodes them and warns
+# that mod-class and modpack-class ids are not interchangeable, which is a trap worth removing.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # create GitHub releases
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve version from tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Guard - gradle.properties version matches the tag
+        run: |
+          mod_ver=$(grep -E '^mod_version *= *' gradle.properties | head -1 | sed -E 's/.*= *//' | tr -d '[:space:]')
+          if [ "$mod_ver" != "${{ steps.ver.outputs.version }}" ]; then
+            echo "::error::mod_version ($mod_ver) does not match tag (${{ steps.ver.outputs.version }}). Bump gradle.properties before tagging."
+            exit 1
+          fi
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Build
+        id: build
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          ./gradlew build --no-daemon
+          # Match the jar to the TAG's version rather than taking the first one. build/libs can hold
+          # jars from previous versions (it does locally), and `ls | head -1` picks the oldest by name -
+          # which would quietly publish a stale jar under a new tag.
+          jar=$(ls build/libs/*-"${VERSION}".jar 2>/dev/null | grep -v -- '-sources\.jar$' | grep -v -- '-javadoc\.jar$' | head -1)
+          [ -n "$jar" ] || { echo "::error::no mod jar for version ${VERSION} in build/libs"; ls -la build/libs || true; exit 1; }
+          echo "jar=$jar" >> "$GITHUB_OUTPUT"
+          echo "built: $jar"
+
+      - name: Extract the changelog section
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os, re
+          version = os.environ["VERSION"]
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          # This repo's headings are "## v0.3.0"; run to the next "## " or end of file.
+          m = re.search(r"^## v" + re.escape(version) + r"\s*$\n(.*?)(?=^## |\Z)", text, re.S | re.M)
+          notes = m.group(1).strip() if m else f"Release {version}"
+          if not m:
+              print(f"::warning::no CHANGELOG section found for v{version}; using a placeholder")
+          open("release_notes.md", "w", encoding="utf-8").write(notes + "\n")
+          print("changelog chars:", len(notes))
+          PY
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "${{ steps.ver.outputs.version }}" in
+            0.*|*-*) prerelease="--prerelease" ;;
+          esac
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file release_notes.md \
+            $prerelease \
+            "${{ steps.build.outputs.jar }}"
+
+      - name: Upload to CurseForge
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_PROJECT_ID: ${{ vars.CF_PROJECT_ID }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          JAR: ${{ steps.build.outputs.jar }}
+        run: |
+          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_PROJECT_ID" ]; then
+            echo "::warning::CF_API_TOKEN secret or CF_PROJECT_ID variable not set - skipping CurseForge upload. The GitHub release shipped; upload the jar manually."
+            exit 0
+          fi
+          # Resolve game-version ids from the API instead of hardcoding them. Mod uploads take the
+          # Minecraft version, the modloader, and a Java version; the ids differ per class of project
+          # and change as CurseForge adds versions, so looking them up is the only durable option.
+          python3 - <<'PY'
+          import json, os, subprocess, sys, urllib.request
+          token = os.environ["CF_API_TOKEN"]
+          mc = open("gradle.properties").read()
+          def prop(name):
+              import re
+              m = re.search(rf"^{name}\s*=\s*(.+)$", mc, re.M)
+              return m.group(1).strip() if m else None
+          mc_version = prop("minecraft_version") or prop("mc_version")
+          req = urllib.request.Request(
+              "https://minecraft.curseforge.com/api/game/versions",
+              headers={"X-Api-Token": token})
+          versions = json.load(urllib.request.urlopen(req))
+          wanted = {}
+          for v in versions:
+              name = v.get("name")
+              if mc_version and name == mc_version:
+                  wanted.setdefault("mc", v["id"])
+              if name == "NeoForge":
+                  wanted.setdefault("loader", v["id"])
+              if name == "Java 25":
+                  wanted.setdefault("java", v["id"])
+          ids = [i for i in wanted.values()]
+          if "mc" not in wanted:
+              print(f"::warning::could not resolve a CurseForge id for Minecraft {mc_version}")
+          version = os.environ["VERSION"]
+          meta = {
+              "changelog": open("release_notes.md", encoding="utf-8").read(),
+              "changelogType": "markdown",
+              "displayName": f"Recompile {version}",
+              "gameVersions": ids,
+              "releaseType": "alpha" if version.startswith("0.") else "release",
+          }
+          json.dump(meta, open("cf_meta.json", "w", encoding="utf-8"))
+          print("resolved game version ids:", ids)
+          PY
+          resp=$(curl -s -w '\n%{http_code}' -X POST \
+            -H "X-Api-Token: $CF_API_TOKEN" \
+            -F "metadata=<cf_meta.json" \
+            -F "file=@${JAR}" \
+            "https://minecraft.curseforge.com/api/projects/${CF_PROJECT_ID}/upload-file")
+          body=$(printf '%s' "$resp" | sed '$d')
+          code=$(printf '%s' "$resp" | tail -n1)
+          echo "HTTP $code: $body"
+          if [ "$code" != "200" ]; then
+            echo "::error::CurseForge upload failed (HTTP $code): $body"
+            exit 1
+          fi
+          fileid=$(printf '%s' "$body" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])")
+          echo "### CurseForge file $fileid" >> "$GITHUB_STEP_SUMMARY"
