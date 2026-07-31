@@ -1,5 +1,5 @@
 {
-  "feature": "recompile:fallen_girders",
+  "feature": "recompile:steel_stack",
   "placement": [
     {
       "type": "minecraft:rarity_filter",

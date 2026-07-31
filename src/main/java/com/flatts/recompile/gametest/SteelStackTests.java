@@ -1,0 +1,104 @@
+package com.flatts.recompile.gametest;
+
+import com.flatts.recompile.content.block.SteelBeamBlock;
+import com.flatts.recompile.content.worldgen.SteelStackFeature;
+import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCFeatures;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+
+/**
+ * GameTests for the steel stack - the demolition yard's survival source of Steel I-Beams, Reinforced
+ * Concrete and copper pipe.
+ *
+ * <p>The stack and its deck heap are tested separately on purpose. A real stack sorts its concrete several
+ * blocks off to one side, which puts the heap outside the shared {@code empty_5x5x5} plot - and a test must
+ * not write ground outside its own plot, because the plots sit close together and it corrupts its
+ * neighbours (learned the hard way: a floor laid at radius 14 deleted the hopper out of the Cupola test).
+ * So the heap is driven through its own entry point at a position this test owns.
+ */
+final class SteelStackTests {
+
+    private SteelStackTests() {
+    }
+
+    private static void placeStack(ServerLevel level, BlockPos origin, int seed) {
+        RCFeatures.STEEL_STACK.get().place(new FeaturePlaceContext<>(
+            Optional.empty(), level, level.getChunkSource().getGenerator(),
+            RandomSource.create(seed), origin, NoneFeatureConfiguration.INSTANCE));
+    }
+
+    static void register() {
+        // The stack itself: steel, laid on the ground, inside the plot.
+        RCGameTests.test("steel_stack_places_steel", 40, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+            Set<Block> found = new HashSet<>();
+            for (int seed = 0; seed < 8; seed++) {
+                placeStack(level, origin, seed);
+                for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-2, -1, -2), origin.offset(2, 3, 2))) {
+                    found.add(level.getBlockState(pos).getBlock());
+                }
+            }
+            helper.assertTrue(found.contains(RCBlocks.STEEL_I_BEAM.get()),
+                "a steel stack must place Steel I-Beams");
+            helper.succeed();
+        });
+
+        // Members must share an axis so the beams render as continuous members - that is what
+        // SteelBeamBlock is built to do, and randomising per block defeats it. Across several stacks the
+        // dominant axis should still vary, so both orientations appear.
+        RCGameTests.test("steel_stack_members_share_an_axis", 40, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+            Set<Direction.Axis> axes = new HashSet<>();
+            for (int seed = 0; seed < 12; seed++) {
+                placeStack(level, origin, seed);
+                for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-2, -1, -2), origin.offset(2, 3, 2))) {
+                    BlockState state = level.getBlockState(pos);
+                    if (state.getBlock() instanceof SteelBeamBlock) {
+                        axes.add(state.getValue(SteelBeamBlock.AXIS));
+                    }
+                }
+            }
+            helper.assertTrue(!axes.isEmpty(), "a stack must place oriented beams");
+            helper.assertTrue(axes.size() > 1,
+                "across several stacks the dominant axis must vary, got " + axes);
+            helper.succeed();
+        });
+
+        // The deck heap. This is the ONLY survival source of Reinforced Concrete, and therefore of the
+        // concrete the Cupola Furnace is built from - if it stops placing, iron becomes unreachable with
+        // every other test still green. Driven through its own entry point, in-plot.
+        RCGameTests.test("steel_stack_deck_heap_yields_concrete", 40, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos centre = helper.absolutePos(new BlockPos(2, 2, 2));
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    helper.setBlock(new BlockPos(2 + dx, 1, 2 + dz), Blocks.STONE);
+                }
+            }
+            Set<Block> found = new HashSet<>();
+            for (int seed = 0; seed < 8; seed++) {
+                SteelStackFeature.placeDeckHeap(level, centre, RandomSource.create(seed));
+                for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-2, 0, -2), centre.offset(2, 2, 2))) {
+                    found.add(level.getBlockState(pos).getBlock());
+                }
+            }
+            helper.assertTrue(found.contains(RCBlocks.REINFORCED_CONCRETE.get()),
+                "the deck heap must place Reinforced Concrete - it is the only survival source, and the "
+                    + "Cupola Furnace (and therefore all iron) depends on it");
+            helper.succeed();
+        });
+    }
+}

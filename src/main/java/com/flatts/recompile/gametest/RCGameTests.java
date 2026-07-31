@@ -68,7 +68,7 @@ public final class RCGameTests {
         LightingTests.register();
         BurnBarrelTests.register();
         CupolaFurnaceTests.register();
-        FallenGirdersTests.register();
+        SteelStackTests.register();
         EncroachmentTests.register();
         SaplingLockoutTests.register();
         GrassSpreaderTests.register();
