@@ -1,11 +1,18 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.Recompile;
 import com.flatts.recompile.event.RCEncroachment;
 import com.flatts.recompile.event.RCEncroachment.Outcome;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCTags;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -27,6 +34,16 @@ final class EncroachmentTests {
 
     private EncroachmentTests() {
     }
+
+    /**
+     * Biomes deliberately outside {@code #recompile:encroaches}, each needing a stated reason.
+     *
+     * <p>Empty today: every garbage biome is contested. The demolition yard was the one exception
+     * ("a resource region, not contested green") and it was reversed 2026-07-31 because the asymmetry
+     * was undiscoverable - a player who learns the rule in one biome reads its absence in another as a
+     * bug. A future non-garbage region may well belong here; it just has to say so out loud.
+     */
+    private static final List<String> NON_ENCROACHING = List.of();
 
     static void register() {
         // Rung 1. The base case the whole system rests on: bare healed soil touching bare
@@ -258,6 +275,35 @@ final class EncroachmentTests {
                 "flowers must count as cover");
             helper.assertTrue(Blocks.SHORT_GRASS.defaultBlockState().is(RCTags.FRONTIER_COVER),
                 "short grass must count as cover");
+            helper.succeed();
+        });
+        // Every biome this mod adds is contested unless it is deliberately exempted.
+        //
+        // Enumerating the registry rather than naming biomes on purpose: a hardcoded list cannot notice
+        // the biome nobody remembered to tag, which is the exact failure this test exists for. The
+        // demolition yard shipped untagged, grass never reverted there, and it reached us as a playtest
+        // bug report - because a rule that holds in one biome and silently not in another reads as
+        // broken. A new biome now fails here until someone states which side of the line it is on.
+        //
+        // The behaviour tests above cannot catch this: they drive encroachOnce directly, which bypasses
+        // biome gating by design, so every one of them passes whether or not a biome is tagged. The tag
+        // is the only thing deciding where the mechanic runs.
+        RCGameTests.test("every_garbage_biome_encroaches", 20, helper -> {
+            Registry<Biome> biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
+            List<String> missing = new ArrayList<>();
+            biomes.listElements().forEach(holder -> {
+                Identifier id = holder.key().identifier();
+                if (!id.getNamespace().equals(Recompile.MOD_ID)
+                        || NON_ENCROACHING.contains(id.getPath())) {
+                    return;
+                }
+                if (!holder.is(RCTags.ENCROACHES)) {
+                    missing.add(id.getPath());
+                }
+            });
+            helper.assertTrue(missing.isEmpty(),
+                "these biomes are not in #recompile:encroaches, so the dump never pushes back there: "
+                    + missing + " - add them to the tag, or to NON_ENCROACHING with a reason");
             helper.succeed();
         });
     }
