@@ -153,7 +153,15 @@ public class BuildingHuskFeature extends Feature<NoneFeatureConfiguration> {
                     }
 
                     // Deck inside the bay, in patches - a floor half torn out, not a checkerboard.
-                    if (gx < baysX && gz < baysZ && random.nextFloat() < deckChance + 0.15F) {
+                    //
+                    // Only where the bay still HAS a frame. Girders are already gated on their two end
+                    // columns surviving to this height; deck was not, so wherever the ragged top removed a
+                    // corner the bay lost its girders and the slab stayed, hanging in mid-air. A floor
+                    // needs all four corners, which is also just true of buildings.
+                    boolean framed = gx < baysX && gz < baysZ
+                        && y <= columnTop[gx][gz] && y <= columnTop[gx + 1][gz]
+                        && y <= columnTop[gx][gz + 1] && y <= columnTop[gx + 1][gz + 1];
+                    if (framed && random.nextFloat() < deckChance + 0.15F) {
                         for (int ix = 1; ix < BAY; ix++) {
                             for (int iz = 1; iz < BAY; iz++) {
                                 if (random.nextFloat() > deckChance) {

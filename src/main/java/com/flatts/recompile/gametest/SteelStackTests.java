@@ -111,6 +111,7 @@ final class SteelStackTests {
             boolean sawGirder = false;
             boolean sawDeck = false;
             boolean sawJoint = false;
+            java.util.List<BlockPos> deckBlocks = new java.util.ArrayList<>();
             for (int seed = 0; seed < 6; seed++) {
                 RCFeatures.BUILDING_HUSK.get().place(new FeaturePlaceContext<>(
                     Optional.empty(), level, level.getChunkSource().getGenerator(),
@@ -119,6 +120,7 @@ final class SteelStackTests {
                     BlockState state = level.getBlockState(pos);
                     if (state.getBlock() == RCBlocks.REINFORCED_CONCRETE.get()) {
                         sawDeck = true;
+                        deckBlocks.add(pos.immutable());
                     }
                     if (!(state.getBlock() instanceof SteelBeamBlock)) {
                         continue;
@@ -141,6 +143,23 @@ final class SteelStackTests {
                     + "both axes and becomes a cross. Without the resolve pass beams merely pass through "
                     + "each other, which is what flag-2 placement leaves behind");
             helper.assertTrue(sawDeck, "a husk must wear some concrete deck");
+            // Nothing hangs: every slab of deck must have steel at its own level within a bay's reach.
+            // Deck used to ignore whether its bay still had a frame, so a ragged top left slabs floating.
+            for (BlockPos slab : deckBlocks) {
+                boolean supported = false;
+                for (int d = 1; d <= 4 && !supported; d++) {
+                    for (Direction dir : Direction.Plane.HORIZONTAL) {
+                        BlockPos at = slab.relative(dir, d);
+                        if (level.getBlockState(at).getBlock() instanceof SteelBeamBlock) {
+                            supported = true;
+                            break;
+                        }
+                    }
+                }
+                helper.assertTrue(supported,
+                    "deck at " + slab + " has no steel at its level - a floor with no frame under it");
+            }
+
             helper.assertTrue(columnTops.size() > 1,
                 "the top must be RAGGED - columns ending at one height reads as unfinished "
                     + "construction, not demolition. Got tops at " + columnTops);
