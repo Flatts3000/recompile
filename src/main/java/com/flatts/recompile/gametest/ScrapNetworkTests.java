@@ -94,11 +94,17 @@ final class ScrapNetworkTests {
 
             helper.assertTrue(remainder.getCount() == 4,
                 "with no bin or barrel the stack must come back whole, got " + remainder.getCount());
-            if (helper.getLevel().getBlockEntity(helper.absolutePos(new BlockPos(2, 1, 1)))
-                    instanceof Container cupola) {
-                helper.assertTrue(countIn(cupola, RCItems.SCRAP_METAL.get()) == 0,
-                    "nothing may be routed into the Cupola's slots");
-            }
+            // Asserted, not guarded by an `if`: a furnace BE that stopped being a Container would make
+            // a conditional check vanish silently, and this test would keep passing while covering
+            // nothing. If the type changes, this should fail loudly and be rewritten.
+            helper.assertTrue(
+                helper.getLevel().getBlockEntity(helper.absolutePos(new BlockPos(2, 1, 1)))
+                    instanceof Container,
+                "the Cupola must expose a Container for this test to mean anything");
+            Container cupola = (Container) helper.getLevel()
+                .getBlockEntity(helper.absolutePos(new BlockPos(2, 1, 1)));
+            helper.assertTrue(countIn(cupola, RCItems.SCRAP_METAL.get()) == 0,
+                "nothing may be routed into the Cupola's slots");
             helper.succeed();
         });
 
