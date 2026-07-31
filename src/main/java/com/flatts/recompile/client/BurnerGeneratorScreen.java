@@ -1,5 +1,6 @@
 package com.flatts.recompile.client;
 
+import com.flatts.recompile.content.block.entity.GeneratorState;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import java.util.List;
 import java.util.Optional;
@@ -115,12 +116,12 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
         }
         int capacity = Math.max(1, this.menu.energyCapacity());
         int stored = Math.max(0, Math.min(this.menu.energy(), capacity));
+        GeneratorState state = GeneratorState.of(stored, capacity, this.menu.isLit());
         List<Component> lines = List.of(
             Component.translatable("tooltip.recompile.energy_stored",
                 String.format("%,d", stored), String.format("%,d", capacity)),
-            Component.translatable(this.menu.isLit()
-                ? "tooltip.recompile.energy_generating" : "tooltip.recompile.energy_idle")
-                .withStyle(this.menu.isLit() ? ChatFormatting.RED : ChatFormatting.DARK_GRAY));
+            Component.translatable(state.translationKey()).withStyle(
+                state == GeneratorState.GENERATING ? ChatFormatting.RED : ChatFormatting.DARK_GRAY));
         graphics.setTooltipForNextFrame(this.font, lines, Optional.empty(), mouseX, mouseY);
     }
 

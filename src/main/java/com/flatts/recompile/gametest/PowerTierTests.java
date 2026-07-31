@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
+import com.flatts.recompile.content.block.entity.GeneratorState;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.registry.RCBlocks;
@@ -209,6 +210,10 @@ final class PowerTierTests {
             for (String key : List.of(
                     "jade.recompile.energy_stored", "jade.recompile.energy_rate",
                     "jade.recompile.energy_idle", "jade.recompile.burn_remaining",
+                    "tooltip.recompile.energy_stored",
+                    "tooltip.recompile.generator_generating",
+                    "tooltip.recompile.generator_buffer_full",
+                    "tooltip.recompile.generator_out_of_fuel",
                     "jei.recompile.info.solar_panel", "jei.recompile.info.burner_generator",
                     "container.recompile.burner_generator")) {
                 String rendered = Component.translatable(key).getString();
@@ -266,6 +271,68 @@ final class PowerTierTests {
                 }
             }
             helper.assertTrue(clashes.isEmpty(), "screen layout collisions: " + clashes);
+            helper.succeed();
+        });
+
+        // The behaviour behind GeneratorState.BUFFER_FULL, which the unit tests can only assert as a
+        // rule. A full generator must not keep lighting fuel: burning with nowhere to put the energy
+        // destroys the item for nothing, and it is the state that produced the wrong "out of fuel"
+        // tooltip in playtest.
+        RCGameTests.test("burner_generator_holds_fuel_when_full", 60, helper -> {
+            helper.setBlock(BURNER, RCBlocks.BURNER_GENERATOR.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(BURNER);
+            if (!(level.getBlockEntity(abs) instanceof BurnerGeneratorBlockEntity generator)) {
+                helper.fail("the burner generator has no BlockEntity");
+                return;
+            }
+            // Fill the buffer through the capability, the way a full machine actually gets there.
+            EnergyHandler handler = energyAt(helper, BURNER);
+            try (Transaction transaction = Transaction.openRoot()) {
+                handler.insert(BurnerGeneratorBlockEntity.CAPACITY, transaction);
+                transaction.commit();
+            }
+            generator.setItem(0, new ItemStack(RCItems.OILY_RAG.get(), 4));
+
+            for (int i = 0; i < 20; i++) {
+                BurnerGeneratorBlockEntity.burnOnce(level, abs);
+            }
+            helper.assertTrue(generator.getItem(0).getCount() == 4,
+                "a full generator must not burn fuel, " + generator.getItem(0).getCount() + " rags left");
+            helper.assertFalse(generator.isLit(), "and it must not be lit");
+            helper.assertTrue(
+                GeneratorState.of(generator.stored(), BurnerGeneratorBlockEntity.CAPACITY,
+                    generator.isLit()) == GeneratorState.BUFFER_FULL,
+                "the state a player is shown must be BUFFER_FULL, not out-of-fuel");
+            helper.succeed();
+        });
+
+        // ...and it starts again once something draws the power off, so "full" is a pause, not a stall.
+        RCGameTests.test("burner_generator_resumes_when_drained", 60, helper -> {
+            helper.setBlock(BURNER, RCBlocks.BURNER_GENERATOR.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(BURNER);
+            if (!(level.getBlockEntity(abs) instanceof BurnerGeneratorBlockEntity generator)) {
+                helper.fail("the burner generator has no BlockEntity");
+                return;
+            }
+            EnergyHandler handler = energyAt(helper, BURNER);
+            try (Transaction transaction = Transaction.openRoot()) {
+                handler.insert(BurnerGeneratorBlockEntity.CAPACITY, transaction);
+                transaction.commit();
+            }
+            generator.setItem(0, new ItemStack(RCItems.OILY_RAG.get(), 4));
+            BurnerGeneratorBlockEntity.burnOnce(level, abs);
+            helper.assertFalse(generator.isLit(), "precondition: full and therefore idle");
+
+            try (Transaction transaction = Transaction.openRoot()) {
+                handler.extract(BurnerGeneratorBlockEntity.CAPACITY, transaction);
+                transaction.commit();
+            }
+            BurnerGeneratorBlockEntity.burnOnce(level, abs);
+            helper.assertTrue(generator.isLit(), "draining the buffer must let it light again");
+            helper.assertTrue(generator.getItem(0).getCount() == 3,
+                "and it takes exactly one rag, " + generator.getItem(0).getCount() + " left");
             helper.succeed();
         });
 

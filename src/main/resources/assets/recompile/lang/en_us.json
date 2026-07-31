@@ -294,9 +294,10 @@
   "jade.recompile.energy_rate": "Generating %s FE/t",
   "container.recompile.burner_generator": "Burner Generator",
   "tooltip.recompile.energy_stored": "%s / %s FE",
-  "tooltip.recompile.energy_generating": "Generating",
-  "tooltip.recompile.energy_idle": "Not generating - out of fuel",
   "tooltip.recompile.water_stored": "%s / %s mB",
   "tooltip.recompile.cook_remaining": "%ss remaining",
-  "tooltip.recompile.cook_idle": "Idle"
+  "tooltip.recompile.cook_idle": "Idle",
+  "tooltip.recompile.generator_generating": "Generating",
+  "tooltip.recompile.generator_buffer_full": "Buffer full - nothing is drawing power",
+  "tooltip.recompile.generator_out_of_fuel": "Out of fuel"
 }
