@@ -1,6 +1,9 @@
 package com.flatts.recompile.client;
 
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
+import java.util.List;
+import java.util.Optional;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -25,9 +28,13 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
     private static final int SLOT_BG = 0xFF8B8B8B;
     private static final int SLOT_SHADOW = 0xFF373737;
 
-    /** Flame orange when running, dull ember when idle - so a glance says "is it working". */
-    private static final int POWER_LIT = 0xFFFF9A2B;
-    private static final int POWER_IDLE = 0xFF8A5A2B;
+    /**
+     * Red, because that is what RF has looked like since Redstone Flux was named after redstone - every
+     * tech mod a player has met draws energy red, and matching that costs nothing. Bright while running,
+     * dark while idle, so a glance still says "is it working".
+     */
+    private static final int POWER_LIT = 0xFFE02B2B;
+    private static final int POWER_IDLE = 0xFF8A1F1F;
 
     // Geometry lives on the menu, which is where the slots are placed from. Two copies of it is how the
     // first version of this screen drew its readout through the fuel row.
@@ -91,6 +98,30 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
         // how this screen shipped broken the first time.
         graphics.text(this.font, String.format("%,d / %,d FE", stored, capacity),
             x + FUEL_X, y + READOUT_Y, 0xFF404040, false);
+    }
+
+    /**
+     * Hover the meter for the exact figures.
+     *
+     * <p>The readout under the fuel row already shows stored-of-capacity, so the tooltip earns its place
+     * by adding what the bar cannot: whether it is burning right now. A player looking at a half-full
+     * meter wants to know if it is filling or draining, and neither the bar nor the number says.
+     */
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
+        if (!isHovering(METER_X, METER_Y, METER_W, METER_H, mouseX, mouseY)) {
+            return;
+        }
+        int capacity = Math.max(1, this.menu.energyCapacity());
+        int stored = Math.max(0, Math.min(this.menu.energy(), capacity));
+        List<Component> lines = List.of(
+            Component.translatable("tooltip.recompile.energy_stored",
+                String.format("%,d", stored), String.format("%,d", capacity)),
+            Component.translatable(this.menu.isLit()
+                ? "tooltip.recompile.energy_generating" : "tooltip.recompile.energy_idle")
+                .withStyle(this.menu.isLit() ? ChatFormatting.RED : ChatFormatting.DARK_GRAY));
+        graphics.setTooltipForNextFrame(this.font, lines, Optional.empty(), mouseX, mouseY);
     }
 
     private static void panel(GuiGraphicsExtractor graphics, int x, int y) {
