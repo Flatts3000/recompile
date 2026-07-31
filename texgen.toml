@@ -864,6 +864,16 @@ source = "item/mace"
 handle_tint = "#7a4a24"
 handle_from = 8
 
+# Reinforced Concrete (#47/#51): the demolition yard's deck and the block that drops rebar. The exposed
+# rebar IS the identity - it is what makes it reinforced rather than a grey cube, and it is the visual
+# promise of what the block yields. Pale and dusty on purpose: the vanilla gray_concrete placeholder read
+# as near-black slabs against the steel, which is why husk floors looked like holes rather than floors.
+[surface.reinforced_concrete]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block texture: a broken slab of pale dusty grey reinforced concrete, rusty orange steel rebar rods exposed through a cracked face, coarse aggregate and chipped edges showing, construction dust, flat, no perspective, fills the whole tile, tiles seamlessly"
+
 # ---------------------------------------------------------------------------
 # Demolition yard - Steel I-Beam + Cutting Torch (#48)
 # ---------------------------------------------------------------------------

@@ -1,1 +1,6 @@
-{ "parent": "minecraft:block/cube_all", "textures": { "all": "minecraft:block/gray_concrete" } }
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "recompile:block/reinforced_concrete"
+  }
+}
