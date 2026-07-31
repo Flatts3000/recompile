@@ -148,6 +148,17 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
+        // SERVER ONLY. AbstractContainerScreen.removed() calls this on the CLIENT as well, every time the
+        // screen is swapped - which is what JEI does to show a recipe. On the client ownsTableGrid is
+        // always false, because it is only ever set in the server-side load path in the constructor, so
+        // the else branch below would clearContainer and empty the CLIENT's copy of the grid. The items
+        // vanish on screen while the server still holds them.
+        //
+        // The load path already guards this way; this is its missing counterpart. Container persistence
+        // is server work, and any menu that mutates state in removed() needs the same guard.
+        if (player.level().isClientSide()) {
+            return;
+        }
         this.access.execute((lvl, blockPos) -> {
             // Only the owner persists back into the table (and releases the check-out). A non-owner, or
             // an owner whose table is gone (broken while open), falls back to vanilla's give-back-or-drop
