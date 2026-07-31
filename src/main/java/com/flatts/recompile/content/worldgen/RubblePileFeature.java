@@ -36,7 +36,7 @@ public class RubblePileFeature extends Feature<NoneFeatureConfiguration> {
         int width = MIN_WIDTH + random.nextInt(MAX_WIDTH - MIN_WIDTH + 1);
         double radius = width / 2.0;
         int r = (int) Math.floor(radius);
-        BlockState rubble = RCBlocks.RUBBLE.get().defaultBlockState();
+        BlockState rubble = RCBlocks.STONE_RUBBLE.get().defaultBlockState();
 
         boolean placedAny = false;
         for (int dx = -r; dx <= r; dx++) {

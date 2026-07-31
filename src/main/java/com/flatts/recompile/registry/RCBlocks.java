@@ -83,8 +83,8 @@ public final class RCBlocks {
      * Rubble (demolition yard, reclamation frontier): a pick-through pile like a Block of Garbage, but
      * its pull stream is stone shards. Bare-hand sift; see {@link RubbleBlock}.
      */
-    public static final DeferredBlock<RubbleBlock> RUBBLE = BLOCKS.registerBlock(
-        "rubble",
+    public static final DeferredBlock<RubbleBlock> STONE_RUBBLE = BLOCKS.registerBlock(
+        "stone_rubble",
         RubbleBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)

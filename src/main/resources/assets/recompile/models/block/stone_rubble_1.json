@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "recompile:block/rubble_2"
+    "all": "recompile:block/stone_rubble_1"
   }
 }

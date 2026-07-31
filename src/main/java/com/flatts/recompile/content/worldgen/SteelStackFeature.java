@@ -141,7 +141,7 @@ public class SteelStackFeature extends Feature<NoneFeatureConfiguration> {
      */
     public static boolean placeDeckHeap(WorldGenLevel level, BlockPos centre, RandomSource random) {
         BlockState deck = RCBlocks.REINFORCED_CONCRETE.get().defaultBlockState();
-        BlockState rubble = RCBlocks.RUBBLE.get().defaultBlockState();
+        BlockState rubble = RCBlocks.STONE_RUBBLE.get().defaultBlockState();
         boolean placedAny = false;
         for (int i = 0; i < 5 + random.nextInt(6); i++) {
             BlockPos column = new BlockPos(
