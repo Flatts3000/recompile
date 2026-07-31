@@ -143,6 +143,11 @@ final class RegistryCompletenessTests {
             helper.succeed();
         });
 
+        RCGameTests.test("every_client_item_model_resolves", 20, helper -> {
+            checkClientItemModelsResolve(helper);
+            helper.succeed();
+        });
+
         RCGameTests.test("every_block_has_an_item", 20, helper -> {
             List<String> missing = new ArrayList<>();
             forEachModBlock((id, block) -> {
@@ -193,7 +198,49 @@ final class RegistryCompletenessTests {
         report(helper, broken, "item models whose parent does not exist");
     }
 
+    /**
+     * Every model an {@code assets/<ns>/items/<id>.json} client definition names must exist.
+     *
+     * <p>The sibling parent check walks {@code models/item/<id>.json} upward. Nothing walked the step
+     * BEFORE it: the client item definition is what points at that model in the first place, so a
+     * definition naming a model that had been renamed away left an item rendering as the pink-and-black
+     * missing texture with the model file itself perfectly intact and its parents all resolving.
+     *
+     * <p>Caught in playtest, not here: the Rubble to Stone Rubble rename (#61) moved
+     * {@code models/item/rubble.json} to {@code stone_rubble.json} and left the definition pointing at
+     * {@code recompile:item/rubble}. The block was fine - blockstates name their models directly - so it
+     * only showed on the dropped item and in inventories.
+     */
+    private static void checkClientItemModelsResolve(GameTestHelper helper) {
+        List<String> broken = new ArrayList<>();
+        forEachModItem((id, item) -> {
+            String json = readResource("/assets/" + id.getNamespace() + "/items/" + id.getPath() + ".json");
+            if (json == null) {
+                return;   // absence is already reported by the client-definition check
+            }
+            Matcher m = MODEL_REF.matcher(json);
+            while (m.find()) {
+                String model = m.group(1);
+                if (!model.startsWith(Recompile.MOD_ID + ":")) {
+                    continue;   // vanilla models are not ours to verify
+                }
+                String path = model.substring(model.indexOf(':') + 1);
+                if (!resourceExists("/assets/" + Recompile.MOD_ID + "/models/" + path + ".json")) {
+                    broken.add(id.getPath() + " -> " + model);
+                }
+            }
+        });
+        report(helper, broken, "client item definitions naming a model that does not exist");
+    }
+
     private static final Pattern PARENT = Pattern.compile("\"parent\"\s*:\s*\"([^\"]+)\"");
+
+    /**
+     * A string-valued {@code "model"} field. Deliberately matches every occurrence rather than one: a
+     * definition may name several models (ranged, composite, condition), and each must resolve. The
+     * {@code "type": "minecraft:model"} sibling key does not match - only the value of {@code model} does.
+     */
+    private static final Pattern MODEL_REF = Pattern.compile("\"model\"\s*:\s*\"([^\"]+)\"");
 
     /** A classpath resource's text, or null when it is absent. */
     private static String readResource(String path) {
