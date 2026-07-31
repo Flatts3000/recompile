@@ -112,8 +112,8 @@ public final class RCBlockEntities {
             Capabilities.Fluid.BLOCK,
             RAIN_COLLECTOR.get(),
             (be, side) -> be.fluidHandler());
-        // The Scrap Bin's item handler: insert-only (its extract always returns 0), so a hopper or
-        // sorter can fill a bin from any side but nothing pulls from it - "hopper in, no out" (P2.9).
+        // The Scrap Bin's item handler: in and out (owner call, 2026-07-31, reversing P2.9's
+        // "hopper in, no out"). Extraction keeps the binding, so draining a bin does not un-type it.
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             SCRAP_BIN.get(),
@@ -135,10 +135,15 @@ public final class RCBlockEntities {
         //
         // The Cupola is the half that was actually broken: it advertises "unlike the barrel it takes
         // hoppers", and hoppers did work, but no capability-based pipe could reach it at all.
+        // The null side is NOT redundant. WorldlyContainerWrapper.size() short-circuits on a null side and
+        // returns getContainerSize() - it never consults getSlotsForFace - so a non-sided query hands out
+        // the whole furnace and walks straight past the lockout. Found in playtest: a Pipez pipe fed the
+        // barrel while a six-direction test insisted it could not. There is no non-sided access to a
+        // manual-only machine, so say exactly that and return no handler at all.
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             BURN_BARREL.get(),
-            (be, side) -> new WorldlyContainerWrapper(be, side));
+            (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             CUPOLA_FURNACE.get(),

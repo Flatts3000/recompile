@@ -3,6 +3,9 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -122,12 +125,25 @@ final class BurnBarrelTests {
             helper.setBlock(pos, RCBlocks.BURN_BARREL.get());
             BlockPos abs = helper.absolutePos(pos);
 
-            for (Direction side : Direction.values()) {
+            // The null entry is the whole point of this list. Direction.values() does not contain it, and
+            // a non-sided query is precisely how a pipe got into the barrel in playtest: the wrapper
+            // short-circuits on a null side and hands out the full container without ever calling
+            // getSlotsForFace. Six directions all refusing proved nothing about the seventh case.
+            List<Direction> faces = new ArrayList<>(Arrays.asList(Direction.values()));
+            faces.add(null);
+            for (Direction side : faces) {
                 ResourceHandler<ItemResource> handler = helper.getLevel()
                     .getCapability(Capabilities.Item.BLOCK, abs, side);
                 // The capability is registered on purpose (RCBlockEntities), so a missing handler means
                 // that registration was dropped - and this test would silently stop proving anything,
                 // which is exactly what it did before the wrapper was wired up.
+                if (side == null) {
+                    // No non-sided handler at all is the correct answer here, and the only safe one -
+                    // any handler built for a null side ignores the lockout by construction.
+                    helper.assertTrue(handler == null,
+                        "the barrel must expose NO non-sided handler; a null side bypasses getSlotsForFace");
+                    continue;
+                }
                 helper.assertTrue(handler != null,
                     "the barrel must expose an item handler on " + side + " for this test to mean anything");
                 int accepted;

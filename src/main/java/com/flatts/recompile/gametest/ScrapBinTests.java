@@ -255,8 +255,8 @@ final class ScrapBinTests {
             helper.succeed();
         });
 
-        // No automation out: the capability never extracts, so a hopper below pulls nothing.
-        RCGameTests.test("scrap_bin_capability_never_extracts", 20, helper -> {
+        // Automation out (owner call, 2026-07-31, reversing P2.9): a pipe pulls from a bin.
+        RCGameTests.test("scrap_bin_capability_extracts", 20, helper -> {
             ScrapBinBlockEntity bin = placeBin(helper);
             bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 64));
             ResourceHandler<ItemResource> handler = helper.getLevel()
@@ -264,11 +264,46 @@ final class ScrapBinTests {
 
             int extracted;
             try (Transaction tx = Transaction.openRoot()) {
-                extracted = handler.extract(ItemResource.of(RCItems.SCRAP_METAL.get()), 64, tx);
+                extracted = handler.extract(ItemResource.of(RCItems.SCRAP_METAL.get()), 20, tx);
                 tx.commit();
             }
-            helper.assertTrue(extracted == 0, "the bin must never give items to automation");
-            helper.assertTrue(bin.amount() == 64, "and the count must be unchanged, got " + bin.amount());
+            helper.assertTrue(extracted == 20, "a pipe must pull 20 from the bin, got " + extracted);
+            helper.assertTrue(bin.amount() == 44, "44 must remain, got " + bin.amount());
+            helper.succeed();
+        });
+
+        // Draining a bin to empty must NOT un-type it, or the next unrelated insert re-binds it and a
+        // sorted wall quietly rearranges itself. Binding is a deliberate act; a pipe is not one.
+        RCGameTests.test("scrap_bin_stays_bound_when_a_pipe_drains_it", 20, helper -> {
+            ScrapBinBlockEntity bin = placeBin(helper);
+            bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 10));
+            ResourceHandler<ItemResource> handler = helper.getLevel()
+                .getCapability(Capabilities.Item.BLOCK, helper.absolutePos(BIN), null);
+
+            try (Transaction tx = Transaction.openRoot()) {
+                handler.extract(ItemResource.of(RCItems.SCRAP_METAL.get()), 10, tx);
+                tx.commit();
+            }
+            helper.assertTrue(bin.amount() == 0, "the bin must be empty, got " + bin.amount());
+            helper.assertTrue(bin.boundMaterial() == RCItems.SCRAP_METAL.get(),
+                "an emptied bin must stay bound to scrap metal");
+            helper.succeed();
+        });
+
+        // A pipe must not pull a material the bin is not bound to.
+        RCGameTests.test("scrap_bin_extract_respects_the_binding", 20, helper -> {
+            ScrapBinBlockEntity bin = placeBin(helper);
+            bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 30));
+            ResourceHandler<ItemResource> handler = helper.getLevel()
+                .getCapability(Capabilities.Item.BLOCK, helper.absolutePos(BIN), null);
+
+            int wrong;
+            try (Transaction tx = Transaction.openRoot()) {
+                wrong = handler.extract(ItemResource.of(RCItems.PLASTIC_SCRAP.get()), 30, tx);
+                tx.commit();
+            }
+            helper.assertTrue(wrong == 0, "a bin bound to metal must not yield plastic, got " + wrong);
+            helper.assertTrue(bin.amount() == 30, "and its count must be untouched, got " + bin.amount());
             helper.succeed();
         });
 
