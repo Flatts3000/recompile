@@ -12,13 +12,17 @@ quality = "low"
 # the rate limit, then the backend throttles ~60s before the next surface.
 candidate_count = 5
 
+# Backend note (owner call, 2026-07-30): AI beats procedural clearly on these material blocks, judged
+# side by side - 4 of each, same slots, same brightness. The procedural palettes below are kept as the
+# offline fallback, not as the intent. garbage_block and rubble both SAID procedural while garbage had been
+# shipping AI art for months; the manifest was lying about its own output.
 # ---------------------------------------------------------------------------
 # Blocks
 # ---------------------------------------------------------------------------
 
 [surface.garbage_block]
 kind = "block"
-backend = "procedural"
+backend = "ai"
 size = 16
 variants = 3
 prompt = "a full-bleed top-down Minecraft block face of compacted household mixed trash: crushed cans, torn plastic, paper, and dirt clumps, muted browns and greys, gritty"
@@ -749,8 +753,11 @@ prompt = "a full-bleed top-down Minecraft block face of scattered mixed bait fee
 # procedural "rubble" style (as garbage_block does), on a cool stone-grey palette.
 [surface.rubble]
 kind = "block"
-backend = "procedural"
+backend = "ai"
 size = 16
+# Same variant strategy as garbage_block. Kept procedural rather than switched to AI: its 7-colour palette
+# already reads correctly, and the repetition was the actual complaint, not the material.
+variants = 3
 prompt = "a full-bleed top-down Minecraft block face of broken concrete-and-stone rubble: crushed grey aggregate chunks, dust and grit, cool stone greys"
 vanilla_ref = "block/gravel"
 [surface.rubble.procedural]
@@ -872,12 +879,24 @@ handle_from = 8
 kind = "block"
 backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block texture: a broken slab of pale dusty grey reinforced concrete, rusty orange steel rebar rods exposed through a cracked face, coarse aggregate and chipped edges showing, construction dust, flat, no perspective, fills the whole tile, tiles seamlessly"
+# Three variants at four rotations = 12 permutations, the same trick garbage_block uses. A husk floor is
+# dozens of these in a grid, which is exactly where a single tile announces itself as a repeat.
+variants = 3
+# NOTE the anti-border language. An earlier prompt asked for "chipped edges showing" and got exactly
+# that: every tile framed in a darker rim, which is invisible on a single block and turns a floor into
+# a grid of dark lines. Detail has to be spread evenly across the tile, never concentrated at its edge.
+prompt = "a full-bleed Minecraft block texture: the surface of dusty grey reinforced concrete, coarse aggregate and short rusty orange steel rebar rods running through it, detail spread evenly across the entire tile, absolutely NO border, NO frame, NO darker rim or outline at the edges, no visible tile boundary, uniform edge to edge, flat, no perspective, tiles seamlessly"
 # Darkened deterministically rather than by re-prompting. Generated it sat at luminance 126 against Stone
 # Rubble's 138 and the steel beam's 136 - three materials within 12 points, which is not a separable
 # difference at 16px, so concrete simply vanished into the rubble it lies among. 0.75 puts it near 95:
 # about 43 below rubble, and still clearly mid-grey rather than the near-black the vanilla placeholder gave.
 brightness = 0.75
+# A palette for the procedural backend, so a procedural/AI comparison is fair rather than a strawman:
+# without one it falls back to a default grey and loses on presentation, not merit. Dark concrete greys
+# with two rust tones for the rebar.
+[surface.reinforced_concrete.procedural]
+style = "rubble"
+palette = ["#5f6166", "#6b6d72", "#54565b", "#7a7c81", "#4a4c50", "#8a5a3a", "#a8663c"]
 
 # ---------------------------------------------------------------------------
 # Demolition yard - Steel I-Beam + Cutting Torch (#48)
