@@ -18,10 +18,30 @@
   },
   "spawners": {
     "monster": [
-      { "type": "minecraft:zombie", "weight": 95, "minCount": 4, "maxCount": 4 },
-      { "type": "minecraft:skeleton", "weight": 95, "minCount": 4, "maxCount": 4 },
-      { "type": "minecraft:spider", "weight": 90, "minCount": 4, "maxCount": 4 },
-      { "type": "minecraft:creeper", "weight": 90, "minCount": 4, "maxCount": 4 }
+      {
+        "type": "minecraft:zombie",
+        "weight": 95,
+        "minCount": 4,
+        "maxCount": 4
+      },
+      {
+        "type": "minecraft:skeleton",
+        "weight": 95,
+        "minCount": 4,
+        "maxCount": 4
+      },
+      {
+        "type": "minecraft:spider",
+        "weight": 90,
+        "minCount": 4,
+        "maxCount": 4
+      },
+      {
+        "type": "minecraft:creeper",
+        "weight": 90,
+        "minCount": 4,
+        "maxCount": 4
+      }
     ],
     "creature": [],
     "ambient": [],
@@ -34,8 +54,20 @@
   "spawn_costs": {},
   "carvers": [],
   "features": [
-    [], [], [], [], [], [], [], [], [],
-    [ "recompile:rubble_pile" ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "recompile:rubble_pile",
+      "recompile:steel_stack",
+      "recompile:building_husk"
+    ],
     []
   ]
 }

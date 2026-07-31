@@ -34,6 +34,7 @@ import com.flatts.recompile.content.block.TrashBagBlock;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -540,9 +541,13 @@ public final class RCBlocks {
      * smelts scrap into copper nuggets (the copper-first inversion, P2.2), so this is what that
      * metal was for. Four of them ring a Grass Spreader and become its drip spigots.
      */
-    public static final DeferredBlock<Block> COPPER_PIPE = BLOCKS.registerBlock(
+    // A RotatedPillarBlock, not a plain Block: a pipe is a length of tube, so it has to be able to lie
+    // along an axis. Placed vertically it looks as it always did (the default), but a horizontal run now
+    // reads as continuous pipe instead of a row of upright stubs. Safe for the Rain Collector, whose
+    // Multiblock matches components with `.is(block)` rather than on exact state.
+    public static final DeferredBlock<RotatedPillarBlock> COPPER_PIPE = BLOCKS.registerBlock(
         "copper_pipe",
-        Block::new,
+        RotatedPillarBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_ORANGE)
             .strength(1.0F)

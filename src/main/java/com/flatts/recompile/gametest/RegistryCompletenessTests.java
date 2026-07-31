@@ -3,6 +3,8 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.Recompile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -135,6 +137,12 @@ final class RegistryCompletenessTests {
         // A block with no item cannot be held, crafted into anything, or put in the creative tab.
         // Some legitimately should not be - but each of those is a decision, so they are named in
         // NO_ITEM_FORM rather than the test being loosened to accommodate them.
+        // A model file existing is not the same as it RESOLVING. See checkModelParentsResolve.
+        RCGameTests.test("every_item_model_parent_resolves", 20, helper -> {
+            checkModelParentsResolve(helper);
+            helper.succeed();
+        });
+
         RCGameTests.test("every_block_has_an_item", 20, helper -> {
             List<String> missing = new ArrayList<>();
             forEachModBlock((id, block) -> {
@@ -150,6 +158,52 @@ final class RegistryCompletenessTests {
     }
 
     /** True if the string is a raw translation key rather than a display name. */
+    /**
+     * Every model's {@code parent} in this mod's namespace must exist.
+     *
+     * <p>The other checks confirm a model FILE is present; none of them followed the parent chain, so a
+     * model could point at a parent that had been renamed or deleted and every test still passed. The block
+     * kept rendering (its blockstate names a different model) while the ITEM silently became the
+     * pink-and-black missing texture - visible in inventories, JEI and Jade, and nowhere in a test.
+     *
+     * <p>Caught exactly that when Rubble and Reinforced Concrete moved to numbered variants: their
+     * {@code models/block/<id>.json} was replaced by {@code <id>_0..2}, and the item models still parented
+     * to the old path.
+     */
+    private static void checkModelParentsResolve(GameTestHelper helper) {
+        List<String> broken = new ArrayList<>();
+        forEachModItem((id, item) -> {
+            String json = readResource("/assets/" + id.getNamespace() + "/models/item/"
+                + id.getPath() + ".json");
+            if (json == null) {
+                return;   // absence is already reported by the item-form check
+            }
+            Matcher m = PARENT.matcher(json);
+            while (m.find()) {
+                String parent = m.group(1);
+                if (!parent.startsWith(Recompile.MOD_ID + ":")) {
+                    continue;   // vanilla parents are not ours to verify
+                }
+                String path = parent.substring(parent.indexOf(':') + 1);
+                if (!resourceExists("/assets/" + Recompile.MOD_ID + "/models/" + path + ".json")) {
+                    broken.add(id.getPath() + " -> " + parent);
+                }
+            }
+        });
+        report(helper, broken, "item models whose parent does not exist");
+    }
+
+    private static final Pattern PARENT = Pattern.compile("\"parent\"\s*:\s*\"([^\"]+)\"");
+
+    /** A classpath resource's text, or null when it is absent. */
+    private static String readResource(String path) {
+        try (java.io.InputStream in = RegistryCompletenessTests.class.getResourceAsStream(path)) {
+            return in == null ? null : new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            return null;
+        }
+    }
+
     private static boolean looksLikeARawKey(String rendered) {
         return (rendered.startsWith("item.") || rendered.startsWith("block."))
             && rendered.contains(".")

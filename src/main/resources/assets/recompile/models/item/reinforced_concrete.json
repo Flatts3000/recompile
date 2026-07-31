@@ -1,1 +1,3 @@
-{ "parent": "recompile:block/reinforced_concrete" }
+{
+  "parent": "recompile:block/reinforced_concrete_0"
+}
