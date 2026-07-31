@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.TagKey;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
@@ -44,6 +46,23 @@ final class EncroachmentTests {
      * bug. A future non-garbage region may well belong here; it just has to say so out loud.
      */
     private static final List<String> NON_ENCROACHING = List.of();
+
+    /**
+     * Tags that are legitimately empty, each with a reason. Empty by default is a bug; empty on purpose
+     * is a decision and belongs here.
+     */
+    private static final List<String> EMPTY_TAGS_ARE_FINE = List.of();
+
+    /**
+     * Reflection loses the type parameter, and a wildcard registry cannot be handed a wildcard tag - both
+     * sides have to be cast to the same thing at once.
+     */
+    @SuppressWarnings("unchecked")
+    private static boolean tagIsPopulated(Registry<?> registry, TagKey<?> tag) {
+        // getTagOrEmpty rather than getTag: 26.1 exposes the iterable form, and "empty" is exactly the
+        // condition being tested, so an absent tag and a present-but-empty one are the same answer.
+        return ((Registry<Object>) registry).getTagOrEmpty((TagKey<Object>) tag).iterator().hasNext();
+    }
 
     static void register() {
         // Rung 1. The base case the whole system rests on: bare healed soil touching bare
@@ -306,5 +325,54 @@ final class EncroachmentTests {
                     + missing + " - add them to the tag, or to NON_ENCROACHING with a reason");
             helper.succeed();
         });
+        // Every tag the mod declares must actually contain something.
+        //
+        // An empty tag is a mechanic that silently does not run, and it fails in the quietest possible
+        // way: the reference resolves, the JSON parses, nothing errors, and the feature is simply inert.
+        // This mod has hit that shape twice - #minecraft:dirt matching far less than expected, and the
+        // demolition yard sitting outside #recompile:encroaches - so the general case is worth sweeping
+        // rather than checking one tag at a time.
+        //
+        // Reflective over RCTags on purpose: a tag added next month is covered without anyone
+        // remembering to add it here, which is the only version of this test that stays true.
+        RCGameTests.test("no_declared_tag_is_empty", 20, helper -> {
+            List<String> empty = new ArrayList<>();
+            int checked = 0;
+            for (java.lang.reflect.Field field : RCTags.class.getDeclaredFields()) {
+                if (!TagKey.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                TagKey<?> tag;
+                try {
+                    tag = (TagKey<?>) field.get(null);
+                } catch (IllegalAccessException e) {
+                    continue;
+                }
+                if (EMPTY_TAGS_ARE_FINE.contains(tag.location().getPath())) {
+                    continue;
+                }
+                Registry<?> registry = helper.getLevel().registryAccess()
+                    .lookup(tag.registry()).orElse(null);
+                if (registry == null) {
+                    registry = BuiltInRegistries.REGISTRY.get(tag.registry().identifier())
+                        .map(holder -> (Registry<?>) holder.value()).orElse(null);
+                }
+                if (registry == null) {
+                    empty.add(tag.location() + " (its registry could not be resolved)");
+                    continue;
+                }
+                checked++;
+                if (!tagIsPopulated(registry, tag)) {
+                    empty.add(tag.location().toString());
+                }
+            }
+            helper.assertTrue(checked >= 10,
+                "only " + checked + " tags were resolved - reflection is broken, so this test would "
+                    + "pass against any empty tag");
+            helper.assertTrue(empty.isEmpty(),
+                "these tags are empty, so whatever they gate does nothing: " + empty);
+            helper.succeed();
+        });
+
     }
 }
