@@ -100,5 +100,43 @@ final class SteelStackTests {
                     + "Cupola Furnace (and therefore all iron) depends on it");
             helper.succeed();
         });
+
+        // The husk's three cues, asserted so a refactor cannot quietly flatten it into a box:
+        // a GRID of columns, girders spanning between them, and a RAGGED top.
+        RCGameTests.test("building_husk_is_a_ragged_frame", 60, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+
+            Set<Integer> columnTops = new HashSet<>();
+            boolean sawGirder = false;
+            boolean sawDeck = false;
+            for (int seed = 0; seed < 6; seed++) {
+                RCFeatures.BUILDING_HUSK.get().place(new FeaturePlaceContext<>(
+                    Optional.empty(), level, level.getChunkSource().getGenerator(),
+                    RandomSource.create(seed), origin, NoneFeatureConfiguration.INSTANCE));
+                for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-1, -1, -1), origin.offset(3, 24, 3))) {
+                    BlockState state = level.getBlockState(pos);
+                    if (state.getBlock() == RCBlocks.REINFORCED_CONCRETE.get()) {
+                        sawDeck = true;
+                    }
+                    if (!(state.getBlock() instanceof SteelBeamBlock)) {
+                        continue;
+                    }
+                    // A girder carries a horizontal run; a column does not.
+                    if (state.getValue(SteelBeamBlock.X) || state.getValue(SteelBeamBlock.Z)) {
+                        sawGirder = true;
+                    } else if (level.getBlockState(pos.above()).isAir()) {
+                        columnTops.add(pos.getY());
+                    }
+                }
+            }
+
+            helper.assertTrue(sawGirder, "a husk must span girders between its columns");
+            helper.assertTrue(sawDeck, "a husk must wear some concrete deck");
+            helper.assertTrue(columnTops.size() > 1,
+                "the top must be RAGGED - columns ending at one height reads as unfinished "
+                    + "construction, not demolition. Got tops at " + columnTops);
+            helper.succeed();
+        });
     }
 }

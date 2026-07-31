@@ -1,1 +1,16 @@
-{ "variants": { "": { "model": "recompile:block/copper_pipe" } } }
+{
+  "variants": {
+    "axis=y": {
+      "model": "recompile:block/copper_pipe"
+    },
+    "axis=z": {
+      "model": "recompile:block/copper_pipe",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "recompile:block/copper_pipe",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

@@ -65,7 +65,8 @@
     [],
     [
       "recompile:rubble_pile",
-      "recompile:steel_stack"
+      "recompile:steel_stack",
+      "recompile:building_husk"
     ],
     []
   ]

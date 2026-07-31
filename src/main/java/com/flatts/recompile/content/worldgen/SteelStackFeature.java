@@ -63,7 +63,9 @@ public class SteelStackFeature extends Feature<NoneFeatureConfiguration> {
 
     private static BlockState member(Direction.Axis axis, RandomSource random) {
         if (random.nextFloat() < PIPE_SHARE) {
-            return RCBlocks.COPPER_PIPE.get().defaultBlockState();
+            // Along the run, so a length of pipe reads as pipe rather than a row of upright stubs.
+            return RCBlocks.COPPER_PIPE.get().defaultBlockState()
+                .setValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS, axis);
         }
         return RCBlocks.STEEL_I_BEAM.get().defaultBlockState()
             .setValue(SteelBeamBlock.AXIS, axis)
@@ -103,6 +105,12 @@ public class SteelStackFeature extends Feature<NoneFeatureConfiguration> {
                     int dx = axis == Direction.Axis.X ? along + i : across;
                     int dz = axis == Direction.Axis.X ? across : along + i;
                     BlockPos pos = new BlockPos(origin.getX() + dx, base + layer, origin.getZ() + dz);
+                    // Nothing floats: a member stops where its support does. Layer 0 needs ground under it,
+                    // higher layers need the stack below. Without this a stack laid near a ledge runs its
+                    // beams straight out over the drop.
+                    if (level.getBlockState(pos.below()).isAir()) {
+                        continue;
+                    }
                     if (level.getBlockState(pos).isAir()) {
                         level.setBlock(pos, state, 2);
                         placedAny = true;
