@@ -20,6 +20,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.transfer.energy.LimitingEnergyHandler;
 import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 
@@ -173,14 +174,23 @@ public final class RCBlockEntities {
             (be, side) -> VanillaContainerWrapper.of(be));
         // The power tier (#72). Energy only - neither generator holds items, so neither exposes an item
         // capability, and the Burner is fed by right-click rather than through a slot.
+        //
+        // Both are exposed OUTPUT-ONLY (maxInsert 0). A generator that accepts energy is not a harmless
+        // extra: every generator also pushes to its neighbours each tick, so two of them side by side
+        // trade the same energy back and forth forever. That is not hypothetical - the Tree Nursery
+        // places two Solar Panels in adjacent cells, so every nursery in the world would do it.
+        //
+        // Generation writes to the battery directly through energyHandler(); only what leaves the block
+        // goes through this wrapper.
         event.registerBlockEntity(
             Capabilities.Energy.BLOCK,
             SOLAR_PANEL.get(),
-            (be, side) -> be.energyHandler());
+            (be, side) -> new LimitingEnergyHandler(be.energyHandler(), 0, SolarPanelBlockEntity.CAPACITY));
         event.registerBlockEntity(
             Capabilities.Energy.BLOCK,
             BURNER_GENERATOR.get(),
-            (be, side) -> be.energyHandler());
+            (be, side) -> new LimitingEnergyHandler(
+                be.energyHandler(), 0, BurnerGeneratorBlockEntity.CAPACITY));
         // ...and its fuel buffer, so a pipe can stock it and not only a hopper. Its getSlotsForFace
         // opens every face to fuel and canTakeItemThroughFace refuses all of them, so the wrapper is
         // "fuel in, nothing out" without needing a second rule here.

@@ -287,9 +287,9 @@ final class PowerTierTests {
                 return;
             }
             // Fill the buffer through the capability, the way a full machine actually gets there.
-            EnergyHandler handler = energyAt(helper, BURNER);
+            // Through the BE's own handler: the capability is output-only, which is the point.
             try (Transaction transaction = Transaction.openRoot()) {
-                handler.insert(BurnerGeneratorBlockEntity.CAPACITY, transaction);
+                generator.energyHandler().insert(BurnerGeneratorBlockEntity.CAPACITY, transaction);
                 transaction.commit();
             }
             generator.setItem(0, new ItemStack(RCItems.OILY_RAG.get(), 4));
@@ -316,15 +316,15 @@ final class PowerTierTests {
                 helper.fail("the burner generator has no BlockEntity");
                 return;
             }
-            EnergyHandler handler = energyAt(helper, BURNER);
             try (Transaction transaction = Transaction.openRoot()) {
-                handler.insert(BurnerGeneratorBlockEntity.CAPACITY, transaction);
+                generator.energyHandler().insert(BurnerGeneratorBlockEntity.CAPACITY, transaction);
                 transaction.commit();
             }
             generator.setItem(0, new ItemStack(RCItems.OILY_RAG.get(), 4));
             BurnerGeneratorBlockEntity.burnOnce(level, abs);
             helper.assertFalse(generator.isLit(), "precondition: full and therefore idle");
 
+            EnergyHandler handler = energyAt(helper, BURNER);
             try (Transaction transaction = Transaction.openRoot()) {
                 handler.extract(BurnerGeneratorBlockEntity.CAPACITY, transaction);
                 transaction.commit();
@@ -334,6 +334,56 @@ final class PowerTierTests {
             helper.assertTrue(generator.getItem(0).getCount() == 3,
                 "and it takes exactly one rag, " + generator.getItem(0).getCount() + " left");
             helper.succeed();
+        });
+
+        // Generators are output-only, and this is the test for the bug that caused it: every generator
+        // pushes to its neighbours each tick, so a generator that ACCEPTS energy will trade with the one
+        // next to it forever. The Tree Nursery places two Solar Panels in adjacent cells, so this would
+        // have run in every nursery in the world.
+        RCGameTests.test("generators_refuse_energy_from_outside", 20, helper -> {
+            helper.setBlock(PANEL, RCBlocks.SOLAR_PANEL.get());
+            helper.setBlock(BURNER, RCBlocks.BURNER_GENERATOR.get());
+            for (BlockPos pos : List.of(PANEL, BURNER)) {
+                EnergyHandler handler = energyAt(helper, pos);
+                helper.assertTrue(handler != null, "must still expose the capability at " + pos);
+                int taken;
+                try (Transaction transaction = Transaction.openRoot()) {
+                    taken = handler.insert(500, transaction);
+                    transaction.commit();
+                }
+                helper.assertTrue(taken == 0,
+                    "a generator must not accept energy, " + pos + " took " + taken);
+            }
+            helper.succeed();
+        });
+
+        // ...and the consequence, stated as the behaviour rather than the rule: two panels touching do
+        // not shuffle energy between themselves.
+        RCGameTests.test("adjacent_panels_do_not_trade_energy", 40, helper -> {
+            BlockPos a = PANEL;
+            BlockPos b = PANEL.east();
+            helper.setBlock(a, RCBlocks.SOLAR_PANEL.get());
+            helper.setBlock(b, RCBlocks.SOLAR_PANEL.get());
+            ServerLevel level = helper.getLevel();
+            setNoon(level);
+
+            // Charge only one of them, then tick both. Any change in the empty one is a trade.
+            try (Transaction transaction = Transaction.openRoot()) {
+                ((SolarPanelBlockEntity) level.getBlockEntity(helper.absolutePos(a)))
+                    .energyHandler().insert(1_000, transaction);
+                transaction.commit();
+            }
+            helper.setBlock(b.above(), Blocks.STONE);   // roof the second so it cannot generate its own
+            helper.runAfterDelay(5, () -> {
+                int before = ((SolarPanelBlockEntity) level.getBlockEntity(helper.absolutePos(b))).stored();
+                for (int i = 0; i < 10; i++) {
+                    SolarPanelBlockEntity.generateOnce(level, helper.absolutePos(a));
+                }
+                int after = ((SolarPanelBlockEntity) level.getBlockEntity(helper.absolutePos(b))).stored();
+                helper.assertTrue(after == before,
+                    "a panel must not push into another generator, neighbour went " + before + " -> " + after);
+                helper.succeed();
+            });
         });
 
     }
