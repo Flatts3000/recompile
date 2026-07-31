@@ -286,12 +286,11 @@
   "jei.recompile.torch_cutting": "Torch Cutting",
   "jei.recompile.burning": "Burning",
   "block.recompile.burner_generator": "Burner Generator",
-  "message.recompile.burner_needs_fuel": "The Burner Generator needs fuel",
-  "message.recompile.burner_still_burning": "It is still burning",
-  "jei.recompile.info.burner_generator": "Burns refuse for power. Right-click it holding any furnace fuel - an Oily Rag will do - and it runs until that fuel is spent, feeding energy to whatever it is touching. It takes one fuel at a time and refuses a second while lit, so nothing is wasted. No screen: what you see on top is whether it is burning.",
+  "jei.recompile.info.burner_generator": "Burns refuse for power. Right-click to open its fuel buffer and load anything a furnace would burn - an Oily Rag will do. It takes one item at a time, so a stack lasts, and hoppers or pipes can keep it stocked. Energy goes straight into whatever it is touching; hover it to see how much it is holding.",
   "jade.recompile.energy_stored": "Stored: %s / %s FE",
   "jade.recompile.energy_idle": "Not generating",
   "jade.recompile.burn_remaining": "Burning: %ss left",
   "jei.recompile.info.solar_panel": "Generates power from daylight, and needs an open sky - a block overhead stops it. Output falls off at dusk and in bad weather rather than cutting out. It also still works as a machine part: a panel inside a Grass Spreader or Tree Nursery generates as well, and those machines do not need power to run.",
-  "jade.recompile.energy_rate": "Generating %s FE/t"
+  "jade.recompile.energy_rate": "Generating %s FE/t",
+  "container.recompile.burner_generator": "Burner Generator"
 }

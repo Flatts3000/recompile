@@ -4,13 +4,8 @@ import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -27,13 +22,13 @@ import org.jspecify.annotations.Nullable;
 /**
  * The Burner Generator (#72): the half of the power tier that works at night.
  *
- * <p><b>No screen, no inventory, no menu.</b> Right-click it holding fuel and it takes one, exactly as the
- * Cutting Torch takes rags. That is the mod's standing rule - machine GUIs are the exception, not the
- * default - and it is why this block ships without touching {@code RCMenus} at all.
+ * <p><b>It has a fuel buffer and a screen</b> (owner call, 2026-07-31): if the Burn Barrel gets a UI for
+ * holding fuel, so does this. It borrows vanilla's hopper screen - five slots is exactly a fuel buffer -
+ * so the mod's "reuse a vanilla screen, never mint one" rule holds and {@code RCMenus} is untouched.
  *
- * <p>Automation feeds it through the item capability instead, which is the door pipes and hoppers use and
- * needs no screen to exist. Its row in {@code docs/automation_policy_spec.md} is "fuel in, energy out,
- * nothing else".
+ * <p>Its row in {@code docs/automation_policy_spec.md} is "fuel in, nothing out": every face takes fuel,
+ * no face gives it back, since a pipe pulling fuel out of the generator it just filled is nobody's
+ * intent.
  *
  * <p>{@link BlockStateProperties#LIT} drives the texture, so a running generator is readable from across a
  * base without a gauge - the same trick the Burn Barrel uses.
@@ -75,36 +70,18 @@ public class BurnerGeneratorBlock extends Block implements EntityBlock {
     }
 
     /**
-     * Feed it by hand.
+     * Right-click opens the fuel buffer.
      *
-     * <p>Both refusals are messaged rather than silent. A generator that eats a rag and shows nothing is
-     * indistinguishable from one that is broken, and "it is already burning" is the case a player will
-     * otherwise hit repeatedly while wondering why their fuel is vanishing.
+     * <p>It reuses vanilla's hopper screen rather than minting one: five slots IS a fuel buffer, and the
+     * mod's rule is that a bespoke machine screen is a design reversal. The energy level is not on this
+     * screen because no vanilla screen has a bar for it - Jade carries that instead.
      */
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-            Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!(level.getBlockEntity(pos) instanceof BurnerGeneratorBlockEntity generator)) {
-            return InteractionResult.PASS;
-        }
-        if (level.fuelValues().burnDuration(stack) <= 0) {
-            if (!level.isClientSide()) {
-                player.sendOverlayMessage(Component.translatable("message.recompile.burner_needs_fuel"));
-            }
-            return InteractionResult.PASS;
-        }
-        if (generator.isLit()) {
-            if (!level.isClientSide()) {
-                player.sendOverlayMessage(Component.translatable("message.recompile.burner_still_burning"));
-            }
-            return InteractionResult.PASS;
-        }
-        if (!level.isClientSide() && generator.addFuel(level, stack)) {
-            if (!player.getAbilities().instabuild) {
-                stack.shrink(1);
-            }
-            level.setBlock(pos, state.setValue(LIT, true), Block.UPDATE_ALL);
-            level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 0.6F, 1.4F);
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+            Player player, BlockHitResult hit) {
+        if (!level.isClientSide()
+                && level.getBlockEntity(pos) instanceof BurnerGeneratorBlockEntity generator) {
+            player.openMenu(generator);
         }
         return InteractionResult.SUCCESS;
     }

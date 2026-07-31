@@ -181,5 +181,12 @@ public final class RCBlockEntities {
             Capabilities.Energy.BLOCK,
             BURNER_GENERATOR.get(),
             (be, side) -> be.energyHandler());
+        // ...and its fuel buffer, so a pipe can stock it and not only a hopper. Its getSlotsForFace
+        // opens every face to fuel and canTakeItemThroughFace refuses all of them, so the wrapper is
+        // "fuel in, nothing out" without needing a second rule here.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            BURNER_GENERATOR.get(),
+            (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
     }
 }

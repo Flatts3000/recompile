@@ -1,11 +1,21 @@
 package com.flatts.recompile.content.block.entity;
 
+import com.flatts.recompile.content.block.BurnerGeneratorBlock;
 import com.flatts.recompile.registry.RCBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.HopperMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -18,30 +28,35 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 /**
  * The Burner Generator (#72): burns refuse for power, and the half of the power tier that works at night.
  *
- * <p><b>No screen and no inventory</b>, per the mod's standing rule that machine GUIs are the exception.
- * You feed it by right-clicking with fuel, exactly as the Cutting Torch takes rags, and it converts burn
- * time into FE. Automation feeds it through the item capability rather than through a slot the player has
- * to look at ({@code docs/automation_policy_spec.md}).
+ * <p><b>It has a fuel buffer and a screen</b> (owner call, 2026-07-31): if the Burn Barrel gets a UI for
+ * holding fuel, so does this. It reuses vanilla's {@link HopperMenu} - a five-slot row is exactly a fuel
+ * buffer - so no bespoke screen is minted and the mod's "reuse a vanilla screen" rule holds.
+ *
+ * <p>The buffer is the real gain over the right-click-to-feed version this replaces: the generator runs
+ * unattended, and <b>automation can fuel it</b>, which one-item-at-a-time by hand could never support.
  *
  * <p><b>Fuel is the vanilla fuel data map</b> ({@code data/neoforge/data_maps/item/furnace_fuels.json}),
  * read live via {@code level.fuelValues()}. So anything the Burn Barrel or a vanilla furnace will burn,
  * this will burn, and a pack retunes both at once. Deliberately not its own allowlist: the Burn Barrel's
- * allowlist exists to gate *smelting outputs*, which is a different job from "what counts as fuel".
+ * allowlist exists to gate <em>smelting outputs</em>, a different job from "what counts as fuel".
  *
- * <p>Burn time converts at {@link #FE_PER_TICK} while lit, so a fuel's value here is exactly proportional
- * to its furnace value - an Oily Rag is worth the same relative to coal in both machines.
+ * <p>Burn time converts at {@link #FE_PER_TICK} while lit, so a fuel's worth here stays proportional to
+ * its furnace worth - an Oily Rag is the same fraction of a coal in both machines.
  */
-public class BurnerGeneratorBlockEntity extends BlockEntity {
+public class BurnerGeneratorBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 
     /** FE per tick while burning. First-pass; balance is #36. */
     public static final int FE_PER_TICK = 20;
     /** Buffer. Larger than the panel's: this one runs in bursts and must not waste a rag's tail. */
     public static final int CAPACITY = 20_000;
+    /** Fuel slots - {@link HopperMenu#CONTAINER_SIZE}, because that is the screen it borrows. */
+    public static final int FUEL_SLOTS = 5;
     private static final int TRANSFER_PER_TICK = 256;
 
     private final SimpleEnergyHandler battery = new SimpleEnergyHandler(CAPACITY, CAPACITY, CAPACITY);
+    private NonNullList<ItemStack> items = NonNullList.withSize(FUEL_SLOTS, ItemStack.EMPTY);
 
-    /** Ticks of burn left. The only other state; no fuel slot, because there is no slot. */
+    /** Ticks of burn left on the item currently alight. */
     private int burnTime;
 
     public BurnerGeneratorBlockEntity(BlockPos pos, BlockState state) {
@@ -64,22 +79,7 @@ public class BurnerGeneratorBlockEntity extends BlockEntity {
         return burnTime > 0;
     }
 
-    /**
-     * Accept one item's worth of fuel. Returns false when the item is not fuel, or when the generator is
-     * still burning enough that the new fuel would be mostly wasted.
-     *
-     * <p>The second condition mirrors the Cutting Torch's refusal to overfill: silently swallowing a rag
-     * for a fraction of its value is the kind of loss a player cannot see happening.
-     */
-    public boolean addFuel(Level level, net.minecraft.world.item.ItemStack stack) {
-        int duration = level.fuelValues().burnDuration(stack);
-        if (duration <= 0 || burnTime > 0) {
-            return false;
-        }
-        burnTime = duration;
-        setChanged();
-        return true;
-    }
+    // ---------------- the burn ----------------
 
     public static void serverTick(Level level, BlockPos pos, BlockState state,
             BurnerGeneratorBlockEntity generator) {
@@ -90,15 +90,33 @@ public class BurnerGeneratorBlockEntity extends BlockEntity {
                 generator.battery.insert(FE_PER_TICK, transaction);
                 transaction.commit();
             }
+        } else {
+            generator.lightNextFuel(level);
         }
         generator.pushToNeighbours(level, pos);
         if (wasLit != generator.isLit()) {
             // The blockstate is the only outward sign it is running, so it has to follow the burn or a
             // player reads a dead generator as a lit one.
-            level.setBlock(pos, state.setValue(
-                com.flatts.recompile.content.block.BurnerGeneratorBlock.LIT, generator.isLit()),
-                net.minecraft.world.level.block.Block.UPDATE_ALL);
+            level.setBlock(pos, state.setValue(BurnerGeneratorBlock.LIT, generator.isLit()),
+                Block.UPDATE_ALL);
             generator.setChanged();
+        }
+    }
+
+    /** Consume one item from the buffer and light it. Nothing burns while the battery is already full. */
+    private void lightNextFuel(Level level) {
+        if (battery.getAmountAsInt() >= CAPACITY) {
+            return;   // do not spend fuel making energy with nowhere to go
+        }
+        for (int slot = 0; slot < items.size(); slot++) {
+            ItemStack stack = items.get(slot);
+            int duration = level.fuelValues().burnDuration(stack);
+            if (duration > 0) {
+                burnTime = duration;
+                stack.shrink(1);
+                setChanged();
+                return;
+            }
         }
     }
 
@@ -132,11 +150,63 @@ public class BurnerGeneratorBlockEntity extends BlockEntity {
         return -1;
     }
 
+    // ---------------- container ----------------
+
+    @Override
+    public int getContainerSize() {
+        return FUEL_SLOTS;
+    }
+
+    @Override
+    protected NonNullList<ItemStack> getItems() {
+        return items;
+    }
+
+    @Override
+    protected void setItems(NonNullList<ItemStack> replacement) {
+        this.items = replacement;
+    }
+
+    @Override
+    protected Component getDefaultName() {
+        return Component.translatable("container.recompile.burner_generator");
+    }
+
+    @Override
+    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
+        return new HopperMenu(containerId, inventory, this);
+    }
+
+    /** Only fuel, so neither a player nor a pipe can park something unburnable in the buffer. */
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return this.level != null && this.level.fuelValues().burnDuration(stack) > 0;
+    }
+
+    // Every face accepts fuel and gives nothing back - there is no output to take, and leaving extraction
+    // open would let a pipe pull the fuel straight back out of a generator it just filled.
+
+    @Override
+    public int[] getSlotsForFace(Direction side) {
+        return new int[] {0, 1, 2, 3, 4};
+    }
+
+    @Override
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
+        return canPlaceItem(slot, stack);
+    }
+
+    @Override
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
+        return false;
+    }
+
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         battery.serialize(output.child("energy"));
         output.putInt("burn_time", burnTime);
+        ContainerHelper.saveAllItems(output, this.items);
     }
 
     @Override
@@ -144,5 +214,7 @@ public class BurnerGeneratorBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         input.child("energy").ifPresent(battery::deserialize);
         burnTime = input.getIntOr("burn_time", 0);
+        this.items = NonNullList.withSize(FUEL_SLOTS, ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(input, this.items);
     }
 }

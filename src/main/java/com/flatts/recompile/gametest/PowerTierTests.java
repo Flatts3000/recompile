@@ -109,21 +109,40 @@ final class PowerTierTests {
                 return;
             }
             int idle = BurnerGeneratorBlockEntity.burnOnce(level, abs);
-            helper.assertTrue(idle == 0, "an unfuelled generator must make nothing, got " + idle);
+            helper.assertTrue(idle == 0, "an empty generator must make nothing, got " + idle);
 
-            helper.assertTrue(generator.addFuel(level, new ItemStack(RCItems.OILY_RAG.get())),
-                "an Oily Rag must be accepted as fuel");
+            generator.setItem(0, new ItemStack(RCItems.OILY_RAG.get(), 2));
             for (int i = 0; i < 10; i++) {
                 BurnerGeneratorBlockEntity.burnOnce(level, abs);
             }
-            helper.assertTrue(generator.stored() == BurnerGeneratorBlockEntity.FE_PER_TICK * 10,
-                "10 burning ticks must make 10x the per-tick rate, got " + generator.stored());
+            // The first tick lights the fuel and produces nothing, so 10 ticks is 9 burning ones.
+            helper.assertTrue(generator.stored() == BurnerGeneratorBlockEntity.FE_PER_TICK * 9,
+                "9 burning ticks must make 9x the per-tick rate, got " + generator.stored());
+            helper.assertTrue(generator.getItem(0).getCount() == 1,
+                "exactly one rag must have been consumed, " + generator.getItem(0).getCount() + " left");
             helper.succeed();
         });
 
-        // It refuses a second fuel while lit, the Cutting Torch's rule: silently swallowing a rag for a
-        // fraction of its value is a loss the player cannot see happening.
-        RCGameTests.test("burner_generator_refuses_fuel_while_lit", 20, helper -> {
+        // The buffer is what makes it run unattended, and what lets automation fuel it at all. One item
+        // is consumed at a time, so a stack is a queue rather than a single wasted insert.
+        RCGameTests.test("burner_generator_burns_the_buffer_one_at_a_time", 60, helper -> {
+            helper.setBlock(BURNER, RCBlocks.BURNER_GENERATOR.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(BURNER);
+            if (!(level.getBlockEntity(abs) instanceof BurnerGeneratorBlockEntity generator)) {
+                helper.fail("the burner generator has no BlockEntity");
+                return;
+            }
+            generator.setItem(0, new ItemStack(RCItems.OILY_RAG.get(), 3));
+            BurnerGeneratorBlockEntity.burnOnce(level, abs);
+            helper.assertTrue(generator.getItem(0).getCount() == 2,
+                "lighting must take exactly one, got " + generator.getItem(0).getCount() + " left");
+            helper.assertTrue(generator.isLit(), "and the generator must now be lit");
+            helper.succeed();
+        });
+
+        // Non-fuel cannot be parked in the buffer, by hand or by pipe.
+        RCGameTests.test("burner_generator_buffer_takes_only_fuel", 20, helper -> {
             helper.setBlock(BURNER, RCBlocks.BURNER_GENERATOR.get());
             ServerLevel level = helper.getLevel();
             if (!(level.getBlockEntity(helper.absolutePos(BURNER))
@@ -131,23 +150,27 @@ final class PowerTierTests {
                 helper.fail("the burner generator has no BlockEntity");
                 return;
             }
-            generator.addFuel(level, new ItemStack(RCItems.OILY_RAG.get()));
-            helper.assertFalse(generator.addFuel(level, new ItemStack(RCItems.OILY_RAG.get())),
-                "a lit generator must refuse more fuel rather than waste it");
-            helper.succeed();
-        });
-
-        // Non-fuel is refused outright, so the right-click cannot eat an item it did nothing with.
-        RCGameTests.test("burner_generator_refuses_non_fuel", 20, helper -> {
-            helper.setBlock(BURNER, RCBlocks.BURNER_GENERATOR.get());
-            ServerLevel level = helper.getLevel();
-            if (!(level.getBlockEntity(helper.absolutePos(BURNER))
-                    instanceof BurnerGeneratorBlockEntity generator)) {
-                helper.fail("the burner generator has no BlockEntity");
-                return;
-            }
-            helper.assertFalse(generator.addFuel(level, new ItemStack(RCItems.SCRAP_METAL.get())),
+            helper.assertTrue(generator.canPlaceItem(0, new ItemStack(RCItems.OILY_RAG.get())),
+                "an Oily Rag is fuel and must be accepted");
+            helper.assertFalse(generator.canPlaceItem(0, new ItemStack(RCItems.SCRAP_METAL.get())),
                 "scrap metal is not fuel and must be refused");
+            helper.succeed();
+        });
+
+        // Fuel in, nothing out: a pipe must not pull the fuel back out of a generator it just filled.
+        RCGameTests.test("burner_generator_gives_no_fuel_back", 20, helper -> {
+            helper.setBlock(BURNER, RCBlocks.BURNER_GENERATOR.get());
+            ServerLevel level = helper.getLevel();
+            if (!(level.getBlockEntity(helper.absolutePos(BURNER))
+                    instanceof BurnerGeneratorBlockEntity generator)) {
+                helper.fail("the burner generator has no BlockEntity");
+                return;
+            }
+            for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+                helper.assertFalse(
+                    generator.canTakeItemThroughFace(0, new ItemStack(RCItems.OILY_RAG.get()), side),
+                    "no face may give fuel back, " + side + " did");
+            }
             helper.succeed();
         });
 
@@ -161,8 +184,8 @@ final class PowerTierTests {
                 helper.fail("the burner generator has no BlockEntity");
                 return;
             }
-            generator.addFuel(level, new ItemStack(RCItems.OILY_RAG.get()));
-            for (int i = 0; i < 10; i++) {
+            generator.setItem(0, new ItemStack(RCItems.OILY_RAG.get(), 1));
+            for (int i = 0; i < 11; i++) {
                 BurnerGeneratorBlockEntity.burnOnce(level, abs);
             }
 
@@ -186,7 +209,7 @@ final class PowerTierTests {
                     "jade.recompile.energy_stored", "jade.recompile.energy_rate",
                     "jade.recompile.energy_idle", "jade.recompile.burn_remaining",
                     "jei.recompile.info.solar_panel", "jei.recompile.info.burner_generator",
-                    "message.recompile.burner_needs_fuel", "message.recompile.burner_still_burning")) {
+                    "container.recompile.burner_generator")) {
                 String rendered = Component.translatable(key).getString();
                 if (rendered.equals(key)) {
                     missing.add(key);

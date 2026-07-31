@@ -64,7 +64,7 @@ face and the suite passes while asserting nothing.
 | **Compost Heap**, **Recompile Workbench**, **Scrap Crafting Table** | plain `BlockEntity` | n/a | n/a | Not `Container`s. Nothing to expose. |
 | **Sorting Tarp** | *no block entity* | n/a | n/a | Stateless by identity - no input slot, no output buffer. |
 | **Solar Panel** | plain `BlockEntity` | n/a | **energy out** | Holds no items, so no item capability. Exposes `Capabilities.Energy.BLOCK` and pushes to neighbours each tick, so a generator against a machine works with no pipe mod installed at all. |
-| **Burner Generator** | plain `BlockEntity` | n/a | **energy out** | Same. **No item capability and no inventory** - it is fed by right-click, so there is no slot for automation to reach. Automated fuelling is deliberately not supported yet; see #72. |
+| **Burner Generator** | `WorldlyContainer` (5 fuel slots) | **fuel in, nothing out** | **fuel in, nothing out**, plus **energy out** | Reuses vanilla's hopper screen rather than minting one. `canPlaceItem` is "is this fuel", so neither a player nor a pipe can park something unburnable in the buffer, and `canTakeItemThroughFace` refuses every face - a pipe pulling fuel back out of the generator it just filled is nobody's intent. **Null side returns no handler**, the Burn Barrel's lesson: `WorldlyContainerWrapper` skips `getSlotsForFace` entirely on a non-sided query. |
 
 ---
 
