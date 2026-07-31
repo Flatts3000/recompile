@@ -71,7 +71,7 @@ final class DemolitionYardTests {
         // Sifting rubble bare-hand drops stone shards, then the pile crumbles - the stone entry path.
         RCGameTests.test("rubble_sift_yields_stone_shards", 40, helper -> {
             helper.setBlock(RUBBLE.below(), Blocks.STONE);
-            helper.setBlock(RUBBLE, RCBlocks.RUBBLE.get().defaultBlockState());
+            helper.setBlock(RUBBLE, RCBlocks.STONE_RUBBLE.get().defaultBlockState());
             BlockPos abs = helper.absolutePos(RUBBLE);
             ServerLevel level = helper.getLevel();
 

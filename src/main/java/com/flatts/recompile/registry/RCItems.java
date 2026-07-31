@@ -240,8 +240,8 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
     /** Rubble: the demolition yard's pick-through stone-shard source. */
-    public static final DeferredItem<BlockItem> RUBBLE =
-        ITEMS.registerSimpleBlockItem("rubble", RCBlocks.RUBBLE);
+    public static final DeferredItem<BlockItem> STONE_RUBBLE =
+        ITEMS.registerSimpleBlockItem("stone_rubble", RCBlocks.STONE_RUBBLE);
     /** Reinforced Concrete: sledged for rebar + aggregate. */
     public static final DeferredItem<BlockItem> REINFORCED_CONCRETE =
         ITEMS.registerSimpleBlockItem("reinforced_concrete", RCBlocks.REINFORCED_CONCRETE);

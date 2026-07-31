@@ -34,7 +34,7 @@ public final class RCCreativeTabs {
 
                     // --- Raw garbage: the source blocks you pick through ---
                     RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
-                    output.accept(RCItems.RUBBLE.get());
+                    output.accept(RCItems.STONE_RUBBLE.get());
                     output.accept(RCItems.REINFORCED_CONCRETE.get());
                     output.accept(RCItems.STEEL_I_BEAM.get());
 
