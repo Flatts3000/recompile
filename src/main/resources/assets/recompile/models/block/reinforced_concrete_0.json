@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "recompile:block/rubble"
+    "all": "recompile:block/reinforced_concrete_0"
   }
 }

@@ -1,1 +1,51 @@
-{ "variants": { "": { "model": "recompile:block/reinforced_concrete" } } }
+{
+  "variants": {
+    "": [
+      {
+        "model": "recompile:block/reinforced_concrete_0"
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_0",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_0",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_0",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_1"
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_1",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_1",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_1",
+        "y": 270
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_2"
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_2",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_2",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/reinforced_concrete_2",
+        "y": 270
+      }
+    ]
+  }
+}
