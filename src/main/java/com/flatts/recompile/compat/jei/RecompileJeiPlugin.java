@@ -6,6 +6,12 @@ import com.flatts.recompile.compat.TeardownData;
 import com.flatts.recompile.registry.RCItems;
 import java.util.ArrayList;
 import java.util.List;
+import com.flatts.recompile.client.RCSyncedRecipes;
+import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeMap;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -43,6 +49,20 @@ public class RecompileJeiPlugin implements IModPlugin {
      * category, never to a single recipe, so sharing one would advertise the scrap knife as a way to cut
      * steel and the torch as a way to open a tin can. Two tools, two categories.
      */
+    /**
+     * What the Burn Barrel will actually burn. Its own category because JEI catalysts attach to a CATEGORY,
+     * never to a single recipe - so listing the barrel against {@code RecipeTypes.SMELTING} told players
+     * they could smelt iron or glass in a drum fire that refuses both.
+     */
+    static final RecipeType<SalvageRecipe> BURNING =
+        RecipeType.create(Recompile.MOD_ID, "burning", SalvageRecipe.class);
+
+    /**
+     * Vanilla's smelting recipe type, spelled out because {@code RecipeType} in this file is JEI's - the two
+     * share a simple name and cannot both be imported.
+     */
+    private static final net.minecraft.world.item.crafting.RecipeType<SmeltingRecipe> VANILLA_SMELTING =
+        net.minecraft.world.item.crafting.RecipeType.SMELTING;
     static final RecipeType<SalvageRecipe> TORCH_CUTTING =
         RecipeType.create(Recompile.MOD_ID, "torch_cutting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> PRYING =
@@ -65,6 +85,8 @@ public class RecompileJeiPlugin implements IModPlugin {
                 gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true),
             new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false),
+            new SalvageCategory(BURNING, Component.translatable("jei.recompile.burning"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BURN_BARREL.get())), false),
             new SalvageCategory(TORCH_CUTTING, Component.translatable("jei.recompile.torch_cutting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true),
             new SalvageCategory(PRYING, Component.translatable("jei.recompile.prying"),
@@ -89,6 +111,29 @@ public class RecompileJeiPlugin implements IModPlugin {
         // A Steel Offcut has a smelting recipe, so JEI could already say what it BECOMES - but nothing
         // said where it comes FROM, because block drops are invisible to JEI. An item with a use and no
         // source reads like a bug.
+        // The barrel's category is built from the SYNCED smelting recipes, filtered by the same predicate
+        // the block itself uses - so it lists exactly what it burns and cannot drift from the rule. Empty
+        // before a world is joined, which never happens in practice: JEI starts on world load.
+        List<SalvageRecipe> burnable = new ArrayList<>();
+        RecipeMap synced = RCSyncedRecipes.get();
+        if (synced != null) {
+            for (RecipeHolder<SmeltingRecipe> holder : synced.byType(VANILLA_SMELTING)) {
+                SmeltingRecipe recipe = holder.value();
+                recipe.input().items().forEach(item -> {
+                    ItemStack in = new ItemStack(item);
+                    if (!BurnBarrelBlockEntity.burns(in)) {
+                        return;
+                    }
+                    ItemStack out = recipe.assemble(new SingleRecipeInput(in));
+                    if (!out.isEmpty()) {
+                        burnable.add(new SalvageRecipe(in,
+                            List.of(new SortingData.Weighted(out, 1.0f))));
+                    }
+                });
+            }
+        }
+        registration.addRecipes(BURNING, burnable);
+
         registration.addRecipes(TORCH_CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.STEEL_I_BEAM.get()),
                 SortingData.outputs(SortingData.STEEL_BEAM))));
@@ -146,9 +191,9 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUTTING_TORCH.get()), TORCH_CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
-        // The Burn Barrel is this world's furnace - register it as a smelting station so scrap ->
-        // copper shows up on it, not only on the (uncraftable) vanilla furnace.
-        registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), RecipeTypes.SMELTING);
+        // The Burn Barrel is NOT a general smelting station - it burns refuse only, so it is the catalyst
+        // for its own category, which lists exactly what it takes.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), BURNING);
         // The Cupola is the other furnace - and the unrestricted one, so it is where JEI should send
         // a player looking to smelt anything the barrel refuses.
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.SMELTING);

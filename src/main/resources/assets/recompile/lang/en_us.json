@@ -283,5 +283,6 @@
   "jei.recompile.info.cupola_furnace": "A coke-fired shaft furnace for remelting scrap. Smelts everything the Burn Barrel does and everything it refuses, including steel offcuts into iron. Unlike the barrel it takes hoppers.",
   "jei.recompile.info.cutting_torch": "Right-click holding the torch to feed it an Oily Rag. Each rag is worth 8 cuts and it holds 64. Cutting steel spends one charge; with an empty torch the cut is refused.",
   "jei.recompile.info.steel_offcut": "Cut off a Steel I-Beam with a Cutting Torch. Remelt it into iron in a Cupola Furnace - the Burn Barrel will not take it.",
-  "jei.recompile.torch_cutting": "Torch Cutting"
+  "jei.recompile.torch_cutting": "Torch Cutting",
+  "jei.recompile.burning": "Burning"
 }
