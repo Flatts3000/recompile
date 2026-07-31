@@ -91,6 +91,8 @@ front-back.
 the Nether) they do **not** generate or gate power - the nursery runs on its inputs, not on daylight.
 Same standing rule the Grass Spreader's panel follows.
 
+**RF status changed 2026-07-31.** P3.5's "no RF before the Nether" was reversed: the energy tier now arrives with hydroponics, and the Solar Panel becomes a real generator. See `../trashlands/docs/design_decisions.md` P3.5 and `docs/hydroponics_spec.md`. The **Pump stays inert** - that is P2.3, a separate decision.
+
 **Why the tank is inert and the core holds the water** (Jason, this session). One BE, no new
 fluid-storage block. The core carries a water-only `FluidStacksResourceHandler` (the Rain Collector's
 exact tank) and **accepts the bucket itself**: right-click the core with a water bucket and

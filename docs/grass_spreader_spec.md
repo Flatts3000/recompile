@@ -108,6 +108,8 @@ plainly, because either would break locked design:
 - **Motor** - it does **not** rotate anything, expose kinetics, or require Create. P2.3 locks
   "Recompile converts, Create moves", and the mod never *requires* Create.
 
+**RF status changed 2026-07-31.** P3.5's "no RF before the Nether" was reversed: the energy tier now arrives with hydroponics, and the Solar Panel becomes a real generator. See `../trashlands/docs/design_decisions.md` P3.5 and `docs/hydroponics_spec.md`. The **Pump stays inert** - that is P2.3, a separate decision.
+
 Same rule the Machine Frame already follows. The eventual spinning head is a **client-side visual on
 the formed machine**, not the motor gaining behaviour - if either component ever grows real
 mechanics, that is a new design decision, not an implementation detail.
