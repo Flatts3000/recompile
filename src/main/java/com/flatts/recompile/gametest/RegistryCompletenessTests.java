@@ -365,26 +365,33 @@ final class RegistryCompletenessTests {
                 Identifier id = BuiltInRegistries.BLOCK.getKey(block);
                 BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
                 level.setBlock(pos, block.defaultBlockState(), Block.UPDATE_ALL);
-                if (!(level.getBlockEntity(pos) instanceof net.minecraft.world.Container)) {
-                    continue;   // holds no items, so there is nothing to declare
-                }
-                containers++;
-                if (NO_ITEM_CAPABILITY.contains(id.getPath())) {
-                    continue;
-                }
-                boolean exposed = false;
-                for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
-                    if (level.getCapability(
-                            net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK, pos, side) != null) {
-                        exposed = true;
-                        break;
+                // try/finally, not a clear at the end of the body: every early exit below has to put the
+                // plot back. Leaving a block behind is not cosmetic here - gametest plots sit close
+                // together, and debris from one test is the next test's starting world.
+                try {
+                    if (!(level.getBlockEntity(pos) instanceof net.minecraft.world.Container)) {
+                        continue;   // holds no items, so there is nothing to declare
                     }
+                    containers++;
+                    if (NO_ITEM_CAPABILITY.contains(id.getPath())) {
+                        continue;
+                    }
+                    boolean exposed = false;
+                    for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+                        if (level.getCapability(
+                                net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK,
+                                pos, side) != null) {
+                            exposed = true;
+                            break;
+                        }
+                    }
+                    if (!exposed) {
+                        undeclared.add(id.getPath());
+                    }
+                } finally {
+                    level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL);
                 }
-                if (!exposed) {
-                    undeclared.add(id.getPath());
-                }
-                level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
-                    Block.UPDATE_ALL);
             }
         }
         helper.assertTrue(containers > 2,
