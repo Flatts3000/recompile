@@ -2,6 +2,8 @@ package com.flatts.recompile.content.worldgen;
 
 import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.registry.RCBlocks;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -78,6 +80,7 @@ public class BuildingHuskFeature extends Feature<NoneFeatureConfiguration> {
         if (base == Integer.MIN_VALUE) {
             return false;
         }
+        // Floor levels are shared by the whole building - a frame has flat floors even on uneven ground.
         int topY = base + floors * FLOOR_HEIGHT;
 
         // Ragged top: each column line stops somewhere near the top rather than all at once.
@@ -91,16 +94,25 @@ public class BuildingHuskFeature extends Feature<NoneFeatureConfiguration> {
 
         boolean placedAny = false;
         BlockState deck = RCBlocks.REINFORCED_CONCRETE.get().defaultBlockState();
+        List<BlockPos> steel = new ArrayList<>();
 
         // 1. The grid of columns.
         for (int gx = 0; gx <= baysX; gx++) {
             for (int gz = 0; gz <= baysZ; gz++) {
                 int x = origin.getX() + gx * BAY;
                 int z = origin.getZ() + gz * BAY;
-                for (int y = base; y <= columnTop[gx][gz]; y++) {
+                // Each column carries down to ITS OWN ground, not the origin's. Ground under a husk is
+                // rarely level - a rubble pile or a dip beneath one corner would otherwise leave that
+                // column hanging in the air with a gap under it.
+                int foot = groundY(level, x, z, base);
+                if (foot == Integer.MIN_VALUE) {
+                    foot = base;
+                }
+                for (int y = Math.min(foot, base); y <= columnTop[gx][gz]; y++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     if (level.getBlockState(pos).isAir()) {
                         level.setBlock(pos, column(), 2);
+                        steel.add(pos);
                         placedAny = true;
                     }
                 }
@@ -124,6 +136,7 @@ public class BuildingHuskFeature extends Feature<NoneFeatureConfiguration> {
                             BlockPos pos = new BlockPos(x + i, y, z);
                             if (level.getBlockState(pos).isAir()) {
                                 level.setBlock(pos, girder(Direction.Axis.X), 2);
+                                steel.add(pos);
                                 placedAny = true;
                             }
                         }
@@ -133,6 +146,7 @@ public class BuildingHuskFeature extends Feature<NoneFeatureConfiguration> {
                             BlockPos pos = new BlockPos(x, y, z + i);
                             if (level.getBlockState(pos).isAir()) {
                                 level.setBlock(pos, girder(Direction.Axis.Z), 2);
+                                steel.add(pos);
                                 placedAny = true;
                             }
                         }
@@ -155,6 +169,26 @@ public class BuildingHuskFeature extends Feature<NoneFeatureConfiguration> {
                     }
                 }
             }
+        }
+        // 3. Resolve the frame's connections.
+        //
+        // Blocks are placed with flag 2, which skips neighbour updates - necessary during worldgen, and it
+        // means every beam lands in the state it was given and never notices its neighbours. Fine for the
+        // steel stack, which is wreckage and should NOT fuse; wrong for a frame, which is the one thing
+        // that should. So the joints get resolved in a second pass, through the block's own
+        // SteelBeamBlock.updateState rather than by triggering neighbour cascades in worldgen.
+        //
+        // This is what turns a column crossing a girder into a real joint: the column picks up the girder's
+        // run on both axes, becoming a cross with gussets, instead of a pole with beams passing through it.
+        for (BlockPos pos : steel) {
+            BlockState state = level.getBlockState(pos);
+            if (!(state.getBlock() instanceof SteelBeamBlock)) {
+                continue;
+            }
+            for (Direction direction : Direction.values()) {
+                state = SteelBeamBlock.updateState(level, pos, state, direction);
+            }
+            level.setBlock(pos, state, 2);
         }
         return placedAny;
     }
