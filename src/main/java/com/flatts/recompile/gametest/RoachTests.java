@@ -336,5 +336,25 @@ final class RoachTests {
             helper.succeed();
         });
 
+        // Phase 4 copy. A missing lang key renders as the raw key and only shows in a client, so the
+        // guidebook entry and the JEI panel would look like typos rather than a broken build.
+        RCGameTests.test("roach_copy_resolves", 20, helper -> {
+            List<String> missing = new ArrayList<>();
+            for (String key : List.of(
+                    "entity.recompile.roach", "item.recompile.roach_spawn_egg",
+                    "item.recompile.raw_roach", "item.recompile.cooked_roach",
+                    "jei.recompile.info.raw_roach",
+                    "book.recompile.guide.survival.roaches.name",
+                    "book.recompile.guide.survival.roaches.intro.title",
+                    "book.recompile.guide.survival.roaches.intro.text")) {
+                if (net.minecraft.network.chat.Component.translatable(key).getString().equals(key)) {
+                    missing.add(key);
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "these render as their own name, so they are missing from en_us.json: " + missing);
+            helper.succeed();
+        });
+
     }
 }

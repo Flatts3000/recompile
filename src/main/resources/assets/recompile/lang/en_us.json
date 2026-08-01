@@ -303,5 +303,9 @@
   "entity.recompile.roach": "Roach",
   "item.recompile.roach_spawn_egg": "Roach Spawn Egg",
   "item.recompile.raw_roach": "Raw Roach",
-  "item.recompile.cooked_roach": "Cooked Roach"
+  "item.recompile.cooked_roach": "Cooked Roach",
+  "jei.recompile.info.raw_roach": "Something lives in the garbage. Picking through a Block of Garbage occasionally disturbs a roach instead of turning up anything useful - one at a time, and only from household garbage. Kill it yourself and it leaves meat; anything else that kills it leaves nothing. Cook it in the Burn Barrel.",
+  "book.recompile.guide.survival.roaches.name": "Something in the Garbage",
+  "book.recompile.guide.survival.roaches.intro.title": "It bites back",
+  "book.recompile.guide.survival.roaches.intro.text": "Sooner or later a Block of Garbage gives up a roach instead of a material. One roach, from household garbage only, and it costs you that pull.\n\nKill it yourself for Raw Roach - if something else kills it, there is nothing left. Cook it in the Burn Barrel. It is not good food, but it is food you can get on the first day, which nothing else out here is."
 }

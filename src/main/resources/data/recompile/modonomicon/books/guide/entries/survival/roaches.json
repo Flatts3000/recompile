@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:survival/roaches",
+  "category": "recompile:survival",
+  "name": "book.recompile.guide.survival.roaches.name",
+  "icon": {
+    "id": "recompile:raw_roach"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 4,
+  "y": 0
+}
