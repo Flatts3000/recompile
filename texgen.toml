@@ -830,9 +830,20 @@ palette = ["#8a8a8e", "#9a9a9e", "#77777c", "#6a6a70", "#b0b0b4", "#5c5c62", "#a
 
 # Stone shards - one per vanilla stone type, tinted so they read apart at 16px. Procedural
 # "lump" icon on transparent; flip to backend = "ai" to match the base-material icons.
+# The seven stone shards (#76). AI, not procedural: they were the last procedural family in the mod and
+# read as a different mod next to the AI base materials. Since 2026-07-31 each is ALSO a Scrap Bin label
+# (contents_<x>_shard.png is a byte copy), so this art is painted on the front of a bin at block scale.
+#
+# The palettes below are kept even though the backend is now ai: ScrapBinContent's per-content tints are
+# the LEAD STOP of each one, so a regenerated shard whose hue drifts desyncs the bin plate from the item
+# in it. Verify the shipped mean colour against those tints after promoting.
+#
+# Prompts share one silhouette formula on purpose. Seven greyish rocks is the worst case for 16px mush -
+# the failure the Burner Generator's first prompt set hit - so the difference is carried by HUE plus a
+# single texture cue each, never by fine detail. Judge them as a row of seven, not one at a time.
 [surface.stone_shard]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
 prompt = "a small sharp chip of plain grey stone, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.stone_shard.procedural]
@@ -841,7 +852,7 @@ palette = ["#9a9a9e", "#8a8a8e", "#aaaaae", "#77777c"]
 
 [surface.granite_shard]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
 prompt = "a small sharp chip of pink-brown granite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.granite_shard.procedural]
@@ -850,7 +861,7 @@ palette = ["#a67e70", "#b68e80", "#966a5e", "#c69e90"]
 
 [surface.diorite_shard]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
 prompt = "a small sharp chip of white-grey diorite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.diorite_shard.procedural]
@@ -859,7 +870,7 @@ palette = ["#cccccc", "#dcdcdc", "#b4b4b4", "#e4e4e4"]
 
 [surface.andesite_shard]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
 prompt = "a small sharp chip of flat mid-grey andesite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.andesite_shard.procedural]
@@ -868,7 +879,7 @@ palette = ["#8c8c90", "#9c9ca0", "#7c7c80", "#6c6c70"]
 
 [surface.deepslate_shard]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
 prompt = "a small sharp chip of dark blue-grey deepslate, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.deepslate_shard.procedural]
@@ -877,7 +888,7 @@ palette = ["#4a4a52", "#5a5a62", "#3a3a42", "#6a6a72"]
 
 [surface.tuff_shard]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
 prompt = "a small sharp chip of olive-grey tuff, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.tuff_shard.procedural]
@@ -886,7 +897,7 @@ palette = ["#6e6e60", "#7e7e70", "#5e5e50", "#8a8a7a"]
 
 [surface.calcite_shard]
 kind = "item"
-backend = "procedural"
+backend = "ai"
 size = 16
 prompt = "a small sharp chip of near-white calcite, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.calcite_shard.procedural]
