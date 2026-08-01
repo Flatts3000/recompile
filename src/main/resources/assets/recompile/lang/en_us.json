@@ -299,5 +299,7 @@
   "tooltip.recompile.cook_idle": "Idle",
   "tooltip.recompile.generator_generating": "Generating",
   "tooltip.recompile.generator_buffer_full": "Buffer full - nothing is drawing power",
-  "tooltip.recompile.generator_out_of_fuel": "Out of fuel"
+  "tooltip.recompile.generator_out_of_fuel": "Out of fuel",
+  "entity.recompile.roach": "Roach",
+  "item.recompile.roach_spawn_egg": "Roach Spawn Egg"
 }

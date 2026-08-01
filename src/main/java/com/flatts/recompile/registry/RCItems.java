@@ -288,6 +288,15 @@ public final class RCItems {
 
     public static final DeferredItem<BlockItem> BURN_BARREL =
         ITEMS.registerSimpleBlockItem("burn_barrel", RCBlocks.BURN_BARREL);
+    /**
+     * The Roach's spawn egg (#78). Not a convenience - an entity with no egg cannot be placed by hand in
+     * creative, which is the loop this whole feature gets tuned through.
+     */
+    public static final DeferredItem<Item> ROACH_SPAWN_EGG = ITEMS.registerItem(
+        "roach_spawn_egg",
+        props -> new net.minecraft.world.item.SpawnEggItem(
+            props.spawnEgg(RCEntities.ROACH.get())));
+
     public static final DeferredItem<BlockItem> BURNER_GENERATOR =
         ITEMS.registerSimpleBlockItem("burner_generator", RCBlocks.BURNER_GENERATOR);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
