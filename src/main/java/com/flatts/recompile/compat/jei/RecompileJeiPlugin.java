@@ -207,8 +207,11 @@ public class RecompileJeiPlugin implements IModPlugin {
         // The Burn Barrel is NOT a general smelting station - it burns refuse only, so it is the catalyst
         // for its own category, which lists exactly what it takes.
         registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), BURNING);
-        // The Cupola is the other furnace - and the unrestricted one, so it is where JEI should send
-        // a player looking to smelt anything the barrel refuses.
-        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.SMELTING);
+        // BLASTING, not SMELTING (#91). The Cupola is a blast machine now, which is what gates iron: no
+        // vanilla furnace can run a blasting recipe. Left as SMELTING this would be wrong in both
+        // directions at once - advertising a cupola that cooks beef and makes glass, and hiding the iron
+        // recipes that are the only reason to build one. Exactly the bug the Burn Barrel had before it
+        // got its own category.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.BLASTING);
     }
 }

@@ -123,5 +123,5 @@ Levers, in order of preference: **low nutrition** (below the tin can's 4), then 
 
 - **Does it appear in the demolition yard too?** The yard already has four hostile spawns; the mechanic
   is about the *starting* biome having one thing that reacts to being disturbed. Leaning sprawl-only.
-- **Does it burn in the Cupola as well?** It will, since the Cupola is unrestricted - worth confirming
-  that is wanted rather than incidental.
+- ~~**Does it burn in the Cupola as well?**~~ Answered by #91: no. The Cupola became a blast-only metal
+  furnace, so it does not cook. Food stays with the Burn Barrel, which is where a roach belongs anyway.
