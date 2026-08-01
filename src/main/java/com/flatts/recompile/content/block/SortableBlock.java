@@ -1,16 +1,20 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.registry.RCEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -218,6 +222,14 @@ public abstract class SortableBlock extends FallingBlock {
         }
         SoundType sound = state.getSoundType();
 
+        // A roach instead of a pull (#78, spec docs/roach_spec.md). Deliberately placed BEFORE the loot
+        // roll and returning early: the roach replaces the item rather than accompanying it, so a
+        // disturbed pull costs you the material as well as the fight. It also does not advance the
+        // sorted count, so the block is not consumed by an encounter - you can try again.
+        if (releaseRoach(level, pos)) {
+            return false;
+        }
+
         LootTable table = level.getServer().reloadableRegistries().getLootTable(pullTable());
         LootParams params = new LootParams.Builder(level)
             .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
@@ -249,6 +261,47 @@ public abstract class SortableBlock extends FallingBlock {
         }
         float chance = (float) (pulls - (minPulls() - 1)) / (maxPulls() - (minPulls() - 1));
         return random.nextFloat() < chance;
+    }
+
+    /**
+     * Roll for a roach, and release one if it comes up.
+     *
+     * <p>Split out and public so a GameTest can drive it directly rather than rolling until it
+     * fires - the {@code sortOnce} convention. Returns whether the pull was interrupted.
+     *
+     * <p><b>Only garbage, not every sortable.</b> {@link #harboursRoaches} is false by default, so the
+     * demolition yard's rubble stays roach-free: the yard already has four hostile spawns and this
+     * mechanic is about the starting biome having one thing that reacts to being disturbed.
+     */
+    public boolean releaseRoach(ServerLevel level, BlockPos pos) {
+        if (!harboursRoaches() || !RCConfig.ROACHES_ENABLED.get()) {
+            return false;
+        }
+        if (level.getRandom().nextInt(RCConfig.ROACH_CHANCE_DENOMINATOR.get()) != 0) {
+            return false;
+        }
+        return spawnRoach(level, pos);
+    }
+
+    /** Place exactly one roach on top of the block being disturbed. Public for tests, the same reason sortTool and sortedCount are. */
+    public static boolean spawnRoach(ServerLevel level, BlockPos pos) {
+        Entity roach = RCEntities.ROACH.get().spawn(level, pos.above(), EntitySpawnReason.TRIGGERED);
+        if (roach == null) {
+            return false;   // no room; the pull carries on as normal rather than being eaten
+        }
+        level.playSound(null, pos, SoundEvents.SILVERFISH_AMBIENT, SoundSource.BLOCKS, 0.7F, 1.4F);
+        return true;
+    }
+
+    /**
+     * Whether this variant can hide a roach. Only household garbage does.
+     *
+     * <p>Overridden rather than assumed so a new sortable has to make the choice deliberately - the
+     * default is no, because the alternative is every future pick-through block quietly becoming a
+     * spawner.
+     */
+    public boolean harboursRoaches() {
+        return false;
     }
 
     /** Single entry point for interactions and gametests: sort the sortable block at pos. */

@@ -1,6 +1,9 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.entity.RoachEntity;
+import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.server.level.ServerLevel;
@@ -10,6 +13,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 
 /**
@@ -260,6 +266,74 @@ final class RoachTests {
                 clearRoaches(helper, abs);
                 helper.succeed();
             });
+        });
+
+        // Phase 3: a disturbed garbage block releases exactly one roach. Driven through spawnRoach
+        // rather than by rolling the 1-in-N until it fires - the sortOnce convention, so the test is
+        // about what happens when it fires rather than about how often.
+        RCGameTests.test("a_disturbed_garbage_block_releases_one_roach", 40, helper -> {
+            BlockPos block = new BlockPos(2, 1, 2);
+            helper.setBlock(block, RCBlocks.GARBAGE_BLOCK.get());
+            BlockPos abs = helper.absolutePos(block);
+
+            boolean released = SortableBlock.spawnRoach(helper.getLevel(), abs);
+            helper.assertTrue(released, "disturbing garbage must be able to release a roach");
+            helper.assertTrue(roachesNear(helper, abs) == 1,
+                "exactly one, never a swarm - got " + roachesNear(helper, abs));
+            clearRoaches(helper, abs);
+            helper.succeed();
+        });
+
+        // Only household garbage hides them. The yard already has four hostile spawns, and this mechanic
+        // is about the STARTING biome having one thing that reacts to being disturbed - so a new
+        // sortable must opt in rather than inherit it.
+        RCGameTests.test("only_garbage_harbours_roaches", 20, helper -> {
+            List<String> wrong = new ArrayList<>();
+            record Variant(String name, net.minecraft.world.level.block.Block block, boolean expected) { }
+            for (Variant v : List.of(
+                    new Variant("garbage_block", RCBlocks.GARBAGE_BLOCK.get(), true),
+                    new Variant("trash_bag", RCBlocks.TRASH_BAG.get(), false),
+                    new Variant("compacted_bale", RCBlocks.COMPACTED_BALE.get(), false),
+                    new Variant("stone_rubble", RCBlocks.STONE_RUBBLE.get(), false))) {
+                BlockPos pos = new BlockPos(1, 1, 1);
+                helper.setBlock(pos, v.block());
+                if (!(helper.getLevel().getBlockState(helper.absolutePos(pos)).getBlock()
+                        instanceof SortableBlock sortable)) {
+                    wrong.add(v.name() + " is not a SortableBlock");
+                    continue;
+                }
+                if (sortable.harboursRoaches() != v.expected()) {
+                    wrong.add(v.name() + " harboursRoaches=" + sortable.harboursRoaches()
+                        + ", expected " + v.expected());
+                }
+                helper.setBlock(pos, Blocks.AIR);
+            }
+            helper.assertTrue(wrong.isEmpty(), "wrong roach hosts: " + wrong);
+            helper.succeed();
+        });
+
+        // Config off means off. Everything ships config-gated in this mod, and a gate nobody tests is a
+        // gate that quietly stops working.
+        RCGameTests.test("roaches_can_be_turned_off", 20, helper -> {
+            BlockPos block = new BlockPos(2, 1, 2);
+            helper.setBlock(block, RCBlocks.GARBAGE_BLOCK.get());
+            BlockPos abs = helper.absolutePos(block);
+            if (!(helper.getLevel().getBlockState(abs).getBlock() instanceof SortableBlock sortable)) {
+                helper.fail("the garbage block is not a SortableBlock");
+                return;
+            }
+            boolean was = RCConfig.ROACHES_ENABLED.get();
+            try {
+                RCConfig.ROACHES_ENABLED.set(false);
+                for (int i = 0; i < 50; i++) {
+                    helper.assertFalse(sortable.releaseRoach(helper.getLevel(), abs),
+                        "no roach may be released while the config is off");
+                }
+            } finally {
+                RCConfig.ROACHES_ENABLED.set(was);
+            }
+            clearRoaches(helper, abs);
+            helper.succeed();
         });
 
     }

@@ -48,6 +48,12 @@ public class GarbageBlock extends SortableBlock {
         return SORTED;
     }
 
+    /** Household garbage is where roaches live (#78). Bags and bales are sealed; rubble is stone. */
+    @Override
+    public boolean harboursRoaches() {
+        return true;
+    }
+
     @Override
     protected ResourceKey<LootTable> pullTable() {
         return HOUSEHOLD_PULLS;

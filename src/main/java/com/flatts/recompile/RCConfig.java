@@ -17,6 +17,8 @@ public final class RCConfig {
      * exists from first boot; consumed once those blocks land.
      */
     public static final ModConfigSpec.BooleanValue GARBAGE_GRAVITY_ENABLED;
+    public static final ModConfigSpec.BooleanValue ROACHES_ENABLED;
+    public static final ModConfigSpec.IntValue ROACH_CHANCE_DENOMINATOR;
 
     /**
      * Dimension lockout (P1.8): Nether and End access are disabled by default until
@@ -97,6 +99,14 @@ public final class RCConfig {
         GARBAGE_GRAVITY_ENABLED = builder
             .comment("Whether Blocks of Garbage obey gravity (slump when quarried, deorbit on regrowth).")
             .define("garbageGravityEnabled", true);
+        ROACHES_ENABLED = builder
+            .comment("Whether picking through garbage can disturb a roach (#78).")
+            .define("roachesEnabled", true);
+        ROACH_CHANCE_DENOMINATOR = builder
+            .comment("One pull in N releases a roach instead of an item. Higher is rarer.",
+                "This is a progression lever as well as a difficulty one: roaches are the earliest",
+                "renewable food in the game, so the rate decides how much they feed you.")
+            .defineInRange("roachChanceDenominator", 40, 2, 10_000);
         builder.pop();
 
         builder.push("dimensions");
