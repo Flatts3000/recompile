@@ -346,6 +346,20 @@ front = "block/blast_furnace_front"
 front_on = "block/blast_furnace_front_on"
 side = "block/blast_furnace_side"
 
+# The Roach's skin (#78). RETINT, not AI, and that is not a shortcut - an entity texture is a 64x32 UV
+# ATLAS where every pixel's position is meaningful, because the model samples specific regions for the
+# head, legs and body. A generated image would map legs onto the head. Recolouring vanilla's silverfish
+# keeps the unwrap exactly and changes only the hue, which is the whole difference between a silverfish
+# and a roach anyway: grey-blue chitin becomes warm reddish-brown.
+#
+# kind = "entity" tells the pipeline this is an atlas: no crop, no downscale, quantize only.
+[surface.roach]
+kind = "entity"
+backend = "retint"
+size = 64
+tint = "#8a5230"
+source = "entity/silverfish/silverfish"
+
 # Raw and Cooked Roach (#78) - what the dump's one native creature drops, and what the Burn Barrel
 # turns it into. Icons, so they read at inventory scale on transparent; cooked reads as cooked at a
 # glance or the smelt has no visible payoff, which is the one thing these two must not share.
