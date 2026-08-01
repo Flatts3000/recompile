@@ -112,7 +112,20 @@ public class ScrapBinBlockEntity extends BlockEntity {
             return ItemStack.EMPTY;
         }
         int stackMax = new ItemStack(boundMaterial).getMaxStackSize();
-        int taken = Math.min(amount, single ? 1 : stackMax);
+        return withdraw(single ? 1 : stackMax);
+    }
+
+    /**
+     * Take up to {@code max} of the bound material.
+     *
+     * <p>The panel's per-click quantities (one / a stack / half, issue #86) need an arbitrary amount, not
+     * the one-or-stack the boolean form offers. That form now delegates here.
+     */
+    public ItemStack withdraw(int max) {
+        if (boundMaterial == null || amount == 0 || max <= 0) {
+            return ItemStack.EMPTY;
+        }
+        int taken = Math.min(amount, max);
         amount -= taken;
         ItemStack out = new ItemStack(boundMaterial, taken);
         afterContentsChanged();

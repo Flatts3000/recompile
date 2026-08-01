@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
+import com.flatts.recompile.content.menu.ScrapPanelInteraction;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
@@ -130,7 +131,48 @@ final class CraftingTableTests {
 
         // Panel withdraw: clicking a material pulls a stack of it out of the network into the player.
         // Driven through clickMenuButton (the button id is the item's registry id), as the screen does.
-        RCGameTests.test("scrap_crafting_table_panel_withdraws_a_stack", 20, helper -> {
+        // Each click mode pulls its own quantity (issue #86). ScrapPanelInteractionTest covers the
+        // arithmetic; this covers the wiring - that the mode survives the button encoding, reaches the
+        // bin, and moves the real item count. The two halves fail differently and both have to hold.
+        RCGameTests.test("scrap_crafting_table_panel_withdraws_per_click_mode", 20, helper -> {
+            record Case(ScrapPanelInteraction.Mode mode, int expected) { }
+            for (Case c : new Case[] {
+                    new Case(ScrapPanelInteraction.Mode.ONE, 1),
+                    new Case(ScrapPanelInteraction.Mode.STACK, 64),
+                    new Case(ScrapPanelInteraction.Mode.HALF, 32)}) {
+                // Clear to AIR first. Re-placing the same block over an existing one keeps its
+                // BlockEntity, so without this the bin's contents accumulate across the three cases and
+                // every count after the first is measured against the wrong starting stock.
+                BlockPos binPos = new BlockPos(2, 1, 1);
+                helper.setBlock(binPos, Blocks.AIR);
+                helper.setBlock(TABLE, Blocks.AIR);
+
+                helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+                ScrapBinBlockEntity bin = placeBin(helper, binPos);
+                bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 100));
+
+                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ScrapCraftingStationMenu menu = openMenu(helper, player);
+
+                int button = ScrapPanelInteraction.encode(
+                    BuiltInRegistries.ITEM.getId(RCItems.SCRAP_METAL.get()), c.mode());
+                boolean handled = menu.clickMenuButton(player, button);
+
+                helper.assertTrue(handled, c.mode() + " on a stocked material must withdraw");
+                int got = countIn(player, RCItems.SCRAP_METAL.get());
+                helper.assertTrue(got == c.expected(),
+                    c.mode() + " should pull " + c.expected() + ", player got " + got);
+                helper.assertTrue(bin.amount() == 100 - c.expected(),
+                    c.mode() + " should leave " + (100 - c.expected()) + " in the bin, has " + bin.amount());
+                player.discard();
+            }
+            helper.succeed();
+        });
+
+        // A button whose mode ordinal is not a real mode must be a no-op. It comes off the wire, so a
+        // modified client can send anything, and "assume ONE" would let it withdraw on a malformed
+        // packet naming any item it liked.
+        RCGameTests.test("scrap_crafting_table_panel_rejects_a_bogus_click_mode", 20, helper -> {
             helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
             ScrapBinBlockEntity bin = placeBin(helper, new BlockPos(2, 1, 1));
             bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 100));
@@ -138,13 +180,12 @@ final class CraftingTableTests {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
             ScrapCraftingStationMenu menu = openMenu(helper, player);
 
-            int id = BuiltInRegistries.ITEM.getId(RCItems.SCRAP_METAL.get());
-            boolean handled = menu.clickMenuButton(player, id);
+            int bogus = (99 << 24) | BuiltInRegistries.ITEM.getId(RCItems.SCRAP_METAL.get());
+            boolean handled = menu.clickMenuButton(player, bogus);
 
-            helper.assertTrue(handled, "clicking a stocked material must withdraw");
-            helper.assertTrue(countIn(player, RCItems.SCRAP_METAL.get()) == 64,
-                "should pull a full stack, player has " + countIn(player, RCItems.SCRAP_METAL.get()));
-            helper.assertTrue(bin.amount() == 36, "the bin should drop by a stack, has " + bin.amount());
+            helper.assertFalse(handled, "an unknown click mode must not withdraw");
+            helper.assertTrue(countIn(player, RCItems.SCRAP_METAL.get()) == 0, "nothing should be given");
+            helper.assertTrue(bin.amount() == 100, "the bin must be untouched, has " + bin.amount());
             helper.succeed();
         });
 

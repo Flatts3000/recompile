@@ -187,7 +187,9 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
      * <ul>
      *   <li><b>{@link #DEPOSIT_BUTTON}</b> - store the cursor stack into the network (matching bin, then
      *       an empty bin that binds, then the barrel), the same routing the file-all uses.</li>
-     *   <li><b>an item's registry id</b> - withdraw a stack of that item out of the network.</li>
+     *   <li><b>an item's registry id packed with a click mode</b> - withdraw that item out of the
+     *       network, one / a stack / half depending on the mode. See {@link ScrapPanelInteraction} for
+     *       the packing and for why left-click takes one rather than vanilla's whole stack.</li>
      * </ul>
      */
     @Override
@@ -198,13 +200,17 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         if (id == DEPOSIT_BUTTON) {
             return depositCarried();
         }
-        // The id comes off the wire (the panel sends an item's registry id); a malformed client could
-        // send anything, so treat an unknown/air id as a no-op rather than trusting it.
-        Item item = BuiltInRegistries.ITEM.byId(id);
+        // Everything below comes off the wire, so a malformed client must land on a no-op rather than on
+        // a default: an unknown mode is not "assume ONE", it is nothing.
+        ScrapPanelInteraction.Mode mode = ScrapPanelInteraction.modeOf(id);
+        if (mode == null) {
+            return false;
+        }
+        Item item = BuiltInRegistries.ITEM.byId(ScrapPanelInteraction.itemIdOf(id));
         if (item == null || item == Items.AIR) {
             return false;
         }
-        ItemStack pulled = withdrawStack(item);
+        ItemStack pulled = withdrawStack(item, mode);
         if (pulled.isEmpty()) {
             return false;
         }
@@ -231,20 +237,29 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         return true;
     }
 
-    /** Pull up to a stack of {@code item} from the network - the first matching bin, else a barrel slot. */
-    private ItemStack withdrawStack(Item item) {
+    /**
+     * Pull {@code item} from the network - the first matching bin, else a barrel slot - in the quantity
+     * the click asked for.
+     *
+     * <p>The amount is decided against what that <i>source</i> holds rather than against the panel's
+     * merged total, so "half" means half of the stack you are actually taking from. Deciding it against
+     * the network-wide count would make a right-click on a 300-item spread try to pull 150 out of a
+     * single bin and quietly return whatever it had.
+     */
+    private ItemStack withdrawStack(Item item, ScrapPanelInteraction.Mode mode) {
+        int stackMax = new ItemStack(item).getMaxStackSize();
         List<BlockPos> members = ScrapNetwork.collect(level, pos);
         for (ScrapBinBlockEntity bin : ScrapNetwork.bins(level, members)) {
             if (bin.boundMaterial() == item && bin.amount() > 0) {
-                return bin.withdraw(false);   // up to a stack
+                return bin.withdraw(ScrapPanelInteraction.amountFor(mode, bin.amount(), stackMax));
             }
         }
-        int max = new ItemStack(item).getMaxStackSize();
         for (Container barrel : ScrapNetwork.barrels(level, members)) {
             for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
                 ItemStack stack = barrel.getItem(slot);
                 if (stack.is(item)) {
-                    ItemStack out = stack.split(Math.min(stack.getCount(), max));
+                    int take = ScrapPanelInteraction.amountFor(mode, stack.getCount(), stackMax);
+                    ItemStack out = stack.split(take);
                     barrel.setChanged();
                     return out;
                 }
