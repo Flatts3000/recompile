@@ -3,13 +3,20 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.ScrapBinContent;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
+import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.multiblock.Multiblock;
+import com.flatts.recompile.content.block.multiblock.MultiblockDummyBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Framework-level GameTests for the multiblock {@code form()} step (design P2.10, the Workstation).
@@ -64,6 +71,50 @@ final class MultiblockTests {
         // The machine case is unchanged: when the formed block differs from the component, the cell is
         // still replaced (the Grass Spreader's copper-pipe -> spigot). Guards against the fix
         // over-reaching and skipping real replacements.
+        // Rotation (#82, reported by Spagles). MultiblockDummyBlock.findCore walked the blueprint with no
+        // rotation, so a dummy cell of a machine facing anything but NORTH could not find its own core.
+        // Everything downstream of findCore broke silently with it: right-clicking a cell did nothing,
+        // Jade showed no tooltip, and breaking a cell did not disband the machine.
+        //
+        // The Tree Nursery is the only directional multiblock in the mod (it is the only core that
+        // overrides rotationFor), and its Water Tank cell is at offset (1,0,0) - a pure X offset, so it
+        // lands somewhere different under every rotation. That is what makes it the case that catches this.
+        RCGameTests.test("dummy_cell_finds_its_core_on_a_rotated_machine", 20, helper -> {
+            for (Direction facing : new Direction[] {
+                    Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+                BlockPos core = new BlockPos(2, 1, 2);
+                // Clear the whole footprint between cases: a stale block from the previous facing would
+                // sit where this one expects air and quietly satisfy the search.
+                for (int dx = -2; dx <= 2; dx++) {
+                    for (int dz = -2; dz <= 2; dz++) {
+                        for (int dy = 0; dy <= 1; dy++) {
+                            helper.setBlock(core.offset(dx, dy, dz), Blocks.AIR);
+                        }
+                    }
+                }
+                BlockState coreState = RCBlocks.TREE_NURSERY.get().defaultBlockState()
+                    .setValue(HorizontalDirectionalBlock.FACING, facing);
+                helper.setBlock(core, coreState);
+
+                TreeNurseryCoreBlock block = (TreeNurseryCoreBlock) coreState.getBlock();
+                Rotation rotation = block.rotationFor(coreState);
+                block.blueprint().form(helper.getLevel(), helper.absolutePos(core), rotation);
+
+                BlockPos tank = block.blueprint().cells().get(0).at(core, rotation);
+                helper.assertTrue(
+                    helper.getBlockState(tank).is(RCBlocks.TREE_NURSERY_TANK.get()),
+                    "facing " + facing + ": the tank cell should be formed at " + tank
+                        + ", found " + helper.getBlockState(tank));
+
+                BlockPos found = MultiblockDummyBlock.findCore(
+                    helper.getLevel(), helper.absolutePos(tank));
+                helper.assertTrue(found != null && found.equals(helper.absolutePos(core)),
+                    "facing " + facing + ": the tank cell at " + tank + " must find its core at " + core
+                        + ", got " + (found == null ? "null" : helper.relativePos(found).toString()));
+            }
+            helper.succeed();
+        });
+
         RCGameTests.test("multiblock_form_still_replaces_differing_cells", 20, helper -> {
             BlockPos coreRel = new BlockPos(1, 1, 1);
             BlockPos cellRel = coreRel.above();

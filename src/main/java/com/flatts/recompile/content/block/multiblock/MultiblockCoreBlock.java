@@ -51,8 +51,14 @@ public abstract class MultiblockCoreBlock extends Block {
      * How this core's blueprint is rotated for a given state - {@link Rotation#NONE} by default (a
      * vertical column is rotation-invariant). A directional machine overrides this from its facing so
      * the structure builds relative to the player.
+     *
+     * <p><b>Public because callers outside this package need it</b> (#82). Jade has to walk the blueprint
+     * to name a missing component and cannot do that without knowing which way it is turned, and
+     * {@code MachineStatusProvider} lives in {@code compat.jade} - not a subclass, not this package, so
+     * protected was unreachable from it and the fix did not compile. Same reason {@code SortableBlock}
+     * exposes public read-only accessors for its sort state.
      */
-    protected Rotation rotationFor(BlockState state) {
+    public Rotation rotationFor(BlockState state) {
         return Rotation.NONE;
     }
 
