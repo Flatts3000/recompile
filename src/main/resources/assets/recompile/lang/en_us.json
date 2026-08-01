@@ -301,5 +301,7 @@
   "tooltip.recompile.generator_buffer_full": "Buffer full - nothing is drawing power",
   "tooltip.recompile.generator_out_of_fuel": "Out of fuel",
   "entity.recompile.roach": "Roach",
-  "item.recompile.roach_spawn_egg": "Roach Spawn Egg"
+  "item.recompile.roach_spawn_egg": "Roach Spawn Egg",
+  "item.recompile.raw_roach": "Raw Roach",
+  "item.recompile.cooked_roach": "Cooked Roach"
 }

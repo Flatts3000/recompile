@@ -2,6 +2,8 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.entity.RoachEntity;
 import com.flatts.recompile.registry.RCEntities;
+import com.flatts.recompile.registry.RCItems;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -40,6 +42,13 @@ final class RoachTests {
     private static void clearRoaches(net.minecraft.gametest.framework.GameTestHelper helper, BlockPos abs) {
         helper.getLevel().getEntitiesOfClass(RoachEntity.class, new AABB(abs).inflate(12))
             .forEach(Entity::discard);
+    }
+
+    /** A food item's nutrition, for the progression assertions below. */
+    private static int nutrition(net.minecraft.world.item.Item item) {
+        net.minecraft.world.food.FoodProperties food =
+            new net.minecraft.world.item.ItemStack(item).get(net.minecraft.core.component.DataComponents.FOOD);
+        return food == null ? -1 : food.nutrition();
     }
 
     private static int roachesNear(net.minecraft.gametest.framework.GameTestHelper helper, BlockPos abs) {
@@ -143,6 +152,52 @@ final class RoachTests {
                 RoachTests.class.getResource("/assets/recompile/textures/entity/roach.png") != null,
                 "assets/recompile/textures/entity/roach.png is missing, so the roach renders as the "
                     + "missing texture - and no model references it, so nothing else would notice");
+            helper.succeed();
+        });
+
+        // The claim the whole drop choice rests on: the Burn Barrel cooks Raw Roach WITHOUT any tag
+        // change, because its rule matches the FOOD component rather than a list. If the barrel's rule
+        // ever narrows to an allowlist, this fails - which is the point, since the alternative was
+        // making roaches drop organic muck and compete with the Compost Heap.
+        RCGameTests.test("burn_barrel_cooks_raw_roach_with_no_tag", 20, helper -> {
+            helper.assertTrue(
+                com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity.burns(
+                    new net.minecraft.world.item.ItemStack(RCItems.RAW_ROACH.get())),
+                "the barrel must accept Raw Roach through the FOOD component, with no allowlist entry");
+            helper.assertFalse(
+                new net.minecraft.world.item.ItemStack(RCItems.RAW_ROACH.get())
+                    .is(com.flatts.recompile.registry.RCTags.BURN_BARREL_SMELTABLE),
+                "...and it must NOT be in the allowlist, or this proves nothing about the component");
+            helper.succeed();
+        });
+
+        // Raw smelts to cooked, and cooked is worth more than raw - otherwise the barrel step is a
+        // ritual rather than an upgrade.
+        RCGameTests.test("raw_roach_smelts_into_cooked_roach", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            net.minecraft.world.item.crafting.SingleRecipeInput input =
+                new net.minecraft.world.item.crafting.SingleRecipeInput(
+                    new net.minecraft.world.item.ItemStack(RCItems.RAW_ROACH.get()));
+            boolean smelts = level.getServer().getRecipeManager().recipeMap()
+                .getRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMELTING, input, level)
+                .findAny().isPresent();
+            helper.assertTrue(smelts, "Raw Roach must have a smelting recipe");
+
+            int raw = nutrition(RCItems.RAW_ROACH.get());
+            int cooked = nutrition(RCItems.COOKED_ROACH.get());
+            helper.assertTrue(cooked > raw,
+                "cooking must be worth doing: raw " + raw + " -> cooked " + cooked);
+            helper.succeed();
+        });
+
+        // The progression guard. Roaches arrive at tier 0, so cooked roach must not beat the tin can -
+        // the earliest renewable food outclassing the found food would invert the whole early economy.
+        RCGameTests.test("cooked_roach_does_not_beat_the_tin_can", 20, helper -> {
+            int roach = nutrition(RCItems.COOKED_ROACH.get());
+            int can = nutrition(RCItems.TIN_CAN_OPEN.get());
+            helper.assertTrue(roach <= can,
+                "cooked roach (" + roach + ") must not out-feed an opened tin can (" + can
+                    + ") - it is renewable from the first garbage block, and the can is not");
             helper.succeed();
         });
 

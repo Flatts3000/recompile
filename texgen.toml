@@ -346,6 +346,22 @@ front = "block/blast_furnace_front"
 front_on = "block/blast_furnace_front_on"
 side = "block/blast_furnace_side"
 
+# Raw and Cooked Roach (#78) - what the dump's one native creature drops, and what the Burn Barrel
+# turns it into. Icons, so they read at inventory scale on transparent; cooked reads as cooked at a
+# glance or the smelt has no visible payoff, which is the one thing these two must not share.
+[surface.raw_roach]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a bold simple Minecraft item icon of a single raw cockroach carcass on its back, dark chitinous brown body with pale underside and thin legs curled up, centered, plain transparent background, no scene"
+
+[surface.cooked_roach]
+kind = "item"
+backend = "ai"
+size = 16
+reference = "raw_roach"
+prompt = "the same cockroach, cooked: roasted golden-brown and crisped, warmer and lighter than raw, slight char at the edges, bold simple Minecraft item icon, centered, plain transparent background, no scene"
+
 # The Burner Generator (#72): the power tier's fuel-burning half.
 #
 # Prompts rewritten 2026-07-31 after the first set was rejected. The first set failed the way grey
