@@ -83,7 +83,7 @@ public class TreeNurseryCoreBlock extends MultiblockCoreBlock implements EntityB
 
     /** The blueprint is authored for {@code FACING=NORTH}; rotate it to the placed facing. */
     @Override
-    protected Rotation rotationFor(BlockState state) {
+    public Rotation rotationFor(BlockState state) {
         return switch (state.getValue(FACING)) {
             case EAST -> Rotation.CLOCKWISE_90;
             case SOUTH -> Rotation.CLOCKWISE_180;
