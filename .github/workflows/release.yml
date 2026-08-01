@@ -22,6 +22,16 @@ on:
   push:
     tags:
       - "v*"
+  # Manual re-run, for when the GitHub release shipped but a later step did not. Moving a tag to
+  # re-trigger the push event would rewrite published history; this reruns against the same tag.
+  # Launch it from a branch that HAS the fix: a dispatch uses the workflow file from the ref you
+  # pick, while `ref` below decides which tag's code gets built.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Tag to build and upload (e.g. v0.4.0)"
+        required: true
+        type: string
 
 permissions:
   contents: write # create GitHub releases
@@ -31,10 +41,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
-      - name: Resolve version from tag
+      - name: Resolve version and tag
         id: ver
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        env:
+          INPUT_REF: ${{ inputs.ref }}
+        run: |
+          # On a tag push the tag is GITHUB_REF_NAME; on a manual dispatch it is the input,
+          # because GITHUB_REF_NAME is then the branch the run was launched from.
+          tag="${INPUT_REF:-$GITHUB_REF_NAME}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
 
       - name: Guard - gradle.properties version matches the tag
         run: |
@@ -89,8 +108,14 @@ jobs:
           case "${{ steps.ver.outputs.version }}" in
             0.*|*-*) prerelease="--prerelease" ;;
           esac
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
+          # A dispatch re-run is normally fixing a LATER step, so the release usually exists
+          # already. Recreating it would fail the run before reaching the step being fixed.
+          if gh release view "${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "release ${{ steps.ver.outputs.tag }} already exists - leaving it alone"
+            exit 0
+          fi
+          gh release create "${{ steps.ver.outputs.tag }}" \
+            --title "${{ steps.ver.outputs.tag }}" \
             --notes-file release_notes.md \
             $prerelease \
             "${{ steps.build.outputs.jar }}"
@@ -131,9 +156,40 @@ jobs:
                   wanted.setdefault("loader", v["id"])
               if name == "Java 25":
                   wanted.setdefault("java", v["id"])
-          ids = [i for i in wanted.values()]
+
+          # The environment group (Client / Server) is REQUIRED and is easy to miss, because the
+          # upload succeeds without it right up until it does not: v0.4.0 came back
+          # "errorCode 1021: You must select at least one version from the environment group of
+          # versions" after the GitHub release had already shipped. Recompile runs on both sides
+          # (it has client rendering and a dedicated-server test suite), so both are declared.
+          #
+          # Matched by version TYPE rather than by name alone. "Client" and "Server" are ordinary
+          # words and a future game version could carry one; the type id is what CurseForge groups on.
+          env_type_ids = set()
+          try:
+              treq = urllib.request.Request(
+                  "https://minecraft.curseforge.com/api/game/version-types",
+                  headers={"X-Api-Token": token})
+              for t in json.load(urllib.request.urlopen(treq)):
+                  if "environment" in (t.get("slug") or t.get("name") or "").lower():
+                      env_type_ids.add(t["id"])
+          except Exception as e:
+              print(f"::warning::could not read CurseForge version types ({e}); falling back to names")
+
+          env_ids = []
+          for v in versions:
+              if v.get("name") in ("Client", "Server") and (
+                      not env_type_ids or v.get("gameVersionTypeID") in env_type_ids):
+                  env_ids.append(v["id"])
+
+          ids = [i for i in wanted.values()] + env_ids
           if "mc" not in wanted:
               print(f"::warning::could not resolve a CurseForge id for Minecraft {mc_version}")
+          if not env_ids:
+              # Fail HERE rather than on the upload. The 400 arrives after the file has been sent and
+              # says nothing about which group is missing unless you already know the error code.
+              sys.exit("::error::no CurseForge environment version (Client/Server) resolved - the "
+                       "upload would be rejected with errorCode 1021")
           version = os.environ["VERSION"]
           meta = {
               "changelog": open("release_notes.md", encoding="utf-8").read(),
@@ -155,6 +211,7 @@ jobs:
           echo "HTTP $code: $body"
           if [ "$code" != "200" ]; then
             echo "::error::CurseForge upload failed (HTTP $code): $body"
+            echo "::notice::The GitHub release already shipped. Fix this step, then re-run via workflow_dispatch with ref=${{ steps.ver.outputs.tag }} - do not move the tag."
             exit 1
           fi
           fileid=$(printf '%s' "$body" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])")
