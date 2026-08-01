@@ -66,6 +66,51 @@ final class RegistryCompletenessTests {
         "tree_nursery_tank"
     );
 
+    /**
+     * Vanilla model parents this mod is allowed to inherit from, each one confirmed present in the
+     * 26.1.2 client jar.
+     *
+     * <p><b>Why a list and not an existence check.</b> Vanilla assets are not on the classpath of either
+     * test layer - not the GameTest server (a dedicated server ships no {@code assets/}) and not the JUnit
+     * run. Both were probed rather than assumed. So a test cannot ask whether a vanilla model exists, and
+     * the honest substitute is to require that every vanilla parent be one somebody has checked against
+     * the jar for this MC version. Adding a new one means opening the jar; that is the point.
+     *
+     * <p>This exists because 26.1 <b>deleted</b> {@code minecraft:item/template_spawn_egg} - spawn eggs
+     * stopped being a tinted two-layer template and became ordinary {@code item/generated} with a PNG
+     * each. The Roach's egg still parented to it and rendered as the missing model. The old check skipped
+     * every parent outside this mod's namespace on the reasoning that vanilla is not ours to verify;
+     * vanilla is stable within a version, and this mod moves between them.
+     */
+    private static final Set<String> VANILLA_PARENTS = Set.of(
+        "block/block",
+        "block/cross",
+        "block/cube",
+        "block/cube_all",
+        "block/cube_bottom_top",
+        "block/inner_stairs",
+        "block/orientable",
+        "block/orientable_with_bottom",
+        "block/outer_stairs",
+        "block/slab",
+        "block/slab_top",
+        "block/stairs",
+        "block/template_daylight_detector",
+        "block/template_glass_pane_noside",
+        "block/template_glass_pane_noside_alt",
+        "block/template_glass_pane_post",
+        "block/template_glass_pane_side",
+        "block/template_glass_pane_side_alt",
+        "block/template_wall_post",
+        "block/template_wall_side",
+        "block/template_wall_side_tall",
+        "block/torch",
+        "block/wall_inventory",
+        "block/wall_torch",
+        "item/generated",
+        "item/handheld"
+    );
+
     private RegistryCompletenessTests() {
     }
 
@@ -137,11 +182,8 @@ final class RegistryCompletenessTests {
             report(helper, missing, "blocks with no loot table");
         });
 
-        // A block with no item cannot be held, crafted into anything, or put in the creative tab.
-        // Some legitimately should not be - but each of those is a decision, so they are named in
-        // NO_ITEM_FORM rather than the test being loosened to accommodate them.
         // A model file existing is not the same as it RESOLVING. See checkModelParentsResolve.
-        RCGameTests.test("every_item_model_parent_resolves", 20, helper -> {
+        RCGameTests.test("every_model_parent_resolves", 20, helper -> {
             checkModelParentsResolve(helper);
             helper.succeed();
         });
@@ -165,6 +207,9 @@ final class RegistryCompletenessTests {
             helper.succeed();
         });
 
+        // A block with no item cannot be held, crafted into anything, or put in the creative tab.
+        // Some legitimately should not be - but each of those is a decision, so they are named in
+        // NO_ITEM_FORM rather than the test being loosened to accommodate them.
         RCGameTests.test("every_block_has_an_item", 20, helper -> {
             List<String> missing = new ArrayList<>();
             forEachModBlock((id, block) -> {
@@ -191,29 +236,100 @@ final class RegistryCompletenessTests {
      * <p>Caught exactly that when Rubble and Reinforced Concrete moved to numbered variants: their
      * {@code models/block/<id>.json} was replaced by {@code <id>_0..2}, and the item models still parented
      * to the old path.
+     *
+     * <p><b>Vanilla parents are checked too, and that is a correction.</b> This used to skip anything
+     * outside the mod's namespace on the reasoning that vanilla is not ours to verify. Vanilla is stable
+     * <i>within</i> a version and this mod moves between them: 26.1 deleted
+     * {@code minecraft:item/template_spawn_egg} (spawn eggs stopped being a tinted two-layer template and
+     * became ordinary {@code item/generated} with a PNG each). The Roach's spawn egg still parented to it,
+     * rendered as the missing model, and every test here stayed green. A parent that does not exist is
+     * broken regardless of who owns it.
+     *
+     * <p>It walks <b>every</b> model the game can reach, blocks included, rather than only
+     * {@code models/item/<id>.json}. Restricting it to items would have left the allowlist half enforced -
+     * two thirds of its entries are {@code block/} parents.
      */
     private static void checkModelParentsResolve(GameTestHelper helper) {
+        Set<String> models = discoverModels();
+        helper.assertTrue(models.size() > 20,
+            "only " + models.size() + " models were reached - discovery is broken, so this test would "
+                + "pass against any broken parent");
+
         List<String> broken = new ArrayList<>();
-        forEachModItem((id, item) -> {
-            String json = readResource("/assets/" + id.getNamespace() + "/models/item/"
-                + id.getPath() + ".json");
+        for (String model : models) {
+            String json = readResource("/assets/" + Recompile.MOD_ID + "/models/" + model + ".json");
             if (json == null) {
-                return;   // the model file itself is covered by every_client_item_model_resolves,
-                          // which checks the model each client definition names
+                continue;   // a model named but absent is reported by the resolve checks
             }
             Matcher m = PARENT.matcher(json);
             while (m.find()) {
                 String parent = m.group(1);
-                if (!parent.startsWith(Recompile.MOD_ID + ":")) {
-                    continue;   // vanilla parents are not ours to verify
-                }
-                String path = parent.substring(parent.indexOf(':') + 1);
-                if (!resourceExists("/assets/" + Recompile.MOD_ID + "/models/" + path + ".json")) {
-                    broken.add(id.getPath() + " -> " + parent);
+                if (!modelExists(parent)) {
+                    broken.add(model + " -> " + parent);
                 }
             }
+        }
+        report(helper, broken, "models whose parent does not exist");
+    }
+
+    /**
+     * Every model of this mod's that the game can actually reach, found the way the game finds them:
+     * from every blockstate and every client item definition, then following {@code parent} up the chain.
+     *
+     * <p>Walking the parent chain also reaches models nothing else names directly - the bin's per-material
+     * labels, the burner's lit variant - which is why both the texture check and the parent check share
+     * this rather than each enumerating what they think exists.
+     */
+    private static Set<String> discoverModels() {
+        Set<String> models = new java.util.LinkedHashSet<>();
+        forEachModBlock((id, block) -> collectModels(
+            readResource("/assets/" + id.getNamespace() + "/blockstates/" + id.getPath() + ".json"),
+            models));
+        forEachModItem((id, item) -> {
+            collectModels(readResource("/assets/" + id.getNamespace() + "/items/"
+                + id.getPath() + ".json"), models);
+            if (resourceExists("/assets/" + id.getNamespace() + "/models/item/" + id.getPath() + ".json")) {
+                models.add("item/" + id.getPath());
+            }
         });
-        report(helper, broken, "item models whose parent does not exist");
+
+        List<String> queue = new ArrayList<>(models);
+        for (int i = 0; i < queue.size(); i++) {
+            String json = readResource("/assets/" + Recompile.MOD_ID + "/models/" + queue.get(i) + ".json");
+            if (json == null) {
+                continue;
+            }
+            Matcher parents = PARENT.matcher(json);
+            while (parents.find()) {
+                String parent = parents.group(1);
+                if (parent.startsWith(Recompile.MOD_ID + ":")) {
+                    String path = parent.substring(parent.indexOf(':') + 1);
+                    if (models.add(path)) {
+                        queue.add(path);
+                    }
+                }
+            }
+        }
+        return models;
+    }
+
+    /**
+     * Does a model reference resolve?
+     *
+     * <p>Two different questions behind one name, because a model file cannot tell you which it is. Ours
+     * is answered by reading the classpath. Vanilla's cannot be - see {@link #VANILLA_PARENTS} - so it is
+     * answered by the allowlist instead. A third-party namespace is treated as present: another mod's
+     * assets are not guaranteed to be on this classpath, and failing there would report a missing optional
+     * dependency as a broken model.
+     */
+    private static boolean modelExists(String ref) {
+        int colon = ref.indexOf(':');
+        String namespace = colon < 0 ? "minecraft" : ref.substring(0, colon);
+        String path = ref.substring(colon + 1);
+        if (namespace.equals(Recompile.MOD_ID)) {
+            return resourceExists("/assets/" + namespace + "/models/" + path + ".json");
+        }
+        return !namespace.equals("minecraft") || VANILLA_PARENTS.contains(path);
     }
 
     /**
@@ -271,36 +387,7 @@ final class RegistryCompletenessTests {
      * names directly - the bin's per-material labels, the burner's lit variant.
      */
     private static void checkModelTexturesExist(GameTestHelper helper) {
-        Set<String> models = new java.util.LinkedHashSet<>();
-        forEachModBlock((id, block) -> collectModels(
-            readResource("/assets/" + id.getNamespace() + "/blockstates/" + id.getPath() + ".json"),
-            models));
-        forEachModItem((id, item) -> {
-            collectModels(readResource("/assets/" + id.getNamespace() + "/items/"
-                + id.getPath() + ".json"), models);
-            if (resourceExists("/assets/" + id.getNamespace() + "/models/item/" + id.getPath() + ".json")) {
-                models.add("item/" + id.getPath());
-            }
-        });
-
-        // Follow parents, so a model that only inherits its textures is still checked.
-        List<String> queue = new ArrayList<>(models);
-        for (int i = 0; i < queue.size(); i++) {
-            String json = readResource("/assets/" + Recompile.MOD_ID + "/models/" + queue.get(i) + ".json");
-            if (json == null) {
-                continue;
-            }
-            Matcher parents = PARENT.matcher(json);
-            while (parents.find()) {
-                String parent = parents.group(1);
-                if (parent.startsWith(Recompile.MOD_ID + ":")) {
-                    String path = parent.substring(parent.indexOf(':') + 1);
-                    if (models.add(path)) {
-                        queue.add(path);
-                    }
-                }
-            }
-        }
+        Set<String> models = discoverModels();
 
         // Non-vacuous by construction: if discovery finds nothing, that is the bug, not a pass.
         helper.assertTrue(models.size() > 20,
