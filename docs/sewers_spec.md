@@ -22,6 +22,7 @@ superseded rather than closed by this** - see the progression note below.
 | Decision | Answer | Why |
 |---|---|---|
 | Where | **In the demolition yard** | Travel already gates the yard, so the sewer needs no gate of its own |
+| Depth | **Thicken the deepslate to hold them** | The slab is only ~13 blocks today with void beneath. The layering (coarse dirt, deepslate, bedrock) is already right; there is just not enough of it |
 | Entry | **Prybar on a manhole** | Reuses the Bulky Waste loop exactly: a surface find, tool-gated, one action. No new verb, no new tool |
 | Surface marker | **A 3x3 of Reinforced Concrete with the manhole at its centre** | Reads as deliberate rather than as terrain noise, and it is built from a block the yard already has |
 | Rarity | **Vanilla mineshaft frequency** | `frequency: 0.004`, `spacing: 1`, `separation: 0`, `legacy_type_3`. Copied from `structure_set/mineshafts.json` rather than guessed |
@@ -30,31 +31,43 @@ superseded rather than closed by this** - see the progression note below.
 | Extent | **Finite per sewer** | One is cleared and done. The world holds more |
 | Inhabitants | **Roaches, frogs, turtles, drowned** | |
 | Reward | **Barrels with real loot** | Finite content needs a reason to clear it |
+| Generation | **A custom Java `StructureType`** | Vanilla mineshaft sprawl is code-backed; jigsaw would read like a bastion |
+| Water | **Sewage, filtered before use** | Keeps the Rain Collector's scarcity and earns a machine instead of undercutting one |
+| Drowned loot | **Vanilla, trident included** | By sewer depth the player has iron and sticks, so armour and tools exist. A trident is a prize, not a spike |
 | Held light | **Torches light while carried** | See phase 0; this is the one item that may not be buildable |
 
-## 2. The four constraints that shape everything below
+## 2. The constraints that shape everything below
 
-**The iron gate is the thing most likely to be broken by accident.** Nothing in this mod can mine
-stone: sledgehammers are tag-gated to `recompile:reinforced_concrete` alone and no tool carries
-`mineable/pickaxe`. That absence is the *entire* mechanism keeping a vanilla furnace uncraftable, and
-the Cupola upgrade path with it. Bricks were checked and are safe -
-`#minecraft:stone_crafting_materials` is only cobblestone, blackstone and cobbled deepslate. **Any new
-sewer block must be checked against that tag before it ships**, and `progression_gates.md` in the
-Trashlands repo is the place that tracks what is reachable when.
+**The iron gate is the thing most likely to be broken by accident.** The mod ships no stone-mining tool
+of its own - sledgehammers are tag-gated to `recompile:reinforced_concrete` alone - and that absence is
+what `CupolaFurnaceBlockEntity` documents as keeping a vanilla furnace uncraftable. Brick was checked
+and is safe: `#minecraft:stone_crafting_materials` is only cobblestone, blackstone and cobbled
+deepslate. **Any new sewer block must be checked against that tag before it ships**, and
+`progression_gates.md` in the Trashlands repo tracks what is reachable when.
 
-**Brick cannot be taken home, and that is a decision to make rather than a bug to find.** Brick needs a
-pickaxe to drop. With no pickaxe, a player will walk brick corridors they cannot harvest. Either that
-is intentional (the sewer is a place, not a quarry) or a bespoke drop rule is needed. **Do not solve it
-by adding a pickaxe.**
+That the gate already leaks (below) does not make this check optional. A second hole would still have to
+be found and closed, and the sewer is the largest new block palette the mod has ever added at once.
+
+**Brick is harvestable, and that resolved itself.** An earlier draft of this spec said players could not
+take brick home because the mod has no pickaxe. That is wrong at this point in the game: the Tree
+Nursery gives wood, and a wooden pickaxe is a vanilla recipe the mod does not remove. So brick behaves
+normally and needs no bespoke rule. (The same chain is why the iron gate has a hole - see the note at
+the end of this section.)
 
 **This mod has no mixins.** That is a standing architectural rule, and it is what makes the held-light
 requirement a research task rather than a feature.
 
-**Sewer water arrives at almost exactly the same time as buckets.** A bucket is three iron, iron comes
-from the yard, and the sewer is *in* the yard. So a source block down there ends the Rain Collector's
-monopoly (a locked P1.10 decision) the moment sewers are reachable. Two ways out, both fine, but one
-must be chosen: flowing water with no source blocks (unbucketable, still swimmable for the mobs), or a
-sewage fluid that has to be filtered, which earns a machine instead of undercutting one.
+**Sewer water is sewage, and that is why.** A bucket is three iron, iron comes from the yard, and the
+sewer is *in* the yard, so a plain water source down there would end the Rain Collector's monopoly (a
+locked P1.10 decision) the moment sewers become reachable. Sewage that must be filtered before it is
+usable keeps the scarcity and earns a machine instead of retiring one. It costs a custom fluid; the
+Rain Collector's tank is the pattern to follow (`ResourceHandler<FluidResource>`, transactional).
+
+**A gate hole found while writing this, filed separately.** Plain `minecraft:deepslate` sits in
+`mineable/pickaxe` and in no `needs_*_tool` tag, so a **wooden** pickaxe drops cobbled deepslate - which
+is in `#minecraft:stone_crafting_materials` and crafts a vanilla furnace. The Tree Nursery supplies the
+wood. So the Cupola can be skipped today. It is not a sewer problem, but it is the same trap
+`CupolaFurnaceBlockEntity` warns about, and it changes what "the player has at this depth" means.
 
 ---
 
@@ -105,21 +118,27 @@ findable; if playtest says it still is not, the pad grows before the rarity chan
 
 **Ships:** the structure. Corridors, rooms, levels, pipes, water.
 
-**The architectural fork, which has to be decided first.** `minecraft:mineshaft` is a **code-backed
-structure type**, not a data-driven one - its `mineshaft_type` picks block palettes hardcoded in Java,
-so it cannot be reskinned to brick from a datapack. So either:
+**A custom `StructureType` in Java, mirroring vanilla's `MineshaftPieces`.** Decided rather than open.
+`minecraft:mineshaft` is code-backed, not data-driven - its `mineshaft_type` picks block palettes
+hardcoded in Java - so it cannot be reskinned to brick from a datapack. Jigsaw with template pools was
+the cheaper alternative and was rejected: it assembles authored rooms rather than generating corridor
+runs, so it reads like a bastion rather than a mineshaft, and the sprawl is the point.
 
-- **A custom `StructureType` in Java**, mirroring vanilla's `MineshaftPieces`. Gives true mineshaft
-  sprawl and branching, and is the larger job.
-- **Jigsaw with template pools.** Data-driven and far cheaper, but the sprawl reads differently:
-  jigsaw builds from authored rooms rather than generating corridor runs, so it feels more like a
-  bastion than a mineshaft.
+**The slab has to grow first.** Today the terrain is roughly 13 blocks thick with about 120 blocks of
+void beneath it, because the density function forces air below y=55. The layering is already correct
+(coarse dirt for the top two, deepslate between, bedrock on the underside), there is simply not enough
+deepslate to hold a sewer. Lowering that bottom gradient gives real rock to tunnel through.
+
+**This is a worldgen change, so every existing world keeps its thin slab and will never have sewers.**
+That is the same trap that cost a playtester 90 minutes looking for a demolition yard in a v0.2.0 save.
+Accepted deliberately here (the mod is alpha, per the #87 close), but the release notes have to say it.
 
 This is **the mod's first real structure either way.** There is exactly one `.nbt` in the repo today
 and it is the gametest plot, so structure sets, template pools and processors are all new surface.
 
 **Acceptance:**
 - A sewer generates with more than one level and branching corridors.
+- The slab is deep enough that a sewer never punches into the void or through the surface.
 - It is bounded. Two sewers do not merge, and one does not run for a thousand blocks.
 - Nothing it places drops a member of `#minecraft:stone_crafting_materials`. **Asserted by a test that
   walks every block the structure can place**, not by reading the palette.
@@ -138,16 +157,15 @@ need sand to lay eggs and this world has none. Frogs need magma cubes for frogli
 locked. So they are finds, not farms.
 
 - **Roaches** already exist and already have a food line. Free, and thematically exact.
-- **Drowned** are the threat. They drop copper ingots, which is harmless since copper is already the
-  everyman metal, **but they also drop tridents.** In a world with no weapons tier at all, one trident
-  is a far bigger power spike than in vanilla. Decide the loot rather than accepting vanilla's.
+- **Drowned** are the threat, and their loot stays **vanilla, trident included.** An earlier draft
+  called the trident a power spike "in a world with no weapons tier at all"; that is wrong at this
+  depth. A player who has reached a sewer has iron and sticks, so iron tools and armour already exist.
+  The trident is a prize, not a break.
 - **Frogs and turtles** are atmosphere and a payoff for a player who wanted life back.
 
 **Acceptance:**
 - The yard's surface spawn list is unchanged.
-- A test asserts the trident decision, whatever it is. This is the kind of thing that ships by
-  accident.
-- Density is survivable for a player in the gear the yard implies: no armour tier, a sledgehammer.
+- Density is survivable for a player in the gear the sewer implies: iron armour, iron tools.
 
 ## Phase 4 - the loot
 
@@ -186,7 +204,8 @@ material economy may need retuning with them rather than around them.
 
 ## Open
 
-- **Which structure approach** (custom Java pieces vs jigsaw). Phase 2 cannot start without it.
-- **Water or sewage.** Section 2 names the two options; the choice is a water-economy decision.
-- **Whether brick is harvestable**, and if so by what.
-- **The trident.**
+- **How much deeper the slab goes.** Enough for multi-level sewers with rock left over, without turning
+  the world into a mining game. A number, then a look at it in-world.
+- **What sewage is, mechanically.** A custom fluid, and what filters it. The filter is a machine this
+  spec creates and does not design.
+- **Phase 0's answer.** Held torch light may not survive contact.
