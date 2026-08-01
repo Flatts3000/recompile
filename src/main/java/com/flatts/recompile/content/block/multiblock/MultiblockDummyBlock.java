@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
@@ -52,11 +53,13 @@ public abstract class MultiblockDummyBlock extends Block {
                         continue;   // the cell itself is never the core
                     }
                     BlockPos candidate = pos.offset(dx, -dy, dz);
-                    if (!(level.getBlockState(candidate).getBlock() instanceof MultiblockCoreBlock core)) {
+                    BlockState candidateState = level.getBlockState(candidate);
+                    if (!(candidateState.getBlock() instanceof MultiblockCoreBlock core)) {
                         continue;
                     }
+                    Rotation rotation = core.rotationFor(candidateState);
                     for (Multiblock.Cell cell : core.blueprint().cells()) {
-                        if (cell.at(candidate).equals(pos)) {
+                        if (cell.at(candidate, rotation).equals(pos)) {
                             return candidate;
                         }
                     }
