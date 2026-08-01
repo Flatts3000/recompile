@@ -209,7 +209,34 @@ public final class RCItems {
             props.food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.1F).build())));
 
     /** Food items in creative-tab order. */
-    public static final List<DeferredItem<Item>> FOOD = List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM);
+    /**
+     * Raw Roach and Cooked Roach (#78) - what a roach drops, and what the Burn Barrel turns it into.
+     *
+     * <p><b>The barrel needs no allowlist change.</b> Its rule is
+     * {@code input.has(DataComponents.FOOD) || input.is(BURN_BARREL_SMELTABLE)}, so anything edible
+     * burns by construction - these qualify the moment they carry {@code food(...)}. That is why a
+     * protein was chosen over organic muck as the drop: muck would have made roaches compete with the
+     * Compost Heap for the material the food economy runs on.
+     *
+     * <p><b>Nutrition is a progression lever, not flavour.</b> Raw is 1, below dump mushrooms at 2;
+     * cooked is 4, matching an opened tin can. That is deliberate: roaches come out of the first garbage
+     * block a player touches, so this is the earliest renewable food in the game, arriving at tier 0
+     * where renewable protein otherwise does not exist until rung 5 behind the whole reclamation ladder.
+     * Cooked deliberately does not BEAT the can - it matches it, so the dump feeds you as badly as
+     * scavenging does. First-pass; balance is #36.
+     */
+    public static final DeferredItem<Item> RAW_ROACH = ITEMS.registerItem(
+        "raw_roach",
+        props -> new Item(props.food(new FoodProperties.Builder()
+            .nutrition(1).saturationModifier(0.1F).build())));
+
+    public static final DeferredItem<Item> COOKED_ROACH = ITEMS.registerItem(
+        "cooked_roach",
+        props -> new Item(props.food(new FoodProperties.Builder()
+            .nutrition(4).saturationModifier(0.3F).build())));
+
+    public static final List<DeferredItem<Item>> FOOD =
+        List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM, RAW_ROACH, COOKED_ROACH);
 
     // ---------------- Collectibles (design I-2) ----------------
     // Artifacts from the past, assembled from thematic pieces the player finds in the garbage. A piece

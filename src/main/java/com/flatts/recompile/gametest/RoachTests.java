@@ -2,6 +2,10 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.entity.RoachEntity;
 import com.flatts.recompile.registry.RCEntities;
+import com.flatts.recompile.registry.RCItems;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -40,6 +44,13 @@ final class RoachTests {
     private static void clearRoaches(net.minecraft.gametest.framework.GameTestHelper helper, BlockPos abs) {
         helper.getLevel().getEntitiesOfClass(RoachEntity.class, new AABB(abs).inflate(12))
             .forEach(Entity::discard);
+    }
+
+    /** A food item's nutrition, for the progression assertions below. */
+    private static int nutrition(net.minecraft.world.item.Item item) {
+        net.minecraft.world.food.FoodProperties food =
+            new net.minecraft.world.item.ItemStack(item).get(net.minecraft.core.component.DataComponents.FOOD);
+        return food == null ? -1 : food.nutrition();
     }
 
     private static int roachesNear(net.minecraft.gametest.framework.GameTestHelper helper, BlockPos abs) {
@@ -144,6 +155,111 @@ final class RoachTests {
                 "assets/recompile/textures/entity/roach.png is missing, so the roach renders as the "
                     + "missing texture - and no model references it, so nothing else would notice");
             helper.succeed();
+        });
+
+        // The claim the whole drop choice rests on: the Burn Barrel cooks Raw Roach WITHOUT any tag
+        // change, because its rule matches the FOOD component rather than a list. If the barrel's rule
+        // ever narrows to an allowlist, this fails - which is the point, since the alternative was
+        // making roaches drop organic muck and compete with the Compost Heap.
+        RCGameTests.test("burn_barrel_cooks_raw_roach_with_no_tag", 20, helper -> {
+            helper.assertTrue(
+                com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity.burns(
+                    new net.minecraft.world.item.ItemStack(RCItems.RAW_ROACH.get())),
+                "the barrel must accept Raw Roach through the FOOD component, with no allowlist entry");
+            helper.assertFalse(
+                new net.minecraft.world.item.ItemStack(RCItems.RAW_ROACH.get())
+                    .is(com.flatts.recompile.registry.RCTags.BURN_BARREL_SMELTABLE),
+                "...and it must NOT be in the allowlist, or this proves nothing about the component");
+            helper.succeed();
+        });
+
+        // Raw smelts to cooked, and cooked is worth more than raw - otherwise the barrel step is a
+        // ritual rather than an upgrade.
+        RCGameTests.test("raw_roach_smelts_into_cooked_roach", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            net.minecraft.world.item.crafting.SingleRecipeInput input =
+                new net.minecraft.world.item.crafting.SingleRecipeInput(
+                    new net.minecraft.world.item.ItemStack(RCItems.RAW_ROACH.get()));
+            boolean smelts = level.getServer().getRecipeManager().recipeMap()
+                .getRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMELTING, input, level)
+                .findAny().isPresent();
+            helper.assertTrue(smelts, "Raw Roach must have a smelting recipe");
+
+            int raw = nutrition(RCItems.RAW_ROACH.get());
+            int cooked = nutrition(RCItems.COOKED_ROACH.get());
+            helper.assertTrue(cooked > raw,
+                "cooking must be worth doing: raw " + raw + " -> cooked " + cooked);
+            helper.succeed();
+        });
+
+        // The progression guard. Roaches arrive at tier 0, so cooked roach must not beat the tin can -
+        // the earliest renewable food outclassing the found food would invert the whole early economy.
+        RCGameTests.test("cooked_roach_does_not_beat_the_tin_can", 20, helper -> {
+            int roach = nutrition(RCItems.COOKED_ROACH.get());
+            int can = nutrition(RCItems.TIN_CAN_OPEN.get());
+            helper.assertTrue(roach <= can,
+                "cooked roach (" + roach + ") must not out-feed an opened tin can (" + can
+                    + ") - it is renewable from the first garbage block, and the can is not");
+            helper.succeed();
+        });
+
+        // The phase's actual payload, and nothing else covers it: entity loot tables are outside
+        // every_block_has_a_loot_table, which sweeps blocks only. A roach with no table drops nothing
+        // and the whole food line is unreachable in play while every other test stays green.
+        RCGameTests.test("a_killed_roach_drops_raw_roach", 60, helper -> {
+            BlockPos abs = helper.absolutePos(SPOT);
+            RoachEntity roach = spawnRoach(helper, abs);
+            if (roach == null) {
+                helper.fail("the roach did not spawn");
+                return;
+            }
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            player.setPos(abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5);
+
+            // Killed BY THE PLAYER on purpose - the table requires it, see below.
+            roach.hurtServer(helper.getLevel(),
+                helper.getLevel().damageSources().playerAttack(player), 100.0F);
+
+            helper.runAfterDelay(5, () -> {
+                boolean dropped = helper.getLevel()
+                    .getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                        new AABB(abs).inflate(6))
+                    .stream()
+                    .anyMatch(item -> item.getItem().is(RCItems.RAW_ROACH.get()));
+                helper.assertTrue(dropped, "a roach killed by a player must drop Raw Roach");
+                clearRoaches(helper, abs);
+                player.discard();
+                helper.succeed();
+            });
+        });
+
+        // ...and it drops NOTHING otherwise. That is deliberate: this is the earliest renewable food in
+        // the game, so a roach dying to fall damage or a mob grinder must not feed anyone. The condition
+        // is the anti-farm measure, and without this test it would look like an accident and be
+        // "cleaned up" by the next person reading the loot table.
+        RCGameTests.test("a_roach_that_dies_alone_drops_nothing", 60, helper -> {
+            BlockPos abs = helper.absolutePos(SPOT);
+            RoachEntity roach = spawnRoach(helper, abs);
+            if (roach == null) {
+                helper.fail("the roach did not spawn");
+                return;
+            }
+            roach.hurtServer(helper.getLevel(),
+                helper.getLevel().damageSources().fellOutOfWorld(), 100.0F);
+
+            helper.runAfterDelay(5, () -> {
+                boolean dropped = helper.getLevel()
+                    .getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                        new AABB(abs).inflate(6))
+                    .stream()
+                    .anyMatch(item -> item.getItem().is(RCItems.RAW_ROACH.get()));
+                helper.assertFalse(dropped,
+                    "a roach not killed by a player must drop nothing - the condition is what stops "
+                        + "the earliest renewable food in the game from being farmable");
+                clearRoaches(helper, abs);
+                helper.succeed();
+            });
         });
 
     }

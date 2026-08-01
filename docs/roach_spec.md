@@ -74,6 +74,12 @@ behaviour rather than on a list, so it should fail loudly if the barrel's rule e
 **Numbers are first-pass** and land in #36. See the progression note below - nutrition is a lever there,
 not just flavour.
 
+**Anti-farm, stated so it is not mistaken for an oversight:** the entity loot table carries
+`minecraft:killed_by_player`. A roach that dies to fall damage, to another mob, or in a grinder drops
+nothing. This is the earliest renewable food in the game and it comes out of a block anyone can reach on
+day one, so it has to stay *hand-earned* - automatable roach protein would undercut the ladder far more
+than its nutrition value suggests. Both halves are tested.
+
 ## Phase 3 - the trigger
 
 **Ships:** roaches actually come out of garbage. Needs Phase 1.

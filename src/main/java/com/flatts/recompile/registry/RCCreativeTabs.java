@@ -57,6 +57,8 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SCRAP_BIN.get());
                     output.accept(RCItems.BURN_BARREL.get());
                     output.accept(RCItems.BURNER_GENERATOR.get());
+                    output.accept(RCItems.RAW_ROACH.get());
+                    output.accept(RCItems.COOKED_ROACH.get());
                     output.accept(RCItems.ROACH_SPAWN_EGG.get());
                     output.accept(RCItems.CUPOLA_FURNACE.get());
 
