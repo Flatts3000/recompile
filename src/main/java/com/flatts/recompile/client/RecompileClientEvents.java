@@ -2,6 +2,7 @@ package com.flatts.recompile.client;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCBlockEntities;
+import com.flatts.recompile.registry.RCEntities;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -24,5 +25,7 @@ public final class RecompileClientEvents {
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(RCBlockEntities.DISPLAY_PEDESTAL.get(), DisplayPedestalRenderer::new);
+        // The Roach (#78) - the mod's first ENTITY renderer, alongside its one block-entity renderer.
+        event.registerEntityRenderer(RCEntities.ROACH.get(), RoachRenderer::new);
     }
 }
