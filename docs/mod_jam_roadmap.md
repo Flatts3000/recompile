@@ -70,13 +70,21 @@ Confirmed from the 2025 ToS: **Originality = 30%**; the rest (fun, polish, theme
 | **5. Animals** | diet baits (herbivore/carnivore/omnivore, each with a Rich grade) placed on grass settle an allowlisted mob when no player is near; apple-gated so it waits on trees | **SHIPPED** (v0.2.0, #42) | done - per-diet look, spawn weights, cluster + player gates, JEI/Jade held-reasons |
 
 Each new tier reuses the shipped multiblock framework; the salvage/teardown loop (shipped) feeds their
-recipes. **Jam depth, not full-phase depth** - every tier is one satisfying beat, tuned for a short demo,
-not the exhaustive version `roadmap.md` will eventually build.
+recipes. **Jam depth, not full-phase depth** - every *tier* is one satisfying beat, tuned for a short demo, not
+the exhaustive version `roadmap.md` will eventually build. That is a scoping rule for the reclamation
+ladder, not a cap on the entry.
 
-**Build status (2026-07-27): all five tiers are SHIPPED (v0.2.0).** The reclamation ladder plays end to
-end, grey to living. Remaining jam work is **presentation** (the grey-to-green trailer, the gallery, the
-CurseForge page) and the **pre-beta balance pass** (#36), not new tiers - the build is done, the pitch is
-what is left.
+**Build status (2026-07-27): all five reclamation tiers are SHIPPED (v0.2.0).** The ladder plays end to
+end, grey to living.
+
+**That is the ladder finished, not the entry finished.** An earlier version of this paragraph said "the
+build is done, the pitch is what is left", and that was wrong: **jam content is not done until the jam is
+over** (owner, 2026-08-01). There is no scope ceiling. Presentation (trailer, gallery, CurseForge page)
+and the balance pass (#36) are the *floor* - the things that must exist by Sept 1 - and everything above
+that floor is worth building for as long as the clock allows.
+
+The tier table below still reads as though the arc were the whole entry. It is not; it is the part that
+was planned in July. Content added after that date is judged on the same criteria and counts the same.
 
 ## Milestones (work backward from Sept 1)
 
