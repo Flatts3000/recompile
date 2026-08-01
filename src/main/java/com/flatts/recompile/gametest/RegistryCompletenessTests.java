@@ -182,11 +182,8 @@ final class RegistryCompletenessTests {
             report(helper, missing, "blocks with no loot table");
         });
 
-        // A block with no item cannot be held, crafted into anything, or put in the creative tab.
-        // Some legitimately should not be - but each of those is a decision, so they are named in
-        // NO_ITEM_FORM rather than the test being loosened to accommodate them.
         // A model file existing is not the same as it RESOLVING. See checkModelParentsResolve.
-        RCGameTests.test("every_item_model_parent_resolves", 20, helper -> {
+        RCGameTests.test("every_model_parent_resolves", 20, helper -> {
             checkModelParentsResolve(helper);
             helper.succeed();
         });
@@ -210,6 +207,9 @@ final class RegistryCompletenessTests {
             helper.succeed();
         });
 
+        // A block with no item cannot be held, crafted into anything, or put in the creative tab.
+        // Some legitimately should not be - but each of those is a decision, so they are named in
+        // NO_ITEM_FORM rather than the test being loosened to accommodate them.
         RCGameTests.test("every_block_has_an_item", 20, helper -> {
             List<String> missing = new ArrayList<>();
             forEachModBlock((id, block) -> {
@@ -273,8 +273,8 @@ final class RegistryCompletenessTests {
     }
 
     /**
-     * Every model of this mod's the game can actually reach, found the way the game finds them: from
-     * every blockstate and every client item definition, then following {@code parent} up the chain.
+     * Every model of this mod's that the game can actually reach, found the way the game finds them:
+     * from every blockstate and every client item definition, then following {@code parent} up the chain.
      *
      * <p>Walking the parent chain also reaches models nothing else names directly - the bin's per-material
      * labels, the burner's lit variant - which is why both the texture check and the parent check share
