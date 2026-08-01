@@ -23,6 +23,25 @@ final class RoachTests {
     private RoachTests() {
     }
 
+    /**
+     * Spawn a roach and guarantee it is gone when the test ends.
+     *
+     * <p>Not housekeeping: gametest plots sit within a few blocks of each other, this entity walks, and
+     * it targets players. A roach left alive is a hostile wandering into whatever test runs next - the
+     * same trap {@code AnimalBaitTests} hit with a lingering mock player, which tripped a neighbouring
+     * plot's assertions.
+     */
+    private static RoachEntity spawnRoach(net.minecraft.gametest.framework.GameTestHelper helper,
+            BlockPos abs) {
+        Entity spawned = RCEntities.ROACH.get().spawn(helper.getLevel(), abs, EntitySpawnReason.COMMAND);
+        return spawned instanceof RoachEntity roach ? roach : null;
+    }
+
+    private static void clearRoaches(net.minecraft.gametest.framework.GameTestHelper helper, BlockPos abs) {
+        helper.getLevel().getEntitiesOfClass(RoachEntity.class, new AABB(abs).inflate(12))
+            .forEach(Entity::discard);
+    }
+
     private static int roachesNear(net.minecraft.gametest.framework.GameTestHelper helper, BlockPos abs) {
         return helper.getLevel()
             .getEntitiesOfClass(RoachEntity.class, new AABB(abs).inflate(8)).size();
@@ -32,9 +51,10 @@ final class RoachTests {
         // It exists, spawns, and is the type we registered.
         RCGameTests.test("roach_spawns_from_its_type", 20, helper -> {
             BlockPos abs = helper.absolutePos(SPOT);
-            Entity roach = RCEntities.ROACH.get().spawn(helper.getLevel(), abs, EntitySpawnReason.COMMAND);
+            Entity roach = spawnRoach(helper, abs);
             helper.assertTrue(roach instanceof RoachEntity, "the roach type must spawn a RoachEntity");
             helper.assertTrue(roachesNear(helper, abs) == 1, "exactly one roach");
+            clearRoaches(helper, abs);
             helper.succeed();
         });
 
@@ -51,6 +71,7 @@ final class RoachTests {
                 "max health must be 6, got " + roach.getAttributeValue(Attributes.MAX_HEALTH));
             helper.assertTrue(roach.getAttributeValue(Attributes.ATTACK_DAMAGE) == 1.0,
                 "attack damage must be 1, got " + roach.getAttributeValue(Attributes.ATTACK_DAMAGE));
+            clearRoaches(helper, abs);
             helper.succeed();
         });
 
@@ -68,6 +89,7 @@ final class RoachTests {
                 "the roach must not extend Silverfish - that inherits the summon-friends behaviour, "
                     + "which in a dump means one bad pull becomes a swarm in the starting biome");
             helper.assertTrue(spawned instanceof RoachEntity, "and it must still be our entity");
+            clearRoaches(helper, abs);
             helper.succeed();
         });
 
@@ -84,6 +106,7 @@ final class RoachTests {
             helper.runAfterDelay(20, () -> {
                 int count = roachesNear(helper, abs);
                 helper.assertTrue(count <= 1, "hurting a roach must not call others, found " + count);
+                clearRoaches(helper, abs);
                 helper.succeed();
             });
         });
@@ -111,5 +134,17 @@ final class RoachTests {
                 "the roach must not be in a spawner list, found in: " + found);
             helper.succeed();
         });
+        // The entity skin is named from RENDERER CODE, not from a model, so
+        // every_texture_a_model_names_exists cannot see it - rename or drop the file and the roach is
+        // the missing texture with a green build. Entity textures need their own check for exactly the
+        // reason the model sweep exists.
+        RCGameTests.test("roach_skin_exists", 20, helper -> {
+            helper.assertTrue(
+                RoachTests.class.getResource("/assets/recompile/textures/entity/roach.png") != null,
+                "assets/recompile/textures/entity/roach.png is missing, so the roach renders as the "
+                    + "missing texture - and no model references it, so nothing else would notice");
+            helper.succeed();
+        });
+
     }
 }
