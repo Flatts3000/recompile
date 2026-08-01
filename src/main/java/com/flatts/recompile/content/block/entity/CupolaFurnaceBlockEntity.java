@@ -6,7 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.FurnaceMenu;
+import net.minecraft.world.inventory.BlastFurnaceMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -23,17 +23,27 @@ import net.minecraft.world.level.block.state.BlockState;
  * this is deliberately <b>not</b> a blast furnace in the metallurgical sense: a blast furnace reduces iron
  * ORE into pig iron, which is virgin production. This world has no ore. It remelts what was already made.
  *
- * <p>Mechanically it is an <b>unrestricted</b> {@link RecipeType#SMELTING} furnace: everything the Burn
- * Barrel does and everything it refuses. That is what makes it a true upgrade rather than a second
- * appliance - you stop needing the barrel, instead of keeping both for different jobs.
+ * <p>Mechanically it is a {@link RecipeType#BLASTING} machine, not a smelting one, and <b>that is the
+ * gate.</b> A vanilla furnace cannot run a blasting recipe at all, and a vanilla blast furnace costs five
+ * iron ingots - circular, so unreachable before iron. Both iron recipes (Steel Offcut -> ingot, rebar ->
+ * nugget) are {@code minecraft:blasting}, which makes this block the only thing in the world that can
+ * produce iron. Nothing about the world's materials has to hold for that to be true.
  *
- * <p><b>The gate is the barrel's allowlist, not this block's recipe type.</b> Iron recipes (Steel Offcut ->
- * ingot, rebar -> nugget) are ordinary smelting; what makes them Cupola-only is that the Burn Barrel refuses
- * them and no other furnace exists. That last clause is load-bearing and fragile: a vanilla furnace needs
- * {@code #minecraft:stone_crafting_materials} (cobblestone, cobbled deepslate or blackstone), none of which
- * this world can produce - there is no cobblestone anywhere in the mod and no pickaxe to make cobbled
- * deepslate from the deepslate that shards build. <b>Adding any of those, or any pickaxe before iron, opens
- * the gate.</b> See {@code trashlands/docs/progression_gates.md}.
+ * <p><b>This replaced a gate that had already failed silently</b> (#91). The rule used to be "iron recipes
+ * are ordinary smelting, and they are Cupola-only because the Burn Barrel refuses them and no other furnace
+ * exists". The second clause stopped being true when the Tree Nursery shipped: wood makes a wooden pickaxe,
+ * a wooden pickaxe drops cobbled deepslate, and cobbled deepslate is in
+ * {@code #minecraft:stone_crafting_materials}. Worse, {@code rebar} is a weight-40 entry in
+ * {@code household_pulls}, so a player could stockpile it on day one and smelt iron at rung 4 with no
+ * demolition yard, no Cutting Torch and no Cupola. The old comment here named that exact failure mode as a
+ * risk and it happened anyway, because <b>the gate was an absence of materials rather than a property of
+ * the machine.</b> A recipe type is a property of the machine.
+ *
+ * <p>Being blast-only means this does not cook food, which is deliberate: a cupola furnace melts metal. The
+ * Burn Barrel keeps refuse and food, and it is still craftable on its own, so upgrading loses nothing. Scrap
+ * Metal has a blasting twin ({@code copper_from_scrap_blasting}) precisely so copper survives the upgrade -
+ * the same way vanilla gives every ore both a smelting and a blasting recipe. See
+ * {@code trashlands/docs/progression_gates.md}.
  *
  * <p><b>It automates, and the Burn Barrel does not.</b> The barrel exposes no slots to any face on purpose
  * (see {@link BurnBarrelBlockEntity}), with automation held back as the reward for a better machine. This is
@@ -54,7 +64,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
 
     public CupolaFurnaceBlockEntity(BlockPos worldPosition, BlockState blockState) {
-        super(RCBlockEntities.CUPOLA_FURNACE.get(), worldPosition, blockState, RecipeType.SMELTING);
+        super(RCBlockEntities.CUPOLA_FURNACE.get(), worldPosition, blockState, RecipeType.BLASTING);
     }
 
     /**
@@ -71,7 +81,7 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
         if (slot == 0 && this.level != null && this.level.getServer() != null) {
             boolean smeltable = this.level.getServer().getRecipeManager().recipeMap()
-                .getRecipesFor(RecipeType.SMELTING, new SingleRecipeInput(stack), this.level)
+                .getRecipesFor(RecipeType.BLASTING, new SingleRecipeInput(stack), this.level)
                 .findAny()
                 .isPresent();
             if (!smeltable) {
@@ -88,6 +98,6 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
 
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
-        return new FurnaceMenu(containerId, inventory, this, this.dataAccess);
+        return new BlastFurnaceMenu(containerId, inventory, this, this.dataAccess);
     }
 }

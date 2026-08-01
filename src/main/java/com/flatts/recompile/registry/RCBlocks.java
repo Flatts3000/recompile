@@ -306,9 +306,9 @@ public final class RCBlocks {
             .mapColor(MapColor.STONE)
             .strength(3.5F)
             // NO requiresCorrectToolForDrops. It reads as the right call for a stone machine and is a trap
-            // here: this world has no pickaxe, and nothing is in mineable/cutting_torch except steel, so
-            // "correct tool" would mean *no* tool exists and breaking it would drop nothing - losing the
-            // player's most expensive machine, which ate their Burn Barrel to build.
+            // here: this block is named in no mineable tag at all, so "correct tool" would mean *no* tool
+            // exists and breaking it would drop nothing - losing the player's most expensive machine,
+            // which ate their Burn Barrel to build.
             .sound(SoundType.STONE)
             .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
 
@@ -653,8 +653,8 @@ public final class RCBlocks {
 
     // ---------------- Building blocks (P1.12): the deliberate shelter tier ----------------
     // Crafted from scrap at the Scrap Crafting Table; tier-0 and ungated (survival/shelter is
-    // free, tech is locked). Hand-breakable and drop themselves - there is no pickaxe in this
-    // world and reclaiming your own walls must not be punishing; the prybar is only the
+    // free, tech is locked). Hand-breakable and drop themselves - reclaiming your own walls
+    // must not be punishing; the prybar is only the
     // *faster* tool on the metal ones (via the mineable/prybar tag), never required. Full kit
     // per material: base + slab + stairs + wall. The base block is declared immediately above
     // its stairs so the StairBlock factory can read its default state during registration.

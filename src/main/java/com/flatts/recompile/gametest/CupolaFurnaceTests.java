@@ -2,11 +2,21 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -62,38 +72,87 @@ final class CupolaFurnaceTests {
                     "rebar must yield an iron NUGGET, not an ingot - output was " + cupola.getItem(2)));
         });
 
-        // A TRUE upgrade: it also does everything the Burn Barrel does, so you stop needing the barrel
-        // rather than keeping both for different jobs. Cooking food is the barrel's other job.
-        RCGameTests.test("cupola_does_everything_the_barrel_does", 250, helper -> {
+        // Upgrading must not COST you anything. The Cupola is blast-only, so the Burn Barrel's copper
+        // recipe (plain smelting) would not run in it - copper_from_scrap_blasting is the twin that keeps
+        // it working, the same way vanilla gives every ore both a smelting and a blasting recipe. Without
+        // it, turning a barrel into a Cupola would silently lose the copper line.
+        RCGameTests.test("cupola_still_makes_copper_after_the_upgrade", 250, helper -> {
             CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(3, 1, 3));
+            if (cupola == null) {
+                return;
+            }
+            cupola.setItem(0, new ItemStack(RCItems.SCRAP_METAL.get()));
+            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
+            helper.succeedWhen(() ->
+                helper.assertTrue(cupola.getItem(2).is(Items.COPPER_NUGGET),
+                    "the cupola must still make copper, output was " + cupola.getItem(2)));
+        });
+
+        // A cupola furnace melts metal; it does not cook dinner. This is the deliberate half of going
+        // blast-only (#91) and it is asserted so nobody "fixes" it back into a general furnace without
+        // noticing that the iron gate rides on the recipe type. The Burn Barrel keeps food, and it is
+        // still craftable on its own, so nothing is lost.
+        RCGameTests.test("cupola_does_not_cook_food", 120, helper -> {
+            CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(5, 1, 1));
             if (cupola == null) {
                 return;
             }
             cupola.setItem(0, new ItemStack(Items.BEEF));
             cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
-            helper.succeedWhen(() ->
-                helper.assertTrue(cupola.getItem(2).is(Items.COOKED_BEEF),
-                    "the cupola must cook food too, output was " + cupola.getItem(2)));
+            helper.runAfterDelay(100, () -> {
+                helper.assertTrue(cupola.getItem(2).isEmpty(),
+                    "a blast-only cupola must not cook beef, output was " + cupola.getItem(2));
+                helper.succeed();
+            });
         });
 
-        // ...and it is NOT restricted the way the barrel is. The barrel refuses ore, sand, stone and logs;
-        // this one is an ordinary furnace, which is the whole point of upgrading.
-        RCGameTests.test("cupola_is_not_restricted_like_the_barrel", 250, helper -> {
-            CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(5, 1, 1));
-            if (cupola == null) {
-                return;
+        // THE GATE, as an assertion rather than a comment (#91).
+        //
+        // Iron is Cupola-only because both its recipes are minecraft:blasting: a vanilla furnace cannot
+        // run one, and a vanilla blast furnace costs five iron ingots, which is circular. The previous
+        // gate was "no other furnace exists", which was an absence of materials rather than a property of
+        // a machine - and it quietly stopped being true when the Tree Nursery shipped wood, because wood
+        // makes a pickaxe, a pickaxe makes cobbled deepslate, and that crafts a furnace. Nothing failed.
+        //
+        // This walks every smelting recipe in the game and asserts none of them produces iron. Adding one
+        // back as `minecraft:smelting` re-opens the gate, and this is what will say so.
+        RCGameTests.test("no_smelting_recipe_turns_a_mod_item_into_iron", 20, helper -> {
+            // Scoped to THIS MOD's items as inputs, deliberately. Vanilla ships four smelting recipes
+            // that make iron, and all four are unreachable here: three need iron ore or raw iron, which
+            // this world has none of, and iron_nugget_from_smelting melts iron gear, which needs iron
+            // first. Flagging those would make the test permanently red and teach everyone to ignore it.
+            // What matters is whether anything a player can actually obtain smelts into iron.
+            List<String> leaks = new ArrayList<>();
+            int checked = 0;
+            var recipeMap = helper.getLevel().getServer().getRecipeManager().recipeMap();
+            for (Item item : BuiltInRegistries.ITEM) {
+                Identifier id = BuiltInRegistries.ITEM.getKey(item);
+                if (!Recompile.MOD_ID.equals(id.getNamespace())) {
+                    continue;
+                }
+                checked++;
+                for (RecipeHolder<SmeltingRecipe> holder : recipeMap.getRecipesFor(
+                        RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(item)),
+                        helper.getLevel()).toList()) {
+                    ItemStack out = holder.value().assemble(new SingleRecipeInput(new ItemStack(item)));
+                    if (out.is(Items.IRON_INGOT) || out.is(Items.IRON_NUGGET)) {
+                        leaks.add(id + " -> " + out + " via " + holder.id());
+                    }
+                }
             }
-            cupola.setItem(0, new ItemStack(Items.SAND));
-            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
-            helper.succeedWhen(() ->
-                helper.assertTrue(cupola.getItem(2).is(Items.GLASS),
-                    "the cupola must smelt what the barrel refuses, output was " + cupola.getItem(2)));
+            helper.assertTrue(checked > 50,
+                "only " + checked + " mod items were swept - discovery is broken, so this would pass "
+                    + "against any leak");
+            helper.assertTrue(leaks.isEmpty(),
+                "these smelt into iron in ANY vanilla furnace, which opens the iron gate: " + leaks);
+            helper.succeed();
         });
 
         // You can get it back. It costs a Burn Barrel to build, so a Cupola that cannot be picked up is a
         // machine you lose forever by placing it in the wrong spot. requiresCorrectToolForDrops reads as
-        // the obvious call for a stone machine and is exactly the trap here - this world has no pickaxe, so
-        // "correct tool" would mean no tool exists. Asserted through a real drop-yielding break.
+        // the obvious call for a stone machine and is exactly the trap here - the block is named in no
+        // mineable tag, so "correct tool" would mean no tool exists. Asserted through a real
+        // drop-yielding break.
         RCGameTests.test("cupola_can_be_picked_back_up", 40, helper -> {
             BlockPos pos = new BlockPos(5, 1, 3);
             helper.setBlock(pos, RCBlocks.CUPOLA_FURNACE.get());
