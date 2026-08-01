@@ -3,6 +3,9 @@ package com.flatts.recompile.client;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.ScrapPanelInteraction;
 import com.flatts.recompile.network.ScrapNetworkContentsPayload;
+import java.util.List;
+import java.util.Optional;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -128,24 +131,53 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
             graphics.text(this.font, Component.translatable("container.recompile.bins_empty"),
                 panelX + PANEL_PAD, tailY, 0xFF808080);
         } else {
-            int hidden = materials.size() - rows;
-            if (hidden > 0) {
-                // Says how many are off-screen AND that the wheel reaches them. The old label said only
-                // "+6 more" beside a down arrow that did nothing, which read as a broken control.
+            // How many are still BELOW the window, not how many the window omits. Counting the latter
+            // would keep saying "+20 more" after you had scrolled to the last row, pointing down at
+            // nothing - which is the same defect as the old dead arrow, just further along.
+            int below = materials.size() - (this.scroll + shown);
+            if (below > 0) {
                 graphics.text(this.font,
-                    Component.translatable("container.recompile.more_scroll", hidden).getString(),
+                    Component.translatable("container.recompile.more_scroll", below).getString(),
                     panelX + PANEL_PAD, tailY, 0xFF808080, false);
             }
         }
 
-        // The controls, stated rather than left to be discovered: this panel deliberately does not follow
-        // vanilla's left-takes-a-stack, so a player who assumes vanilla is wrong and has no way to know.
         if (!this.menu.getCarried().isEmpty()) {
             graphics.text(this.font, Component.translatable("container.recompile.store_hint"),
                 panelX + PANEL_PAD, top + CRAFT_H - PANEL_PAD - 8, 0xFF7FD07F);
-        } else if (!materials.isEmpty()) {
-            graphics.text(this.font, Component.translatable("container.recompile.take_hint"),
-                panelX + PANEL_PAD, top + CRAFT_H - PANEL_PAD - 8, 0xFF808080, false);
+        }
+    }
+
+    /**
+     * Row hover: what it is, how much there is, and what each click takes.
+     *
+     * <p>The controls have to be said somewhere, because this panel deliberately does not follow
+     * vanilla's left-takes-a-stack and a player who assumes vanilla is wrong with no way to find out.
+     * They are <b>here</b> rather than printed on the panel because the panel is 92px wide - about
+     * thirteen characters of usable width - and "Click 1, shift a stack, right-click half" is three
+     * times that. Text that does not fit its box is how the Burner Generator's readout shipped drawn
+     * through its own fuel row.
+     */
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
+        if (!this.menu.getCarried().isEmpty()) {
+            return;   // holding a stack, the panel deposits rather than withdraws
+        }
+        var materials = this.menu.contents().materials();
+        int panelX = this.leftPos + CRAFT_W;
+        int shown = Math.min(materials.size() - this.scroll, maxRows());
+        for (int i = 0; i < shown; i++) {
+            if (!overRow(panelX, this.topPos, i, mouseX, mouseY)) {
+                continue;
+            }
+            ScrapNetworkContentsPayload.Material material = materials.get(this.scroll + i);
+            graphics.setTooltipForNextFrame(this.font, List.of(
+                new ItemStack(material.item()).getHoverName().copy()
+                    .append(" x" + material.count()),
+                Component.translatable("container.recompile.take_hint")
+                    .withStyle(ChatFormatting.GRAY)), Optional.empty(), mouseX, mouseY);
+            return;
         }
     }
 
