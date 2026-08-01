@@ -177,6 +177,10 @@ public class RecompileJeiPlugin implements IModPlugin {
         // The Solar Panel especially - it shipped inert for the mod's whole life and is a machine part in
         // three blueprints, so "this now generates on its own" is exactly the thing a returning player
         // will not think to check.
+        // Raw Roach has no recipe that produces it - it comes out of a garbage block - so the panel is
+        // the only place the mechanic is stated at all.
+        info(registration, RCItems.RAW_ROACH.get(), "raw_roach");
+
         info(registration, RCItems.SOLAR_PANEL.get(), "solar_panel");
         info(registration, RCItems.BURNER_GENERATOR.get(), "burner_generator");
     }
