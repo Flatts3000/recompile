@@ -10,6 +10,7 @@ import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Rotation;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -62,8 +63,9 @@ public enum MachineStatusProvider implements IBlockComponentProvider {
     /** Name the first cell that is not holding its component - the one thing the player can act on. */
     private static void appendMissing(ITooltip tooltip, MultiblockCoreBlock core, BlockAccessor accessor) {
         BlockPos pos = accessor.getPosition();
+        Rotation rotation = core.rotationFor(accessor.getBlockState());
         for (Multiblock.Cell cell : core.blueprint().cells()) {
-            if (!accessor.getLevel().getBlockState(cell.at(pos)).is(cell.component())) {
+            if (!accessor.getLevel().getBlockState(cell.at(pos, rotation)).is(cell.component())) {
                 tooltip.add(Component.translatable("jade.recompile.machine_needs",
                     cell.component().getName()));
                 return;
