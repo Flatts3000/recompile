@@ -2,9 +2,9 @@
   "type": "minecraft:blasting",
   "category": "misc",
   "cookingtime": 100,
-  "experience": 0.7,
-  "ingredient": "recompile:steel_offcut",
+  "experience": 0.3,
+  "ingredient": "recompile:scrap_metal",
   "result": {
-    "id": "minecraft:iron_ingot"
+    "id": "minecraft:copper_nugget"
   }
 }
