@@ -30,13 +30,13 @@ public enum ScrapBinContent implements StringRepresentable {
     // design (see texgen.toml), so collapsing them to a single stone look would throw away a
     // distinction the art deliberately makes - granite bins look like granite. Colours are the
     // lead stop of each shard's own procedural palette, so bin and item agree.
-    STONE_SHARD("stone_shard", 0x9A9A9E),
-    GRANITE_SHARD("granite_shard", 0xA67E70),
-    DIORITE_SHARD("diorite_shard", 0xCCCCCC),
-    ANDESITE_SHARD("andesite_shard", 0x8C8C90),
-    DEEPSLATE_SHARD("deepslate_shard", 0x4A4A52),
-    TUFF_SHARD("tuff_shard", 0x6E6E60),
-    CALCITE_SHARD("calcite_shard", 0xDCDCD8),
+    STONE_SHARD("stone_shard", 0x707070),
+    GRANITE_SHARD("granite_shard", 0x895B58),
+    DIORITE_SHARD("diorite_shard", 0xC2C1C1),
+    ANDESITE_SHARD("andesite_shard", 0x605E5D),
+    DEEPSLATE_SHARD("deepslate_shard", 0x343543),
+    TUFF_SHARD("tuff_shard", 0x5C5D4B),
+    CALCITE_SHARD("calcite_shard", 0xD1CAC1),
     GENERIC("generic", 0xFFFFFF);
 
     private final String name;
