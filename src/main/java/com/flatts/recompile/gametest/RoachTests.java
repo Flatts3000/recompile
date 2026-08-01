@@ -4,6 +4,8 @@ import com.flatts.recompile.content.entity.RoachEntity;
 import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -199,6 +201,65 @@ final class RoachTests {
                 "cooked roach (" + roach + ") must not out-feed an opened tin can (" + can
                     + ") - it is renewable from the first garbage block, and the can is not");
             helper.succeed();
+        });
+
+        // The phase's actual payload, and nothing else covers it: entity loot tables are outside
+        // every_block_has_a_loot_table, which sweeps blocks only. A roach with no table drops nothing
+        // and the whole food line is unreachable in play while every other test stays green.
+        RCGameTests.test("a_killed_roach_drops_raw_roach", 60, helper -> {
+            BlockPos abs = helper.absolutePos(SPOT);
+            RoachEntity roach = spawnRoach(helper, abs);
+            if (roach == null) {
+                helper.fail("the roach did not spawn");
+                return;
+            }
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            player.setPos(abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5);
+
+            // Killed BY THE PLAYER on purpose - the table requires it, see below.
+            roach.hurtServer(helper.getLevel(),
+                helper.getLevel().damageSources().playerAttack(player), 100.0F);
+
+            helper.runAfterDelay(5, () -> {
+                boolean dropped = helper.getLevel()
+                    .getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                        new AABB(abs).inflate(6))
+                    .stream()
+                    .anyMatch(item -> item.getItem().is(RCItems.RAW_ROACH.get()));
+                helper.assertTrue(dropped, "a roach killed by a player must drop Raw Roach");
+                clearRoaches(helper, abs);
+                player.discard();
+                helper.succeed();
+            });
+        });
+
+        // ...and it drops NOTHING otherwise. That is deliberate: this is the earliest renewable food in
+        // the game, so a roach dying to fall damage or a mob grinder must not feed anyone. The condition
+        // is the anti-farm measure, and without this test it would look like an accident and be
+        // "cleaned up" by the next person reading the loot table.
+        RCGameTests.test("a_roach_that_dies_alone_drops_nothing", 60, helper -> {
+            BlockPos abs = helper.absolutePos(SPOT);
+            RoachEntity roach = spawnRoach(helper, abs);
+            if (roach == null) {
+                helper.fail("the roach did not spawn");
+                return;
+            }
+            roach.hurtServer(helper.getLevel(),
+                helper.getLevel().damageSources().fellOutOfWorld(), 100.0F);
+
+            helper.runAfterDelay(5, () -> {
+                boolean dropped = helper.getLevel()
+                    .getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                        new AABB(abs).inflate(6))
+                    .stream()
+                    .anyMatch(item -> item.getItem().is(RCItems.RAW_ROACH.get()));
+                helper.assertFalse(dropped,
+                    "a roach not killed by a player must drop nothing - the condition is what stops "
+                        + "the earliest renewable food in the game from being farmable");
+                clearRoaches(helper, abs);
+                helper.succeed();
+            });
         });
 
     }
