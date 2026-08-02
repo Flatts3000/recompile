@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:reclamation/bait",
+  "category": "recompile:reclamation",
+  "name": "book.recompile.guide.reclamation.bait.name",
+  "icon": {
+    "id": "recompile:herbivore_bait"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 0,
+  "y": 2
+}

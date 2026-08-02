@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:power/hydroponics",
+  "category": "recompile:power",
+  "name": "book.recompile.guide.power.hydroponics.name",
+  "icon": {
+    "id": "recompile:hydroponics_bay"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 0
+}

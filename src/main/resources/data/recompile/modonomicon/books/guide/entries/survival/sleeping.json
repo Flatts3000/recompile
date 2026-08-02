@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:survival/sleeping",
+  "category": "recompile:survival",
+  "name": "book.recompile.guide.survival.sleeping.name",
+  "icon": {
+    "id": "recompile:mattress"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 5,
+  "y": 0
+}

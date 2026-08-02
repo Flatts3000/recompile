@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:power/generators",
+  "category": "recompile:power",
+  "name": "book.recompile.guide.power.generators.name",
+  "icon": {
+    "id": "recompile:solar_panel"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 1,
+  "y": 0
+}
