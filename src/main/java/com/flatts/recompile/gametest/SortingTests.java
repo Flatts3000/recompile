@@ -1,5 +1,6 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
@@ -31,6 +32,19 @@ final class SortingTests {
     static void register() {
         // Place a garbage block, pull the maximum number of times, and assert it
         // yielded material item entities and then crumbled to air.
+        //
+        // Roaches are turned OFF for the duration, and that is the fix for a real flake (#94).
+        // A released roach returns early from sortOnce and deliberately does NOT advance the sorted
+        // count - "the block is not consumed by an encounter" - so an encounter eats one of the three
+        // iterations. A garbage block is minPulls 2 / maxPulls 3, so it needs three EFFECTIVE pulls to
+        // be certain to crumble, and roaches fire 1-in-40:
+        //
+        //     P(at least one roach in 3 pulls) = 1 - (39/40)^3 = 7.3%
+        //
+        // which is how often this failed. It gates every merge, so roughly one merge in fourteen
+        // stalled on a test that was not describing a defect - the exact rate at which people start
+        // re-running CI without reading it. The crumble curve is what this test is about, so it
+        // isolates the crumble curve; the roach branch has its own coverage in RoachTests.
         RCGameTests.test("garbage_block_sorts_then_crumbles", 60, helper -> {
             BlockPos pos = new BlockPos(1, 1, 1);
             helper.setBlock(pos, RCBlocks.GARBAGE_BLOCK.get());
@@ -38,9 +52,17 @@ final class SortingTests {
             ServerLevel level = helper.getLevel();
             BlockPos abs = helper.absolutePos(pos);
 
+            boolean was = RCConfig.ROACHES_ENABLED.get();
             boolean crumbled = false;
-            for (int i = 0; i < 3 && !crumbled; i++) {
-                crumbled = GarbageBlock.sortOnce(level, abs);
+            try {
+                RCConfig.ROACHES_ENABLED.set(false);
+                for (int i = 0; i < 3 && !crumbled; i++) {
+                    crumbled = GarbageBlock.sortOnce(level, abs);
+                }
+            } finally {
+                // Restore in finally: this config is global, so leaking it off would silently disable
+                // roaches for every test that runs after this one.
+                RCConfig.ROACHES_ENABLED.set(was);
             }
 
             helper.assertTrue(crumbled, "garbage block should crumble within 3 pulls");
@@ -105,15 +127,25 @@ final class SortingTests {
             BlockPos pos = new BlockPos(1, 1, 1);
             BlockPos abs = helper.absolutePos(pos);
 
-            for (Block block : List.of(RCBlocks.GARBAGE_BLOCK.get(), RCBlocks.TRASH_BAG.get(),
-                    RCBlocks.COMPACTED_BALE.get())) {
-                for (int trial = 0; trial < 40; trial++) {
-                    helper.setBlock(pos, block);
-                    boolean crumbled = SortableBlock.sortOnce(level, abs);
-                    helper.assertFalse(crumbled,
-                        block + " must survive its first pull - an instant break lets hands "
-                            + "out-clear tools (minPulls must stay >= 2)");
+            // Roaches off here too, for a subtler reason than the flake above (#94). This asserts
+            // crumbled == false, and a roach release ALSO returns false - so a roach trial passes
+            // while asserting nothing about the first-pull rule. It could never go red, it just
+            // quietly stopped testing about one garbage trial in forty.
+            boolean was = RCConfig.ROACHES_ENABLED.get();
+            try {
+                RCConfig.ROACHES_ENABLED.set(false);
+                for (Block block : List.of(RCBlocks.GARBAGE_BLOCK.get(), RCBlocks.TRASH_BAG.get(),
+                        RCBlocks.COMPACTED_BALE.get())) {
+                    for (int trial = 0; trial < 40; trial++) {
+                        helper.setBlock(pos, block);
+                        boolean crumbled = SortableBlock.sortOnce(level, abs);
+                        helper.assertFalse(crumbled,
+                            block + " must survive its first pull - an instant break lets hands "
+                                + "out-clear tools (minPulls must stay >= 2)");
+                    }
                 }
+            } finally {
+                RCConfig.ROACHES_ENABLED.set(was);
             }
             helper.setBlock(pos, Blocks.AIR);
             helper.succeed();
