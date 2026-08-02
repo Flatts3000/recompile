@@ -1,0 +1,11 @@
+{
+  "replace": true,
+  "values": [
+    "recompile:great_wave",
+    "recompile:starry_night",
+    "recompile:the_scream",
+    "recompile:mona_lisa",
+    "recompile:pearl_earring",
+    "recompile:la_grande_jatte"
+  ]
+}

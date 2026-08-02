@@ -1,0 +1,13 @@
+{
+  "asset_id": "recompile:painting_mona_lisa",
+  "width": 2,
+  "height": 3,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.recompile.mona_lisa.title"
+  },
+  "author": {
+    "color": "gray",
+    "translate": "painting.recompile.mona_lisa.author"
+  }
+}

@@ -142,7 +142,7 @@ public class RecompileJeiPlugin implements IModPlugin {
 
         registration.addRecipes(PRYING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),
-                SortingData.outputs(SortingData.BULKY))));
+                SortingData.outputs(SortingData.BULKY, clientRegistries()))));
 
         // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
         // numbers stay single-sourced in the recipe file. Iterating every entry means a new find
@@ -213,5 +213,18 @@ public class RecompileJeiPlugin implements IModPlugin {
         // recipes that are the only reason to build one. Exactly the bug the Burn Barrel had before it
         // got its own category.
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.BLASTING);
+    }
+
+    /**
+     * The client's registry access, or null when there is no level.
+     *
+     * <p>Painting variants are a datapack registry, so the Prying category needs this to show recovered
+     * paintings as the works they are rather than as blank canvases. Null-safe on purpose: JEI can build
+     * its layouts outside a world, and a missing registry should cost a picture, not throw.
+     */
+    private static net.minecraft.core.HolderLookup.@org.jspecify.annotations.Nullable Provider
+            clientRegistries() {
+        var level = net.minecraft.client.Minecraft.getInstance().level;
+        return level == null ? null : level.registryAccess();
     }
 }

@@ -1,0 +1,13 @@
+{
+  "asset_id": "recompile:painting_pearl_earring",
+  "width": 3,
+  "height": 4,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.recompile.pearl_earring.title"
+  },
+  "author": {
+    "color": "gray",
+    "translate": "painting.recompile.pearl_earring.author"
+  }
+}

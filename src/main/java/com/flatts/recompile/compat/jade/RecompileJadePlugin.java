@@ -55,6 +55,12 @@ public class RecompileJadePlugin implements IWailaPlugin {
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, SortableBlock.class);
+
+        // Recovered paintings name themselves on the wall (#99). An ENTITY component, not a block
+        // one - a hung painting is an entity, which is also why it needs no server data provider:
+        // the variant is already synced so the client can draw it.
+        registration.registerEntityComponent(PaintingNameProvider.INSTANCE,
+            net.minecraft.world.entity.decoration.painting.Painting.class);
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, BulkyWasteBlock.class);
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, SteelBeamBlock.class);
         registration.registerBlockComponent(SortProgressProvider.INSTANCE, SortableBlock.class);

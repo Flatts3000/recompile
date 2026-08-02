@@ -4,11 +4,128 @@
     {
       "rolls": 1,
       "conditions": [
-        { "condition": "minecraft:survives_explosion" }
+        {
+          "condition": "minecraft:survives_explosion"
+        }
       ],
       "entries": [
-        { "type": "minecraft:item", "name": "recompile:mattress", "weight": 3 },
-        { "type": "minecraft:item", "name": "recompile:washing_machine", "weight": 2 }
+        {
+          "type": "minecraft:item",
+          "name": "recompile:mattress",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:washing_machine",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:random_chance",
+          "chance": 0.07
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:painting",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:painting/variant": "recompile:great_wave",
+                "minecraft:item_name": {
+                  "translate": "painting.recompile.great_wave.title"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:painting",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:painting/variant": "recompile:starry_night",
+                "minecraft:item_name": {
+                  "translate": "painting.recompile.starry_night.title"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:painting",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:painting/variant": "recompile:the_scream",
+                "minecraft:item_name": {
+                  "translate": "painting.recompile.the_scream.title"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:painting",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:painting/variant": "recompile:mona_lisa",
+                "minecraft:item_name": {
+                  "translate": "painting.recompile.mona_lisa.title"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:painting",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:painting/variant": "recompile:pearl_earring",
+                "minecraft:item_name": {
+                  "translate": "painting.recompile.pearl_earring.title"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:painting",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:painting/variant": "recompile:la_grande_jatte",
+                "minecraft:item_name": {
+                  "translate": "painting.recompile.la_grande_jatte.title"
+                }
+              }
+            }
+          ]
+        }
       ]
     }
   ]
