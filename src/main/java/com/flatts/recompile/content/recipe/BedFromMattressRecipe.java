@@ -36,12 +36,13 @@ import org.jspecify.annotations.Nullable;
  */
 public class BedFromMattressRecipe extends CustomRecipe {
 
-    // No fields; the JSON is {"type": "recompile:bed_from_mattress"} and nothing else.
+    // No fields; the JSON is {"type": "recompile:bed_from_mattress"} and nothing else. Deliberately
+    // NOT StreamCodec.unit - see FragmentAssemblyRecipe for why that one kills every client join.
     public static final com.mojang.serialization.MapCodec<BedFromMattressRecipe> CODEC =
         com.mojang.serialization.MapCodec.unit(BedFromMattressRecipe::new);
     public static final net.minecraft.network.codec.StreamCodec<
             net.minecraft.network.RegistryFriendlyByteBuf, BedFromMattressRecipe> STREAM_CODEC =
-        net.minecraft.network.codec.StreamCodec.unit(new BedFromMattressRecipe());
+        net.minecraft.network.codec.StreamCodec.of((buf, value) -> { }, buf -> new BedFromMattressRecipe());
 
     private static final int PLANKS_NEEDED = 3;
 

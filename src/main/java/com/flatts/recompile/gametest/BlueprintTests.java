@@ -420,6 +420,54 @@ final class BlueprintTests {
             helper.succeed();
         });
 
+        // EVERY MOD RECIPE MUST SURVIVE THE WIRE, and nothing else in the suite touches this.
+        //
+        // Recipes are sent to a client once on join. A GameTest server has no client, so a broken
+        // stream codec is invisible to all 299 tests here and shows up the first time a human presses
+        // Play - as "Connection Lost: Failed to encode packet", which reads as a networking fault and
+        // names neither the recipe nor the mod.
+        //
+        // That is exactly what happened: StreamCodec.unit looks like the obvious fit for a recipe with
+        // no fields, and its encoder ASSERTS the value equals the instance baked into it. A recipe
+        // loaded from JSON is a different object, so every join died while the server stayed healthy.
+        RCGameTests.test("every_mod_recipe_survives_being_sent_to_a_client", 20, helper -> {
+            var registries = helper.getLevel().registryAccess();
+            List<String> broken = new ArrayList<>();
+            int checked = 0;
+            for (RecipeHolder<?> holder : helper.getLevel().recipeAccess().recipeMap().values()) {
+                var serializer = holder.value().getSerializer();
+                var id = net.minecraft.core.registries.BuiltInRegistries.RECIPE_SERIALIZER
+                    .getKey(serializer);
+                if (id == null || !id.getNamespace().equals(com.flatts.recompile.Recompile.MOD_ID)) {
+                    continue;   // vanilla's own codecs are not ours to prove
+                }
+                checked++;
+                try {
+                    var buf = new net.minecraft.network.RegistryFriendlyByteBuf(
+                        io.netty.buffer.Unpooled.buffer(), registries);
+                    encodeThrough(serializer, buf, holder.value());
+                    serializer.streamCodec().decode(buf);
+                } catch (RuntimeException e) {
+                    broken.add(holder.id() + " (" + id + "): " + e);
+                }
+            }
+            helper.assertTrue(checked > 0,
+                "no mod recipes were checked - the sweep is broken, so this would pass against a codec "
+                    + "that kills every client join");
+            helper.assertTrue(broken.isEmpty(),
+                "these recipes cannot be sent to a client, so joining the world fails: " + broken);
+            helper.succeed();
+        });
+
+    }
+
+    /** Encode one recipe through its own serializer, past the generics. */
+    @SuppressWarnings("unchecked")
+    private static <T extends net.minecraft.world.item.crafting.Recipe<?>> void encodeThrough(
+            net.minecraft.world.item.crafting.RecipeSerializer<T> serializer,
+            net.minecraft.network.RegistryFriendlyByteBuf buf,
+            net.minecraft.world.item.crafting.Recipe<?> recipe) {
+        serializer.streamCodec().encode(buf, (T) recipe);
     }
 
     /** A crafting grid holding exactly these items, in this order. */

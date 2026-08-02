@@ -35,13 +35,18 @@ public class FragmentAssemblyRecipe extends CustomRecipe {
     /** The fallback when no teardown declares a threshold for this blueprint. */
     public static final int DEFAULT_REQUIRED = 4;
 
-    // No fields, so the JSON is {"type": "recompile:fragment_assembly"} and nothing else. The unit
-    // codecs say exactly that: there is nothing to read and nothing to send.
+    // No fields, so the JSON is {"type": "recompile:fragment_assembly"} and nothing else, and there
+    // is nothing to put on the wire either.
+    //
+    // NOT StreamCodec.unit. That looks like the obvious fit for a value-less codec and is a trap: its
+    // encoder ASSERTS the value equals the instance baked into it, and a recipe loaded from JSON is a
+    // different object. Every client join died on "Can't encode ... expected ..." with the server
+    // still perfectly healthy, so it read as a networking fault rather than a recipe one.
     public static final com.mojang.serialization.MapCodec<FragmentAssemblyRecipe> CODEC =
         com.mojang.serialization.MapCodec.unit(FragmentAssemblyRecipe::new);
     public static final net.minecraft.network.codec.StreamCodec<
             net.minecraft.network.RegistryFriendlyByteBuf, FragmentAssemblyRecipe> STREAM_CODEC =
-        net.minecraft.network.codec.StreamCodec.unit(new FragmentAssemblyRecipe());
+        net.minecraft.network.codec.StreamCodec.of((buf, value) -> { }, buf -> new FragmentAssemblyRecipe());
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
