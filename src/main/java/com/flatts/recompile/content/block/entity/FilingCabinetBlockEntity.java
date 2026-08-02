@@ -150,12 +150,17 @@ public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
         for (Map.Entry<Identifier, Integer> entry : fragments.entrySet()) {
             Identifier set = entry.getKey();
             if (!holds(set) && entry.getValue() >= FragmentAssemblyRecipe.requiredFor(level, set)) {
-                if (!file(BlueprintItem.of(RCItems.BLUEPRINT.get(), set))) {
-                    continue;   // no room for the sheet, so leave the fragments where they are
-                }
+                // CLEAR FIRST, THEN FILE. The other order deadlocks: a cabinet packed to all 54 slots
+                // with fragments has nowhere to put the sheet, so filing fails, so the fragments are
+                // never cleared, so there is never anywhere to put the sheet - a machine that stops
+                // working the more you feed it, with nothing on screen saying why. Discarding first
+                // always frees at least one slot, because the fragments being counted are IN slots.
+                discardFragments(set);
+                file(BlueprintItem.of(RCItems.BLUEPRINT.get(), set));
                 changed = true;
+                continue;
             }
-            // Either it was just filed or it was already here; either way the fragments are spent.
+            // Already filed here, so anything still pointing at it is spent.
             if (holds(set)) {
                 changed |= discardFragments(set);
             }

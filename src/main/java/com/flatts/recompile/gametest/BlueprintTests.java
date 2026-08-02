@@ -527,6 +527,27 @@ final class BlueprintTests {
             helper.succeed();
         });
 
+        // A CABINET PACKED WITH FRAGMENTS MUST STILL ASSEMBLE THEM. Filing the sheet before clearing
+        // the fragments deadlocks at exactly the moment a player is most likely to hit it: pipe
+        // fragments in until all 54 slots are full and there is nowhere to put the blueprint, so
+        // filing fails, so the fragments are never cleared, so there is never anywhere to put it. A
+        // machine that stops working the more you feed it, saying nothing.
+        RCGameTests.test("a_cabinet_full_of_fragments_still_assembles_the_blueprint", 60, helper -> {
+            var pos = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+
+            for (int slot = 0; slot < cabinet.getContainerSize(); slot++) {
+                cabinet.setItem(slot, com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                    RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 64));
+            }
+            tickCabinet(helper, pos, cabinet);
+            helper.assertTrue(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
+                "a cabinet with no free slot must clear the fragments to make room for the sheet");
+            helper.succeed();
+        });
+
         // SURPLUS IS DESTROYED, and this is the only place the mod deletes a player's items - so the
         // rule is narrow and asserted from both sides: a fragment goes only when this cabinet already
         // holds the blueprint it leads to, and a fragment toward anything else is never touched.
