@@ -264,10 +264,23 @@ public class HydroponicsBayBlockEntity extends BlockEntity
     /**
      * Run one batch.
      *
-     * <p>A seedling rolls the lottery and yields ONE plant, not a full batch: it is the entry ticket,
-     * and the yield multiplier belongs to a bay that is already seeded with something. A known plant
-     * consumes one of itself and yields {@code hydroponicsYield}, which is what makes the machine a net
-     * gain over replanting by hand.
+     * <p><b>A seeded plant is a crop, not an ingredient - the bay replants itself.</b> The input stack is
+     * never consumed; a batch spends water and power and yields {@code hydroponicsYield} to the output,
+     * and the plant that produced it stays put. Three reasons, in order of how much they matter:
+     *
+     * <ul>
+     *   <li>The bay is the ONLY source of sugar cane, bamboo, cactus and sweet berries in the game.
+     *       Consuming the crop means one bad hopper, or one broken block, can take a plant out of a save
+     *       permanently. A machine holding the last cactus in the world must not be able to eat it.</li>
+     *   <li>Consuming made it worse than the thing it replaces. One sugar cane planted in vanilla is
+     *       infinite cane forever; a late-game machine that instead charges you a plant per harvest is
+     *       backwards, and the yield multiplier only papered over it.</li>
+     *   <li>It removes the shuttling. Nothing has to move output back to input, by hand or by hopper.</li>
+     * </ul>
+     *
+     * <p><b>A seedling is still consumed</b>, because that is the whole of what it is: a lottery ticket.
+     * It yields ONE plant to the output, which the player then seeds the bay with - and from that point
+     * the machine never asks for another. That is the swap, and it survives the change intact.
      */
     private void grow(ServerLevel server) {
         ItemStack input = items.get(SLOT_INPUT);
@@ -294,7 +307,9 @@ public class HydroponicsBayBlockEntity extends BlockEntity
                 tx.commit();
             }
         }
-        input.shrink(1);
+        if (seedling) {
+            input.shrink(1);   // the ticket is spent; a seeded plant is not
+        }
         if (existing.isEmpty()) {
             items.set(SLOT_OUTPUT, produced);
         } else {
@@ -325,7 +340,7 @@ public class HydroponicsBayBlockEntity extends BlockEntity
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == SLOT_INPUT && isGrowable(stack);
+        return canPlaceItem(slot, stack);
     }
 
     @Override
@@ -333,9 +348,16 @@ public class HydroponicsBayBlockEntity extends BlockEntity
         return slot == SLOT_OUTPUT;
     }
 
+    /**
+     * <b>The crop slot holds exactly one, and only while it is empty.</b>
+     *
+     * <p>The bay plants one thing and grows it forever, so a second copy in the slot would sit there
+     * doing nothing while looking like it was queued to be used. Enforced here rather than only on the
+     * menu slot, so a hopper cannot stack the crop up either.
+     */
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return slot == SLOT_INPUT && isGrowable(stack);
+        return slot == SLOT_INPUT && isGrowable(stack) && items.get(SLOT_INPUT).isEmpty();
     }
 
     @Override

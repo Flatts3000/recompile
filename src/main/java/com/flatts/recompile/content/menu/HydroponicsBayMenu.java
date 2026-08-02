@@ -82,10 +82,17 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
         checkContainerSize(container, 2);
         checkContainerDataCount(data, DATA_SIZE);
 
+        // The crop slot. One item, and that one grows forever until the player takes it back out - so
+        // it holds a single plant rather than a stack waiting to be fed in.
         addSlot(new Slot(container, HydroponicsBayBlockEntity.SLOT_INPUT, INPUT_X, INPUT_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return HydroponicsBayBlockEntity.isGrowable(stack);
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
             }
         });
         // Output is take-only. Without this a player could park anything in it and stall the machine,

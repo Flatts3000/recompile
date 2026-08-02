@@ -60,7 +60,7 @@ final class HydroponicsTests {
         RCGameTests.test("a_seedling_grows_into_some_plant", 60, helper -> {
             var be = placeFuelled(helper, BAY);
             be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT,
-                new ItemStack(RCItems.UNKNOWN_SEEDLING.get(), 4));
+                new ItemStack(RCItems.UNKNOWN_SEEDLING.get()));
 
             ItemStack out = runBatches(helper, be, 1);
             helper.assertFalse(out.isEmpty(), "a seedling batch must produce a plant");
@@ -70,21 +70,53 @@ final class HydroponicsTests {
             helper.succeed();
         });
 
-        // THE SWAP, half two: that plant then seeds itself, and at a PROFIT. A machine that returns
-        // exactly what you feed it is an expensive way to stand still.
-        RCGameTests.test("a_plant_seeds_itself_at_a_profit", 60, helper -> {
+        // THE SWAP, half two: that plant is then the crop, and the crop is NEVER consumed. The bay is
+        // the only source of four vanilla plants, so a machine that can eat its own last cactus is one
+        // bad hopper away from taking a plant out of a save permanently.
+        RCGameTests.test("a_seeded_plant_grows_forever_and_is_never_consumed", 90, helper -> {
             var be = placeFuelled(helper, BAY);
-            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE));
 
-            ItemStack out = runBatches(helper, be, 1);
+            // Recharged between batches, because the battery is sized at exactly one batch - a bay is
+            // meant to be running off a generator, and without the top-up this test would prove only
+            // that the FIRST harvest leaves the crop alone.
+            for (int batch = 0; batch < 3; batch++) {
+                try (Transaction tx = Transaction.openRoot()) {
+                    be.battery().insert(Integer.MAX_VALUE, tx);
+                    tx.commit();
+                }
+                runBatches(helper, be, 1);
+            }
+            ItemStack out = be.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT);
             helper.assertTrue(out.is(Items.SUGAR_CANE),
                 "a bay seeded with cane must produce cane, got " + out);
-            helper.assertTrue(out.getCount() == RCConfig.HYDROPONICS_YIELD.get(),
-                "one batch should yield " + RCConfig.HYDROPONICS_YIELD.get() + ", got " + out.getCount());
-            helper.assertTrue(RCConfig.HYDROPONICS_YIELD.get() > 1,
-                "the yield must exceed 1 or the machine consumes as much as it makes and is pointless");
-            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 7,
-                "a batch must consume exactly one input to seed itself");
+            helper.assertTrue(out.getCount() == RCConfig.HYDROPONICS_YIELD.get() * 3,
+                "three batches should yield " + (RCConfig.HYDROPONICS_YIELD.get() * 3)
+                    + ", got " + out.getCount());
+            ItemStack crop = be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT);
+            helper.assertTrue(crop.is(Items.SUGAR_CANE) && crop.getCount() == 1,
+                "the crop must still be sitting there untouched after every batch, got " + crop);
+            helper.succeed();
+        });
+
+        // One crop, not a queue. A second copy in the slot would sit there doing nothing while looking
+        // like it was lined up to be used, and a hopper would happily stack sixty-four of them.
+        RCGameTests.test("the_crop_slot_takes_one_and_refuses_a_second", 20, helper -> {
+            helper.setBlock(BAY, RCBlocks.HYDROPONICS_BAY.get());
+            var be = (HydroponicsBayBlockEntity) helper.getLevel()
+                .getBlockEntity(helper.absolutePos(BAY));
+            helper.assertTrue(
+                be.canPlaceItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE)),
+                "an empty bay must accept a crop");
+
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE));
+            helper.assertFalse(
+                be.canPlaceItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE)),
+                "an occupied crop slot must refuse a second, from a player or a pipe alike");
+            helper.assertFalse(
+                be.canPlaceItemThroughFace(HydroponicsBayBlockEntity.SLOT_INPUT,
+                    new ItemStack(Items.SUGAR_CANE), net.minecraft.core.Direction.UP),
+                "and the automation face must agree, or a hopper routes round the rule");
             helper.succeed();
         });
 
@@ -110,12 +142,12 @@ final class HydroponicsTests {
                     RCConfig.HYDROPONICS_TANK_CAPACITY.get(), tx);
                 tx.commit();   // water, deliberately no charge
             }
-            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE));
 
             helper.assertTrue(runBatches(helper, be, 1).isEmpty(),
                 "with an empty battery the bay must produce nothing");
-            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 8,
-                "and it must not eat its input while stalled");
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).is(Items.SUGAR_CANE),
+                "and the crop must still be there when it stalls");
             helper.succeed();
         });
 
@@ -129,7 +161,7 @@ final class HydroponicsTests {
                 be.battery().insert(Integer.MAX_VALUE, tx);
                 tx.commit();   // charge, deliberately no water
             }
-            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE));
 
             helper.assertTrue(runBatches(helper, be, 1).isEmpty(),
                 "with an empty tank the bay must produce nothing");
@@ -145,7 +177,7 @@ final class HydroponicsTests {
             helper.assertFalse(helper.getBlockState(BAY).getValue(HydroponicsBayBlock.LIT),
                 "an idle bay must not be lit");
 
-            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE));
             HydroponicsBayBlockEntity.serverTick(helper.getLevel(), helper.absolutePos(BAY),
                 helper.getBlockState(BAY), be);
             helper.assertTrue(helper.getBlockState(BAY).getValue(HydroponicsBayBlock.LIT),
@@ -189,14 +221,14 @@ final class HydroponicsTests {
         // A count-only guard looks like a guard, which is why this went unnoticed.
         RCGameTests.test("a_full_output_stops_the_batch_it_does_not_convert_it", 60, helper -> {
             var be = placeFuelled(helper, BAY);
-            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE));
             be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, new ItemStack(Items.POTATO, 5));
 
             runBatches(helper, be, 2);
             ItemStack out = be.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT);
             helper.assertTrue(out.is(Items.POTATO) && out.getCount() == 5,
                 "an unrelated item in the output must be left exactly alone, got " + out);
-            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 8,
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).is(Items.SUGAR_CANE),
                 "and the crop must not be consumed into it - that is a duplication bug, not a stall");
             helper.assertFalse(helper.getBlockState(BAY).getValue(HydroponicsBayBlock.LIT),
                 "a blocked bay must go dark, so the reason it stopped is visible from outside");
@@ -206,14 +238,14 @@ final class HydroponicsTests {
         // Same slot, matching item, no room. The count check still has to hold on its own.
         RCGameTests.test("a_maxed_output_stack_stops_the_batch", 60, helper -> {
             var be = placeFuelled(helper, BAY);
-            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE));
             be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, new ItemStack(Items.SUGAR_CANE, 64));
 
             runBatches(helper, be, 2);
             helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT).getCount() == 64,
                 "a full stack cannot grow past its own maximum");
-            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 8,
-                "and the input must not be eaten while the output has nowhere to put it");
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).is(Items.SUGAR_CANE),
+                "and the crop must survive the output having nowhere to put its yield");
             helper.succeed();
         });
 
@@ -222,15 +254,16 @@ final class HydroponicsTests {
         RCGameTests.test("a_seedling_batch_waits_for_a_clear_output", 60, helper -> {
             var be = placeFuelled(helper, BAY);
             be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT,
-                new ItemStack(RCItems.UNKNOWN_SEEDLING.get(), 4));
+                new ItemStack(RCItems.UNKNOWN_SEEDLING.get()));
             be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, new ItemStack(Items.POTATO, 5));
 
             runBatches(helper, be, 2);
             ItemStack out = be.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT);
             helper.assertTrue(out.is(Items.POTATO) && out.getCount() == 5,
                 "a lottery batch must not roll into an occupied slot, got " + out);
-            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 4,
-                "and it must not spend a seedling doing so - seedlings are not renewable");
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT)
+                    .is(RCItems.UNKNOWN_SEEDLING.get()),
+                "and it must not spend the seedling doing so - seedlings are not renewable");
             helper.succeed();
         });
 

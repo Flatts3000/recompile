@@ -209,9 +209,9 @@ public final class RCConfig {
             .comment("The bay's internal water tank, mB. 4000 = four buckets, matching the nursery.")
             .defineInRange("hydroponicsTankCapacity", 4000, 1000, 1_000_000);
         HYDROPONICS_YIELD = builder
-            .comment("How many of the plant one batch produces. Above 1 so the machine is a net gain",
-                "over replanting by hand - it consumes one of its input to seed each batch.")
-            .defineInRange("hydroponicsYield", 2, 1, 64);
+            .comment("How many of the plant one batch produces. The crop itself is never consumed, so",
+                "this is pure throughput rather than a multiplier over what went in - 1 per 20s per bay.")
+            .defineInRange("hydroponicsYield", 1, 1, 64);
         VEGETATION_ENABLED = builder
             .comment("Whether Fertilizer scatters plants (grass -> weeds/flowers, mycelium -> mushrooms).")
             .define("vegetationEnabled", true);
