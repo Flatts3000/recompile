@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
+import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ final class MenuLayoutTests {
 
     private static final List<Menu> MENUS = List.of(
         new Menu("burner_generator", inv -> new BurnerGeneratorMenu(0, inv)),
+        new Menu("hydroponics_bay", inv -> new HydroponicsBayMenu(0, inv)),
         new Menu("tree_nursery", inv -> new TreeNurseryMenu(0, inv)),
         new Menu("scrap_crafting_station",
             inv -> new ScrapCraftingStationMenu(0, inv, BlockPos.ZERO)));

@@ -4,6 +4,10 @@ import com.flatts.recompile.content.block.entity.HydroponicsBayBlockEntity;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -69,6 +73,22 @@ public class HydroponicsBayBlock extends BaseEntityBlock {
         return level.isClientSide() ? null
             : createTickerHelper(type, RCBlockEntities.HYDROPONICS_BAY.get(),
                 HydroponicsBayBlockEntity::serverTick);
+    }
+
+    /**
+     * Right-click opens the bay.
+     *
+     * <p>Without this the machine is reachable only by hopper or pipe, which makes the first one a
+     * player builds appear broken.
+     */
+    @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+            Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!level.isClientSide()
+                && level.getBlockEntity(pos) instanceof HydroponicsBayBlockEntity bay) {
+            player.openMenu(bay);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     /**

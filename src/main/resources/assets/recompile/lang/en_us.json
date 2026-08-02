@@ -324,5 +324,8 @@
   "painting.recompile.la_grande_jatte.title": "A Sunday Afternoon on the Island of La Grande Jatte",
   "painting.recompile.la_grande_jatte.author": "Georges Seurat",
   "config.jade.plugin_recompile.painting_name": "Painting name",
-  "block.recompile.hydroponics_bay": "Hydroponics Bay"
+  "block.recompile.hydroponics_bay": "Hydroponics Bay",
+  "container.recompile.hydroponics_bay": "Hydroponics Bay",
+  "tooltip.recompile.hydroponics_water": "Water: %s / %s mB",
+  "tooltip.recompile.hydroponics_power": "Power: %s / %s FE"
 }

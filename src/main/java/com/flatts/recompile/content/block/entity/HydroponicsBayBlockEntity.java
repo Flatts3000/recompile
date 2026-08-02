@@ -4,6 +4,14 @@ import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.HydroponicsBayBlock;
 import net.minecraft.world.level.block.Block;
+import com.flatts.recompile.content.menu.HydroponicsBayMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
@@ -63,7 +71,8 @@ import net.minecraft.world.level.material.Fluids;
  * feed, which is why their rates are explicitly unbalanced in #36: there was no load to tune against.
  * There is now.
  */
-public class HydroponicsBayBlockEntity extends BlockEntity implements WorldlyContainer {
+public class HydroponicsBayBlockEntity extends BlockEntity
+        implements WorldlyContainer, MenuProvider {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -98,6 +107,50 @@ public class HydroponicsBayBlockEntity extends BlockEntity implements WorldlyCon
 
     public HydroponicsBayBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.HYDROPONICS_BAY.get(), pos, state);
+    }
+
+    /** What the screen reads: progress, its goal, water and stored power. */
+    private final ContainerData data = new ContainerData() {
+        @Override
+        public int get(int index) {
+            return switch (index) {
+                case HydroponicsBayMenu.DATA_PROGRESS -> progress;
+                case HydroponicsBayMenu.DATA_GOAL -> RCConfig.HYDROPONICS_GROW_TICKS.get();
+                case HydroponicsBayMenu.DATA_WATER -> tank.getAmountAsInt(0);
+                case HydroponicsBayMenu.DATA_ENERGY -> battery.getAmountAsInt();
+                default -> 0;
+            };
+        }
+
+        @Override
+        public void set(int index, int value) {
+            // Read-only: the server owns all four, and a client write would only desync the gauges.
+        }
+
+        @Override
+        public int getCount() {
+            return HydroponicsBayMenu.DATA_SIZE;
+        }
+    };
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("block.recompile.hydroponics_bay");
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        return new HydroponicsBayMenu(containerId, inventory, this, data,
+            ContainerLevelAccess.create(level, worldPosition));
+    }
+
+    /** Capacities the gauges scale against. Read from config so a retune moves the bars with it. */
+    public int tankCapacity() {
+        return RCConfig.HYDROPONICS_TANK_CAPACITY.get();
+    }
+
+    public int energyCapacity() {
+        return RCConfig.HYDROPONICS_GROW_TICKS.get() * RCConfig.HYDROPONICS_FE_PER_TICK.get();
     }
 
     public FluidStacksResourceHandler tank() {

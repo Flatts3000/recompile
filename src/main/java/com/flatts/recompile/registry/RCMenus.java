@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
+import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -34,6 +35,11 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerGeneratorMenu>> BURNER_GENERATOR =
         MENUS.register("burner_generator", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new BurnerGeneratorMenu(id, inventory)));
+
+    /** The Hydroponics Bay (#43): two slots plus water, power and grow progress. */
+    public static final DeferredHolder<MenuType<?>, MenuType<HydroponicsBayMenu>> HYDROPONICS_BAY =
+        MENUS.register("hydroponics_bay", () -> IMenuTypeExtension.create(
+            (containerId, inventory, buf) -> new HydroponicsBayMenu(containerId, inventory)));
 
     public static final DeferredHolder<MenuType<?>, MenuType<TreeNurseryMenu>> TREE_NURSERY =
         MENUS.register("tree_nursery", () -> IMenuTypeExtension.create(
