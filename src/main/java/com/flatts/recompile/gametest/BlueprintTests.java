@@ -611,6 +611,33 @@ final class BlueprintTests {
                 "a placed cabinet must file fragments without anyone calling it"));
         });
 
+        // ONE NUMBER, ONE SOURCE. The fragment threshold is read in three places - the assembly recipe,
+        // the Filing Cabinet, and the item tooltip - and JEI showed 4 for the Hydroponics Bay while the
+        // recipe demanded 6. A player following the viewer would have stood at a cabinet with four
+        // fragments wondering why nothing happened.
+        //
+        // Both readers are driven here against every shipped blueprint, so a disagreement fails rather
+        // than being discovered in play.
+        RCGameTests.test("the_fragment_threshold_agrees_everywhere", 20, helper -> {
+            List<String> mismatched = new ArrayList<>();
+            for (Identifier set : BlueprintItem.shipped()) {
+                int fromFiles = com.flatts.recompile.compat.BlueprintData.fragmentsFor(set);
+                int fromRecipes = com.flatts.recompile.content.recipe.FragmentAssemblyRecipe
+                    .requiredFor(helper.getLevel(), set);
+                if (fromFiles != fromRecipes) {
+                    mismatched.add(set + ": files say " + fromFiles + ", recipes say " + fromRecipes);
+                }
+                if (fromFiles == com.flatts.recompile.compat.BlueprintData.DEFAULT_FRAGMENTS
+                        && fromRecipes != com.flatts.recompile.compat.BlueprintData.DEFAULT_FRAGMENTS) {
+                    mismatched.add(set + " fell back to the default, so its teardown was not found");
+                }
+            }
+            helper.assertTrue(mismatched.isEmpty(),
+                "the fragment count a player is shown must be the count the recipe demands: "
+                    + mismatched);
+            helper.succeed();
+        });
+
         // SURPLUS IS DESTROYED, and this is the only place the mod deletes a player's items - so the
         // rule is narrow and asserted from both sides: a fragment goes only when this cabinet already
         // holds the blueprint it leads to, and a fragment toward anything else is never touched.
@@ -649,6 +676,7 @@ final class BlueprintTests {
     private static void tickCabinet(GameTestHelper helper, net.minecraft.core.BlockPos pos,
             com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity cabinet) {
         cabinet.condenseNow(helper.getLevel());
+
     }
 
     /** Encode one recipe through its own serializer, past the generics. */
