@@ -246,6 +246,10 @@ public final class RCItems {
     public static final DeferredItem<Item> PUZZLE_CUBE_PIECE = ITEMS.registerItem("puzzle_cube_piece", Item::new);
     // The Puzzle Cube is a placeable block (two states), so these are block-items - they render as the
     // real 3D cube in hand, inventory, and on a Display Pedestal. Craft one into the other to swap states.
+    /** The Hydroponics Bay (#43): the only source of cane, bamboo, cactus and sweet berries. */
+    public static final DeferredItem<BlockItem> HYDROPONICS_BAY =
+        ITEMS.registerSimpleBlockItem("hydroponics_bay", RCBlocks.HYDROPONICS_BAY);
+
     public static final DeferredItem<BlockItem> PUZZLE_CUBE =
         ITEMS.registerSimpleBlockItem("puzzle_cube", RCBlocks.PUZZLE_CUBE);
     public static final DeferredItem<BlockItem> PUZZLE_CUBE_SCRAMBLED =

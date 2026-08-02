@@ -11,6 +11,7 @@ import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.DisplayPedestalBlock;
+import com.flatts.recompile.content.block.HydroponicsBayBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
@@ -462,6 +463,17 @@ public final class RCBlocks {
      * Seedling. Carries the nursery BE and the bespoke GUI; the loot strip keeps its saplings un-findable
      * so this is their only source.
      */
+    /** The Hydroponics Bay (#43): water + power grows plants this world cannot otherwise reach. */
+    public static final DeferredBlock<HydroponicsBayBlock> HYDROPONICS_BAY = BLOCKS.registerBlock(
+        "hydroponics_bay",
+        HydroponicsBayBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_LIGHT_GREEN)
+            .strength(1.5F)
+            .sound(SoundType.METAL)
+            // Grow-lights, lit while a batch is running. Same 13 as the nursery and a lit furnace.
+            .lightLevel(state -> state.getValue(HydroponicsBayBlock.LIT) ? 13 : 0));
+
     public static final DeferredBlock<TreeNurseryCoreBlock> TREE_NURSERY = BLOCKS.registerBlock(
         "tree_nursery",
         TreeNurseryCoreBlock::new,

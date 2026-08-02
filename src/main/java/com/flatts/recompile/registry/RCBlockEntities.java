@@ -12,6 +12,7 @@ import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
+import com.flatts.recompile.content.block.entity.HydroponicsBayBlockEntity;
 import com.flatts.recompile.content.block.entity.TreeNurseryBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -116,6 +117,12 @@ public final class RCBlockEntities {
             "tree_nursery",
             () -> new BlockEntityType<>(TreeNurseryBlockEntity::new, RCBlocks.TREE_NURSERY.get()));
 
+    /** The Hydroponics Bay's water, power, slots and grow progress (#43). */
+    public static final Supplier<BlockEntityType<HydroponicsBayBlockEntity>> HYDROPONICS_BAY =
+        BLOCK_ENTITIES.register(
+            "hydroponics_bay",
+            () -> new BlockEntityType<>(HydroponicsBayBlockEntity::new, RCBlocks.HYDROPONICS_BAY.get()));
+
     private RCBlockEntities() {
         // utility class
     }
@@ -127,6 +134,26 @@ public final class RCBlockEntities {
 
     /** Expose the collector's water tank so pipes, pumps, and buckets see it as any tank. */
     private static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+        // The Hydroponics Bay (#43) exposes all three, because it is the automation tier and a machine
+        // that cannot be plumbed is not one. Caught by every_container_block_declares_its_automation on
+        // its first run, which is the test written after the Cupola shipped advertising automation no
+        // pipe could reach.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            HYDROPONICS_BAY.get(),
+            (be, side) -> new WorldlyContainerWrapper(be, side));
+        event.registerBlockEntity(
+            Capabilities.Fluid.BLOCK,
+            HYDROPONICS_BAY.get(),
+            (be, side) -> be.tank());
+        // Energy INSERT-only: it is a consumer. The generators are the mirror image, extract-only, and
+        // for the same reason - two machines that could both push and pull would hand energy back and
+        // forth forever, which is exactly what two adjacent Solar Panels did before #72 limited them.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            HYDROPONICS_BAY.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
         event.registerBlockEntity(
             Capabilities.Fluid.BLOCK,
             RAIN_COLLECTOR.get(),

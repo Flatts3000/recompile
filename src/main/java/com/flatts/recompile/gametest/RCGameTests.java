@@ -88,6 +88,7 @@ public final class RCGameTests {
         FertilizerGrowthTests.register();
         PaintingTests.register();
         WaterEconomyTests.register();
+        HydroponicsTests.register();
         RegionBiomeSourceTests.register();
         DemolitionYardTests.register();
         RegistryCompletenessTests.register();

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "recompile:cullet_glass",
+    "P": "recompile:copper_pipe",
+    "F": "recompile:machine_frame"
+  },
+  "pattern": [
+    "GGG",
+    "PFP",
+    "GGG"
+  ],
+  "result": {
+    "id": "recompile:hydroponics_bay"
+  }
+}
