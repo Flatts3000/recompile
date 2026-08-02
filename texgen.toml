@@ -1048,6 +1048,29 @@ backend = "ai"
 size = 16
 prompt = "a mattress rolled up and tied with a cord, pale blue-grey striped ticking fabric, clean and fresh with no stains or tears, the roll seen end-on so the spiral of the roll reads clearly, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# The Filing Cabinet (#95): a Bulky Waste find that stores blueprints without bound and joins the
+# Scrap Network by placement. Office-green on purpose - the dump's palette is browns and greys, so a
+# block a player is meant to find and recognise across a base needs a colour nothing else here has.
+[surface.filing_cabinet]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front", "side", "top"]
+[surface.filing_cabinet.prompt]
+front = "a full-bleed Minecraft block face: the front of a battered olive-green metal filing cabinet, three stacked horizontal drawer fronts, each with one small pale handle and a little card label holder, chipped paint and rust streaks down the seams, muted, flat, no perspective, fills the whole tile"
+side = "a full-bleed Minecraft block face: the plain side panel of a battered olive-green metal filing cabinet, one faint vertical seam near the front edge, chipped paint and rust streaks, muted, flat, no perspective, fills the whole tile"
+top = "a full-bleed top-down Minecraft block face: the top of a battered olive-green metal filing cabinet, flat sheet metal with a raised rim, a few loose yellowed paper scraps and dust, chipped paint and rust, muted, flat, no perspective, fills the whole tile"
+
+# The Idea Fragment (#95): a torn piece of the blueprint you are working towards, so it MUST be
+# derived from the approved blueprint art rather than generated blind - two blue papers prompted
+# separately come back as two different documents. Generate this only after blueprint is promoted.
+[surface.idea_fragment]
+kind = "item"
+backend = "ai"
+size = 16
+reference = "blueprint"
+prompt = "keep this exact sheet unchanged - same deep blue paper, same white technical lines, same faded salvaged look. Change only the shape: it is now a single small torn-off corner fragment of that sheet, ragged tear edges on two sides, roughly a third the size and sitting centered in frame. Plain transparent background, no scene"
+
 [surface.cutting_torch]
 kind = "item"
 backend = "ai"

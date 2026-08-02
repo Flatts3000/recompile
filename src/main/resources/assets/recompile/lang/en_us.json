@@ -371,5 +371,7 @@
   "item.recompile.blueprint": "Blueprint",
   "item.recompile.clean_mattress": "Clean Mattress",
   "blueprint.recompile.clean_mattress": "Clean Mattress",
-  "tooltip.recompile.blueprint_blank": "Blank - it never said what it was for"
+  "tooltip.recompile.blueprint_blank": "Blank - it never said what it was for",
+  "block.recompile.filing_cabinet": "Filing Cabinet",
+  "container.recompile.filing_cabinet": "Filing Cabinet"
 }

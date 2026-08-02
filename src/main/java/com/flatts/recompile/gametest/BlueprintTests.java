@@ -137,6 +137,60 @@ final class BlueprintTests {
                 "two different blueprints must be distinguishable, or one item cannot carry them all");
             helper.succeed();
         });
+        // THE CABINET IS A REFERENCE SHELF, NOT A CHEST. Letting it take anything would make it a worse
+        // Scrap Barrel with a nicer texture, and the filter has to be on the CONTAINER rather than only
+        // on the menu slot: in 26.1 vanilla's Slot.mayPlace returns true unconditionally and ChestMenu
+        // uses a plain Slot, which is the same trap that forced the Burn Barrel's refuse rule into its
+        // ticker. A hopper is the path that finds this out.
+        RCGameTests.test("a_filing_cabinet_takes_blueprints_and_nothing_else", 20, helper -> {
+            var pos = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+
+            ItemStack sheet = BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS);
+            helper.assertTrue(cabinet.canPlaceItem(0, sheet), "a cabinet files blueprints");
+            helper.assertFalse(cabinet.canPlaceItem(0, new ItemStack(RCItems.JUNK.get())),
+                "and refuses junk, from a hopper as readily as from a hand");
+            helper.assertFalse(
+                cabinet.canPlaceItem(0, new ItemStack(net.minecraft.world.item.Items.IRON_INGOT)),
+                "and anything else that is not a blueprint");
+            helper.succeed();
+        });
+
+        // What the crafting table will ask it. Reading back by SET rather than by stack is the point:
+        // the table wants to know whether the knowledge is reachable, not how it is stored.
+        RCGameTests.test("a_filing_cabinet_reports_what_it_holds", 20, helper -> {
+            var pos = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+
+            helper.assertFalse(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
+                "an empty cabinet holds nothing");
+            cabinet.setItem(7,
+                BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
+            helper.assertTrue(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
+                "a filed blueprint must be found wherever in the drawers it sits");
+            helper.assertFalse(cabinet.holds(
+                    Identifier.fromNamespaceAndPath("recompile", "something_else")),
+                "and only the one that is actually filed");
+            helper.assertTrue(cabinet.filed().size() == 1,
+                "one sheet in, one set reported");
+            helper.succeed();
+        });
+
+        // It is in the Scrap Network by tag, which is the whole of how the crafting table will reach it.
+        // A block that is not in the tag is invisible to the cluster and the feature silently does
+        // nothing - there is no error for being absent from a tag.
+        RCGameTests.test("a_filing_cabinet_is_part_of_the_scrap_network", 20, helper -> {
+            helper.assertTrue(
+                com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get().defaultBlockState()
+                    .is(com.flatts.recompile.registry.RCTags.SCRAP_CONNECTABLE),
+                "the cabinet must be scrap_connectable or the table can never see it");
+            helper.succeed();
+        });
+
     }
 
     /** A crafting grid holding exactly these items, in this order. */

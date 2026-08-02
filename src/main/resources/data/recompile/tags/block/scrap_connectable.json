@@ -6,6 +6,7 @@
     "recompile:recompile_workbench",
     "recompile:burn_barrel",
     "recompile:scrap_crafting_table",
-    "recompile:cupola_furnace"
+    "recompile:cupola_furnace",
+    "recompile:filing_cabinet"
   ]
 }

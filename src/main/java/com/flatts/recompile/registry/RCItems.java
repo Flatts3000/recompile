@@ -105,6 +105,9 @@ public final class RCItems {
     public static final DeferredItem<com.flatts.recompile.content.item.BlueprintItem> BLUEPRINT =
         ITEMS.registerItem("blueprint", com.flatts.recompile.content.item.BlueprintItem::new);
 
+    public static final DeferredItem<net.minecraft.world.item.BlockItem> FILING_CABINET =
+        ITEMS.registerSimpleBlockItem("filing_cabinet", RCBlocks.FILING_CABINET);
+
     public static final DeferredItem<Item> CLEAN_MATTRESS =
         ITEMS.registerItem("clean_mattress", Item::new);
 

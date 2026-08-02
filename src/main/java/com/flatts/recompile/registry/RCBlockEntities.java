@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity;
 import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
@@ -44,6 +45,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "display_pedestal",
             () -> new BlockEntityType<>(DisplayPedestalBlockEntity::new, RCBlocks.DISPLAY_PEDESTAL.get()));
+
+    /** The Filing Cabinet's blueprint shelf (#95). */
+    public static final Supplier<BlockEntityType<FilingCabinetBlockEntity>> FILING_CABINET =
+        BLOCK_ENTITIES.register(
+            "filing_cabinet",
+            () -> new BlockEntityType<>(FilingCabinetBlockEntity::new, RCBlocks.FILING_CABINET.get()));
 
     /** The Scrap Barrel's 27-slot inventory (design: storage without wood). */
     public static final Supplier<BlockEntityType<ScrapBarrelBlockEntity>> SCRAP_BARREL =
@@ -199,6 +206,12 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             SCRAP_BARREL.get(),
+            (be, side) -> VanillaContainerWrapper.of(be));
+        // The Filing Cabinet takes blueprints from a pipe as readily as from a hand; canPlaceItem is
+        // what keeps everything else out, and it is on the container so both paths obey it.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            FILING_CABINET.get(),
             (be, side) -> VanillaContainerWrapper.of(be));
         // The power tier (#72). Energy only - neither generator holds items, so neither exposes an item
         // capability, and the Burner is fed by right-click rather than through a slot.

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "recompile:block/filing_cabinet_front",
+    "side": "recompile:block/filing_cabinet_side",
+    "top": "recompile:block/filing_cabinet_top"
+  }
+}

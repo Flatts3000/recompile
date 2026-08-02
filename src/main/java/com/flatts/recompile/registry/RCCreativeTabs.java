@@ -71,6 +71,7 @@ public final class RCCreativeTabs {
                         output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
                             RCItems.BLUEPRINT.get(), set)));
                     output.accept(RCItems.CLEAN_MATTRESS.get());
+                    output.accept(RCItems.FILING_CABINET.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
 
                     // --- Workstations: place these to sort, craft, store, and smelt scrap ---
