@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:multiblock",
+  "id": "structure",
+  "sort_number": 1,
+  "multiblock_id": "recompile:compost_heap",
+  "multiblock_name": "block.recompile.compost_heap",
+  "show_visualize_button": true,
+  "text": "book.recompile.guide.reclamation.compost.structure.text"
+}

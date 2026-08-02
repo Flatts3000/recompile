@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:dense",
+  "pattern": [
+    ["S", "S"],
+    ["0", "T"]
+  ],
+  "mapping": {
+    "0": { "type": "modonomicon:block", "block": "recompile:tree_nursery" },
+    "T": { "type": "modonomicon:block", "block": "recompile:water_tank" },
+    "S": { "type": "modonomicon:block", "block": "recompile:solar_panel" }
+  }
+}

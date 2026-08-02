@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:dense",
+  "pattern": [
+    ["F"],
+    ["0"]
+  ],
+  "mapping": {
+    "0": { "type": "modonomicon:block", "block": "recompile:rain_collector" },
+    "F": { "type": "modonomicon:block", "block": "recompile:rain_collector_funnel" }
+  }
+}

@@ -64,6 +64,7 @@ public final class RCGameTests {
         PowerTierTests.register();
         MenuLayoutTests.register();
         GuidebookTests.register();
+        GuidebookMultiblockTests.register();
         BlueprintTests.register();
         RoachTests.register();
         BulkyWasteTests.register();

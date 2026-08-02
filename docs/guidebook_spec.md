@@ -84,7 +84,7 @@ can slot content between. Ordered by discovery - the sequence a player actually 
 | 9 | **Lighting & sleep** | Scrap Torch; Sleeping | Lit from Oily Rag fuel, not coal+stick. One item places the floor and wall forms. A **mattress is the bed** - a vanilla bed needs planks, so the Bulky Waste find is the bed rather than a stand-in for one, and it sets respawn the same way. |
 | 10 | **Building Blocks** | The material families | Pressed Junk, Scrap Plating, Corrugated Metal, Plastic Panel, Cullet Glass (base/slab/stairs/wall/pane) - the sinks that absorb bulk materials. |
 | 11 | **Water: the Rain Collector** | Catching rain | Rain is the **only** fresh water. Build a Rain Collector under open sky; draw water with a bucket or bottle. Water survives break + replace. |
-| 12 | **Multiblock Machines** | How they assemble | Place the **core** to auto-build from parts in your inventory, or stack the components by hand; a grey/red preview shows the footprint; break any cell to disband. (Frames the Rain Collector, Grass Spreader, Compost Heap.) |
+| 12 | **Multiblock Machines** | How they assemble | Place the **core** to auto-build from parts in your inventory, or stack the components by hand; a grey/red preview shows the footprint; break any cell to disband. (Frames the Rain Collector, Grass Spreader, Compost Heap, Tree Nursery, each of which carries a render page of its structure.) |
 | 13 | **Reclamation** | Encroachment; Grass Spreader (rung 1); Vegetation (rung 2); Farming (rung 3); Compost Heap; Saplings are machine-only | The junkyard **eats reclaimed ground back**: border grass reverts to coarse dirt, plant cover is stripped first, a dry farm plot is taken (a watered one holds). Rung 1 waters coarse dirt straight to grass (a Grass Spreader tower). Rung 2: Fertilizer on grass scatters weeds/wildflowers. Rung 3: Fertilizer + dirt **crafts** farmland (a hoe won't till the dump); seeds are compost volunteers; keep plots irrigated. The Compost Heap (2x2x2 cage) makes Fertilizer from organics, layer by layer. **You can never hold a sapling** - trees are machine-planted only; the **Tree Nursery** (rung 4) is the only thing that makes one. **Animal Bait** (rung 5) is how animals return: place it on reclaimed grass and walk away, and the Rich grade brings a bonded pair. |
 | 14 | **Collectibles** | The Puzzle Cube; Found curios; The Display Pedestal | Find nine Puzzle Cube pieces in the garbage and craft the cube (craft it with itself to scramble/solve). Rare whole finds (avocado, present, gold coin, toy car). The Display Pedestal floats and spins any item. **Recovered paintings** are six specific works found in Bulky Waste that keep their identity through break and replace, unlike a vanilla painting. |
 | 15 | **The Demolition Yard** | Travelling Out; Reinforced Concrete; Steel & the Cutting Torch; The Cupola Furnace | Biomes are placed by **distance from origin**, not climate: household is guaranteed within 512 blocks and the yard starts past it, so **travel is the gate**. A Sledgehammer is the only tool Reinforced Concrete answers to, and its sand is the **only sand in the world** (so the only glass). A Steel I-Beam only parts under a Cutting Torch, charged with Oily Rags (1 rag = 8 cuts, holds 64). Offcuts and rebar become iron **only** in a Cupola Furnace: these are blast recipes, so no ordinary furnace can run them and the Burn Barrel refuses metal outright. |
@@ -115,13 +115,28 @@ for pack authors.
 
 ## Multiblock sourcing (no drift)
 
-Recompile's multiblocks (Rain Collector, Grass Spreader, Compost Heap) are defined by the
-`Multiblock` blueprint in Java - the **single source of truth** for validation, assembly, and
-the GameTests. The guide's multiblock pages must match that blueprint. Unlike PF's altar
-`.nbt` structures, these are blueprint-defined (offset -> component), so at skeleton stage
-**confirm whether Modonomicon's multiblock page can build from a pattern we author, or needs
-an inline mapping**; either way keep it in sync with `Multiblock.java`, or lock it with a
-GameTest the way PF locks its altar `.nbt`s.
+**Settled (#37).** Modonomicon reads its patterns from data files
+(`data/recompile/modonomicon/multiblocks/<machine>.json`, a `modonomicon:dense` pattern), so
+the shape necessarily lives in two places: that file, and the `Multiblock` blueprint in Java
+that actually validates and assembles. There is no seam to source one from the other at
+runtime, so the second half of the original instruction applies: **`GuidebookMultiblockTests`
+locks them together**, comparing the pattern's cells against `blueprint().cells()` in both
+directions, and failing if a page draws a machine that would not form. A separate check makes
+adding a fifth machine's page without extending that test a failure rather than a silent gap.
+
+Three facts the four shipped patterns encode:
+
+- **Layers run top-first.** `DenseMultiblock` stores `stateMatchers[x][height - 1 - y][z]`, so
+  `pattern[0]` is the highest layer. (This is also why Modonomicon's own demo patterns put
+  their decorative floor last.) The lock test decodes them the same way, so it cannot catch an
+  upside-down reading - that one is confirmed by source, and by looking at the page.
+- **Within a layer, each string is one X and each character is one Z**, Patchouli's convention.
+- **The page draws the loose components, not the formed machine.** A formed cell becomes the
+  machine's bespoke block, so projecting onto an already-built machine reads as unsatisfied.
+  That is correct: the projection is a build aid.
+
+The directory is `multiblocks`, **plural** - Modonomicon's own folder, not one of the vanilla
+data dirs 26.1 singularised. Same trap as `loot_modifiers`.
 
 ## Build order
 
@@ -147,8 +162,7 @@ only with Modonomicon present.
 
 ## Open items (not blockers)
 
-- Confirm the exact Modonomicon 2.x JSON schema (book/category/entry/page/multiblock fields)
-  against the live docs at the skeleton stage.
-- Confirm how a Modonomicon multiblock page sources its pattern (author-supplied vs imported)
-  and wire it to `Multiblock.java` so the two cannot drift.
 - Decide the guide item + its recipe (which base material gates it).
+
+*Two items were closed by #37: the Modonomicon 2.x page schema is confirmed against the shipped
+book, and multiblock pattern sourcing is settled above.*

@@ -114,7 +114,7 @@ final class GuidebookTests {
      * directory does not reliably return a URL, and it did not here. A file always does, and its parent
      * is the folder we want.
      */
-    private static List<String> bookFiles(GameTestHelper helper) {
+    static List<String> bookFiles(GameTestHelper helper) {
         List<String> out = new ArrayList<>();
         URL anchor = GuidebookTests.class.getResource(BOOK_ROOT + "/book.json");
         if (anchor == null) {
