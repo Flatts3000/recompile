@@ -336,6 +336,12 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         if (level == null || level.isClientSide() || itemIds.size() != FillGridPayload.SLOTS) {
             return;
         }
+        // The payload handler proves the sender has THIS menu open; this proves the menu is still
+        // legitimate. A player who walked away, or whose table was broken, has a menu vanilla has not
+        // closed yet - and withdrawStack reaches into blocks in the world, so the window matters.
+        if (!stillValid(player)) {
+            return;
+        }
         clearGridToPlayer();
         for (int slot = 0; slot < FillGridPayload.SLOTS; slot++) {
             int id = itemIds.get(slot);

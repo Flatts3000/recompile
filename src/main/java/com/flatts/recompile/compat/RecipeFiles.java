@@ -22,6 +22,13 @@ import java.util.stream.Stream;
  * from an empty snapshot is not an error - it is simply a recipe a player cannot find, with nothing
  * anywhere saying why. Files are always there.
  *
+ * <p><b>What this costs, stated plainly.</b> These are the recipes this MOD bundles, not the recipes
+ * the server is running. A datapack that adds or overrides one is invisible here, so a pack extending
+ * the blueprint system would have its recipes work in-world and not appear in JEI. That is a real
+ * regression against reading the recipe manager, accepted because the alternative was worse: the
+ * manager is reliably EMPTY at the moment JEI asks, so the choice was between "pack recipes missing"
+ * and "all recipes missing". Revisit if a viewer-facing reload hook ever exists.
+ *
  * <p><b>Discovered rather than listed.</b> {@code TeardownData} named its two recipe paths in a
  * constant, and when a third teardown shipped it was invisible to JEI - the Broken Hydroponics Bay
  * could be torn down in-world and no viewer would admit it existed. A hardcoded list is a second
