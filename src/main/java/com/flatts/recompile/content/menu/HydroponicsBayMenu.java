@@ -34,11 +34,21 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
     /** Crop, yield, byproduct. */
     public static final int SLOTS = 3;
 
-    public static final int DATA_SIZE = 4;
+    public static final int DATA_SIZE = 6;
     public static final int DATA_PROGRESS = 0;
     public static final int DATA_GOAL = 1;
     public static final int DATA_WATER = 2;
     public static final int DATA_ENERGY = 3;
+    /**
+     * The capacities the gauges scale against, synced rather than recomputed on the client.
+     *
+     * <p>{@code RCConfig} is a COMMON config and NeoForge does not sync those, so a client recomputing
+     * them draws both bars against numbers the server never agreed to. Worse, the tank and battery are
+     * sized when the block entity is built, so even in singleplayer a retune leaves placed bays at their
+     * old size while a config-derived gauge scales to the new one.
+     */
+    public static final int DATA_WATER_CAPACITY = 4;
+    public static final int DATA_ENERGY_CAPACITY = 5;
 
     /** Panel and slot geometry. Public so a GameTest can measure what the screen draws. */
     public static final int W = 176;
@@ -133,6 +143,14 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
 
     public int energy() {
         return data.get(DATA_ENERGY);
+    }
+
+    public int waterCapacity() {
+        return data.get(DATA_WATER_CAPACITY);
+    }
+
+    public int energyCapacity() {
+        return data.get(DATA_ENERGY_CAPACITY);
     }
 
     @Override

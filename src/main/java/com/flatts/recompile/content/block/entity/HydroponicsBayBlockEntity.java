@@ -33,6 +33,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -91,6 +93,9 @@ public class HydroponicsBayBlockEntity extends BlockEntity
     public static final int SLOT_BYPRODUCT = 2;
     private static final int SLOT_COUNT = 3;
 
+    private static final int[] HARVEST_FACES = {SLOT_OUTPUT, SLOT_BYPRODUCT};
+    private static final int[] INPUT_FACE = {SLOT_INPUT};
+
     /** The seedling lottery. Data, so the odds are a datapack question rather than a code one. */
     public static final ResourceKey<LootTable> SEEDLING_TABLE = ResourceKey.create(
         Registries.LOOT_TABLE,
@@ -122,7 +127,7 @@ public class HydroponicsBayBlockEntity extends BlockEntity
         super(RCBlockEntities.HYDROPONICS_BAY.get(), pos, state);
     }
 
-    /** What the screen reads: progress, its goal, water and stored power. */
+    /** What the screen reads: progress, its goal, water and power, and the capacities they scale to. */
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -131,13 +136,15 @@ public class HydroponicsBayBlockEntity extends BlockEntity
                 case HydroponicsBayMenu.DATA_GOAL -> RCConfig.HYDROPONICS_GROW_TICKS.get();
                 case HydroponicsBayMenu.DATA_WATER -> tank.getAmountAsInt(0);
                 case HydroponicsBayMenu.DATA_ENERGY -> battery.getAmountAsInt();
+                case HydroponicsBayMenu.DATA_WATER_CAPACITY -> tankCapacity();
+                case HydroponicsBayMenu.DATA_ENERGY_CAPACITY -> energyCapacity();
                 default -> 0;
             };
         }
 
         @Override
         public void set(int index, int value) {
-            // Read-only: the server owns all four, and a client write would only desync the gauges.
+            // Read-only: the server owns every field, and a client write would only desync the gauges.
         }
 
         @Override
@@ -157,13 +164,25 @@ public class HydroponicsBayBlockEntity extends BlockEntity
             ContainerLevelAccess.create(level, worldPosition));
     }
 
-    /** Capacities the gauges scale against. Read from config so a retune moves the bars with it. */
+    /**
+     * Capacities the gauges scale against, <b>read from the handlers rather than recomputed from
+     * config</b>, and synced to the client through {@link #data}.
+     *
+     * <p>Two ways the config answer is wrong. The tank and the battery are sized from config <b>when the
+     * block entity is constructed</b>, so retuning a value leaves every already-placed bay at its old
+     * size and a gauge scaled to the new one reads a full tank as half full. And {@code RCConfig} is a
+     * COMMON config, which NeoForge does not sync - so on a server whose owner has tuned these, every
+     * client draws both bars against numbers the server never agreed to.
+     *
+     * <p>The Burner Generator's screen gets this right by accident: its capacity is a hardcoded constant,
+     * so there is nothing to disagree about. This one has to do it on purpose.
+     */
     public int tankCapacity() {
-        return RCConfig.HYDROPONICS_TANK_CAPACITY.get();
+        return tank.getCapacityAsInt(0, FluidResource.of(Fluids.WATER));
     }
 
     public int energyCapacity() {
-        return RCConfig.HYDROPONICS_GROW_TICKS.get() * RCConfig.HYDROPONICS_FE_PER_TICK.get();
+        return battery.getCapacityAsInt();
     }
 
     public FluidStacksResourceHandler tank() {
@@ -287,15 +306,13 @@ public class HydroponicsBayBlockEntity extends BlockEntity
      * input here either.
      */
     public static Item yieldOf(Item plantable) {
-        var crop = BuiltInRegistries.ITEM.getData(RCDataMaps.HYDROPONIC_CROP,
-            BuiltInRegistries.ITEM.getResourceKey(plantable).orElse(null));
+        var crop = plantable.builtInRegistryHolder().getData(RCDataMaps.HYDROPONIC_CROP);
         return crop == null ? plantable : crop.yields().orElse(plantable);
     }
 
     /** What else comes off this plantable, or null for the plants that throw off nothing. */
     public static RCDataMaps.@Nullable Byproduct byproductOf(Item plantable) {
-        var crop = BuiltInRegistries.ITEM.getData(RCDataMaps.HYDROPONIC_CROP,
-            BuiltInRegistries.ITEM.getResourceKey(plantable).orElse(null));
+        var crop = plantable.builtInRegistryHolder().getData(RCDataMaps.HYDROPONIC_CROP);
         return crop == null ? null : crop.byproduct().orElse(null);
     }
 
@@ -407,9 +424,10 @@ public class HydroponicsBayBlockEntity extends BlockEntity
         // Both harvest slots pull from below, or a hopper under a potato farm drains the potatoes and
         // leaves the poisonous ones to fill up and stall it - the exact jam the byproduct slot exists to
         // prevent, moved one block down.
-        return side == Direction.DOWN
-            ? new int[] {SLOT_OUTPUT, SLOT_BYPRODUCT}
-            : new int[] {SLOT_INPUT};
+        //
+        // Shared arrays, not fresh ones. A hopper calls this on every transfer attempt, several times a
+        // second per adjacent hopper, and vanilla's containers hand back constants for the same reason.
+        return side == Direction.DOWN ? HARVEST_FACES : INPUT_FACE;
     }
 
     @Override
@@ -477,5 +495,40 @@ public class HydroponicsBayBlockEntity extends BlockEntity
     @Override
     public void clearContent() {
         items.clear();
+    }
+
+    // ---------------- persistence ----------------
+
+    /**
+     * Everything the machine is holding.
+     *
+     * <p><b>This was missing entirely and the bay looked healthy without it.</b> A block entity with no
+     * {@code saveAdditional} works perfectly for a whole session and empties itself the moment the chunk
+     * unloads - nothing throws, nothing logs, and every behaviour test still passes because none of them
+     * serialize. What it costs here is the whole machine: the crop may be the only cactus in the save,
+     * the water was carried across the map, and the charge is a night of a generator's work.
+     *
+     * <p>Both siblings do this and neither is optional to copy: the tank is
+     * {@code tank.serialize(child)} exactly as the Rain Collector's is, and the battery mirrors the
+     * Burner Generator's. Progress is saved too, so a batch interrupted by a logout resumes rather than
+     * restarting - it is the cheap half of the same fix.
+     */
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        tank.serialize(output.child("tank"));
+        battery.serialize(output.child("energy"));
+        output.putInt("progress", progress);
+        ContainerHelper.saveAllItems(output, items);
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.child("tank").ifPresent(tank::deserialize);
+        input.child("energy").ifPresent(battery::deserialize);
+        progress = input.getIntOr("progress", 0);
+        items.clear();
+        ContainerHelper.loadAllItems(input, items);
     }
 }

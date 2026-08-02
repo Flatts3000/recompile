@@ -100,6 +100,50 @@ final class MenuLayoutTests {
             });
             report(helper, wrong, "menus with an incomplete player inventory");
         });
+
+        // The Hydroponics Bay's own non-slot geometry, the same assertion the Burner Generator gained
+        // after it shipped drawing its readout through its own fuel row. Worth having here because this
+        // panel is crowded and its layout moved twice: the arrow was repositioned onto vanilla's 24x17
+        // sprite, and the single output became a yield slot stacked over a byproduct slot.
+        RCGameTests.test("hydroponics_bay_screen_layout_does_not_overlap", 20, helper -> {
+            List<String> clashes = new ArrayList<>();
+            record Box(String name, int x, int y, int w, int h) { }
+            List<Box> boxes = List.of(
+                new Box("crop slot", HydroponicsBayMenu.INPUT_X, HydroponicsBayMenu.INPUT_Y, SLOT, SLOT),
+                new Box("yield slot", HydroponicsBayMenu.OUTPUT_X, HydroponicsBayMenu.OUTPUT_Y,
+                    SLOT, SLOT),
+                new Box("byproduct slot", HydroponicsBayMenu.BYPRODUCT_X,
+                    HydroponicsBayMenu.BYPRODUCT_Y, SLOT, SLOT),
+                new Box("water gauge", HydroponicsBayMenu.WATER_X, HydroponicsBayMenu.GAUGE_Y,
+                    HydroponicsBayMenu.GAUGE_W, HydroponicsBayMenu.GAUGE_H),
+                new Box("power gauge", HydroponicsBayMenu.ENERGY_X, HydroponicsBayMenu.GAUGE_Y,
+                    HydroponicsBayMenu.GAUGE_W, HydroponicsBayMenu.GAUGE_H),
+                new Box("grow arrow", HydroponicsBayMenu.ARROW_X, HydroponicsBayMenu.ARROW_Y,
+                    HydroponicsBayMenu.ARROW_W, HydroponicsBayMenu.ARROW_H));
+
+            for (int i = 0; i < boxes.size(); i++) {
+                Box a = boxes.get(i);
+                if (a.x() < 0 || a.y() < 0
+                        || a.x() + a.w() > HydroponicsBayMenu.W
+                        || a.y() + a.h() > HydroponicsBayMenu.H) {
+                    clashes.add(a.name() + " leaves the panel");
+                }
+                for (int j = i + 1; j < boxes.size(); j++) {
+                    Box b = boxes.get(j);
+                    if (a.x() < b.x() + b.w() && b.x() < a.x() + a.w()
+                            && a.y() < b.y() + b.h() && b.y() < a.y() + a.h()) {
+                        clashes.add(a.name() + " overlaps " + b.name());
+                    }
+                }
+            }
+            // And nothing in the machine half may reach down into the player inventory.
+            for (Box box : boxes) {
+                if (box.y() + box.h() > HydroponicsBayMenu.INV_Y - 12) {
+                    clashes.add(box.name() + " runs into the Inventory label");
+                }
+            }
+            report(helper, clashes, "hydroponics bay layout problems");
+        });
     }
 
     /**

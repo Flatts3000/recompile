@@ -328,6 +328,77 @@ final class HydroponicsTests {
             helper.succeed();
         });
 
+        // The gauges must scale to the tank and battery the machine ACTUALLY has, and those numbers must
+        // reach the client through the menu rather than being recomputed there.
+        //
+        // Two ways recomputing is wrong, and neither shows up in singleplayer at default settings, which
+        // is why this is asserted rather than eyeballed. RCConfig is a COMMON config and NeoForge does
+        // not sync those, so a client on a tuned server draws both bars against numbers the server never
+        // agreed to. And the tank and battery are sized when the block entity is BUILT, so even offline a
+        // retune leaves placed bays at their old size while a config-derived gauge scales to the new one -
+        // a full tank reading half full.
+        RCGameTests.test("the_gauges_report_the_capacity_the_machine_really_has", 20, helper -> {
+            helper.setBlock(BAY, RCBlocks.HYDROPONICS_BAY.get());
+            var be = (HydroponicsBayBlockEntity) helper.getLevel()
+                .getBlockEntity(helper.absolutePos(BAY));
+
+            helper.assertTrue(be.tankCapacity() == be.tank().getCapacityAsInt(0,
+                    FluidResource.of(Fluids.WATER)),
+                "the reported tank capacity must come off the tank itself");
+            helper.assertTrue(be.energyCapacity() == be.battery().getCapacityAsInt(),
+                "and the reported battery capacity off the battery itself");
+
+            // Fill both and confirm the gauge would read exactly full - the arithmetic the screen does.
+            try (Transaction tx = Transaction.openRoot()) {
+                be.tank().insert(FluidResource.of(Fluids.WATER), Integer.MAX_VALUE, tx);
+                be.battery().insert(Integer.MAX_VALUE, tx);
+                tx.commit();
+            }
+            helper.assertTrue(be.tank().getAmountAsInt(0) == be.tankCapacity(),
+                "a tank filled to the brim must read as exactly its own capacity, not over or under");
+            helper.assertTrue(be.battery().getAmountAsInt() == be.energyCapacity(),
+                "and so must a full battery");
+            helper.succeed();
+        });
+
+        // EVERYTHING IN THE MACHINE MUST SURVIVE A RELOAD, and none of the other tests can reach this
+        // because none of them serialize. A block entity with no saveAdditional looks completely healthy
+        // for a whole session and empties itself the moment the chunk unloads.
+        //
+        // What that costs here is the whole point of the machine: the crop is the player's only cactus,
+        // the tank is the water they carried across the map, and the battery is the power a generator
+        // spent the night making.
+        RCGameTests.test("a_bay_survives_a_reload_with_everything_in_it", 20, helper -> {
+            var be = placeFuelled(helper, BAY);
+            var registries = helper.getLevel().registryAccess();
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.CACTUS));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, new ItemStack(Items.CACTUS, 7));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_BYPRODUCT, new ItemStack(Items.POISONOUS_POTATO, 3));
+            int water = be.tank().getAmountAsInt(0);
+            int power = be.battery().getAmountAsInt();
+            helper.assertTrue(water > 0 && power > 0, "precondition: the bay was fuelled");
+
+            net.minecraft.nbt.CompoundTag tag = be.saveCustomOnly(registries);
+            var reloaded = new HydroponicsBayBlockEntity(be.getBlockPos(), be.getBlockState());
+            reloaded.loadCustomOnly(net.minecraft.world.level.storage.TagValueInput.create(
+                net.minecraft.util.ProblemReporter.DISCARDING, registries, tag));
+
+            helper.assertTrue(reloaded.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).is(Items.CACTUS),
+                "the crop must survive - it may be the only cactus in the save");
+            helper.assertTrue(reloaded.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT).getCount() == 7,
+                "and the harvest waiting in the output");
+            helper.assertTrue(
+                reloaded.getItem(HydroponicsBayBlockEntity.SLOT_BYPRODUCT).getCount() == 3,
+                "and the byproduct");
+            helper.assertTrue(reloaded.tank().getAmountAsInt(0) == water,
+                "the tank must survive; saved " + water + " mB, reloaded "
+                    + reloaded.tank().getAmountAsInt(0) + " mB");
+            helper.assertTrue(reloaded.battery().getAmountAsInt() == power,
+                "and the battery; saved " + power + " FE, reloaded "
+                    + reloaded.battery().getAmountAsInt() + " FE");
+            helper.succeed();
+        });
+
         // Junk in, nothing out - and specifically it must not be ACCEPTED, or a hopper feeding a chest
         // of assorted salvage would jam the input slot and brick the machine. That exact failure is why
         // the Cupola gained an insert guard.

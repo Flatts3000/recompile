@@ -96,13 +96,16 @@ public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBay
             x + HydroponicsBayMenu.GAUGE_W - 1, y + HydroponicsBayMenu.GAUGE_H - 1, colour);
     }
 
+    /**
+     * Both capacities come off the menu, which the server fills in - never off the client's own config.
+     * See {@link HydroponicsBayMenu#DATA_WATER_CAPACITY} for the two ways recomputing them here is wrong.
+     */
     private int tankCapacity() {
-        return com.flatts.recompile.RCConfig.HYDROPONICS_TANK_CAPACITY.get();
+        return this.menu.waterCapacity();
     }
 
     private int energyCapacity() {
-        return com.flatts.recompile.RCConfig.HYDROPONICS_GROW_TICKS.get()
-            * com.flatts.recompile.RCConfig.HYDROPONICS_FE_PER_TICK.get();
+        return this.menu.energyCapacity();
     }
 
     /** Numbers on hover, because a bar says "some" and a player tuning a farm wants "how much". */
