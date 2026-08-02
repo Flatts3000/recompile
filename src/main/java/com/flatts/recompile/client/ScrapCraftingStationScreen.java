@@ -49,6 +49,14 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
     private static final int ROW_H = 20;
     /** Y offset (from the panel top) where the material shelf begins - below the title + summary. */
     private static final int SHELF_TOP = PANEL_PAD + 26;
+    /**
+     * Height held back below the last shelf row for the tail line ("+6 more", or "(empty)").
+     *
+     * <p>Two lines' worth, because that text wraps: the panel is 92 wide and "+6 more (scroll)" does
+     * not fit on one. Without the reserve the shelf filled every row to the bottom edge and the tail
+     * drew underneath the panel, over the world.
+     */
+    private static final int TAIL_H = 20;
     private static final int ICON = 16;
 
     /**
@@ -182,7 +190,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
     }
 
     private int maxRows() {
-        return (CRAFT_H - SHELF_TOP - PANEL_PAD) / ROW_H;
+        return (CRAFT_H - SHELF_TOP - PANEL_PAD - TAIL_H) / ROW_H;
     }
 
     @Override
