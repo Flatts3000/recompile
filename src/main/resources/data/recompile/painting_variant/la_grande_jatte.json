@@ -1,0 +1,13 @@
+{
+  "asset_id": "recompile:painting_la_grande_jatte",
+  "width": 3,
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.recompile.la_grande_jatte.title"
+  },
+  "author": {
+    "color": "gray",
+    "translate": "painting.recompile.la_grande_jatte.author"
+  }
+}

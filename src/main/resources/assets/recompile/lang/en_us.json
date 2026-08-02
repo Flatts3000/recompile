@@ -321,7 +321,7 @@
   "painting.recompile.mona_lisa.author": "Leonardo da Vinci",
   "painting.recompile.pearl_earring.title": "Girl with a Pearl Earring",
   "painting.recompile.pearl_earring.author": "Johannes Vermeer",
-  "painting.recompile.the_kiss.title": "The Kiss",
-  "painting.recompile.the_kiss.author": "Gustav Klimt",
+  "painting.recompile.la_grande_jatte.title": "A Sunday Afternoon on the Island of La Grande Jatte",
+  "painting.recompile.la_grande_jatte.author": "Georges Seurat",
   "config.jade.plugin_recompile.painting_name": "Painting name"
 }

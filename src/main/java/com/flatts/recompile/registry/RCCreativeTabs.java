@@ -30,7 +30,7 @@ public final class RCCreativeTabs {
      * should not silently gain a creative entry the mod never authored art for.
      */
     private static final List<String> RECOVERED_PAINTINGS = List.of(
-        "mona_lisa", "the_scream", "starry_night", "great_wave", "pearl_earring", "the_kiss");
+        "mona_lisa", "the_scream", "starry_night", "great_wave", "pearl_earring", "la_grande_jatte");
 
 
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =

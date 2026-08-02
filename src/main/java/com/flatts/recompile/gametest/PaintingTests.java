@@ -31,7 +31,7 @@ import org.jspecify.annotations.Nullable;
 final class PaintingTests {
 
     private static final String[] WORKS =
-        {"great_wave", "starry_night", "the_scream", "mona_lisa", "pearl_earring", "the_kiss"};
+        {"great_wave", "starry_night", "the_scream", "mona_lisa", "pearl_earring", "la_grande_jatte"};
 
     private PaintingTests() {
     }
@@ -52,7 +52,7 @@ final class PaintingTests {
             for (Expect e : new Expect[] {
                     new Expect("great_wave", 3, 2), new Expect("starry_night", 4, 3),
                     new Expect("the_scream", 3, 4), new Expect("mona_lisa", 2, 3),
-                    new Expect("pearl_earring", 3, 4), new Expect("the_kiss", 4, 4)}) {
+                    new Expect("pearl_earring", 3, 4), new Expect("la_grande_jatte", 3, 2)}) {
                 PaintingVariant v = variant(helper, e.id()).value();
                 if (v.width() != e.w() || v.height() != e.h()) {
                     wrong.add(e.id() + " is " + v.width() + "x" + v.height()

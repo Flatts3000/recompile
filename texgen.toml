@@ -1093,10 +1093,10 @@ blocks = "3x4"
 source = "wikimedia:Meisje met de parel.jpg"
 prompt = "Girl with a Pearl Earring by Vermeer, downscaled to 48x64"
 
-[surface.painting_the_kiss]
+[surface.painting_la_grande_jatte]
 kind = "painting"
 backend = "ai"          # never generated; candidates are placed by hand from the source image
-size = 64
-blocks = "4x4"
-source = "wikimedia:The Kiss - Gustav Klimt - Google Cultural Institute.jpg"
-prompt = "The Kiss by Klimt, downscaled to 64x64"
+size = 48
+blocks = "3x2"
+source = "wikimedia:A Sunday on La Grande Jatte, Georges Seurat, 1884.jpg"
+prompt = "A Sunday Afternoon on the Island of La Grande Jatte by Georges Seurat, downscaled to 48x32"

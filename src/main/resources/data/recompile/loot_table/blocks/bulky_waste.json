@@ -118,9 +118,9 @@
             {
               "function": "minecraft:set_components",
               "components": {
-                "minecraft:painting/variant": "recompile:the_kiss",
+                "minecraft:painting/variant": "recompile:la_grande_jatte",
                 "minecraft:item_name": {
-                  "translate": "painting.recompile.the_kiss.title"
+                  "translate": "painting.recompile.la_grande_jatte.title"
                 }
               }
             }
