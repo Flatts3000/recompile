@@ -78,10 +78,21 @@ public class BlueprintItem extends Item {
 
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
-        return List.of(CLEAN_MATTRESS);
+        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY);
     }
 
     /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
     public static final Identifier CLEAN_MATTRESS =
         Identifier.fromNamespaceAndPath("recompile", "clean_mattress");
+
+    /**
+     * The second blueprint, and the one that proves the mechanic was worth building.
+     *
+     * <p>A single gated object is a demo. The spec said as much: "the POC only earns its cost if the
+     * bed is not the only one." This is a machine rather than a trinket, learned from tearing apart a
+     * washing machine - which is already where the Pump comes from, so the thing that teaches you to
+     * circulate water is the thing you take the pump out of.
+     */
+    public static final Identifier HYDROPONICS_BAY =
+        Identifier.fromNamespaceAndPath("recompile", "hydroponics_bay");
 }

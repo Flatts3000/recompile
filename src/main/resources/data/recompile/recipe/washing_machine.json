@@ -5,8 +5,24 @@
   "tool": "recompile:prybar",
   "ticks": 120,
   "results": [
-    { "item": "recompile:pump", "count": 1 },
-    { "item": "recompile:scrap_metal", "count": 3 },
-    { "item": "recompile:plastic_scrap", "count": 2 }
+    {
+      "item": "recompile:pump",
+      "count": 1
+    },
+    {
+      "item": "recompile:scrap_metal",
+      "count": 3
+    },
+    {
+      "item": "recompile:plastic_scrap",
+      "count": 2
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:hydroponics_bay",
+      "chance": 1.0,
+      "scraps_required": 6
+    }
   ]
 }

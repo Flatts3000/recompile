@@ -7,6 +7,7 @@ import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -35,36 +36,52 @@ final class BlueprintTests {
     static void register() {
         // THE GATE. Nothing in the crafting recipe manager may produce a Clean Mattress: the blueprint
         // bench is the only route, and that is the entire proposition of the feature.
-        RCGameTests.test("blueprint_crafting_is_the_only_route_to_a_clean_mattress", 20, helper -> {
+        RCGameTests.test("a_blueprint_result_has_no_other_route", 20, helper -> {
+            // EVERY blueprint-gated result, not one named item. The Hydroponics Bay moved behind a
+            // blueprint after this test was written, and a mattress-only sweep would have said nothing
+            // about it - the gate would have been whatever the recipe files happened to say, proven
+            // nowhere. Reading the gated set from the recipes themselves means a pack that gates a
+            // third thing gets the same guarantee without editing this.
+            Set<Item> gated = new java.util.HashSet<>();
+            for (RecipeHolder<BlueprintCraftingRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                gated.add(holder.value().result().item());
+            }
+            helper.assertTrue(!gated.isEmpty(),
+                "no blueprint recipes were found - the sweep is broken, so this would pass against "
+                    + "anything");
+
             List<String> offenders = new ArrayList<>();
             int swept = 0;
-            // Every recipe of every type, ours included, read through the display each one publishes
-            // for the recipe book. Sweeping by INPUT the way the iron gate test does cannot work here:
-            // the question is not "what does this item turn into" but "what turns into this item", and
-            // the input space for that is every combination in a 3x3.
+            // Sweeping by INPUT the way the iron gate test does cannot work here: the question is not
+            // "what does this item turn into" but "what turns into this item", and the input space for
+            // that is every combination in a 3x3.
             for (RecipeHolder<?> holder : helper.getLevel().recipeAccess().recipeMap().values()) {
                 swept++;
                 if (holder.value().getType() == RCRecipeTypes.BLUEPRINT_CRAFTING.get()) {
                     continue;   // the sanctioned route
                 }
-                // A recipe that CONSUMES a Clean Mattress and hands one back is a recolour, not a
-                // source: it creates nothing, and net new mattresses is what the gate is about. Same
-                // distinction phase 1 drew on the beds, where the 16 wool-to-bed recipes were deleted
-                // and the 16 dye-a-bed recipes were deliberately left alone.
-                if (consumes(holder.value(), RCItems.CLEAN_MATTRESS.get())) {
-                    continue;
-                }
-                for (var display : holder.value().display()) {
-                    if (produces(display.result(), RCItems.CLEAN_MATTRESS.get())) {
-                        offenders.add(holder.id().toString());
+                for (Item result : gated) {
+                    // A recipe that CONSUMES the gated item and hands one back is a recolour, not a
+                    // source: it creates nothing, and net new items is what the gate is about. Same
+                    // distinction phase 1 drew on the beds, where the 16 wool-to-bed recipes were
+                    // deleted and the 16 dye-a-bed recipes were deliberately left alone.
+                    if (consumes(holder.value(), result)) {
+                        continue;
+                    }
+                    for (var display : holder.value().display()) {
+                        if (produces(display.result(), result)) {
+                            offenders.add(holder.id() + " -> "
+                                + BuiltInRegistries.ITEM.getKey(result));
+                        }
                     }
                 }
             }
             helper.assertTrue(swept > 100,
                 "only " + swept + " recipes were swept - the sweep is broken, so this would pass "
-                    + "against any recipe that made a Clean Mattress");
+                    + "against any recipe that made a gated item");
             helper.assertTrue(offenders.isEmpty(),
-                "a Clean Mattress must come only from a blueprint: " + offenders);
+                "these are blueprint-gated and reachable another way, so the gate leaks: " + offenders);
             helper.succeed();
         });
 
@@ -75,14 +92,23 @@ final class BlueprintTests {
                 .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get());
             List<BlueprintCraftingRecipe> found = new ArrayList<>();
             recipes.forEach(holder -> found.add(holder.value()));
-            helper.assertTrue(found.size() == 1,
-                "expected exactly one blueprint recipe, got " + found.size());
+            helper.assertTrue(found.size() == BlueprintItem.shipped().size(),
+                "one blueprint recipe per shipped blueprint, expected " + BlueprintItem.shipped().size()
+                    + " and got " + found.size());
 
-            BlueprintCraftingRecipe recipe = found.get(0);
-            helper.assertTrue(recipe.blueprint().equals(BlueprintItem.CLEAN_MATTRESS),
-                "it must name the Clean Mattress blueprint, got " + recipe.blueprint());
-            helper.assertTrue(recipe.result().item() == RCItems.CLEAN_MATTRESS.get(),
-                "and produce a Clean Mattress, got " + recipe.result().item());
+            BlueprintCraftingRecipe mattress = found.stream()
+                .filter(r -> r.blueprint().equals(BlueprintItem.CLEAN_MATTRESS))
+                .findFirst().orElse(null);
+            helper.assertTrue(mattress != null, "the Clean Mattress recipe must load");
+            helper.assertTrue(mattress.result().item() == RCItems.CLEAN_MATTRESS.get(),
+                "and produce a Clean Mattress, got " + mattress.result().item());
+
+            BlueprintCraftingRecipe bay = found.stream()
+                .filter(r -> r.blueprint().equals(BlueprintItem.HYDROPONICS_BAY))
+                .findFirst().orElse(null);
+            helper.assertTrue(bay != null, "and so must the Hydroponics Bay recipe");
+            helper.assertTrue(bay.result().item() == RCItems.HYDROPONICS_BAY.get(),
+                "producing a Hydroponics Bay, got " + bay.result().item());
             helper.succeed();
         });
 
@@ -93,7 +119,9 @@ final class BlueprintTests {
                 .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get());
             List<BlueprintCraftingRecipe> found = new ArrayList<>();
             recipes.forEach(holder -> found.add(holder.value()));
-            BlueprintCraftingRecipe recipe = found.get(0);
+            BlueprintCraftingRecipe recipe = found.stream()
+                .filter(r -> r.blueprint().equals(BlueprintItem.CLEAN_MATTRESS))
+                .findFirst().orElseThrow();
 
             ItemStack wool = new ItemStack(net.minecraft.world.item.Items.WHITE_WOOL);
             ItemStack string = new ItemStack(net.minecraft.world.item.Items.STRING);
