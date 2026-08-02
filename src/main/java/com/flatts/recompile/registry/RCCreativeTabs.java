@@ -68,6 +68,9 @@ public final class RCCreativeTabs {
                     // --- Blueprints (#95): one per set the mod ships, each already carrying its
                     // component so a creative-tab pull is a working blueprint rather than a blank one.
                     com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
+                        output.accept(com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                            RCItems.IDEA_FRAGMENT.get(), set, 1)));
+                    com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
                         output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
                             RCItems.BLUEPRINT.get(), set)));
                     output.accept(RCItems.CLEAN_MATTRESS.get());

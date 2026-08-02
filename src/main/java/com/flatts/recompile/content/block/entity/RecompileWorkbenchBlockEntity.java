@@ -1,5 +1,7 @@
 package com.flatts.recompile.content.block.entity;
 
+import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.item.IdeaFragmentItem;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import com.flatts.recompile.content.block.ScrapNetwork;
@@ -232,12 +234,41 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
                 output(level, new ItemStack(extra.item()));
             }
         }
+        teach(level, recipe, random);
         recipe.tool().ifPresent(required -> damageRackedTool(level, required));
         if (player == null || !player.getAbilities().instabuild) {
             held.shrink(1);
         }
         SoundType sound = level.getBlockState(worldPosition).getSoundType();
         level.playSound(null, worldPosition, sound.getBreakSound(), SoundSource.BLOCKS, 0.8F, 0.9F);
+    }
+
+    /**
+     * The knowledge half of a teardown (#95): a roll against {@code teaches} yields an Idea Fragment.
+     *
+     * <p><b>This field has been parsed and ignored since Phase 0.</b> The recipe schema shipped with
+     * {@code teaches} deliberately early, so the knowledge axis would never have to be retrofitted into
+     * a live format, and this class's own javadoc said in as many words that it "ignores teaches
+     * entirely. No knowledge." This is the method that finally reads it.
+     *
+     * <p><b>A fragment, not the blueprint.</b> {@code scraps_required} is what it always read as: how
+     * many fragments make the sheet. Nothing here counts anything - the count lives in the player's
+     * inventory as a stack, which is how this mod stores everything else, and the assembling is an
+     * ordinary crafting step rather than hidden state.
+     *
+     * <p>{@code chance} is the per-teardown odds of learning anything at all. A recipe that omits it
+     * teaches nothing, which is why every teardown in the mod except the mattress is unaffected by this.
+     */
+    private void teach(ServerLevel level, TeardownRecipe recipe, RandomSource random) {
+        if (!RCConfig.BLUEPRINTS_ENABLED.get()) {
+            return;
+        }
+        for (TeardownRecipe.TeachEntry entry : recipe.teaches()) {
+            if (entry.chance() <= 0.0F || random.nextFloat() >= entry.chance()) {
+                continue;
+            }
+            output(level, IdeaFragmentItem.of(RCItems.IDEA_FRAGMENT.get(), entry.recipe(), 1));
+        }
     }
 
     /** A teardown output: into the connected scrap-network storage if any, else onto the table (P2.10). */

@@ -191,6 +191,74 @@ final class BlueprintTests {
             helper.succeed();
         });
 
+        // TEARDOWN FINALLY TEACHES. The teaches field has been parsed and ignored since Phase 0 - the
+        // workbench's own javadoc said so in as many words - so the thing worth asserting is that it is
+        // read at all, and that what comes out points at the right blueprint.
+        //
+        // The chance is 0.25, so this drives the roll a hundred times rather than once. A single
+        // attempt would fail three runs in four and teach everyone to re-run the suite until it
+        // passed, which is worse than having no test.
+        RCGameTests.test("tearing_down_a_mattress_can_teach_the_clean_mattress_idea", 60, helper -> {
+            var recipes = helper.getLevel().recipeAccess().recipeMap()
+                .byType(RCRecipeTypes.TEARDOWN.get());
+            var teaching = new ArrayList<com.flatts.recompile.content.recipe.TeardownRecipe>();
+            recipes.forEach(holder -> {
+                if (!holder.value().teaches().isEmpty()) {
+                    teaching.add(holder.value());
+                }
+            });
+            helper.assertTrue(!teaching.isEmpty(),
+                "some teardown must carry a teaches entry, or the knowledge axis is still dormant");
+
+            var toMattress = teaching.stream()
+                .flatMap(r -> r.teaches().stream())
+                .filter(e -> e.recipe().equals(BlueprintItem.CLEAN_MATTRESS))
+                .findFirst().orElse(null);
+            helper.assertTrue(toMattress != null,
+                "something must teach the Clean Mattress idea, or the blueprint is unreachable");
+            helper.assertTrue(toMattress.chance() > 0.0f,
+                "a teaches entry with no chance can never fire, which is a silent no-op");
+            helper.assertTrue(toMattress.scrapsRequired() > 1,
+                "scraps_required is the whole reason fragments exist - at 1 the fragment is the sheet");
+
+            // EVERY teaches entry must name a blueprint that exists. This is the general form of a bug
+            // this change created: teaches had been parsed and ignored since Phase 0, so the schema's
+            // own EXAMPLE recipe carried a teaches pointing at minecraft:iron_door and nothing noticed
+            // for months. Reading the field turned that dormant example into live content - a fragment
+            // toward a blueprint the mod does not ship, which can never be assembled into anything.
+            List<String> dangling = new ArrayList<>();
+            for (var recipe : teaching) {
+                for (var teach : recipe.teaches()) {
+                    if (!BlueprintItem.shipped().contains(teach.recipe())) {
+                        dangling.add(teach.recipe().toString());
+                    }
+                }
+            }
+            helper.assertTrue(dangling.isEmpty(),
+                "these teardowns teach a blueprint that does not exist, so the fragments they grant can "
+                    + "never be assembled: " + dangling);
+            helper.succeed();
+        });
+
+        // A fragment names what it is an idea ABOUT, which is what stops one easy teardown unlocking
+        // everything. Two fragments toward different blueprints must not pile up together.
+        RCGameTests.test("idea_fragments_are_specific_to_their_blueprint", 20, helper -> {
+            ItemStack toMattress = com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 1);
+            ItemStack toSomethingElse = com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(),
+                Identifier.fromNamespaceAndPath("recompile", "something_else"), 1);
+
+            helper.assertTrue(com.flatts.recompile.content.item.IdeaFragmentItem.towards(toMattress)
+                    .equals(BlueprintItem.CLEAN_MATTRESS),
+                "a fragment must name the blueprint it leads to");
+            helper.assertFalse(ItemStack.isSameItemSameComponents(toMattress, toSomethingElse),
+                "fragments toward different blueprints must not stack into one pile");
+            helper.assertTrue(toMattress.getMaxStackSize() > 1,
+                "fragments stack, unlike blueprints - watching the count rise IS the mechanic");
+            helper.succeed();
+        });
+
     }
 
     /** A crafting grid holding exactly these items, in this order. */

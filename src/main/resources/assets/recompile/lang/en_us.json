@@ -373,5 +373,8 @@
   "blueprint.recompile.clean_mattress": "Clean Mattress",
   "tooltip.recompile.blueprint_blank": "Blank - it never said what it was for",
   "block.recompile.filing_cabinet": "Filing Cabinet",
-  "container.recompile.filing_cabinet": "Filing Cabinet"
+  "container.recompile.filing_cabinet": "Filing Cabinet",
+  "item.recompile.idea_fragment": "Idea Fragment",
+  "tooltip.recompile.fragment_towards": "Working towards: %s",
+  "tooltip.recompile.fragment_blank": "An idea about nothing in particular"
 }

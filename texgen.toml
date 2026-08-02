@@ -1068,15 +1068,22 @@ front = "a full-bleed Minecraft block face: the front of a battered olive-green 
 side = "a full-bleed Minecraft block face: the plain side panel of a battered olive-green metal filing cabinet, one faint vertical seam near the front edge, chipped paint and rust streaks, muted, flat, no perspective, fills the whole tile"
 top = "a full-bleed top-down Minecraft block face: the top of a battered olive-green metal filing cabinet, flat sheet metal with a raised rim, a few loose yellowed paper scraps and dust, chipped paint and rust, muted, flat, no perspective, fills the whole tile"
 
-# The Idea Fragment (#95): a torn piece of the blueprint you are working towards, so it MUST be
-# derived from the approved blueprint art rather than generated blind - two blue papers prompted
-# separately come back as two different documents. Generate this only after blueprint is promoted.
+# The Idea Fragment (#95). It is deliberately NOT a piece of the blueprint, and that is a reversal.
+#
+# It was first declared with reference = "blueprint" so the two would read as one document torn in
+# half. The owner rejected that on the art and gave the better reason (2026-08-02): a fragment is an
+# arbitrary idea, not an item. The blueprint is the finished artifact; the fragment is the half-formed
+# thought that precedes it, so it should look like nothing in particular. Colourless is the point -
+# next to the blue sheet it reads as "not yet a document" rather than "half a document".
+#
+# The shipped PNG was generated from the blueprint before that call, so a regeneration WILL come back
+# different. Promote re-finalises from art_src with no API call, so the shipped art is safe; only a
+# fresh generate would change it.
 [surface.idea_fragment]
 kind = "item"
 backend = "ai"
 size = 16
-reference = "blueprint"
-prompt = "keep this exact sheet unchanged - same deep blue paper, same white technical lines, same faded salvaged look. Change only the shape: it is now a single small torn-off corner fragment of that sheet, ragged tear edges on two sides, roughly a third the size and sitting centered in frame. Plain transparent background, no scene"
+prompt = "a small pale scrap of an idea, a torn shred of blank off-white paper with a few faint scribbled pencil marks on it, no colour and no printing, ragged tear edges, small in frame, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.cutting_torch]
 kind = "item"

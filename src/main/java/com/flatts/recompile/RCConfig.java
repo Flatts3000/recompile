@@ -68,6 +68,7 @@ public final class RCConfig {
 
     // ---- Vegetation tier (rung 2 - Fertilizer scatters plants) ----
     public static final ModConfigSpec.BooleanValue DISABLE_INFINITE_WATER;
+    public static final ModConfigSpec.BooleanValue BLUEPRINTS_ENABLED;
     public static final ModConfigSpec.BooleanValue HYDROPONICS_ENABLED;
     public static final ModConfigSpec.IntValue HYDROPONICS_GROW_TICKS;
     public static final ModConfigSpec.IntValue HYDROPONICS_WATER_PER_GROW;
@@ -191,6 +192,10 @@ public final class RCConfig {
                 "all, leaving you free to set it by hand; leave it on and the rule is re-applied every",
                 "load, which is what makes this reach worlds that already exist.")
             .define("disableInfiniteWater", true);
+        BLUEPRINTS_ENABLED = builder
+            .comment("Whether tearing something down can teach an Idea Fragment (#95). Off means the",
+                "workbench stays materials-only, the way it was before blueprints existed.")
+            .define("blueprintsEnabled", true);
         HYDROPONICS_ENABLED = builder
             .comment("Whether the Hydroponics Bay grows plants from water and power (#43).")
             .define("hydroponicsEnabled", true);

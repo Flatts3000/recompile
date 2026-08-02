@@ -136,6 +136,13 @@ anyone could already craft.
 
 - An **Idea Fragment** item carrying the same blueprint-set component the Blueprint does. A fragment
   for the Clean Mattress and a fragment for something else are different items, not one generic scrap.
+- **It does not look like the blueprint, on purpose** (owner, 2026-08-02). The first art was derived
+  from the blueprint so the two would read as one document torn in half; that was rejected for a
+  better reason than the art. *A fragment is an arbitrary idea, not an item.* The blueprint is the
+  finished artifact and the fragment is the half-formed thought before it, so it is deliberately
+  colourless and unremarkable: next to the blue sheet it reads as **not yet a document** rather than
+  as half of one. The component still names which set it belongs to - the distinction is visual, not
+  mechanical.
 - The Workbench reads `teaches` and grants a fragment on a successful roll. `scraps_required` becomes
   what it always read as: how many fragments make the sheet.
 - **Fragments craft into the Blueprint** at the Scrap Crafting Table, N of the same set into one sheet.
