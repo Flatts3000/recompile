@@ -354,23 +354,29 @@ public class RecompileJeiPlugin implements IModPlugin {
      * range - handing JEI a range that includes it would let a transfer overwrite what the table just
      * made.
      */
+    /**
+     * The "+" button that fills the grid.
+     *
+     * <p><b>A custom handler, not JEI's built-in one.</b> The built-in moves items between the open
+     * container's own slots, and this table's materials mostly are not in it - they are in the Scrap
+     * Barrel and Bins wired to it. With the stock handler a player whose every ingredient sat in the
+     * barrel beside them was told "Missing Items", which is the exact thing the connected-storage panel
+     * exists to stop being true.
+     *
+     * <p>Registered per category, and a category without a handler simply has no button - nothing warns
+     * you, the transfer arrow is just absent and it reads as JEI deciding the recipe is uncraftable. So
+     * every category this table can run gets one, vanilla crafting included.
+     */
     @Override
     public void registerRecipeTransferHandlers(
             mezz.jei.api.registration.IRecipeTransferRegistration registration) {
+        var helper = registration.getTransferHelper();
         registration.addRecipeTransferHandler(
-            com.flatts.recompile.content.menu.ScrapCraftingStationMenu.class,
-            com.flatts.recompile.registry.RCMenus.SCRAP_CRAFTING_STATION.get(),
-            BLUEPRINT_CRAFTING, 1, 9, 10, 36);
+            new ScrapTableTransfer<>(BLUEPRINT_CRAFTING, helper), BLUEPRINT_CRAFTING);
         registration.addRecipeTransferHandler(
-            com.flatts.recompile.content.menu.ScrapCraftingStationMenu.class,
-            com.flatts.recompile.registry.RCMenus.SCRAP_CRAFTING_STATION.get(),
-            ASSEMBLY, 1, 9, 10, 36);
-        // Vanilla crafting too - this table runs ordinary recipes as well, and without this the button
-        // is missing on every one of them, which is most of the recipes in the game.
+            new ScrapTableTransfer<>(ASSEMBLY, helper), ASSEMBLY);
         registration.addRecipeTransferHandler(
-            com.flatts.recompile.content.menu.ScrapCraftingStationMenu.class,
-            com.flatts.recompile.registry.RCMenus.SCRAP_CRAFTING_STATION.get(),
-            RecipeTypes.CRAFTING, 1, 9, 10, 36);
+            new ScrapTableTransfer<>(RecipeTypes.CRAFTING, helper), RecipeTypes.CRAFTING);
     }
 
     @Override

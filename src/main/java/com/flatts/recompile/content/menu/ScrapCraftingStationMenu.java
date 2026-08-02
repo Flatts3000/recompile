@@ -31,6 +31,7 @@ import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
+import com.flatts.recompile.network.FillGridPayload;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -285,6 +286,66 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
      * the network-wide count would make a right-click on a 300-item spread try to pull 150 out of a
      * single bin and quietly return whatever it had.
      */
+    /**
+     * Put one of each named item into the crafting grid, sourced from anywhere this table can reach.
+     *
+     * <p>Server side of JEI's transfer button (#95). The client decided the placements; this finds each
+     * item and moves it, preferring the <b>player's own inventory</b> before the network - taking from
+     * a shared barrel when the crafter is already carrying the item would quietly redistribute other
+     * people's storage on a server.
+     *
+     * <p><b>Anything already in the grid goes back first</b>, or a second transfer stacks a new recipe
+     * on top of the last one and produces a grid matching neither.
+     *
+     * <p>Best effort by design: a slot whose item cannot be found is left empty rather than the whole
+     * transfer being refused. The client checks availability before sending, so a gap here means the
+     * network changed underneath it, and half a grid the player can see and finish is better than an
+     * empty one with no explanation.
+     */
+    public void fillGrid(List<Integer> itemIds) {
+        if (level == null || level.isClientSide() || itemIds.size() != FillGridPayload.SLOTS) {
+            return;
+        }
+        clearGridToPlayer();
+        for (int slot = 0; slot < FillGridPayload.SLOTS; slot++) {
+            int id = itemIds.get(slot);
+            if (id == FillGridPayload.EMPTY) {
+                continue;
+            }
+            Item item = Item.byId(id);
+            if (item == Items.AIR) {
+                continue;
+            }
+            ItemStack one = takeOne(item);
+            if (!one.isEmpty()) {
+                craftSlots.setItem(slot, one);
+            }
+        }
+        slotsChanged(craftSlots);
+    }
+
+    /** Return whatever is in the grid to the player, dropping what will not fit. */
+    private void clearGridToPlayer() {
+        for (int slot = 0; slot < craftSlots.getContainerSize(); slot++) {
+            ItemStack stack = craftSlots.removeItemNoUpdate(slot);
+            if (!stack.isEmpty() && !player.getInventory().add(stack)) {
+                player.drop(stack, false);
+            }
+        }
+    }
+
+    /** One of this item from the player's inventory, else from the connected network. */
+    private ItemStack takeOne(Item item) {
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (stack.is(item)) {
+                return stack.split(1);
+            }
+        }
+        ItemStack pulled = withdrawStack(item, ScrapPanelInteraction.Mode.ONE);
+        return pulled.isEmpty() ? ItemStack.EMPTY : pulled.split(1);
+    }
+
     private ItemStack withdrawStack(Item item, ScrapPanelInteraction.Mode mode) {
         int stackMax = new ItemStack(item).getMaxStackSize();
         List<BlockPos> members = ScrapNetwork.collect(level, pos);

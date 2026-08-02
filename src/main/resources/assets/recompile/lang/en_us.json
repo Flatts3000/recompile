@@ -408,5 +408,6 @@
   "item.recompile.green_clean_mattress": "Green Clean Mattress",
   "item.recompile.red_clean_mattress": "Red Clean Mattress",
   "item.recompile.black_clean_mattress": "Black Clean Mattress",
-  "tooltip.recompile.fragment_needed": "%s make a blueprint"
+  "tooltip.recompile.fragment_needed": "%s make a blueprint",
+  "jei.recompile.transfer_missing": "Not in your inventory or any connected storage"
 }
