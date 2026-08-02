@@ -81,10 +81,22 @@ public class BlueprintCraftingCategory implements IRecipeCategory<BlueprintCraft
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, BlueprintCraftingRecipe recipe,
             IFocusGroup focuses) {
-        List<Ingredient> ingredients = recipe.ingredients();
-        for (int i = 0; i < ingredients.size() && i < GRID * GRID; i++) {
-            builder.addInputSlot(PAD + (i % GRID) * SLOT, PAD + (i / GRID) * SLOT)
-                .addIngredients(ingredients.get(i));
+        // Laid out by the recipe's own pattern, so what JEI draws is where the items go. A shaped
+        // recipe rendered as a flat list is not a smaller answer, it is a wrong one.
+        var pattern = recipe.pattern();
+        List<java.util.Optional<Ingredient>> ingredients = pattern.ingredients();
+        for (int i = 0; i < ingredients.size(); i++) {
+            int col = i % pattern.width();
+            int row = i / pattern.width();
+            if (col >= GRID || row >= GRID) {
+                continue;
+            }
+            int slot = PAD;
+            var ingredient = ingredients.get(i);
+            if (ingredient.isPresent()) {
+                builder.addInputSlot(slot + col * SLOT, slot + row * SLOT)
+                    .addIngredients(ingredient.get());
+            }
         }
         int middle = PAD + SLOT;
         builder.addInputSlot(SHEET_X, middle)

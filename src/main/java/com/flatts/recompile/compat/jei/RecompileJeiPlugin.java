@@ -234,13 +234,18 @@ public class RecompileJeiPlugin implements IModPlugin {
         // and JEI builds its categories on its own schedule, so a snapshot taken here can be empty -
         // and an empty category is not an error, it is a recipe the player cannot find with nothing
         // saying why. See RecipeFiles.
-        registration.addRecipes(BLUEPRINT_CRAFTING,
-            com.flatts.recompile.compat.BlueprintData.all().stream()
-                .map(e -> new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe(
-                    e.blueprint(), e.ingredients(),
-                    new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe.Result(
-                        e.result(), e.count())))
-                .toList());
+        List<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> blueprinted =
+            new ArrayList<>();
+        for (com.flatts.recompile.compat.BlueprintData.Entry e
+                : com.flatts.recompile.compat.BlueprintData.all()) {
+            blueprinted.add(new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe(
+                e.blueprint(),
+                new net.minecraft.world.item.crafting.ShapedRecipePattern(
+                    e.width(), e.height(), e.ingredients(), java.util.Optional.empty()),
+                new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe.Result(
+                    e.result(), e.count())));
+        }
+        registration.addRecipes(BLUEPRINT_CRAFTING, blueprinted);
 
         // THE TWO SPECIAL RECIPES, which JEI cannot see on its own.
         //
@@ -264,7 +269,7 @@ public class RecompileJeiPlugin implements IModPlugin {
             // One slot per fragment rather than one stack of four, because a grid of four is what the
             // player will actually lay out and a "4" in the corner of one slot reads as optional.
             List<ItemStack> fragments = new ArrayList<>();
-            for (int i = 0; i < fragmentsFor(set); i++) {
+            for (int i = 0; i < com.flatts.recompile.compat.BlueprintData.fragmentsFor(set); i++) {
                 fragments.add(com.flatts.recompile.content.item.IdeaFragmentItem.of(
                     RCItems.IDEA_FRAGMENT.get(), set, 1));
             }
@@ -336,6 +341,38 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addIngredientInfo(item, Component.translatable("jei.recompile.info." + key));
     }
 
+    /**
+     * The "+" button that fills the grid from your inventory.
+     *
+     * <p><b>Registered per category, and a category with no handler simply has no button.</b> Nothing
+     * warns you: the recipe renders, the transfer arrow is absent, and it reads as JEI deciding the
+     * recipe is not craftable. Blueprint recipes and fragment assembly are both crafted in this table's
+     * 3x3, so both get one.
+     *
+     * <p>Slot arithmetic comes from {@code ScrapCraftingStationMenu}'s own order: 0 is the result, 1
+     * through 9 are the grid, and the player's 36 follow. The result slot is deliberately outside the
+     * range - handing JEI a range that includes it would let a transfer overwrite what the table just
+     * made.
+     */
+    @Override
+    public void registerRecipeTransferHandlers(
+            mezz.jei.api.registration.IRecipeTransferRegistration registration) {
+        registration.addRecipeTransferHandler(
+            com.flatts.recompile.content.menu.ScrapCraftingStationMenu.class,
+            com.flatts.recompile.registry.RCMenus.SCRAP_CRAFTING_STATION.get(),
+            BLUEPRINT_CRAFTING, 1, 9, 10, 36);
+        registration.addRecipeTransferHandler(
+            com.flatts.recompile.content.menu.ScrapCraftingStationMenu.class,
+            com.flatts.recompile.registry.RCMenus.SCRAP_CRAFTING_STATION.get(),
+            ASSEMBLY, 1, 9, 10, 36);
+        // Vanilla crafting too - this table runs ordinary recipes as well, and without this the button
+        // is missing on every one of them, which is most of the recipes in the game.
+        registration.addRecipeTransferHandler(
+            com.flatts.recompile.content.menu.ScrapCraftingStationMenu.class,
+            com.flatts.recompile.registry.RCMenus.SCRAP_CRAFTING_STATION.get(),
+            RecipeTypes.CRAFTING, 1, 9, 10, 36);
+    }
+
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         // The world's only crafting station - so JEI stops telling players to use a
@@ -379,24 +416,4 @@ public class RecompileJeiPlugin implements IModPlugin {
         return level == null ? null : level.registryAccess();
     }
 
-    /**
-     * How many fragments this blueprint costs, read off the teardown that teaches it.
-     *
-     * <p>The same lookup {@code FragmentAssemblyRecipe} does, so the example JEI shows and the recipe
-     * the table runs cannot disagree. A hardcoded 4 here would be right until the first pack retuned it.
-     */
-    private static int fragmentsFor(Identifier set) {
-        RecipeMap synced = RCSyncedRecipes.get();
-        if (synced != null) {
-            for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
-                    : synced.byType(com.flatts.recompile.registry.RCRecipeTypes.TEARDOWN.get())) {
-                for (var teach : holder.value().teaches()) {
-                    if (teach.recipe().equals(set)) {
-                        return teach.scrapsRequired();
-                    }
-                }
-            }
-        }
-        return com.flatts.recompile.content.recipe.FragmentAssemblyRecipe.DEFAULT_REQUIRED;
-    }
 }

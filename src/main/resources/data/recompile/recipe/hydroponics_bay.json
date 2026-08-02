@@ -1,16 +1,15 @@
 {
   "type": "recompile:blueprint_crafting",
   "blueprint": "recompile:hydroponics_bay",
-  "ingredients": [
-    "minecraft:glass",
-    "minecraft:glass",
-    "minecraft:glass",
-    "minecraft:glass",
-    "minecraft:glass",
-    "minecraft:glass",
-    "recompile:copper_pipe",
-    "recompile:copper_pipe",
-    "recompile:machine_frame"
+  "key": {
+    "G": "minecraft:glass",
+    "P": "recompile:copper_pipe",
+    "F": "recompile:machine_frame"
+  },
+  "pattern": [
+    "GGG",
+    "PFP",
+    "GGG"
   ],
   "result": {
     "item": "recompile:hydroponics_bay"

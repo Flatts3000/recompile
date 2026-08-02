@@ -10,7 +10,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -21,6 +20,7 @@ import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.Level;
 
 /**
@@ -32,15 +32,18 @@ import net.minecraft.world.level.Level;
  * {
  *   "type": "recompile:blueprint_crafting",
  *   "blueprint": "recompile:clean_mattress",
- *   "ingredients": [ "recompile:dirty_mattress", "#c:fibers", "#c:fibers" ],
+ *   "key": { "W": "#minecraft:wool", "S": "minecraft:string" },
+ *   "pattern": [ "WWW", "SSS" ],
  *   "result": { "item": "recompile:clean_mattress", "count": 1 }
  * }
  * }</pre>
  *
- * <p><b>Shapeless, deliberately.</b> The blueprint is the puzzle; making the player also work out a
- * grid arrangement is a second lock on one door, and the recipe is going to be read off the blueprint's
- * own screen rather than discovered. {@code ingredients} is a flat list because the bench that runs
- * these is a list of slots, not a 3x3.
+ * <p><b>Shaped, using vanilla's own {@link ShapedRecipePattern}.</b> It was shapeless first, on the
+ * argument that the blueprint is already the puzzle - but a blueprint that does not say how the thing
+ * is laid out is not much of a blueprint, and a pile of ingredients in no arrangement reads as a
+ * lesser recipe than the vanilla ones beside it. Reusing vanilla's pattern rather than hand-rolling
+ * one also inherits its mirroring, its size limits and its JSON shape, so a pack author writing one of
+ * these writes exactly what they write for any shaped recipe.
  *
  * <p><b>{@code blueprint} names a set, not a recipe.</b> Several recipes may name the same set, so one
  * sheet can unlock a small family - IE's model, and what stops a twenty-recipe tier needing twenty
@@ -68,8 +71,7 @@ public class BlueprintCraftingRecipe implements Recipe<CraftingInput> {
     public static final MapCodec<BlueprintCraftingRecipe> CODEC =
         RecordCodecBuilder.mapCodec(instance -> instance.group(
             Identifier.CODEC.fieldOf("blueprint").forGetter(BlueprintCraftingRecipe::blueprint),
-            ExtraCodecs.nonEmptyList(Ingredient.CODEC.listOf()).fieldOf("ingredients")
-                .forGetter(BlueprintCraftingRecipe::ingredients),
+            ShapedRecipePattern.MAP_CODEC.forGetter(BlueprintCraftingRecipe::pattern),
             Result.CODEC.fieldOf("result").forGetter(BlueprintCraftingRecipe::result)
         ).apply(instance, BlueprintCraftingRecipe::new));
 
@@ -79,13 +81,17 @@ public class BlueprintCraftingRecipe implements Recipe<CraftingInput> {
         ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
 
     private final Identifier blueprint;
-    private final List<Ingredient> ingredients;
+    private final ShapedRecipePattern pattern;
     private final Result result;
 
-    public BlueprintCraftingRecipe(Identifier blueprint, List<Ingredient> ingredients, Result result) {
+    public BlueprintCraftingRecipe(Identifier blueprint, ShapedRecipePattern pattern, Result result) {
         this.blueprint = blueprint;
-        this.ingredients = List.copyOf(ingredients);
+        this.pattern = pattern;
         this.result = result;
+    }
+
+    public ShapedRecipePattern pattern() {
+        return pattern;
     }
 
     /** The blueprint set a player must be holding for this recipe to run. */
@@ -93,8 +99,9 @@ public class BlueprintCraftingRecipe implements Recipe<CraftingInput> {
         return blueprint;
     }
 
-    public List<Ingredient> ingredients() {
-        return ingredients;
+    /** The ingredients in grid order, empty slots included. */
+    public List<java.util.Optional<Ingredient>> ingredients() {
+        return pattern.ingredients();
     }
 
     public Result result() {
@@ -102,42 +109,16 @@ public class BlueprintCraftingRecipe implements Recipe<CraftingInput> {
     }
 
     /**
-     * Whether the supplied items satisfy this recipe, ignoring order.
+     * Whether the grid matches, position and all.
      *
-     * <p>Deliberately does <b>not</b> check the blueprint. A recipe only sees its own input, and the
-     * sheet is held rather than consumed - so the bench asks that question in phase 4. Splitting it this
-     * way keeps the recipe honest about what it can actually know.
+     * <p>Deliberately does <b>not</b> check the blueprint. A recipe only sees its own input, so it
+     * cannot know what a player is carrying or what block is next door - the table asks that question
+     * (see {@code BlueprintAccess}). Splitting it this way keeps the recipe honest about what it can
+     * actually know.
      */
     @Override
     public boolean matches(CraftingInput input, Level level) {
-        List<ItemStack> supplied = new java.util.ArrayList<>();
-        for (int slot = 0; slot < input.size(); slot++) {
-            ItemStack stack = input.getItem(slot);
-            if (!stack.isEmpty()) {
-                supplied.add(stack);
-            }
-        }
-        if (supplied.size() != ingredients.size()) {
-            return false;
-        }
-        // Greedy match against a shrinking pool. The lists are a handful of entries long, so the cost
-        // of being exact here is nothing and the alternative - matching by index - would make a
-        // shapeless recipe secretly order-dependent.
-        List<ItemStack> pool = new java.util.ArrayList<>(supplied);
-        for (Ingredient ingredient : ingredients) {
-            int found = -1;
-            for (int i = 0; i < pool.size(); i++) {
-                if (ingredient.test(pool.get(i))) {
-                    found = i;
-                    break;
-                }
-            }
-            if (found < 0) {
-                return false;
-            }
-            pool.remove(found);
-        }
-        return true;
+        return pattern.matches(input);
     }
 
     @Override

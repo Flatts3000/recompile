@@ -112,9 +112,11 @@ final class BlueprintTests {
             helper.succeed();
         });
 
-        // Shapeless means shapeless. Matching by index would make the order a player happens to drop
-        // items in load-bearing, which is the kind of bug that only shows up for one person.
-        RCGameTests.test("a_blueprint_recipe_ignores_the_order_of_its_ingredients", 20, helper -> {
+        // SHAPED MEANS SHAPED. It was shapeless first, on the argument that the blueprint is already
+        // the puzzle - but a blueprint that does not say how the thing is laid out is not much of a
+        // blueprint. So the arrangement is now load-bearing and has to be asserted as such: the right
+        // pattern matches, the same items in the wrong places do not.
+        RCGameTests.test("a_blueprint_recipe_needs_its_pattern", 20, helper -> {
             var recipes = helper.getLevel().recipeAccess().recipeMap()
                 .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get());
             List<BlueprintCraftingRecipe> found = new ArrayList<>();
@@ -125,21 +127,30 @@ final class BlueprintTests {
 
             ItemStack wool = new ItemStack(net.minecraft.world.item.Items.WHITE_WOOL);
             ItemStack string = new ItemStack(net.minecraft.world.item.Items.STRING);
-            helper.assertTrue(
-                recipe.matches(input(wool, wool, wool, string, string, string), helper.getLevel()),
-                "the recipe must match its own ingredients");
-            helper.assertTrue(
-                recipe.matches(input(string, wool, string, wool, string, wool), helper.getLevel()),
-                "and must still match them interleaved - shapeless means shapeless");
-            helper.assertTrue(
-                recipe.matches(input(new ItemStack(net.minecraft.world.item.Items.RED_WOOL),
-                    wool, wool, string, string, string), helper.getLevel()),
-                "any wool, since the ingredient is the tag - a player recolours the bed afterwards");
-            helper.assertFalse(recipe.matches(input(wool, wool, string, string, string), helper.getLevel()),
-                "but not with an ingredient missing");
-            helper.assertFalse(
-                recipe.matches(input(wool, wool, wool, wool, string, string, string), helper.getLevel()),
-                "nor with a spare item in the grid - an extra ingredient is a different recipe");
+            var right = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                wool, wool, wool,
+                string, string, string));
+            helper.assertTrue(recipe.matches(right, helper.getLevel()),
+                "three wool over three string must match the pattern");
+
+            var upsideDown = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                string, string, string,
+                wool, wool, wool));
+            helper.assertFalse(recipe.matches(upsideDown, helper.getLevel()),
+                "string over wool is a different arrangement and must not match");
+
+            // Any wool, because the ingredient is the tag - a player recolours afterwards.
+            var coloured = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                new ItemStack(net.minecraft.world.item.Items.RED_WOOL), wool, wool,
+                string, string, string));
+            helper.assertTrue(recipe.matches(coloured, helper.getLevel()),
+                "the wool ingredient is a tag, so any colour of wool works");
+
+            var missing = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                wool, wool, ItemStack.EMPTY,
+                string, string, string));
+            helper.assertFalse(recipe.matches(missing, helper.getLevel()),
+                "and a hole in the pattern is not a match");
             helper.succeed();
         });
 
@@ -581,6 +592,23 @@ final class BlueprintTests {
             helper.assertTrue(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
                 "a cabinet with no free slot must clear the fragments to make room for the sheet");
             helper.succeed();
+        });
+
+        // THE TICKER, not the method. Every other cabinet test calls condenseNow directly, which
+        // proves the logic and says nothing about whether anything runs it - the exact gap that let
+        // the Cupola Furnace sit in the Scrap Network for weeks doing nothing. This one places a
+        // cabinet, drops fragments in, and waits for the block to do it on its own.
+        RCGameTests.test("a_placed_cabinet_files_fragments_by_itself", 80, helper -> {
+            var pos = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+            cabinet.setItem(0, com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 8));
+
+            helper.succeedWhen(() -> helper.assertTrue(
+                cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
+                "a placed cabinet must file fragments without anyone calling it"));
         });
 
         // SURPLUS IS DESTROYED, and this is the only place the mod deletes a player's items - so the
