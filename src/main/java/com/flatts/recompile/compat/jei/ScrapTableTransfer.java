@@ -89,9 +89,13 @@ public class ScrapTableTransfer<R> implements IRecipeTransferHandler<ScrapCrafti
         }
         List<IRecipeSlotView> missing = new ArrayList<>();
 
-        // The blueprint slot is an INPUT to JEI but is never placed in the grid - it only has to be in
-        // reach - so it is skipped by position: the grid is the first nine input slots the category
-        // declares, and the category declares them in grid order.
+        // Only INPUT slots, which is what keeps the blueprint out of this: the category declares it as
+        // a CRAFTING_STATION because it is required and never consumed. It was an INPUT once, and this
+        // loop dutifully demanded it as a tenth ingredient - reporting "missing items" for a sheet the
+        // player had filed in a cabinet next door.
+        //
+        // The category declares all nine cells in grid order, empty ones included, so the index here is
+        // the grid position.
         int index = 0;
         for (IRecipeSlotView view : inputs) {
             if (index >= FillGridPayload.SLOTS) {

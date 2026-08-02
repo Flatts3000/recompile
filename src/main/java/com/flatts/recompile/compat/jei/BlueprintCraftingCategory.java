@@ -81,25 +81,29 @@ public class BlueprintCraftingCategory implements IRecipeCategory<BlueprintCraft
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, BlueprintCraftingRecipe recipe,
             IFocusGroup focuses) {
-        // Laid out by the recipe's own pattern, so what JEI draws is where the items go. A shaped
-        // recipe rendered as a flat list is not a smaller answer, it is a wrong one.
+        // Every one of the nine cells gets a slot, empty ones included, so the slot index IS the grid
+        // position. Adding slots only where an ingredient sits made the two drift apart the moment a
+        // pattern had a hole, and the transfer handler reads position off that index.
         var pattern = recipe.pattern();
         List<java.util.Optional<Ingredient>> ingredients = pattern.ingredients();
-        for (int i = 0; i < ingredients.size(); i++) {
-            int col = i % pattern.width();
-            int row = i / pattern.width();
-            if (col >= GRID || row >= GRID) {
-                continue;
-            }
-            int slot = PAD;
-            var ingredient = ingredients.get(i);
-            if (ingredient.isPresent()) {
-                builder.addInputSlot(slot + col * SLOT, slot + row * SLOT)
-                    .addIngredients(ingredient.get());
+        for (int row = 0; row < GRID; row++) {
+            for (int col = 0; col < GRID; col++) {
+                var slot = builder.addInputSlot(PAD + col * SLOT, PAD + row * SLOT);
+                if (row >= pattern.height() || col >= pattern.width()) {
+                    continue;
+                }
+                var ingredient = ingredients.get(row * pattern.width() + col);
+                ingredient.ifPresent(slot::addIngredients);
             }
         }
+
+        // CRAFTING_STATION, not INPUT. The sheet is required and never consumed, and it does not go in
+        // the grid - it only has to be within reach. As an INPUT, JEI's transfer counted it as a tenth
+        // ingredient and reported the recipe as missing items for a blueprint the player had filed in a
+        // cabinet four blocks away. Transfer handlers ignore every role but INPUT, so this is the
+        // difference between "you need this too" and "put this in the grid".
         int middle = PAD + SLOT;
-        builder.addInputSlot(SHEET_X, middle)
+        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.CRAFTING_STATION, SHEET_X, middle)
             .addItemStack(BlueprintItem.of(RCItems.BLUEPRINT.get(), recipe.blueprint()));
         builder.addOutputSlot(RESULT_X, middle)
             .addItemStack(new ItemStack(recipe.result().item(), recipe.result().count()));
