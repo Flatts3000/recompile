@@ -48,7 +48,23 @@ public class CupolaFurnaceBlock extends AbstractFurnaceBlock {
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level,
             BlockState state, BlockEntityType<T> blockEntityType) {
-        return createFurnaceTicker(level, blockEntityType, RCBlockEntities.CUPOLA_FURNACE.get());
+        BlockEntityTicker<T> furnace =
+            createFurnaceTicker(level, blockEntityType, RCBlockEntities.CUPOLA_FURNACE.get());
+        if (furnace == null || level.isClientSide()) {
+            return furnace;
+        }
+        // Smelt first, then push what came out into the network. Wrapping rather than replacing,
+        // because AbstractFurnaceBlockEntity keeps its recipe lookup private behind a static tick -
+        // the tick is the only seam this machine has, which is the same reason the Burn Barrel's
+        // refuse gate lives here rather than on its slots.
+        return (lvl, pos, st, be) -> {
+            furnace.tick(lvl, pos, st, be);
+            if (lvl instanceof net.minecraft.server.level.ServerLevel serverLevel
+                    && be instanceof com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity
+                        cupola) {
+                cupola.drainOutput(serverLevel);
+            }
+        };
     }
 
     @Override

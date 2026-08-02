@@ -101,6 +101,24 @@ public final class TeardownData {
                     }
                 }
             }
+            // What it TEACHES is an output too (#95). A mattress teardown hands back an Idea Fragment
+            // as reliably as it hands back string, and a category that lists the string but not the
+            // fragment tells a player the knowledge came from somewhere else - which is the one thing
+            // about this mechanic that is hard to work out by playing.
+            if (root.has("teaches")) {
+                for (JsonElement el : root.getAsJsonArray("teaches")) {
+                    JsonObject o = el.getAsJsonObject();
+                    Identifier set = Identifier.parse(o.get("recipe").getAsString());
+                    float chance = o.has("chance") ? o.get("chance").getAsFloat() : 0.0f;
+                    if (chance <= 0.0f) {
+                        continue;
+                    }
+                    outputs.add(new SortingData.Weighted(
+                        com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                            com.flatts.recompile.registry.RCItems.IDEA_FRAGMENT.get(), set, 1),
+                        chance));
+                }
+            }
             if (root.has("extras")) {
                 for (JsonElement el : root.getAsJsonArray("extras")) {
                     JsonObject o = el.getAsJsonObject();

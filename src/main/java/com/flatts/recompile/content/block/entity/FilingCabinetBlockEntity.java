@@ -165,6 +165,35 @@ public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
         }
     }
 
+    /**
+     * File a stack here, merging into a matching one first.
+     *
+     * <p>Public because the Recompile Workbench files fragments straight in rather than dropping them
+     * on the floor: the bench is where they are made and the cabinet is where they belong, and making
+     * the player carry them four paces adds nothing.
+     *
+     * @return true if it fit
+     */
+    public boolean fileFrom(ItemStack stack) {
+        if (!canPlaceItem(0, stack)) {
+            return false;
+        }
+        for (int slot = 0; slot < items.size(); slot++) {
+            ItemStack existing = items.get(slot);
+            if (ItemStack.isSameItemSameComponents(existing, stack)
+                    && existing.getCount() + stack.getCount() <= existing.getMaxStackSize()) {
+                existing.grow(stack.getCount());
+                setChanged();
+                return true;
+            }
+        }
+        boolean filed = file(stack.copy());
+        if (filed) {
+            setChanged();
+        }
+        return filed;
+    }
+
     /** Put a stack in the first free slot; false if the drawers are full. */
     private boolean file(ItemStack stack) {
         for (int slot = 0; slot < items.size(); slot++) {

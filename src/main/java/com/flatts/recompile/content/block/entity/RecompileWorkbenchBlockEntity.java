@@ -44,9 +44,10 @@ import org.jspecify.annotations.Nullable;
  * survives, and the block's {@code has_knife}/{@code has_prybar} blockstate booleans mirror
  * their presence so a baked multipart model can draw them - no BlockEntityRenderer (P1.11.6).
  *
- * <p>The breakdown itself is teardown-for-materials only: {@link TeardownRecipe#results()} +
- * rolled {@link TeardownRecipe#extras()} pop into the world; {@link TeardownRecipe#teaches()}
- * is ignored (the knowledge/function axis is unresolved and layers on later).
+ * <p>A breakdown yields materials AND knowledge: {@link TeardownRecipe#results()} plus rolled
+ * {@link TeardownRecipe#extras()} pop into the world, and {@link TeardownRecipe#teaches()} grants an
+ * Idea Fragment (#95). That last field was parsed and ignored from Phase 0 until 2026-08-02, and this
+ * javadoc said so in as many words - which is the only reason anyone noticed it was still dormant.
  */
 public class RecompileWorkbenchBlockEntity extends BlockEntity {
 
@@ -279,8 +280,31 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
             if (BlueprintAccess.reachable(level, player, worldPosition, entry.recipe())) {
                 continue;
             }
-            output(level, IdeaFragmentItem.of(RCItems.IDEA_FRAGMENT.get(), entry.recipe(), 1));
+            fileOrDrop(level, IdeaFragmentItem.of(RCItems.IDEA_FRAGMENT.get(), entry.recipe(), 1));
         }
+    }
+
+    /**
+     * A fragment goes to a connected Filing Cabinet if there is one, and only then to the usual places.
+     *
+     * <p>The bench is where fragments are made and the cabinet is where they turn into a blueprint, so
+     * a player who has built both should not have to ferry them four paces to do a step with one
+     * outcome. Tried before {@link #output}, because the generic scrap router would happily put them in
+     * a Scrap Bin - correct by its own rules and useless by these.
+     *
+     * <p>Deliberately NOT done by teaching the router about fragments. Its sinks are a bound Scrap Bin
+     * and the Scrap Barrel matched by block id, and that list is short on purpose - the Burn Barrel is
+     * a furnace whose slots a route must never land in. A special case for one item type belongs at the
+     * one bench that makes it, not in the thing every scrap block shares.
+     */
+    private void fileOrDrop(ServerLevel level, ItemStack fragment) {
+        for (BlockPos pos : ScrapNetwork.collect(level, worldPosition)) {
+            if (level.getBlockEntity(pos) instanceof FilingCabinetBlockEntity cabinet
+                    && cabinet.fileFrom(fragment)) {
+                return;
+            }
+        }
+        output(level, fragment);
     }
 
     /** A teardown output: into the connected scrap-network storage if any, else onto the table (P2.10). */

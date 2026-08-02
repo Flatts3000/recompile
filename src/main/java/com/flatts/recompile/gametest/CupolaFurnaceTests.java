@@ -148,6 +148,52 @@ final class CupolaFurnaceTests {
             helper.succeed();
         });
 
+        // THE CUPOLA IS A SCRAP NETWORK MEMBER AND MUST ACT LIKE ONE. It has carried
+        // #recompile:scrap_connectable since it shipped and did nothing with it: being in the tag made
+        // it a stepping stone for everything else routing through, while its own iron sat in the result
+        // slot waiting to be picked up by hand. The Burn Barrel two blocks away has drained into the
+        // network since P2.10, so a player who wires a barrel to the Cupola reasonably expects the same.
+        RCGameTests.test("cupola_pushes_its_output_into_connected_storage", 40, helper -> {
+            BlockPos cupolaPos = new BlockPos(1, 1, 1);
+            BlockPos barrelPos = new BlockPos(2, 1, 1);
+            helper.setBlock(cupolaPos, RCBlocks.CUPOLA_FURNACE.get());
+            helper.setBlock(barrelPos, RCBlocks.SCRAP_BARREL.get());
+            var cupola = (com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(cupolaPos));
+            var barrel = (net.minecraft.world.Container)
+                helper.getLevel().getBlockEntity(helper.absolutePos(barrelPos));
+
+            cupola.setItem(2, new ItemStack(Items.IRON_INGOT, 3));
+            cupola.drainOutput(helper.getLevel());
+
+            helper.assertTrue(cupola.getItem(2).isEmpty(),
+                "finished metal must leave the result slot when storage is connected");
+            int inBarrel = 0;
+            for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
+                if (barrel.getItem(slot).is(Items.IRON_INGOT)) {
+                    inBarrel += barrel.getItem(slot).getCount();
+                }
+            }
+            helper.assertTrue(inBarrel == 3,
+                "and land in the connected barrel; found " + inBarrel + " ingots there");
+            helper.succeed();
+        });
+
+        // Standalone, it must NOT vanish. A machine that eats its own output when nothing is wired to
+        // it would be far worse than one that never routed at all.
+        RCGameTests.test("a_lone_cupola_keeps_its_output", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.CUPOLA_FURNACE.get());
+            var cupola = (com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+
+            cupola.setItem(2, new ItemStack(Items.IRON_INGOT, 3));
+            cupola.drainOutput(helper.getLevel());
+            helper.assertTrue(cupola.getItem(2).getCount() == 3,
+                "with no storage connected the output stays put, to be taken through the GUI");
+            helper.succeed();
+        });
+
         // You can get it back. It costs a Burn Barrel to build, so a Cupola that cannot be picked up is a
         // machine you lose forever by placing it in the wrong spot. requiresCorrectToolForDrops reads as
         // the obvious call for a stone machine and is exactly the trap here - the block is named in no

@@ -27,9 +27,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * The Recompile Workbench (design P1.4): a hand-cranked disassembly table - the teardown
  * exit the whole found economy was waiting on (the P1.11.5 invariant, "finds in, materials
- * out"). Built <b>materials-only</b>: it reads a {@code recompile:teardown} recipe's
- * {@code results}/{@code extras} and ignores {@code teaches} entirely. No knowledge, no
- * gate; the knowledge/function axis is a later, separate decision.
+ * out"). It reads a {@code recompile:teardown} recipe's {@code results}/{@code extras} for
+ * materials and its {@code teaches} for knowledge (#95): a breakdown hands back an <b>Idea
+ * Fragment</b>, which files itself into a connected Filing Cabinet if there is one. It stops
+ * teaching once the blueprint is reachable, so the fragments end rather than pile up.
  *
  * <p>Stateless-feeling and GUI-free, in keeping with the mod's "no machine screen" identity:
  * <ul>
