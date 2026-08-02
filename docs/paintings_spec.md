@@ -30,7 +30,7 @@ The whole feature is these four, and the fourth is the only one vanilla does not
 
 | Decision | Answer | Why |
 |---|---|---|
-| Duplicates | **None. You find the painting, not a ticket** | "I don't want them to find a coupon. I want them to find the painting." A find is a specific artwork you did not have |
+| Duplicates | **None eventually. Alpha ships with them** | "I don't want them to find a coupon. I want them to find the painting." The no-duplicate mechanism needs advancements, and advancements are post-alpha (owner) |
 | Fragility | **Survives, but drops** | An explosion or fire knocks it off the wall as an item rather than destroying it. The danger stays legible and a 40-hour collection can never be lost at hour 39 |
 | Teardown exit | **Not required** | The found-economy invariant is retired (below) |
 | Size cap | **4 blocks per side** | Matches vanilla's own vocabulary; collectible scale rather than mural scale |
@@ -44,6 +44,11 @@ Advancements are per-player state Minecraft already persists. Grant one per pain
 have the drop offer only the works whose advancement the player lacks. Nothing new is serialized, and it
 lands exactly where #32 was already heading: the completion advancements become the mechanism, not just
 the reward.
+
+**Advancements are post-alpha and ship as a group** (owner, 2026-08-01), so **alpha ships with
+duplicates** and the rate below is tuned for that. When the no-duplicate mechanism lands the rate must be
+divided by 2.5, and this is exactly the kind of coupled change that gets missed - the drop chance and the
+duplicate rule are one decision wearing two hats.
 
 **The found-economy invariant is retired** (owner, 2026-08-01). CLAUDE.md carried it as standing: *nothing
 enters the found economy without a teardown exit, or the piles become clutter*. It had already stopped
@@ -119,27 +124,44 @@ port authored its own art.
 
 Owner's target: a player collects all six in roughly 40 hours.
 
-**With no duplicates, the target is 6 drops, not 14.7.** An earlier draft of this section used the
-coupon-collector figure `6 x H(6) = 14.7`, which is correct for a uniform pool where late finds are
-mostly works you already own. That pool no longer exists: every find is a painting the player does not
-have, so six finds complete the set. Keeping 14.7 would have made the drop **2.5x rarer than intended**.
+**Alpha ships with duplicates**, because the no-duplicate mechanism needs advancements and those are
+post-alpha. So the number that matters now is the coupon-collector one: completing a uniform set of six
+takes `6 x H(6) = 14.7` finds on average, not 6, because late finds are mostly works you already own.
 
-What 6 drops in 40 hours implies per Bulky Waste opened:
+**Best guess for alpha: 7% per Bulky Waste opened, roughly 1 in 14.**
 
-| Bulky Waste per hour | in 40h | chance each | 1 in |
+Derived rather than picked:
+
+- Mounds place at `count 5` per chunk and 5% of mound cores carry Bulky Waste, so about **0.25 Bulky
+  Waste exist per chunk generated**.
+- A player who is exploring while also building covers maybe **20 new chunks an hour**, so **~5 Bulky
+  Waste opened per hour**.
+- 40 hours x 5 = **200 opened**. `14.7 / 200 = 7.4%`.
+
+**That reads as far rarer in play than 1 in 14 sounds**, and the two halves of the brief only reconcile
+this way. "Extremely rare" and "all six in 40 hours" pull against each other, and what resolves them is
+that Bulky Waste itself is uncommon: at 7% a painting turns up roughly **once every 2.7 hours of play**.
+The per-roll number is not tiny; the felt rate is.
+
+**When no-duplicates lands, this becomes 3% (1 in 33).** Same 40 hours, six finds instead of 14.7.
+
+| Bulky Waste per hour | in 40h | alpha (14.7) | later (6) |
 |---|---|---|---|
-| 2 | 80 | 7.50% | 13 |
-| 5 | 200 | 3.00% | 33 |
-| 10 | 400 | 1.50% | 67 |
-| 20 | 800 | 0.75% | 133 |
-| 40 | 1600 | 0.38% | 267 |
+| 2 | 80 | 18.4% | 7.5% |
+| **5 (assumed)** | **200** | **7.4%** | **3.0%** |
+| 10 | 400 | 3.7% | 1.5% |
+| 20 | 800 | 1.8% | 0.8% |
+| 40 | 1600 | 0.9% | 0.4% |
 
-**The unknown is Bulky Waste per hour, and it is measurable rather than guessable.** Mounds place at
-`count 5` per chunk and 5% of mound cores carry Bulky Waste, so roughly 0.25 Bulky Waste exist per
-chunk generated - but the driver is how much *new ground* a player covers per hour, which only a
-playtest gives. **Do not pick a number from this table without that measurement**; the range spans 20x.
+**The 5-per-hour assumption is the weak link, and it is measurable rather than guessable.** The table
+spans 20x, so the single most valuable thing a playtest can produce for this feature is a count of how
+many Bulky Waste a player actually opens in an hour. Tracked in #36.
 
-Whatever is chosen is config-gated and folds into #36.
+**Implementation: a second loot pool, not a re-weighting.** `bulky_waste.json` currently has one pool
+whose weights are mattress 3, washing machine 2. Adding paintings to that pool would restate the odds of
+both existing finds, and #36 warns against disturbing them. A separate pool gated on
+`minecraft:random_chance` leaves them untouched and makes the painting a bonus behind the mattress
+rather than an alternative to it - which is also the better fiction.
 
 ## Phase 1 - the six variants
 
