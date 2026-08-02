@@ -9,8 +9,8 @@ around now plays through. Recent tiers: the **multiblock framework + Rain Collec
 **reclamation rungs 1-3** - the Grass Spreader, Vegetation, and Farming (2.12-2.14), **Collectibles**
 (2.15, the Puzzle Cube + ported voxel curios on Display Pedestals), the **Tree Nursery** (2.16, rung 4),
 and **animal baits** (2.17, rung 5). Phase 3's **materials teardown** (the
-Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis** is the next major decision
-and stays under review (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
+Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis was decided on 2026-08-01 as
+knowledge**, built as Blueprint items (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
 are ordered by
 **gameplay discovery** - the sequence a player actually lives, so each phase delivers a
 coherent playable increment. The locked feature design is the source of truth in the
@@ -338,13 +338,24 @@ the racked tool wears. The `recompile:teardown` schema gained optional `tool` + 
 The mattress migrated onto it (its in-hand knife-cut retired), so string is now bench-gated. JEI
 Teardown category + a Jade diagnostic ship with it.
 
-**The knowledge axis is NOT built and remains under review.** The `teaches` field is parsed but
-ignored. Whether teardown's second axis is **knowledge** (recover recipes, gate crafting) or
-**function** (recover working components, no gate) is an open design decision (P1.4 "under
-review"): the `doLimitedCrafting` gate is player-scoped and leaks through Create autocrafting, and
-the scope of gating the whole catalog is questioned since material scarcity already gates. It
-layers onto the same bench once decided - or never. The JEI/EMI locked-recipe overlay and FTB
-Teams sync de-risk spike belongs to that axis, not the shipped materials bench.
+**The axis is decided: KNOWLEDGE** (owner, 2026-08-01). Spec: `docs/blueprints_spec.md`, issue #95.
+The `teaches` field is still parsed and ignored; what changed is that it now has a design to be
+consumed by.
+
+The old objections to gating are answered by **not gating vanilla crafting at all.** Knowledge is an
+**Immersive-Engineering-style Blueprint item** and blueprint-only recipes live on their own bench, so
+there is no `doLimitedCrafting` flag to leak through Create autocrafting, nothing player-scoped to
+sync, and no catalog-wide lockout to justify. The item *is* the knowledge, which also means no saved
+state - the same grain as encroachment, the scrap network, and `FORMED`.
+
+Function (recover working components) was not chosen and is not blocked; it could layer onto the same
+bench later.
+
+**Built so far:** phase 1 only, which removes the sixteen vanilla wool-to-bed recipes so the proof of
+concept has a door to open. The proof of concept is the bed: tear down Dirty Mattresses until you
+learn the Clean Mattress blueprint, and a Clean Mattress plus three planks is then the only bed recipe
+in the game. The JEI locked-recipe overlay concern is moot under this design - blueprint recipes are
+their own JEI category with the blueprint as catalyst, the way the Burn Barrel already is.
 
 ## Phase 4 - Garbage regions  *(design P1.5)*
 
