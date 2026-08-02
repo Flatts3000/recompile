@@ -1,9 +1,9 @@
 {
-  "name": "book.recompile.guide.category.collectibles",
+  "name": "book.recompile.guide.category.demolition",
   "icon": {
-    "id": "recompile:puzzle_cube"
+    "id": "recompile:stone_rubble"
   },
-  "sort_number": 700,
+  "sort_number": 500,
   "background": "modonomicon:textures/gui/dark_slate_seamless.png",
   "background_width": 512,
   "background_height": 512,

@@ -3,7 +3,7 @@
   "icon": {
     "id": "recompile:e_scrap"
   },
-  "sort_number": 600,
+  "sort_number": 800,
   "background": "modonomicon:textures/gui/dark_slate_seamless.png",
   "background_width": 512,
   "background_height": 512,
