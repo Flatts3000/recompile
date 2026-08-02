@@ -27,8 +27,9 @@ public class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
 
     private static final int SLOT = 18;
     private static final int PAD = 4;
-    private static final int COLS = 4;
+    private static final int COLS = 3;
     private static final int GAP = 22;   // room for the arrow between inputs and result
+    private static final int GRID_ROWS = 3;
 
     private final RecipeType<AssemblyRecipe> type;
     private final Component title;
@@ -40,7 +41,10 @@ public class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
         this.type = type;
         this.title = title;
         this.icon = icon;
-        this.rows = Math.max(1, (Math.max(maxInputs, 1) + COLS - 1) / COLS);
+        // Always the full 3x3, even for a recipe that uses four slots. A player reads this as a
+        // crafting table, and a crafting table is 3x3 whether or not you fill it - a 2x2 that grows
+        // and shrinks per recipe reads as a different machine each time.
+        this.rows = GRID_ROWS;
     }
 
     @Override

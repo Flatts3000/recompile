@@ -100,8 +100,8 @@ final class BlueprintTests {
                 .filter(r -> r.blueprint().equals(BlueprintItem.CLEAN_MATTRESS))
                 .findFirst().orElse(null);
             helper.assertTrue(mattress != null, "the Clean Mattress recipe must load");
-            helper.assertTrue(mattress.result().item() == RCItems.CLEAN_MATTRESS.get(),
-                "and produce a Clean Mattress, got " + mattress.result().item());
+            helper.assertTrue(mattress.result().item() == RCItems.cleanMattress(net.minecraft.world.item.DyeColor.WHITE),
+                "and produce a white Clean Mattress, got " + mattress.result().item());
 
             BlueprintCraftingRecipe bay = found.stream()
                 .filter(r -> r.blueprint().equals(BlueprintItem.HYDROPONICS_BAY))
@@ -150,7 +150,8 @@ final class BlueprintTests {
             helper.assertTrue(BlueprintItem.blueprintOf(blank) == null,
                 "a blueprint with no component names nothing");
             helper.assertTrue(
-                BlueprintItem.blueprintOf(new ItemStack(RCItems.CLEAN_MATTRESS.get())) == null,
+                BlueprintItem.blueprintOf(
+                    new ItemStack(RCItems.cleanMattress(net.minecraft.world.item.DyeColor.WHITE))) == null,
                 "and an item that is not a blueprint never names one either");
 
             ItemStack unknown = BlueprintItem.of(RCItems.BLUEPRINT.get(),
@@ -398,55 +399,61 @@ final class BlueprintTests {
             helper.succeed();
         });
 
-        // The payoff, and the last link in the chain. This is now the ONLY bed recipe in the game.
-        RCGameTests.test("a_clean_mattress_and_planks_make_a_bed", 20, helper -> {
-            var grid = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
-                ItemStack.EMPTY, new ItemStack(RCItems.CLEAN_MATTRESS.get()), ItemStack.EMPTY,
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)));
-            var found = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
-                net.minecraft.world.item.crafting.RecipeType.CRAFTING, grid, helper.getLevel());
-            helper.assertTrue(found.isPresent(),
-                "a Clean Mattress over three planks must make a bed - it is the only bed recipe left, "
-                    + "so if it breaks the world has no beds at all");
-            helper.assertTrue(
-                found.get().value().assemble(grid).is(net.minecraft.world.item.Items.WHITE_BED),
-                "an undyed mattress makes a white bed, the same as vanilla wool did");
-
-            // DYE THE MATTRESS, GET THAT BED. Phase 1 deleted all sixteen wool-to-bed recipes, so the
-            // colour ladder had to come back somewhere or the world would only ever have white beds.
-            // Every colour is driven, not a sample: sixteen dye recipes is exactly the surface where
-            // fifteen get written, which is the same reason the wool gate has a sweep rather than a
-            // checklist.
+        // The payoff, and the last link in the chain. These are sixteen ORDINARY shaped recipes now,
+        // one per coloured Clean Mattress, rather than one special recipe reading a component - which
+        // is why a recipe viewer can draw them and why this looks them up the normal way.
+        //
+        // Every colour is driven, not a sample: sixteen recipe files is exactly the surface where
+        // fifteen get written, the same reason the wool gate has a sweep rather than a checklist.
+        RCGameTests.test("every_clean_mattress_makes_the_bed_of_its_colour", 20, helper -> {
             List<String> wrong = new ArrayList<>();
             for (net.minecraft.world.item.DyeColor colour
                     : net.minecraft.world.item.DyeColor.values()) {
-                ItemStack dyed = new ItemStack(RCItems.CLEAN_MATTRESS.get());
-                dyed.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
-                    new net.minecraft.world.item.component.DyedItemColor(
-                        colour.getTextureDiffuseColor()));
-                var coloured = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
-                    ItemStack.EMPTY, dyed, ItemStack.EMPTY,
+                var grid = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                    ItemStack.EMPTY, new ItemStack(RCItems.cleanMattress(colour)), ItemStack.EMPTY,
                     new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
                     new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
                     new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)));
-                var match = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
-                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, coloured,
-                    helper.getLevel());
-                Identifier want = Identifier.withDefaultNamespace(colour.getName() + "_bed");
-                if (match.isEmpty()) {
+                var found = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, grid, helper.getLevel());
+                if (found.isEmpty()) {
                     wrong.add(colour.getName() + " -> no recipe");
                     continue;
                 }
-                ItemStack made = match.get().value().assemble(coloured);
-                if (!net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(made.getItem())
-                        .equals(want)) {
+                Identifier want = Identifier.withDefaultNamespace(colour.getName() + "_bed");
+                ItemStack made = found.get().value().assemble(grid);
+                if (!BuiltInRegistries.ITEM.getKey(made.getItem()).equals(want)) {
                     wrong.add(colour.getName() + " -> " + made);
                 }
             }
             helper.assertTrue(wrong.isEmpty(),
-                "a mattress dyed a colour must make the bed of that colour: " + wrong);
+                "a Clean Mattress must make the bed of its own colour - this is the only bed recipe "
+                    + "left, so a gap here is a colour of bed that cannot exist: " + wrong);
+            helper.succeed();
+        });
+
+        // Every colour is reachable by dyeing any other, so a player is never stuck with one they
+        // cannot change. Keyed on the tag rather than on white, which is what makes that true.
+        RCGameTests.test("any_clean_mattress_dyes_to_any_colour", 20, helper -> {
+            List<String> wrong = new ArrayList<>();
+            for (net.minecraft.world.item.DyeColor colour
+                    : net.minecraft.world.item.DyeColor.values()) {
+                // Dye a BLACK one, the least likely to be a recipe's assumed input.
+                var grid = net.minecraft.world.item.crafting.CraftingInput.of(2, 1, List.of(
+                    new ItemStack(RCItems.cleanMattress(net.minecraft.world.item.DyeColor.BLACK)),
+                    new ItemStack(BuiltInRegistries.ITEM.getValue(
+                        Identifier.withDefaultNamespace(colour.getName() + "_dye")))));
+                var found = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, grid, helper.getLevel());
+                if (found.isEmpty()
+                        || found.get().value().assemble(grid).getItem()
+                            != RCItems.cleanMattress(colour)) {
+                    wrong.add(colour.getName());
+                }
+            }
+            helper.assertTrue(wrong.isEmpty(),
+                "a black Clean Mattress must dye to every colour, or a player can paint themselves "
+                    + "into a corner: " + wrong);
             helper.succeed();
         });
 

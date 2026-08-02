@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "recompile:item/yellow_clean_mattress",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": 16701501
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "M": "recompile:cyan_clean_mattress",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    " M ",
+    "PPP"
+  ],
+  "result": {
+    "id": "minecraft:cyan_bed"
+  }
+}

@@ -73,7 +73,7 @@ public final class RCCreativeTabs {
                     com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
                         output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
                             RCItems.BLUEPRINT.get(), set)));
-                    output.accept(RCItems.CLEAN_MATTRESS.get());
+                    RCItems.CLEAN_MATTRESSES.forEach(m -> output.accept(m.get()));
                     output.accept(RCItems.FILING_CABINET.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
 

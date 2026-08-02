@@ -91,8 +91,9 @@ public class RecompileJeiPlugin implements IModPlugin {
      */
     static final RecipeType<AssemblyRecipe> ASSEMBLY =
         RecipeType.create(Recompile.MOD_ID, "assembly", AssemblyRecipe.class);
-    static final RecipeType<SalvageRecipe> BLUEPRINT_CRAFTING =
-        RecipeType.create(Recompile.MOD_ID, "blueprint_crafting", SalvageRecipe.class);
+    static final RecipeType<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe>
+        BLUEPRINT_CRAFTING = RecipeType.create(Recompile.MOD_ID, "blueprint_crafting",
+            com.flatts.recompile.content.recipe.BlueprintCraftingRecipe.class);
     static final RecipeType<SalvageRecipe> GROWING =
         RecipeType.create(Recompile.MOD_ID, "growing", SalvageRecipe.class);
 
@@ -128,9 +129,9 @@ public class RecompileJeiPlugin implements IModPlugin {
                 TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
-            new SalvageCategory(BLUEPRINT_CRAFTING,
+            new BlueprintCraftingCategory(BLUEPRINT_CRAFTING,
                 Component.translatable("jei.recompile.blueprint_crafting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get())), false, 4),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
             new SalvageCategory(GROWING, Component.translatable("jei.recompile.growing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true,
                 widest(SortingData.SEEDLING)));
@@ -224,23 +225,21 @@ public class RecompileJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(GROWING, growing);
 
-        // Blueprint recipes, read from the synced recipe manager so the list cannot drift from what
-        // the table will actually run. Empty before a world is joined, which never happens in practice.
-        List<SalvageRecipe> blueprinted = new ArrayList<>();
+        // Blueprint recipes, handed to JEI as themselves rather than reduced to a blueprint-and-result
+        // row. The old category answered "what does this sheet make" and left "how do I make a Clean
+        // Mattress" unanswered anywhere in the game - which is the question a player is asking when
+        // they click an item in JEI.
+        //
+        // Read from the SYNCED recipes so the list cannot drift from what the table will actually run.
+        // Empty before a world is joined, which never happens in practice: JEI starts on world load.
+        List<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> blueprinted =
+            new ArrayList<>();
         RecipeMap syncedBlueprints = RCSyncedRecipes.get();
         if (syncedBlueprints != null) {
             for (RecipeHolder<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> holder
                     : syncedBlueprints.byType(
                         com.flatts.recompile.registry.RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
-                var recipe = holder.value();
-                // The blueprint goes in the INPUT column beside the ingredients, because a player
-                // reading this needs to see that the sheet is part of what it takes. It is not
-                // consumed, which the info panel says - a recipe grid cannot express "and hold this".
-                blueprinted.add(new SalvageRecipe(
-                    com.flatts.recompile.content.item.BlueprintItem.of(
-                        RCItems.BLUEPRINT.get(), recipe.blueprint()),
-                    List.of(new SortingData.Weighted(
-                        new ItemStack(recipe.result().item(), recipe.result().count()), 1.0f))));
+                blueprinted.add(holder.value());
             }
         }
         registration.addRecipes(BLUEPRINT_CRAFTING, blueprinted);
@@ -274,26 +273,9 @@ public class RecompileJeiPlugin implements IModPlugin {
             examples.add(new AssemblyRecipe(fragments,
                 com.flatts.recompile.content.item.BlueprintItem.of(RCItems.BLUEPRINT.get(), set)));
         }
-        // One bed example per colour, because a single white one would leave a player who has dyed a
-        // mattress purple with no reason to believe it does anything.
-        for (net.minecraft.world.item.DyeColor colour : net.minecraft.world.item.DyeColor.values()) {
-            var bed = net.minecraft.core.registries.BuiltInRegistries.ITEM
-                .getOptional(Identifier.withDefaultNamespace(colour.getName() + "_bed")).orElse(null);
-            if (bed == null) {
-                continue;
-            }
-            ItemStack mattress = new ItemStack(RCItems.CLEAN_MATTRESS.get());
-            if (colour != net.minecraft.world.item.DyeColor.WHITE) {
-                mattress.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
-                    new net.minecraft.world.item.component.DyedItemColor(
-                        colour.getTextureDiffuseColor()));
-            }
-            examples.add(new AssemblyRecipe(List.of(mattress,
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)),
-                new ItemStack(bed)));
-        }
+        // The BEDS used to be here as worked examples too. They are sixteen ordinary shaped recipes
+        // now - one per coloured Clean Mattress - so JEI draws them itself, in a crafting grid, which
+        // is what a player expects when they click a bed. Nothing to duplicate here any more.
         registration.addRecipes(ASSEMBLY, examples);
 
         // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
@@ -344,7 +326,8 @@ public class RecompileJeiPlugin implements IModPlugin {
         info(registration, RCItems.BLUEPRINT.get(), "blueprint");
         info(registration, RCItems.IDEA_FRAGMENT.get(), "idea_fragment");
         info(registration, RCItems.FILING_CABINET.get(), "filing_cabinet");
-        info(registration, RCItems.CLEAN_MATTRESS.get(), "clean_mattress");
+        info(registration, RCItems.cleanMattress(net.minecraft.world.item.DyeColor.WHITE),
+            "clean_mattress");
 
         info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
         info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");

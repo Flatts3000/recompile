@@ -2,7 +2,6 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
-import com.flatts.recompile.content.recipe.BedFromMattressRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import java.util.function.Supplier;
@@ -59,15 +58,6 @@ public final class RCRecipeTypes {
         RECIPE_SERIALIZERS.register("fragment_assembly",
             () -> new RecipeSerializer<>(FragmentAssemblyRecipe.CODEC,
                 FragmentAssemblyRecipe.STREAM_CODEC));
-
-    /**
-     * A dyed Clean Mattress plus planks makes the bed of that colour (#95). Special, because the colour
-     * lives in a data component and a plain shaped recipe cannot read one back.
-     */
-    public static final Supplier<RecipeSerializer<BedFromMattressRecipe>> BED_FROM_MATTRESS_SERIALIZER =
-        RECIPE_SERIALIZERS.register("bed_from_mattress",
-            () -> new RecipeSerializer<>(BedFromMattressRecipe.CODEC,
-                BedFromMattressRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

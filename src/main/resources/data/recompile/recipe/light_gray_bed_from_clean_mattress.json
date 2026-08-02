@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "M": "recompile:light_gray_clean_mattress",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    " M ",
+    "PPP"
+  ],
+  "result": {
+    "id": "minecraft:light_gray_bed"
+  }
+}

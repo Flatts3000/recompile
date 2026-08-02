@@ -1,0 +1,20 @@
+{
+  "values": [
+    "recompile:white_clean_mattress",
+    "recompile:orange_clean_mattress",
+    "recompile:magenta_clean_mattress",
+    "recompile:light_blue_clean_mattress",
+    "recompile:yellow_clean_mattress",
+    "recompile:lime_clean_mattress",
+    "recompile:pink_clean_mattress",
+    "recompile:gray_clean_mattress",
+    "recompile:light_gray_clean_mattress",
+    "recompile:cyan_clean_mattress",
+    "recompile:purple_clean_mattress",
+    "recompile:blue_clean_mattress",
+    "recompile:brown_clean_mattress",
+    "recompile:green_clean_mattress",
+    "recompile:red_clean_mattress",
+    "recompile:black_clean_mattress"
+  ]
+}
