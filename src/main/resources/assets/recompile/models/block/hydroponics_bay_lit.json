@@ -3,6 +3,6 @@
   "textures": {
     "top": "recompile:block/hydroponics_bay_top_lit",
     "side": "recompile:block/hydroponics_bay_side",
-    "bottom": "recompile:block/hydroponics_bay_side"
+    "bottom": "recompile:block/tree_nursery_bottom"
   }
 }

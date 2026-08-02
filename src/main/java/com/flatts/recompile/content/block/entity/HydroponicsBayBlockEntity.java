@@ -2,6 +2,8 @@ package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.HydroponicsBayBlock;
+import net.minecraft.world.level.block.Block;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
@@ -122,6 +124,7 @@ public class HydroponicsBayBlockEntity extends BlockEntity implements WorldlyCon
                 be.progress = 0;
                 be.setChanged();
             }
+            setLit(level, pos, state, false);
             return;
         }
         int fe = RCConfig.HYDROPONICS_FE_PER_TICK.get();
@@ -133,12 +136,31 @@ public class HydroponicsBayBlockEntity extends BlockEntity implements WorldlyCon
                 tx.commit();
             }
         }
+        setLit(level, pos, state, true);
         be.progress++;
         if (be.progress >= RCConfig.HYDROPONICS_GROW_TICKS.get()) {
             be.progress = 0;
             be.grow(server);
         }
         be.setChanged();
+    }
+
+    /**
+     * Drive the grow-light blockstate.
+     *
+     * <p>The whole point of the lit texture is reading "this is working" from across a base without
+     * opening anything, the same beat as the Tree Nursery glowing and the Burn Barrel's fire. The
+     * property and the model both existed before this did, so the pink lights were unreachable and
+     * nothing failed - a lit variant that never lights is invisible to every test that checks a texture
+     * merely exists.
+     *
+     * <p>Only writes on a change. setBlock every tick would resend the block to every nearby client
+     * twenty times a second for no reason.
+     */
+    private static void setLit(Level level, BlockPos pos, BlockState state, boolean lit) {
+        if (state.hasProperty(HydroponicsBayBlock.LIT) && state.getValue(HydroponicsBayBlock.LIT) != lit) {
+            level.setBlock(pos, state.setValue(HydroponicsBayBlock.LIT, lit), Block.UPDATE_ALL);
+        }
     }
 
     /** Whether a batch could run right now: something growable in, water available, room for output. */

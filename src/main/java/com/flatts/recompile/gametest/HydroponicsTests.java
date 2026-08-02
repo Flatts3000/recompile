@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.block.HydroponicsBayBlock;
 import com.flatts.recompile.content.block.entity.HydroponicsBayBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
@@ -132,6 +133,30 @@ final class HydroponicsTests {
 
             helper.assertTrue(runBatches(helper, be, 1).isEmpty(),
                 "with an empty tank the bay must produce nothing");
+            helper.succeed();
+        });
+
+        // The grow-light. Added because the LIT property, the lit blockstate variant and the pink
+        // texture all existed while NOTHING ever set the property - so the light was unreachable and
+        // every texture-and-model check still passed. A lit variant that never lights is invisible to
+        // any test that only asks whether a texture exists.
+        RCGameTests.test("the_bay_lights_up_while_it_is_working", 60, helper -> {
+            var be = placeFuelled(helper, BAY);
+            helper.assertFalse(helper.getBlockState(BAY).getValue(HydroponicsBayBlock.LIT),
+                "an idle bay must not be lit");
+
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            HydroponicsBayBlockEntity.serverTick(helper.getLevel(), helper.absolutePos(BAY),
+                helper.getBlockState(BAY), be);
+            helper.assertTrue(helper.getBlockState(BAY).getValue(HydroponicsBayBlock.LIT),
+                "a working bay must light up, or the lit texture and the light level are unreachable");
+
+            // And it goes out again. A machine stuck permanently lit is the same bug wearing a hat.
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, ItemStack.EMPTY);
+            HydroponicsBayBlockEntity.serverTick(helper.getLevel(), helper.absolutePos(BAY),
+                helper.getBlockState(BAY), be);
+            helper.assertFalse(helper.getBlockState(BAY).getValue(HydroponicsBayBlock.LIT),
+                "an emptied bay must go dark again");
             helper.succeed();
         });
 
