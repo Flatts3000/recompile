@@ -387,5 +387,7 @@
   "jei.recompile.info.idea_fragment": "Part of working out how something was made. Tearing down the right object at the Recompile Workbench yields one every time. Four fragments about the same thing craft into that Blueprint; fragments about different things do not combine. Once you own the Blueprint - carried or filed in a cabinet next to the bench - it stops giving you fragments for it.",
   "jei.recompile.info.filing_cabinet": "Found in Bulky Waste. Takes blueprints and Idea Fragments and nothing else. Drop fragments in and it assembles them into the blueprint on its own; spare fragments for a blueprint it already holds are discarded. Place it touching the Scrap Crafting Table and everything filed inside becomes usable there without carrying any of it.",
   "jei.recompile.info.clean_mattress": "Made only from the Clean Mattress blueprint, at the Scrap Crafting Table. Three wool and three string. It is the only way to make a bed in this world - wool alone no longer does it.",
-  "jei.recompile.assembly": "Assembly"
+  "jei.recompile.assembly": "Assembly",
+  "biome.recompile.household_sprawl": "Household Sprawl",
+  "biome.recompile.demolition_yard": "Demolition Yard"
 }

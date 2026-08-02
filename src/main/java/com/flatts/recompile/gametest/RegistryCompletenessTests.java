@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -140,6 +142,39 @@ final class RegistryCompletenessTests {
                 }
             });
             report(helper, missing, "blocks with untranslated names");
+        });
+
+        // BIOMES ARE A DATAPACK REGISTRY, which is exactly why they were missed. This sweep walks items
+        // and blocks off BuiltInRegistries; biomes are not there, so both of the mod's shipped biomes
+        // went the whole project with no translation key and nothing said a word.
+        //
+        // It surfaced only when FTB Chunks was added to the Trashlands pack and its minimap started
+        // printing "Biome: biome.recompile.household_sprawl" under the compass (#107). Nothing in the
+        // mod alone renders a biome name - not the F3 screen a developer rarely reads, not any GUI here
+        // - so the gap was invisible for as long as nobody looked at it through another mod.
+        //
+        // Read through the level's registry access rather than a built-in one, because a datapack
+        // registry only exists once a world is loaded.
+        RCGameTests.test("every_biome_has_a_translated_name", 20, helper -> {
+            var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
+            List<String> missing = new ArrayList<>();
+            int checked = 0;
+            for (var holder : biomes.listElements().toList()) {
+                Identifier id = holder.key().identifier();
+                if (!Recompile.MOD_ID.equals(id.getNamespace())) {
+                    continue;
+                }
+                checked++;
+                String key = "biome." + id.getNamespace() + "." + id.getPath();
+                String rendered = Component.translatable(key).getString();
+                if (rendered.equals(key)) {
+                    missing.add(id + " -> \"" + rendered + "\"");
+                }
+            }
+            helper.assertTrue(checked > 0,
+                "no mod biomes were found - discovery is broken, so this would pass against a biome "
+                    + "with no name at all");
+            report(helper, missing, "biomes with untranslated names");
         });
 
         // 26.1 needs assets/<ns>/items/<id>.json IN ADDITION TO models/item/<id>.json. Miss it and
