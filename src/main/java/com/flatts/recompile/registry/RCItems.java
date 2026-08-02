@@ -98,6 +98,16 @@ public final class RCItems {
      */
     public static final DeferredItem<Item> STEEL_OFFCUT = ITEMS.registerItem("steel_offcut", Item::new);
 
+    // Blueprints (#95). BLUEPRINT is one item covering every blueprint the mod or a pack ships; which
+    // one it is lives in a data component. CLEAN_MATTRESS is the proof of concept's payoff and is
+    // deliberately craftable by nothing - the only route to it is the blueprint bench, which is what
+    // blueprint_crafting_is_the_only_route_to_a_clean_mattress asserts.
+    public static final DeferredItem<com.flatts.recompile.content.item.BlueprintItem> BLUEPRINT =
+        ITEMS.registerItem("blueprint", com.flatts.recompile.content.item.BlueprintItem::new);
+
+    public static final DeferredItem<Item> CLEAN_MATTRESS =
+        ITEMS.registerItem("clean_mattress", Item::new);
+
     public static final DeferredItem<Item> JUNK_SHOVEL = ITEMS.registerItem(
         "junk_shovel", props -> new Item(props.shovel(ToolMaterial.STONE, 1.5F, -3.0F)));
     // The knife is a cutting tool, not a sword: it mines its own tag

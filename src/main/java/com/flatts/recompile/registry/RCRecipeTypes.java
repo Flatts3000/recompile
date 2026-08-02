@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -30,6 +31,21 @@ public final class RCRecipeTypes {
     public static final Supplier<RecipeSerializer<TeardownRecipe>> TEARDOWN_SERIALIZER =
         RECIPE_SERIALIZERS.register("teardown",
             () -> new RecipeSerializer<>(TeardownRecipe.CODEC, TeardownRecipe.STREAM_CODEC));
+
+    /**
+     * {@code recompile:blueprint_crafting} (#95): a recipe that only runs while the player holds the
+     * blueprint it names. Registered before anything reads it, exactly as {@code teardown} was - a
+     * public schema that arrives after the packs is a breaking change; one that arrives first is an
+     * extension point.
+     */
+    public static final Supplier<RecipeType<BlueprintCraftingRecipe>> BLUEPRINT_CRAFTING =
+        RECIPE_TYPES.register("blueprint_crafting", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "blueprint_crafting")));
+
+    public static final Supplier<RecipeSerializer<BlueprintCraftingRecipe>> BLUEPRINT_CRAFTING_SERIALIZER =
+        RECIPE_SERIALIZERS.register("blueprint_crafting",
+            () -> new RecipeSerializer<>(BlueprintCraftingRecipe.CODEC,
+                BlueprintCraftingRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

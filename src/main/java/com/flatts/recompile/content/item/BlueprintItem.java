@@ -1,0 +1,87 @@
+package com.flatts.recompile.content.item;
+
+import com.flatts.recompile.registry.RCDataComponents;
+import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.TooltipFlag;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * A Blueprint: a recovered instruction sheet for something this world has forgotten how to make
+ * (#95, spec {@code docs/blueprints_spec.md}).
+ *
+ * <p><b>The item is the knowledge.</b> There is no learned-recipes list on the player and there is not
+ * going to be one - encroachment has no memory, the scrap network has no core, and a formed multiblock
+ * is a blockstate rather than a BlockEntity. Knowledge follows the same rule: it sits in a slot, it can
+ * be lost, and it can be handed to someone else. That is Immersive Engineering's model and it is why it
+ * was chosen over a per-player capability.
+ *
+ * <p><b>Which blueprint it is lives in a data component</b>, so one item covers every blueprint the mod
+ * or a pack ever ships. {@link #blueprintOf(ItemStack)} is the only way to read it and returns null for
+ * a stack that has none, because a blueprint with no component is a real thing a player can end up
+ * holding: {@code /give} without arguments makes one, and so does a pack that removes a recipe out from
+ * under an existing save. It must be inert, not a crash.
+ *
+ * <p><b>It does not stack.</b> A second copy of a thing you already know is worth nothing to you, so a
+ * count would be noise; and "do I know this" wants to be answered by presence rather than by reading a
+ * number. Vanilla's enchanted book, the closest thing it has to knowledge-as-an-item, is single-stack
+ * for the same reason.
+ */
+public class BlueprintItem extends Item {
+
+    public BlueprintItem(Properties properties) {
+        super(properties.stacksTo(1));
+    }
+
+    /** Which blueprint this stack is, or null if it carries no component or is not a blueprint. */
+    public static @Nullable Identifier blueprintOf(ItemStack stack) {
+        return stack.getItem() instanceof BlueprintItem
+            ? stack.get(RCDataComponents.BLUEPRINT.get())
+            : null;
+    }
+
+    /** A blueprint stack for the given set. */
+    public static ItemStack of(Item blueprint, Identifier set) {
+        ItemStack stack = new ItemStack(blueprint);
+        stack.set(RCDataComponents.BLUEPRINT.get(), set);
+        return stack;
+    }
+
+    /**
+     * Name the blueprint on the item itself.
+     *
+     * <p>Without this every blueprint in an inventory reads "Blueprint" and they are indistinguishable,
+     * which is exactly the bug the recovered paintings had before they carried their titles. The key is
+     * derived from the id so a pack that adds a blueprint gets a name by adding one lang entry, with the
+     * raw id as the fallback rather than nothing at all.
+     */
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+            java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        Identifier set = blueprintOf(stack);
+        if (set == null) {
+            tooltip.accept(Component.translatable("tooltip.recompile.blueprint_blank")
+                .withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+        String key = "blueprint." + set.getNamespace() + "." + set.getPath();
+        Component name = Component.translatable(key);
+        tooltip.accept((name.getString().equals(key) ? Component.literal(set.toString()) : name)
+            .copy().withStyle(ChatFormatting.AQUA));
+    }
+
+    /** Blueprints in the creative tab, one per set the mod ships. */
+    public static List<Identifier> shipped() {
+        return List.of(CLEAN_MATTRESS);
+    }
+
+    /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
+    public static final Identifier CLEAN_MATTRESS =
+        Identifier.fromNamespaceAndPath("recompile", "clean_mattress");
+}

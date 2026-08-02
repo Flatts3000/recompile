@@ -367,5 +367,9 @@
   "book.recompile.guide.survival.sleeping.intro.title": "A mattress is the bed",
   "book.recompile.guide.survival.sleeping.intro.text": "A vanilla bed needs planks, and there is no wood here for a long time. The mattress out of Bulky Waste is not a stand-in for a bed. It is the bed.\n\nPut it down and sleep on it as you would any bed. It sets your respawn point the same way.\n\nYou cannot craft one. The dump is where beds come from.",
   "book.recompile.guide.survival.water.sources.title": "Water does not spread",
-  "book.recompile.guide.survival.water.sources.text": "Two water sources placed near each other do not fill in a third. The infinite water trick does not work here.\n\nEvery bucket you pour out is a bucket gone. That is why the Rain Collector is still worth having after you can make buckets, and why a machine that drinks water needs a supply rather than one trip to a pond."
+  "book.recompile.guide.survival.water.sources.text": "Two water sources placed near each other do not fill in a third. The infinite water trick does not work here.\n\nEvery bucket you pour out is a bucket gone. That is why the Rain Collector is still worth having after you can make buckets, and why a machine that drinks water needs a supply rather than one trip to a pond.",
+  "item.recompile.blueprint": "Blueprint",
+  "item.recompile.clean_mattress": "Clean Mattress",
+  "blueprint.recompile.clean_mattress": "Clean Mattress",
+  "tooltip.recompile.blueprint_blank": "Blank - it never said what it was for"
 }

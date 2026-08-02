@@ -50,6 +50,14 @@ earlier, because mattresses are day-one finds. The entry gets a real thesis out 
 world until it can give you wool, or learn how they used to make it.** The two axes converge on the
 same object from opposite directions.
 
+> **Correction (2026-08-02).** The two-route framing above did not survive phase 1. Phase 1 deleted
+> every wool-to-bed recipe, so healing the world to rung 5 no longer reaches a bed at all - there is
+> exactly **one** route now and it goes through the blueprint. Wool did not stop mattering; it changed
+> sides. Under the string-and-wool recipe it is an **ingredient to** the blueprint route rather than an
+> alternative to it. The convergence was a good idea that the gate it depends on made impossible, and it
+> is recorded here rather than quietly left in place, because a spec that describes a route the code
+> removed is how a wrong plan gets built twice.
+
 ## 2. Decisions
 
 | Decision | Answer | Why |
@@ -59,6 +67,9 @@ same object from opposite directions.
 | Gating | **Blueprint-only recipes** | A Clean Mattress cannot be made anywhere else, including the Scrap Crafting Table |
 | Source | **`teaches` on teardown** | The schema has been waiting since Phase 0 |
 | First object | **Clean Mattress -> vanilla bed** | Uses shipped content, legible gate, payoff the player already understands |
+| Clean Mattress recipe | **Shapeless: string + wool** | Ordinary materials; the lock is the blueprint, not an exotic ingredient |
+| Where knowledge lives | **Inventory or a Filing Cabinet** | A collection that grows without bound cannot live in a backpack |
+| Where it can be used | **This mod's crafting table only** | A vanilla table would bypass the whole system the moment a player has wood |
 | Bed recipe | **Clean Mattress + 3 planks, and nothing else** | 16 wool recipes removed |
 | The draw | **Dignity, not stats** | The mattress stays fully functional |
 
@@ -117,40 +128,63 @@ anyone could already craft.
 - A blueprint item with no component, or an unknown one, is inert rather than a crash.
 - Blueprints stack sanely or do not stack; decide and assert it.
 
-## Phase 3 - learning
+## Phase 3 - Idea Fragments
 
-**Ships:** tearing down a Dirty Mattress can grant the Clean Mattress blueprint.
+**Ships:** tearing down a find yields fragments of an idea, and enough fragments craft the blueprint.
 
-The Workbench reads `teaches` and rolls it. **The open question is where partial progress lives**, and
-there are two honest answers:
+**This is the answer to the open question**, decided 2026-08-02: partial progress is an item.
 
-- **A partial blueprint item.** Teardown yields a `blueprint_fragment` carrying a count component;
-  enough of them combine into the real blueprint. Everything stays in items, no save data, and the
-  player can see their progress in the inventory. It also makes progress tradeable, which may be
-  wanted or not.
-- **Drop `scraps_required` and use flat chance.** Each teardown is an independent roll. Simplest
-  possible, and it loses "tear down several until it clicks", which is the better feeling and the
-  reason the field was written.
+- An **Idea Fragment** item carrying the same blueprint-set component the Blueprint does. A fragment
+  for the Clean Mattress and a fragment for something else are different items, not one generic scrap.
+- The Workbench reads `teaches` and grants a fragment on a successful roll. `scraps_required` becomes
+  what it always read as: how many fragments make the sheet.
+- **Fragments craft into the Blueprint** at the Scrap Crafting Table, N of the same set into one sheet.
 
-**Acceptance:**
-- A forced roll grants exactly one blueprint and never a duplicate stack of them.
-- The rate is config-gated, per the standing "everything ships config-gated" rule.
-- A player who already holds the blueprint does not accumulate more, or does, deliberately.
-
-## Phase 4 - the bench
-
-**Ships:** the blueprint bench and its screen.
-
-- A block with a blueprint slot, an input grid, and an output. Nothing crafts without a blueprint in
-  the slot.
-- The reversal for the fourth custom screen, written into CLAUDE.md with its reasoning.
-- Geometry lives on the menu, not the screen, so a server-side test can measure it. That rule exists
-  because the Burner Generator shipped with its readout drawn through its own fuel row.
+Everything stays in items, which is how this mod does everything: encroachment has no memory, the
+scrap network has no core, `FORMED` is a blockstate. Progress is visible in the inventory rather than
+in a number nobody can see, and "tear down four mattresses and watch the pile grow" is a better beat
+than four independent coin flips. It makes progress tradeable, which is a consequence accepted rather
+than a flaw.
 
 **Acceptance:**
-- The bench with an empty blueprint slot produces nothing, whatever is in the grid.
-- The blueprint is **not consumed**.
-- Slot layout is covered by `MenuLayoutTests`, which sweeps every custom menu.
+- A forced teardown roll grants a fragment of the right set and never a fragment of another.
+- Fragments of different sets do not stack together and do not combine into a blueprint.
+- The rate is config-gated, per the standing rule.
+
+## Phase 4 - the Filing Cabinet and the gate at the table
+
+**Ships:** blueprint-gated recipes run at the mod's crafting table, and only while the sheet is
+reachable.
+
+**The Filing Cabinet is a Bulky Waste find** - one more thing pried out of a pile, not a crafted
+machine. It holds an unbounded number of blueprints and nothing else. It joins
+`#recompile:scrap_connectable`, so it is part of the Scrap Network by placement rather than by wiring:
+put it against the crafting table and the table can read it.
+
+**A blueprint recipe runs only if the sheet is reachable**, which means one of two things:
+
+- it is in the crafting player's **inventory**, or
+- it is in a **Filing Cabinet in the same scrap cluster** as the table.
+
+The sheet is never consumed. Knowledge does not wear out.
+
+**And only at one of this mod's tables.** A vanilla crafting table cannot run a blueprint recipe, which
+is what stops the whole system being bypassed the moment a player has wood. The Scrap Crafting Table
+already reimplements crafting over `AbstractContainerMenu` (vanilla's `CraftingMenu` hard-locks itself
+to `MenuType.CRAFTING`), so the second recipe lookup goes in the same place the first one already is.
+
+**Why a cabinet at all**, rather than leaving blueprints in the inventory: a collection that grows
+without bound cannot live in a backpack, and the point of the mechanic is that it accumulates. The
+cabinet is also what makes a base a workshop rather than a chest room, which is the same argument the
+Scrap Network already won.
+
+**Acceptance:**
+- A blueprint recipe produces nothing at a vanilla crafting table, asserted rather than assumed.
+- It produces nothing at the Scrap Crafting Table with no sheet anywhere.
+- It produces with the sheet in the inventory, and with the sheet in an adjacent cabinet, and both
+  paths are tested - one working is not evidence for the other.
+- Crafting does not consume the blueprint.
+- A cabinet holds more than a chest's worth, and survives break and replace with its contents.
 
 ## Phase 5 - content and framing
 
