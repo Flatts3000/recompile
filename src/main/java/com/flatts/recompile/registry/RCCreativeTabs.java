@@ -1,6 +1,12 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.component.DataComponents;
+import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -15,6 +21,17 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * order here is the mod's public item ordering (JEI/EMI read it too).
  */
 public final class RCCreativeTabs {
+
+    /**
+     * The recovered painting variants, in the order they should read on a shelf.
+     *
+     * <p>Hardcoded rather than derived from the {@code placeable} tag, because the tag is the *rule*
+     * about what can be hung and this is a *display* order. A pack that adds a seventh placeable variant
+     * should not silently gain a creative entry the mod never authored art for.
+     */
+    private static final List<String> RECOVERED_PAINTINGS = List.of(
+        "mona_lisa", "the_scream", "starry_night", "great_wave", "pearl_earring", "the_kiss");
+
 
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
         DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Recompile.MOD_ID);
@@ -109,6 +126,13 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.PRESENT.get());
                     output.accept(RCItems.GOLD_COIN.get());
                     output.accept(RCItems.TOY_CAR.get());
+
+                    // Recovered paintings (#99). Vanilla already puts one stack per placeable variant in
+                    // Functional Blocks, but it sets only the variant - so all six show as "Painting",
+                    // are indistinguishable in a row, and searching JEI for "Mona Lisa" finds nothing.
+                    // These carry item_name as well, which is what the loot drop does and what the
+                    // acceptance criteria ask for: the item in your hand says Mona Lisa.
+                    RECOVERED_PAINTINGS.forEach(id -> output.accept(paintingStack(parameters, id)));
                 })
                 .build()
         );
@@ -119,5 +143,20 @@ public final class RCCreativeTabs {
 
     public static void register(IEventBus modEventBus) {
         CREATIVE_MODE_TABS.register(modEventBus);
+    }
+
+
+    /** A painting item that IS the given work: right image, right name, right tooltip. */
+    private static ItemStack paintingStack(CreativeModeTab.ItemDisplayParameters parameters, String id) {
+        ItemStack stack = new ItemStack(Items.PAINTING);
+        parameters.holders().lookup(Registries.PAINTING_VARIANT)
+            .flatMap(lookup -> lookup.get(ResourceKey.create(Registries.PAINTING_VARIANT,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, id))))
+            .ifPresent(variant -> {
+                stack.set(DataComponents.PAINTING_VARIANT, variant);
+                variant.value().title().ifPresent(
+                    title -> stack.set(DataComponents.ITEM_NAME, title));
+            });
+        return stack;
     }
 }
