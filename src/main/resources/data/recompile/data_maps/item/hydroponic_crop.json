@@ -1,0 +1,29 @@
+{
+  "values": {
+    "minecraft:wheat_seeds": {
+      "yields": "minecraft:wheat",
+      "byproduct": { "item": "minecraft:wheat_seeds", "chance": 0.5 }
+    },
+    "minecraft:beetroot_seeds": {
+      "yields": "minecraft:beetroot",
+      "byproduct": { "item": "minecraft:beetroot_seeds", "chance": 0.5 }
+    },
+    "minecraft:melon_seeds": {
+      "yields": "minecraft:melon_slice",
+      "byproduct": { "item": "minecraft:melon_seeds", "chance": 0.25 }
+    },
+    "minecraft:pumpkin_seeds": {
+      "yields": "minecraft:pumpkin",
+      "byproduct": { "item": "minecraft:pumpkin_seeds", "chance": 0.25 }
+    },
+    "minecraft:torchflower_seeds": {
+      "yields": "minecraft:torchflower"
+    },
+    "minecraft:pitcher_pod": {
+      "yields": "minecraft:pitcher_plant"
+    },
+    "minecraft:potato": {
+      "byproduct": { "item": "minecraft:poisonous_potato", "chance": 0.02 }
+    }
+  }
+}

@@ -31,6 +31,9 @@ import net.minecraft.world.item.ItemStack;
  */
 public class HydroponicsBayMenu extends AbstractContainerMenu {
 
+    /** Crop, yield, byproduct. */
+    public static final int SLOTS = 3;
+
     public static final int DATA_SIZE = 4;
     public static final int DATA_PROGRESS = 0;
     public static final int DATA_GOAL = 1;
@@ -44,7 +47,10 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
     public static final int INPUT_X = 44;
     public static final int INPUT_Y = 35;
     public static final int OUTPUT_X = 116;
-    public static final int OUTPUT_Y = 35;
+    public static final int OUTPUT_Y = 26;
+    /** The byproduct slot, stacked under the yield: seeds, and the occasional poisonous potato. */
+    public static final int BYPRODUCT_X = 116;
+    public static final int BYPRODUCT_Y = 44;
     public static final int INV_X = 8;
     public static final int INV_Y = 84;
     public static final int HOTBAR_Y = 142;
@@ -69,7 +75,7 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
 
     /** Client constructor: an empty stand-in container, filled by the vanilla sync. */
     public HydroponicsBayMenu(int containerId, Inventory inventory) {
-        this(containerId, inventory, new SimpleContainer(2), new SimpleContainerData(DATA_SIZE),
+        this(containerId, inventory, new SimpleContainer(SLOTS), new SimpleContainerData(DATA_SIZE),
             ContainerLevelAccess.NULL);
     }
 
@@ -79,7 +85,7 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
         this.container = container;
         this.data = data;
         this.access = access;
-        checkContainerSize(container, 2);
+        checkContainerSize(container, SLOTS);
         checkContainerDataCount(data, DATA_SIZE);
 
         // The crop slot. One item, and that one grows forever until the player takes it back out - so
@@ -95,14 +101,11 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
                 return 1;
             }
         });
-        // Output is take-only. Without this a player could park anything in it and stall the machine,
-        // which is the same brick the Cupola's input guard exists to prevent.
-        addSlot(new Slot(container, HydroponicsBayBlockEntity.SLOT_OUTPUT, OUTPUT_X, OUTPUT_Y) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return false;
-            }
-        });
+        // Both harvest slots are take-only. Without this a player could park anything in one and stall
+        // the machine, which is the same brick the Cupola's input guard exists to prevent.
+        addSlot(new TakeOnly(container, HydroponicsBayBlockEntity.SLOT_OUTPUT, OUTPUT_X, OUTPUT_Y));
+        addSlot(new TakeOnly(container, HydroponicsBayBlockEntity.SLOT_BYPRODUCT,
+            BYPRODUCT_X, BYPRODUCT_Y));
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -140,7 +143,7 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
         }
         ItemStack stack = slot.getItem();
         ItemStack copy = stack.copy();
-        int inventoryStart = 2;
+        int inventoryStart = SLOTS;
         if (index < inventoryStart) {
             // Machine to player.
             if (!moveItemStackTo(stack, inventoryStart, slots.size(), true)) {
@@ -157,6 +160,18 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return copy;
+    }
+
+    /** A harvest slot: the machine puts things in, the player takes them out. */
+    private static final class TakeOnly extends Slot {
+        TakeOnly(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return false;
+        }
     }
 
     @Override

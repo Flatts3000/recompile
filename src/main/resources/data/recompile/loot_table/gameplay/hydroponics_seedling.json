@@ -26,11 +26,6 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:wheat",
-          "weight": 6
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:potato",
           "weight": 6
         },
@@ -41,18 +36,43 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:beetroot",
+          "name": "minecraft:wheat_seeds",
           "weight": 6
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:melon_slice",
+          "name": "minecraft:beetroot_seeds",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:melon_seeds",
           "weight": 4
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:pumpkin",
+          "name": "minecraft:pumpkin_seeds",
           "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:glow_berries",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:kelp",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cocoa_beans",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:sea_pickle",
+          "weight": 3
         }
       ]
     }

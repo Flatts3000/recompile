@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": "recompile:cullet_glass",
+    "G": "minecraft:glass",
     "P": "recompile:copper_pipe",
     "F": "recompile:machine_frame"
   },

@@ -75,6 +75,36 @@ multiplier over what went in.
 the *output*, which the player then seeds the bay with, and from that point the machine never asks for
 another. The swap survives intact.
 
+### A seed-based crop is planted as its seed (decided 2026-08-02)
+
+**Wheat grows from wheat seeds and yields wheat, not the other way round.** A wheat item is not something
+you can plant in vanilla, so it is not an input here either. Same for beetroot, melon, pumpkin,
+torchflower and the pitcher plant. Potato and carrot stay direct inputs because in vanilla they *are*
+their own seed.
+
+That mapping cannot come from the tag - the tag says what goes in, and this says what comes out - so it
+lives in a NeoForge data map, `data/recompile/data_maps/item/hydroponic_crop.json`. **Both of its fields
+are optional and the default is the elegant case:** an entry-less plantable yields itself and throws off
+nothing, which is exactly right for cane, cactus, bamboo, berries, kelp and the rest. Adding a plant to
+`#recompile:hydroponic` is still the whole of what makes it growable; the map exists only for plants that
+need more than that.
+
+The tag now covers every vanilla overworld plantable rather than a curated ten. **Nether wart and chorus
+fruit are deliberately excluded** - both live behind `RCDimensionLockout`, and growing them here would
+route around a dimension gate with a machine.
+
+### The byproduct slot
+
+**A third slot, take-only, under the harvest.** Vanilla potatoes carry a 2% chance of a poisonous one, and
+seeds come off wheat, beetroot, melon and pumpkin. The yield stack is type-locked, so with a single output
+a byproduct would have to be either binned silently or merged into the harvest - and one poisonous potato
+in fifty would stall a potato farm outright. Both harvest slots pull from the bottom face, or a hopper
+under a potato farm drains the potatoes and lets the poisonous ones fill up and jam it one block lower.
+
+**Room for the byproduct is checked before the batch starts, whether or not that batch will roll one.**
+Gating on the roll would make an identical machine sometimes run and sometimes stall for reasons a player
+cannot see; the alternative loses items silently.
+
 ### No growth medium
 
 **The bay does not require dirt, farmland or sand**, as a medium slot or as a placement rule. Hydroponics

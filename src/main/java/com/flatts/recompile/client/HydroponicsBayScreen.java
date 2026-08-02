@@ -54,6 +54,8 @@ public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBay
 
         VanillaGui.slot(graphics, left + HydroponicsBayMenu.INPUT_X, top + HydroponicsBayMenu.INPUT_Y);
         VanillaGui.slot(graphics, left + HydroponicsBayMenu.OUTPUT_X, top + HydroponicsBayMenu.OUTPUT_Y);
+        VanillaGui.slot(graphics,
+            left + HydroponicsBayMenu.BYPRODUCT_X, top + HydroponicsBayMenu.BYPRODUCT_Y);
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 VanillaGui.slot(graphics, left + HydroponicsBayMenu.INV_X + col * HydroponicsBayMenu.CELL,

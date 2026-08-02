@@ -4,11 +4,17 @@
     "minecraft:bamboo",
     "minecraft:cactus",
     "minecraft:sweet_berries",
-    "minecraft:wheat",
+    "minecraft:glow_berries",
+    "minecraft:kelp",
+    "minecraft:sea_pickle",
+    "minecraft:cocoa_beans",
     "minecraft:potato",
     "minecraft:carrot",
-    "minecraft:beetroot",
-    "minecraft:melon_slice",
-    "minecraft:pumpkin"
+    "minecraft:wheat_seeds",
+    "minecraft:beetroot_seeds",
+    "minecraft:melon_seeds",
+    "minecraft:pumpkin_seeds",
+    "minecraft:torchflower_seeds",
+    "minecraft:pitcher_pod"
   ]
 }

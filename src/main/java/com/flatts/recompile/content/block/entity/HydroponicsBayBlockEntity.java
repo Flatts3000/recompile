@@ -13,18 +13,22 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import com.flatts.recompile.registry.RCBlockEntities;
+import com.flatts.recompile.registry.RCDataMaps;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -76,7 +80,16 @@ public class HydroponicsBayBlockEntity extends BlockEntity
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
-    private static final int SLOT_COUNT = 2;
+    /**
+     * The byproduct slot: what a crop throws off besides itself.
+     *
+     * <p><b>It exists so a rare byproduct cannot jam the harvest.</b> Vanilla potatoes carry a 2% chance
+     * of a poisonous one, and seeds come off wheat, beetroot, melon and pumpkin every time. With a single
+     * output those would either have to be dropped on the floor or merged into the yield stack, and the
+     * yield stack is type-locked - so one poisonous potato in fifty would stall a potato farm outright.
+     */
+    public static final int SLOT_BYPRODUCT = 2;
+    private static final int SLOT_COUNT = 3;
 
     /** The seedling lottery. Data, so the odds are a datapack question rather than a code one. */
     public static final ResourceKey<LootTable> SEEDLING_TABLE = ResourceKey.create(
@@ -244,16 +257,46 @@ public class HydroponicsBayBlockEntity extends BlockEntity
      * turn out to be the wrong plant.
      */
     private boolean outputAccepts() {
-        ItemStack output = items.get(SLOT_OUTPUT);
-        if (output.isEmpty()) {
-            return true;
-        }
         ItemStack input = items.get(SLOT_INPUT);
         if (input.is(RCItems.UNKNOWN_SEEDLING.get())) {
+            // A lottery result cannot be compared against anything in advance, so it needs a clear slot.
+            return items.get(SLOT_OUTPUT).isEmpty();
+        }
+        if (!fits(SLOT_OUTPUT, yieldOf(input.getItem()), RCConfig.HYDROPONICS_YIELD.get())) {
             return false;
         }
-        return output.is(input.getItem())
-            && output.getCount() + RCConfig.HYDROPONICS_YIELD.get() <= output.getMaxStackSize();
+        // The byproduct slot is checked whether or not this batch rolls one. Gating on the roll would
+        // make an identical machine sometimes run and sometimes not for reasons a player cannot see, and
+        // the alternative - producing the yield and binning the byproduct - loses items silently.
+        var by = byproductOf(input.getItem());
+        return by == null || fits(SLOT_BYPRODUCT, by.item(), by.count());
+    }
+
+    /** Whether {@code count} more of {@code item} would land in that slot. */
+    private boolean fits(int slot, Item item, int count) {
+        ItemStack existing = items.get(slot);
+        return existing.isEmpty()
+            || (existing.is(item) && existing.getCount() + count <= existing.getMaxStackSize());
+    }
+
+    /**
+     * What one plantable grows into - itself unless the data map says otherwise.
+     *
+     * <p>The exception is the seed-based crops, which are planted as their seed exactly as they are in
+     * the ground: wheat seeds in, wheat out. A wheat item is not a thing you can plant, so it is not an
+     * input here either.
+     */
+    public static Item yieldOf(Item plantable) {
+        var crop = BuiltInRegistries.ITEM.getData(RCDataMaps.HYDROPONIC_CROP,
+            BuiltInRegistries.ITEM.getResourceKey(plantable).orElse(null));
+        return crop == null ? plantable : crop.yields().orElse(plantable);
+    }
+
+    /** What else comes off this plantable, or null for the plants that throw off nothing. */
+    public static RCDataMaps.@Nullable Byproduct byproductOf(Item plantable) {
+        var crop = BuiltInRegistries.ITEM.getData(RCDataMaps.HYDROPONIC_CROP,
+            BuiltInRegistries.ITEM.getResourceKey(plantable).orElse(null));
+        return crop == null ? null : crop.byproduct().orElse(null);
     }
 
     /** An Unknown Seedling, or anything in the growable tag. */
@@ -279,14 +322,14 @@ public class HydroponicsBayBlockEntity extends BlockEntity
      * </ul>
      *
      * <p><b>A seedling is still consumed</b>, because that is the whole of what it is: a lottery ticket.
-     * It yields ONE plant to the output, which the player then seeds the bay with - and from that point
-     * the machine never asks for another. That is the swap, and it survives the change intact.
+     * It yields ONE plantable to the output, which the player then seeds the bay with - and from that
+     * point the machine never asks for another. That is the swap, and it survives the change intact.
      */
     private void grow(ServerLevel server) {
         ItemStack input = items.get(SLOT_INPUT);
         boolean seedling = input.is(RCItems.UNKNOWN_SEEDLING.get());
         ItemStack produced = seedling ? rollSeedling(server)
-            : new ItemStack(input.getItem(), RCConfig.HYDROPONICS_YIELD.get());
+            : new ItemStack(yieldOf(input.getItem()), RCConfig.HYDROPONICS_YIELD.get());
         if (produced.isEmpty()) {
             return;
         }
@@ -315,6 +358,32 @@ public class HydroponicsBayBlockEntity extends BlockEntity
         } else {
             existing.grow(produced.getCount());
         }
+        if (!seedling) {
+            rollByproduct(server, input.getItem());
+        }
+    }
+
+    /**
+     * The byproduct, if this crop has one and the roll comes up.
+     *
+     * <p>Its own slot because the yield stack is type-locked: a poisonous potato merged into a potato
+     * harvest is impossible, and one landing in the output would stall a potato farm on the 2% roll that
+     * vanilla gives it. Seeds off wheat and beetroot are the same shape of problem arriving every batch.
+     *
+     * <p>Room was already proven by {@code outputAccepts} before the batch started, so this cannot lose
+     * an item; the guard is here because the roll is separate from the check.
+     */
+    private void rollByproduct(ServerLevel server, Item plantable) {
+        RCDataMaps.Byproduct by = byproductOf(plantable);
+        if (by == null || server.getRandom().nextFloat() >= by.chance()) {
+            return;
+        }
+        ItemStack slot = items.get(SLOT_BYPRODUCT);
+        if (slot.isEmpty()) {
+            items.set(SLOT_BYPRODUCT, new ItemStack(by.item(), by.count()));
+        } else if (slot.is(by.item()) && slot.getCount() + by.count() <= slot.getMaxStackSize()) {
+            slot.grow(by.count());
+        }
     }
 
     /** One plant from the seedling table, or empty if the table is missing or rolled nothing. */
@@ -335,7 +404,12 @@ public class HydroponicsBayBlockEntity extends BlockEntity
      */
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return side == Direction.DOWN ? new int[] {SLOT_OUTPUT} : new int[] {SLOT_INPUT};
+        // Both harvest slots pull from below, or a hopper under a potato farm drains the potatoes and
+        // leaves the poisonous ones to fill up and stall it - the exact jam the byproduct slot exists to
+        // prevent, moved one block down.
+        return side == Direction.DOWN
+            ? new int[] {SLOT_OUTPUT, SLOT_BYPRODUCT}
+            : new int[] {SLOT_INPUT};
     }
 
     @Override
@@ -345,7 +419,7 @@ public class HydroponicsBayBlockEntity extends BlockEntity
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == SLOT_OUTPUT;
+        return slot != SLOT_INPUT;
     }
 
     /**

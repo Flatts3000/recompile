@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.flatts.recompile.client.RCSyncedRecipes;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
+import com.flatts.recompile.content.block.entity.HydroponicsBayBlockEntity;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -170,9 +171,18 @@ public class RecompileJeiPlugin implements IModPlugin {
         int yield = com.flatts.recompile.RCConfig.HYDROPONICS_YIELD.get();
         for (var holder : net.minecraft.core.registries.BuiltInRegistries.ITEM
                 .getTagOrEmpty(com.flatts.recompile.registry.RCTags.HYDROPONIC)) {
-            ItemStack plant = new ItemStack(holder.value());
-            growing.add(new SalvageRecipe(plant.copy(), List.of(new SortingData.Weighted(
-                new ItemStack(holder.value(), yield), 1.0f))));
+            var plantable = holder.value();
+            List<SortingData.Weighted> harvest = new ArrayList<>();
+            harvest.add(new SortingData.Weighted(
+                new ItemStack(HydroponicsBayBlockEntity.yieldOf(plantable), yield), 1.0f));
+            // The byproduct shares the row rather than getting one of its own: what comes off wheat is a
+            // fact about growing wheat, and a separate entry would read as a second way to make seeds.
+            var by = HydroponicsBayBlockEntity.byproductOf(plantable);
+            if (by != null) {
+                harvest.add(new SortingData.Weighted(
+                    new ItemStack(by.item(), by.count()), by.chance()));
+            }
+            growing.add(new SalvageRecipe(new ItemStack(plantable), harvest));
         }
         registration.addRecipes(GROWING, growing);
 

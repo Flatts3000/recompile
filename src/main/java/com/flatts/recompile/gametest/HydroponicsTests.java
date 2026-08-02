@@ -120,6 +120,67 @@ final class HydroponicsTests {
             helper.succeed();
         });
 
+        // SEED-BASED CROPS ARE PLANTED AS THEIR SEED, the same as in the ground. Wheat seeds in, wheat
+        // out - and a wheat item is not a thing you can plant, here or anywhere else in Minecraft.
+        RCGameTests.test("a_seed_crop_grows_from_its_seed_not_from_its_harvest", 60, helper -> {
+            helper.assertTrue(HydroponicsBayBlockEntity.isGrowable(new ItemStack(Items.WHEAT_SEEDS)),
+                "wheat seeds are what you plant, so they are what the bay takes");
+            helper.assertFalse(HydroponicsBayBlockEntity.isGrowable(new ItemStack(Items.WHEAT)),
+                "a wheat item is not plantable in vanilla and must not be here either");
+            helper.assertTrue(HydroponicsBayBlockEntity.yieldOf(Items.WHEAT_SEEDS) == Items.WHEAT,
+                "wheat seeds must yield wheat, not more of themselves");
+
+            var be = placeFuelled(helper, BAY);
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.WHEAT_SEEDS));
+            ItemStack out = runBatches(helper, be, 1);
+            helper.assertTrue(out.is(Items.WHEAT), "and the machine must agree with the map, got " + out);
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).is(Items.WHEAT_SEEDS),
+                "the seed stays planted");
+            helper.succeed();
+        });
+
+        // Potato and carrot are their own seed in vanilla, so they stay direct inputs. Without this the
+        // seed rule would look like it applied to every crop, and a bay full of potatoes would be wrong.
+        RCGameTests.test("a_tuber_is_its_own_seed", 60, helper -> {
+            var be = placeFuelled(helper, BAY);
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.POTATO));
+            helper.assertTrue(runBatches(helper, be, 1).is(Items.POTATO),
+                "a potato plants a potato and harvests potatoes");
+            helper.assertTrue(HydroponicsBayBlockEntity.yieldOf(Items.CARROT) == Items.CARROT,
+                "and a carrot likewise - neither has a separate seed item");
+            helper.succeed();
+        });
+
+        // THE BYPRODUCT SLOT, and why it is a slot rather than a second entry in the output.
+        // A poisonous potato cannot merge into a potato stack, so with one output it would either be
+        // binned silently or jam a potato farm on the 2% roll vanilla gives it.
+        RCGameTests.test("a_byproduct_lands_in_its_own_slot", 60, helper -> {
+            var by = HydroponicsBayBlockEntity.byproductOf(Items.POTATO);
+            helper.assertFalse(by == null, "potatoes must carry the poisonous-potato roll");
+            helper.assertTrue(by.item() == Items.POISONOUS_POTATO,
+                "and it must be the poisonous one, got " + by.item());
+            helper.assertTrue(by.chance() > 0.0f && by.chance() < 1.0f,
+                "at a chance, not every batch - vanilla's is 2%");
+
+            // Wheat seeds throw off seeds every batch at 50%, which is frequent enough to observe.
+            var be = placeFuelled(helper, BAY);
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.WHEAT_SEEDS));
+            boolean seen = false;
+            for (int batch = 0; batch < 12 && !seen; batch++) {
+                try (Transaction tx = Transaction.openRoot()) {
+                    be.battery().insert(Integer.MAX_VALUE, tx);
+                    tx.commit();
+                }
+                be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, ItemStack.EMPTY);
+                runBatches(helper, be, 1);
+                seen = be.getItem(HydroponicsBayBlockEntity.SLOT_BYPRODUCT).is(Items.WHEAT_SEEDS);
+            }
+            helper.assertTrue(seen,
+                "a 50% byproduct must show up inside twelve batches, and it must be in the byproduct "
+                    + "slot rather than merged into the harvest");
+            helper.succeed();
+        });
+
         // The four that exist nowhere else. If the tag ever loses one, a quarter of vanilla's plant life
         // silently leaves the game and nothing else in the build would notice.
         RCGameTests.test("the_whole_plant_farmables_are_growable", 20, helper -> {
