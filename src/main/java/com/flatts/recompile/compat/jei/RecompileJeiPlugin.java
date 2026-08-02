@@ -77,6 +77,14 @@ public class RecompileJeiPlugin implements IModPlugin {
      * find on its own, and the four that matter most (cane, bamboo, cactus, berries) have no other source
      * in the world. Without this the bay is a machine with no discoverable inputs.
      */
+    /**
+     * Blueprint crafting (#95). Its own category for the reason every category here has one: JEI
+     * catalysts attach to a CATEGORY, never to a single recipe, so listing these under CRAFTING would
+     * advertise the Scrap Crafting Table as able to make a Clean Mattress with no blueprint at all -
+     * which is the one thing the whole system exists to prevent.
+     */
+    static final RecipeType<SalvageRecipe> BLUEPRINT_CRAFTING =
+        RecipeType.create(Recompile.MOD_ID, "blueprint_crafting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> GROWING =
         RecipeType.create(Recompile.MOD_ID, "growing", SalvageRecipe.class);
 
@@ -110,6 +118,9 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true,
                 TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new SalvageCategory(BLUEPRINT_CRAFTING,
+                Component.translatable("jei.recompile.blueprint_crafting"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get())), false, 4),
             new SalvageCategory(GROWING, Component.translatable("jei.recompile.growing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true,
                 widest(SortingData.SEEDLING)));
@@ -203,6 +214,27 @@ public class RecompileJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(GROWING, growing);
 
+        // Blueprint recipes, read from the synced recipe manager so the list cannot drift from what
+        // the table will actually run. Empty before a world is joined, which never happens in practice.
+        List<SalvageRecipe> blueprinted = new ArrayList<>();
+        RecipeMap syncedBlueprints = RCSyncedRecipes.get();
+        if (syncedBlueprints != null) {
+            for (RecipeHolder<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> holder
+                    : syncedBlueprints.byType(
+                        com.flatts.recompile.registry.RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                var recipe = holder.value();
+                // The blueprint goes in the INPUT column beside the ingredients, because a player
+                // reading this needs to see that the sheet is part of what it takes. It is not
+                // consumed, which the info panel says - a recipe grid cannot express "and hold this".
+                blueprinted.add(new SalvageRecipe(
+                    com.flatts.recompile.content.item.BlueprintItem.of(
+                        RCItems.BLUEPRINT.get(), recipe.blueprint()),
+                    List.of(new SortingData.Weighted(
+                        new ItemStack(recipe.result().item(), recipe.result().count()), 1.0f))));
+            }
+        }
+        registration.addRecipes(BLUEPRINT_CRAFTING, blueprinted);
+
         // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
         // numbers stay single-sourced in the recipe file. Iterating every entry means a new find
         // shows up here for free, rather than needing this list edited too.
@@ -245,6 +277,14 @@ public class RecompileJeiPlugin implements IModPlugin {
 
         // The bay's two costs are water and power, and neither is visible in its category - a panel is
         // the only place to say that it needs both at once, and that the crop stays put.
+        // The blueprint mechanic has three items and no recipe expresses any of it: where a fragment
+        // comes from, that the sheet is held rather than spent, or that a cabinet has to be touching
+        // the table. All three are panels or they are nowhere.
+        info(registration, RCItems.BLUEPRINT.get(), "blueprint");
+        info(registration, RCItems.IDEA_FRAGMENT.get(), "idea_fragment");
+        info(registration, RCItems.FILING_CABINET.get(), "filing_cabinet");
+        info(registration, RCItems.CLEAN_MATTRESS.get(), "clean_mattress");
+
         info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
         info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");
     }
@@ -278,6 +318,10 @@ public class RecompileJeiPlugin implements IModPlugin {
         // got its own category.
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.BLASTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.HYDROPONICS_BAY.get()), GROWING);
+        // The station, not the sheet: what a player needs to know is WHERE these can be made, and the
+        // answer is the mod's own table and nowhere else.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_CRAFTING_TABLE.get()),
+            BLUEPRINT_CRAFTING);
     }
 
     /**

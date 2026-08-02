@@ -2,6 +2,8 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
+import com.flatts.recompile.content.recipe.BedFromMattressRecipe;
+import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -46,6 +48,26 @@ public final class RCRecipeTypes {
         RECIPE_SERIALIZERS.register("blueprint_crafting",
             () -> new RecipeSerializer<>(BlueprintCraftingRecipe.CODEC,
                 BlueprintCraftingRecipe.STREAM_CODEC));
+
+    /**
+     * Fragments into a sheet (#95). A SPECIAL crafting recipe, not a type of its own: it has to be
+     * findable through {@code RecipeType.CRAFTING} so it works in any 3x3 the player can reach, and its
+     * ingredients are distinguished by a data component rather than by item id, which an ordinary
+     * shapeless recipe cannot match on.
+     */
+    public static final Supplier<RecipeSerializer<FragmentAssemblyRecipe>> FRAGMENT_ASSEMBLY_SERIALIZER =
+        RECIPE_SERIALIZERS.register("fragment_assembly",
+            () -> new RecipeSerializer<>(FragmentAssemblyRecipe.CODEC,
+                FragmentAssemblyRecipe.STREAM_CODEC));
+
+    /**
+     * A dyed Clean Mattress plus planks makes the bed of that colour (#95). Special, because the colour
+     * lives in a data component and a plain shaped recipe cannot read one back.
+     */
+    public static final Supplier<RecipeSerializer<BedFromMattressRecipe>> BED_FROM_MATTRESS_SERIALIZER =
+        RECIPE_SERIALIZERS.register("bed_from_mattress",
+            () -> new RecipeSerializer<>(BedFromMattressRecipe.CODEC,
+                BedFromMattressRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.item.BlueprintItem;
+import com.flatts.recompile.content.recipe.BlueprintAccess;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
@@ -45,6 +46,13 @@ final class BlueprintTests {
                 swept++;
                 if (holder.value().getType() == RCRecipeTypes.BLUEPRINT_CRAFTING.get()) {
                     continue;   // the sanctioned route
+                }
+                // A recipe that CONSUMES a Clean Mattress and hands one back is a recolour, not a
+                // source: it creates nothing, and net new mattresses is what the gate is about. Same
+                // distinction phase 1 drew on the beds, where the 16 wool-to-bed recipes were deleted
+                // and the 16 dye-a-bed recipes were deliberately left alone.
+                if (consumes(holder.value(), RCItems.CLEAN_MATTRESS.get())) {
+                    continue;
                 }
                 for (var display : holder.value().display()) {
                     if (produces(display.result(), RCItems.CLEAN_MATTRESS.get())) {
@@ -259,6 +267,159 @@ final class BlueprintTests {
             helper.succeed();
         });
 
+        // THE GATE, from the table's side. Reachability is checked at the table because a Recipe only
+        // ever sees its own input - it cannot know what a player is carrying or what block is next
+        // door. Both routes are tested because one working is not evidence for the other.
+        RCGameTests.test("a_blueprint_recipe_needs_the_sheet_within_reach", 40, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            var table = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(table, com.flatts.recompile.registry.RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            var abs = helper.absolutePos(table);
+            var level = helper.getLevel();
+
+            helper.assertFalse(
+                BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
+                "with the sheet nowhere, a blueprint recipe must not run");
+
+            // Route one: carried.
+            player.getInventory().add(
+                BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
+            helper.assertTrue(
+                BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
+                "carrying the sheet is enough - a player who just earned one should not also have to "
+                    + "have found a cabinet");
+            helper.assertFalse(BlueprintAccess.reachable(level, player, abs,
+                    Identifier.fromNamespaceAndPath("recompile", "something_else")),
+                "and it unlocks only the blueprint it actually names");
+
+            // Route two: filed next door, with an empty inventory.
+            player.getInventory().clearContent();
+            var cabinetPos = new net.minecraft.core.BlockPos(2, 1, 1);
+            helper.setBlock(cabinetPos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                level.getBlockEntity(helper.absolutePos(cabinetPos));
+            helper.assertFalse(
+                BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
+                "an EMPTY adjacent cabinet must not unlock anything");
+            cabinet.setItem(0, BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
+            helper.assertTrue(
+                BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
+                "a cabinet touching the table is read from it - placement, not wiring");
+            player.discard();
+            helper.succeed();
+        });
+
+        // A cabinet that is NOT in the cluster must not count, or "adjacency" means nothing and the
+        // whole Scrap Network premise leaks. Tested at a distance rather than trusted.
+        RCGameTests.test("a_distant_filing_cabinet_does_not_count", 40, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            var table = new net.minecraft.core.BlockPos(0, 1, 0);
+            var far = new net.minecraft.core.BlockPos(4, 1, 4);
+            helper.setBlock(table, com.flatts.recompile.registry.RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            helper.setBlock(far, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(far));
+            cabinet.setItem(0, BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
+
+            helper.assertFalse(BlueprintAccess.reachable(helper.getLevel(), player,
+                    helper.absolutePos(table), BlueprintItem.CLEAN_MATTRESS),
+                "a cabinet across the room is not in the cluster and must not unlock the recipe");
+            player.discard();
+            helper.succeed();
+        });
+
+        // FRAGMENTS BECOME THE SHEET. The threshold is read off the teardown that teaches it rather
+        // than hardcoded in the recipe, so a pack retunes cost and odds in the same file.
+        RCGameTests.test("enough_fragments_of_one_idea_make_the_blueprint", 20, helper -> {
+            com.flatts.recompile.content.recipe.FragmentAssemblyRecipe assembly = null;
+            for (var holder : helper.getLevel().recipeAccess().recipeMap()
+                    .byType(net.minecraft.world.item.crafting.RecipeType.CRAFTING)) {
+                if (holder.value()
+                        instanceof com.flatts.recompile.content.recipe.FragmentAssemblyRecipe found) {
+                    assembly = found;
+                }
+            }
+            helper.assertTrue(assembly != null, "the fragment assembly recipe must be loaded");
+
+            int need = 4;   // mattress.json's scraps_required
+            ItemStack frags = com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, need);
+            helper.assertTrue(assembly.matches(input(frags), helper.getLevel()),
+                "enough fragments of one idea must assemble");
+            ItemStack made = assembly.assemble(input(frags));
+            helper.assertTrue(BlueprintItem.CLEAN_MATTRESS.equals(BlueprintItem.blueprintOf(made)),
+                "and produce the blueprint they were fragments of, got " + made);
+
+            ItemStack tooFew = com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, need - 1);
+            helper.assertFalse(assembly.matches(input(tooFew), helper.getLevel()),
+                "one short must make nothing - a threshold that rounds down is not a threshold");
+
+            // Mixing ideas is a mistake, not a partial match. Without this a player could pool
+            // unrelated fragments into whichever blueprint they wanted, and earning each separately
+            // is the entire reason a fragment names its target.
+            ItemStack other = com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(),
+                Identifier.fromNamespaceAndPath("recompile", "something_else"), 1);
+            helper.assertFalse(assembly.matches(input(tooFew, other), helper.getLevel()),
+                "fragments toward different blueprints must not top each other up");
+            helper.succeed();
+        });
+
+        // The payoff, and the last link in the chain. This is now the ONLY bed recipe in the game.
+        RCGameTests.test("a_clean_mattress_and_planks_make_a_bed", 20, helper -> {
+            var grid = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                ItemStack.EMPTY, new ItemStack(RCItems.CLEAN_MATTRESS.get()), ItemStack.EMPTY,
+                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)));
+            var found = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
+                net.minecraft.world.item.crafting.RecipeType.CRAFTING, grid, helper.getLevel());
+            helper.assertTrue(found.isPresent(),
+                "a Clean Mattress over three planks must make a bed - it is the only bed recipe left, "
+                    + "so if it breaks the world has no beds at all");
+            helper.assertTrue(
+                found.get().value().assemble(grid).is(net.minecraft.world.item.Items.WHITE_BED),
+                "an undyed mattress makes a white bed, the same as vanilla wool did");
+
+            // DYE THE MATTRESS, GET THAT BED. Phase 1 deleted all sixteen wool-to-bed recipes, so the
+            // colour ladder had to come back somewhere or the world would only ever have white beds.
+            // Every colour is driven, not a sample: sixteen dye recipes is exactly the surface where
+            // fifteen get written, which is the same reason the wool gate has a sweep rather than a
+            // checklist.
+            List<String> wrong = new ArrayList<>();
+            for (net.minecraft.world.item.DyeColor colour
+                    : net.minecraft.world.item.DyeColor.values()) {
+                ItemStack dyed = new ItemStack(RCItems.CLEAN_MATTRESS.get());
+                dyed.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
+                    new net.minecraft.world.item.component.DyedItemColor(
+                        colour.getTextureDiffuseColor()));
+                var coloured = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                    ItemStack.EMPTY, dyed, ItemStack.EMPTY,
+                    new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                    new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                    new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)));
+                var match = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, coloured,
+                    helper.getLevel());
+                Identifier want = Identifier.withDefaultNamespace(colour.getName() + "_bed");
+                if (match.isEmpty()) {
+                    wrong.add(colour.getName() + " -> no recipe");
+                    continue;
+                }
+                ItemStack made = match.get().value().assemble(coloured);
+                if (!net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(made.getItem())
+                        .equals(want)) {
+                    wrong.add(colour.getName() + " -> " + made);
+                }
+            }
+            helper.assertTrue(wrong.isEmpty(),
+                "a mattress dyed a colour must make the bed of that colour: " + wrong);
+            helper.succeed();
+        });
+
     }
 
     /** A crafting grid holding exactly these items, in this order. */
@@ -268,6 +429,16 @@ final class BlueprintTests {
             items.set(i, stacks[i]);
         }
         return CraftingInput.of(stacks.length, 1, items);
+    }
+
+    /** Whether this item is one of the recipe's own ingredients. */
+    private static boolean consumes(net.minecraft.world.item.crafting.Recipe<?> recipe, Item item) {
+        for (var ingredient : recipe.placementInfo().ingredients()) {
+            if (ingredient.test(new ItemStack(item))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -111,7 +111,7 @@ there.
 could not be removed cleanly, the Clean Mattress would have been a decorative alternative to a bed
 anyone could already craft.
 
-## Phase 2 - the blueprint item and the gate it opens
+## Phase 2 - the blueprint item and the gate it opens (DONE)
 
 **Ships:** a Blueprint item that exists, names a recipe set, and is required by nothing yet.
 
@@ -128,7 +128,7 @@ anyone could already craft.
 - A blueprint item with no component, or an unknown one, is inert rather than a crash.
 - Blueprints stack sanely or do not stack; decide and assert it.
 
-## Phase 3 - Idea Fragments
+## Phase 3 - Idea Fragments (DONE)
 
 **Ships:** tearing down a find yields fragments of an idea, and enough fragments craft the blueprint.
 
@@ -158,7 +158,7 @@ than a flaw.
 - Fragments of different sets do not stack together and do not combine into a blueprint.
 - The rate is config-gated, per the standing rule.
 
-## Phase 4 - the Filing Cabinet and the gate at the table
+## Phase 4 - the Filing Cabinet and the gate at the table (DONE)
 
 **Ships:** blueprint-gated recipes run at the mod's crafting table, and only while the sheet is
 reachable.
@@ -193,10 +193,19 @@ Scrap Network already won.
 - Crafting does not consume the blueprint.
 - A cabinet holds more than a chest's worth, and survives break and replace with its contents.
 
-## Phase 5 - content and framing
+## Phase 5 - content and framing (DONE)
 
-- `clean_mattress + 3 planks -> minecraft:white_bed`. White only; the 16 dye recipes handle colour, so
-  you recover one design and choose your own paint.
+- **A Clean Mattress plus three planks makes a bed, in whatever colour the mattress was dyed.**
+  Dyeing the mattress is an ordinary crafting recipe - sixteen of them, one per dye, setting
+  `minecraft:dyed_color`. The bed itself is a **special** recipe, because a plain shaped recipe cannot
+  read a component back, and one recipe that reads the colour cannot get out of step with sixteen that
+  set it. An undyed mattress makes white, the same as vanilla wool did.
+
+  This is where the colour ladder phase 1 deleted comes back. Removing the sixteen wool-to-bed recipes
+  removed every coloured bed with them; recolouring the mattress restores the whole set through the
+  blueprint rather than around it. **It is now the only bed recipe in the game**, so its test drives all
+  sixteen colours rather than sampling one - sixteen files is exactly the surface where fifteen get
+  written.
 - JEI: the blueprint recipes as their own category, with the blueprint as the catalyst. The Burn Barrel
   is the precedent for why this must be its own category rather than an entry under crafting.
 - Guidebook: how a blueprint is found and what the bench is for. Without it the mechanic is invisible.
@@ -205,7 +214,15 @@ Scrap Network already won.
 
 ## Open
 
-- **Partial progress**: fragment item, or flat chance. Phase 3 cannot start without it.
+- **The computer tier.** Raised 2026-08-02 and deliberately not built: a repaired computer as an
+  upgraded Filing Cabinet, with USB sticks in the dump carrying whole blueprints. The argument for it
+  is that this mod is already modern - washing machines, rebar, solar panels, Forge Energy, and a name
+  that means data recovery - while almost every other pack is a fantasy of the industrial revolution.
+  If it is built, the recommendation on record is that tier 2 should be **range and convenience**
+  (serve the whole cluster) rather than a second kind of knowledge, and that USB sticks should carry
+  **complete** blueprints as a lucky find, so teardown stays the reliable route and does not get a
+  competing source.
+- ~~**Partial progress**: fragment item, or flat chance.~~ **Decided 2026-08-02: the fragment item.**
 - **One blueprint, many recipes, or one each?** IE's blueprints are categories. Many-per-blueprint means
   fewer and more meaningful drops; one-each is a longer collection ladder and a simpler screen.
 - **What else gets a blueprint after the bed?** The POC only earns its cost if there is a second and a
