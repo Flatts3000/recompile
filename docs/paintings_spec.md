@@ -26,6 +26,31 @@ The whole feature is these four, and the fourth is the only one vanilla does not
 3. **Placing it places the Mona Lisa image**, never a random painting.
 4. **Breaking it keeps all three true** of the item you get back.
 
+## 1b. Decisions (owner, 2026-08-01)
+
+| Decision | Answer | Why |
+|---|---|---|
+| Duplicates | **None. You find the painting, not a ticket** | "I don't want them to find a coupon. I want them to find the painting." A find is a specific artwork you did not have |
+| Fragility | **Survives, but drops** | An explosion or fire knocks it off the wall as an item rather than destroying it. The danger stays legible and a 40-hour collection can never be lost at hour 39 |
+| Teardown exit | **Not required** | The found-economy invariant is retired (below) |
+| Size cap | **4 blocks per side** | Matches vanilla's own vocabulary; collectible scale rather than mural scale |
+
+**No duplicates changes the rarity maths completely.** The coupon-collector figure of 14.7 drops was for a
+uniform pool. If every find is a painting the player does not yet own, **6 drops complete the set**, and
+the required rate drops by 2.5x accordingly. Redo the table in section 5 against 6, not 14.7.
+
+**And it needs per-player state, which this mod has never had - but it does not need a new save format.**
+Advancements are per-player state Minecraft already persists. Grant one per painting on first find, and
+have the drop offer only the works whose advancement the player lacks. Nothing new is serialized, and it
+lands exactly where #32 was already heading: the completion advancements become the mechanism, not just
+the reward.
+
+**The found-economy invariant is retired** (owner, 2026-08-01). CLAUDE.md carried it as standing: *nothing
+enters the found economy without a teardown exit, or the piles become clutter*. It had already stopped
+being true - the collectibles (avocado, present, gold coin, toy car, Puzzle Cube) are found and displayed
+with no teardown exit, and the mod ships exactly three teardown recipes. Retiring it makes the documents
+match what shipped rather than describing a rule the content had outgrown.
+
 ## 2. What vanilla already gives us
 
 Checked against 26.1.2 rather than assumed:
@@ -94,22 +119,20 @@ port authored its own art.
 
 Owner's target: a player collects all six in roughly 40 hours.
 
-**The naive reading is 2.5x wrong.** Completing a set of six is a coupon-collector problem, not six
-draws - late drops are mostly duplicates you already own:
+**With no duplicates, the target is 6 drops, not 14.7.** An earlier draft of this section used the
+coupon-collector figure `6 x H(6) = 14.7`, which is correct for a uniform pool where late finds are
+mostly works you already own. That pool no longer exists: every find is a painting the player does not
+have, so six finds complete the set. Keeping 14.7 would have made the drop **2.5x rarer than intended**.
 
-    expected drops to complete = 6 x H(6) = 6 x 2.450 = 14.7
-
-So the target is **14.7 painting drops in 40 hours**, not 6.
-
-What that implies per Bulky Waste opened:
+What 6 drops in 40 hours implies per Bulky Waste opened:
 
 | Bulky Waste per hour | in 40h | chance each | 1 in |
 |---|---|---|---|
-| 2 | 80 | 18.4% | 5 |
-| 5 | 200 | 7.4% | 14 |
-| 10 | 400 | 3.7% | 27 |
-| 20 | 800 | 1.8% | 54 |
-| 40 | 1600 | 0.9% | 109 |
+| 2 | 80 | 7.50% | 13 |
+| 5 | 200 | 3.00% | 33 |
+| 10 | 400 | 1.50% | 67 |
+| 20 | 800 | 0.75% | 133 |
+| 40 | 1600 | 0.38% | 267 |
 
 **The unknown is Bulky Waste per hour, and it is measurable rather than guessable.** Mounds place at
 `count 5` per chunk and 5% of mound cores carry Bulky Waste, so roughly 0.25 Bulky Waste exist per
@@ -178,9 +201,7 @@ Whatever is chosen is config-gated and folds into #36.
 
 ## Open
 
-- **Bulky Waste per hour.** Blocks the rate, and needs a playtest rather than an opinion.
-- **Do paintings tear down?** The standing invariant is that nothing enters the found economy without a
-  teardown exit or the piles become clutter. Collectibles are the existing exception because they are
-  displayed rather than processed; paintings are the same shape of thing, but that should be stated
-  rather than assumed.
-- **Cap 4 or 6.** Fidelity against wall space.
+- **Bulky Waste per hour.** Still the only thing blocking the rate, and it needs a playtest rather than an
+  opinion. With no duplicates the target is 6 drops in 40 hours instead of 14.7.
+- **Which advancement shape.** One per painting plus a completion one, or a single advancement with six
+  criteria. The second is tidier; the first gives six toasts, which is six moments of reward.
