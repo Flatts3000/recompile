@@ -40,8 +40,10 @@ public final class TeardownData {
     /** One teardown recipe as JEI needs it: the input, its outputs, and the required tool (or null). */
     public record Entry(ItemStack input, List<SortingData.Weighted> outputs, @Nullable Item tool) {}
 
-    /** Every bundled teardown recipe surfaced to viewers (hardcoded, like SortingData's paths). */
-    private static final List<String> ALL_PATHS = List.of(MATTRESS, WASHING_MACHINE);
+    // The hardcoded path list that used to live here is gone. It named two recipes; when a third
+    // shipped - the Broken Hydroponics Bay - it was invisible to every viewer, so the item could be
+    // torn down in-world while JEI denied the teardown existed. A second inventory of the same facts
+    // is always the copy nobody remembers to update. RecipeFiles discovers them instead.
     private static List<Entry> cached;
 
     private TeardownData() {
@@ -51,8 +53,8 @@ public final class TeardownData {
     public static List<Entry> all() {
         if (cached == null) {
             List<Entry> entries = new ArrayList<>();
-            for (String path : ALL_PATHS) {
-                Entry entry = read(path);
+            for (com.google.gson.JsonObject recipe : RecipeFiles.ofType("recompile:teardown")) {
+                Entry entry = parse(recipe);
                 if (entry != null) {
                     entries.add(entry);
                 }
@@ -72,15 +74,22 @@ public final class TeardownData {
         return null;
     }
 
-    /** Read a bundled teardown recipe, or null if it cannot be read or its input is not a bare item. */
+    /** Read a bundled teardown recipe by path, or null if it cannot be read. Kept for tests. */
     public static @Nullable Entry read(String resourcePath) {
         try (InputStream in = TeardownData.class.getResourceAsStream(resourcePath)) {
             if (in == null) {
                 return null;
             }
-            JsonObject root = JsonParser.parseReader(
-                new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+            return parse(JsonParser.parseReader(
+                new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject());
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
+    /** One already-parsed teardown recipe, or null if its input is not a bare item. */
+    public static @Nullable Entry parse(JsonObject root) {
+        try {
             JsonElement inputEl = root.get("input");
             if (inputEl == null || !inputEl.isJsonPrimitive()) {
                 return null; // tag / array inputs are not surfaced yet

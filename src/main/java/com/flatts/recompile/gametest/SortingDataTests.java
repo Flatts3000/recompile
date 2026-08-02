@@ -102,6 +102,42 @@ final class SortingDataTests {
             helper.succeed();
         });
 
+        // WHAT A VIEWER READS MUST BE DISCOVERED, NOT LISTED. TeardownData named its recipe paths in a
+        // constant; when the Broken Hydroponics Bay teardown shipped, it was invisible to every viewer
+        // - the block could be torn down in-world while JEI denied the recipe existed, and nothing
+        // failed. This asserts the count matches the files on disk rather than a number written here.
+        RCGameTests.test("every_bundled_teardown_reaches_the_viewers", 20, helper -> {
+            int onDisk = com.flatts.recompile.compat.RecipeFiles.ofType("recompile:teardown").size();
+            int surfaced = com.flatts.recompile.compat.TeardownData.all().size();
+            helper.assertTrue(onDisk > 2,
+                "only " + onDisk + " teardown files were discovered - the walk is broken, so this "
+                    + "would pass against any recipe the viewers cannot see");
+            helper.assertTrue(surfaced == onDisk,
+                "every teardown recipe on disk must reach JEI; " + onDisk + " files, "
+                    + surfaced + " surfaced");
+            helper.succeed();
+        });
+
+        // Same for the blueprint recipes, which had the sharper version of this problem: they were
+        // read from the synced recipe manager, and JEI builds its categories on its own schedule, so
+        // the list could simply be empty. A player clicking a Clean Mattress then saw how to DYE one
+        // and no way to make one at all.
+        RCGameTests.test("every_blueprint_recipe_reaches_the_viewers", 20, helper -> {
+            int onDisk = com.flatts.recompile.compat.RecipeFiles
+                .ofType("recompile:blueprint_crafting").size();
+            var surfaced = com.flatts.recompile.compat.BlueprintData.all();
+            helper.assertTrue(onDisk > 0, "no blueprint recipe files were discovered");
+            helper.assertTrue(surfaced.size() == onDisk,
+                "every blueprint recipe must reach JEI; " + onDisk + " files, " + surfaced.size()
+                    + " surfaced");
+            for (var entry : surfaced) {
+                helper.assertTrue(!entry.ingredients().isEmpty(),
+                    entry.blueprint() + " surfaced with no ingredients, so the recipe would draw "
+                        + "as an empty grid");
+            }
+            helper.succeed();
+        });
+
         // The Steel I-Beam's drop feeds JEI's Cutting category, so the offcut has a visible SOURCE -
         // block drops are otherwise invisible to JEI, and an item you can only use is half an item.
         RCGameTests.test("sorting_data_reads_the_steel_beam", 10, helper -> {

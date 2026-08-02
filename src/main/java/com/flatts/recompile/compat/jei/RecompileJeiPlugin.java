@@ -225,24 +225,22 @@ public class RecompileJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(GROWING, growing);
 
-        // Blueprint recipes, handed to JEI as themselves rather than reduced to a blueprint-and-result
-        // row. The old category answered "what does this sheet make" and left "how do I make a Clean
-        // Mattress" unanswered anywhere in the game - which is the question a player is asking when
-        // they click an item in JEI.
+        // Blueprint recipes, drawn as recipes rather than reduced to a blueprint-and-result row. The
+        // old category answered "what does this sheet make" and left "how do I make a Clean Mattress"
+        // unanswered anywhere in the game, which is the question a player is asking when they click an
+        // item in JEI.
         //
-        // Read from the SYNCED recipes so the list cannot drift from what the table will actually run.
-        // Empty before a world is joined, which never happens in practice: JEI starts on world load.
-        List<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> blueprinted =
-            new ArrayList<>();
-        RecipeMap syncedBlueprints = RCSyncedRecipes.get();
-        if (syncedBlueprints != null) {
-            for (RecipeHolder<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> holder
-                    : syncedBlueprints.byType(
-                        com.flatts.recompile.registry.RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
-                blueprinted.add(holder.value());
-            }
-        }
-        registration.addRecipes(BLUEPRINT_CRAFTING, blueprinted);
+        // Read from the bundled FILES, not the recipe manager. Recipes are not client-synced in 26.1
+        // and JEI builds its categories on its own schedule, so a snapshot taken here can be empty -
+        // and an empty category is not an error, it is a recipe the player cannot find with nothing
+        // saying why. See RecipeFiles.
+        registration.addRecipes(BLUEPRINT_CRAFTING,
+            com.flatts.recompile.compat.BlueprintData.all().stream()
+                .map(e -> new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe(
+                    e.blueprint(), e.ingredients(),
+                    new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe.Result(
+                        e.result(), e.count())))
+                .toList());
 
         // THE TWO SPECIAL RECIPES, which JEI cannot see on its own.
         //
