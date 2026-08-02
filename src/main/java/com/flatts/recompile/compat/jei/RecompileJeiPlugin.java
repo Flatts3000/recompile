@@ -235,6 +235,46 @@ public class RecompileJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(BLUEPRINT_CRAFTING, blueprinted);
 
+        // THE TWO SPECIAL RECIPES, which JEI cannot see on its own.
+        //
+        // Fragments-into-a-blueprint and mattress-into-a-bed are CustomRecipes: isSpecial() is true, so
+        // the recipe book and JEI both skip them. They are also the two most important steps in the
+        // whole loop, so skipping them leaves a player with a pile of fragments and nothing telling them
+        // what to do with it.
+        //
+        // The fix is to hand JEI a concrete, ordinary shapeless recipe for each case the special recipe
+        // covers. That is not a duplicate of the logic - it is a WORKED EXAMPLE of it, which is exactly
+        // what a recipe viewer wants. The numbers come from the same places the real recipe reads them,
+        // so a retune moves both.
+        List<RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe>> examples = new ArrayList<>();
+        for (Identifier set : com.flatts.recompile.content.item.BlueprintItem.shipped()) {
+            examples.add(shapeless(
+                "fragments_" + set.getPath(),
+                List.of(com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                    RCItems.IDEA_FRAGMENT.get(), set, fragmentsFor(set))),
+                com.flatts.recompile.content.item.BlueprintItem.of(RCItems.BLUEPRINT.get(), set)));
+        }
+        // One bed example per colour, because a single white one would leave a player who has dyed a
+        // mattress purple with no reason to believe it does anything.
+        for (net.minecraft.world.item.DyeColor colour : net.minecraft.world.item.DyeColor.values()) {
+            var bed = net.minecraft.core.registries.BuiltInRegistries.ITEM
+                .getOptional(Identifier.withDefaultNamespace(colour.getName() + "_bed")).orElse(null);
+            if (bed == null) {
+                continue;
+            }
+            ItemStack mattress = new ItemStack(RCItems.CLEAN_MATTRESS.get());
+            if (colour != net.minecraft.world.item.DyeColor.WHITE) {
+                mattress.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
+                    new net.minecraft.world.item.component.DyedItemColor(
+                        colour.getTextureDiffuseColor()));
+            }
+            examples.add(shapeless("bed_" + colour.getName(),
+                List.of(mattress,
+                    new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS, 3)),
+                new ItemStack(bed)));
+        }
+        registration.addRecipes(RecipeTypes.CRAFTING, examples);
+
         // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
         // numbers stay single-sourced in the recipe file. Iterating every entry means a new find
         // shows up here for free, rather than needing this list edited too.
@@ -336,4 +376,48 @@ public class RecompileJeiPlugin implements IModPlugin {
         var level = net.minecraft.client.Minecraft.getInstance().level;
         return level == null ? null : level.registryAccess();
     }
+
+    /**
+     * How many fragments this blueprint costs, read off the teardown that teaches it.
+     *
+     * <p>The same lookup {@code FragmentAssemblyRecipe} does, so the example JEI shows and the recipe
+     * the table runs cannot disagree. A hardcoded 4 here would be right until the first pack retuned it.
+     */
+    private static int fragmentsFor(Identifier set) {
+        RecipeMap synced = RCSyncedRecipes.get();
+        if (synced != null) {
+            for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
+                    : synced.byType(com.flatts.recompile.registry.RCRecipeTypes.TEARDOWN.get())) {
+                for (var teach : holder.value().teaches()) {
+                    if (teach.recipe().equals(set)) {
+                        return teach.scrapsRequired();
+                    }
+                }
+            }
+        }
+        return com.flatts.recompile.content.recipe.FragmentAssemblyRecipe.DEFAULT_REQUIRED;
+    }
+
+    /** A throwaway shapeless recipe, built only so JEI has something concrete to draw. */
+    private static RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe> shapeless(
+            String name, List<ItemStack> inputs, ItemStack result) {
+        List<net.minecraft.world.item.crafting.Ingredient> ingredients = new ArrayList<>();
+        for (ItemStack stack : inputs) {
+            for (int i = 0; i < Math.max(1, stack.getCount()); i++) {
+                ingredients.add(net.minecraft.world.item.crafting.Ingredient.of(stack.getItem()));
+            }
+        }
+        var recipe = new net.minecraft.world.item.crafting.ShapelessRecipe(
+            new net.minecraft.world.item.crafting.Recipe.CommonInfo(false),
+            new net.minecraft.world.item.crafting.CraftingRecipe.CraftingBookInfo(
+                net.minecraft.world.item.crafting.CraftingBookCategory.MISC, ""),
+            new net.minecraft.world.item.ItemStackTemplate(result.getItem(), result.getCount()),
+            ingredients);
+        return new RecipeHolder<>(
+            net.minecraft.resources.ResourceKey.create(
+                net.minecraft.core.registries.Registries.RECIPE,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "jei/" + name)),
+            recipe);
+    }
+
 }

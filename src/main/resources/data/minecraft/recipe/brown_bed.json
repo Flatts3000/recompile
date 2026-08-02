@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "neoforge:conditions": [
     {
-      "type": "neoforge:false"
+      "type": "neoforge:never"
     }
   ],
   "category": "misc",
