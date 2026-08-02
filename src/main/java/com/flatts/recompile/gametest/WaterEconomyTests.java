@@ -1,5 +1,12 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.Recompile;
+import com.flatts.recompile.event.RCWaterEconomy;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.biome.FixedBiomeSource;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
@@ -79,6 +86,35 @@ final class WaterEconomyTests {
                     helper.succeed();
                 });
             });
+        });
+        // The GUARD, which the mechanic test above does not touch. It proves water behaves when the rule
+        // is off; nothing proved the mod turns it off in the right worlds and leaves everything else
+        // alone. A guard that always returned true would pass every other test in this file.
+        //
+        // Both directions, because a one-sided check here is worthless: "returns true for a garbage
+        // world" is also true of a method that returns true for everything.
+        RCGameTests.test("only_garbage_worlds_lose_their_infinite_water", 20, helper -> {
+            // NEGATIVE: the GameTest server's own world is not a garbage world, so the mod must not
+            // touch it. This is the case that protects a vanilla world with the mod installed.
+            helper.assertFalse(
+                RCWaterEconomy.isGarbageWorld(helper.getLevel().getChunkSource().getGenerator()),
+                "the gametest world is not a garbage world, so the water rule must be left alone here");
+
+            // POSITIVE: a generator built on the mod's own noise settings, the way the region tests
+            // build a biome source. Keyed on noise settings rather than the biome source deliberately -
+            // the biome source changed in 0.3.0, so a check against it would skip every older save.
+            var settings = helper.getLevel().registryAccess()
+                .lookupOrThrow(Registries.NOISE_SETTINGS)
+                .getOrThrow(ResourceKey.create(Registries.NOISE_SETTINGS,
+                    Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "garbage")));
+            var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
+            var generator = new NoiseBasedChunkGenerator(
+                new FixedBiomeSource(biomes.getOrThrow(ResourceKey.create(Registries.BIOME,
+                    Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "household_sprawl")))),
+                settings);
+            helper.assertTrue(RCWaterEconomy.isGarbageWorld(generator),
+                "a world generated from recompile:garbage noise settings must be recognised");
+            helper.succeed();
         });
     }
 }
