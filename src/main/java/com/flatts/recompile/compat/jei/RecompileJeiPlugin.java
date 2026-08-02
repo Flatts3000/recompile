@@ -90,21 +90,38 @@ public class RecompileJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
+        // Each category is sized from the same bundled data its recipes are built from, so a table that
+        // grows cannot outgrow its own panel. The alternative - a number written here - is what let the
+        // seedling lottery draw its third row through the bottom of the box.
         registration.addRecipeCategories(
             new SalvageCategory(SORTING, Component.translatable("jei.recompile.sorting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true,
+                widest(SortingData.HOUSEHOLD, SortingData.BAG, SortingData.RUBBLE)),
             new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false, 1),
             new SalvageCategory(BURNING, Component.translatable("jei.recompile.burning"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.BURN_BARREL.get())), false),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BURN_BARREL.get())), false, 1),
             new SalvageCategory(TORCH_CUTTING, Component.translatable("jei.recompile.torch_cutting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true),
+                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true,
+                widest(SortingData.STEEL_BEAM)),
             new SalvageCategory(PRYING, Component.translatable("jei.recompile.prying"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true),
+                gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true,
+                widest(SortingData.BULKY)),
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true),
+                gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true,
+                TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new SalvageCategory(GROWING, Component.translatable("jei.recompile.growing"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true));
+                gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true,
+                widest(SortingData.SEEDLING)));
+    }
+
+    /** The largest output count across these bundled tables. */
+    private static int widest(String... tables) {
+        int max = 1;
+        for (String table : tables) {
+            max = Math.max(max, SortingData.outputs(table).size());
+        }
+        return max;
     }
 
     @Override
