@@ -68,6 +68,7 @@ public final class RCConfig {
 
     // ---- Vegetation tier (rung 2 - Fertilizer scatters plants) ----
     public static final ModConfigSpec.BooleanValue VEGETATION_ENABLED;
+    public static final ModConfigSpec.BooleanValue FERTILIZER_GROWTH_ENABLED;
     public static final ModConfigSpec.IntValue FERTILIZER_ATTEMPTS;
     public static final ModConfigSpec.IntValue FERTILIZER_RIPPLE_TICKS;
 
@@ -171,6 +172,12 @@ public final class RCConfig {
         VEGETATION_ENABLED = builder
             .comment("Whether Fertilizer scatters plants (grass -> weeds/flowers, mycelium -> mushrooms).")
             .define("vegetationEnabled", true);
+        FERTILIZER_GROWTH_ENABLED = builder
+            .comment("Whether Fertilizer also accelerates planted crops and saplings, the way bone meal",
+                "does. This world has no bone meal and cannot have any - it comes from skeletons, and",
+                "the starting biome is deliberately creature-free - so without this nothing can hurry",
+                "a crop or a tree along at all.")
+            .define("fertilizerGrowthEnabled", true);
         FERTILIZER_ATTEMPTS = builder
             .comment("Scatter attempts per Fertilizer use (vanilla bonemeal uses 128).")
             .defineInRange("fertilizerAttempts", 128, 1, 512);
