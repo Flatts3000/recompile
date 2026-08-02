@@ -37,11 +37,13 @@ final class SortingTests {
         // A released roach returns early from sortOnce and deliberately does NOT advance the sorted
         // count - "the block is not consumed by an encounter" - so an encounter eats one of the three
         // iterations. A garbage block is minPulls 2 / maxPulls 3, so it needs three EFFECTIVE pulls to
-        // be certain to crumble, and roaches fire 1-in-40:
+        // be certain to crumble, and roaches fired 1-in-40 when this was found:
         //
         //     P(at least one roach in 3 pulls) = 1 - (39/40)^3 = 7.3%
         //
-        // which is how often this failed. It gates every merge, so roughly one merge in fourteen
+        // which is how often this failed. The rate has since been tuned to 1-in-320, which lowers the
+        // odds to 0.9% without removing them - the isolation below is what actually fixes it, and a
+        // rarer flake is a worse flake because it survives longer before anyone believes it. It gates every merge, so roughly one merge in fourteen
         // stalled on a test that was not describing a defect - the exact rate at which people start
         // re-running CI without reading it. The crumble curve is what this test is about, so it
         // isolates the crumble curve; the roach branch has its own coverage in RoachTests.
