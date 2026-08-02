@@ -116,5 +116,28 @@ final class WaterEconomyTests {
                 "a world generated from recompile:garbage noise settings must be recognised");
             helper.succeed();
         });
+
+        // EVERY biome in this world must rain, and the Rain Collector is why.
+        //
+        // The collector fills on isRaining() + canSeeSky rather than isRainingAt(), deliberately: the
+        // latter also demands the BIOME's precipitation at the spot, which over-couples the machine to
+        // climate. The consequence is that a biome shipping has_precipitation:false does not stop the
+        // collector - it fills perfectly well while the sky above it stays dry and silent. That is
+        // exactly what the demolition yard did from #47 until 2026-08-02, and nothing caught it because
+        // no test and no mechanic reads the flag. It was visible only by standing in the yard during a
+        // storm and noticing the weather had stopped.
+        //
+        // Water is the resource the whole mod turns on, so "does it rain here" is not decoration.
+        RCGameTests.test("every_biome_in_this_world_has_precipitation", 20, helper -> {
+            var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
+            for (String path : new String[] {"household_sprawl", "demolition_yard"}) {
+                var biome = biomes.getOrThrow(ResourceKey.create(Registries.BIOME,
+                    Identifier.fromNamespaceAndPath(Recompile.MOD_ID, path)));
+                helper.assertTrue(biome.value().hasPrecipitation(),
+                    path + " must have precipitation - the Rain Collector fills on global weather, so a "
+                        + "dry biome does not gate water, it just makes the water arrive from a clear sky");
+            }
+            helper.succeed();
+        });
     }
 }
