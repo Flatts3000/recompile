@@ -1040,13 +1040,20 @@ size = 16
 prompt = "a single folded blueprint sheet held at a slight angle, deep blue paper with a few bold white technical lines and one white circle on it, one corner creased and slightly torn, faded and salvaged, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # The Clean Mattress: the same object the Bulky Waste find is, minus the filth. It must read as
-# the mattress family - pale blue-grey striped ticking, the same fabric the block faces use - or
-# the payoff does not connect to the thing it came from.
+# the mattress family - striped ticking, the same fabric the block faces use - or the payoff does
+# not connect to the thing it came from.
+#
+# First prompt rejected 2026-08-02, and both of its mistakes are worth not repeating. It asked for
+# the mattress ROLLED and seen END-ON "so the spiral reads clearly"; what came back read as a coil
+# of rope or a washer, because a spiral is not a silhouette anyone recognises at 16px. And it asked
+# for "pale blue-grey ... clean and fresh", which the model correctly rendered as almost white -
+# leaving nothing for the eye at icon size. Flat, angled, high-contrast stripes instead: the
+# stripes are the identity, so they have to survive the downsample.
 [surface.clean_mattress]
 kind = "item"
 backend = "ai"
 size = 16
-prompt = "a mattress rolled up and tied with a cord, pale blue-grey striped ticking fabric, clean and fresh with no stains or tears, the roll seen end-on so the spiral of the roll reads clearly, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+prompt = "a single clean mattress lying flat, seen from above at a slight angle, off-white ticking fabric with three bold dark blue vertical pinstripes running across it, a row of four dark round button tufts down the middle, a crisp piped seam around the edge, no stains and no tears, strong contrast, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # The Filing Cabinet (#95): a Bulky Waste find that stores blueprints without bound and joins the
 # Scrap Network by placement. Office-green on purpose - the dump's palette is browns and greys, so a
