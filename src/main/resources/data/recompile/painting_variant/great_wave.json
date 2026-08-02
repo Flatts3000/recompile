@@ -1,0 +1,13 @@
+{
+  "asset_id": "recompile:painting_great_wave",
+  "width": 3,
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.recompile.great_wave.title"
+  },
+  "author": {
+    "color": "gray",
+    "translate": "painting.recompile.great_wave.author"
+  }
+}

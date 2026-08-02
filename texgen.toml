@@ -1035,3 +1035,68 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "an oxy-acetylene cutting torch: a metal handle with a curved brass nozzle tipped by a small blue flame, two hose valves, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------------------------------
+# Recovered paintings (#99). Real works, pixelated to Minecraft resolution, found in the trash.
+#
+# These are NOT generated. Each is a public-domain artwork downscaled from a museum/Wikimedia PD-Art
+# source, and `source` below records which file, so provenance is auditable rather than remembered.
+#
+# THE RULE FOR ADDING A SEVENTH, because this is where someone will look:
+#   - Public domain in the US *and* the EU. The terms differ and a work can be clear in one and
+#     protected in the other; a mod is distributed globally. Artists who died before 1945 are safe.
+#   - The artwork being PD is not the whole question - a PHOTOGRAPH of it can carry its own copyright
+#     in some jurisdictions. Take it from a museum open-access programme or Wikimedia PD-Art.
+#   - Record the source file here. An unsourced painting cannot be defended later.
+#
+# kind = "painting" writes to textures/painting/ and marks the surface as an atlas: 16px per BLOCK and
+# rarely square, so promote must never resize it. A squashed Mona Lisa still looks like a Mona Lisa,
+# which is exactly why nothing would catch it.
+
+[surface.painting_great_wave]
+kind = "painting"
+backend = "ai"          # never generated; candidates are placed by hand from the source image
+size = 48
+blocks = "3x2"
+source = "wikimedia:Tsunami by hokusai 19th century.jpg"
+prompt = "The Great Wave off Kanagawa by Hokusai, downscaled to 48x32"
+
+[surface.painting_starry_night]
+kind = "painting"
+backend = "ai"          # never generated; candidates are placed by hand from the source image
+size = 64
+blocks = "4x3"
+source = "wikimedia:Van Gogh - Starry Night - Google Art Project.jpg"
+prompt = "The Starry Night by van Gogh, downscaled to 64x48"
+
+[surface.painting_the_scream]
+kind = "painting"
+backend = "ai"          # never generated; candidates are placed by hand from the source image
+size = 48
+blocks = "3x4"
+source = "wikimedia:Edvard Munch, 1893, The Scream ... National Gallery of Norway.jpg"
+prompt = "The Scream by Munch, downscaled to 48x64"
+
+[surface.painting_mona_lisa]
+kind = "painting"
+backend = "ai"          # never generated; candidates are placed by hand from the source image
+size = 32
+blocks = "2x3"
+source = "wikimedia:Mona Lisa, by Leonardo da Vinci, from C2RMF retouched.jpg"
+prompt = "Mona Lisa by Leonardo, downscaled to 32x48"
+
+[surface.painting_pearl_earring]
+kind = "painting"
+backend = "ai"          # never generated; candidates are placed by hand from the source image
+size = 48
+blocks = "3x4"
+source = "wikimedia:Meisje met de parel.jpg"
+prompt = "Girl with a Pearl Earring by Vermeer, downscaled to 48x64"
+
+[surface.painting_the_kiss]
+kind = "painting"
+backend = "ai"          # never generated; candidates are placed by hand from the source image
+size = 64
+blocks = "4x4"
+source = "wikimedia:The Kiss - Gustav Klimt - Google Cultural Institute.jpg"
+prompt = "The Kiss by Klimt, downscaled to 64x64"

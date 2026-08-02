@@ -1,0 +1,13 @@
+{
+  "asset_id": "recompile:painting_the_scream",
+  "width": 3,
+  "height": 4,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.recompile.the_scream.title"
+  },
+  "author": {
+    "color": "gray",
+    "translate": "painting.recompile.the_scream.author"
+  }
+}

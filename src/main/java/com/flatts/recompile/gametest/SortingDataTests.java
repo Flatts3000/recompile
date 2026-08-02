@@ -52,8 +52,20 @@ final class SortingDataTests {
         // "adding a find is a loot-table line" invariant working: a second find needed no code.
         RCGameTests.test("sorting_data_reads_bulky_finds", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BULKY);
-            helper.assertTrue(out.size() == 2,
-                "Bulky Waste should offer both finds, got " + out.size());
+            // Two finds plus the six recovered paintings (#99), which live in their own 7% pool.
+            helper.assertTrue(out.size() == 8,
+                "Bulky Waste should offer both finds and the six paintings, got " + out.size());
+
+            // The paintings' pool is gated on random_chance, and a reader that ignored that would show
+            // each at 1/6 = 16.7% instead of 0.07/6 = 1.2%. JEI's whole job in these categories is the
+            // odds, so an overstated rarity is a wrong answer, not a rounding error.
+            SortingData.Weighted painting = out.stream()
+                .filter(w -> w.stack().is(net.minecraft.world.item.Items.PAINTING))
+                .findFirst().orElse(null);
+            helper.assertTrue(painting != null, "a recovered painting must be a Bulky Waste find");
+            helper.assertTrue(painting.chance() < 0.02F && painting.chance() > 0.008F,
+                "a painting should read as roughly 1.2%, the 7% pool split six ways - got "
+                    + (painting.chance() * 100) + "%");
 
             SortingData.Weighted mattress = out.stream()
                 .filter(w -> w.stack().is(RCItems.MATTRESS.get())).findFirst().orElse(null);

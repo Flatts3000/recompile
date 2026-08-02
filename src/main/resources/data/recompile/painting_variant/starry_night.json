@@ -1,0 +1,13 @@
+{
+  "asset_id": "recompile:painting_starry_night",
+  "width": 4,
+  "height": 3,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.recompile.starry_night.title"
+  },
+  "author": {
+    "color": "gray",
+    "translate": "painting.recompile.starry_night.author"
+  }
+}

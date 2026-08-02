@@ -60,7 +60,13 @@ public final class SortingData {
                 new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
             List<Weighted> out = new ArrayList<>();
             for (JsonElement poolEl : root.getAsJsonArray("pools")) {
-                JsonArray entries = poolEl.getAsJsonObject().getAsJsonArray("entries");
+                JsonObject pool = poolEl.getAsJsonObject();
+                // A pool can be gated behind a chance condition, and ignoring it overstates every entry
+                // inside. Bulky Waste's painting pool is 7%, so its six paintings are ~1.2% each - JEI
+                // would have shown 16.7%, a 14x lie, and the same shape of wrong as telling players the
+                // Burn Barrel smelts iron. The odds ARE the information in these categories.
+                float poolChance = poolChance(pool);
+                JsonArray entries = pool.getAsJsonArray("entries");
                 int total = 0;
                 for (JsonElement e : entries) {
                     // Count EVERY entry's weight, including minecraft:empty. A rare-bonus pool (a big
@@ -78,7 +84,7 @@ public final class SortingData {
                     }
                     Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(o.get("name").getAsString()));
                     if (item != Items.AIR) {
-                        out.add(new Weighted(new ItemStack(item), (float) weight(o) / total));
+                        out.add(new Weighted(new ItemStack(item), poolChance * weight(o) / total));
                     }
                 }
             }
@@ -86,6 +92,28 @@ public final class SortingData {
         } catch (Exception ex) {
             return List.of();
         }
+    }
+
+    /**
+     * A pool's own probability of rolling at all, from a {@code minecraft:random_chance} condition.
+     *
+     * <p>Returns 1 when the pool is unconditional. Only this one condition is understood on purpose:
+     * anything else (a tool check, an enchantment) is not a probability and cannot honestly be folded
+     * into a percentage, so a pool carrying one is reported at its raw weight rather than guessed at.
+     */
+    private static float poolChance(JsonObject pool) {
+        if (!pool.has("conditions")) {
+            return 1.0F;
+        }
+        float chance = 1.0F;
+        for (JsonElement c : pool.getAsJsonArray("conditions")) {
+            JsonObject o = c.getAsJsonObject();
+            if (o.has("condition") && "minecraft:random_chance".equals(o.get("condition").getAsString())
+                    && o.has("chance")) {
+                chance *= o.get("chance").getAsFloat();
+            }
+        }
+        return chance;
     }
 
     private static boolean isItem(JsonObject entry) {
