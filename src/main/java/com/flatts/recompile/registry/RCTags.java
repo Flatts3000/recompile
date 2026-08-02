@@ -208,6 +208,16 @@ public final class RCTags {
     public static final TagKey<Item> BURN_BARREL_SMELTABLE = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "burn_barrel_smeltable"));
 
+    /**
+     * What the Hydroponics Bay can grow (#43).
+     *
+     * <p>A tag rather than a recipe type because the mechanic is always "this item makes more of
+     * itself", so per-plant recipes would be ten copies of one sentence. It is also the extension point
+     * a pack actually wants: add an item and the bay grows it.
+     */
+    public static final TagKey<Item> HYDROPONIC = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "hydroponic"));
+
     public static final TagKey<Item> COMPOSTABLE = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "compostable"));
 

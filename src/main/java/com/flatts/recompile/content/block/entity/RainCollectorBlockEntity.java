@@ -67,7 +67,12 @@ public class RainCollectorBlockEntity extends BlockEntity {
     public static void serverTick(Level level, BlockPos pos, BlockState state, RainCollectorBlockEntity be) {
         // isRaining (global weather) + canSeeSky, NOT isRainingAt: the latter also demands the
         // biome's precipitation be RAIN at the spot, which over-couples to biome climate and is
-        // untestable. This world's biome always rains, so raining-under-open-sky is the rule.
+        // untestable. Every biome in this world rains, so raining-under-open-sky is the rule.
+        //
+        // That premise is load-bearing and it is not automatic: the demolition yard shipped with
+        // has_precipitation:false and this collector kept filling there anyway, from a sky with no rain
+        // in it. Nothing failed, because nothing here reads the flag. It is now asserted by
+        // every_biome_in_this_world_has_precipitation rather than assumed by this comment.
         if (level.getGameTime() % COLLECT_INTERVAL == 0
                 && level.isRaining() && level.canSeeSky(pos.above(2))) {
             be.catchRain();

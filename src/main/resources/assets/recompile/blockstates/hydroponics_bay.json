@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "recompile:block/hydroponics_bay"
+    },
+    "lit=true": {
+      "model": "recompile:block/hydroponics_bay_lit"
+    }
+  }
+}

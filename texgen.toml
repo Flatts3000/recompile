@@ -1100,3 +1100,28 @@ size = 48
 blocks = "3x2"
 source = "wikimedia:A Sunday on La Grande Jatte, Georges Seurat, 1884.jpg"
 prompt = "A Sunday Afternoon on the Island of La Grande Jatte by Georges Seurat, downscaled to 48x32"
+
+# The Hydroponics Bay (#43): the machine that grows what this world cannot otherwise reach.
+#
+# Three faces because the top has a lit variant - grow-lights on while a batch runs, the same beat as
+# the Tree Nursery glowing and the Burn Barrel's fire. Prompts name ONE dominant shape and a colour
+# anchor each, the lesson from the Burner Generator's first rejected set: grey plus small detail
+# resolves to noise at 16px, and every face averaged into the same square.
+[surface.hydroponics_bay_top]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "top-down view of a shallow metal tray of green seedlings growing in water, bright green shoots in neat rows on dark water, bold simple Minecraft block texture, flat lighting, seamless tile"
+
+[surface.hydroponics_bay_top_lit]
+kind = "block"
+backend = "ai"
+size = 16
+reference = "hydroponics_bay_top"
+prompt = "the same tray of seedlings under bright magenta-pink grow lights, the water and leaves washed in vivid pink-purple light, clearly glowing, bold simple Minecraft block texture, seamless tile"
+
+[surface.hydroponics_bay_side]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "side of a white enamelled machine cabinet with a single wide dark window showing water inside, one clean horizontal band, no text, bold simple Minecraft block texture, flat lighting, seamless tile"

@@ -4,9 +4,12 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
+import java.util.Optional;
+import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
@@ -41,12 +44,70 @@ public final class RCDataMaps {
             BaitWeight.CODEC)
         .build();
 
+    /**
+     * What the Hydroponics Bay does with one plantable: what it yields, and what it throws off besides.
+     *
+     * <p>Ships in {@code data/recompile/data_maps/item/hydroponic_crop.json}. <b>Both fields are optional
+     * and the default is the elegant case</b> - an entry-less plantable yields itself and nothing else,
+     * which is exactly right for sugar cane, cactus, bamboo, berries, kelp and the rest. So adding a plant
+     * to {@code #recompile:hydroponic} is still the whole of what makes it growable, and this map exists
+     * only for the plants that need more than that.
+     *
+     * <p>Which is the seed-based ones. <b>A seed-based crop is planted as its seed</b>, the same as in the
+     * ground: wheat grows from wheat seeds and yields wheat, not the other way round, and a wheat item is
+     * not something you can plant. That mapping cannot come from the tag, because the tag says what goes
+     * in and this says what comes out.
+     *
+     * <p><b>Synced, unlike {@link #BAIT_WEIGHT}.</b> JEI runs on the client and its Hydroponics category
+     * lists both the yield and the byproduct; without the sync {@code getData} returns null there and
+     * every crop silently reads as producing itself with nothing else. That is the exact failure the bait
+     * map's comment warns about, and this is the consumer it was warning about.
+     */
+    public static final DataMapType<Item, Crop> HYDROPONIC_CROP = DataMapType
+        .builder(Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "hydroponic_crop"),
+            Registries.ITEM, Crop.CODEC)
+        .synced(Crop.CODEC, true)
+        .build();
+
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(RCDataMaps::onRegisterDataMaps);
     }
 
     private static void onRegisterDataMaps(RegisterDataMapTypesEvent event) {
         event.register(BAIT_WEIGHT);
+        event.register(HYDROPONIC_CROP);
+    }
+
+    /**
+     * One plantable's harvest.
+     *
+     * @param yields    what a batch produces; empty means the plantable itself
+     * @param byproduct what else comes off it; empty means nothing does
+     */
+    public record Crop(Optional<Item> yields, Optional<Byproduct> byproduct) {
+
+        public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("yields").forGetter(Crop::yields),
+            Byproduct.CODEC.optionalFieldOf("byproduct").forGetter(Crop::byproduct)
+        ).apply(instance, Crop::new));
+    }
+
+    /**
+     * One crop's byproduct.
+     *
+     * @param item   what comes off it
+     * @param count  how many per batch that produces one
+     * @param chance 0..1, rolled per batch - vanilla's poisonous potato is 0.02
+     */
+    public record Byproduct(Item item, int count, float chance) {
+
+        public static final Codec<Byproduct> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BuiltInRegistries.ITEM.byNameCodec().fieldOf("item").forGetter(Byproduct::item),
+            // Count and chance are optional so the common case - "one of these, every time" - is a single
+            // line. Seeds off wheat want exactly that; only the poisonous potato needs a chance.
+            Codec.intRange(1, 64).optionalFieldOf("count", 1).forGetter(Byproduct::count),
+            Codec.floatRange(0.0f, 1.0f).optionalFieldOf("chance", 1.0f).forGetter(Byproduct::chance)
+        ).apply(instance, Byproduct::new));
     }
 
     /**

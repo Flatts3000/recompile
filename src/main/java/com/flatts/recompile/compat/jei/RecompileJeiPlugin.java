@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.flatts.recompile.client.RCSyncedRecipes;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
+import com.flatts.recompile.content.block.entity.HydroponicsBayBlockEntity;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -69,6 +70,15 @@ public class RecompileJeiPlugin implements IModPlugin {
         RecipeType.create(Recompile.MOD_ID, "prying", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> TEARDOWN =
         RecipeType.create(Recompile.MOD_ID, "teardown", SalvageRecipe.class);
+    /**
+     * The Hydroponics Bay. Its own category because nothing else in the game answers either of the two
+     * questions it raises: which plants the Unknown Seedling can turn out to be, and which plants the bay
+     * will grow at all. Both are data - a loot table and an item tag - so neither is a recipe JEI could
+     * find on its own, and the four that matter most (cane, bamboo, cactus, berries) have no other source
+     * in the world. Without this the bay is a machine with no discoverable inputs.
+     */
+    static final RecipeType<SalvageRecipe> GROWING =
+        RecipeType.create(Recompile.MOD_ID, "growing", SalvageRecipe.class);
 
     private static final Identifier UID = Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "jei");
 
@@ -80,19 +90,38 @@ public class RecompileJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
+        // Each category is sized from the same bundled data its recipes are built from, so a table that
+        // grows cannot outgrow its own panel. The alternative - a number written here - is what let the
+        // seedling lottery draw its third row through the bottom of the box.
         registration.addRecipeCategories(
             new SalvageCategory(SORTING, Component.translatable("jei.recompile.sorting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true,
+                widest(SortingData.HOUSEHOLD, SortingData.BAG, SortingData.RUBBLE)),
             new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false, 1),
             new SalvageCategory(BURNING, Component.translatable("jei.recompile.burning"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.BURN_BARREL.get())), false),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BURN_BARREL.get())), false, 1),
             new SalvageCategory(TORCH_CUTTING, Component.translatable("jei.recompile.torch_cutting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true),
+                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true,
+                widest(SortingData.STEEL_BEAM)),
             new SalvageCategory(PRYING, Component.translatable("jei.recompile.prying"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true),
+                gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true,
+                widest(SortingData.BULKY)),
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true));
+                gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true,
+                TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new SalvageCategory(GROWING, Component.translatable("jei.recompile.growing"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true,
+                widest(SortingData.SEEDLING)));
+    }
+
+    /** The largest output count across these bundled tables. */
+    private static int widest(String... tables) {
+        int max = 1;
+        for (String table : tables) {
+            max = Math.max(max, SortingData.outputs(table).size());
+        }
+        return max;
     }
 
     @Override
@@ -144,6 +173,36 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),
                 SortingData.outputs(SortingData.BULKY, clientRegistries()))));
 
+        // The Hydroponics Bay, in two halves that are the two halves of the mechanic.
+        //
+        // First the lottery: the Unknown Seedling against the weighted table it rolls, so a player can
+        // see what they are gambling for and at what odds. Then one row per growable, each showing the
+        // plant producing itself - which is the whole claim of the machine, that the crop is planted
+        // rather than consumed, and it is not a claim any recipe elsewhere makes.
+        //
+        // The tag is read live rather than listed here, so a pack that adds a growable gets a row for
+        // free and this list cannot drift from what the machine will actually accept.
+        List<SalvageRecipe> growing = new ArrayList<>();
+        growing.add(new SalvageRecipe(new ItemStack(RCItems.UNKNOWN_SEEDLING.get()),
+            SortingData.outputs(SortingData.SEEDLING)));
+        int yield = com.flatts.recompile.RCConfig.HYDROPONICS_YIELD.get();
+        for (var holder : net.minecraft.core.registries.BuiltInRegistries.ITEM
+                .getTagOrEmpty(com.flatts.recompile.registry.RCTags.HYDROPONIC)) {
+            var plantable = holder.value();
+            List<SortingData.Weighted> harvest = new ArrayList<>();
+            harvest.add(new SortingData.Weighted(
+                new ItemStack(HydroponicsBayBlockEntity.yieldOf(plantable), yield), 1.0f));
+            // The byproduct shares the row rather than getting one of its own: what comes off wheat is a
+            // fact about growing wheat, and a separate entry would read as a second way to make seeds.
+            var by = HydroponicsBayBlockEntity.byproductOf(plantable);
+            if (by != null) {
+                harvest.add(new SortingData.Weighted(
+                    new ItemStack(by.item(), by.count()), by.chance()));
+            }
+            growing.add(new SalvageRecipe(new ItemStack(plantable), harvest));
+        }
+        registration.addRecipes(GROWING, growing);
+
         // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
         // numbers stay single-sourced in the recipe file. Iterating every entry means a new find
         // shows up here for free, rather than needing this list edited too.
@@ -183,6 +242,11 @@ public class RecompileJeiPlugin implements IModPlugin {
 
         info(registration, RCItems.SOLAR_PANEL.get(), "solar_panel");
         info(registration, RCItems.BURNER_GENERATOR.get(), "burner_generator");
+
+        // The bay's two costs are water and power, and neither is visible in its category - a panel is
+        // the only place to say that it needs both at once, and that the crop stays put.
+        info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
+        info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");
     }
 
     private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,
@@ -213,6 +277,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         // recipes that are the only reason to build one. Exactly the bug the Burn Barrel had before it
         // got its own category.
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.BLASTING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.HYDROPONICS_BAY.get()), GROWING);
     }
 
     /**

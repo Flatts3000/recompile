@@ -24,16 +24,29 @@ public class SalvageCategory implements IRecipeCategory<SalvageRecipe> {
     private static final int COLS = 6;
     private static final int GAP = 12; // between the input and the output grid
 
+    /** Never shorter than this, so a one-output category is not a letterbox. */
+    private static final int MIN_ROWS = 2;
+
     private final RecipeType<SalvageRecipe> type;
     private final Component title;
     private final IDrawable icon;
     private final boolean showChance;
+    private final int rows;
 
-    public SalvageCategory(RecipeType<SalvageRecipe> type, Component title, IDrawable icon, boolean showChance) {
+    /**
+     * @param maxOutputs the largest output count any recipe in this category will have. <b>Pass the real
+     *     number, measured from the same data the recipes are built from.</b> The height used to be
+     *     hardcoded at two rows with a comment noting the biggest table had nine outputs - true when it
+     *     was written, and silently wrong the moment a table grew past twelve. The Hydroponics seedling
+     *     lottery reached fourteen and its third row drew straight through the bottom of the panel.
+     */
+    public SalvageCategory(RecipeType<SalvageRecipe> type, Component title, IDrawable icon,
+            boolean showChance, int maxOutputs) {
         this.type = type;
         this.title = title;
         this.icon = icon;
         this.showChance = showChance;
+        this.rows = Math.max(MIN_ROWS, (Math.max(maxOutputs, 1) + COLS - 1) / COLS);
     }
 
     @Override
@@ -58,7 +71,7 @@ public class SalvageCategory implements IRecipeCategory<SalvageRecipe> {
 
     @Override
     public int getHeight() {
-        return PAD + 2 * SLOT + PAD; // up to two rows of outputs (household has 9)
+        return PAD + rows * SLOT + PAD;
     }
 
     @Override

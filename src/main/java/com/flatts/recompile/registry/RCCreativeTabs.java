@@ -90,6 +90,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.GRASS_SPREADER.get());
                     output.accept(RCItems.COMPOST_HEAP.get());
                     output.accept(RCItems.TREE_NURSERY.get());
+                    output.accept(RCItems.HYDROPONICS_BAY.get());
                     output.accept(RCItems.WASHING_MACHINE.get());
 
                     // --- Reclamation ladder: the consumables the machines make and take ---

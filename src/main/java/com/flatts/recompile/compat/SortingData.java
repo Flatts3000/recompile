@@ -52,6 +52,9 @@ public final class SortingData {
     /** What a Cutting Torch gets out of a Steel I-Beam. */
     public static final String STEEL_BEAM = "/data/recompile/loot_table/blocks/steel_i_beam.json";
 
+    /** The Hydroponics Bay's seedling lottery: which plant an Unknown Seedling turns out to be. */
+    public static final String SEEDLING = "/data/recompile/loot_table/gameplay/hydroponics_seedling.json";
+
     /** One possible output and how likely it is (0..1). */
     public record Weighted(ItemStack stack, float chance) {}
 

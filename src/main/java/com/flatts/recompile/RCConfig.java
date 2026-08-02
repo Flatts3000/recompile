@@ -68,6 +68,12 @@ public final class RCConfig {
 
     // ---- Vegetation tier (rung 2 - Fertilizer scatters plants) ----
     public static final ModConfigSpec.BooleanValue DISABLE_INFINITE_WATER;
+    public static final ModConfigSpec.BooleanValue HYDROPONICS_ENABLED;
+    public static final ModConfigSpec.IntValue HYDROPONICS_GROW_TICKS;
+    public static final ModConfigSpec.IntValue HYDROPONICS_WATER_PER_GROW;
+    public static final ModConfigSpec.IntValue HYDROPONICS_FE_PER_TICK;
+    public static final ModConfigSpec.IntValue HYDROPONICS_TANK_CAPACITY;
+    public static final ModConfigSpec.IntValue HYDROPONICS_YIELD;
     public static final ModConfigSpec.BooleanValue VEGETATION_ENABLED;
     public static final ModConfigSpec.BooleanValue FERTILIZER_GROWTH_ENABLED;
     public static final ModConfigSpec.IntValue FERTILIZER_ATTEMPTS;
@@ -185,6 +191,27 @@ public final class RCConfig {
                 "all, leaving you free to set it by hand; leave it on and the rule is re-applied every",
                 "load, which is what makes this reach worlds that already exist.")
             .define("disableInfiniteWater", true);
+        HYDROPONICS_ENABLED = builder
+            .comment("Whether the Hydroponics Bay grows plants from water and power (#43).")
+            .define("hydroponicsEnabled", true);
+        HYDROPONICS_GROW_TICKS = builder
+            .comment("Ticks to grow one batch. 400 = 20s, deliberately faster than the Tree Nursery's",
+                "cook because this is the automation tier and it costs power to run.")
+            .defineInRange("hydroponicsGrowTicks", 400, 1, 240_000);
+        HYDROPONICS_WATER_PER_GROW = builder
+            .comment("Water (mB) consumed per batch. 100 = a tenth of a bucket.")
+            .defineInRange("hydroponicsWaterPerGrow", 100, 0, 100_000);
+        HYDROPONICS_FE_PER_TICK = builder
+            .comment("FE drawn per tick while growing. At 400 ticks a batch costs 3,200 FE, which is",
+                "about 160 seconds of one Solar Panel or 8 seconds of a Burner Generator.")
+            .defineInRange("hydroponicsFePerTick", 8, 0, 100_000);
+        HYDROPONICS_TANK_CAPACITY = builder
+            .comment("The bay's internal water tank, mB. 4000 = four buckets, matching the nursery.")
+            .defineInRange("hydroponicsTankCapacity", 4000, 1000, 1_000_000);
+        HYDROPONICS_YIELD = builder
+            .comment("How many of the plant one batch produces. The crop itself is never consumed, so",
+                "this is pure throughput rather than a multiplier over what went in - 1 per 20s per bay.")
+            .defineInRange("hydroponicsYield", 1, 1, 64);
         VEGETATION_ENABLED = builder
             .comment("Whether Fertilizer scatters plants (grass -> weeds/flowers, mycelium -> mushrooms).")
             .define("vegetationEnabled", true);

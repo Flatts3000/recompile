@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/hydroponics_bay_top",
+    "side": "recompile:block/hydroponics_bay_side",
+    "bottom": "recompile:block/tree_nursery_bottom"
+  }
+}
