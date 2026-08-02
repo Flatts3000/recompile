@@ -67,6 +67,7 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue COMPOST_VOLUNTEER_CHANCE;
 
     // ---- Vegetation tier (rung 2 - Fertilizer scatters plants) ----
+    public static final ModConfigSpec.BooleanValue DISABLE_INFINITE_WATER;
     public static final ModConfigSpec.BooleanValue VEGETATION_ENABLED;
     public static final ModConfigSpec.BooleanValue FERTILIZER_GROWTH_ENABLED;
     public static final ModConfigSpec.IntValue FERTILIZER_ATTEMPTS;
@@ -173,6 +174,17 @@ public final class RCConfig {
                      "a volunteer crop that sprouted in the pile. 8 = about one seedling per 8 layers.")
             .defineInRange("compostVolunteerChance", 8, 1, 1000);
 
+        DISABLE_INFINITE_WATER = builder
+            .comment("Turn off vanilla's infinite water source in garbage worlds, so two buckets cannot",
+                "breed a third and the Rain Collector keeps its point (#101). Applied by setting the",
+                "vanilla water_source_conversion game rule on load - note vanilla already defaults the",
+                "LAVA equivalent to false, so an asymmetric default is its own choice, not a rule of",
+                "nature.",
+                "",
+                "This config is the override. Turn it off and the mod stops touching the game rule at",
+                "all, leaving you free to set it by hand; leave it on and the rule is re-applied every",
+                "load, which is what makes this reach worlds that already exist.")
+            .define("disableInfiniteWater", true);
         VEGETATION_ENABLED = builder
             .comment("Whether Fertilizer scatters plants (grass -> weeds/flowers, mycelium -> mushrooms).")
             .define("vegetationEnabled", true);
