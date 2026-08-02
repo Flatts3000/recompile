@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:false"
+    }
+  ],
+  "category": "misc",
+  "key": {
+    "#": "minecraft:pink_wool",
+    "X": "#minecraft:planks"
+  },
+  "pattern": [
+    "###",
+    "XXX"
+  ],
+  "result": {
+    "id": "minecraft:pink_bed"
+  }
+}
