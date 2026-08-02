@@ -106,8 +106,12 @@ public final class RCConfig {
         ROACH_CHANCE_DENOMINATOR = builder
             .comment("One pull in N releases a roach instead of an item. Higher is rarer.",
                 "This is a progression lever as well as a difficulty one: roaches are the earliest",
-                "renewable food in the game, so the rate decides how much they feed you.")
-            .defineInRange("roachChanceDenominator", 40, 2, 10_000);
+                "renewable food in the game, so the rate decides how much they feed you.",
+                "",
+                "NOTE: this is per PULL, not per block. A garbage block averages 2.5 pulls, so the",
+                "rate a player actually experiences is one roach per N/2.5 blocks. 320 is the tuned",
+                "target of roughly one roach per 128 blocks of garbage (owner, 2026-08-01).")
+            .defineInRange("roachChanceDenominator", 320, 2, 10_000);
         builder.pop();
 
         builder.push("dimensions");
