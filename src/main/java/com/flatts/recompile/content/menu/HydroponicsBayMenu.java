@@ -54,11 +54,14 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
     public static final int GAUGE_W = 14;
     public static final int GAUGE_H = 54;
     public static final int ENERGY_X = 154;
-    /** The grow arrow between input and output. */
-    public static final int ARROW_X = 72;
-    public static final int ARROW_Y = 38;
+    /**
+     * The grow arrow between input and output - vanilla's furnace arrow, so its 24x17 size is fixed by
+     * the sprite rather than chosen. Centred in the gap between the two slots and on their row.
+     */
+    public static final int ARROW_X = 76;
+    public static final int ARROW_Y = 35;
     public static final int ARROW_W = 24;
-    public static final int ARROW_H = 16;
+    public static final int ARROW_H = 17;
 
     private final Container container;
     private final ContainerData data;

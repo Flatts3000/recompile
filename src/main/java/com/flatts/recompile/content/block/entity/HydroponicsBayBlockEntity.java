@@ -170,13 +170,20 @@ public class HydroponicsBayBlockEntity extends BlockEntity
         if (!RCConfig.HYDROPONICS_ENABLED.get() || !(level instanceof ServerLevel server)) {
             return;
         }
-        if (!be.canGrow()) {
+        if (!be.hasInputAndWater()) {
             // Reset rather than pause. A half-grown batch that survives the input being pulled out
             // would let a player bank progress with an empty machine and cash it in later.
             if (be.progress != 0) {
                 be.progress = 0;
                 be.setChanged();
             }
+            setLit(level, pos, state, false);
+            return;
+        }
+        if (!be.outputAccepts()) {
+            // Blocked, not idle: hold progress where it is and go dark. Nothing can be banked here -
+            // the input and the water are both still sitting in the machine - so the reset above does
+            // not apply, and vanilla's furnace stalls the same way rather than winding back.
             setLit(level, pos, state, false);
             return;
         }
@@ -216,18 +223,37 @@ public class HydroponicsBayBlockEntity extends BlockEntity
         }
     }
 
-    /** Whether a batch could run right now: something growable in, water available, room for output. */
-    private boolean canGrow() {
+    /** The two inputs a batch consumes: something growable in the slot, and water in the tank. */
+    private boolean hasInputAndWater() {
         ItemStack input = items.get(SLOT_INPUT);
-        if (input.isEmpty() || !isGrowable(input)) {
-            return false;
-        }
-        if (tank.getAmountAsInt(0) < RCConfig.HYDROPONICS_WATER_PER_GROW.get()) {
-            return false;
-        }
+        return !input.isEmpty() && isGrowable(input)
+            && tank.getAmountAsInt(0) >= RCConfig.HYDROPONICS_WATER_PER_GROW.get();
+    }
+
+    /**
+     * Whether whatever this batch is about to make can actually land in the output slot.
+     *
+     * <p><b>This must match the item, not merely count the room.</b> The first version checked only that
+     * the stack had space, so a bay growing sugar cane over a slot holding potatoes ran to completion and
+     * merged the yield into the potatoes - the cane was consumed and came back out as potatoes. A machine
+     * that silently transmutes one item into another is a duplication bug wearing a farm's clothes, and
+     * the count check made it look guarded.
+     *
+     * <p><b>A seedling batch needs the slot empty.</b> Its result is a lottery not rolled until the batch
+     * finishes, so there is nothing to compare against beforehand; anything already in the output could
+     * turn out to be the wrong plant.
+     */
+    private boolean outputAccepts() {
         ItemStack output = items.get(SLOT_OUTPUT);
-        return output.isEmpty() || output.getCount() + RCConfig.HYDROPONICS_YIELD.get()
-            <= output.getMaxStackSize();
+        if (output.isEmpty()) {
+            return true;
+        }
+        ItemStack input = items.get(SLOT_INPUT);
+        if (input.is(RCItems.UNKNOWN_SEEDLING.get())) {
+            return false;
+        }
+        return output.is(input.getItem())
+            && output.getCount() + RCConfig.HYDROPONICS_YIELD.get() <= output.getMaxStackSize();
     }
 
     /** An Unknown Seedling, or anything in the growable tag. */
@@ -251,6 +277,16 @@ public class HydroponicsBayBlockEntity extends BlockEntity
         if (produced.isEmpty()) {
             return;
         }
+        // The last word on whether the yield fits, checked against the rolled item rather than a
+        // prediction of it. Bail before anything is consumed: no water spent, no input eaten, and the
+        // roll is simply discarded. Only reachable for a seedling, whose result outputAccepts() cannot
+        // know in advance.
+        ItemStack existing = items.get(SLOT_OUTPUT);
+        if (!existing.isEmpty()
+                && (!ItemStack.isSameItemSameComponents(existing, produced)
+                    || existing.getCount() + produced.getCount() > existing.getMaxStackSize())) {
+            return;
+        }
         int water = RCConfig.HYDROPONICS_WATER_PER_GROW.get();
         if (water > 0) {
             try (Transaction tx = Transaction.openRoot()) {
@@ -259,11 +295,10 @@ public class HydroponicsBayBlockEntity extends BlockEntity
             }
         }
         input.shrink(1);
-        ItemStack output = items.get(SLOT_OUTPUT);
-        if (output.isEmpty()) {
+        if (existing.isEmpty()) {
             items.set(SLOT_OUTPUT, produced);
         } else {
-            output.grow(produced.getCount());
+            existing.grow(produced.getCount());
         }
     }
 

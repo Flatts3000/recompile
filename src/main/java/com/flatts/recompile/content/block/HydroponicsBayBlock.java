@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -76,18 +77,32 @@ public class HydroponicsBayBlock extends BaseEntityBlock {
     }
 
     /**
-     * Right-click opens the bay.
+     * A fluid container fills the tank; anything else opens the bay.
      *
-     * <p>Without this the machine is reachable only by hopper or pipe, which makes the first one a
-     * player builds appear broken.
+     * <p><b>The bucket case has to come first.</b> Without it the only way to get water in is a pipe from
+     * a Rain Collector, and a player holding a bucket of water gets a GUI with an empty tank gauge and no
+     * way to act on it - the machine looks broken at exactly the moment they are trying to start it. This
+     * is the same interaction {@code RainCollectorCoreBlock} offers, deliberately: one tank behaviour
+     * across the mod, so learning it once is enough.
+     *
+     * <p>Opening is the fallback rather than the other way round, because a player holding a bucket over
+     * a machine with a water gauge means to pour it, and a bucket has no reason to be in the bay's slots.
      */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide()
-                && level.getBlockEntity(pos) instanceof HydroponicsBayBlockEntity bay) {
-            player.openMenu(bay);
+        if (!(level.getBlockEntity(pos) instanceof HydroponicsBayBlockEntity bay)) {
+            return InteractionResult.PASS;
         }
+        if (level.isClientSide()) {
+            // The client cannot run the transfer, but it must agree that something happened or the arm
+            // does not swing. Anything that is not a bucket falls through to opening the screen.
+            return InteractionResult.SUCCESS;
+        }
+        if (FluidUtil.interactWithFluidHandler(player, hand, pos, bay.tank())) {
+            return InteractionResult.SUCCESS;
+        }
+        player.openMenu(bay);
         return InteractionResult.SUCCESS;
     }
 

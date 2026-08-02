@@ -160,6 +160,80 @@ final class HydroponicsTests {
             helper.succeed();
         });
 
+        // Water in by hand. Without this the tank is reachable only by a pipe from a Rain Collector, so
+        // a player holding a bucket gets a screen with an empty gauge and no way to act on it - the
+        // machine looks broken at the exact moment they are trying to start it.
+        RCGameTests.test("a_water_bucket_fills_the_tank", 40, helper -> {
+            helper.setBlock(BAY, RCBlocks.HYDROPONICS_BAY.get());
+            var be = (HydroponicsBayBlockEntity) helper.getLevel()
+                .getBlockEntity(helper.absolutePos(BAY));
+            helper.assertTrue(be.tank().getAmountAsInt(0) == 0, "a fresh bay starts dry");
+
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                new ItemStack(Items.WATER_BUCKET));
+            helper.useBlock(BAY, player);
+
+            helper.assertTrue(be.tank().getAmountAsInt(0) > 0,
+                "right-clicking a water bucket on the bay must fill its tank");
+            helper.assertTrue(player.getMainHandItem().is(Items.BUCKET),
+                "and hand back the empty bucket, not keep the full one - a bucket that pours and stays "
+                    + "full is infinite water, which #101 exists to prevent");
+            helper.succeed();
+        });
+
+        // A BLOCKED OUTPUT MUST NOT TRANSMUTE THE CROP. The first version checked only that the output
+        // stack had room, never that the item matched, so a bay growing cane over a slot of potatoes ran
+        // to completion and merged the yield into the potatoes: cane in, potatoes out, cane destroyed.
+        // A count-only guard looks like a guard, which is why this went unnoticed.
+        RCGameTests.test("a_full_output_stops_the_batch_it_does_not_convert_it", 60, helper -> {
+            var be = placeFuelled(helper, BAY);
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, new ItemStack(Items.POTATO, 5));
+
+            runBatches(helper, be, 2);
+            ItemStack out = be.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(out.is(Items.POTATO) && out.getCount() == 5,
+                "an unrelated item in the output must be left exactly alone, got " + out);
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 8,
+                "and the crop must not be consumed into it - that is a duplication bug, not a stall");
+            helper.assertFalse(helper.getBlockState(BAY).getValue(HydroponicsBayBlock.LIT),
+                "a blocked bay must go dark, so the reason it stopped is visible from outside");
+            helper.succeed();
+        });
+
+        // Same slot, matching item, no room. The count check still has to hold on its own.
+        RCGameTests.test("a_maxed_output_stack_stops_the_batch", 60, helper -> {
+            var be = placeFuelled(helper, BAY);
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT, new ItemStack(Items.SUGAR_CANE, 8));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, new ItemStack(Items.SUGAR_CANE, 64));
+
+            runBatches(helper, be, 2);
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT).getCount() == 64,
+                "a full stack cannot grow past its own maximum");
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 8,
+                "and the input must not be eaten while the output has nowhere to put it");
+            helper.succeed();
+        });
+
+        // A seedling's result is not known until the batch ends, so it cannot be compared against
+        // whatever is already sitting there. The bay waits for a clear slot rather than gambling.
+        RCGameTests.test("a_seedling_batch_waits_for_a_clear_output", 60, helper -> {
+            var be = placeFuelled(helper, BAY);
+            be.setItem(HydroponicsBayBlockEntity.SLOT_INPUT,
+                new ItemStack(RCItems.UNKNOWN_SEEDLING.get(), 4));
+            be.setItem(HydroponicsBayBlockEntity.SLOT_OUTPUT, new ItemStack(Items.POTATO, 5));
+
+            runBatches(helper, be, 2);
+            ItemStack out = be.getItem(HydroponicsBayBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(out.is(Items.POTATO) && out.getCount() == 5,
+                "a lottery batch must not roll into an occupied slot, got " + out);
+            helper.assertTrue(be.getItem(HydroponicsBayBlockEntity.SLOT_INPUT).getCount() == 4,
+                "and it must not spend a seedling doing so - seedlings are not renewable");
+            helper.succeed();
+        });
+
         // Junk in, nothing out - and specifically it must not be ACCEPTED, or a hopper feeding a chest
         // of assorted salvage would jam the input slot and brick the machine. That exact failure is why
         // the Cupola gained an insert guard.

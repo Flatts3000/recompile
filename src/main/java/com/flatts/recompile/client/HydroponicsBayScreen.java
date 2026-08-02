@@ -16,9 +16,11 @@ import net.minecraft.world.entity.player.Inventory;
  * have obeyed the existing "containers reuse a vanilla screen" rule; the owner called for a real GUI
  * (2026-08-02) because three resources on hover is worse than three gauges in front of you.
  *
- * <p>Drawn procedurally in vanilla colours through 26.1's retained-mode extract model, the same as
- * {@link BurnerGeneratorScreen} and {@link TreeNurseryScreen} - no new GUI texture, so the art budget
- * stays on blocks.
+ * <p><b>The chrome is vanilla's, not an imitation of it</b> ({@link VanillaGui}): the panel is nine-sliced
+ * out of the furnace background, the slots are the {@code container/slot} sprite, and the grow arrow is
+ * the furnace's own progress arrow. The first version of this screen hand-filled flat rectangles in
+ * roughly the right greys and read as a grey box with holes in it - the bevels are what make a panel look
+ * like Minecraft drew it, and they do not survive being re-derived by hand.
  *
  * <p>Both gauges are <b>always drawn</b>, empty or not. A bar that only appears once it has something in
  * it makes "this bay has no water" and "this screen has no water gauge" look identical, which is the
@@ -26,21 +28,11 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBayMenu> {
 
-    private static final int BODY = 0xFFC6C6C6;
-    private static final int LIGHT = 0xFFFFFFFF;
-    private static final int DARK = 0xFF555555;
-    private static final int SLOT_BG = 0xFF8B8B8B;
-    private static final int SLOT_SHADOW = 0xFF373737;
-    private static final int GAUGE_BG = 0xFF373737;
-
-    /** Water blue, and red for power - the colour every tech mod has used since Redstone Flux. */
-    private static final int WATER = 0xFF3B6FD4;
-    private static final int WATER_IDLE = 0xFF25457F;
+    /** Vanilla's own water colour (the default biome water tint), and red for power. */
+    private static final int WATER = 0xFF3F76E4;
+    private static final int WATER_IDLE = 0xFF2A4E96;
     private static final int POWER = 0xFFE02B2B;
     private static final int POWER_IDLE = 0xFF8A1F1F;
-    /** The grow arrow, green because that is what is happening. */
-    private static final int ARROW_BG = 0xFF6B6B6B;
-    private static final int ARROW = 0xFF4CAF50;
 
     public HydroponicsBayScreen(HydroponicsBayMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, HydroponicsBayMenu.W, HydroponicsBayMenu.H);
@@ -58,24 +50,18 @@ public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBay
         int left = this.leftPos;
         int top = this.topPos;
 
-        graphics.fill(left, top, left + HydroponicsBayMenu.W, top + HydroponicsBayMenu.H, BODY);
-        graphics.fill(left, top, left + HydroponicsBayMenu.W, top + 1, LIGHT);
-        graphics.fill(left, top, left + 1, top + HydroponicsBayMenu.H, LIGHT);
-        graphics.fill(left, top + HydroponicsBayMenu.H - 1,
-            left + HydroponicsBayMenu.W, top + HydroponicsBayMenu.H, DARK);
-        graphics.fill(left + HydroponicsBayMenu.W - 1, top,
-            left + HydroponicsBayMenu.W, top + HydroponicsBayMenu.H, DARK);
+        VanillaGui.panel(graphics, left, top, HydroponicsBayMenu.W, HydroponicsBayMenu.H);
 
-        slot(graphics, left + HydroponicsBayMenu.INPUT_X, top + HydroponicsBayMenu.INPUT_Y);
-        slot(graphics, left + HydroponicsBayMenu.OUTPUT_X, top + HydroponicsBayMenu.OUTPUT_Y);
+        VanillaGui.slot(graphics, left + HydroponicsBayMenu.INPUT_X, top + HydroponicsBayMenu.INPUT_Y);
+        VanillaGui.slot(graphics, left + HydroponicsBayMenu.OUTPUT_X, top + HydroponicsBayMenu.OUTPUT_Y);
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                slot(graphics, left + HydroponicsBayMenu.INV_X + col * HydroponicsBayMenu.CELL,
+                VanillaGui.slot(graphics, left + HydroponicsBayMenu.INV_X + col * HydroponicsBayMenu.CELL,
                     top + HydroponicsBayMenu.INV_Y + row * HydroponicsBayMenu.CELL);
             }
         }
         for (int col = 0; col < 9; col++) {
-            slot(graphics, left + HydroponicsBayMenu.INV_X + col * HydroponicsBayMenu.CELL,
+            VanillaGui.slot(graphics, left + HydroponicsBayMenu.INV_X + col * HydroponicsBayMenu.CELL,
                 top + HydroponicsBayMenu.HOTBAR_Y);
         }
 
@@ -85,15 +71,10 @@ public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBay
         gauge(graphics, left + HydroponicsBayMenu.ENERGY_X, top + HydroponicsBayMenu.GAUGE_Y,
             this.menu.energy(), energyCapacity(), running ? POWER : POWER_IDLE);
 
-        // The grow arrow fills left to right as the batch runs.
-        int ax = left + HydroponicsBayMenu.ARROW_X;
-        int ay = top + HydroponicsBayMenu.ARROW_Y;
-        graphics.fill(ax, ay + 5, ax + HydroponicsBayMenu.ARROW_W, ay + 11, ARROW_BG);
         int goal = Math.max(1, this.menu.goal());
-        int filled = HydroponicsBayMenu.ARROW_W * Math.min(this.menu.progress(), goal) / goal;
-        if (filled > 0) {
-            graphics.fill(ax, ay + 5, ax + filled, ay + 11, ARROW);
-        }
+        VanillaGui.progressArrow(graphics,
+            left + HydroponicsBayMenu.ARROW_X, top + HydroponicsBayMenu.ARROW_Y,
+            HydroponicsBayMenu.ARROW_W * Math.min(this.menu.progress(), goal) / goal);
     }
 
     /**
@@ -103,19 +84,14 @@ public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBay
      * scaled to and a bar drawn past its own frame looks like a rendering fault rather than a full one.
      */
     private void gauge(GuiGraphicsExtractor graphics, int x, int y, int amount, int capacity, int colour) {
-        graphics.fill(x, y, x + HydroponicsBayMenu.GAUGE_W, y + HydroponicsBayMenu.GAUGE_H, GAUGE_BG);
+        VanillaGui.well(graphics, x, y, HydroponicsBayMenu.GAUGE_W, HydroponicsBayMenu.GAUGE_H);
         if (capacity <= 0 || amount <= 0) {
             return;
         }
-        int fill = Math.min(HydroponicsBayMenu.GAUGE_H,
-            HydroponicsBayMenu.GAUGE_H * amount / capacity);
-        graphics.fill(x + 1, y + HydroponicsBayMenu.GAUGE_H - fill,
-            x + HydroponicsBayMenu.GAUGE_W - 1, y + HydroponicsBayMenu.GAUGE_H, colour);
-    }
-
-    private void slot(GuiGraphicsExtractor graphics, int x, int y) {
-        graphics.fill(x - 1, y - 1, x + 17, y + 17, SLOT_SHADOW);
-        graphics.fill(x, y, x + 16, y + 16, SLOT_BG);
+        int inner = HydroponicsBayMenu.GAUGE_H - 2;
+        int fill = Math.min(inner, inner * amount / capacity);
+        graphics.fill(x + 1, y + HydroponicsBayMenu.GAUGE_H - 1 - fill,
+            x + HydroponicsBayMenu.GAUGE_W - 1, y + HydroponicsBayMenu.GAUGE_H - 1, colour);
     }
 
     private int tankCapacity() {
