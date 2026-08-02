@@ -2,6 +2,7 @@ package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.content.item.IdeaFragmentItem;
+import com.flatts.recompile.content.recipe.BlueprintAccess;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import com.flatts.recompile.content.block.ScrapNetwork;
@@ -234,7 +235,7 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
                 output(level, new ItemStack(extra.item()));
             }
         }
-        teach(level, recipe, random);
+        teach(level, recipe, random, player);
         recipe.tool().ifPresent(required -> damageRackedTool(level, required));
         if (player == null || !player.getAbilities().instabuild) {
             held.shrink(1);
@@ -259,12 +260,23 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
      * <p>{@code chance} is the per-teardown odds of learning anything at all. A recipe that omits it
      * teaches nothing, which is why every teardown in the mod except the mattress is unaffected by this.
      */
-    private void teach(ServerLevel level, TeardownRecipe recipe, RandomSource random) {
+    private void teach(ServerLevel level, TeardownRecipe recipe, RandomSource random,
+            @Nullable Player player) {
         if (!RCConfig.BLUEPRINTS_ENABLED.get()) {
             return;
         }
         for (TeardownRecipe.TeachEntry entry : recipe.teaches()) {
             if (entry.chance() <= 0.0F || random.nextFloat() >= entry.chance()) {
+                continue;
+            }
+            // Already worked out? Then there is nothing left to learn from this, and the fragments
+            // would be litter. Checked against the same two places the crafting table checks - the
+            // player's inventory and a Filing Cabinet in this bench's own scrap cluster - so "known"
+            // means one thing across the whole system rather than two things that nearly agree.
+            //
+            // Deliberately keyed on the finished BLUEPRINT and not on fragments already held. A player
+            // partway through should keep collecting; it is the sheet that ends it.
+            if (BlueprintAccess.reachable(level, player, worldPosition, entry.recipe())) {
                 continue;
             }
             output(level, IdeaFragmentItem.of(RCItems.IDEA_FRAGMENT.get(), entry.recipe(), 1));

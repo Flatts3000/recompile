@@ -21,7 +21,7 @@
   "teaches": [
     {
       "recipe": "recompile:clean_mattress",
-      "chance": 0.25,
+      "chance": 1.0,
       "scraps_required": 4
     }
   ]

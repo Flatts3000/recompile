@@ -80,6 +80,17 @@ public class FilingCabinetBlock extends BaseEntityBlock {
         return new FilingCabinetBlockEntity(pos, state);
     }
 
+    /** Server-side only: the filing pass has nothing to say to a client. */
+    @Override
+    public <T extends BlockEntity> net.minecraft.world.level.block.entity.@Nullable BlockEntityTicker<T>
+            getTicker(Level level, BlockState state,
+                net.minecraft.world.level.block.entity.BlockEntityType<T> type) {
+        return level.isClientSide() ? null
+            : createTickerHelper(type,
+                com.flatts.recompile.registry.RCBlockEntities.FILING_CABINET.get(),
+                FilingCabinetBlockEntity::serverTick);
+    }
+
     @Override
     protected InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state,
             Level level, BlockPos pos, Player player, net.minecraft.world.InteractionHand hand,

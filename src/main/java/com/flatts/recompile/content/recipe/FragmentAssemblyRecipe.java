@@ -67,7 +67,7 @@ public class FragmentAssemblyRecipe extends CustomRecipe {
         if (set == null) {
             return null;
         }
-        return count(input) >= required(level, set) ? set : null;
+        return count(input) >= requiredFor(level, set) ? set : null;
     }
 
     /**
@@ -110,7 +110,7 @@ public class FragmentAssemblyRecipe extends CustomRecipe {
      * thing in one place: a pack that retunes the odds of learning something retunes its cost in the
      * same file, and the two cannot drift into disagreeing.
      */
-    private int required(Level level, Identifier set) {
+    public static int requiredFor(Level level, Identifier set) {
         if (level.getServer() == null) {
             return DEFAULT_REQUIRED;
         }

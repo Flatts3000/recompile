@@ -224,8 +224,10 @@ final class BlueprintTests {
                 .findFirst().orElse(null);
             helper.assertTrue(toMattress != null,
                 "something must teach the Clean Mattress idea, or the blueprint is unreachable");
-            helper.assertTrue(toMattress.chance() > 0.0f,
-                "a teaches entry with no chance can never fire, which is a silent no-op");
+            helper.assertTrue(toMattress.chance() >= 1.0f,
+                "every teardown teaches (owner, 2026-08-02). A chance below 1 turns a four-teardown "
+                    + "cost into a dice game, and the thing that ends the grind is knowing the recipe, "
+                    + "not getting lucky - got " + toMattress.chance());
             helper.assertTrue(toMattress.scrapsRequired() > 1,
                 "scraps_required is the whole reason fragments exist - at 1 the fragment is the sheet");
 
@@ -459,6 +461,110 @@ final class BlueprintTests {
             helper.succeed();
         });
 
+        // LEARNING STOPS WHEN YOU HAVE LEARNED IT. Every teardown teaches, so without this a player
+        // who finished the blueprint keeps being handed fragments toward a sheet they already own -
+        // litter that never becomes anything, forever.
+        //
+        // It checks the same two places the crafting table checks, so "known" means one thing across
+        // the system rather than two things that nearly agree.
+        RCGameTests.test("teardown_stops_teaching_once_the_blueprint_is_known", 40, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            var bench = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(bench, com.flatts.recompile.registry.RCBlocks.RECOMPILE_WORKBENCH.get());
+            var abs = helper.absolutePos(bench);
+            var level = helper.getLevel();
+
+            helper.assertFalse(
+                BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
+                "precondition: the player has not learned it yet, so teardowns should teach");
+
+            player.getInventory().add(
+                BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
+            helper.assertTrue(
+                BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
+                "holding the sheet must count as known, so the bench stops handing out fragments");
+
+            // And filed next door counts too - otherwise a player who tidied their blueprints into a
+            // cabinet would start collecting fragments for them all over again.
+            player.getInventory().clearContent();
+            var cabinetPos = new net.minecraft.core.BlockPos(2, 1, 1);
+            helper.setBlock(cabinetPos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                level.getBlockEntity(helper.absolutePos(cabinetPos));
+            cabinet.setItem(0, BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
+            helper.assertTrue(
+                BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
+                "filing it away must not restart the grind");
+            player.discard();
+            helper.succeed();
+        });
+
+        // THE CABINET FILES FOR YOU. Tip four fragments in and it assembles the sheet, so a player
+        // does not have to carry a done deal to a crafting table to perform a step with exactly one
+        // possible outcome.
+        RCGameTests.test("a_filing_cabinet_assembles_fragments_into_the_blueprint", 60, helper -> {
+            var pos = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+
+            // One short: it must sit there. Accumulating is the mechanic, so a near miss is untouched.
+            cabinet.setItem(0, com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 3));
+            tickCabinet(helper, pos, cabinet);
+            helper.assertFalse(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
+                "three of four must not assemble anything");
+            helper.assertTrue(cabinet.getItem(0).getCount() == 3,
+                "and the fragments must be left exactly alone, not consumed toward nothing");
+
+            // The fourth completes it.
+            cabinet.setItem(1, com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 1));
+            tickCabinet(helper, pos, cabinet);
+            helper.assertTrue(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
+                "four fragments must become the blueprint");
+            helper.succeed();
+        });
+
+        // SURPLUS IS DESTROYED, and this is the only place the mod deletes a player's items - so the
+        // rule is narrow and asserted from both sides: a fragment goes only when this cabinet already
+        // holds the blueprint it leads to, and a fragment toward anything else is never touched.
+        RCGameTests.test("a_filing_cabinet_bins_fragments_it_no_longer_needs", 60, helper -> {
+            var pos = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+
+            cabinet.setItem(0, BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
+            cabinet.setItem(1, com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 7));
+            // A fragment toward a DIFFERENT blueprint, which must survive untouched.
+            Identifier other = Identifier.fromNamespaceAndPath("recompile", "something_else");
+            cabinet.setItem(2, com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), other, 2));
+
+            tickCabinet(helper, pos, cabinet);
+            helper.assertTrue(cabinet.getItem(1).isEmpty(),
+                "fragments toward a blueprint already filed here are worth nothing and are binned");
+            helper.assertTrue(cabinet.getItem(0).getCount() == 1,
+                "and the blueprint itself is untouched - no second copy, no loss");
+            helper.assertTrue(cabinet.getItem(2).getCount() == 2,
+                "a fragment toward a blueprint this cabinet does NOT hold must never be destroyed");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Run one filing pass.
+     *
+     * <p>Through the cabinet's static entry point rather than serverTick, which gates on game time: time
+     * does not advance between calls inside one tick, so looping serverTick either fires every time or
+     * never, depending on which second the test happened to start on.
+     */
+    private static void tickCabinet(GameTestHelper helper, net.minecraft.core.BlockPos pos,
+            com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity cabinet) {
+        cabinet.condenseNow(helper.getLevel());
     }
 
     /** Encode one recipe through its own serializer, past the generics. */
