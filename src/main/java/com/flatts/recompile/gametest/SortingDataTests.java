@@ -55,8 +55,8 @@ final class SortingDataTests {
             // The furniture finds plus the six recovered paintings (#99), which live in their own 7%
             // pool. Counted rather than listed so a new find has to come here and be acknowledged: a
             // magic 8 that silently became 9 would mean nobody noticed the table changed.
-            helper.assertTrue(out.size() == 9,
-                "Bulky Waste should offer the three finds and the six paintings, got " + out.size());
+            helper.assertTrue(out.size() == 10,
+                "Bulky Waste should offer the four finds and the six paintings, got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show
             // each at 1/6 = 16.7% instead of 0.07/6 = 1.2%. JEI's whole job in these categories is the
@@ -85,12 +85,56 @@ final class SortingDataTests {
             // Every furniture find shares one pool, so their chances are a partition of it and must
             // sum to 1. Summing only the two named finds is what made this fail when a third arrived:
             // the assertion was really "these are ALL the finds", written as if it were about odds.
-            float sum = mattress.chance() + appliance.chance() + cabinet.chance();
+            SortingData.Weighted brokenBay = out.stream()
+                .filter(w -> w.stack().is(RCItems.BROKEN_HYDROPONICS_BAY.get())).findFirst()
+                .orElse(null);
+            helper.assertTrue(brokenBay != null,
+                "the Broken Hydroponics Bay must be a Bulky Waste find - it is the only thing that "
+                    + "teaches the working bay, so if it leaves this table the machine is unbuildable");
+
+            float sum = mattress.chance() + appliance.chance() + cabinet.chance()
+                + brokenBay.chance();
             helper.assertTrue(Math.abs(sum - 1.0f) < 0.001f,
                 "the furniture pool's chances should sum to ~1, got " + sum);
             helper.assertTrue(mattress.chance() > appliance.chance(),
                 "the mattress stays the commonest find (weight 3 vs 2) - it is the teardown source the "
                     + "whole blueprint loop runs on");
+            helper.succeed();
+        });
+
+        // WHAT A VIEWER READS MUST BE DISCOVERED, NOT LISTED. TeardownData named its recipe paths in a
+        // constant; when the Broken Hydroponics Bay teardown shipped, it was invisible to every viewer
+        // - the block could be torn down in-world while JEI denied the recipe existed, and nothing
+        // failed. This asserts the count matches the files on disk rather than a number written here.
+        RCGameTests.test("every_bundled_teardown_reaches_the_viewers", 20, helper -> {
+            int onDisk = com.flatts.recompile.compat.RecipeFiles.ofType("recompile:teardown").size();
+            int surfaced = com.flatts.recompile.compat.TeardownData.all().size();
+            helper.assertTrue(onDisk > 2,
+                "only " + onDisk + " teardown files were discovered - the walk is broken, so this "
+                    + "would pass against any recipe the viewers cannot see");
+            helper.assertTrue(surfaced == onDisk,
+                "every teardown recipe on disk must reach JEI; " + onDisk + " files, "
+                    + surfaced + " surfaced");
+            helper.succeed();
+        });
+
+        // Same for the blueprint recipes, which had the sharper version of this problem: they were
+        // read from the synced recipe manager, and JEI builds its categories on its own schedule, so
+        // the list could simply be empty. A player clicking a Clean Mattress then saw how to DYE one
+        // and no way to make one at all.
+        RCGameTests.test("every_blueprint_recipe_reaches_the_viewers", 20, helper -> {
+            int onDisk = com.flatts.recompile.compat.RecipeFiles
+                .ofType("recompile:blueprint_crafting").size();
+            var surfaced = com.flatts.recompile.compat.BlueprintData.all();
+            helper.assertTrue(onDisk > 0, "no blueprint recipe files were discovered");
+            helper.assertTrue(surfaced.size() == onDisk,
+                "every blueprint recipe must reach JEI; " + onDisk + " files, " + surfaced.size()
+                    + " surfaced");
+            for (var entry : surfaced) {
+                helper.assertTrue(!entry.ingredients().isEmpty(),
+                    entry.blueprint() + " surfaced with no ingredients, so the recipe would draw "
+                        + "as an empty grid");
+            }
             helper.succeed();
         });
 

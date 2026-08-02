@@ -386,6 +386,22 @@ public final class RCBlocks {
      * find can be carried home rather than only consumed, following the mattress. A plain full cube
      * with no behaviour - the four-face art and the facing are the whole block.
      */
+    /**
+     * Broken Hydroponics Bay: a Bulky Waste find, and the only thing that teaches the working one.
+     *
+     * <p><b>A plain cube with no behaviour.</b> No block entity, no facing, no menu - it is a wreck, and
+     * the only thing you do with it is carry it to the Recompile Workbench. Its whole job is to be the
+     * teardown input that yields parts, scrap and the ideas for building a bay that works.
+     */
+    public static final DeferredBlock<Block> BROKEN_HYDROPONICS_BAY = BLOCKS.registerBlock(
+        "broken_hydroponics_bay",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .strength(1.4F)
+            .sound(SoundType.METAL)
+    );
+
     public static final DeferredBlock<WashingMachineBlock> WASHING_MACHINE = BLOCKS.registerBlock(
         "washing_machine",
         WashingMachineBlock::new,

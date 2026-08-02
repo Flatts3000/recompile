@@ -225,5 +225,12 @@ Scrap Network already won.
 - ~~**Partial progress**: fragment item, or flat chance.~~ **Decided 2026-08-02: the fragment item.**
 - **One blueprint, many recipes, or one each?** IE's blueprints are categories. Many-per-blueprint means
   fewer and more meaningful drops; one-each is a longer collection ladder and a simpler screen.
-- **What else gets a blueprint after the bed?** The POC only earns its cost if there is a second and a
-  third.
+- ~~**What else gets a blueprint after the bed?**~~ **Answered 2026-08-02: the Hydroponics Bay.** A
+  single gated object is a demo, so the second one is a machine rather than a trinket. Taught by
+  tearing apart a **broken washing machine**, which is already where the Pump comes from - the thing
+  that teaches you to circulate water is the thing you take the pump out of. Six fragments, against the
+  mattress's four, because a machine should cost more than a cutting.
+
+  Moving it also generalised the gate test. It used to name the Clean Mattress; it now reads the gated
+  set out of the blueprint recipes themselves, so a third gated object gets the same guarantee without
+  anyone editing the test. That is the difference between a gate and a gate that happens to hold.

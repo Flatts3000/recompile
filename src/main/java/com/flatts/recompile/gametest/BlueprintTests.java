@@ -7,6 +7,7 @@ import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -35,36 +36,52 @@ final class BlueprintTests {
     static void register() {
         // THE GATE. Nothing in the crafting recipe manager may produce a Clean Mattress: the blueprint
         // bench is the only route, and that is the entire proposition of the feature.
-        RCGameTests.test("blueprint_crafting_is_the_only_route_to_a_clean_mattress", 20, helper -> {
+        RCGameTests.test("a_blueprint_result_has_no_other_route", 20, helper -> {
+            // EVERY blueprint-gated result, not one named item. The Hydroponics Bay moved behind a
+            // blueprint after this test was written, and a mattress-only sweep would have said nothing
+            // about it - the gate would have been whatever the recipe files happened to say, proven
+            // nowhere. Reading the gated set from the recipes themselves means a pack that gates a
+            // third thing gets the same guarantee without editing this.
+            Set<Item> gated = new java.util.HashSet<>();
+            for (RecipeHolder<BlueprintCraftingRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                gated.add(holder.value().result().item());
+            }
+            helper.assertTrue(!gated.isEmpty(),
+                "no blueprint recipes were found - the sweep is broken, so this would pass against "
+                    + "anything");
+
             List<String> offenders = new ArrayList<>();
             int swept = 0;
-            // Every recipe of every type, ours included, read through the display each one publishes
-            // for the recipe book. Sweeping by INPUT the way the iron gate test does cannot work here:
-            // the question is not "what does this item turn into" but "what turns into this item", and
-            // the input space for that is every combination in a 3x3.
+            // Sweeping by INPUT the way the iron gate test does cannot work here: the question is not
+            // "what does this item turn into" but "what turns into this item", and the input space for
+            // that is every combination in a 3x3.
             for (RecipeHolder<?> holder : helper.getLevel().recipeAccess().recipeMap().values()) {
                 swept++;
                 if (holder.value().getType() == RCRecipeTypes.BLUEPRINT_CRAFTING.get()) {
                     continue;   // the sanctioned route
                 }
-                // A recipe that CONSUMES a Clean Mattress and hands one back is a recolour, not a
-                // source: it creates nothing, and net new mattresses is what the gate is about. Same
-                // distinction phase 1 drew on the beds, where the 16 wool-to-bed recipes were deleted
-                // and the 16 dye-a-bed recipes were deliberately left alone.
-                if (consumes(holder.value(), RCItems.CLEAN_MATTRESS.get())) {
-                    continue;
-                }
-                for (var display : holder.value().display()) {
-                    if (produces(display.result(), RCItems.CLEAN_MATTRESS.get())) {
-                        offenders.add(holder.id().toString());
+                for (Item result : gated) {
+                    // A recipe that CONSUMES the gated item and hands one back is a recolour, not a
+                    // source: it creates nothing, and net new items is what the gate is about. Same
+                    // distinction phase 1 drew on the beds, where the 16 wool-to-bed recipes were
+                    // deleted and the 16 dye-a-bed recipes were deliberately left alone.
+                    if (consumes(holder.value(), result)) {
+                        continue;
+                    }
+                    for (var display : holder.value().display()) {
+                        if (produces(display.result(), result)) {
+                            offenders.add(holder.id() + " -> "
+                                + BuiltInRegistries.ITEM.getKey(result));
+                        }
                     }
                 }
             }
             helper.assertTrue(swept > 100,
                 "only " + swept + " recipes were swept - the sweep is broken, so this would pass "
-                    + "against any recipe that made a Clean Mattress");
+                    + "against any recipe that made a gated item");
             helper.assertTrue(offenders.isEmpty(),
-                "a Clean Mattress must come only from a blueprint: " + offenders);
+                "these are blueprint-gated and reachable another way, so the gate leaks: " + offenders);
             helper.succeed();
         });
 
@@ -75,43 +92,65 @@ final class BlueprintTests {
                 .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get());
             List<BlueprintCraftingRecipe> found = new ArrayList<>();
             recipes.forEach(holder -> found.add(holder.value()));
-            helper.assertTrue(found.size() == 1,
-                "expected exactly one blueprint recipe, got " + found.size());
+            helper.assertTrue(found.size() == BlueprintItem.shipped().size(),
+                "one blueprint recipe per shipped blueprint, expected " + BlueprintItem.shipped().size()
+                    + " and got " + found.size());
 
-            BlueprintCraftingRecipe recipe = found.get(0);
-            helper.assertTrue(recipe.blueprint().equals(BlueprintItem.CLEAN_MATTRESS),
-                "it must name the Clean Mattress blueprint, got " + recipe.blueprint());
-            helper.assertTrue(recipe.result().item() == RCItems.CLEAN_MATTRESS.get(),
-                "and produce a Clean Mattress, got " + recipe.result().item());
+            BlueprintCraftingRecipe mattress = found.stream()
+                .filter(r -> r.blueprint().equals(BlueprintItem.CLEAN_MATTRESS))
+                .findFirst().orElse(null);
+            helper.assertTrue(mattress != null, "the Clean Mattress recipe must load");
+            helper.assertTrue(mattress.result().item() == RCItems.cleanMattress(net.minecraft.world.item.DyeColor.WHITE),
+                "and produce a white Clean Mattress, got " + mattress.result().item());
+
+            BlueprintCraftingRecipe bay = found.stream()
+                .filter(r -> r.blueprint().equals(BlueprintItem.HYDROPONICS_BAY))
+                .findFirst().orElse(null);
+            helper.assertTrue(bay != null, "and so must the Hydroponics Bay recipe");
+            helper.assertTrue(bay.result().item() == RCItems.HYDROPONICS_BAY.get(),
+                "producing a Hydroponics Bay, got " + bay.result().item());
             helper.succeed();
         });
 
-        // Shapeless means shapeless. Matching by index would make the order a player happens to drop
-        // items in load-bearing, which is the kind of bug that only shows up for one person.
-        RCGameTests.test("a_blueprint_recipe_ignores_the_order_of_its_ingredients", 20, helper -> {
+        // SHAPED MEANS SHAPED. It was shapeless first, on the argument that the blueprint is already
+        // the puzzle - but a blueprint that does not say how the thing is laid out is not much of a
+        // blueprint. So the arrangement is now load-bearing and has to be asserted as such: the right
+        // pattern matches, the same items in the wrong places do not.
+        RCGameTests.test("a_blueprint_recipe_needs_its_pattern", 20, helper -> {
             var recipes = helper.getLevel().recipeAccess().recipeMap()
                 .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get());
             List<BlueprintCraftingRecipe> found = new ArrayList<>();
             recipes.forEach(holder -> found.add(holder.value()));
-            BlueprintCraftingRecipe recipe = found.get(0);
+            BlueprintCraftingRecipe recipe = found.stream()
+                .filter(r -> r.blueprint().equals(BlueprintItem.CLEAN_MATTRESS))
+                .findFirst().orElseThrow();
 
             ItemStack wool = new ItemStack(net.minecraft.world.item.Items.WHITE_WOOL);
             ItemStack string = new ItemStack(net.minecraft.world.item.Items.STRING);
-            helper.assertTrue(
-                recipe.matches(input(wool, wool, wool, string, string, string), helper.getLevel()),
-                "the recipe must match its own ingredients");
-            helper.assertTrue(
-                recipe.matches(input(string, wool, string, wool, string, wool), helper.getLevel()),
-                "and must still match them interleaved - shapeless means shapeless");
-            helper.assertTrue(
-                recipe.matches(input(new ItemStack(net.minecraft.world.item.Items.RED_WOOL),
-                    wool, wool, string, string, string), helper.getLevel()),
-                "any wool, since the ingredient is the tag - a player recolours the bed afterwards");
-            helper.assertFalse(recipe.matches(input(wool, wool, string, string, string), helper.getLevel()),
-                "but not with an ingredient missing");
-            helper.assertFalse(
-                recipe.matches(input(wool, wool, wool, wool, string, string, string), helper.getLevel()),
-                "nor with a spare item in the grid - an extra ingredient is a different recipe");
+            var right = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                wool, wool, wool,
+                string, string, string));
+            helper.assertTrue(recipe.matches(right, helper.getLevel()),
+                "three wool over three string must match the pattern");
+
+            var upsideDown = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                string, string, string,
+                wool, wool, wool));
+            helper.assertFalse(recipe.matches(upsideDown, helper.getLevel()),
+                "string over wool is a different arrangement and must not match");
+
+            // Any wool, because the ingredient is the tag - a player recolours afterwards.
+            var coloured = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                new ItemStack(net.minecraft.world.item.Items.RED_WOOL), wool, wool,
+                string, string, string));
+            helper.assertTrue(recipe.matches(coloured, helper.getLevel()),
+                "the wool ingredient is a tag, so any colour of wool works");
+
+            var missing = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                wool, wool, ItemStack.EMPTY,
+                string, string, string));
+            helper.assertFalse(recipe.matches(missing, helper.getLevel()),
+                "and a hole in the pattern is not a match");
             helper.succeed();
         });
 
@@ -122,7 +161,8 @@ final class BlueprintTests {
             helper.assertTrue(BlueprintItem.blueprintOf(blank) == null,
                 "a blueprint with no component names nothing");
             helper.assertTrue(
-                BlueprintItem.blueprintOf(new ItemStack(RCItems.CLEAN_MATTRESS.get())) == null,
+                BlueprintItem.blueprintOf(
+                    new ItemStack(RCItems.cleanMattress(net.minecraft.world.item.DyeColor.WHITE))) == null,
                 "and an item that is not a blueprint never names one either");
 
             ItemStack unknown = BlueprintItem.of(RCItems.BLUEPRINT.get(),
@@ -370,55 +410,61 @@ final class BlueprintTests {
             helper.succeed();
         });
 
-        // The payoff, and the last link in the chain. This is now the ONLY bed recipe in the game.
-        RCGameTests.test("a_clean_mattress_and_planks_make_a_bed", 20, helper -> {
-            var grid = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
-                ItemStack.EMPTY, new ItemStack(RCItems.CLEAN_MATTRESS.get()), ItemStack.EMPTY,
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)));
-            var found = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
-                net.minecraft.world.item.crafting.RecipeType.CRAFTING, grid, helper.getLevel());
-            helper.assertTrue(found.isPresent(),
-                "a Clean Mattress over three planks must make a bed - it is the only bed recipe left, "
-                    + "so if it breaks the world has no beds at all");
-            helper.assertTrue(
-                found.get().value().assemble(grid).is(net.minecraft.world.item.Items.WHITE_BED),
-                "an undyed mattress makes a white bed, the same as vanilla wool did");
-
-            // DYE THE MATTRESS, GET THAT BED. Phase 1 deleted all sixteen wool-to-bed recipes, so the
-            // colour ladder had to come back somewhere or the world would only ever have white beds.
-            // Every colour is driven, not a sample: sixteen dye recipes is exactly the surface where
-            // fifteen get written, which is the same reason the wool gate has a sweep rather than a
-            // checklist.
+        // The payoff, and the last link in the chain. These are sixteen ORDINARY shaped recipes now,
+        // one per coloured Clean Mattress, rather than one special recipe reading a component - which
+        // is why a recipe viewer can draw them and why this looks them up the normal way.
+        //
+        // Every colour is driven, not a sample: sixteen recipe files is exactly the surface where
+        // fifteen get written, the same reason the wool gate has a sweep rather than a checklist.
+        RCGameTests.test("every_clean_mattress_makes_the_bed_of_its_colour", 20, helper -> {
             List<String> wrong = new ArrayList<>();
             for (net.minecraft.world.item.DyeColor colour
                     : net.minecraft.world.item.DyeColor.values()) {
-                ItemStack dyed = new ItemStack(RCItems.CLEAN_MATTRESS.get());
-                dyed.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
-                    new net.minecraft.world.item.component.DyedItemColor(
-                        colour.getTextureDiffuseColor()));
-                var coloured = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
-                    ItemStack.EMPTY, dyed, ItemStack.EMPTY,
+                var grid = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, List.of(
+                    ItemStack.EMPTY, new ItemStack(RCItems.cleanMattress(colour)), ItemStack.EMPTY,
                     new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
                     new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
                     new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)));
-                var match = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
-                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, coloured,
-                    helper.getLevel());
-                Identifier want = Identifier.withDefaultNamespace(colour.getName() + "_bed");
-                if (match.isEmpty()) {
+                var found = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, grid, helper.getLevel());
+                if (found.isEmpty()) {
                     wrong.add(colour.getName() + " -> no recipe");
                     continue;
                 }
-                ItemStack made = match.get().value().assemble(coloured);
-                if (!net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(made.getItem())
-                        .equals(want)) {
+                Identifier want = Identifier.withDefaultNamespace(colour.getName() + "_bed");
+                ItemStack made = found.get().value().assemble(grid);
+                if (!BuiltInRegistries.ITEM.getKey(made.getItem()).equals(want)) {
                     wrong.add(colour.getName() + " -> " + made);
                 }
             }
             helper.assertTrue(wrong.isEmpty(),
-                "a mattress dyed a colour must make the bed of that colour: " + wrong);
+                "a Clean Mattress must make the bed of its own colour - this is the only bed recipe "
+                    + "left, so a gap here is a colour of bed that cannot exist: " + wrong);
+            helper.succeed();
+        });
+
+        // Every colour is reachable by dyeing any other, so a player is never stuck with one they
+        // cannot change. Keyed on the tag rather than on white, which is what makes that true.
+        RCGameTests.test("any_clean_mattress_dyes_to_any_colour", 20, helper -> {
+            List<String> wrong = new ArrayList<>();
+            for (net.minecraft.world.item.DyeColor colour
+                    : net.minecraft.world.item.DyeColor.values()) {
+                // Dye a BLACK one, the least likely to be a recipe's assumed input.
+                var grid = net.minecraft.world.item.crafting.CraftingInput.of(2, 1, List.of(
+                    new ItemStack(RCItems.cleanMattress(net.minecraft.world.item.DyeColor.BLACK)),
+                    new ItemStack(BuiltInRegistries.ITEM.getValue(
+                        Identifier.withDefaultNamespace(colour.getName() + "_dye")))));
+                var found = helper.getLevel().getServer().getRecipeManager().getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, grid, helper.getLevel());
+                if (found.isEmpty()
+                        || found.get().value().assemble(grid).getItem()
+                            != RCItems.cleanMattress(colour)) {
+                    wrong.add(colour.getName());
+                }
+            }
+            helper.assertTrue(wrong.isEmpty(),
+                "a black Clean Mattress must dye to every colour, or a player can paint themselves "
+                    + "into a corner: " + wrong);
             helper.succeed();
         });
 
@@ -548,6 +594,50 @@ final class BlueprintTests {
             helper.succeed();
         });
 
+        // THE TICKER, not the method. Every other cabinet test calls condenseNow directly, which
+        // proves the logic and says nothing about whether anything runs it - the exact gap that let
+        // the Cupola Furnace sit in the Scrap Network for weeks doing nothing. This one places a
+        // cabinet, drops fragments in, and waits for the block to do it on its own.
+        RCGameTests.test("a_placed_cabinet_files_fragments_by_itself", 80, helper -> {
+            var pos = new net.minecraft.core.BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
+            var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+            cabinet.setItem(0, com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 8));
+
+            helper.succeedWhen(() -> helper.assertTrue(
+                cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
+                "a placed cabinet must file fragments without anyone calling it"));
+        });
+
+        // ONE NUMBER, ONE SOURCE. The fragment threshold is read in three places - the assembly recipe,
+        // the Filing Cabinet, and the item tooltip - and JEI showed 4 for the Hydroponics Bay while the
+        // recipe demanded 6. A player following the viewer would have stood at a cabinet with four
+        // fragments wondering why nothing happened.
+        //
+        // Both readers are driven here against every shipped blueprint, so a disagreement fails rather
+        // than being discovered in play.
+        RCGameTests.test("the_fragment_threshold_agrees_everywhere", 20, helper -> {
+            List<String> mismatched = new ArrayList<>();
+            for (Identifier set : BlueprintItem.shipped()) {
+                int fromFiles = com.flatts.recompile.compat.BlueprintData.fragmentsFor(set);
+                int fromRecipes = com.flatts.recompile.content.recipe.FragmentAssemblyRecipe
+                    .requiredFor(helper.getLevel(), set);
+                if (fromFiles != fromRecipes) {
+                    mismatched.add(set + ": files say " + fromFiles + ", recipes say " + fromRecipes);
+                }
+                if (fromFiles == com.flatts.recompile.compat.BlueprintData.DEFAULT_FRAGMENTS
+                        && fromRecipes != com.flatts.recompile.compat.BlueprintData.DEFAULT_FRAGMENTS) {
+                    mismatched.add(set + " fell back to the default, so its teardown was not found");
+                }
+            }
+            helper.assertTrue(mismatched.isEmpty(),
+                "the fragment count a player is shown must be the count the recipe demands: "
+                    + mismatched);
+            helper.succeed();
+        });
+
         // SURPLUS IS DESTROYED, and this is the only place the mod deletes a player's items - so the
         // rule is narrow and asserted from both sides: a fragment goes only when this cabinet already
         // holds the blueprint it leads to, and a fragment toward anything else is never touched.
@@ -586,6 +676,7 @@ final class BlueprintTests {
     private static void tickCabinet(GameTestHelper helper, net.minecraft.core.BlockPos pos,
             com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity cabinet) {
         cabinet.condenseNow(helper.getLevel());
+
     }
 
     /** Encode one recipe through its own serializer, past the generics. */

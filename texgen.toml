@@ -1175,6 +1175,19 @@ size = 16
 reference = "hydroponics_bay_top"
 prompt = "the same tray of seedlings under bright magenta-pink grow lights, the water and leaves washed in vivid pink-purple light, clearly glowing, bold simple Minecraft block texture, seamless tile"
 
+# The Broken Hydroponics Bay (#95): the Bulky Waste find that teaches the working one.
+#
+# Derived from the working tray through reference rather than prompted blind, because it has to read
+# as THE SAME MACHINE wrecked - a separately-prompted broken tray comes back as a different object and
+# the player never connects the find to the thing they are trying to build. Only the top is new: the
+# side reuses hydroponics_bay_side and the bottom reuses tree_nursery_bottom, so one API call covers it.
+[surface.broken_hydroponics_bay_top]
+kind = "block"
+backend = "ai"
+size = 16
+reference = "hydroponics_bay_top"
+prompt = "keep this exact tray unchanged - same frame, same layout, same materials and colours. Change only its condition: it is now wrecked and dead. The growing channels are cracked and empty with no plants and no glow, the surface is dry and dulled with grime and rust streaks, one corner of the frame is bent and split open. Muted, flat, no perspective, fills the whole tile"
+
 [surface.hydroponics_bay_side]
 kind = "block"
 backend = "ai"

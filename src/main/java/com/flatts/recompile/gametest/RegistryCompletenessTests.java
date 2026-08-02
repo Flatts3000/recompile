@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.registry.RCCreativeTabs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -84,6 +85,18 @@ final class RegistryCompletenessTests {
      * every parent outside this mod's namespace on the reasoning that vanilla is not ours to verify;
      * vanilla is stable within a version, and this mod moves between them.
      */
+    /**
+     * Items deliberately absent from the creative tab, with the reason.
+     *
+     * <p>Add a justified entry, never loosen the check - the same rule the loot and item-form lists in
+     * this class already follow.
+     */
+    private static final Set<String> NOT_IN_TAB = Set.of(
+        // A blank Blueprint and a blank Idea Fragment are inert by design; the tab offers the real
+        // ones, already carrying their component, so a creative pull is a working sheet.
+        "blueprint",
+        "idea_fragment");
+
     private static final Set<String> VANILLA_PARENTS = Set.of(
         "block/block",
         "block/cross",
@@ -143,6 +156,41 @@ final class RegistryCompletenessTests {
             });
             report(helper, missing, "blocks with untranslated names");
         });
+
+        // EVERY ITEM MUST BE IN THE CREATIVE TAB, ONCE.
+        //
+        // The tab's order is what JEI and EMI show in their ingredient panel, so it is a product
+        // surface rather than a convenience - and it is the one list nothing else checks. An item left
+        // out is invisible in creative and in JEI while working perfectly in every other test here; an
+        // item added twice is a duplicate in the panel that reads as two different things.
+        //
+        // Deliberate exceptions live in NOT_IN_TAB below, each with a reason.
+        RCGameTests.test("every_mod_item_is_in_the_creative_tab", 20, helper -> {
+            List<Item> shown = new ArrayList<>();
+            var parameters = new net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters(
+                net.minecraft.world.flag.FeatureFlags.REGISTRY.allFlags(), true,
+                helper.getLevel().registryAccess());
+            RCCreativeTabs.RECOMPILE_TAB.get().buildContents(parameters);
+            for (ItemStack stack : RCCreativeTabs.RECOMPILE_TAB.get().getDisplayItems()) {
+                shown.add(stack.getItem());
+            }
+            helper.assertTrue(shown.size() > 50,
+                "only " + shown.size() + " items were built - the tab did not populate, so this would "
+                    + "pass against an empty one");
+
+            List<String> missing = new ArrayList<>();
+            forEachModItem((id, item) -> {
+                if (!shown.contains(item) && !NOT_IN_TAB.contains(id.getPath())) {
+                    missing.add(id.toString());
+                }
+            });
+            report(helper, missing, "mod items absent from the creative tab");
+        });
+
+        // There is deliberately NO duplicate test to go with this. One was written and dropped after it
+        // was driven RED and did not fail: vanilla's tab builder collects into a set with ItemStack
+        // equality, so adding the same item twice collapses to one entry before anything can see it.
+        // A test that cannot fail is worse than no test, because it reads as coverage.
 
         // BIOMES ARE A DATAPACK REGISTRY, which is exactly why they were missed. This sweep walks items
         // and blocks off BuiltInRegistries; biomes are not there, so both of the mod's shipped biomes

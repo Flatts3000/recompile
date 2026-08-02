@@ -71,5 +71,11 @@ public class IdeaFragmentItem extends Item {
         tooltip.accept(Component.translatable("tooltip.recompile.fragment_towards",
                 name.getString().equals(key) ? Component.literal(set.toString()) : name)
             .withStyle(ChatFormatting.DARK_AQUA));
+        // How many it takes. Without this the item names a goal and gives no way to know how far off
+        // it is, which is the question a player asks the moment they hold the first one. Read from the
+        // bundled teardown that teaches it, so the number shown is the number the recipe demands.
+        tooltip.accept(Component.translatable("tooltip.recompile.fragment_needed",
+                com.flatts.recompile.compat.BlueprintData.fragmentsFor(set))
+            .withStyle(ChatFormatting.DARK_GRAY));
     }
 }

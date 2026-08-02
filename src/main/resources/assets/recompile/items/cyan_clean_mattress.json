@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "recompile:item/cyan_clean_mattress",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": 1481884
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "#recompile:clean_mattresses",
+    "minecraft:cyan_dye"
+  ],
+  "result": {
+    "id": "recompile:cyan_clean_mattress"
+  }
+}

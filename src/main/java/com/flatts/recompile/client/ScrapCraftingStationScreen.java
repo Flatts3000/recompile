@@ -49,6 +49,14 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
     private static final int ROW_H = 20;
     /** Y offset (from the panel top) where the material shelf begins - below the title + summary. */
     private static final int SHELF_TOP = PANEL_PAD + 26;
+    /**
+     * Height held back below the last shelf row for the tail line ("+6 more", or "(empty)").
+     *
+     * <p>Two lines' worth, because that text wraps: the panel is 92 wide and "+6 more (scroll)" does
+     * not fit on one. Without the reserve the shelf filled every row to the bottom edge and the tail
+     * drew underneath the panel, over the world.
+     */
+    private static final int TAIL_H = 20;
     private static final int ICON = 16;
 
     /**
@@ -80,6 +88,17 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         int top = this.topPos;
         // The vanilla crafting table GUI on the left.
         graphics.blit(RenderPipelines.GUI_TEXTURED, CRAFTING_BG, left, top, 0.0F, 0.0F, CRAFT_W, CRAFT_H, 256, 256);
+
+        // Why the result slot is empty, when the reason is one the player can act on. Drawn beside the
+        // result rather than in a corner, because that is where they are already looking.
+        if (this.menu.needsBlueprint()) {
+            int line = top + 52;
+            for (net.minecraft.util.FormattedCharSequence part : this.font.split(
+                    Component.translatable("container.recompile.needs_blueprint"), 74)) {
+                graphics.text(this.font, part, left + 98, line, 0xFFD05050, false);
+                line += this.font.lineHeight;
+            }
+        }
 
         // The connected-storage panel on the right.
         int panelX = left + CRAFT_W;
@@ -182,7 +201,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
     }
 
     private int maxRows() {
-        return (CRAFT_H - SHELF_TOP - PANEL_PAD) / ROW_H;
+        return (CRAFT_H - SHELF_TOP - PANEL_PAD - TAIL_H) / ROW_H;
     }
 
     @Override

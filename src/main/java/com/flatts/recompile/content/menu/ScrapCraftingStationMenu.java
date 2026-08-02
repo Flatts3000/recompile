@@ -31,6 +31,7 @@ import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
+import com.flatts.recompile.network.FillGridPayload;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -70,6 +71,20 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     private static final int GRID_END = 10;
     private static final int INV_END = 46;
 
+    /**
+     * 1 when the grid matches a blueprint recipe the player cannot run, 0 otherwise.
+     *
+     * <p><b>The table used to say nothing at all.</b> An unreachable blueprint and a wrong arrangement
+     * produced the same empty result slot, so a player who had laid out a recipe correctly and left the
+     * sheet in a cabinet across the room had no way to tell which of the two had happened - and the
+     * transfer button will now happily fill that grid for them, making it likelier.
+     *
+     * <p>A DataSlot rather than a payload: it is one bit, and vanilla already syncs these on every menu
+     * change for free.
+     */
+    private final net.minecraft.world.inventory.DataSlot needsBlueprint =
+        net.minecraft.world.inventory.DataSlot.standalone();
+
     private final CraftingContainer craftSlots = new TransientCraftingContainer(this, 3, 3);
     private final ResultContainer resultSlots = new ResultContainer();
     private final ContainerLevelAccess access;
@@ -91,6 +106,7 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         this.level = level;
         this.pos = pos;
 
+        this.addDataSlot(this.needsBlueprint);
         this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 124, 35));
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
@@ -136,6 +152,7 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             if (assembled.isItemEnabled(level.enabledFeatures())) {
                 result = assembled;
             }
+            castMenu(menu).needsBlueprint.set(0);
         } else {
             // Blueprint recipes (#95), looked up only when nothing ordinary matched. This is the second
             // half of the gate and the half a Recipe cannot do itself: a recipe sees its own input and
@@ -145,7 +162,7 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             // The lookup lives HERE and nowhere else, which is what stops the system being bypassed.
             // A vanilla crafting table resolves RecipeType.CRAFTING and blueprint recipes are not of
             // that type, so it cannot see them at all - the gate needs no code on the vanilla side.
-            result = blueprintResult(level, player, input, tablePos);
+            result = blueprintResult(level, player, input, tablePos, castMenu(menu));
         }
         resultSlots.setItem(0, result);
         menu.setRemoteSlot(0, result);
@@ -162,7 +179,8 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
      * "you need the blueprint" gets said; the table just does not offer it.
      */
     private static ItemStack blueprintResult(Level level, Player player, CraftingInput input,
-            net.minecraft.core.BlockPos tablePos) {
+            net.minecraft.core.BlockPos tablePos, ScrapCraftingStationMenu menu) {
+        boolean matchedButLocked = false;
         for (RecipeHolder<BlueprintCraftingRecipe> holder : level.getServer().getRecipeManager()
                 .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
             BlueprintCraftingRecipe blueprint = holder.value();
@@ -170,11 +188,24 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
                 continue;
             }
             if (!BlueprintAccess.reachable(level, player, tablePos, blueprint.blueprint())) {
+                matchedButLocked = true;   // right arrangement, missing knowledge
                 continue;
             }
+            menu.needsBlueprint.set(0);
             return blueprint.assemble(input);
         }
+        menu.needsBlueprint.set(matchedButLocked ? 1 : 0);
         return ItemStack.EMPTY;
+    }
+
+    /** Whether the grid matches a blueprint recipe the player cannot currently run. */
+    public boolean needsBlueprint() {
+        return needsBlueprint.get() != 0;
+    }
+
+    /** The menu is always this type here; the static helper is copied from vanilla and takes the base. */
+    private static ScrapCraftingStationMenu castMenu(AbstractContainerMenu menu) {
+        return (ScrapCraftingStationMenu) menu;
     }
 
     @Override
@@ -285,6 +316,72 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
      * the network-wide count would make a right-click on a 300-item spread try to pull 150 out of a
      * single bin and quietly return whatever it had.
      */
+    /**
+     * Put one of each named item into the crafting grid, sourced from anywhere this table can reach.
+     *
+     * <p>Server side of JEI's transfer button (#95). The client decided the placements; this finds each
+     * item and moves it, preferring the <b>player's own inventory</b> before the network - taking from
+     * a shared barrel when the crafter is already carrying the item would quietly redistribute other
+     * people's storage on a server.
+     *
+     * <p><b>Anything already in the grid goes back first</b>, or a second transfer stacks a new recipe
+     * on top of the last one and produces a grid matching neither.
+     *
+     * <p>Best effort by design: a slot whose item cannot be found is left empty rather than the whole
+     * transfer being refused. The client checks availability before sending, so a gap here means the
+     * network changed underneath it, and half a grid the player can see and finish is better than an
+     * empty one with no explanation.
+     */
+    public void fillGrid(List<Integer> itemIds) {
+        if (level == null || level.isClientSide() || itemIds.size() != FillGridPayload.SLOTS) {
+            return;
+        }
+        // The payload handler proves the sender has THIS menu open; this proves the menu is still
+        // legitimate. A player who walked away, or whose table was broken, has a menu vanilla has not
+        // closed yet - and withdrawStack reaches into blocks in the world, so the window matters.
+        if (!stillValid(player)) {
+            return;
+        }
+        clearGridToPlayer();
+        for (int slot = 0; slot < FillGridPayload.SLOTS; slot++) {
+            int id = itemIds.get(slot);
+            if (id == FillGridPayload.EMPTY) {
+                continue;
+            }
+            Item item = Item.byId(id);
+            if (item == Items.AIR) {
+                continue;
+            }
+            ItemStack one = takeOne(item);
+            if (!one.isEmpty()) {
+                craftSlots.setItem(slot, one);
+            }
+        }
+        slotsChanged(craftSlots);
+    }
+
+    /** Return whatever is in the grid to the player, dropping what will not fit. */
+    private void clearGridToPlayer() {
+        for (int slot = 0; slot < craftSlots.getContainerSize(); slot++) {
+            ItemStack stack = craftSlots.removeItemNoUpdate(slot);
+            if (!stack.isEmpty() && !player.getInventory().add(stack)) {
+                player.drop(stack, false);
+            }
+        }
+    }
+
+    /** One of this item from the player's inventory, else from the connected network. */
+    private ItemStack takeOne(Item item) {
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (stack.is(item)) {
+                return stack.split(1);
+            }
+        }
+        ItemStack pulled = withdrawStack(item, ScrapPanelInteraction.Mode.ONE);
+        return pulled.isEmpty() ? ItemStack.EMPTY : pulled.split(1);
+    }
+
     private ItemStack withdrawStack(Item item, ScrapPanelInteraction.Mode mode) {
         int stackMax = new ItemStack(item).getMaxStackSize();
         List<BlockPos> members = ScrapNetwork.collect(level, pos);

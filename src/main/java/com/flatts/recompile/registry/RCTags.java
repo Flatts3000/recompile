@@ -215,6 +215,10 @@ public final class RCTags {
      * itself", so per-plant recipes would be ten copies of one sentence. It is also the extension point
      * a pack actually wants: add an item and the bay grows it.
      */
+    /** Every colour of Clean Mattress, so a recipe can take any of them (#95). */
+    public static final TagKey<Item> CLEAN_MATTRESSES = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "clean_mattresses"));
+
     public static final TagKey<Item> HYDROPONIC = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "hydroponic"));
 

@@ -1,6 +1,6 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:hydroponics_bay",
   "key": {
     "G": "minecraft:glass",
     "P": "recompile:copper_pipe",
@@ -12,6 +12,6 @@
     "GGG"
   ],
   "result": {
-    "id": "recompile:hydroponics_bay"
+    "item": "recompile:hydroponics_bay"
   }
 }

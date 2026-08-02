@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "recompile:item/light_gray_clean_mattress",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": 10329495
+      }
+    ]
+  }
+}

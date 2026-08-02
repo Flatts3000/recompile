@@ -111,8 +111,27 @@ public final class RCItems {
     public static final DeferredItem<net.minecraft.world.item.BlockItem> FILING_CABINET =
         ITEMS.registerSimpleBlockItem("filing_cabinet", RCBlocks.FILING_CABINET);
 
-    public static final DeferredItem<Item> CLEAN_MATTRESS =
-        ITEMS.registerItem("clean_mattress", Item::new);
+    /**
+     * The Clean Mattress, one item per dye colour (#95).
+     *
+     * <p><b>Sixteen items rather than one with a colour component</b>, the way wool is sixteen blocks
+     * rather than one dyed one. That is the shape every player already knows, and it buys three things
+     * a component could not: JEI lists each colour as its own item, the bed recipes become sixteen
+     * ordinary shaped recipes that a recipe viewer draws natively, and nothing has to match on a
+     * component - which no vanilla ingredient can do.
+     *
+     * <p>One texture between them, tinted per item by a {@code minecraft:constant} in the client item
+     * definition. Sixteen near-identical PNGs would be the same picture sixteen times.
+     */
+    public static final java.util.List<DeferredItem<Item>> CLEAN_MATTRESSES =
+        java.util.stream.Stream.of(net.minecraft.world.item.DyeColor.values())
+            .map(colour -> ITEMS.registerItem(colour.getName() + "_clean_mattress", Item::new))
+            .toList();
+
+    /** The Clean Mattress of one colour. */
+    public static Item cleanMattress(net.minecraft.world.item.DyeColor colour) {
+        return CLEAN_MATTRESSES.get(colour.getId()).get();
+    }
 
     public static final DeferredItem<Item> JUNK_SHOVEL = ITEMS.registerItem(
         "junk_shovel", props -> new Item(props.shovel(ToolMaterial.STONE, 1.5F, -3.0F)));
@@ -397,6 +416,9 @@ public final class RCItems {
      * mattress, the other find: you can carry one home and put it down instead of only feeding it
      * to the Workbench.
      */
+    public static final DeferredItem<BlockItem> BROKEN_HYDROPONICS_BAY =
+        ITEMS.registerSimpleBlockItem("broken_hydroponics_bay", RCBlocks.BROKEN_HYDROPONICS_BAY);
+
     public static final DeferredItem<BlockItem> WASHING_MACHINE =
         ITEMS.registerSimpleBlockItem("washing_machine", RCBlocks.WASHING_MACHINE);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */

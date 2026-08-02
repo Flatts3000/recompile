@@ -91,8 +91,9 @@ public class RecompileJeiPlugin implements IModPlugin {
      */
     static final RecipeType<AssemblyRecipe> ASSEMBLY =
         RecipeType.create(Recompile.MOD_ID, "assembly", AssemblyRecipe.class);
-    static final RecipeType<SalvageRecipe> BLUEPRINT_CRAFTING =
-        RecipeType.create(Recompile.MOD_ID, "blueprint_crafting", SalvageRecipe.class);
+    static final RecipeType<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe>
+        BLUEPRINT_CRAFTING = RecipeType.create(Recompile.MOD_ID, "blueprint_crafting",
+            com.flatts.recompile.content.recipe.BlueprintCraftingRecipe.class);
     static final RecipeType<SalvageRecipe> GROWING =
         RecipeType.create(Recompile.MOD_ID, "growing", SalvageRecipe.class);
 
@@ -128,9 +129,9 @@ public class RecompileJeiPlugin implements IModPlugin {
                 TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
-            new SalvageCategory(BLUEPRINT_CRAFTING,
+            new BlueprintCraftingCategory(BLUEPRINT_CRAFTING,
                 Component.translatable("jei.recompile.blueprint_crafting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get())), false, 4),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
             new SalvageCategory(GROWING, Component.translatable("jei.recompile.growing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true,
                 widest(SortingData.SEEDLING)));
@@ -224,24 +225,25 @@ public class RecompileJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(GROWING, growing);
 
-        // Blueprint recipes, read from the synced recipe manager so the list cannot drift from what
-        // the table will actually run. Empty before a world is joined, which never happens in practice.
-        List<SalvageRecipe> blueprinted = new ArrayList<>();
-        RecipeMap syncedBlueprints = RCSyncedRecipes.get();
-        if (syncedBlueprints != null) {
-            for (RecipeHolder<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> holder
-                    : syncedBlueprints.byType(
-                        com.flatts.recompile.registry.RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
-                var recipe = holder.value();
-                // The blueprint goes in the INPUT column beside the ingredients, because a player
-                // reading this needs to see that the sheet is part of what it takes. It is not
-                // consumed, which the info panel says - a recipe grid cannot express "and hold this".
-                blueprinted.add(new SalvageRecipe(
-                    com.flatts.recompile.content.item.BlueprintItem.of(
-                        RCItems.BLUEPRINT.get(), recipe.blueprint()),
-                    List.of(new SortingData.Weighted(
-                        new ItemStack(recipe.result().item(), recipe.result().count()), 1.0f))));
-            }
+        // Blueprint recipes, drawn as recipes rather than reduced to a blueprint-and-result row. The
+        // old category answered "what does this sheet make" and left "how do I make a Clean Mattress"
+        // unanswered anywhere in the game, which is the question a player is asking when they click an
+        // item in JEI.
+        //
+        // Read from the bundled FILES, not the recipe manager. Recipes are not client-synced in 26.1
+        // and JEI builds its categories on its own schedule, so a snapshot taken here can be empty -
+        // and an empty category is not an error, it is a recipe the player cannot find with nothing
+        // saying why. See RecipeFiles.
+        List<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> blueprinted =
+            new ArrayList<>();
+        for (com.flatts.recompile.compat.BlueprintData.Entry e
+                : com.flatts.recompile.compat.BlueprintData.all()) {
+            blueprinted.add(new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe(
+                e.blueprint(),
+                new net.minecraft.world.item.crafting.ShapedRecipePattern(
+                    e.width(), e.height(), e.ingredients(), java.util.Optional.empty()),
+                new com.flatts.recompile.content.recipe.BlueprintCraftingRecipe.Result(
+                    e.result(), e.count())));
         }
         registration.addRecipes(BLUEPRINT_CRAFTING, blueprinted);
 
@@ -267,33 +269,16 @@ public class RecompileJeiPlugin implements IModPlugin {
             // One slot per fragment rather than one stack of four, because a grid of four is what the
             // player will actually lay out and a "4" in the corner of one slot reads as optional.
             List<ItemStack> fragments = new ArrayList<>();
-            for (int i = 0; i < fragmentsFor(set); i++) {
+            for (int i = 0; i < com.flatts.recompile.compat.BlueprintData.fragmentsFor(set); i++) {
                 fragments.add(com.flatts.recompile.content.item.IdeaFragmentItem.of(
                     RCItems.IDEA_FRAGMENT.get(), set, 1));
             }
             examples.add(new AssemblyRecipe(fragments,
                 com.flatts.recompile.content.item.BlueprintItem.of(RCItems.BLUEPRINT.get(), set)));
         }
-        // One bed example per colour, because a single white one would leave a player who has dyed a
-        // mattress purple with no reason to believe it does anything.
-        for (net.minecraft.world.item.DyeColor colour : net.minecraft.world.item.DyeColor.values()) {
-            var bed = net.minecraft.core.registries.BuiltInRegistries.ITEM
-                .getOptional(Identifier.withDefaultNamespace(colour.getName() + "_bed")).orElse(null);
-            if (bed == null) {
-                continue;
-            }
-            ItemStack mattress = new ItemStack(RCItems.CLEAN_MATTRESS.get());
-            if (colour != net.minecraft.world.item.DyeColor.WHITE) {
-                mattress.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
-                    new net.minecraft.world.item.component.DyedItemColor(
-                        colour.getTextureDiffuseColor()));
-            }
-            examples.add(new AssemblyRecipe(List.of(mattress,
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
-                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)),
-                new ItemStack(bed)));
-        }
+        // The BEDS used to be here as worked examples too. They are sixteen ordinary shaped recipes
+        // now - one per coloured Clean Mattress - so JEI draws them itself, in a crafting grid, which
+        // is what a player expects when they click a bed. Nothing to duplicate here any more.
         registration.addRecipes(ASSEMBLY, examples);
 
         // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
@@ -344,7 +329,8 @@ public class RecompileJeiPlugin implements IModPlugin {
         info(registration, RCItems.BLUEPRINT.get(), "blueprint");
         info(registration, RCItems.IDEA_FRAGMENT.get(), "idea_fragment");
         info(registration, RCItems.FILING_CABINET.get(), "filing_cabinet");
-        info(registration, RCItems.CLEAN_MATTRESS.get(), "clean_mattress");
+        info(registration, RCItems.cleanMattress(net.minecraft.world.item.DyeColor.WHITE),
+            "clean_mattress");
 
         info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
         info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");
@@ -353,6 +339,44 @@ public class RecompileJeiPlugin implements IModPlugin {
     private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,
             String key) {
         registration.addIngredientInfo(item, Component.translatable("jei.recompile.info." + key));
+    }
+
+    /**
+     * The "+" button that fills the grid from your inventory.
+     *
+     * <p><b>Registered per category, and a category with no handler simply has no button.</b> Nothing
+     * warns you: the recipe renders, the transfer arrow is absent, and it reads as JEI deciding the
+     * recipe is not craftable. Blueprint recipes and fragment assembly are both crafted in this table's
+     * 3x3, so both get one.
+     *
+     * <p>Slot arithmetic comes from {@code ScrapCraftingStationMenu}'s own order: 0 is the result, 1
+     * through 9 are the grid, and the player's 36 follow. The result slot is deliberately outside the
+     * range - handing JEI a range that includes it would let a transfer overwrite what the table just
+     * made.
+     */
+    /**
+     * The "+" button that fills the grid.
+     *
+     * <p><b>A custom handler, not JEI's built-in one.</b> The built-in moves items between the open
+     * container's own slots, and this table's materials mostly are not in it - they are in the Scrap
+     * Barrel and Bins wired to it. With the stock handler a player whose every ingredient sat in the
+     * barrel beside them was told "Missing Items", which is the exact thing the connected-storage panel
+     * exists to stop being true.
+     *
+     * <p>Registered per category, and a category without a handler simply has no button - nothing warns
+     * you, the transfer arrow is just absent and it reads as JEI deciding the recipe is uncraftable. So
+     * every category this table can run gets one, vanilla crafting included.
+     */
+    @Override
+    public void registerRecipeTransferHandlers(
+            mezz.jei.api.registration.IRecipeTransferRegistration registration) {
+        var helper = registration.getTransferHelper();
+        registration.addRecipeTransferHandler(
+            new ScrapTableTransfer<>(BLUEPRINT_CRAFTING, helper), BLUEPRINT_CRAFTING);
+        registration.addRecipeTransferHandler(
+            new ScrapTableTransfer<>(ASSEMBLY, helper), ASSEMBLY);
+        registration.addRecipeTransferHandler(
+            new ScrapTableTransfer<>(RecipeTypes.CRAFTING, helper), RecipeTypes.CRAFTING);
     }
 
     @Override
@@ -398,24 +422,4 @@ public class RecompileJeiPlugin implements IModPlugin {
         return level == null ? null : level.registryAccess();
     }
 
-    /**
-     * How many fragments this blueprint costs, read off the teardown that teaches it.
-     *
-     * <p>The same lookup {@code FragmentAssemblyRecipe} does, so the example JEI shows and the recipe
-     * the table runs cannot disagree. A hardcoded 4 here would be right until the first pack retuned it.
-     */
-    private static int fragmentsFor(Identifier set) {
-        RecipeMap synced = RCSyncedRecipes.get();
-        if (synced != null) {
-            for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
-                    : synced.byType(com.flatts.recompile.registry.RCRecipeTypes.TEARDOWN.get())) {
-                for (var teach : holder.value().teaches()) {
-                    if (teach.recipe().equals(set)) {
-                        return teach.scrapsRequired();
-                    }
-                }
-            }
-        }
-        return com.flatts.recompile.content.recipe.FragmentAssemblyRecipe.DEFAULT_REQUIRED;
-    }
 }
