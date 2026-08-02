@@ -8,6 +8,10 @@ modId = "${mod_id}"
 version = "${mod_version}"
 displayName = "${mod_name}"
 displayURL = "https://github.com/Flatts3000/recompile"
+logoFile = "logo.png"
+# Pixel art, so no smoothing. The default filters the logo bilinearly and a 50x50 grid comes out
+# as a blur, which is the one way to make deliberate pixels look like a low-resolution accident.
+logoBlur = false
 authors = "${mod_authors}"
 description = '''${mod_description}'''
 
