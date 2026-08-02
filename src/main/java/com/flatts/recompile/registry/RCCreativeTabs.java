@@ -43,30 +43,56 @@ public final class RCCreativeTabs {
                 .title(Component.translatable("itemGroup.recompile"))
                 .icon(() -> RCItems.GARBAGE_BLOCK.get().getDefaultInstance())
                 .displayItems((parameters, output) -> {
-                    // Ordered by category so the tab (and JEI/EMI, which read this order) reads as a
-                    // coherent list rather than a phase-by-phase accretion. Groups run roughly in play
-                    // order: raw garbage -> the tools + materials it yields -> the stations and machines
-                    // that process it -> the reclamation ladder -> forage/food -> light -> shelter ->
-                    // collectibles. Items within a group are sorted by their own progression.
+                    // ORDER IS THE PRODUCT HERE. This list is what JEI and EMI show a player in their
+                    // ingredient panel, and it had drifted into a record of the order things were
+                    // built: roaches filed under Workstations, stone shards under Blueprints. Groups
+                    // run in play order, and items run in progression order inside each.
+                    //
+                    // every_mod_item_is_in_the_creative_tab keeps this honest. Nothing else would: an
+                    // item left out of the tab is invisible in creative and in JEI's panel while
+                    // working perfectly in every test.
 
-                    // --- Raw garbage: the source blocks you pick through ---
+                    // --- 1. Raw garbage: what you pick through ---
                     RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
                     output.accept(RCItems.STONE_RUBBLE.get());
                     output.accept(RCItems.REINFORCED_CONCRETE.get());
                     output.accept(RCItems.STEEL_I_BEAM.get());
 
-                    // --- Tools: the starter trio + the demolition sledgehammer ladder ---
+                    // --- 2. Bulky Waste finds: the furniture the dump hands you ---
+                    output.accept(RCItems.BULKY_WASTE.get());
+                    output.accept(RCItems.MATTRESS.get());
+                    output.accept(RCItems.WASHING_MACHINE.get());
+                    output.accept(RCItems.FILING_CABINET.get());
+                    output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
+
+                    // --- 3. Tools ---
                     RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
                     RCItems.SLEDGEHAMMERS.forEach(hammer -> output.accept(hammer.get()));
                     output.accept(RCItems.CUTTING_TORCH.get());
 
-                    // --- Base materials + the universal component ---
+                    // --- 4. Base materials, then the salvaged metals and stone they sit beside ---
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
                     output.accept(RCItems.REBAR.get());
                     output.accept(RCItems.STEEL_OFFCUT.get());
+                    RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
 
-                    // --- Blueprints (#95): one per set the mod ships, each already carrying its
-                    // component so a creative-tab pull is a working blueprint rather than a blank one.
+                    // --- 5. Machine parts: what every multiblock is assembled from ---
+                    output.accept(RCItems.MACHINE_FRAME.get());
+                    output.accept(RCItems.COPPER_PIPE.get());
+                    output.accept(RCItems.PUMP.get());
+                    output.accept(RCItems.WATER_TANK.get());
+                    output.accept(RCItems.SOLAR_PANEL.get());
+
+                    // --- 6. Workstations: sort, craft, store, smelt ---
+                    output.accept(RCItems.SCRAP_CRAFTING_TABLE.get());
+                    output.accept(RCItems.SORTING_TARP.get());
+                    output.accept(RCItems.RECOMPILE_WORKBENCH.get());
+                    output.accept(RCItems.SCRAP_BARREL.get());
+                    output.accept(RCItems.SCRAP_BIN.get());
+                    output.accept(RCItems.BURN_BARREL.get());
+                    output.accept(RCItems.CUPOLA_FURNACE.get());
+
+                    // --- 7. Knowledge (#95): fragments, the sheets they become, what they unlock ---
                     com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
                         output.accept(com.flatts.recompile.content.item.IdeaFragmentItem.of(
                             RCItems.IDEA_FRAGMENT.get(), set, 1)));
@@ -74,38 +100,19 @@ public final class RCCreativeTabs {
                         output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
                             RCItems.BLUEPRINT.get(), set)));
                     RCItems.CLEAN_MATTRESSES.forEach(m -> output.accept(m.get()));
-                    output.accept(RCItems.FILING_CABINET.get());
-                    RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
 
-                    // --- Workstations: place these to sort, craft, store, and smelt scrap ---
-                    output.accept(RCItems.SCRAP_CRAFTING_TABLE.get());
-                    output.accept(RCItems.SORTING_TARP.get());
-                    output.accept(RCItems.RECOMPILE_WORKBENCH.get());
-                    output.accept(RCItems.SCRAP_BARREL.get());
-                    output.accept(RCItems.SCRAP_BIN.get());
-                    output.accept(RCItems.BURN_BARREL.get());
+                    // --- 8. Power ---
                     output.accept(RCItems.BURNER_GENERATOR.get());
-                    output.accept(RCItems.RAW_ROACH.get());
-                    output.accept(RCItems.COOKED_ROACH.get());
-                    output.accept(RCItems.ROACH_SPAWN_EGG.get());
-                    output.accept(RCItems.CUPOLA_FURNACE.get());
 
-                    // --- Machines + multiblock parts: water, power, and the reclamation machines ---
-                    output.accept(RCItems.MACHINE_FRAME.get());
+                    // --- 9. Machines, in the order a base gets them ---
                     output.accept(RCItems.RAIN_COLLECTOR.get());
                     output.accept(RCItems.RAIN_COLLECTOR_FUNNEL.get());
-                    output.accept(RCItems.WATER_TANK.get());
-                    output.accept(RCItems.PUMP.get());
-                    output.accept(RCItems.COPPER_PIPE.get());
-                    output.accept(RCItems.SOLAR_PANEL.get());
                     output.accept(RCItems.GRASS_SPREADER.get());
                     output.accept(RCItems.COMPOST_HEAP.get());
                     output.accept(RCItems.TREE_NURSERY.get());
                     output.accept(RCItems.HYDROPONICS_BAY.get());
-                    output.accept(RCItems.WASHING_MACHINE.get());
-                    output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
 
-                    // --- Reclamation ladder: the consumables the machines make and take ---
+                    // --- 10. Reclamation consumables, rung by rung ---
                     output.accept(RCItems.FERTILIZER.get());
                     output.accept(RCItems.UNKNOWN_SEEDLING.get());
                     output.accept(RCItems.HERBIVORE_BAIT.get());
@@ -115,22 +122,24 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.RICH_CARNIVORE_BAIT.get());
                     output.accept(RCItems.RICH_OMNIVORE_BAIT.get());
 
-                    // --- Plants: the pioneer weeds ---
+                    // --- 11. Plants ---
                     output.accept(RCItems.WEEDGRASS.get());
                     output.accept(RCItems.FIREWEED.get());
 
-                    // --- Food: scavenged and foraged ---
+                    // --- 12. Food, scavenged and foraged. Roaches belong here, not under
+                    // Workstations, where they sat because that is where the code happened to go. ---
                     RCItems.FOOD.forEach(food -> output.accept(food.get()));
+                    output.accept(RCItems.RAW_ROACH.get());
+                    output.accept(RCItems.COOKED_ROACH.get());
 
-                    // --- Light + fuel ---
+                    // --- 13. Light and fuel ---
                     output.accept(RCItems.OILY_RAG.get());
                     output.accept(RCItems.SCRAP_TORCH.get());
 
-                    // --- Shelter: the bed and the deliberate building tier ---
-                    output.accept(RCItems.MATTRESS.get());
+                    // --- 14. Building blocks ---
                     RCItems.BUILDING_BLOCKS.forEach(block -> output.accept(block.get()));
 
-                    // --- Collectibles + display ---
+                    // --- 15. Collectibles and their stand ---
                     output.accept(RCItems.DISPLAY_PEDESTAL.get());
                     RCItems.COLLECTIBLES.forEach(collectible -> output.accept(collectible.get()));
                     output.accept(RCItems.PUZZLE_CUBE.get());
@@ -146,6 +155,9 @@ public final class RCCreativeTabs {
                     // These carry item_name as well, which is what the loot drop does and what the
                     // acceptance criteria ask for: the item in your hand says Mona Lisa.
                     RECOVERED_PAINTINGS.forEach(id -> output.accept(paintingStack(parameters, id)));
+
+                    // --- 16. Spawn eggs last, the way vanilla keeps them out of the way ---
+                    output.accept(RCItems.ROACH_SPAWN_EGG.get());
                 })
                 .build()
         );
