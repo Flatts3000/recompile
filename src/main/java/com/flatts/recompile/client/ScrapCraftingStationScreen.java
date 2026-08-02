@@ -89,6 +89,17 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         // The vanilla crafting table GUI on the left.
         graphics.blit(RenderPipelines.GUI_TEXTURED, CRAFTING_BG, left, top, 0.0F, 0.0F, CRAFT_W, CRAFT_H, 256, 256);
 
+        // Why the result slot is empty, when the reason is one the player can act on. Drawn beside the
+        // result rather than in a corner, because that is where they are already looking.
+        if (this.menu.needsBlueprint()) {
+            int line = top + 52;
+            for (net.minecraft.util.FormattedCharSequence part : this.font.split(
+                    Component.translatable("container.recompile.needs_blueprint"), 74)) {
+                graphics.text(this.font, part, left + 98, line, 0xFFD05050, false);
+                line += this.font.lineHeight;
+            }
+        }
+
         // The connected-storage panel on the right.
         int panelX = left + CRAFT_W;
         graphics.fill(panelX, top, panelX + PANEL_W, top + CRAFT_H, 0xFF3A3A3A);               // body
