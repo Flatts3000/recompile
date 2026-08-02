@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:clean_mattress",
+    "minecraft:pink_dye"
+  ],
+  "result": {
+    "id": "recompile:clean_mattress",
+    "components": {
+      "minecraft:dyed_color": 15961002
+    }
+  }
+}

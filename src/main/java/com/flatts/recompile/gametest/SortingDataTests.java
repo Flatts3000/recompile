@@ -52,9 +52,11 @@ final class SortingDataTests {
         // "adding a find is a loot-table line" invariant working: a second find needed no code.
         RCGameTests.test("sorting_data_reads_bulky_finds", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BULKY);
-            // Two finds plus the six recovered paintings (#99), which live in their own 7% pool.
-            helper.assertTrue(out.size() == 8,
-                "Bulky Waste should offer both finds and the six paintings, got " + out.size());
+            // The furniture finds plus the six recovered paintings (#99), which live in their own 7%
+            // pool. Counted rather than listed so a new find has to come here and be acknowledged: a
+            // magic 8 that silently became 9 would mean nobody noticed the table changed.
+            helper.assertTrue(out.size() == 9,
+                "Bulky Waste should offer the three finds and the six paintings, got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show
             // each at 1/6 = 16.7% instead of 0.07/6 = 1.2%. JEI's whole job in these categories is the
@@ -72,14 +74,23 @@ final class SortingDataTests {
             SortingData.Weighted appliance = out.stream()
                 .filter(w -> w.stack().is(RCItems.WASHING_MACHINE.get())).findFirst().orElse(null);
             helper.assertTrue(mattress != null, "the mattress must still be a Bulky Waste find");
+            SortingData.Weighted cabinet = out.stream()
+                .filter(w -> w.stack().is(RCItems.FILING_CABINET.get())).findFirst().orElse(null);
+            helper.assertTrue(cabinet != null,
+                "the Filing Cabinet must be a Bulky Waste find - it is not craftable, so if it leaves "
+                    + "this table there is no way to obtain one at all");
             helper.assertTrue(appliance != null,
                 "the broken appliance must be a Bulky Waste find - it is the only source of Motors");
 
-            float sum = mattress.chance() + appliance.chance();
+            // Every furniture find shares one pool, so their chances are a partition of it and must
+            // sum to 1. Summing only the two named finds is what made this fail when a third arrived:
+            // the assertion was really "these are ALL the finds", written as if it were about odds.
+            float sum = mattress.chance() + appliance.chance() + cabinet.chance();
             helper.assertTrue(Math.abs(sum - 1.0f) < 0.001f,
-                "one pool's chances should sum to ~1, got " + sum);
+                "the furniture pool's chances should sum to ~1, got " + sum);
             helper.assertTrue(mattress.chance() > appliance.chance(),
-                "the mattress is the commoner find (weight 3 vs 2)");
+                "the mattress stays the commonest find (weight 3 vs 2) - it is the teardown source the "
+                    + "whole blueprint loop runs on");
             helper.succeed();
         });
 

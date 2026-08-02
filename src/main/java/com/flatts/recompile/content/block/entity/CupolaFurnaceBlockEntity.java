@@ -63,6 +63,9 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
 
+    /** Vanilla's furnace layout: 0 input, 1 fuel, 2 result. */
+    private static final int RESULT_SLOT = 2;
+
     public CupolaFurnaceBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(RCBlockEntities.CUPOLA_FURNACE.get(), worldPosition, blockState, RecipeType.BLASTING);
     }
@@ -89,6 +92,33 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
             }
         }
         return super.canPlaceItemThroughFace(slot, stack, side);
+    }
+
+    /**
+     * Push finished metal into the connected Scrap Network.
+     *
+     * <p><b>The Cupola carries {@code #recompile:scrap_connectable} and did nothing with it.</b> Being
+     * in the tag made it part of a cluster for everything ELSE routing through - it could be walked
+     * across - while its own output sat in the result slot waiting to be collected by hand. A player
+     * who has wired a barrel to it reasonably expects the iron to arrive there, and the Burn Barrel two
+     * blocks away has done exactly that since P2.10.
+     *
+     * <p>Same shape as {@code BurnBarrelBlockEntity.drainOutput}, and for the same reason it bypasses
+     * the face gate: the network is the machine's own internal mover, not an external hopper. With no
+     * storage connected the output stays put and you take it through the GUI.
+     */
+    public void drainOutput(net.minecraft.server.level.ServerLevel level) {
+        ItemStack result = getItem(RESULT_SLOT);
+        if (result.isEmpty()) {
+            return;
+        }
+        ItemStack working = result.copy();
+        com.flatts.recompile.content.block.ScrapNetwork.insertFromMember(
+            level, worldPosition, working, false);
+        if (working.getCount() != result.getCount()) {
+            setItem(RESULT_SLOT, working.isEmpty() ? ItemStack.EMPTY : working);
+            setChanged();
+        }
     }
 
     @Override

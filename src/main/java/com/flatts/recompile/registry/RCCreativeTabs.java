@@ -64,6 +64,17 @@ public final class RCCreativeTabs {
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
                     output.accept(RCItems.REBAR.get());
                     output.accept(RCItems.STEEL_OFFCUT.get());
+
+                    // --- Blueprints (#95): one per set the mod ships, each already carrying its
+                    // component so a creative-tab pull is a working blueprint rather than a blank one.
+                    com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
+                        output.accept(com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                            RCItems.IDEA_FRAGMENT.get(), set, 1)));
+                    com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
+                        output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
+                            RCItems.BLUEPRINT.get(), set)));
+                    output.accept(RCItems.CLEAN_MATTRESS.get());
+                    output.accept(RCItems.FILING_CABINET.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
 
                     // --- Workstations: place these to sort, craft, store, and smelt scrap ---

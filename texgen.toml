@@ -1030,6 +1030,61 @@ size = 16
 match_hue = "steel_beam_web"
 prompt = "a single short offcut of a steel I-beam, one stubby chunk of grey steel at a three-quarter angle, the I-shaped cross-section reading as a bold clear notch on the near cut end, the piece large in frame and filling most of the icon, torch-cut edges, a touch of rust, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# Blueprints (#95): knowledge as an item. The sheet has to read as a document at 16px, which is
+# why the prompt asks for one strong blue field with a few white lines rather than a drawing -
+# any actual technical detail turns to noise at this size.
+[surface.blueprint]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a single folded blueprint sheet held at a slight angle, deep blue paper with a few bold white technical lines and one white circle on it, one corner creased and slightly torn, faded and salvaged, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# The Clean Mattress: the same object the Bulky Waste find is, minus the filth. It must read as
+# the mattress family - striped ticking, the same fabric the block faces use - or the payoff does
+# not connect to the thing it came from.
+#
+# First prompt rejected 2026-08-02, and both of its mistakes are worth not repeating. It asked for
+# the mattress ROLLED and seen END-ON "so the spiral reads clearly"; what came back read as a coil
+# of rope or a washer, because a spiral is not a silhouette anyone recognises at 16px. And it asked
+# for "pale blue-grey ... clean and fresh", which the model correctly rendered as almost white -
+# leaving nothing for the eye at icon size. Flat, angled, high-contrast stripes instead: the
+# stripes are the identity, so they have to survive the downsample.
+[surface.clean_mattress]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a single clean mattress lying flat, seen from above at a slight angle, off-white ticking fabric with three bold dark blue vertical pinstripes running across it, a row of four dark round button tufts down the middle, a crisp piped seam around the edge, no stains and no tears, strong contrast, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# The Filing Cabinet (#95): a Bulky Waste find that stores blueprints without bound and joins the
+# Scrap Network by placement. Office-green on purpose - the dump's palette is browns and greys, so a
+# block a player is meant to find and recognise across a base needs a colour nothing else here has.
+[surface.filing_cabinet]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front", "side", "top"]
+[surface.filing_cabinet.prompt]
+front = "a full-bleed Minecraft block face: the front of a battered olive-green metal filing cabinet, three stacked horizontal drawer fronts, each with one small pale handle and a little card label holder, chipped paint and rust streaks down the seams, muted, flat, no perspective, fills the whole tile"
+side = "a full-bleed Minecraft block face: the plain side panel of a battered olive-green metal filing cabinet, one faint vertical seam near the front edge, chipped paint and rust streaks, muted, flat, no perspective, fills the whole tile"
+top = "a full-bleed top-down Minecraft block face: the top of a battered olive-green metal filing cabinet, flat sheet metal with a raised rim, a few loose yellowed paper scraps and dust, chipped paint and rust, muted, flat, no perspective, fills the whole tile"
+
+# The Idea Fragment (#95). It is deliberately NOT a piece of the blueprint, and that is a reversal.
+#
+# It was first declared with reference = "blueprint" so the two would read as one document torn in
+# half. The owner rejected that on the art and gave the better reason (2026-08-02): a fragment is an
+# arbitrary idea, not an item. The blueprint is the finished artifact; the fragment is the half-formed
+# thought that precedes it, so it should look like nothing in particular. Colourless is the point -
+# next to the blue sheet it reads as "not yet a document" rather than "half a document".
+#
+# The shipped PNG was generated from the blueprint before that call, so a regeneration WILL come back
+# different. Promote re-finalises from art_src with no API call, so the shipped art is safe; only a
+# fresh generate would change it.
+[surface.idea_fragment]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small pale scrap of an idea, a torn shred of blank off-white paper with a few faint scribbled pencil marks on it, no colour and no printing, ragged tear edges, small in frame, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.cutting_torch]
 kind = "item"
 backend = "ai"

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:fiber_scrap",
+    "recompile:fiber_scrap"
+  ],
+  "result": {
+    "id": "minecraft:string",
+    "count": 1
+  }
+}

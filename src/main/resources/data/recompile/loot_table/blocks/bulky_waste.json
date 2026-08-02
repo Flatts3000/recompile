@@ -18,6 +18,11 @@
           "type": "minecraft:item",
           "name": "recompile:washing_machine",
           "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:filing_cabinet",
+          "weight": 2
         }
       ]
     },

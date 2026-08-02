@@ -77,6 +77,22 @@ public class RecompileJeiPlugin implements IModPlugin {
      * find on its own, and the four that matter most (cane, bamboo, cactus, berries) have no other source
      * in the world. Without this the bay is a machine with no discoverable inputs.
      */
+    /**
+     * Blueprint crafting (#95). Its own category for the reason every category here has one: JEI
+     * catalysts attach to a CATEGORY, never to a single recipe, so listing these under CRAFTING would
+     * advertise the Scrap Crafting Table as able to make a Clean Mattress with no blueprint at all -
+     * which is the one thing the whole system exists to prevent.
+     */
+    /**
+     * The mod's special crafting recipes (#95). Their own chapter because {@code isSpecial()} hides
+     * them from JEI entirely, and the first attempt - worked examples pushed into vanilla's Crafting
+     * category - buried them instead: seventeen entries spread over six pages of every crafting recipe
+     * in the game, with nothing saying these two are the steps the whole mechanic turns on.
+     */
+    static final RecipeType<AssemblyRecipe> ASSEMBLY =
+        RecipeType.create(Recompile.MOD_ID, "assembly", AssemblyRecipe.class);
+    static final RecipeType<SalvageRecipe> BLUEPRINT_CRAFTING =
+        RecipeType.create(Recompile.MOD_ID, "blueprint_crafting", SalvageRecipe.class);
     static final RecipeType<SalvageRecipe> GROWING =
         RecipeType.create(Recompile.MOD_ID, "growing", SalvageRecipe.class);
 
@@ -110,6 +126,11 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true,
                 TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
+            new SalvageCategory(BLUEPRINT_CRAFTING,
+                Component.translatable("jei.recompile.blueprint_crafting"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get())), false, 4),
             new SalvageCategory(GROWING, Component.translatable("jei.recompile.growing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true,
                 widest(SortingData.SEEDLING)));
@@ -203,6 +224,78 @@ public class RecompileJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(GROWING, growing);
 
+        // Blueprint recipes, read from the synced recipe manager so the list cannot drift from what
+        // the table will actually run. Empty before a world is joined, which never happens in practice.
+        List<SalvageRecipe> blueprinted = new ArrayList<>();
+        RecipeMap syncedBlueprints = RCSyncedRecipes.get();
+        if (syncedBlueprints != null) {
+            for (RecipeHolder<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> holder
+                    : syncedBlueprints.byType(
+                        com.flatts.recompile.registry.RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                var recipe = holder.value();
+                // The blueprint goes in the INPUT column beside the ingredients, because a player
+                // reading this needs to see that the sheet is part of what it takes. It is not
+                // consumed, which the info panel says - a recipe grid cannot express "and hold this".
+                blueprinted.add(new SalvageRecipe(
+                    com.flatts.recompile.content.item.BlueprintItem.of(
+                        RCItems.BLUEPRINT.get(), recipe.blueprint()),
+                    List.of(new SortingData.Weighted(
+                        new ItemStack(recipe.result().item(), recipe.result().count()), 1.0f))));
+            }
+        }
+        registration.addRecipes(BLUEPRINT_CRAFTING, blueprinted);
+
+        // THE TWO SPECIAL RECIPES, which JEI cannot see on its own.
+        //
+        // Fragments-into-a-blueprint and mattress-into-a-bed are CustomRecipes: isSpecial() is true, so
+        // the recipe book and JEI both skip them. They are also the two most important steps in the
+        // whole loop, so skipping them leaves a player with a pile of fragments and nothing telling them
+        // what to do with it.
+        //
+        // They get their OWN chapter, which is the second attempt. The first put worked examples into
+        // vanilla's Crafting category: technically listed, practically buried under six pages of every
+        // crafting recipe in the game. It also silently dropped the dye - the examples were built with
+        // Ingredient.of(stack.getItem()), which keeps the item and throws the components away, so the
+        // black bed showed a plain white mattress making it. Passing real ItemStacks through the
+        // category keeps what is on them.
+        //
+        // A worked example is not a duplicate of the logic; it is the one thing a recipe viewer can
+        // show for a recipe whose ingredients are a data component. The numbers come from the same
+        // places the real recipe reads them, so a retune moves both.
+        List<AssemblyRecipe> examples = new ArrayList<>();
+        for (Identifier set : com.flatts.recompile.content.item.BlueprintItem.shipped()) {
+            // One slot per fragment rather than one stack of four, because a grid of four is what the
+            // player will actually lay out and a "4" in the corner of one slot reads as optional.
+            List<ItemStack> fragments = new ArrayList<>();
+            for (int i = 0; i < fragmentsFor(set); i++) {
+                fragments.add(com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                    RCItems.IDEA_FRAGMENT.get(), set, 1));
+            }
+            examples.add(new AssemblyRecipe(fragments,
+                com.flatts.recompile.content.item.BlueprintItem.of(RCItems.BLUEPRINT.get(), set)));
+        }
+        // One bed example per colour, because a single white one would leave a player who has dyed a
+        // mattress purple with no reason to believe it does anything.
+        for (net.minecraft.world.item.DyeColor colour : net.minecraft.world.item.DyeColor.values()) {
+            var bed = net.minecraft.core.registries.BuiltInRegistries.ITEM
+                .getOptional(Identifier.withDefaultNamespace(colour.getName() + "_bed")).orElse(null);
+            if (bed == null) {
+                continue;
+            }
+            ItemStack mattress = new ItemStack(RCItems.CLEAN_MATTRESS.get());
+            if (colour != net.minecraft.world.item.DyeColor.WHITE) {
+                mattress.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
+                    new net.minecraft.world.item.component.DyedItemColor(
+                        colour.getTextureDiffuseColor()));
+            }
+            examples.add(new AssemblyRecipe(List.of(mattress,
+                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)),
+                new ItemStack(bed)));
+        }
+        registration.addRecipes(ASSEMBLY, examples);
+
         // Teardown reads the bundled recipe JSON (recipes are not client-synced in 26.1), so the
         // numbers stay single-sourced in the recipe file. Iterating every entry means a new find
         // shows up here for free, rather than needing this list edited too.
@@ -245,6 +338,14 @@ public class RecompileJeiPlugin implements IModPlugin {
 
         // The bay's two costs are water and power, and neither is visible in its category - a panel is
         // the only place to say that it needs both at once, and that the crop stays put.
+        // The blueprint mechanic has three items and no recipe expresses any of it: where a fragment
+        // comes from, that the sheet is held rather than spent, or that a cabinet has to be touching
+        // the table. All three are panels or they are nowhere.
+        info(registration, RCItems.BLUEPRINT.get(), "blueprint");
+        info(registration, RCItems.IDEA_FRAGMENT.get(), "idea_fragment");
+        info(registration, RCItems.FILING_CABINET.get(), "filing_cabinet");
+        info(registration, RCItems.CLEAN_MATTRESS.get(), "clean_mattress");
+
         info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
         info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");
     }
@@ -278,6 +379,10 @@ public class RecompileJeiPlugin implements IModPlugin {
         // got its own category.
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.BLASTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.HYDROPONICS_BAY.get()), GROWING);
+        // The station, not the sheet: what a player needs to know is WHERE these can be made, and the
+        // answer is the mod's own table and nowhere else.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_CRAFTING_TABLE.get()),
+            BLUEPRINT_CRAFTING);
     }
 
     /**
@@ -291,5 +396,26 @@ public class RecompileJeiPlugin implements IModPlugin {
             clientRegistries() {
         var level = net.minecraft.client.Minecraft.getInstance().level;
         return level == null ? null : level.registryAccess();
+    }
+
+    /**
+     * How many fragments this blueprint costs, read off the teardown that teaches it.
+     *
+     * <p>The same lookup {@code FragmentAssemblyRecipe} does, so the example JEI shows and the recipe
+     * the table runs cannot disagree. A hardcoded 4 here would be right until the first pack retuned it.
+     */
+    private static int fragmentsFor(Identifier set) {
+        RecipeMap synced = RCSyncedRecipes.get();
+        if (synced != null) {
+            for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
+                    : synced.byType(com.flatts.recompile.registry.RCRecipeTypes.TEARDOWN.get())) {
+                for (var teach : holder.value().teaches()) {
+                    if (teach.recipe().equals(set)) {
+                        return teach.scrapsRequired();
+                    }
+                }
+            }
+        }
+        return com.flatts.recompile.content.recipe.FragmentAssemblyRecipe.DEFAULT_REQUIRED;
     }
 }

@@ -1,0 +1,15 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:clean_mattress",
+  "ingredients": [
+    "#minecraft:wool",
+    "#minecraft:wool",
+    "#minecraft:wool",
+    "minecraft:string",
+    "minecraft:string",
+    "minecraft:string"
+  ],
+  "result": {
+    "item": "recompile:clean_mattress"
+  }
+}

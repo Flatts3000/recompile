@@ -1,5 +1,8 @@
 package com.flatts.recompile.content.block.entity;
 
+import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.item.IdeaFragmentItem;
+import com.flatts.recompile.content.recipe.BlueprintAccess;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import com.flatts.recompile.content.block.ScrapNetwork;
@@ -41,9 +44,10 @@ import org.jspecify.annotations.Nullable;
  * survives, and the block's {@code has_knife}/{@code has_prybar} blockstate booleans mirror
  * their presence so a baked multipart model can draw them - no BlockEntityRenderer (P1.11.6).
  *
- * <p>The breakdown itself is teardown-for-materials only: {@link TeardownRecipe#results()} +
- * rolled {@link TeardownRecipe#extras()} pop into the world; {@link TeardownRecipe#teaches()}
- * is ignored (the knowledge/function axis is unresolved and layers on later).
+ * <p>A breakdown yields materials AND knowledge: {@link TeardownRecipe#results()} plus rolled
+ * {@link TeardownRecipe#extras()} pop into the world, and {@link TeardownRecipe#teaches()} grants an
+ * Idea Fragment (#95). That last field was parsed and ignored from Phase 0 until 2026-08-02, and this
+ * javadoc said so in as many words - which is the only reason anyone noticed it was still dormant.
  */
 public class RecompileWorkbenchBlockEntity extends BlockEntity {
 
@@ -232,12 +236,75 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
                 output(level, new ItemStack(extra.item()));
             }
         }
+        teach(level, recipe, random, player);
         recipe.tool().ifPresent(required -> damageRackedTool(level, required));
         if (player == null || !player.getAbilities().instabuild) {
             held.shrink(1);
         }
         SoundType sound = level.getBlockState(worldPosition).getSoundType();
         level.playSound(null, worldPosition, sound.getBreakSound(), SoundSource.BLOCKS, 0.8F, 0.9F);
+    }
+
+    /**
+     * The knowledge half of a teardown (#95): a roll against {@code teaches} yields an Idea Fragment.
+     *
+     * <p><b>This field has been parsed and ignored since Phase 0.</b> The recipe schema shipped with
+     * {@code teaches} deliberately early, so the knowledge axis would never have to be retrofitted into
+     * a live format, and this class's own javadoc said in as many words that it "ignores teaches
+     * entirely. No knowledge." This is the method that finally reads it.
+     *
+     * <p><b>A fragment, not the blueprint.</b> {@code scraps_required} is what it always read as: how
+     * many fragments make the sheet. Nothing here counts anything - the count lives in the player's
+     * inventory as a stack, which is how this mod stores everything else, and the assembling is an
+     * ordinary crafting step rather than hidden state.
+     *
+     * <p>{@code chance} is the per-teardown odds of learning anything at all. A recipe that omits it
+     * teaches nothing, which is why every teardown in the mod except the mattress is unaffected by this.
+     */
+    private void teach(ServerLevel level, TeardownRecipe recipe, RandomSource random,
+            @Nullable Player player) {
+        if (!RCConfig.BLUEPRINTS_ENABLED.get()) {
+            return;
+        }
+        for (TeardownRecipe.TeachEntry entry : recipe.teaches()) {
+            if (entry.chance() <= 0.0F || random.nextFloat() >= entry.chance()) {
+                continue;
+            }
+            // Already worked out? Then there is nothing left to learn from this, and the fragments
+            // would be litter. Checked against the same two places the crafting table checks - the
+            // player's inventory and a Filing Cabinet in this bench's own scrap cluster - so "known"
+            // means one thing across the whole system rather than two things that nearly agree.
+            //
+            // Deliberately keyed on the finished BLUEPRINT and not on fragments already held. A player
+            // partway through should keep collecting; it is the sheet that ends it.
+            if (BlueprintAccess.reachable(level, player, worldPosition, entry.recipe())) {
+                continue;
+            }
+            fileOrDrop(level, IdeaFragmentItem.of(RCItems.IDEA_FRAGMENT.get(), entry.recipe(), 1));
+        }
+    }
+
+    /**
+     * A fragment goes to a connected Filing Cabinet if there is one, and only then to the usual places.
+     *
+     * <p>The bench is where fragments are made and the cabinet is where they turn into a blueprint, so
+     * a player who has built both should not have to ferry them four paces to do a step with one
+     * outcome. Tried before {@link #output}, because the generic scrap router would happily put them in
+     * a Scrap Bin - correct by its own rules and useless by these.
+     *
+     * <p>Deliberately NOT done by teaching the router about fragments. Its sinks are a bound Scrap Bin
+     * and the Scrap Barrel matched by block id, and that list is short on purpose - the Burn Barrel is
+     * a furnace whose slots a route must never land in. A special case for one item type belongs at the
+     * one bench that makes it, not in the thing every scrap block shares.
+     */
+    private void fileOrDrop(ServerLevel level, ItemStack fragment) {
+        for (BlockPos pos : ScrapNetwork.collect(level, worldPosition)) {
+            if (level.getBlockEntity(pos) instanceof FilingCabinetBlockEntity cabinet
+                    && cabinet.fileFrom(fragment)) {
+                return;
+            }
+        }
+        output(level, fragment);
     }
 
     /** A teardown output: into the connected scrap-network storage if any, else onto the table (P2.10). */

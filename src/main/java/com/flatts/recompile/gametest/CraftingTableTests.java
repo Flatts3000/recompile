@@ -5,6 +5,9 @@ import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.ScrapPanelInteraction;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -31,6 +34,37 @@ final class CraftingTableTests {
     }
 
     static void register() {
+        // The bed gate (blueprint POC): wool must no longer make a bed in ANY colour. Sheep are in the
+        // herbivore bait list, so wool is reachable at rung 5 - if even one of the sixteen colour
+        // recipes survives, the whole Clean Mattress path is decorative. Sixteen files is exactly the
+        // kind of surface where fifteen get done.
+        RCGameTests.test("wool_can_no_longer_make_a_bed", 20, helper -> {
+            var recipeMap = helper.getLevel().getServer().getRecipeManager().recipeMap();
+            List<String> alive = new ArrayList<>();
+            int checked = 0;
+            for (Item item : BuiltInRegistries.ITEM) {
+                Identifier id = BuiltInRegistries.ITEM.getKey(item);
+                if (!id.getPath().endsWith("_wool")) {
+                    continue;
+                }
+                checked++;
+                var input = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, java.util.List.of(
+                    new ItemStack(item), new ItemStack(item), new ItemStack(item),
+                    new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                    new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS),
+                    new ItemStack(net.minecraft.world.item.Items.OAK_PLANKS)));
+                recipeMap.getRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,
+                        input, helper.getLevel())
+                    .forEach(h -> alive.add(id.getPath() + " -> " + h.id()));
+            }
+            helper.assertTrue(checked >= 16,
+                "only " + checked + " wools were swept - discovery is broken, so this would pass "
+                    + "against a surviving recipe");
+            helper.assertTrue(alive.isEmpty(),
+                "wool still crafts a bed, so the Clean Mattress gate leaks: " + alive);
+            helper.succeed();
+        });
+
         // Regression: the table opened a plain vanilla CraftingMenu, whose stillValid hard-codes
         // Blocks.CRAFTING_TABLE. It failed on the first tick over a scrap table, so the menu shut
         // instantly and right-clicking looked inert. Assert the menu validates over its own block.

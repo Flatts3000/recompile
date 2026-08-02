@@ -11,6 +11,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import com.flatts.recompile.content.recipe.BlueprintAccess;
+import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
+import com.flatts.recompile.registry.RCRecipeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
@@ -117,7 +120,8 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     // ---------------- crafting (copied from vanilla CraftingMenu) ----------------
 
     private static void slotChangedCraftingGrid(AbstractContainerMenu menu, Level level, Player player,
-            CraftingContainer craftSlots, ResultContainer resultSlots, RecipeHolder<CraftingRecipe> last) {
+            CraftingContainer craftSlots, ResultContainer resultSlots, RecipeHolder<CraftingRecipe> last,
+            net.minecraft.core.BlockPos tablePos) {
         if (level.isClientSide() || !(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
@@ -132,6 +136,16 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             if (assembled.isItemEnabled(level.enabledFeatures())) {
                 result = assembled;
             }
+        } else {
+            // Blueprint recipes (#95), looked up only when nothing ordinary matched. This is the second
+            // half of the gate and the half a Recipe cannot do itself: a recipe sees its own input and
+            // nothing else, so whether the player can reach the sheet is a question only the table is
+            // in a position to ask.
+            //
+            // The lookup lives HERE and nowhere else, which is what stops the system being bypassed.
+            // A vanilla crafting table resolves RecipeType.CRAFTING and blueprint recipes are not of
+            // that type, so it cannot see them at all - the gate needs no code on the vanilla side.
+            result = blueprintResult(level, player, input, tablePos);
         }
         resultSlots.setItem(0, result);
         menu.setRemoteSlot(0, result);
@@ -139,10 +153,35 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, result));
     }
 
+    /**
+     * What a blueprint recipe would make here, or nothing.
+     *
+     * <p>Nothing is returned both when no blueprint recipe matches the grid AND when one matches but
+     * the sheet is out of reach - deliberately the same outcome, because a result slot that showed a
+     * ghost item you could not take would be worse than one that stays empty. The guidebook is where
+     * "you need the blueprint" gets said; the table just does not offer it.
+     */
+    private static ItemStack blueprintResult(Level level, Player player, CraftingInput input,
+            net.minecraft.core.BlockPos tablePos) {
+        for (RecipeHolder<BlueprintCraftingRecipe> holder : level.getServer().getRecipeManager()
+                .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+            BlueprintCraftingRecipe blueprint = holder.value();
+            if (!blueprint.matches(input, level)) {
+                continue;
+            }
+            if (!BlueprintAccess.reachable(level, player, tablePos, blueprint.blueprint())) {
+                continue;
+            }
+            return blueprint.assemble(input);
+        }
+        return ItemStack.EMPTY;
+    }
+
     @Override
     public void slotsChanged(Container container) {
         this.access.execute((lvl, blockPos) ->
-            slotChangedCraftingGrid(this, lvl, this.player, this.craftSlots, this.resultSlots, null));
+            slotChangedCraftingGrid(this, lvl, this.player, this.craftSlots, this.resultSlots, null,
+                blockPos));
     }
 
     @Override

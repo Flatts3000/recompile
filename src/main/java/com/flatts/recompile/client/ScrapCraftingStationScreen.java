@@ -86,12 +86,12 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         graphics.fill(panelX, top, panelX + PANEL_W, top + CRAFT_H, 0xFF3A3A3A);               // body
         graphics.fill(panelX, top, panelX + PANEL_W, top + 1, 0xFF202020);                     // top edge
         graphics.fill(panelX, top + CRAFT_H - 1, panelX + PANEL_W, top + CRAFT_H, 0xFF202020);  // bottom edge
-        graphics.text(this.font, Component.translatable("container.recompile.connected"),
+        wrapped(graphics, Component.translatable("container.recompile.connected"),
             panelX + PANEL_PAD, top + PANEL_PAD, 0xFFD0D0D0);
 
         ScrapNetworkContentsPayload contents = this.menu.contents();
         if (contents.binCount() == 0 && !contents.hasBarrel()) {
-            graphics.text(this.font, Component.translatable("container.recompile.not_connected"),
+            wrapped(graphics, Component.translatable("container.recompile.not_connected"),
                 panelX + PANEL_PAD, top + PANEL_PAD + 12, 0xFF808080);
             return;
         }
@@ -105,7 +105,8 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
             summary += (summary.isEmpty() ? "" : " ")
                 + Component.translatable("container.recompile.plus_barrel").getString();
         }
-        graphics.text(this.font, summary, panelX + PANEL_PAD, top + PANEL_PAD + 12, 0xFF9AA0A6, false);
+        wrapped(graphics, Component.literal(summary),
+            panelX + PANEL_PAD, top + PANEL_PAD + 12, 0xFF9AA0A6);
 
         // The material shelf: every item available across the network (bins + barrel), merged by item.
         // Click a row to withdraw (handled in mouseClicked); the hovered row lights up.
@@ -128,7 +129,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         }
         int tailY = top + SHELF_TOP + shown * ROW_H;
         if (materials.isEmpty()) {
-            graphics.text(this.font, Component.translatable("container.recompile.bins_empty"),
+            wrapped(graphics, Component.translatable("container.recompile.bins_empty"),
                 panelX + PANEL_PAD, tailY, 0xFF808080);
         } else {
             // How many are still BELOW the window, not how many the window omits. Counting the latter
@@ -136,9 +137,8 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
             // nothing - which is the same defect as the old dead arrow, just further along.
             int below = materials.size() - (this.scroll + shown);
             if (below > 0) {
-                graphics.text(this.font,
-                    Component.translatable("container.recompile.more_scroll", below).getString(),
-                    panelX + PANEL_PAD, tailY, 0xFF808080, false);
+                wrapped(graphics, Component.translatable("container.recompile.more_scroll", below),
+                    panelX + PANEL_PAD, tailY, 0xFF808080);
             }
         }
 
@@ -249,4 +249,23 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         }
         return super.mouseClicked(event, doubleClick);
     }
+
+    /**
+     * Draw panel prose inside the panel, wrapping rather than running off the edge.
+     *
+     * <p>The panel is {@value #PANEL_W} wide and every string here is written by hand or comes from a
+     * lang file, so none of them can be assumed short: "No storage connected" is nearly twice the
+     * usable width and was drawn straight through the panel's right edge and across the world behind
+     * it. A translation into a longer language would do the same to any of the others, which is why
+     * this wraps everything in the panel rather than only the one that was reported.
+     */
+    private void wrapped(GuiGraphicsExtractor graphics, Component text, int x, int y, int colour) {
+        int width = PANEL_W - PANEL_PAD * 2;
+        int line = y;
+        for (net.minecraft.util.FormattedCharSequence part : this.font.split(text, width)) {
+            graphics.text(this.font, part, x, line, colour, false);
+            line += this.font.lineHeight;
+        }
+    }
+
 }

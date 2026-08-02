@@ -5,11 +5,19 @@ import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.world.level.block.Block;
+import com.flatts.recompile.registry.RCTags;
+import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /**
  * GameTests for the Scrap Network (design P2.10): scrap blocks placed touching each other form one
@@ -31,6 +39,99 @@ final class ScrapNetworkTests {
 
     static void register() {
         // A drop routes into a bin already bound to its material.
+        // EVERY MEMBER OF THE TAG MUST HAVE A JOB, AND THE TAG IS NOT THE JOB.
+        //
+        // This is the test the Cupola Furnace needed and did not have. It carried
+        // #recompile:scrap_connectable from the day it shipped, which made it a stepping stone that
+        // other members' routes could cross - so every test here passed - while its own iron sat in
+        // its result slot forever. Being IN the network and PARTICIPATING in it are different things,
+        // and nothing anywhere checked the second one.
+        //
+        // The roles below are the contract. A block that joins the tag has to be named here and given
+        // one, which is a two-line change that forces the question "and what does it actually do?" to
+        // be answered rather than assumed.
+        RCGameTests.test("every_scrap_network_member_has_a_declared_role", 20, helper -> {
+            // SINK   - a route can end here (only two, deliberately; see ScrapNetwork)
+            // SOURCE - it pushes its own output into the network
+            // READER - it reads the cluster rather than moving anything
+            // RELAY  - it is a member only so a cluster can span it
+            Map<Block, String> roles = new LinkedHashMap<>();
+            roles.put(RCBlocks.SCRAP_BIN.get(), "SINK");
+            roles.put(RCBlocks.SCRAP_BARREL.get(), "SINK");
+            roles.put(RCBlocks.SORTING_TARP.get(), "SOURCE");
+            roles.put(RCBlocks.RECOMPILE_WORKBENCH.get(), "SOURCE");
+            roles.put(RCBlocks.BURN_BARREL.get(), "SOURCE");
+            roles.put(RCBlocks.CUPOLA_FURNACE.get(), "SOURCE");
+            roles.put(RCBlocks.SCRAP_CRAFTING_TABLE.get(), "READER");
+            roles.put(RCBlocks.FILING_CABINET.get(), "READER");
+
+            List<String> undeclared = new ArrayList<>();
+            int members = 0;
+            for (var holder : BuiltInRegistries.BLOCK.getTagOrEmpty(RCTags.SCRAP_CONNECTABLE)) {
+                members++;
+                if (!roles.containsKey(holder.value())) {
+                    undeclared.add(BuiltInRegistries.BLOCK.getKey(holder.value()).toString());
+                }
+            }
+            helper.assertTrue(members >= roles.size(),
+                "only " + members + " members were found in the tag - discovery is broken, so this "
+                    + "would pass against a block that joined it and did nothing");
+            helper.assertTrue(undeclared.isEmpty(),
+                "these blocks are in #recompile:scrap_connectable with no declared role. Being in the "
+                    + "tag is not a job: decide whether each is a SINK, a SOURCE, a READER or a RELAY, "
+                    + "add it here, and make sure the thing you decided actually happens - "
+                    + undeclared);
+
+            // And nothing claims a role it cannot have, which is the other direction of the same drift.
+            List<String> missing = new ArrayList<>();
+            for (Block block : roles.keySet()) {
+                if (!block.defaultBlockState().is(RCTags.SCRAP_CONNECTABLE)) {
+                    missing.add(BuiltInRegistries.BLOCK.getKey(block).toString());
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "these have a role here but are not in the tag, so they are in no cluster at all: "
+                    + missing);
+            helper.succeed();
+        });
+
+        // Every SOURCE must actually push. The role table above is a promise; this is the part that
+        // makes it one - each of these is a machine whose output would otherwise sit in a slot while
+        // the player waited for a barrel that was never going to fill.
+        RCGameTests.test("every_source_member_pushes_into_connected_storage", 60, helper -> {
+            BlockPos barrelPos = new BlockPos(0, 1, 0);
+            helper.setBlock(barrelPos, RCBlocks.SCRAP_BARREL.get());
+            var barrel = (net.minecraft.world.Container)
+                helper.getLevel().getBlockEntity(helper.absolutePos(barrelPos));
+
+            // The Burn Barrel and the Cupola both expose a drain; both are wired to their tickers.
+            BlockPos burnPos = new BlockPos(1, 1, 0);
+            helper.setBlock(burnPos, RCBlocks.BURN_BARREL.get());
+            var burn = (com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(burnPos));
+            burn.setItem(2, new ItemStack(Items.IRON_NUGGET, 2));
+            burn.drainOutput(helper.getLevel());
+            helper.assertTrue(burn.getItem(2).isEmpty(),
+                "the Burn Barrel must push its finished item into the connected barrel");
+
+            BlockPos cupolaPos = new BlockPos(2, 1, 0);
+            helper.setBlock(cupolaPos, RCBlocks.CUPOLA_FURNACE.get());
+            var cupola = (com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(cupolaPos));
+            cupola.setItem(2, new ItemStack(Items.IRON_INGOT, 2));
+            cupola.drainOutput(helper.getLevel());
+            helper.assertTrue(cupola.getItem(2).isEmpty(),
+                "and so must the Cupola - it went weeks in the tag without doing this");
+
+            int stored = 0;
+            for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
+                stored += barrel.getItem(slot).getCount();
+            }
+            helper.assertTrue(stored == 4,
+                "everything both sources pushed must be in the barrel; found " + stored);
+            helper.succeed();
+        });
+
         RCGameTests.test("scrap_network_routes_into_bound_bin", 20, helper -> {
             helper.setBlock(new BlockPos(1, 1, 1), RCBlocks.SORTING_TARP.get());
             ScrapBinBlockEntity bin = placeBin(helper, new BlockPos(2, 1, 1));

@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.FilingCabinetBlock;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
@@ -341,6 +342,20 @@ public final class RCBlocks {
      * so without this there is nowhere to put anything - which the Sorting Tarp makes
      * acute, since it sifts onto the ground. Metal, so it sounds and mines like one.
      */
+    /**
+     * The Filing Cabinet (#95): found in Bulky Waste, files blueprints, joins the Scrap Network by
+     * placement. Metal because it is an office cabinet, and noOcclusion is deliberately NOT set - it is
+     * a full cube, so a hole in the world is not on the table here.
+     */
+    public static final DeferredBlock<FilingCabinetBlock> FILING_CABINET = BLOCKS.registerBlock(
+        "filing_cabinet",
+        FilingCabinetBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GREEN)
+            .strength(1.6F)
+            .sound(SoundType.METAL)
+    );
+
     public static final DeferredBlock<ScrapBarrelBlock> SCRAP_BARREL = BLOCKS.registerBlock(
         "scrap_barrel",
         ScrapBarrelBlock::new,
