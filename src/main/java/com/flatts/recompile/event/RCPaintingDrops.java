@@ -6,6 +6,7 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.decoration.painting.Painting;
 import net.minecraft.world.entity.decoration.painting.PaintingVariant;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -56,7 +57,17 @@ public final class RCPaintingDrops {
      * waiting to mislabel an unrelated painting item. Server-thread only: both events fire there, so no
      * synchronisation is needed and adding some would imply otherwise.
      */
-    private static final Map<BlockPos, Pending> PENDING = new HashMap<>();
+    private static final Map<Site, Pending> PENDING = new HashMap<>();
+
+    /**
+     * Where a painting died: dimension AND position.
+     *
+     * <p>Position alone is not enough. Coordinates repeat across dimensions, so a painting broken at
+     * (0, 64, 0) in one and a bare painting item appearing at (0, 64, 0) in another during the same tick
+     * would hand the second the first one's artwork. The Nether and End are only config-locked here and
+     * other mods add dimensions, so "unreachable today" was not a safe thing to rely on.
+     */
+    private record Site(ResourceKey<Level> dimension, BlockPos pos) { }
 
     private record Pending(Holder<PaintingVariant> variant, long gameTime) { }
 
@@ -75,7 +86,7 @@ public final class RCPaintingDrops {
             .map(key -> Recompile.MOD_ID.equals(key.identifier().getNamespace()))
             .orElse(false);
         if (recovered) {
-            PENDING.put(painting.blockPosition(),
+            PENDING.put(new Site(event.getLevel().dimension(), painting.blockPosition()),
                 new Pending(variant, event.getLevel().getGameTime()));
         }
     }
@@ -93,7 +104,7 @@ public final class RCPaintingDrops {
             return;
         }
 
-        Pending pending = PENDING.remove(dropped.blockPosition());
+        Pending pending = PENDING.remove(new Site(level.dimension(), dropped.blockPosition()));
         if (pending == null || pending.gameTime() != level.getGameTime()) {
             // No recovered painting died here this tick, so this item is unrelated: a player dropped it,
             // or a vanilla painting was broken. Leave it exactly as vanilla made it.
