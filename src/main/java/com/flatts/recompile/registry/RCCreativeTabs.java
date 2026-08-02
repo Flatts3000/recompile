@@ -103,6 +103,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.TREE_NURSERY.get());
                     output.accept(RCItems.HYDROPONICS_BAY.get());
                     output.accept(RCItems.WASHING_MACHINE.get());
+                    output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
 
                     // --- Reclamation ladder: the consumables the machines make and take ---
                     output.accept(RCItems.FERTILIZER.get());

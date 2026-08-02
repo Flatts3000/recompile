@@ -397,6 +397,9 @@ public final class RCItems {
      * mattress, the other find: you can carry one home and put it down instead of only feeding it
      * to the Workbench.
      */
+    public static final DeferredItem<BlockItem> BROKEN_HYDROPONICS_BAY =
+        ITEMS.registerSimpleBlockItem("broken_hydroponics_bay", RCBlocks.BROKEN_HYDROPONICS_BAY);
+
     public static final DeferredItem<BlockItem> WASHING_MACHINE =
         ITEMS.registerSimpleBlockItem("washing_machine", RCBlocks.WASHING_MACHINE);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */

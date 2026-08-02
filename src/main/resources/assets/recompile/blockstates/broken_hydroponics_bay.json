@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "recompile:block/broken_hydroponics_bay"
+    }
+  }
+}

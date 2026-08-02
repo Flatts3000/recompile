@@ -55,8 +55,8 @@ final class SortingDataTests {
             // The furniture finds plus the six recovered paintings (#99), which live in their own 7%
             // pool. Counted rather than listed so a new find has to come here and be acknowledged: a
             // magic 8 that silently became 9 would mean nobody noticed the table changed.
-            helper.assertTrue(out.size() == 9,
-                "Bulky Waste should offer the three finds and the six paintings, got " + out.size());
+            helper.assertTrue(out.size() == 10,
+                "Bulky Waste should offer the four finds and the six paintings, got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show
             // each at 1/6 = 16.7% instead of 0.07/6 = 1.2%. JEI's whole job in these categories is the
@@ -85,7 +85,15 @@ final class SortingDataTests {
             // Every furniture find shares one pool, so their chances are a partition of it and must
             // sum to 1. Summing only the two named finds is what made this fail when a third arrived:
             // the assertion was really "these are ALL the finds", written as if it were about odds.
-            float sum = mattress.chance() + appliance.chance() + cabinet.chance();
+            SortingData.Weighted brokenBay = out.stream()
+                .filter(w -> w.stack().is(RCItems.BROKEN_HYDROPONICS_BAY.get())).findFirst()
+                .orElse(null);
+            helper.assertTrue(brokenBay != null,
+                "the Broken Hydroponics Bay must be a Bulky Waste find - it is the only thing that "
+                    + "teaches the working bay, so if it leaves this table the machine is unbuildable");
+
+            float sum = mattress.chance() + appliance.chance() + cabinet.chance()
+                + brokenBay.chance();
             helper.assertTrue(Math.abs(sum - 1.0f) < 0.001f,
                 "the furniture pool's chances should sum to ~1, got " + sum);
             helper.assertTrue(mattress.chance() > appliance.chance(),

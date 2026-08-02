@@ -390,5 +390,7 @@
   "jei.recompile.assembly": "Assembly",
   "biome.recompile.household_sprawl": "Household Sprawl",
   "biome.recompile.demolition_yard": "Demolition Yard",
-  "blueprint.recompile.hydroponics_bay": "Hydroponics Bay"
+  "blueprint.recompile.hydroponics_bay": "Hydroponics Bay",
+  "block.recompile.broken_hydroponics_bay": "Broken Hydroponics Bay",
+  "jei.recompile.info.broken_hydroponics_bay": "Pried out of Bulky Waste. It will never work again, but it is the only thing that shows you how one was built: tear it down at the Recompile Workbench for its parts, its scrap and an Idea Fragment. Six fragments make the Hydroponics Bay blueprint."
 }

@@ -1,0 +1,38 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:broken_hydroponics_bay",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 140,
+  "results": [
+    {
+      "item": "recompile:copper_pipe",
+      "count": 1
+    },
+    {
+      "item": "recompile:glass_shards",
+      "count": 2
+    },
+    {
+      "item": "recompile:scrap_metal",
+      "count": 2
+    }
+  ],
+  "extras": [
+    {
+      "item": "recompile:e_scrap",
+      "chance": 0.5
+    },
+    {
+      "item": "recompile:plastic_scrap",
+      "chance": 0.35
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:hydroponics_bay",
+      "chance": 1.0,
+      "scraps_required": 6
+    }
+  ]
+}
