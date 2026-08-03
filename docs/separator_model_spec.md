@@ -37,6 +37,8 @@ that has to say "this grinds things". Everything else is housing.
 | Running state | A **blockstate boolean** swapping to the animated variant | Exactly what the Burner Generator's `LIT` already does |
 | Tooth geometry | **Texture, not geometry**, in the chamber floor | See the rotation problem below |
 | Output | **A chute on one side**, both streams from the same opening | Two openings would imply sorting the player does not control |
+| Chamber tiling | **One tile, repeated across all three cells.** Not a continuous strip | A shredder chamber genuinely is repetitive, the footprint is not confirmed yet, and a positional mural would have to be re-authored the moment it changes |
+| Emissive when running | **No** | A shredder does not glow. Sparks are particles; emission would read as a furnace |
 
 ## 2. The constraint that makes this hard
 
@@ -121,6 +123,27 @@ Three consequences for the surfaces:
   those, and remember that a value tuned against one neighbour is wrong the moment that neighbour is
   regenerated.
 
+### One chamber tile, not three
+
+**Decided 2026-08-03.** The chamber is a single 16px tile repeated across all three cells, rather than
+three tiles that continue across the width.
+
+The continuous version looks better in a mockup and is the wrong long-term choice:
+
+- **A shredder chamber really is repetitive.** The same tooth profile repeats along the shaft in the
+  reference. Repetition here is accurate rather than a compromise, which is not true of, say, a mural.
+- **It would lock the footprint.** 3x2x2 is explicitly a proposal, and step 1 of the build order is to
+  look at it in-world and decide. Art authored to span three cells has to be redrawn the moment that
+  becomes two or four. One tile does not care.
+- **The chamber is the surface that will be regenerated most**, being the one the machine is judged on.
+  One tile is one review cycle; three that must stay aligned is three, plus an alignment check.
+- **There is no precedent for position-dependent art here.** `garbage_block` uses `variants = 3` chosen
+  randomly by the blockstate, never by position.
+
+If repetition reads badly at step 1, the escape hatch is a left/middle/right set - but only **after** the
+footprint is settled, so the art is not authored against a guess. Random variants are not the answer for
+a machine: manufactured parts are identical by definition, and varying them would look like damage.
+
 ### The surface list
 
 Five surfaces, once the footprint is confirmed:
@@ -150,10 +173,9 @@ Steps 1 and 3 are the ones that can fail. Both are cheap to try and cheap to aba
 ## Open
 
 - Footprint confirmation. 3x2x2 is a proposal, not a measurement.
-- Whether the chamber is one animated tile repeated across three cells, or three tiles that continue
-  across the width. The second looks better and costs three times as much.
-- Whether the running state also changes the chamber's emissive-ness, or whether that is overreach.
-- Frame count and `frametime` for the animation, which is a look-at-it decision.
+- Frame count and `frametime`, which is a look-at-it decision. **Start at 4 to 8 frames on `frametime`
+  2 or 3** and adjust: rotation has to read as continuous, and vanilla's slow cycles (prismarine sits at
+  300) are tuned for shimmer rather than for motion.
 
 ## What this spec does not cover
 

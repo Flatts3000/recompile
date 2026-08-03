@@ -38,6 +38,9 @@ both the real economics and a gate that cannot be cheesed.
 | Mechanical Waste | **A fourth `SortableBlock`**, generated in the demolition yard beside Stone Rubble | The yard already generates piles; no new region needed |
 | What the pile sorts into | **Industrial scrap variants, never gems** | The pile is the found half and is picked through like any other sortable block; the gem is the refined half |
 | How many variants | **Several, one per gem** | One shared scrap would put every gem on a single difficulty curve, and redstone being the hard gate is a decision |
+| Variants are | **Distinct items**, not blockstate variants of one scrap | Not a preference. Each variant feeds a different Separator recipe, and a recipe keys on an item; variants of one item would need a data component to tell them apart, which is worse in every way |
+| Scrap Network feed | **No.** Hand-dropped and hopper-fed only | The machine's identity is that it is physical. A network feed would make it two things at once, and a hopper above already provides automation |
+| Mechanical Waste tool gate | **None. Bare hand**, matching Stone Rubble | Rubble sits beside it and needs no tool; a gate the adjacent block does not have is an inconsistency the player has to learn for nothing. The yard is already gated by travel |
 | The machine | **One Separator**: an industrial grinder in the IE Crusher mould. Drop material in the top, materials fall out the bottom | A separator is the actual machine in real recycling. "Teardown on steroids" |
 | Power | **Forge Energy** | Second FE consumer after the Hydroponics Bay; the tier already exists |
 | GUI | **None** | The interaction is a world interaction, so the no-new-machine-screen rule holds untouched |
@@ -186,11 +189,7 @@ not be reachable, and that is by design rather than an oversight.
 
 - The Separator's footprint, and how many **distinct cell types** it needs. The second number is the art
   budget.
-- Whether the Scrap Network should feed the Separator as well as hand-dropping, or whether that muddies a
-  deliberately physical machine.
-- Whether Mechanical Waste piles need a tool gate, the way rubble and bales do, and which tool.
 - Final scrap variant names.
 - All ratios and weights, which join #36.
-- Whether the intermediates are distinct items or blockstate variants of one Industrial Scrap item.
 - What each grinder recipe returns as recovered scrap, and in what ratio to the raw material.
 
