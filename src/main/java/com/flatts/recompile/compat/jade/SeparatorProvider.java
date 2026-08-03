@@ -43,7 +43,15 @@ public enum SeparatorProvider implements IBlockComponentProvider {
         } else if (stored <= 0) {
             tooltip.add(Component.translatable("jade.recompile.separator_no_power"));
         } else {
-            tooltip.add(Component.translatable("jade.recompile.separator_no_feed"));
+            int have = data.getIntOr("have", 0);
+            int need = data.getIntOr("need", 0);
+            if (need > 0) {
+                // The near-miss line. "Nothing in the chamber" was a lie when seven of sixteen were
+                // sitting there, and the count is the one thing a player has to act on here.
+                tooltip.add(Component.translatable("jade.recompile.separator_needs_more", have, need));
+            } else {
+                tooltip.add(Component.translatable("jade.recompile.separator_no_feed"));
+            }
         }
     }
 

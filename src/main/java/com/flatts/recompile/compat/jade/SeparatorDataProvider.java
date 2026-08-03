@@ -29,6 +29,8 @@ public enum SeparatorDataProvider implements IServerDataProvider<BlockAccessor> 
             data.putInt("capacity", separator.battery().getCapacityAsInt());
             data.putInt("progress", separator.progress());
             data.putInt("goal", separator.goal());
+            data.putInt("have", separator.feedHave());
+            data.putInt("need", separator.feedNeed());
         }
     }
 

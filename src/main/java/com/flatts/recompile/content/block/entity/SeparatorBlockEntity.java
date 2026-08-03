@@ -59,6 +59,15 @@ public class SeparatorBlockEntity extends BlockEntity {
     private int progress;
     /** The matched recipe's tick target, so Jade can show a percentage rather than a raw count. */
     private int goal;
+    /**
+     * The best partial match in the mouth: how much is there, and how much the recipe wants.
+     *
+     * <p>Exists because "nothing in the chamber" is a lie when seven of the sixteen it needs are
+     * sitting there in plain sight. The count IS the mechanic of this tier, so a machine that will not
+     * say which number it is waiting for has hidden the only thing the player has to act on.
+     */
+    private int feedHave;
+    private int feedNeed;
 
     public SeparatorBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.SEPARATOR.get(), pos, state);
@@ -75,6 +84,16 @@ public class SeparatorBlockEntity extends BlockEntity {
     /** Ticks the current run needs, or 0 when nothing is being ground. */
     public int goal() {
         return goal;
+    }
+
+    /** How much of a partially-satisfied recipe's input is in the mouth. 0 when there is no partial. */
+    public int feedHave() {
+        return feedHave;
+    }
+
+    /** How much that recipe wants. 0 when nothing in the mouth matches anything. */
+    public int feedNeed() {
+        return feedNeed;
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, SeparatorBlockEntity be) {
@@ -137,6 +156,8 @@ public class SeparatorBlockEntity extends BlockEntity {
         if (above.isEmpty()) {
             return null;
         }
+        feedHave = 0;
+        feedNeed = 0;
         for (RecipeHolder<SeparatingRecipe> holder
                 : level.recipeAccess().recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
             SeparatingRecipe recipe = holder.value();
@@ -152,7 +173,14 @@ public class SeparatorBlockEntity extends BlockEntity {
             }
             if (have >= recipe.count()) {
                 collected.addAll(matching);
+                feedHave = 0;
+                feedNeed = 0;
                 return holder;
+            }
+            // Remember the closest near-miss, so the tooltip can name the number being waited on.
+            if (have > 0 && (feedNeed == 0 || recipe.count() - have < feedNeed - feedHave)) {
+                feedHave = have;
+                feedNeed = recipe.count();
             }
         }
         return null;

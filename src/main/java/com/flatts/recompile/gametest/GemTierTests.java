@@ -269,7 +269,7 @@ final class GemTierTests {
     private static void buildAround(GameTestHelper helper, BlockPos core) {
         for (int x = 0; x < 3; x++) {
             helper.setBlock(core.offset(x, 1, 0), RCBlocks.STEEL_I_BEAM.get());
-            helper.setBlock(core.offset(x, 1, 1), RCBlocks.MACHINE_FRAME.get());
+            helper.setBlock(core.offset(x, 1, 1), RCBlocks.STEEL_I_BEAM.get());
             helper.setBlock(core.offset(x, 0, 1), RCBlocks.MACHINE_FRAME.get());
         }
         helper.setBlock(core.offset(1, 0, 0), RCBlocks.MACHINE_FRAME.get());

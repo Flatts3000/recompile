@@ -185,9 +185,14 @@ in front of a core that will not form.
 
 | Cells | Component placed | Formed block |
 |---|---|---|
-| 3 chamber | **Steel I-Beam** x3 | `separator_chamber` |
-| 6 housing | **Machine Frame** x6 | `separator_housing` |
+| 6 chamber | **Steel I-Beam** x6 | `separator_chamber` |
+| 3 housing | **Machine Frame** x3 | `separator_housing` |
 | 2 chute | **Machine Frame** x2 | `separator_chute` |
+
+**The whole top is the chamber, and that was a fix rather than the first design.** The mouth was
+originally the front row only, with housing behind it. Housing looks exactly like a lid, so material
+dropped on the back half was silently refused by a surface that appeared to be the opening. A machine
+whose mouth is half decoration is a trap that no tooltip repairs.
 
 Machine Frame is the established multiblock component (the Compost Heap takes seven). Steel is the
 yard's own material and a shredder's cutters are steel, so the chamber costing steel ties the machine to

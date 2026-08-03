@@ -99,8 +99,8 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
      * core's facing everywhere else.
      *
      * <pre>
-     *   y=1   chamber chamber chamber      (front row: where material goes in)
-     *         housing housing housing      (back row)
+     *   y=1   chamber chamber chamber      (the WHOLE top is the mouth)
+     *         chamber chamber chamber
      *   y=0   CORE    chute   chute        (front row: where material comes out)
      *         housing housing housing      (back row)
      * </pre>
@@ -112,11 +112,13 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         Block frame = RCBlocks.MACHINE_FRAME.get();
 
         for (int x = 0; x < 3; x++) {
-            // Top front: the chamber. Steel, because a shredder's cutters are steel and the yard's
-            // own material ties the machine to the region it stands in.
+            // THE WHOLE TOP IS THE CHAMBER. It was the front row only, and the back row was housing -
+            // which looks exactly like a lid, so material dropped on the back half was silently
+            // refused by a surface that appeared to be the opening. A machine whose mouth is half
+            // decoration is a trap, and no tooltip fixes it. Steel, because a shredder's cutters are
+            // steel and the yard's own material ties the machine to the region it stands in.
             cells.add(new Multiblock.Cell(new Vec3i(x, 1, 0), beam, RCBlocks.SEPARATOR_CHAMBER.get()));
-            // Top back and bottom back: housing.
-            cells.add(new Multiblock.Cell(new Vec3i(x, 1, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+            cells.add(new Multiblock.Cell(new Vec3i(x, 1, 1), beam, RCBlocks.SEPARATOR_CHAMBER.get()));
             cells.add(new Multiblock.Cell(new Vec3i(x, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
         }
         // Bottom front, beside the core: the chute. Same component as the housing, a different formed
@@ -126,7 +128,7 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         return new Multiblock(List.copyOf(cells));
     }
 
-    /** The three chamber cells, in world space. */
+    /** All six chamber cells, in world space. The entire top of the machine. */
     public static List<BlockPos> chamberCells(Level level, BlockPos core) {
         List<BlockPos> out = new ArrayList<>();
         if (!(level.getBlockState(core).getBlock() instanceof SeparatorCoreBlock block)) {
@@ -134,7 +136,9 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         }
         Rotation rotation = block.rotationFor(level.getBlockState(core));
         for (int x = 0; x < 3; x++) {
-            out.add(core.offset(Multiblock.rotate(new Vec3i(x, 1, 0), rotation)));
+            for (int z = 0; z < 2; z++) {
+                out.add(core.offset(Multiblock.rotate(new Vec3i(x, 1, z), rotation)));
+            }
         }
         return out;
     }
