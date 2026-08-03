@@ -420,9 +420,14 @@ public class SeparatorBlockEntity extends BlockEntity {
         input.child("energy").ifPresent(battery::deserialize);
         progress = input.getIntOr("progress", 0);
         goal = input.getIntOr("goal", 0);
-        queue.clear();
-        for (int slot = 0; slot < QUEUE_SLOTS; slot++) {
-            queue.add(ItemStack.EMPTY);
+        // Reset IN PLACE. NonNullList.withSize is fixed-size, so clear() and add() both throw - and the
+        // throw aborts the whole of loadAdditional, which took the stored energy down with the queue.
+        // The machine came back from a reload empty and cold, and the only sign was one line in a log.
+        // Reset IN PLACE. NonNullList.withSize is fixed-size, so clear() and add() both throw - and the
+        // throw aborts the whole of loadAdditional, which took the stored energy down with it. The
+        // machine came back from a reload empty and cold, and the only sign was one line in a log.
+        for (int slot = 0; slot < queue.size(); slot++) {
+            queue.set(slot, ItemStack.EMPTY);
         }
         ContainerHelper.loadAllItems(input, queue);
     }

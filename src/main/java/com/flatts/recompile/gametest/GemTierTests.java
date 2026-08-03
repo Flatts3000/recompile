@@ -391,6 +391,54 @@ final class GemTierTests {
             });
         });
 
+        // A SAVE/LOAD ROUND TRIP, which is the one thing every other test here misses. All of them run
+        // inside a single session, so the machine's serialization was never exercised at all - and the
+        // first version of the queue threw on load, which aborted loadAdditional and took the stored
+        // ENERGY down with it. The machine came back from a world reload empty and cold, and the only
+        // sign anywhere was one line in a log nobody reads unless something else is already wrong.
+        //
+        // saveCustomOnly/loadCustomOnly is exactly the pair a chunk save uses, so this fails for the
+        // same reason a real reload would.
+        RCGameTests.test("a_separator_survives_being_saved_and_reloaded", 40, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(2_500, tx);
+                tx.commit();
+            }
+            drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 5));
+
+            helper.runAfterDelay(5, () -> {
+                int energy = be.battery().getAmountAsInt();
+                int queued = be.queuedCount();
+                helper.assertTrue(queued == 5, "expected 5 queued before the save, got " + queued);
+                helper.assertTrue(energy > 0, "expected stored energy before the save");
+
+                var registries = helper.getLevel().registryAccess();
+                var tag = be.saveCustomOnly(registries);
+                var reloaded = new com.flatts.recompile.content.block.entity.SeparatorBlockEntity(
+                    helper.absolutePos(core),
+                    helper.getLevel().getBlockState(helper.absolutePos(core)));
+                reloaded.loadCustomOnly(net.minecraft.world.level.storage.TagValueInput.create(
+                    net.minecraft.util.ProblemReporter.DISCARDING, registries, tag));
+
+                helper.assertTrue(reloaded.queuedCount() == queued,
+                    "the queue did not survive a save: " + queued + " went in, "
+                        + reloaded.queuedCount() + " came back");
+                helper.assertTrue(reloaded.battery().getAmountAsInt() == energy,
+                    "the stored energy did not survive a save: " + energy + " went in, "
+                        + reloaded.battery().getAmountAsInt() + " came back. A throw anywhere in "
+                        + "loadAdditional abandons everything after it, so this is how a queue bug "
+                        + "eats the battery");
+                helper.succeed();
+            });
+        });
+
         // ONE chute, and everything leaves through it (owner, 2026-08-03). A recipe that produces a
         // result plus several byproducts is exactly the moment someone would reach for a second
         // opening, and the whole point is that catching a machine's output never needs more than one
