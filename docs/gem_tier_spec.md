@@ -130,6 +130,13 @@ final:
 Putting the luck in the pull stream rather than in the Separator keeps the Separator deterministic and
 therefore tunable.
 
+**The bulk of the table is Scrap Metal, not E-Scrap** (owner, 2026-08-03). Both were in it at first,
+and E-Scrap was the wrong call twice over: it is *household* waste, so it read as the dump's material
+turning up in a demolition yard, and it is the one entry the Separator has no recipe for - so the
+commonest thing a player pulled from a machine pile was the one thing that machine refuses. Its weight
+folded into Scrap Metal rather than being deleted, which holds the table at 222 and leaves every gem
+rate exactly where it was tuned. E-Scrap keeps its household source, so nothing is orphaned.
+
 **This phase goes first because gold left.** The earlier draft opened with the Separator proven against
 gold from E-Scrap, which needed no new worldgen at all; with gold at #120 there is no longer any input
 for the machine to chew on until this exists. The ordering is now the natural one, at the cost of the

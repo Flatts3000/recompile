@@ -22,12 +22,7 @@
         {
           "type": "minecraft:item",
           "name": "recompile:scrap_metal",
-          "weight": 90
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:e_scrap",
-          "weight": 40
+          "weight": 130
         },
         {
           "type": "minecraft:item",
