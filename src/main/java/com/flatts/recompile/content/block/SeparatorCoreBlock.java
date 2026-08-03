@@ -171,18 +171,33 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
     }
 
     /**
-     * Stamp each bay cell with which quarter of the grinder it shows, and which way the machine faces.
+     * Tell every formed cell which way the machine faces, and each bay cell which quarter it shows.
      *
-     * <p>This is what makes four blocks read as <b>one</b> opening. The quadrant textures are quarters
-     * of a single image, so the teeth run continuously across the seams instead of the pattern
-     * restarting at every block edge. The quadrant comes from the <b>unrotated</b> offset and the facing
-     * is applied as a model rotation, which is exactly equivalent to turning the whole image.
+     * <p><b>Facing is not decoration here.</b> The chute's mouth is cut into one side of its model, so
+     * a cell that does not know the machine's direction points its opening whichever way the model was
+     * authored - correct by accident on a north-facing Separator and wrong on the other three.
+     *
+     * <p>The quadrant is what makes four blocks read as <b>one</b> opening: the textures are quarters of
+     * a single image, so the teeth run continuously across the seams instead of the pattern restarting
+     * at every block edge. It is taken from the <b>unrotated</b> offset and the facing is applied as a
+     * model rotation, which is exactly equivalent to turning the whole image.
      */
     @Override
     protected void onFormed(Level level, BlockPos pos) {
         BlockState coreState = level.getBlockState(pos);
         Rotation rotation = rotationFor(coreState);
         Direction facing = coreState.getValue(FACING);
+
+        // Every cell, from the blueprint, so a new cell type cannot be forgotten here.
+        for (Multiblock.Cell cell : blueprint().cells()) {
+            BlockPos at = pos.offset(Multiblock.rotate(cell.offset(), rotation));
+            BlockState state = level.getBlockState(at);
+            if (state.hasProperty(SeparatorPartBlock.FACING)) {
+                level.setBlock(at, state.setValue(SeparatorPartBlock.FACING, facing),
+                    Block.UPDATE_ALL);
+            }
+        }
+
         for (int x = BAY_X; x < BAY_X + 2; x++) {
             for (int z = 0; z < 2; z++) {
                 BlockPos cell = pos.offset(Multiblock.rotate(new Vec3i(x, 1, z), rotation));

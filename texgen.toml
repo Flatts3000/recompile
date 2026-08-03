@@ -1246,14 +1246,30 @@ prompt = "a few sharp faceted quartz crystal fragments, angular broken shards wi
 # runs - four cell types generated independently come back as four different blues.
 #
 # The procedural blocks below are the offline fallback, not the intent - the same posture as the
-# material blocks at the top of this file. The chamber's animated variant is still a STATIC frame: an
-# animation is a 16x(16*N) strip and neither backend makes one, so the .mcmeta is a hand step.
+# material blocks at the top of this file.
+#
+# THE RUNNING STATE IS DERIVED, NOT GENERATED, and is deliberately not a surface here. It had its own
+# prompt once and came back a different material with sparks in it, so starting the machine read as the
+# block being replaced rather than as it spinning up - the exact drift the reference key exists to stop,
+# except reference cannot help because this one is an animation. The frames are the IDLE art rolled
+# horizontally (scratchpad running.py, folded into the repo if it is ever needed again): the disc gaps
+# are rows of constant y, so rolling in x leaves them put and slides only the teeth, and a full 16px
+# roll wraps seamlessly. Frame 0 IS the idle texture, byte for byte. Regenerate separator_chamber and
+# the running strip follows for free; write a prompt for it and they drift again.
+#
+# The four separator_bay_N pairs are likewise cut from separator_chamber, not generated: the 2x2 bay is
+# one 32px image quartered so the teeth run across the block seams.
 
+# THIS TEXTURE TILES SIX TIMES ACROSS THE MACHINE'S FLANK, which is the whole difficulty. The first
+# prompt asked for chipping "at the edges" and bolt heads, and got back a panel with a hard border and a
+# bold centred motif - so a 3x2 wall of them read as a grid of stamped medallions rather than one machine
+# body. A surface that repeats has to be borderless, off-centre and low contrast; the interest belongs in
+# grain and staining, not in a feature the eye can count. Vanilla does exactly this with iron_block.
 [surface.separator_housing]
 kind = "block"
 backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of a painted industrial machine panel, faded factory blue chipped back to rusted steel at the edges, bolt heads, worn and greasy"
+prompt = "a full-bleed Minecraft block texture of bare industrial sheet steel painted faded factory blue, the paint thin and unevenly worn to rust in irregular off-centre patches, fine grain and grease staining spread evenly across the whole square, absolutely no border or frame or outline, no centred shape, no symmetry, no bolts, no panel seams, uniform low-contrast surface that repeats seamlessly like iron_block"
 vanilla_ref = "block/iron_block"
 [surface.separator_housing.procedural]
 style = "rubble"
@@ -1268,16 +1284,6 @@ vanilla_ref = "block/iron_block"
 [surface.separator_chamber.procedural]
 style = "rubble"
 palette = ["#2a2a2e", "#1e1e22", "#4a4a50", "#3a3a3e", "#5c5a58", "#141416", "#6b5f52"]
-
-[surface.separator_chamber_running]
-kind = "block"
-backend = "ai"
-size = 16
-prompt = "a full-bleed top-down Minecraft block face of a shredder cutting chamber mid-spin: a blurred repeating comb of dark steel teeth, sparks and metal dust"
-vanilla_ref = "block/iron_block"
-[surface.separator_chamber_running.procedural]
-style = "rubble"
-palette = ["#3a3238", "#2a2226", "#5a4a44", "#c87a3a", "#4a3a36", "#1a1618", "#8a6a4a"]
 
 [surface.separator_chute]
 kind = "block"

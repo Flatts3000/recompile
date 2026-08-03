@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
       "model": "recompile:block/separator_housing"
+    },
+    "facing=east": {
+      "model": "recompile:block/separator_housing",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "recompile:block/separator_housing",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "recompile:block/separator_housing",
+      "y": 270
     }
   }
 }
