@@ -177,29 +177,7 @@ though it lives at #120, because the guard is cheaper to write once than to reme
 existing `no_smelting_recipe_turns_a_mod_item_into_iron`, written after #91 for exactly this class of
 bug. Scoped to teardown; the Separator's own recipes are the sanctioned route.
 
-## Phase 4 - obsidian, if it is wanted
-
-**Ships:** possibly nothing.
-
-**The waste-output question is already answered** by Phase 2: the grinder returns ordinary recovered
-scrap alongside the raw material, so there is no novel waste item to find a home for and no clutter risk.
-Slag as its own material is **not needed for this tier to work**.
-
-What remains is a separate and optional question. `material_economy.md` records **obsidian as "not found,
-made only (melt slag/glass), Slag furnace"** and a **slag field** as a planned later region. If obsidian
-is wanted here, slag has to exist as a distinct material to melt, which means inventing the thing Phase 2
-just made unnecessary.
-
-Two reasons to leave it alone for now:
-
-- **It may cross the line this spec draws.** "Refine, do not make" was decided the same day, and melting
-  slag into obsidian is closer to synthesis than to refining.
-- **The slag field is already a planned region.** Slag arriving there, with fluorite and oily scrap and
-  its own identity, is a better home than bolting it onto a grinder that does not need it.
-
-**Default: cut slag from this tier.** Revisit with the slag field.
-
-## Phase 5 - the surrounding work
+## Phase 4 - the surrounding work
 
 **Ships:** the tier is discoverable.
 
@@ -218,10 +196,14 @@ moved to #120.
 **Redstone is the real gate and it should feel like one.** It is the automation tier, and it is the last
 thing in this progression that is genuinely scarce.
 
-One thing the tier does **not** complete: **enchanting needs obsidian, diamond and lapis.** This spec
-delivers diamond and lapis. Obsidian is unbuilt and sits behind the slag question in Phase 4, so the
-headline payoff of the whole gem tier is not reachable until that is decided. Worth knowing before the
-tier is announced as finished.
+**Obsidian and slag are out of scope** (owner, 2026-08-02). Neither is part of this tier. The grinder
+returning ordinary recovered scrap removes any need for slag here, and `material_economy.md` already
+queues a **slag field** region where slag, fluorite and oily scrap belong together.
+
+That leaves one thing worth stating plainly, because it will otherwise be assumed: **this tier does not
+complete enchanting.** An enchanting table needs obsidian, diamond and lapis. This spec delivers diamond
+and lapis; obsidian is elsewhere and unbuilt. So the gem tier can ship complete and enchanting will still
+not be reachable, and that is by design rather than an oversight.
 
 ## Open
 
@@ -234,4 +216,4 @@ tier is announced as finished.
 - All ratios and weights, which join #36.
 - Whether the intermediates are distinct items or blockstate variants of one Industrial Scrap item.
 - What each grinder recipe returns as recovered scrap, and in what ratio to the raw material.
-- Obsidian and slag, per Phase 4. Default is to leave both to the slag field.
+
