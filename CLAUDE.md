@@ -136,6 +136,15 @@ Blocks with `variants = N` get randomized variants from the **blockstate JSON, n
 
 JEI and Jade are `runtimeOnly` viewers **plus** `compileOnly` APIs (`jei-...-neoforge-api`; the Jade jar bundles `snownee.jade.api`). The plugins live in `com.flatts.recompile.compat.{jei,jade}` and load **only when the viewer mod is present** - `@JeiPlugin` / `@WailaPlugin` are never referenced otherwise, so the mod ships and runs without either.
 
+- **A viewer must not list an uncraftable multiblock part** (owner, 2026-08-03). A formed cell exists
+  only once a machine is assembled - a Separator Chamber, a Compost Cage - so offering it in JEI teaches
+  nothing except that the mod has a block with no recipe. `MultiblockParts` derives the set
+  **structurally**: a cell whose formed block differs from the component you place is a transformation,
+  so the formed half is unobtainable, while a cell where the two are the *same* block is a part you craft
+  and place by hand (the Rain Collector Funnel, the Solar Panel) and stays visible. Nothing names a block,
+  so a new machine is covered the day it is written. They stay in the creative tab, where a builder wants
+  them; only JEI hides them. `jei_hides_only_multiblock_parts_that_cannot_be_crafted` asserts both
+  directions.
 - **JEI** (`RecompileJeiPlugin`): one reusable `SalvageCategory`, three instances - **Sorting** (what a garbage block / bag / bale yields), **Cutting** (knife: can, mattress), **Prying** (prybar: Bulky Waste). Plus the Scrap Crafting Table as the crafting **station** (the world has no vanilla table). Anything that is a real crafting recipe already shows automatically - only the non-recipe mechanics need a category.
 - **Jade** (`RecompileJadePlugin`): a tool-hint provider ("Salvage with a Prybar/Scrap Knife" / "Sort by hand"), a sort-progress provider ("Sorted N/max", reading the otherwise-hidden `sorted` blockstate), and a generator provider (stored FE, current rate, burn remaining). **A provider that needs server-side state is two classes** - an `IServerDataProvider` plus an `IBlockComponentProvider` - because since MC 1.21.6 one class may not be both. `SortableBlock` exposes public read-only accessors (`sortTool`/`sortedCount`/`sortCrumbleAt`) so the compat package can see its protected internals.
 - **`SortingData`** parses the **bundled loot JSON** (not a live table) because loot tables are not client-synced - so the categories work in singleplayer and on servers. It is server-safe and the only JEI/Jade logic a GameTest can cover (`SortingDataTests`); the categories/providers are thin renderers verified in `runClient`. Datapack-retuned pulls are not reflected in JEI - accepted, revisit if needed.

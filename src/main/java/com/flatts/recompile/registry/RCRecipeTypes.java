@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
+import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -58,6 +59,19 @@ public final class RCRecipeTypes {
         RECIPE_SERIALIZERS.register("fragment_assembly",
             () -> new RecipeSerializer<>(FragmentAssemblyRecipe.CODEC,
                 FragmentAssemblyRecipe.STREAM_CODEC));
+
+    /**
+     * {@code recompile:separating} (docs/gem_tier_spec.md): many inputs into one raw material plus
+     * recovered scrap. A type of its own rather than a teardown with a different station, because
+     * teardown is one-in and public API - see {@link SeparatingRecipe} for the full argument.
+     */
+    public static final Supplier<RecipeType<SeparatingRecipe>> SEPARATING =
+        RECIPE_TYPES.register("separating", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "separating")));
+
+    public static final Supplier<RecipeSerializer<SeparatingRecipe>> SEPARATING_SERIALIZER =
+        RECIPE_SERIALIZERS.register("separating",
+            () -> new RecipeSerializer<>(SeparatingRecipe.CODEC, SeparatingRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

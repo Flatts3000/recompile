@@ -1,0 +1,118 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "recompile:block/separator_housing",
+    "down": "recompile:block/separator_housing",
+    "up": "recompile:block/separator_housing",
+    "north": "recompile:block/separator_housing",
+    "south": "recompile:block/separator_skin_south_11",
+    "west": "recompile:block/separator_housing",
+    "east": "recompile:block/separator_skin_east_11",
+    "floor": "recompile:block/separator_bay_3"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        13,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#down",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#floor"
+        },
+        "north": {
+          "texture": "#north",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#south",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#west",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#east",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "from": [
+        14,
+        13,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        14
+      ],
+      "faces": {
+        "up": {
+          "texture": "#up"
+        },
+        "down": {
+          "texture": "#down"
+        },
+        "north": {
+          "texture": "#north"
+        },
+        "south": {
+          "texture": "#south"
+        },
+        "west": {
+          "texture": "#west"
+        },
+        "east": {
+          "texture": "#east",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        13,
+        14
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#up"
+        },
+        "down": {
+          "texture": "#down"
+        },
+        "north": {
+          "texture": "#north"
+        },
+        "south": {
+          "texture": "#south",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#west"
+        },
+        "east": {
+          "texture": "#east"
+        }
+      }
+    }
+  ]
+}

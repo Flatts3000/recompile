@@ -1,6 +1,7 @@
 package com.flatts.recompile.compat.jei;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.compat.MultiblockParts;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.compat.TeardownData;
 import com.flatts.recompile.registry.RCItems;
@@ -89,6 +90,13 @@ public class RecompileJeiPlugin implements IModPlugin {
      * category - buried them instead: seventeen entries spread over six pages of every crafting recipe
      * in the game, with nothing saying these two are the steps the whole mechanic turns on.
      */
+    /**
+     * The gem tier's grinder (docs/gem_tier_spec.md). Deterministic, so the odds column is off - a
+     * separator splits a feed rather than rolling on it, and a "100%" beside every row would be noise.
+     */
+    static final RecipeType<SalvageRecipe> SEPARATING =
+        RecipeType.create(Recompile.MOD_ID, "separating", SalvageRecipe.class);
+
     static final RecipeType<AssemblyRecipe> ASSEMBLY =
         RecipeType.create(Recompile.MOD_ID, "assembly", AssemblyRecipe.class);
     static final RecipeType<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe>
@@ -127,6 +135,10 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true,
                 TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new SalvageCategory(SEPARATING, Component.translatable("jei.recompile.separating"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SEPARATOR.get())), false,
+                com.flatts.recompile.compat.SeparatingData.all().stream()
+                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
             new BlueprintCraftingCategory(BLUEPRINT_CRAFTING,
@@ -292,6 +304,18 @@ public class RecompileJeiPlugin implements IModPlugin {
             registration.addRecipes(TEARDOWN, teardowns);
         }
 
+        // Separating, from the bundled recipe JSON for the same reason teardown is: the manager is
+        // empty when JEI asks. The input stack carries its real count, because "sixteen scrap for one
+        // diamond" IS the tier and a row showing one item would describe a different machine.
+        List<SalvageRecipe> separating = new ArrayList<>();
+        for (com.flatts.recompile.compat.SeparatingData.Entry entry
+                : com.flatts.recompile.compat.SeparatingData.all()) {
+            separating.add(new SalvageRecipe(entry.input(), entry.outputs()));
+        }
+        if (!separating.isEmpty()) {
+            registration.addRecipes(SEPARATING, separating);
+        }
+
         // Machines only, not their parts. A crafted core says nothing about the tower it needs, and
         // JEI is where a player goes looking. The parts already have recipes here, and the appliance
         // already has a teardown entry, so a panel on those would only restate what JEI shows.
@@ -393,6 +417,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUTTING_TORCH.get()), TORCH_CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SEPARATOR.get()), SEPARATING);
         // The Burn Barrel is NOT a general smelting station - it burns refuse only, so it is the catalyst
         // for its own category, which lists exactly what it takes.
         registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), BURNING);
@@ -407,6 +432,27 @@ public class RecompileJeiPlugin implements IModPlugin {
         // answer is the mod's own table and nowhere else.
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_CRAFTING_TABLE.get()),
             BLUEPRINT_CRAFTING);
+    }
+
+    /**
+     * Take the uncraftable multiblock parts back out of JEI's item list.
+     *
+     * <p><b>The rule: a viewer must not list a part the player can never hold</b> (owner, 2026-08-03).
+     * A formed cell - a Separator Chamber, a Compost Cage - only exists once a machine is assembled, so
+     * showing it teaches nothing except that the mod has a block with no recipe. {@link MultiblockParts}
+     * derives the set from the blueprints rather than naming blocks, so this covers a machine written
+     * next year without anyone remembering this file exists.
+     *
+     * <p>Done at runtime rather than by hiding the items themselves: they stay in the creative tab,
+     * where a builder legitimately wants them.
+     */
+    @Override
+    public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime runtime) {
+        List<ItemStack> hidden = MultiblockParts.hiddenStacks();
+        if (!hidden.isEmpty()) {
+            runtime.getIngredientManager().removeIngredientsAtRuntime(
+                mezz.jei.api.constants.VanillaTypes.ITEM_STACK, hidden);
+        }
     }
 
     /**

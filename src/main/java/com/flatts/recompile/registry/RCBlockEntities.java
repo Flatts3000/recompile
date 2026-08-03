@@ -6,6 +6,7 @@ import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
 import com.flatts.recompile.content.block.entity.DisplayPedestalBlockEntity;
+import com.flatts.recompile.content.block.entity.SeparatorBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
@@ -130,6 +131,12 @@ public final class RCBlockEntities {
             "hydroponics_bay",
             () -> new BlockEntityType<>(HydroponicsBayBlockEntity::new, RCBlocks.HYDROPONICS_BAY.get()));
 
+    /** The Separator's power buffer and grind progress (docs/gem_tier_spec.md). No item storage. */
+    public static final Supplier<BlockEntityType<SeparatorBlockEntity>> SEPARATOR =
+        BLOCK_ENTITIES.register(
+            "separator",
+            () -> new BlockEntityType<>(SeparatorBlockEntity::new, RCBlocks.SEPARATOR.get()));
+
     private RCBlockEntities() {
         // utility class
     }
@@ -159,6 +166,17 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Energy.BLOCK,
             HYDROPONICS_BAY.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
+        // The Separator takes power and nothing else. INSERT-only, like the Bay: it is a consumer.
+        // Deliberately NO item capability and no Container, so no pipe can connect and no hopper can
+        // reach in. It still automates, because the machine REACHES OUT at both ends: it swallows what
+        // lands in its bay and drains a container standing on it, and it pushes finished material into
+        // whatever is parked at the chute. Reaching out and being reached into are different doors, and
+        // only the second one is shut.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            SEPARATOR.get(),
             (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
 
         event.registerBlockEntity(

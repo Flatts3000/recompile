@@ -1,6 +1,6 @@
 # The gem tier - spec (issue #119)
 
-**Status: design locked 2026-08-02, not built.** How this world reaches diamond, redstone, amethyst
+**Status: BUILT 2026-08-03** (branch `feat/gem-tier`), phases 1 to 4. How this world reaches diamond, redstone, amethyst
 and lapis. **Gold was split out to #120** and is not part of this spec. Every decision below was made
 in the 2026-08-02 design session; what remains is build order, art, and the numbers, which join the
 pre-beta balance pass (#36).
@@ -130,6 +130,13 @@ final:
 Putting the luck in the pull stream rather than in the Separator keeps the Separator deterministic and
 therefore tunable.
 
+**The bulk of the table is Scrap Metal, not E-Scrap** (owner, 2026-08-03). Both were in it at first,
+and E-Scrap was the wrong call twice over: it is *household* waste, so it read as the dump's material
+turning up in a demolition yard, and it is the one entry the Separator has no recipe for - so the
+commonest thing a player pulled from a machine pile was the one thing that machine refuses. Its weight
+folded into Scrap Metal rather than being deleted, which holds the table at 222 and leaves every gem
+rate exactly where it was tuned. E-Scrap keeps its household source, so nothing is orphaned.
+
 **This phase goes first because gold left.** The earlier draft opened with the Separator proven against
 gold from E-Scrap, which needed no new worldgen at all; with gold at #120 there is no longer any input
 for the machine to chew on until this exists. The ordering is now the natural one, at the cost of the
@@ -185,9 +192,34 @@ in front of a core that will not form.
 
 | Cells | Component placed | Formed block |
 |---|---|---|
-| 3 chamber | **Steel I-Beam** x3 | `separator_chamber` |
+| 4 bay | **Steel I-Beam** x4 | `separator_chamber` |
 | 6 housing | **Machine Frame** x6 | `separator_housing` |
-| 2 chute | **Machine Frame** x2 | `separator_chute` |
+| 1 chute | **Machine Frame** x1 | `separator_chute` |
+
+```
+y=1   hous bay   bay      (a solid column for bulk, then the 2x2 grinding bay)
+      hous bay   bay
+y=0   CORE chute hous     (front: ONE chute, where everything comes out)
+      hous hous  hous     (back)
+```
+
+**The bay is a 2x2 square, and that shape took three tries.** It was first the front row only with
+housing behind it, which was a genuine trap: housing looks exactly like a lid, so material dropped on
+the back half was silently refused by a surface that appeared to be the opening. Widening it to the
+whole top fixed the trap and lost the machine, which read as a hole in the ground rather than a grinder.
+A 2x2 bay beside a full-height column keeps both - the column plainly is not the opening, so nothing is
+ambiguous, and the machine has bulk.
+
+**The four bay cells read as one opening.** Each is stamped at assembly with which quarter of the
+grinder it shows; the quadrant models draw a rim only on their **outer** edges and the floor textures are
+quarters of a single image, so both the border and the teeth run continuously across the seams. The rim
+being geometry is the part that bit: the first build gave every cell a full rim on all four sides, which
+drew a complete box around each block, and no amount of texture slicing can fix a border that is in the
+model.
+
+**One chute, and everything leaves through it** (owner, 2026-08-03). A recipe may one day split a feed
+into several outputs at once; they all still come out of the same opening, so catching a machine's whole
+output never takes more than one hopper.
 
 Machine Frame is the established multiblock component (the Compost Heap takes seven). Steel is the
 yard's own material and a shredder's cutters are steel, so the chamber costing steel ties the machine to
@@ -200,12 +232,27 @@ I-Beam and four Iron Ingot, shaped. The exact recipe joins #36; the constraint i
 
 ### How material actually gets in and out
 
-- **A ticker scans, nothing collides.** The core's BlockEntity scans a one-block box above each chamber
-  cell for item entities. Collision handlers fire per entity and are fragile around stacking and
-  despawn; a bounded scan on the machine's own tick is simpler and testable.
-- **No internal buffer, deliberately.** The machine holds nothing. It waits until entities above it carry
-  at least `count` of a matching item, then consumes them in one operation. This is what keeps it out of
-  the `Container` path entirely, which is the whole reason it has no automation surface to declare.
+- **A bounded internal queue** (owner, 2026-08-03). The machine swallows what lands in its bay into
+  nine internal slots and works through them in order, so several kinds of scrap go in at once and come
+  back out as their raw materials without the player standing over it. Bounded because a machine that
+  swallows an unbounded amount is a storage block, and this one is a grinder with a hopper on it.
+- **Internal is the load-bearing word.** The queue is **not** a `Container` and the machine exposes no
+  item handler on any side, so no hopper can insert and no pipe can connect - the closed door
+  `automation_policy_spec.md` describes. Automation still works; it goes through the world, with a
+  dropper over the bay and a hopper under the chute.
+- **Only what it can grind is let in.** An item with no `recompile:separating` recipe is never swallowed,
+  so the queue cannot jam on junk and a player cannot lose something by dropping it in the wrong place -
+  it simply lies in the bay where they can pick it back up. This matters more than it looks, because
+  nothing can extract from this block: anything it takes and cannot process would be gone for good.
+- **Everything queued drops on break**, so the machine is never an item sink.
+- **A ticker scans, nothing collides.** The mouth spans the bay cells **and** the block above them,
+  because the bay's top face is recessed and a dropped stack settles down inside the well rather than on
+  top of it. Scanning only the block above shipped once and meant a player could watch an item sit
+  visibly in the mouth while the machine ignored it.
+- **It drains a container on the bay.** Nothing can push into the machine, so it pulls. A hopper pointed
+  down at the bay is the first thing anyone reaches for and can never work, because there is nothing
+  there to insert into; reaching out is how a hopper itself works and it costs none of the properties
+  above.
 - **No power means the material waits.** Items do not bounce out and are not refused. The machine simply
   does not consume them, the way a furnace with no fuel sits full and cold. Legible without a screen.
 - **Output spawns at the chute face with a small outward velocity**, so it lands in front of the machine
@@ -272,13 +319,18 @@ though it lives at #120, because the guard is cheaper to write once than to reme
 existing `no_smelting_recipe_turns_a_mod_item_into_iron`, written after #91 for exactly this class of
 bug. Scoped to teardown; the Separator's own recipes are the sanctioned route.
 
-## Phase 4 - the surrounding work
+## Phase 4 - the surrounding work *(done)*
 
-**Ships:** the tier is discoverable.
+**Shipped:** the tier is discoverable.
 
-Guidebook entry (a player who finds a Mechanical Waste pile and cannot act on it reads it as scenery), a
-JEI category for Separator recipes, Jade reporting stored FE and progress, and a row in
+Two guidebook entries in the demolition category (Mechanical Waste, and the Separator with a multiblock
+render page locked to the blueprint by `GuidebookMultiblockTests`), a **Separating** JEI category reading
+the bundled recipe JSON with the input at its real count, a Jade pair reporting stored FE and either a
+grind percentage or **which** of the two idle reasons applies, and a gem tier section in
 `../trashlands/docs/progression_gates.md`.
+
+The JEI category shows **no odds column**: a separator splits a feed rather than rolling on it, so "100%"
+beside every row would be noise. The input carries its count because that count *is* the tier.
 
 ---
 

@@ -63,7 +63,7 @@ public final class RecipeFiles {
      * {@code book.json}. A read failure yields an empty list: a viewer missing a category is a bad
      * afternoon, and a crash on world join is a worse one.
      */
-    private static synchronized List<JsonObject> all() {
+    public static synchronized List<JsonObject> all() {
         if (cached != null) {
             return cached;
         }

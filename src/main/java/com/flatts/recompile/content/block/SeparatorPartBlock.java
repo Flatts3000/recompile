@@ -1,0 +1,36 @@
+package com.flatts.recompile.content.block;
+
+import com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock;
+import com.mojang.serialization.MapCodec;
+
+/**
+ * A formed cell of the Separator: chamber, housing or chute
+ * ({@code docs/separator_model_spec.md}).
+ *
+ * <p>One class for all three, because they differ only in their model. A formed cell is a <b>bespoke
+ * per-machine block</b> rather than the component's model restacked, which is what lets the machine be
+ * a designed object; but bespoke <i>art</i> does not mean bespoke <i>behaviour</i>, and all three do
+ * the same thing here: redirect use and break to the master.
+ *
+ * <p><b>They carry the machine's facing, not their own.</b> The chute's mouth is cut into one side of
+ * its model, so without this it pointed north whatever direction the machine was built in - correct by
+ * accident on a north-facing Separator and wrong on the other three. A formed cell has no idea which
+ * machine it belongs to, so the core stamps this when the machine assembles.
+ *
+ * <p>The housing carries it too even though its model is a plain cube. It costs three extra blockstate
+ * lines, and it means the day the housing gets a vent or a hatch on its front face, the state it needs
+ * is already there and already correct.
+ */
+public class SeparatorPartBlock extends MultiblockSkinnedBlock {
+
+    public static final MapCodec<SeparatorPartBlock> CODEC = simpleCodec(SeparatorPartBlock::new);
+
+    public SeparatorPartBlock(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    protected MapCodec<? extends SeparatorPartBlock> codec() {
+        return CODEC;
+    }
+}

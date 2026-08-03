@@ -3,6 +3,8 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.multiblock.Multiblock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
+import com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock;
+import com.flatts.recompile.registry.RCBlocks;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -73,12 +75,15 @@ final class GuidebookMultiblockTests {
         new Machine("rain_collector", com.flatts.recompile.registry.RCBlocks.RAIN_COLLECTOR),
         new Machine("grass_spreader", com.flatts.recompile.registry.RCBlocks.GRASS_SPREADER),
         new Machine("compost_heap", com.flatts.recompile.registry.RCBlocks.COMPOST_HEAP),
-        new Machine("tree_nursery", com.flatts.recompile.registry.RCBlocks.TREE_NURSERY));
+        new Machine("tree_nursery", com.flatts.recompile.registry.RCBlocks.TREE_NURSERY),
+        new Machine("separator", com.flatts.recompile.registry.RCBlocks.SEPARATOR));
 
     private GuidebookMultiblockTests() {
     }
 
     static void register() {
+        registerJeiPartRule();
+        registerSkinIndexRule();
         RCGameTests.test("every_guidebook_multiblock_matches_its_blueprint", 20, helper -> {
             List<String> problems = new ArrayList<>();
             for (Machine machine : MACHINES) {
@@ -311,4 +316,149 @@ final class GuidebookMultiblockTests {
             return null;
         }
     }
+    /**
+     * The JEI rule, kept honest from both ends (owner, 2026-08-03): a viewer must not list a multiblock
+     * part the player can never hold.
+     *
+     * <p>{@code MultiblockParts} decides that structurally - a cell whose formed block differs from its
+     * component is a transformation, so the formed half is unobtainable. This asserts the structure
+     * actually lines up with reality, in both directions:
+     *
+     * <ul>
+     *   <li>nothing on the hide list has a recipe, so the rule never hides something craftable;</li>
+     *   <li>the list is not empty, so a broken derivation cannot pass as "nothing to hide".</li>
+     * </ul>
+     *
+     * <p>The first half is the one that bites. Give a formed cell a recipe one day - a perfectly
+     * reasonable thing to do - and the machine it belongs to keeps working while JEI quietly stops
+     * admitting the part exists.
+     */
+    private static void registerJeiPartRule() {
+        RCGameTests.test("jei_hides_only_multiblock_parts_that_cannot_be_crafted", 20, helper -> {
+            var hidden = com.flatts.recompile.compat.MultiblockParts.formedOnly();
+            helper.assertTrue(!hidden.isEmpty(),
+                "no formed-only multiblock parts were derived at all - the derivation is broken, so "
+                    + "this would pass against a JEI list full of uncraftable parts");
+
+            // Read the bundled recipe FILES rather than the loaded recipes. A Recipe cannot be asked
+            // what it makes without an input in 26.1 (assemble takes one and throws on null), and only
+            // this mod could ever add a recipe for its own formed block, so its own recipe folder is
+            // the complete answer. Same trick SeparatingData uses, for the same reason.
+            Set<String> results = new LinkedHashSet<>();
+            for (JsonObject recipe : com.flatts.recompile.compat.RecipeFiles.all()) {
+                collectResultIds(recipe.get("result"), results);
+            }
+            List<String> craftable = new ArrayList<>();
+            for (var block : hidden) {
+                String id = BuiltInRegistries.BLOCK.getKey(block).toString();
+                if (results.contains(id)) {
+                    craftable.add(id);
+                }
+            }
+            helper.assertTrue(craftable.isEmpty(),
+                "these are on the JEI hide list but ARE craftable (" + craftable.size() + "): "
+                    + craftable + ". A part with a recipe is real content and must stay visible");
+            helper.succeed();
+        });
+    }
+
+    /** Item ids named by a recipe's {@code result}, in any of the shapes 26.1 accepts. */
+    private static void collectResultIds(com.google.gson.JsonElement result, Set<String> into) {
+        if (result == null) {
+            return;
+        }
+        if (result.isJsonPrimitive()) {
+            into.add(result.getAsString());
+            return;
+        }
+        if (!result.isJsonObject()) {
+            return;
+        }
+        JsonObject object = result.getAsJsonObject();
+        for (String key : List.of("id", "item")) {
+            if (object.has(key) && object.get(key).isJsonPrimitive()) {
+                into.add(object.get(key).getAsString());
+            }
+        }
+    }
+
+    /**
+     * The whole-machine skin's arithmetic, for every multiblock in the game.
+     *
+     * <p>A skinned cell shows the tile belonging to its position, and that position is a blockstate
+     * value with a hard ceiling. Two ways that breaks quietly:
+     *
+     * <ul>
+     *   <li>a machine grows past {@code MAX_CELLS} and the cells past the ceiling all fall back to
+     *       tile 0, so one corner of the machine wears the wrong face;</li>
+     *   <li>two cells collide on one index, so two positions draw the same tile and a third tile is
+     *       never drawn at all.</li>
+     * </ul>
+     *
+     * <p>Both look like bad art rather than a broken index, which is exactly why they need a test.
+     * Checked for every machine, not only the skinned ones - a machine that adopts the skin later
+     * should find out it does not fit before someone spends an afternoon on its art.
+     */
+    private static void registerSkinIndexRule() {
+        RCGameTests.test("every_multiblock_fits_the_whole_machine_skin", 20, helper -> {
+            List<String> problems = new ArrayList<>();
+            int checked = 0;
+            for (Block block : BuiltInRegistries.BLOCK) {
+                if (!(block instanceof MultiblockCoreBlock core)) {
+                    continue;
+                }
+                checked++;
+                String id = BuiltInRegistries.BLOCK.getKey(block).toString();
+                Multiblock blueprint = core.blueprint();
+                Map<Integer, String> seen = new LinkedHashMap<>();
+
+                // The core sits at the origin and is part of the machine's surface, so it takes an
+                // index too. Leave it out and every cell is numbered as if the core were not there.
+                List<Vec3i> offsets = new ArrayList<>();
+                offsets.add(Vec3i.ZERO);
+                for (Multiblock.Cell cell : blueprint.cells()) {
+                    offsets.add(cell.offset());
+                }
+
+                for (Vec3i offset : offsets) {
+                    int index = blueprint.cellIndex(offset);
+                    if (index < 0) {
+                        problems.add(id + " cell " + offset + " is outside its own bounds");
+                        continue;
+                    }
+                    if (index >= MultiblockSkinnedBlock.MAX_CELLS) {
+                        problems.add(id + " cell " + offset + " indexes " + index + ", past the "
+                            + MultiblockSkinnedBlock.MAX_CELLS + "-cell ceiling");
+                    }
+                    String previous = seen.put(index, offset.toString());
+                    if (previous != null && !previous.equals(offset.toString())) {
+                        problems.add(id + " indexes " + previous + " and " + offset + " both to "
+                            + index);
+                    }
+                }
+            }
+            helper.assertTrue(checked > 0,
+                "no multiblock cores were found - discovery is broken, so this would pass against a "
+                    + "machine that does not fit at all");
+            helper.assertTrue(problems.isEmpty(),
+                "machines that do not fit the skin index (" + problems.size() + "): " + problems);
+
+            // The Separator's exact numbering, pinned. tools/skin_machine.py computes this ordering
+            // independently in Python to cut the art, and the two agreeing is the whole contract: if
+            // they drift, every cell wears some other cell's tile and the machine's skin scrambles.
+            // That reads as bad art, not as an off-by-one, so nothing would point at either side.
+            Multiblock separator = RCBlocks.SEPARATOR.get().blueprint();
+            List<String> order = new ArrayList<>();
+            for (Vec3i offset : separator.skinOrder()) {
+                order.add(offset.getX() + "," + offset.getY() + "," + offset.getZ());
+            }
+            helper.assertTrue(order.equals(List.of(
+                    "0,0,0", "1,0,0", "2,0,0", "0,0,1", "1,0,1", "2,0,1",
+                    "0,1,0", "1,1,0", "2,1,0", "0,1,1", "1,1,1", "2,1,1")),
+                "the Separator's skin order changed to " + order + ". tools/skin_machine.py cuts its "
+                    + "art against the old one, so the machine's skin is now scrambled - re-run it");
+            helper.succeed();
+        });
+    }
+
 }

@@ -15,7 +15,11 @@ import com.flatts.recompile.content.block.DisplayPedestalBlock;
 import com.flatts.recompile.content.block.HydroponicsBayBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
+import com.flatts.recompile.content.block.MechanicalWasteBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
+import com.flatts.recompile.content.block.SeparatorPartBlock;
+import com.flatts.recompile.content.block.SeparatorChamberBlock;
+import com.flatts.recompile.content.block.SeparatorCoreBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
 import com.flatts.recompile.content.block.DumpPlantBlock;
@@ -86,6 +90,19 @@ public final class RCBlocks {
      * Rubble (demolition yard, reclamation frontier): a pick-through pile like a Block of Garbage, but
      * its pull stream is stone shards. Bare-hand sift; see {@link RubbleBlock}.
      */
+    /**
+     * Mechanical Waste: the yard's machinery pile and the gem tier's found half
+     * ({@code docs/gem_tier_spec.md}). Beside Stone Rubble, and like it takes no tool.
+     */
+    public static final DeferredBlock<MechanicalWasteBlock> MECHANICAL_WASTE = BLOCKS.registerBlock(
+        "mechanical_waste",
+        MechanicalWasteBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .strength(0.9F)
+            .sound(SoundType.METAL)
+    );
+
     public static final DeferredBlock<RubbleBlock> STONE_RUBBLE = BLOCKS.registerBlock(
         "stone_rubble",
         RubbleBlock::new,
@@ -613,6 +630,50 @@ public final class RCBlocks {
     );
 
     /** A formed drip spigot: what a Copper Pipe becomes on the side of a spreader. Drips water. */
+    /**
+     * The Separator's core and its three formed cell types (docs/gem_tier_spec.md, art
+     * docs/separator_model_spec.md). The chamber is where material goes in, the chute is where it
+     * comes out, the housing is everything else.
+     */
+    public static final DeferredBlock<SeparatorCoreBlock> SEPARATOR = BLOCKS.registerBlock(
+        "separator",
+        SeparatorCoreBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLUE)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<SeparatorChamberBlock> SEPARATOR_CHAMBER = BLOCKS.registerBlock(
+        "separator_chamber",
+        SeparatorChamberBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLUE)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
+    public static final DeferredBlock<SeparatorPartBlock> SEPARATOR_HOUSING = BLOCKS.registerBlock(
+        "separator_housing",
+        SeparatorPartBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLUE)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+    );
+
+    public static final DeferredBlock<SeparatorPartBlock> SEPARATOR_CHUTE = BLOCKS.registerBlock(
+        "separator_chute",
+        SeparatorPartBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLUE)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
     public static final DeferredBlock<GrassSpreaderSpigotBlock> GRASS_SPREADER_SPIGOT = BLOCKS.registerBlock(
         "grass_spreader_spigot",
         GrassSpreaderSpigotBlock::new,

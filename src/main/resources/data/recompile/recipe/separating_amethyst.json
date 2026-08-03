@@ -1,0 +1,19 @@
+{
+  "type": "recompile:separating",
+  "input": "recompile:quartz_grit",
+  "count": 1,
+  "ticks": 40,
+  "energy": 16,
+  "results": [
+    {
+      "item": "minecraft:amethyst_shard",
+      "count": 1
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:glass_shards",
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,244 @@
+{
+  "variants": {
+    "cell=0,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=0,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=0,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=0,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=1,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=1,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=1,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=1,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=2,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=2,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=2,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=2,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=3,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=3,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=3,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=3,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=4,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=4,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=4,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=4,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=5,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=5,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=5,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=5,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=6,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=6,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=6,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=6,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=7,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=7,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=7,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=7,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=8,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=8,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=8,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=8,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=9,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=9,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=9,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=9,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=10,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=10,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=10,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=10,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=11,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=11,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=11,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=11,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=12,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=12,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=12,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=12,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=13,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=13,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=13,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=13,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=14,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=14,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=14,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=14,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    },
+    "cell=15,facing=north": {
+      "model": "recompile:block/separator_chute_1"
+    },
+    "cell=15,facing=east": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 90
+    },
+    "cell=15,facing=south": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 180
+    },
+    "cell=15,facing=west": {
+      "model": "recompile:block/separator_chute_1",
+      "y": 270
+    }
+  }
+}

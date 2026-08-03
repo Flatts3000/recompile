@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:demolition/mechanical_waste",
+  "category": "recompile:demolition",
+  "name": "book.recompile.guide.demolition.mechanical_waste.name",
+  "icon": {
+    "id": "recompile:mechanical_waste"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 4,
+  "y": 0
+}

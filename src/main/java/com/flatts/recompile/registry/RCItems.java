@@ -306,6 +306,31 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
     /** Rubble: the demolition yard's pick-through stone-shard source. */
+    public static final DeferredItem<BlockItem> SEPARATOR =
+        ITEMS.registerSimpleBlockItem("separator", RCBlocks.SEPARATOR);
+    public static final DeferredItem<BlockItem> SEPARATOR_CHAMBER =
+        ITEMS.registerSimpleBlockItem("separator_chamber", RCBlocks.SEPARATOR_CHAMBER);
+    public static final DeferredItem<BlockItem> SEPARATOR_HOUSING =
+        ITEMS.registerSimpleBlockItem("separator_housing", RCBlocks.SEPARATOR_HOUSING);
+    public static final DeferredItem<BlockItem> SEPARATOR_CHUTE =
+        ITEMS.registerSimpleBlockItem("separator_chute", RCBlocks.SEPARATOR_CHUTE);
+
+    public static final DeferredItem<BlockItem> MECHANICAL_WASTE =
+        ITEMS.registerSimpleBlockItem("mechanical_waste", RCBlocks.MECHANICAL_WASTE);
+
+    /**
+     * The three industrial scrap variants Mechanical Waste sorts into
+     * ({@code docs/gem_tier_spec.md} Phase 1). Distinct items rather than variants of one, because each
+     * feeds a different {@code recompile:separating} recipe and a recipe keys on an item.
+     */
+    public static final DeferredItem<Item> SPENT_ABRASIVE = ITEMS.registerItem("spent_abrasive", Item::new);
+    public static final DeferredItem<Item> MAGNET_SCRAP = ITEMS.registerItem("magnet_scrap", Item::new);
+    public static final DeferredItem<Item> QUARTZ_GRIT = ITEMS.registerItem("quartz_grit", Item::new);
+
+    /** Sorted in the order the Separator will consume them. */
+    public static final List<DeferredItem<Item>> INDUSTRIAL_SCRAP =
+        List.of(SPENT_ABRASIVE, MAGNET_SCRAP, QUARTZ_GRIT);
+
     public static final DeferredItem<BlockItem> STONE_RUBBLE =
         ITEMS.registerSimpleBlockItem("stone_rubble", RCBlocks.STONE_RUBBLE);
     /** Reinforced Concrete: sledged for rebar + aggregate. */

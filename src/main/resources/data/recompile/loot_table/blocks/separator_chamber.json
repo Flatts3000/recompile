@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    { "rolls": 1, "entries": [ { "type": "minecraft:item", "name": "recompile:steel_i_beam" } ],
+      "conditions": [ { "condition": "minecraft:survives_explosion" } ] }
+  ]
+}

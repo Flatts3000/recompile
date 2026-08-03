@@ -1,5 +1,7 @@
 package com.flatts.recompile.content.block.multiblock;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -70,6 +72,70 @@ public record Multiblock(List<Cell> cells) {
         public BlockPos at(BlockPos core, Rotation rotation) {
             return core.offset(rotate(offset, rotation));
         }
+    }
+
+    /**
+     * The machine's bounding box in blueprint space, <b>including the core at the origin</b>.
+     *
+     * <p>Returned as {@code [minX, minY, minZ, width, height, depth]}. This is what lets a machine be
+     * skinned as one object: the box is the canvas, and a cell's position within it is where on that
+     * canvas the cell sits.
+     */
+    public int[] bounds() {
+        int minX = 0;
+        int minY = 0;
+        int minZ = 0;
+        int maxX = 0;
+        int maxY = 0;
+        int maxZ = 0;
+        for (Cell cell : cells) {
+            Vec3i offset = cell.offset();
+            minX = Math.min(minX, offset.getX());
+            minY = Math.min(minY, offset.getY());
+            minZ = Math.min(minZ, offset.getZ());
+            maxX = Math.max(maxX, offset.getX());
+            maxY = Math.max(maxY, offset.getY());
+            maxZ = Math.max(maxZ, offset.getZ());
+        }
+        return new int[] {minX, minY, minZ, maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1};
+    }
+
+    /**
+     * Every position the machine occupies, the core's origin included, in a canonical order.
+     *
+     * <p>Sorted bottom to top, then back to front, then left to right. Sorted rather than taken in
+     * declaration order because {@link #cellIndex} is a blockstate value: declaration order would
+     * silently renumber every cell the moment someone reorders {@code createBlueprint}, and the
+     * renumbering shows up as the machine's skin scrambling, which nobody would connect to a
+     * harmless-looking edit.
+     */
+    public List<Vec3i> skinOrder() {
+        List<Vec3i> out = new ArrayList<>();
+        out.add(Vec3i.ZERO);
+        for (Cell cell : cells) {
+            if (!out.contains(cell.offset())) {
+                out.add(cell.offset());
+            }
+        }
+        out.sort(Comparator.comparingInt(Vec3i::getY)
+            .thenComparingInt(Vec3i::getZ)
+            .thenComparingInt(Vec3i::getX));
+        return out;
+    }
+
+    /**
+     * Where a cell sits in the machine, as a single number.
+     *
+     * <p><b>A dense index over the cells the machine actually has</b>, not a position in its bounding
+     * box. The difference is not academic: the Grass Spreader is a sparse cross, so its box is
+     * thirty-six positions for about seven real cells, and indexing by box position pushed it past any
+     * sane blockstate ceiling while most of the numbers addressed empty air. The index only has to
+     * identify a cell; the tool that cuts the skin knows the layout and can map it back to a position.
+     *
+     * @return an index in {@code [0, cell count]}, or -1 if the offset is not part of this machine
+     */
+    public int cellIndex(Vec3i offset) {
+        return skinOrder().indexOf(offset);
     }
 
     /**

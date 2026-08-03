@@ -8,8 +8,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -78,6 +80,43 @@ public abstract class MultiblockCoreBlock extends Block {
      * nothing at all rather than polling to discover it is still unformed.
      */
     protected void onFormed(Level level, BlockPos pos) {
+    }
+
+    /**
+     * Tell every skinned cell where it sits in the machine and which way the machine faces.
+     *
+     * <p>Runs for every machine before {@link #onFormed}, and does nothing at all to a machine whose
+     * cells are not skinned - the guard is the property, not a per-machine opt-in. That is deliberate:
+     * adopting the whole-machine skin should be a block class change plus art, never a line someone has
+     * to remember to add here. Forgetting it would show up as a machine whose cells all wear tile 0,
+     * which looks like bad art rather than a missing call.
+     *
+     * <p>See {@link MultiblockSkinnedBlock} for why a machine wants one texture rather than one
+     * repeating panel, and {@link Multiblock#cellIndex} for why the index comes from the offset.
+     */
+    private void stampSkin(Level level, BlockPos pos) {
+        BlockState coreState = level.getBlockState(pos);
+        Rotation rotation = rotationFor(coreState);
+        Direction facing = coreState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
+            ? coreState.getValue(BlockStateProperties.HORIZONTAL_FACING)
+            : Direction.NORTH;
+        Multiblock blueprint = blueprint();
+        for (Multiblock.Cell cell : blueprint.cells()) {
+            BlockPos at = cell.at(pos, rotation);
+            BlockState state = level.getBlockState(at);
+            if (state.hasProperty(MultiblockSkinnedBlock.CELL)) {
+                int index = blueprint.cellIndex(cell.offset());
+                if (index >= 0 && index < MultiblockSkinnedBlock.MAX_CELLS) {
+                    state = state.setValue(MultiblockSkinnedBlock.CELL, index);
+                }
+            }
+            if (state.hasProperty(MultiblockSkinnedBlock.FACING)) {
+                state = state.setValue(MultiblockSkinnedBlock.FACING, facing);
+            }
+            if (state != level.getBlockState(at)) {
+                level.setBlock(at, state, Block.UPDATE_ALL);
+            }
+        }
     }
 
     /** Called once, server-side, right after the machine comes apart. */
@@ -215,6 +254,7 @@ public abstract class MultiblockCoreBlock extends Block {
         }
         blueprint.form(level, pos, rotation);
         level.setBlock(pos, state.setValue(FORMED, true), Block.UPDATE_ALL);
+        core.stampSkin(level, pos);
         core.onFormed(level, pos);
         return true;
     }

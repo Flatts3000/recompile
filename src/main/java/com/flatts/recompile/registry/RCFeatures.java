@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.worldgen.MechanicalWastePileFeature;
 import com.flatts.recompile.content.worldgen.MoundFeature;
 import com.flatts.recompile.content.worldgen.MyceliumPatchFeature;
 import com.flatts.recompile.content.worldgen.RubblePileFeature;
@@ -29,6 +30,10 @@ public final class RCFeatures {
     /** Low piles of Rubble in the demolition yard - the bare-hand stone-shard source. */
     public static final Supplier<Feature<NoneFeatureConfiguration>> RUBBLE_PILE =
         FEATURES.register("rubble_pile", RubblePileFeature::new);
+
+    /** Heaps of Mechanical Waste in the yard - the gem tier's found half (docs/gem_tier_spec.md). */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> MECHANICAL_WASTE_PILE =
+        FEATURES.register("mechanical_waste_pile", MechanicalWastePileFeature::new);
 
     /** The demolition yard's landmark: a steel frame stripped to its skeleton (#49). */
     public static final Supplier<Feature<NoneFeatureConfiguration>> BUILDING_HUSK =

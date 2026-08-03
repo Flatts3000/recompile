@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:dense",
+  "pattern": [
+    ["FF", "BB", "BB"],
+    ["0F", "FF", "FF"]
+  ],
+  "mapping": {
+    "0": { "type": "modonomicon:block", "block": "recompile:separator" },
+    "B": { "type": "modonomicon:block", "block": "recompile:steel_i_beam" },
+    "F": { "type": "modonomicon:block", "block": "recompile:machine_frame" }
+  }
+}
