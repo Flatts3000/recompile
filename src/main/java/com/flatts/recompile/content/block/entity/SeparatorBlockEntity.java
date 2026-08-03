@@ -54,6 +54,8 @@ public class SeparatorBlockEntity extends BlockEntity {
         new SimpleEnergyHandler(BUFFER, Integer.MAX_VALUE, Integer.MAX_VALUE);
 
     private int progress;
+    /** The matched recipe's tick target, so Jade can show a percentage rather than a raw count. */
+    private int goal;
 
     public SeparatorBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.SEPARATOR.get(), pos, state);
@@ -65,6 +67,11 @@ public class SeparatorBlockEntity extends BlockEntity {
 
     public int progress() {
         return progress;
+    }
+
+    /** Ticks the current run needs, or 0 when nothing is being ground. */
+    public int goal() {
+        return goal;
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, SeparatorBlockEntity be) {
@@ -80,9 +87,11 @@ public class SeparatorBlockEntity extends BlockEntity {
         RecipeHolder<SeparatingRecipe> match = be.findFeed(server, pos, feed);
         if (match == null) {
             be.progress = 0;
+            be.goal = 0;
             be.stall(level, pos, state);
             return;
         }
+        be.goal = match.value().ticks();
 
         int fe = match.value().energy();
         if (fe > 0) {
@@ -196,6 +205,7 @@ public class SeparatorBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         battery.serialize(output.child("energy"));
         output.putInt("progress", progress);
+        output.putInt("goal", goal);
     }
 
     @Override
@@ -203,5 +213,6 @@ public class SeparatorBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         input.child("energy").ifPresent(battery::deserialize);
         progress = input.getIntOr("progress", 0);
+        goal = input.getIntOr("goal", 0);
     }
 }

@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:multiblock",
+  "id": "structure",
+  "sort_number": 1,
+  "multiblock_id": "recompile:separator",
+  "multiblock_name": "block.recompile.separator",
+  "show_visualize_button": true,
+  "text": "book.recompile.guide.demolition.separator.structure.text"
+}

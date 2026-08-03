@@ -73,7 +73,8 @@ final class GuidebookMultiblockTests {
         new Machine("rain_collector", com.flatts.recompile.registry.RCBlocks.RAIN_COLLECTOR),
         new Machine("grass_spreader", com.flatts.recompile.registry.RCBlocks.GRASS_SPREADER),
         new Machine("compost_heap", com.flatts.recompile.registry.RCBlocks.COMPOST_HEAP),
-        new Machine("tree_nursery", com.flatts.recompile.registry.RCBlocks.TREE_NURSERY));
+        new Machine("tree_nursery", com.flatts.recompile.registry.RCBlocks.TREE_NURSERY),
+        new Machine("separator", com.flatts.recompile.registry.RCBlocks.SEPARATOR));
 
     private GuidebookMultiblockTests() {
     }

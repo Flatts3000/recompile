@@ -420,5 +420,16 @@
   "block.recompile.separator": "Separator",
   "block.recompile.separator_chamber": "Separator Chamber",
   "block.recompile.separator_housing": "Separator Housing",
-  "block.recompile.separator_chute": "Separator Chute"
+  "block.recompile.separator_chute": "Separator Chute",
+  "book.recompile.guide.demolition.mechanical_waste.name": "Mechanical Waste",
+  "book.recompile.guide.demolition.mechanical_waste.intro.title": "Scrap first, gems after",
+  "book.recompile.guide.demolition.mechanical_waste.intro.text": "Heaps of dead machinery turn up in the demolition yard, beside the rubble. Pick through one bare-hand, the same way you pick through garbage.\n\nWhat comes out is industrial scrap: Spent Abrasive, Magnet Scrap and Quartz Grit, along with the usual metal and cable. Nothing valuable ever falls out of the pile itself. Diamond, redstone and amethyst are separated out of that scrap afterwards, in a Separator.\n\nThe three are not equally common. Quartz Grit is everywhere, Spent Abrasive turns up often enough, and Magnet Scrap is the one you will be short of.",
+  "book.recompile.guide.demolition.separator.name": "The Separator",
+  "book.recompile.guide.demolition.separator.intro.title": "Many in, a little out",
+  "book.recompile.guide.demolition.separator.intro.text": "The Separator runs on power and holds nothing at all. Drop material into the open top and the results fall out of the chute at the bottom.\n\nOne piece of scrap is worth nothing on its own. It takes sixteen Magnet Scrap for four redstone, sixteen Spent Abrasive for one diamond, and twelve Quartz Grit for two amethyst. You get ordinary metal and glass back as well. A separator splits a feed into all of its parts, and the metal was always in there.\n\nBecause it holds nothing, no hopper or pipe can reach inside it. A dropper above and a hopper below will run it all day.",
+  "book.recompile.guide.demolition.separator.structure.text": "Steel I-Beams along the top row, Machine Frames everywhere else. The open top is the input; the chute sits at the bottom front, beside the core.",
+  "jei.recompile.separating": "Separating",
+  "jade.recompile.separator_grinding": "Grinding: %s%%",
+  "jade.recompile.separator_no_power": "No power",
+  "jade.recompile.separator_no_feed": "Nothing in the chamber"
 }

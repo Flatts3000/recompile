@@ -115,6 +115,33 @@ final class GemTierTests {
             helper.succeed();
         });
 
+        // The viewers must describe the machine the game actually runs. SeparatingData is the only
+        // JEI logic a GameTest can reach, and it is the half that has been wrong before: TeardownData
+        // named its recipes in a constant, a third shipped, and every viewer denied it existed.
+        RCGameTests.test("jei_sees_every_separating_recipe_with_its_real_count", 20, helper -> {
+            var rows = com.flatts.recompile.compat.SeparatingData.all();
+            int inGame = 0;
+            for (RecipeHolder<SeparatingRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
+                inGame++;
+                boolean matched = false;
+                for (var row : rows) {
+                    if (holder.value().matches(new net.minecraft.world.item.crafting.SingleRecipeInput(
+                            row.input()), helper.getLevel())
+                            && row.input().getCount() == holder.value().count()) {
+                        matched = true;
+                    }
+                }
+                helper.assertTrue(matched,
+                    "JEI does not show " + holder.id() + " at its real input count of "
+                        + holder.value().count() + ". A row showing one item describes a different "
+                        + "machine, because the count IS the tier");
+            }
+            helper.assertTrue(inGame > 0 && rows.size() == inGame,
+                "the game runs " + inGame + " separating recipes and JEI reads " + rows.size());
+            helper.succeed();
+        });
+
         // The machine, end to end: form it, power it, feed it, and check the chute.
         RCGameTests.test("separator_grinds_a_feed_into_its_raw_material", 260, helper -> {
             BlockPos core = new BlockPos(1, 2, 1);

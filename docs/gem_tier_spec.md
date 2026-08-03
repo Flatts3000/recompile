@@ -1,6 +1,6 @@
 # The gem tier - spec (issue #119)
 
-**Status: design locked 2026-08-02, not built.** How this world reaches diamond, redstone, amethyst
+**Status: BUILT 2026-08-03** (branch `feat/gem-tier`), phases 1 to 4. How this world reaches diamond, redstone, amethyst
 and lapis. **Gold was split out to #120** and is not part of this spec. Every decision below was made
 in the 2026-08-02 design session; what remains is build order, art, and the numbers, which join the
 pre-beta balance pass (#36).
@@ -272,13 +272,18 @@ though it lives at #120, because the guard is cheaper to write once than to reme
 existing `no_smelting_recipe_turns_a_mod_item_into_iron`, written after #91 for exactly this class of
 bug. Scoped to teardown; the Separator's own recipes are the sanctioned route.
 
-## Phase 4 - the surrounding work
+## Phase 4 - the surrounding work *(done)*
 
-**Ships:** the tier is discoverable.
+**Shipped:** the tier is discoverable.
 
-Guidebook entry (a player who finds a Mechanical Waste pile and cannot act on it reads it as scenery), a
-JEI category for Separator recipes, Jade reporting stored FE and progress, and a row in
+Two guidebook entries in the demolition category (Mechanical Waste, and the Separator with a multiblock
+render page locked to the blueprint by `GuidebookMultiblockTests`), a **Separating** JEI category reading
+the bundled recipe JSON with the input at its real count, a Jade pair reporting stored FE and either a
+grind percentage or **which** of the two idle reasons applies, and a gem tier section in
 `../trashlands/docs/progression_gates.md`.
+
+The JEI category shows **no odds column**: a separator splits a feed rather than rolling on it, so "100%"
+beside every row would be noise. The input carries its count because that count *is* the tier.
 
 ---
 

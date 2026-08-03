@@ -8,6 +8,7 @@ import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.BurnerGeneratorBlock;
 import com.flatts.recompile.content.block.SolarPanelBlock;
+import com.flatts.recompile.content.block.SeparatorCoreBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
@@ -48,6 +49,7 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(TreeNurseryDataProvider.INSTANCE, TreeNurseryTankBlock.class);
         // The power tier (#72): a generator's buffer is server-only, and the Solar Panel's current rate
         // depends on sky exposure the client can lag on - so both cross with the hover.
+        registration.registerBlockDataProvider(SeparatorDataProvider.INSTANCE, SeparatorCoreBlock.class);
         registration.registerBlockDataProvider(GeneratorDataProvider.INSTANCE, SolarPanelBlock.class);
         registration.registerBlockDataProvider(GeneratorDataProvider.INSTANCE, BurnerGeneratorBlock.class);
     }
@@ -69,6 +71,7 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(ScrapBinProvider.INSTANCE, ScrapBinBlock.class);
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostHeapCoreBlock.class);
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostCageBlock.class);
+        registration.registerBlockComponent(SeparatorProvider.INSTANCE, SeparatorCoreBlock.class);
         registration.registerBlockComponent(GeneratorProvider.INSTANCE, SolarPanelBlock.class);
         registration.registerBlockComponent(GeneratorProvider.INSTANCE, BurnerGeneratorBlock.class);
         registration.registerBlockComponent(TreeNurseryProvider.INSTANCE, TreeNurseryCoreBlock.class);
