@@ -94,24 +94,44 @@ proposal, to be confirmed in-world:
 
 Four types is affordable. Twenty-seven would be a different project.
 
-## 4. The palette question, which is a real decision
+## 4. The palette: faded chipped paint over rusted steel
 
-The reference machine is **painted blue**. Every machine this mod ships is salvage-coloured: grey steel,
-rust, concrete, beige plastic.
+**Decided (owner, 2026-08-03).** Colour is present as **history rather than as finish**: paint that was
+applied at a factory and has spent years in a landfill since, worn back to rust on every edge and wear
+surface.
 
-A painted housing would be **the first manufactured-looking object in the game**, and that cuts both ways:
+Colour is **blue**, inherited from the reference rather than separately chosen. Say so if it should be
+the other industrial standby, safety yellow or green.
 
-- **For:** it reads as *recovered industrial equipment* rather than something welded from scrap, which is
-  what it is. The yard is full of real machinery; this is the tier where the player starts using the
-  dump's own tools instead of improvising.
-- **Against:** it breaks a palette that has been consistent since launch, and a bright blue box in a grey
-  landfill may read as imported from another mod.
+This settles the tension it was chosen to settle. A cleanly painted machine would have been the first
+manufactured-looking object in a game whose palette has been salvage-coloured since launch, and a bare
+rusted one would have looked welded from scrap rather than **recovered**, which is the wrong story: this
+is the tier where the player starts using the dump's own machinery instead of improvising.
 
-A middle option worth testing: **faded and chipped paint over rusted steel**, so the colour is present as
-history rather than as finish. That is also the easiest thing for texgen's AI backend to do well, since
-worn painted metal is texture rather than geometry.
+Three consequences for the surfaces:
 
-Not decided. It should be decided before any surface is generated, because it governs every one of them.
+- **It is the easiest of the three options to generate.** Worn painted metal is texture rather than
+  geometry, which is the side of the line texgen's AI backend is strong on. The Puzzle Cube's lesson was
+  the opposite case, where precise geometry at 16px failed.
+- **Use `match_hue` across the machine's surfaces.** Four cell types generated independently will come
+  back as four different blues. Casting the housing, chute and chamber onto one shipped sibling keeps
+  them the same object. This is exactly the drift `match_hue` exists for.
+- **Calibrate tone against its neighbours, not in isolation.** The Separator stands in the demolition
+  yard against Reinforced Concrete, Stone Rubble and Steel I-Beams. Judge its `brightness` against
+  those, and remember that a value tuned against one neighbour is wrong the moment that neighbour is
+  regenerated.
+
+### The surface list
+
+Five surfaces, once the footprint is confirmed:
+
+| Surface | Faces | Notes |
+|---|---|---|
+| `separator_chamber` | Top of the chamber cells | The comb over plate. **The one the machine is judged on** |
+| `separator_chamber_running` | Same | Animated variant, `.mcmeta` alongside |
+| `separator_housing` | Sides and back | Painted plate, chipped to rust at edges |
+| `separator_chute` | Lower front | Darker, stained by what falls through |
+| `separator_core` | The placed block | Must read as unformed machinery on its own, since a bare core is placeable |
 
 ## 5. Build order
 
@@ -129,7 +149,6 @@ Steps 1 and 3 are the ones that can fail. Both are cheap to try and cheap to aba
 
 ## Open
 
-- **The palette question** in section 4. Blocks texture generation.
 - Footprint confirmation. 3x2x2 is a proposal, not a measurement.
 - Whether the chamber is one animated tile repeated across three cells, or three tiles that continue
   across the width. The second looks better and costs three times as much.
