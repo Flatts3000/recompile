@@ -62,18 +62,6 @@ looks tempting because the schema already carries that field. It does not fit: t
 single item, and this tier's entire point is that many inputs become a little output. This needs its own
 recipe type, or an explicit input count added to the schema.
 
-**The automation policy has two doors and this machine needs a third.**
-`docs/automation_policy_spec.md` is **locked** (2026-07-31, written after four automation bugs shipped
-with the same root cause) and names exactly two: the Container path that hoppers use, and the Capability
-path that pipes use. It carries a hard rule: *a new block that holds items adds a row here or it is not
-done.*
-
-An entity-eating, entity-dropping grinder uses **neither**, and is still automatable: a dropper throws
-items in from above and a hopper beneath catches what falls, because hoppers pick up item entities. That
-is a good outcome, and it satisfies the spec's own "to keep pipes away, expose no handler" for free, so
-no pipe can ever extract from it. But it is a third kind of automation surface the locked table does not
-model, and it must be added there before the block exists.
-
 **No BlockEntityRenderer, and no fifth screen.** The BER ban has exactly one recorded exception (the
 Display Pedestal) and this is not a second. Motion comes from **animated textures** (`.mcmeta` frame
 animation, pure vanilla, no code, how fire and prismarine work) plus **particles and a running
@@ -92,17 +80,6 @@ hand and generate the surfaces, where texgen's AI backend is strong (rusted meta
 geometry - the opposite of the Puzzle Cube's lesson).
 
 ---
-
-## Phase 0 - amend the automation policy
-
-**Ships:** a decision, on paper, before any block exists.
-
-Add the third door to `docs/automation_policy_spec.md` as a concept, and a row for the Separator: no
-Container, no capability, items in as entities from above, items out as entities below. State explicitly
-that this is automatable through the world rather than through the block, and that no pipe can extract.
-
-Blocks nothing else and costs an hour. It goes first because the spec it amends was written precisely to
-stop a block shipping without deciding this.
 
 ## Phase 1 - Mechanical Waste
 
