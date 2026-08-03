@@ -88,7 +88,7 @@ final class GuidebookMultiblockTests {
                     continue;
                 }
                 MultiblockCoreBlock core = machine.core().get();
-                Map<Vec3i, String> drawn = decode(helper, machine.pattern(), json, problems);
+                Map<Vec3i, String> drawn = decode(machine.pattern(), json, problems);
                 Map<Vec3i, String> built = blueprintOf(core);
                 for (Map.Entry<Vec3i, String> cell : built.entrySet()) {
                     String shown = drawn.remove(cell.getKey());
@@ -111,9 +111,12 @@ final class GuidebookMultiblockTests {
             helper.succeed();
         });
 
-        // A pattern naming a block that no longer exists throws inside Modonomicon at datapack load,
-        // long after this mod has decided everything is fine. Cheaper to say so here, by name.
-        RCGameTests.test("every_guidebook_multiblock_names_real_blocks", 20, helper -> {
+        // This guards the test above as much as the data. That one reads every mapping's "block"
+        // field, which only a block matcher has - point a cell at a tag or a blockstate and it throws
+        // instead of reporting, and a blockstate matcher would in any case promise something stricter
+        // than Multiblock.matches, which compares block identity and ignores properties. The
+        // unknown-id half overlaps with the comparison above; it survives because it names the id.
+        RCGameTests.test("every_guidebook_multiblock_matches_on_block_identity", 20, helper -> {
             List<String> unknown = new ArrayList<>();
             for (Machine machine : MACHINES) {
                 JsonObject json = read(helper, machine.pattern());
@@ -147,17 +150,25 @@ final class GuidebookMultiblockTests {
     }
 
     /**
-     * The list above is a second inventory of which machines have a page, and the copy nobody
-     * remembers to update is always the one that is read. This is what makes forgetting it fail: a
-     * fifth machine's page, or a fifth pattern file, and the comparison above is silently not
-     * covering it.
+     * A three-way check that {@link #MACHINES} has not become the stale copy.
+     *
+     * <p>That list is a second inventory of which machines have a page, and the copy nobody
+     * remembers to update is always the one that is read. So compare it against both of the places
+     * the real answer lives: the pattern files on disk, and the pages that draw them. A fifth
+     * machine, an orphaned pattern, or a page pointed at a file that was never written all fail
+     * here rather than passing quietly.
      */
     private static void registerCoverage() {
         RCGameTests.test("every_guidebook_multiblock_is_covered_by_this_test", 20, helper -> {
-            Set<String> known = new LinkedHashSet<>();
+            Set<String> checked = new LinkedHashSet<>();
             for (Machine machine : MACHINES) {
-                known.add(Recompile.MOD_ID + ":" + machine.pattern());
+                checked.add(Recompile.MOD_ID + ":" + machine.pattern());
             }
+
+            Set<String> onDisk = patternFiles(helper);
+            helper.assertTrue(!onDisk.isEmpty(),
+                "no multiblock pattern files were found at all - discovery is broken, so this test "
+                    + "would pass against a mod that ships none of them");
 
             Set<String> referenced = new LinkedHashSet<>();
             for (String json : GuidebookTests.bookFiles(helper)) {
@@ -172,19 +183,54 @@ final class GuidebookMultiblockTests {
 
             List<String> problems = new ArrayList<>();
             for (String id : referenced) {
-                if (!known.contains(id)) {
-                    problems.add("a page draws " + id + ", which this test does not check");
+                if (!onDisk.contains(id)) {
+                    problems.add("a page draws " + id + ", which has no pattern file");
                 }
             }
-            for (String id : known) {
+            for (String id : onDisk) {
                 if (!referenced.contains(id)) {
-                    problems.add(id + " has a pattern file that no page draws");
+                    problems.add(id + " is a pattern file that no page draws");
+                }
+                if (!checked.contains(id)) {
+                    problems.add(id + " is a pattern this test does not check against a blueprint");
+                }
+            }
+            for (String id : checked) {
+                if (!onDisk.contains(id)) {
+                    problems.add(id + " is checked by this test but has no pattern file");
                 }
             }
             helper.assertTrue(problems.isEmpty(),
                 "guide multiblock coverage gaps (" + problems.size() + "): " + problems);
             helper.succeed();
         });
+    }
+
+    /**
+     * Every pattern file that ships, by id.
+     *
+     * <p>Anchored on a known file rather than the directory, for the reason {@code GuidebookTests}
+     * gives: asking a classloader for a directory does not reliably return a URL.
+     */
+    private static Set<String> patternFiles(GameTestHelper helper) {
+        Set<String> out = new LinkedHashSet<>();
+        java.net.URL anchor = GuidebookMultiblockTests.class.getResource(ROOT + "rain_collector.json");
+        if (anchor == null) {
+            helper.fail("no multiblock patterns on the classpath at " + ROOT);
+            return out;
+        }
+        try (java.util.stream.Stream<java.nio.file.Path> walk =
+                java.nio.file.Files.walk(java.nio.file.Path.of(anchor.toURI()).getParent())) {
+            for (java.nio.file.Path path : walk.filter(java.nio.file.Files::isRegularFile).toList()) {
+                String file = path.getFileName().toString();
+                if (file.endsWith(".json")) {
+                    out.add(Recompile.MOD_ID + ":" + file.substring(0, file.length() - ".json".length()));
+                }
+            }
+        } catch (IOException | java.net.URISyntaxException e) {
+            helper.fail("could not walk the multiblock patterns: " + e);
+        }
+        return out;
     }
 
     /** Blueprint cells as offset -> component block id, plus the core at the origin. */
@@ -204,8 +250,7 @@ final class GuidebookMultiblockTests {
      * Within a layer each string is one X and each character in it is one Z, which is Patchouli's
      * convention and the one {@code DenseMultiblock} keeps.
      */
-    private static Map<Vec3i, String> decode(GameTestHelper helper, String name, JsonObject json,
-            List<String> problems) {
+    private static Map<Vec3i, String> decode(String name, JsonObject json, List<String> problems) {
         JsonArray layers = json.getAsJsonArray("pattern");
         JsonObject mapping = json.getAsJsonObject("mapping");
         int height = layers.size();
