@@ -60,10 +60,34 @@ hold a diamond (8 planks and one diamond, #117) without leaking it. The guard te
 teardown deliberately** - the Separator is the sanctioned route and does produce these materials, so a
 test written any broader fails on the intended design.
 
-**Teardown is one-in; concentration is N-in.** Reusing `recompile:teardown` with a different `station`
-looks tempting because the schema already carries that field. It does not fit: teardown consumes a
-single item, and this tier's entire point is that many inputs become a little output. This needs its own
-recipe type, or an explicit input count added to the schema.
+**The recipe type is `recompile:separating`, a new type.** Reusing `recompile:teardown` with a different
+`station` looks tempting because the schema already carries that field, and it is the wrong call for
+three reasons. Teardown consumes a **single item** and this tier's whole point is that many inputs become
+a little output. Teardown is **public API** - packs extend it without a mod release - so adding a count
+field would silently redefine every existing pack recipe as count-1. And the guard test needs to tell the
+two apart cleanly, which two types give for free and a station discriminator does not.
+
+The schema, following `TeardownRecipe`'s shape so the two read as siblings:
+
+```json
+{
+  "type": "recompile:separating",
+  "input": "recompile:magnet_scrap",
+  "count": 16,
+  "ticks": 200,
+  "energy": 16,
+  "results":    [ { "item": "minecraft:redstone", "count": 4 } ],
+  "byproducts": [ { "item": "recompile:scrap_metal", "count": 2 } ]
+}
+```
+
+- `input` is an `Ingredient`, so a tag works, matching teardown.
+- `count` is how many of the input one operation consumes. **This is the concentration dial.**
+- `energy` is **FE per tick**, not per operation, matching `hydroponicsFePerTick`. Per-tick is what lets an
+  underpowered machine visibly stall rather than silently refuse.
+- `byproducts` are **deterministic, not weighted**. A separator splits a feed; it does not roll for a
+  bonus. Determinism is also what keeps the machine tunable, since the luck already lives in the pull
+  stream.
 
 **No BlockEntityRenderer, and no fifth screen.** The BER ban has exactly one recorded exception (the
 Display Pedestal) and this is not a second. Motion comes from **animated textures** (`.mcmeta` frame
@@ -111,15 +135,90 @@ gold from E-Scrap, which needed no new worldgen at all; with gold at #120 there 
 for the machine to chew on until this exists. The ordering is now the natural one, at the cost of the
 de-risking that gold was providing.
 
-**Acceptance:** the pile generates at a measured density in the yard and nowhere else, no entry in
-`mechanical_pulls` is a vanilla gem, and each intermediate is obtainable by hand.
+### The block
+
+Values chosen to sit inside the range its neighbours already occupy, not invented:
+
+| Property | Value | Why |
+|---|---|---|
+| `minPulls` / `maxPulls` | **3 / 4** | Matches the Compacted Bale, the other dense and rich stream. Rubble is 2/4, a garbage block 2/3, a bag 2/2 |
+| Required tool | **None** | Rubble sits beside it and needs none |
+| Gravity | **Falls**, config-gated | Every `SortableBlock` extends `FallingBlock`; this is inherited, not a new decision |
+| Texture variants | **3** | What `garbage_block` uses. A pile that generates in quantity needs them or the tiling shows |
+| Placement | `count: 2` per chunk | `rubble_pile` is `count: 6`. This is the valuable pile, so a third as common |
+
+### The three scrap variants
+
+Distinct items, named for what they actually are:
+
+| Item | Reads as | Separates into |
+|---|---|---|
+| `recompile:spent_abrasive` | Worn saw blades, core bits, grinding wheels | Diamond |
+| `recompile:magnet_scrap` | Hard drive and speaker magnets, motor windings | Redstone |
+| `recompile:quartz_grit` | Oscillators, optics, abrasive media | Amethyst |
+
+### Art
+
+Four surfaces, all in the yard's palette of rusted steel and oil:
+
+`mechanical_waste` (block, 3 variants), `spent_abrasive`, `magnet_scrap`, `quartz_grit` (items).
+
+The pile is the only one that has to read at distance, since it is what a player spots across the yard.
+The three items only have to be told apart in an inventory row, so **silhouette and colour separation
+matter more than detail**: pale grey grit, dark iron-blue magnets, translucent grit.
+
+**Acceptance:** the pile generates at the stated density in the yard and nowhere else, no entry in
+`mechanical_pulls` is a vanilla gem, and each variant is obtainable by hand.
 
 ## Phase 2 - the Separator, proven on amethyst
 
 **Ships:** the machine, working, with one recipe.
 
 The multiblock structure and its formed art, FE consumption, the entity-in and entity-out interaction,
-the new recipe type with its input count, and **one recipe: quartz grit to amethyst.**
+the `recompile:separating` type, and **one recipe: quartz grit to amethyst.**
+
+### What it is built from
+
+Twelve cells: one core the player places, eleven dummies. **Two component types only** - auto-assemble is
+all-or-nothing and quantity-correct, so every extra component type is another way for a player to stand
+in front of a core that will not form.
+
+| Cells | Component placed | Formed block |
+|---|---|---|
+| 3 chamber | **Steel I-Beam** x3 | `separator_chamber` |
+| 6 housing | **Machine Frame** x6 | `separator_housing` |
+| 2 chute | **Machine Frame** x2 | `separator_chute` |
+
+Machine Frame is the established multiblock component (the Compost Heap takes seven). Steel is the
+yard's own material and a shredder's cutters are steel, so the chamber costing steel ties the machine to
+the region it stands in. Note the same component forms two different blocks, which the framework already
+allows and the Grass Spreader already does.
+
+**The core must cost iron.** It sits directly above the iron gate, and paying iron for it is what makes
+the Cupola feel like a step toward something rather than a terminus. Proposal: Machine Frame, two Steel
+I-Beam and four Iron Ingot, shaped. The exact recipe joins #36; the constraint is that iron appears in it.
+
+### How material actually gets in and out
+
+- **A ticker scans, nothing collides.** The core's BlockEntity scans a one-block box above each chamber
+  cell for item entities. Collision handlers fire per entity and are fragile around stacking and
+  despawn; a bounded scan on the machine's own tick is simpler and testable.
+- **No internal buffer, deliberately.** The machine holds nothing. It waits until entities above it carry
+  at least `count` of a matching item, then consumes them in one operation. This is what keeps it out of
+  the `Container` path entirely, which is the whole reason it has no automation surface to declare.
+- **No power means the material waits.** Items do not bounce out and are not refused. The machine simply
+  does not consume them, the way a furnace with no fuel sits full and cold. Legible without a screen.
+- **Output spawns at the chute face with a small outward velocity**, so it lands in front of the machine
+  rather than inside it, and a hopper under the chute catches it.
+
+### Numbers
+
+Placeholders, chosen against the machines either side of it, and joining #36:
+
+| Value | Setting | Why |
+|---|---|---|
+| Energy | **16 FE/tick** | The Hydroponics Bay is 8. This is the top tier and should cost visibly more |
+| Time | **200 ticks** (10s) per operation | Half the Bay's cook, because the input count is doing the work instead |
 
 **The grinder separates, it does not transmute.** One run yields the raw material **plus recovered
 ordinary scrap** - metal, plastic, glass - because that is what a real separator does: it splits a mixed
@@ -145,7 +244,23 @@ that has already been played.
 
 **Ships:** the two that matter.
 
-Two further Separator recipes, each with its own input count and time. **Redstone gets the
+Two further `recompile:separating` recipes.
+
+**The ratios are comparable; the pull weights carry the difficulty.** This is the important part and it
+is easy to get backwards. Redstone is the gate, but a player needs redstone in *quantity* - fifteen items
+hang off it - so making a single redstone cost thirty inputs would be punishing rather than gating. The
+scarcity belongs in `mechanical_pulls`, where magnet scrap is the rare entry, not in a recipe that makes
+each unit agonising.
+
+Starting placeholders:
+
+| Recipe | In | Out | Byproduct |
+|---|---|---|---|
+| Amethyst | 12 quartz grit | 2 amethyst shard | 1 glass shards |
+| Diamond | 16 spent abrasive | 1 diamond | 2 scrap metal |
+| Redstone | 16 magnet scrap | 4 redstone | 2 scrap metal |
+
+Pull weights, inversely: quartz grit common, spent abrasive uncommon, **magnet scrap rare**. **Redstone gets the
 harshest ratio**: it drags fifteen vanilla items behind it (piston, dispenser, dropper, observer,
 comparator, repeater, crafter, clock, compass, daylight detector, target, redstone lamp and torch, plus
 map through the compass), so it is the automation tier in a single material. Real rare-earth recycling
@@ -187,9 +302,13 @@ not be reachable, and that is by design rather than an oversight.
 
 ## Open
 
-- The Separator's footprint, and how many **distinct cell types** it needs. The second number is the art
-  budget.
-- Final scrap variant names.
-- All ratios and weights, which join #36.
-- What each grinder recipe returns as recovered scrap, and in what ratio to the raw material.
+Everything below is a look-at-it decision. Nothing here blocks starting work.
 
+- **Footprint confirmation.** 3x2x2 with four cell types is the working assumption and step 1 of the
+  model spec's build order is to look at it in-world. If it changes, the cell counts in Phase 2 change
+  with it; nothing else does.
+- **Every number above is a first-pass placeholder**, as the standing pre-beta gate requires. Pull
+  weights, FE rate, times, input counts and byproduct amounts all join #36 together, because tuning them
+  piecemeal is what that gate exists to prevent.
+- Whether `spent_abrasive`, `magnet_scrap` and `quartz_grit` survive contact with the guidebook, which is
+  where item names usually get their last edit.
