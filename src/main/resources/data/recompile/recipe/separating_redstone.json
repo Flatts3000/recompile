@@ -1,9 +1,9 @@
 {
   "type": "recompile:separating",
   "input": "recompile:magnet_scrap",
-  "count": 16,
-  "ticks": 200,
+  "count": 1,
+  "ticks": 40,
   "energy": 16,
-  "results": [ { "item": "minecraft:redstone", "count": 4 } ],
-  "byproducts": [ { "item": "recompile:scrap_metal", "count": 2 } ]
+  "results": [ { "item": "minecraft:redstone", "count": 1 } ],
+  "byproducts": [ { "item": "recompile:scrap_metal", "count": 1 } ]
 }

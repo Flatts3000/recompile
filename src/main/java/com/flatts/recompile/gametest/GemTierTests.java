@@ -95,23 +95,34 @@ final class GemTierTests {
             helper.succeed();
         });
 
-        // Every separating recipe must consume more than one item, or the tier is not a tier.
-        RCGameTests.test("every_separating_recipe_concentrates", 20, helper -> {
+        // The difficulty lives in the loot table now, not in the recipe (owner, 2026-08-03), so this
+        // asserts the thing that actually keeps the tier honest: every scrap the Separator eats has to
+        // be findable, and nothing it eats may be a vanilla gem. A recipe whose input has no source is
+        // a dead machine that every test would otherwise call healthy.
+        RCGameTests.test("every_separating_input_is_findable_scrap", 20, helper -> {
             List<String> problems = new ArrayList<>();
             int checked = 0;
             for (RecipeHolder<SeparatingRecipe> holder : helper.getLevel().recipeAccess()
                     .recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
                 checked++;
-                if (holder.value().count() < 2) {
-                    problems.add(holder.id() + " consumes " + holder.value().count());
-                }
                 if (holder.value().results().isEmpty()) {
                     problems.add(holder.id() + " produces nothing");
+                }
+                boolean findable = false;
+                for (var scrap : RCItems.INDUSTRIAL_SCRAP) {
+                    if (holder.value().matches(
+                            new net.minecraft.world.item.crafting.SingleRecipeInput(
+                                new ItemStack(scrap.get())), helper.getLevel())) {
+                        findable = true;
+                    }
+                }
+                if (!findable) {
+                    problems.add(holder.id() + " eats something Mechanical Waste does not drop");
                 }
             }
             helper.assertTrue(checked >= 3,
                 "only " + checked + " separating recipes - the tier ships three");
-            helper.assertTrue(problems.isEmpty(), "separating recipes that do not concentrate: " + problems);
+            helper.assertTrue(problems.isEmpty(), "broken separating recipes: " + problems);
             helper.succeed();
         });
 
@@ -143,7 +154,7 @@ final class GemTierTests {
         });
 
         // The machine, end to end: form it, power it, feed it, and check the chute.
-        RCGameTests.test("separator_grinds_a_feed_into_its_raw_material", 260, helper -> {
+        RCGameTests.test("separator_grinds_a_feed_into_its_raw_material", 120, helper -> {
             BlockPos core = new BlockPos(1, 2, 1);
             helper.setBlock(core, RCBlocks.SEPARATOR.get());
             buildAround(helper, core);
@@ -161,7 +172,7 @@ final class GemTierTests {
             BlockPos intake = SeparatorCoreBlock.chamberCells(
                 helper.getLevel(), helper.absolutePos(core)).get(0).above();
             ItemEntity feed = new ItemEntity(helper.getLevel(), intake.getX() + 0.5, intake.getY() + 0.5,
-                intake.getZ() + 0.5, new ItemStack(RCItems.QUARTZ_GRIT.get(), 12));
+                intake.getZ() + 0.5, new ItemStack(RCItems.QUARTZ_GRIT.get(), 4));
             // ItemEntity's constructor gives it a random shove. In the world a dropped stack settles;
             // here it would drift out of the machine's mouth mid-test.
             feed.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
@@ -181,7 +192,7 @@ final class GemTierTests {
                                 helper.getLevel(), helper.absolutePos(core))).size());
             });
 
-            helper.runAfterDelay(230, () -> {
+            helper.runAfterDelay(80, () -> {
                 boolean found = false;
                 for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
                         AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
@@ -197,7 +208,7 @@ final class GemTierTests {
 
         // A hopper on the chamber is the first thing anyone reaches for, and pointing one down at the
         // machine does nothing, because the chamber is not a Container. The machine drains it instead.
-        RCGameTests.test("separator_drains_a_container_on_its_chamber", 260, helper -> {
+        RCGameTests.test("separator_drains_a_container_on_its_chamber", 120, helper -> {
             BlockPos core = new BlockPos(1, 2, 1);
             helper.setBlock(core, RCBlocks.SEPARATOR.get());
             buildAround(helper, core);
@@ -214,9 +225,9 @@ final class GemTierTests {
             helper.getLevel().setBlockAndUpdate(above, Blocks.HOPPER.defaultBlockState());
             var hopper = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(above);
             helper.assertTrue(hopper != null, "no hopper container above the chamber");
-            hopper.setItem(0, new ItemStack(RCItems.QUARTZ_GRIT.get(), 12));
+            hopper.setItem(0, new ItemStack(RCItems.QUARTZ_GRIT.get(), 4));
 
-            helper.runAfterDelay(230, () -> {
+            helper.runAfterDelay(80, () -> {
                 boolean found = false;
                 for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
                         AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
@@ -229,6 +240,30 @@ final class GemTierTests {
                         + "to pull, because nothing can push into it");
                 helper.succeed();
             });
+        });
+
+        // The bay has to read as ONE opening. Four cells all showing quadrant 0 would tile the same
+        // quarter four times, which is exactly the look this stamping exists to avoid, and nothing
+        // else in the build would notice.
+        RCGameTests.test("the_grinding_bay_stamps_four_distinct_quadrants", 40, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            java.util.Set<Integer> seen = new java.util.HashSet<>();
+            for (BlockPos cell : SeparatorCoreBlock.chamberCells(
+                    helper.getLevel(), helper.absolutePos(core))) {
+                BlockState state = helper.getLevel().getBlockState(cell);
+                helper.assertTrue(state.is(RCBlocks.SEPARATOR_CHAMBER.get()),
+                    "a bay cell did not form into a chamber");
+                seen.add(state.getValue(
+                    com.flatts.recompile.content.block.SeparatorChamberBlock.QUADRANT));
+            }
+            helper.assertTrue(seen.size() == 4,
+                "the bay stamped " + seen.size() + " distinct quadrants, not 4: " + seen
+                    + ". Repeating a quarter makes four blocks read as four grinders");
+            helper.succeed();
         });
 
         // No Container, no item capability, on every face AND on the null side - the
@@ -265,14 +300,15 @@ final class GemTierTests {
         });
     }
 
-    /** Place the eleven components a north-facing Separator needs, leaving the core alone. */
+    /** Place the seven components a north-facing Separator needs, leaving the core alone. */
     private static void buildAround(GameTestHelper helper, BlockPos core) {
-        for (int x = 0; x < 3; x++) {
-            helper.setBlock(core.offset(x, 1, 0), RCBlocks.STEEL_I_BEAM.get());
-            helper.setBlock(core.offset(x, 1, 1), RCBlocks.STEEL_I_BEAM.get());
-            helper.setBlock(core.offset(x, 0, 1), RCBlocks.MACHINE_FRAME.get());
+        for (int x = 0; x < 2; x++) {
+            for (int z = 0; z < 2; z++) {
+                helper.setBlock(core.offset(x, 1, z), RCBlocks.STEEL_I_BEAM.get());
+            }
         }
         helper.setBlock(core.offset(1, 0, 0), RCBlocks.MACHINE_FRAME.get());
-        helper.setBlock(core.offset(2, 0, 0), RCBlocks.MACHINE_FRAME.get());
+        helper.setBlock(core.offset(0, 0, 1), RCBlocks.MACHINE_FRAME.get());
+        helper.setBlock(core.offset(1, 0, 1), RCBlocks.MACHINE_FRAME.get());
     }
 }

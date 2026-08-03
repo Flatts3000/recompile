@@ -85,16 +85,30 @@ entire formed appearance is **one** bespoke block repeated across seven dummies.
 A shear shredder is **wide and shallow**, which suits a low, broad footprint rather than a tower. Starting
 proposal, to be confirmed in-world:
 
-**3 wide x 2 deep x 2 tall**, twelve cells, **four distinct types**:
+**2 wide x 2 deep x 2 tall**, eight cells, **four distinct types** (built 2026-08-03):
 
 | Type | Count | What it is |
 |---|---|---|
-| Chamber | 3 | Top row. Recessed well, animated comb texture. The face that matters |
-| Housing | 6 | Painted plate sides and back. Static |
-| Chute | 2 | Lower front. Where material falls out |
+| Bay | 4 | The whole top. Recessed well, animated comb, **one image across four blocks** |
+| Housing | 2 | Painted plate. Static |
+| Chute | 1 | Beside the core. Where material falls out |
 | Core | 1 | The block the player places. Carries `FORMED` and the running state |
 
-Four types is affordable. Twenty-seven would be a different project.
+**The bay is 2x2 and reads as one opening**, which is the part that took work. Each cell is stamped at
+assembly with which quarter of the grinder it shows, and the four textures are quarters of a single
+32px image, so the teeth run continuously across the seams instead of the comb restarting at every
+block edge. Four cells all showing the same tile would read as four small grinders in a square, which
+is precisely the thing it must not look like; `the_grinding_bay_stamps_four_distinct_quadrants` is
+what stops that regressing.
+
+The facing rides on the cells as a model rotation, which turns the whole 2x2 image together and is why
+the quadrant can be taken from the unrotated offset.
+
+**The animation is rolled as one image and sliced per frame**, never per quadrant. Rolling each tile on
+its own wraps inside its own 16px square and tears the join.
+
+This also replaced an earlier 3x2 top whose back row was housing. Housing looks exactly like a lid, so
+material dropped on the back half was silently refused by a surface that appeared to be the opening.
 
 ## 4. The palette: faded chipped paint over rusted steel
 

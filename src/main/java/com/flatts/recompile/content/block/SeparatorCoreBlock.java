@@ -41,9 +41,13 @@ import org.jspecify.annotations.Nullable;
  * anyone tries and it can never work, because there is nothing there to insert into. Draining the
  * container instead costs none of the properties above and removes the dead end.
  *
- * <p><b>3 wide x 2 deep x 2 tall</b>, twelve cells, four kinds. Two component types only: auto-assemble
- * is all-or-nothing, so every extra component is another way for a player to stand in front of a core
- * that will not form.
+ * <p><b>2 wide x 2 deep x 2 tall</b>, eight cells. The entire top is a <b>2x2 grinding bay</b> that
+ * reads as one opening rather than four blocks: each cell is stamped at assembly with which quarter of
+ * the grinder it shows, and the four quadrant textures are quarters of a single image, so the teeth run
+ * continuously across the seams.
+ *
+ * <p>Two component types only: auto-assemble is all-or-nothing, so every extra component is another way
+ * for a player to stand in front of a core that will not form.
  */
 public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlock {
 
@@ -99,10 +103,10 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
      * core's facing everywhere else.
      *
      * <pre>
-     *   y=1   chamber chamber chamber      (the WHOLE top is the mouth)
-     *         chamber chamber chamber
-     *   y=0   CORE    chute   chute        (front row: where material comes out)
-     *         housing housing housing      (back row)
+     *   y=1   bay  bay        (the whole top is one 2x2 grinding bay)
+     *         bay  bay
+     *   y=0   CORE chute      (front: where material comes out)
+     *         hous hous       (back)
      * </pre>
      */
     @Override
@@ -111,36 +115,62 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         Block beam = RCBlocks.STEEL_I_BEAM.get();
         Block frame = RCBlocks.MACHINE_FRAME.get();
 
-        for (int x = 0; x < 3; x++) {
-            // THE WHOLE TOP IS THE CHAMBER. It was the front row only, and the back row was housing -
-            // which looks exactly like a lid, so material dropped on the back half was silently
-            // refused by a surface that appeared to be the opening. A machine whose mouth is half
-            // decoration is a trap, and no tooltip fixes it. Steel, because a shredder's cutters are
-            // steel and the yard's own material ties the machine to the region it stands in.
-            cells.add(new Multiblock.Cell(new Vec3i(x, 1, 0), beam, RCBlocks.SEPARATOR_CHAMBER.get()));
-            cells.add(new Multiblock.Cell(new Vec3i(x, 1, 1), beam, RCBlocks.SEPARATOR_CHAMBER.get()));
-            cells.add(new Multiblock.Cell(new Vec3i(x, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+        // THE WHOLE TOP IS THE BAY. An earlier build made the chamber one row with housing behind it,
+        // and housing looks exactly like a lid, so material dropped on the back half was silently
+        // refused by a surface that appeared to be the opening. Steel, because a shredder's cutters are
+        // steel and the yard's own material ties the machine to the region it stands in.
+        for (int x = 0; x < 2; x++) {
+            for (int z = 0; z < 2; z++) {
+                cells.add(new Multiblock.Cell(new Vec3i(x, 1, z), beam, RCBlocks.SEPARATOR_CHAMBER.get()));
+            }
         }
-        // Bottom front, beside the core: the chute. Same component as the housing, a different formed
-        // block - which the framework allows and the Grass Spreader already does.
+        // Bottom: the chute beside the core, housing behind. Same component as the housing, a different
+        // formed block, which the framework allows and the Grass Spreader already does.
         cells.add(new Multiblock.Cell(new Vec3i(1, 0, 0), frame, RCBlocks.SEPARATOR_CHUTE.get()));
-        cells.add(new Multiblock.Cell(new Vec3i(2, 0, 0), frame, RCBlocks.SEPARATOR_CHUTE.get()));
+        cells.add(new Multiblock.Cell(new Vec3i(0, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+        cells.add(new Multiblock.Cell(new Vec3i(1, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
         return new Multiblock(List.copyOf(cells));
     }
 
-    /** All six chamber cells, in world space. The entire top of the machine. */
+    /** The four cells of the grinding bay, in world space. The entire top of the machine. */
     public static List<BlockPos> chamberCells(Level level, BlockPos core) {
         List<BlockPos> out = new ArrayList<>();
         if (!(level.getBlockState(core).getBlock() instanceof SeparatorCoreBlock block)) {
             return out;
         }
         Rotation rotation = block.rotationFor(level.getBlockState(core));
-        for (int x = 0; x < 3; x++) {
+        for (int x = 0; x < 2; x++) {
             for (int z = 0; z < 2; z++) {
                 out.add(core.offset(Multiblock.rotate(new Vec3i(x, 1, z), rotation)));
             }
         }
         return out;
+    }
+
+    /**
+     * Stamp each bay cell with which quarter of the grinder it shows, and which way the machine faces.
+     *
+     * <p>This is what makes four blocks read as <b>one</b> opening. The quadrant textures are quarters
+     * of a single image, so the teeth run continuously across the seams instead of the pattern
+     * restarting at every block edge. The quadrant comes from the <b>unrotated</b> offset and the facing
+     * is applied as a model rotation, which is exactly equivalent to turning the whole image.
+     */
+    @Override
+    protected void onFormed(Level level, BlockPos pos) {
+        BlockState coreState = level.getBlockState(pos);
+        Rotation rotation = rotationFor(coreState);
+        Direction facing = coreState.getValue(FACING);
+        for (int x = 0; x < 2; x++) {
+            for (int z = 0; z < 2; z++) {
+                BlockPos cell = pos.offset(Multiblock.rotate(new Vec3i(x, 1, z), rotation));
+                BlockState state = level.getBlockState(cell);
+                if (state.is(RCBlocks.SEPARATOR_CHAMBER.get())) {
+                    level.setBlock(cell, state
+                        .setValue(SeparatorChamberBlock.QUADRANT, x + z * 2)
+                        .setValue(SeparatorChamberBlock.FACING, facing), Block.UPDATE_ALL);
+                }
+            }
+        }
     }
 
     /**

@@ -44,8 +44,12 @@ import org.jspecify.annotations.Nullable;
  */
 public class SeparatorBlockEntity extends BlockEntity {
 
-    /** Sized at one full default operation, so a solar gap does not stutter the machine. */
-    private static final int BUFFER = SeparatingRecipe.DEFAULT_TICKS * SeparatingRecipe.DEFAULT_ENERGY;
+    /**
+     * Several operations' worth, so a solar gap does not stutter the machine. Not derived from one
+     * operation any more: at 1-in-1-out an operation is two seconds, and a buffer that small would
+     * empty between panel ticks.
+     */
+    private static final int BUFFER = 4000;
 
     /**
      * Insert and extract are both open <b>on the handler</b>; it is the capability wrapper in

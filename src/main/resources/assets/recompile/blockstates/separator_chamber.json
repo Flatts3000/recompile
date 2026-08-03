@@ -1,7 +1,64 @@
 {
   "variants": {
-    "": {
-      "model": "recompile:block/separator_chamber"
+    "facing=north,quadrant=0": {
+      "model": "recompile:block/separator_bay_0"
+    },
+    "facing=east,quadrant=0": {
+      "model": "recompile:block/separator_bay_0",
+      "y": 90
+    },
+    "facing=south,quadrant=0": {
+      "model": "recompile:block/separator_bay_0",
+      "y": 180
+    },
+    "facing=west,quadrant=0": {
+      "model": "recompile:block/separator_bay_0",
+      "y": 270
+    },
+    "facing=north,quadrant=1": {
+      "model": "recompile:block/separator_bay_1"
+    },
+    "facing=east,quadrant=1": {
+      "model": "recompile:block/separator_bay_1",
+      "y": 90
+    },
+    "facing=south,quadrant=1": {
+      "model": "recompile:block/separator_bay_1",
+      "y": 180
+    },
+    "facing=west,quadrant=1": {
+      "model": "recompile:block/separator_bay_1",
+      "y": 270
+    },
+    "facing=north,quadrant=2": {
+      "model": "recompile:block/separator_bay_2"
+    },
+    "facing=east,quadrant=2": {
+      "model": "recompile:block/separator_bay_2",
+      "y": 90
+    },
+    "facing=south,quadrant=2": {
+      "model": "recompile:block/separator_bay_2",
+      "y": 180
+    },
+    "facing=west,quadrant=2": {
+      "model": "recompile:block/separator_bay_2",
+      "y": 270
+    },
+    "facing=north,quadrant=3": {
+      "model": "recompile:block/separator_bay_3"
+    },
+    "facing=east,quadrant=3": {
+      "model": "recompile:block/separator_bay_3",
+      "y": 90
+    },
+    "facing=south,quadrant=3": {
+      "model": "recompile:block/separator_bay_3",
+      "y": 180
+    },
+    "facing=west,quadrant=3": {
+      "model": "recompile:block/separator_bay_3",
+      "y": 270
     }
   }
 }

@@ -31,11 +31,15 @@ import net.minecraft.world.level.Level;
  * silently redefine every recipe anyone has already written as count-1. And the guard test has to tell
  * the two apart cleanly, which two types give for free and a station discriminator does not.
  *
- * <p><b>{@code count} is the concentration dial.</b> One circuit board is worth nothing; that is the
- * real economics of urban mining and it is the gate this tier is built on. Because the gate is
- * arithmetic rather than the absence of a material, it cannot die the way the first iron gate did
- * (#91): another mod flooding the player with scrap just means they reach the gem using that mod's
- * scrap, which is the correct outcome rather than a leak.
+ * <p><b>{@code count} exists but ships at 1</b> (owner, 2026-08-03). The tier was first built
+ * many-in-one-out, and that made the machine stall in front of a player holding a partial stack with
+ * nothing at all to show for it. The difficulty moved into {@code mechanical_pulls}, where one dial
+ * tunes it instead of two.
+ *
+ * <p>The property that mattered survives the move: <b>the gate is still a rate, not an absence.</b> A
+ * loot weight is as immune to the failure that killed the first iron gate (#91) as a ratio was. Another
+ * mod flooding the player with scrap just means they reach the gem using that mod's scrap, which is
+ * correct rather than a leak. The field stays because a pack may want the ratio back.
  *
  * <p><b>Byproducts are deterministic, not weighted.</b> A separator splits a feed into streams; it does
  * not roll for a bonus. Determinism is also what keeps the machine tunable, because the luck in this
@@ -43,8 +47,8 @@ import net.minecraft.world.level.Level;
  */
 public class SeparatingRecipe implements Recipe<SingleRecipeInput> {
 
-    /** Ticks per operation when a recipe does not say. 200 = 10 seconds. */
-    public static final int DEFAULT_TICKS = 200;
+    /** Ticks per operation when a recipe does not say. 40 = 2 seconds. */
+    public static final int DEFAULT_TICKS = 40;
     /** FE per tick while running when a recipe does not say. */
     public static final int DEFAULT_ENERGY = 16;
 
@@ -85,7 +89,7 @@ public class SeparatingRecipe implements Recipe<SingleRecipeInput> {
         return input;
     }
 
-    /** How many of the input one operation consumes. The concentration dial. */
+    /** How many of the input one operation consumes. Ships at 1; see the class note. */
     public int count() {
         return count;
     }

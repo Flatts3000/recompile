@@ -18,6 +18,7 @@ import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.MechanicalWasteBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
 import com.flatts.recompile.content.block.SeparatorPartBlock;
+import com.flatts.recompile.content.block.SeparatorChamberBlock;
 import com.flatts.recompile.content.block.SeparatorCoreBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.content.block.DumpMushroomBlock;
@@ -644,9 +645,9 @@ public final class RCBlocks {
             .requiresCorrectToolForDrops()
     );
 
-    public static final DeferredBlock<SeparatorPartBlock> SEPARATOR_CHAMBER = BLOCKS.registerBlock(
+    public static final DeferredBlock<SeparatorChamberBlock> SEPARATOR_CHAMBER = BLOCKS.registerBlock(
         "separator_chamber",
-        SeparatorPartBlock::new,
+        SeparatorChamberBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_BLUE)
             .strength(3.0F)

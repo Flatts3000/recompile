@@ -1,8 +1,8 @@
 {
   "type": "modonomicon:dense",
   "pattern": [
-    ["BB", "BB", "BB"],
-    ["0F", "FF", "FF"]
+    ["BB", "BB"],
+    ["0F", "FF"]
   ],
   "mapping": {
     "0": { "type": "modonomicon:block", "block": "recompile:separator" },
