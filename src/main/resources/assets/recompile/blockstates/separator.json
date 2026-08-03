@@ -1,33 +1,63 @@
 {
   "variants": {
-    "active=false,facing=north": {
+    "active=false,facing=north,formed=false": {
       "model": "recompile:block/separator"
     },
-    "active=false,facing=east": {
+    "active=false,facing=east,formed=false": {
       "model": "recompile:block/separator",
       "y": 90
     },
-    "active=false,facing=south": {
+    "active=false,facing=south,formed=false": {
       "model": "recompile:block/separator",
       "y": 180
     },
-    "active=false,facing=west": {
+    "active=false,facing=west,formed=false": {
       "model": "recompile:block/separator",
       "y": 270
     },
-    "active=true,facing=north": {
+    "active=true,facing=north,formed=false": {
       "model": "recompile:block/separator_active"
     },
-    "active=true,facing=east": {
+    "active=true,facing=east,formed=false": {
       "model": "recompile:block/separator_active",
       "y": 90
     },
-    "active=true,facing=south": {
+    "active=true,facing=south,formed=false": {
       "model": "recompile:block/separator_active",
       "y": 180
     },
-    "active=true,facing=west": {
+    "active=true,facing=west,formed=false": {
       "model": "recompile:block/separator_active",
+      "y": 270
+    },
+    "active=false,facing=north,formed=true": {
+      "model": "recompile:block/separator_formed"
+    },
+    "active=false,facing=east,formed=true": {
+      "model": "recompile:block/separator_formed",
+      "y": 90
+    },
+    "active=false,facing=south,formed=true": {
+      "model": "recompile:block/separator_formed",
+      "y": 180
+    },
+    "active=false,facing=west,formed=true": {
+      "model": "recompile:block/separator_formed",
+      "y": 270
+    },
+    "active=true,facing=north,formed=true": {
+      "model": "recompile:block/separator_formed"
+    },
+    "active=true,facing=east,formed=true": {
+      "model": "recompile:block/separator_formed",
+      "y": 90
+    },
+    "active=true,facing=south,formed=true": {
+      "model": "recompile:block/separator_formed",
+      "y": 180
+    },
+    "active=true,facing=west,formed=true": {
+      "model": "recompile:block/separator_formed",
       "y": 270
     }
   }

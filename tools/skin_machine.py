@@ -72,7 +72,7 @@ class Machine:
     """A machine's shape plus which formed block sits at each cell."""
 
     def __init__(self, name, width, height, depth, positions, cells, fallback, shapes=None,
-                 bay=None):
+                 bay=None, core=None):
         self.name = name
         self.w, self.h, self.d = width, height, depth
         self.positions = set(positions) | {(0, 0, 0)} | set(cells)
@@ -84,6 +84,8 @@ class Machine:
         self.shapes = shapes or {}
         # {(x, y, z): quadrant} for a machine with an animated grinding bay.
         self.bay = bay or {}
+        # Model name for the core's FORMED look, if it wears the skin.
+        self.core = core
 
     def skin_order(self):
         """Every position the machine occupies, in the SAME canonical order as Multiblock.skinOrder on
@@ -226,6 +228,42 @@ def emit_bay(machine, sheets, bay_cells):
     print('bay: 4 quadrants x idle/running, %d skin tiles' % made)
 
 
+def emit_core(machine, sheets):
+    """The core's FORMED model: it wears the skin like every other cell.
+
+    The core is part of the machine's surface, and a core that keeps its own control panel is the one
+    block that still reads as a different object bolted to the front - which is the whole thing the
+    skin exists to stop. It keeps its own model while UNFORMED, because a loose core in the world is
+    a machine part and should look like one; the moment it assembles, it becomes flank.
+
+    Nothing is lost by dropping its lit panel. A dummy redirects use to the master, so no one has to
+    find the core to interact with it, and the running cue is the grinding bay turning - which is a far
+    better signal than a lamp on one face.
+    """
+    x, y, z = 0, 0, 0
+    index = machine.index(x, y, z)
+    textures = {'particle': 'recompile:block/' + machine.fallback}
+    faces = {}
+    made = 0
+    for face in ('down', 'up', 'north', 'south', 'west', 'east'):
+        key = machine.fallback
+        if face in machine.outward(x, y, z) and sheets.get(face) is not None:
+            u, v = machine.tile_at(face, x, y, z)
+            tile = sheets[face].crop((u * 16, v * 16, u * 16 + 16, v * 16 + 16))
+            key = '%s_skin_%s_%d' % (machine.name, face, index)
+            tile.save(os.path.join(ASSETS, 'textures/block', key + '.png'))
+            made += 1
+        textures[face] = 'recompile:block/' + key
+        faces[face] = {'texture': '#' + face, 'cullface': face}
+    io.open(os.path.join(ASSETS, 'models/block', machine.core + '.json'),
+            'w', encoding='utf-8', newline='\n').write(json.dumps({
+        'parent': 'minecraft:block/block',
+        'textures': textures,
+        'elements': [{'from': [0, 0, 0], 'to': [16, 16, 16], 'faces': faces}],
+    }, indent=2) + '\n')
+    print('core: formed model + %d skin tiles' % made)
+
+
 def emit(machine):
     sheets = {face: load_sheet(machine, face) for face in FACE_AXES}
     written = {'textures': 0, 'models': 0}
@@ -294,6 +332,8 @@ def emit(machine):
 
     if machine.bay:
         emit_bay(machine, sheets, machine.bay)
+    if machine.core:
+        emit_core(machine, sheets)
     print('%(textures)d tiles, %(models)d models' % written)
 
 
@@ -315,6 +355,7 @@ SEPARATOR = Machine(
     },
     fallback='separator_housing',
     bay={(1, 1, 0): 0, (2, 1, 0): 1, (1, 1, 1): 2, (2, 1, 1): 3},
+    core='separator_formed',
     shapes={
         # The chute: a body with the bottom front cut away, which is the mouth everything falls out
         # of. Matches the hand-authored model it replaces.
