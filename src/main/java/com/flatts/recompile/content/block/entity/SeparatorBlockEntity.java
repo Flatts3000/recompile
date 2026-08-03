@@ -12,6 +12,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -19,12 +20,14 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The Separator's brain ({@code docs/gem_tier_spec.md} Phase 2).
@@ -86,6 +89,9 @@ public class SeparatorBlockEntity extends BlockEntity {
         List<ItemEntity> feed = new ArrayList<>();
         RecipeHolder<SeparatingRecipe> match = be.findFeed(server, pos, feed);
         if (match == null) {
+            match = be.findContainerFeed(server, pos);
+        }
+        if (match == null) {
             be.progress = 0;
             be.goal = 0;
             be.stall(level, pos, state);
@@ -123,19 +129,11 @@ public class SeparatorBlockEntity extends BlockEntity {
      */
     private RecipeHolder<SeparatingRecipe> findFeed(ServerLevel level, BlockPos pos,
                                                     List<ItemEntity> collected) {
-        List<BlockPos> intakes = SeparatorCoreBlock.intakes(level, pos);
-        if (intakes.isEmpty()) {
+        AABB mouth = SeparatorCoreBlock.mouth(level, pos);
+        if (mouth == null) {
             return null;
         }
-        // One box spanning every intake cell, inflated a little. Three tight per-block boxes miss an
-        // item that has settled on a rim between two of them, and this is one entity query instead of
-        // three. The inflation is deliberate: dropped items drift, and a machine that only eats
-        // perfectly centred items reads as broken.
-        AABB mouth = new AABB(intakes.get(0));
-        for (BlockPos intake : intakes) {
-            mouth = mouth.minmax(new AABB(intake));
-        }
-        List<ItemEntity> above = level.getEntitiesOfClass(ItemEntity.class, mouth.inflate(0.25));
+        List<ItemEntity> above = level.getEntitiesOfClass(ItemEntity.class, mouth);
         if (above.isEmpty()) {
             return null;
         }
@@ -160,9 +158,72 @@ public class SeparatorBlockEntity extends BlockEntity {
         return null;
     }
 
+    /** Any recipe a container on the chamber can satisfy. Checked after the loose-item path. */
+    private RecipeHolder<SeparatingRecipe> findContainerFeed(ServerLevel level, BlockPos pos) {
+        for (RecipeHolder<SeparatingRecipe> holder
+                : level.recipeAccess().recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
+            if (feedContainer(level, pos, holder.value()) != null) {
+                return holder;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * A container sitting on the chamber, if it holds enough of the recipe's input.
+     *
+     * <p><b>The machine pulls; nothing pushes into it.</b> A hopper above is the first thing anyone
+     * tries, and pointing one down at the chamber does nothing, because the chamber is not a
+     * {@code Container} and never will be. Reaching out is how a hopper itself works, and it costs none
+     * of the properties this machine is built on: it still exposes no item handler, so no pipe can
+     * connect to it and nothing can insert into it or extract from it.
+     */
+    private @Nullable Container feedContainer(ServerLevel level, BlockPos pos, SeparatingRecipe recipe) {
+        for (BlockPos cell : SeparatorCoreBlock.chamberCells(level, pos)) {
+            Container container = HopperBlockEntity.getContainerAt(level, cell.above());
+            if (container == null) {
+                continue;
+            }
+            int have = 0;
+            for (int slot = 0; slot < container.getContainerSize(); slot++) {
+                ItemStack stack = container.getItem(slot);
+                if (!stack.isEmpty() && recipe.matches(new SingleRecipeInput(stack), level)) {
+                    have += stack.getCount();
+                }
+            }
+            if (have >= recipe.count()) {
+                return container;
+            }
+        }
+        return null;
+    }
+
+    private static void drain(Container container, SeparatingRecipe recipe, Level level, int wanted) {
+        int remaining = wanted;
+        for (int slot = 0; slot < container.getContainerSize() && remaining > 0; slot++) {
+            ItemStack stack = container.getItem(slot);
+            if (stack.isEmpty() || !recipe.matches(new SingleRecipeInput(stack), level)) {
+                continue;
+            }
+            int taken = Math.min(remaining, stack.getCount());
+            stack.shrink(taken);
+            remaining -= taken;
+            container.setItem(slot, stack.isEmpty() ? ItemStack.EMPTY : stack);
+        }
+        container.setChanged();
+    }
+
     /** Consume the feed and throw the results out of the chute. */
     private void grind(ServerLevel level, BlockPos pos, SeparatingRecipe recipe, List<ItemEntity> feed) {
         int remaining = recipe.count();
+        if (feed.isEmpty()) {
+            Container container = feedContainer(level, pos, recipe);
+            if (container == null) {
+                return;   // it went away mid-grind; nothing was banked, so nothing is lost
+            }
+            drain(container, recipe, level, remaining);
+            remaining = 0;
+        }
         for (ItemEntity entity : feed) {
             if (remaining <= 0) {
                 break;

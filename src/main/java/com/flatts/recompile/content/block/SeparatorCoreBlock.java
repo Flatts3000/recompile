@@ -25,18 +25,21 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
  * The Separator's core: an industrial grinder that drops material in the top and raw materials out the
  * bottom ({@code docs/gem_tier_spec.md}, art {@code docs/separator_model_spec.md}).
  *
- * <p><b>It has no inventory, and that is the design rather than an omission.</b> Material arrives as
- * dropped item entities above the chamber and leaves as dropped item entities at the chute. So the
- * machine is not a {@code Container} and exposes no item capability, which means no hopper and no pipe
- * can reach into it - and yet it automates perfectly well, because a dropper can throw items in from
- * above and a hopper picks up what falls out below. Automation happens <b>through the world</b> rather
- * than through the block.
+ * <p><b>It has no inventory, and that is the design rather than an omission.</b> The machine is not a
+ * {@code Container} and exposes no item capability, so nothing can push into it and no pipe can even
+ * connect. It automates by <b>reaching out</b> instead: it eats loose items in its mouth, and it drains
+ * a container standing on the chamber. A hopper under the chute catches what falls.
+ *
+ * <p>The pull is what makes that liveable. A hopper pointed down at the chamber is the first thing
+ * anyone tries and it can never work, because there is nothing there to insert into. Draining the
+ * container instead costs none of the properties above and removes the dead end.
  *
  * <p><b>3 wide x 2 deep x 2 tall</b>, twelve cells, four kinds. Two component types only: auto-assemble
  * is all-or-nothing, so every extra component is another way for a player to stand in front of a core
@@ -123,17 +126,40 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         return new Multiblock(List.copyOf(cells));
     }
 
-    /** Where material is scanned for: the space directly above each chamber cell. */
-    public static List<BlockPos> intakes(Level level, BlockPos core) {
+    /** The three chamber cells, in world space. */
+    public static List<BlockPos> chamberCells(Level level, BlockPos core) {
         List<BlockPos> out = new ArrayList<>();
         if (!(level.getBlockState(core).getBlock() instanceof SeparatorCoreBlock block)) {
             return out;
         }
         Rotation rotation = block.rotationFor(level.getBlockState(core));
         for (int x = 0; x < 3; x++) {
-            out.add(core.offset(Multiblock.rotate(new Vec3i(x, 2, 0), rotation)));
+            out.add(core.offset(Multiblock.rotate(new Vec3i(x, 1, 0), rotation)));
         }
         return out;
+    }
+
+    /**
+     * The volume material is accepted in. <b>Single source of truth</b>, shared by the machine and its
+     * tests, so the two cannot disagree about where the mouth is.
+     *
+     * <p>Spans the chamber cells themselves and the block above them. That matters and was wrong once:
+     * the chamber's top face is <b>recessed</b>, so a dropped stack settles down inside the well rather
+     * than on top of it, which puts it in the chamber's own block space. Scanning only the block above
+     * meant a player could watch an item sit visibly in the mouth while the machine ignored it.
+     */
+    public static @Nullable AABB mouth(Level level, BlockPos core) {
+        List<BlockPos> cells = chamberCells(level, core);
+        if (cells.isEmpty()) {
+            return null;
+        }
+        AABB box = new AABB(cells.get(0));
+        for (BlockPos cell : cells) {
+            box = box.minmax(new AABB(cell));
+        }
+        // Up through the block above (an item mid-fall, or resting on the rim), and a little outward so
+        // a stack nudged against the lip still counts.
+        return box.expandTowards(0, 1, 0).inflate(0.25, 0, 0.25);
     }
 
     /** Where output is thrown: just outside the chute's front face, so a hopper there catches it. */

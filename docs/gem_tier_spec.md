@@ -200,8 +200,16 @@ I-Beam and four Iron Ingot, shaped. The exact recipe joins #36; the constraint i
 
 ### How material actually gets in and out
 
-- **A ticker scans, nothing collides.** The core's BlockEntity scans a one-block box above each chamber
-  cell for item entities. Collision handlers fire per entity and are fragile around stacking and
+- **A ticker scans, nothing collides.** The core's BlockEntity scans the chamber's mouth for item
+  entities. The mouth spans the chamber cells **and** the block above them, because the chamber's top
+  face is recessed and a dropped stack settles down inside the well rather than on top of it. Scanning
+  only the block above shipped once and meant a player could watch an item sit visibly in the mouth
+  while the machine ignored it.
+- **It drains a container on the chamber.** Nothing can push into the machine, so it pulls. A hopper
+  pointed down at the chamber is the first thing anyone reaches for and can never work, because there is
+  nothing there to insert into; reaching out is how a hopper itself works and it costs none of the
+  properties above. The machine still exposes no item handler, so no pipe connects and nothing can
+  extract. Collision handlers fire per entity and are fragile around stacking and
   despawn; a bounded scan on the machine's own tick is simpler and testable.
 - **No internal buffer, deliberately.** The machine holds nothing. It waits until entities above it carry
   at least `count` of a matching item, then consumes them in one operation. This is what keeps it out of

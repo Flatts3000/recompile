@@ -158,7 +158,8 @@ final class GemTierTests {
                 tx.commit();
             }
 
-            BlockPos intake = SeparatorCoreBlock.intakes(helper.getLevel(), helper.absolutePos(core)).get(0);
+            BlockPos intake = SeparatorCoreBlock.chamberCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
             ItemEntity feed = new ItemEntity(helper.getLevel(), intake.getX() + 0.5, intake.getY() + 0.5,
                 intake.getZ() + 0.5, new ItemStack(RCItems.QUARTZ_GRIT.get(), 12));
             // ItemEntity's constructor gives it a random shove. In the world a dropped stack settles;
@@ -176,8 +177,8 @@ final class GemTierTests {
                         + ", stored FE=" + be.battery().getAmountAsInt()
                         + ", feed entities above intake="
                         + helper.getLevel().getEntitiesOfClass(ItemEntity.class,
-                            new AABB(SeparatorCoreBlock.intakes(
-                                helper.getLevel(), helper.absolutePos(core)).get(0))).size());
+                            SeparatorCoreBlock.mouth(
+                                helper.getLevel(), helper.absolutePos(core))).size());
             });
 
             helper.runAfterDelay(230, () -> {
@@ -190,6 +191,42 @@ final class GemTierTests {
                 }
                 helper.assertTrue(found,
                     "the Separator ran but no amethyst reached the chute");
+                helper.succeed();
+            });
+        });
+
+        // A hopper on the chamber is the first thing anyone reaches for, and pointing one down at the
+        // machine does nothing, because the chamber is not a Container. The machine drains it instead.
+        RCGameTests.test("separator_drains_a_container_on_its_chamber", 260, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core));
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(1_000_000, tx);
+                tx.commit();
+            }
+
+            BlockPos above = SeparatorCoreBlock.chamberCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
+            helper.getLevel().setBlockAndUpdate(above, Blocks.HOPPER.defaultBlockState());
+            var hopper = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(above);
+            helper.assertTrue(hopper != null, "no hopper container above the chamber");
+            hopper.setItem(0, new ItemStack(RCItems.QUARTZ_GRIT.get(), 12));
+
+            helper.runAfterDelay(230, () -> {
+                boolean found = false;
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    if (entity.getItem().is(Items.AMETHYST_SHARD)) {
+                        found = true;
+                    }
+                }
+                helper.assertTrue(found,
+                    "a hopper of Quartz Grit sat on the chamber and nothing came out. The machine has "
+                        + "to pull, because nothing can push into it");
                 helper.succeed();
             });
         });
