@@ -45,13 +45,24 @@ SHEETS = os.path.join(ASSETS, 'textures/block')
 MAX_CELLS = 16
 
 # A face's sheet is indexed by two of the three axes, and which two depends on the face. The third
-# entry says whether the horizontal axis runs backwards, because a face is seen from OUTSIDE the
-# machine: the north face is read left-to-right in +x, the south face in -x.
+# entry says whether the horizontal axis runs backwards.
+#
+# GET THIS WRONG AND EVERY SEAM ON THAT FACE BREAKS, which is subtler than it sounds. Minecraft draws
+# a face's texture un-mirrored when seen from outside - vanilla's TNT proves it, since its lettering
+# reads correctly on all four sides. So reversing the tile ORDER without also mirroring each tile's
+# CONTENT butts column 2's right edge against column 1's left edge, and nothing lines up anywhere.
+# It is easy to talk yourself into believing a mirrored layout is still continuous; it is not.
+#
+# Which way each face runs, derived from where east ends up when you stand outside and look at it:
+#   north  seen from -z looking +z: east is on your LEFT,  so screen left-to-right is x DECREASING
+#   south  seen from +z looking -z: east is on your RIGHT, so screen left-to-right is x increasing
+#   west   seen from -x looking +x: south is on your RIGHT, so screen left-to-right is z increasing
+#   east   seen from +x looking -x: south is on your LEFT,  so screen left-to-right is z DECREASING
 FACE_AXES = {
-    'north': ('x', 'y', False),
-    'south': ('x', 'y', True),
-    'west':  ('z', 'y', True),
-    'east':  ('z', 'y', False),
+    'north': ('x', 'y', True),
+    'south': ('x', 'y', False),
+    'west':  ('z', 'y', False),
+    'east':  ('z', 'y', True),
     'up':    ('x', 'z', False),
     'down':  ('x', 'z', False),
 }
