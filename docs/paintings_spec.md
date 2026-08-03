@@ -1,7 +1,9 @@
 # Recovered paintings - spec
 
-**Status: design locked 2026-08-01, not built.** Six real paintings, pixelated to Minecraft resolution,
-found in the trash and hung on your wall.
+**Status: SHIPPED 2026-08-02** (#99, PR #100). Six real paintings, pixelated to Minecraft resolution,
+found in the trash and hung on your wall. The completion advancement is deliberately **not** part of
+this: advancements ship post-alpha as a group (#32), which is why alpha ships with duplicates and why
+the find rate is tuned for a duplicate-bearing set.
 
 ## 0. The idea
 

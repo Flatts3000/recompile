@@ -1,7 +1,9 @@
 # Hydroponics + the power tier - spec (issue #43)
 
-**Status: design locked 2026-07-31, not built.** Captured from a design session; every numbered item is an
-owner call made there.
+**Status: SHIPPED.** The power tier landed 2026-07-31 (#72, PR #73) and the Hydroponics Bay on
+2026-08-02 (#43, PR #104); the bay moved behind a blueprint the same day (#95, PR #110), so it now
+costs a Broken Hydroponics Bay teardown as well as the parts. Captured from a design session; every
+numbered item was an owner call made there, and the numbers still want the #36 balance pass.
 
 **Two issues, one spec.** The power tier is **#72** and the hydroponics machine is **#43**; #43 is blocked
 on #72, since the machine consumes RF and nothing generates it yet. They were split on 2026-07-31 because

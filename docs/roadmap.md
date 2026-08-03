@@ -1,8 +1,8 @@
 # Recompile - implementation roadmap
 
 **Status:** Phases 0 through 2.17 shipped to `main`, **Phase 4's region system and its first frontier
-region shipped**, and **v0.3.0 is released** (2026-07-30; v0.1.0 and v0.2.0 on 2026-07-27, the latter
-as the CurseForge ModJam 2026 entry). The mod is a
+region shipped**, and **v0.4.0 is released** (2026-08-01; v0.3.0 on 2026-07-30, v0.1.0 and v0.2.0 on 2026-07-27,
+the latter as the CurseForge ModJam 2026 entry). The mod is a
 playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
 Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
 around now plays through. Recent tiers: the **multiblock framework + Rain Collector** (2.11),
@@ -338,9 +338,10 @@ the racked tool wears. The `recompile:teardown` schema gained optional `tool` + 
 The mattress migrated onto it (its in-hand knife-cut retired), so string is now bench-gated. JEI
 Teardown category + a Jade diagnostic ship with it.
 
-**The axis is decided: KNOWLEDGE** (owner, 2026-08-01). Spec: `docs/blueprints_spec.md`, issue #95.
-The `teaches` field is still parsed and ignored; what changed is that it now has a design to be
-consumed by.
+**The axis is decided: KNOWLEDGE** (owner, 2026-08-01) and **the system shipped 2026-08-02** (#95,
+PRs #108 and #110). Spec: `docs/blueprints_spec.md`. The `teaches` field, parsed and ignored since
+Phase 0, is finally read - which immediately turned the schema's own example recipe into live
+content, because it pointed at a blueprint that did not exist.
 
 The old objections to gating are answered by **not gating vanilla crafting at all.** Knowledge is an
 **Immersive-Engineering-style Blueprint item** and blueprint-only recipes live on their own bench, so
@@ -351,11 +352,20 @@ state - the same grain as encroachment, the scrap network, and `FORMED`.
 Function (recover working components) was not chosen and is not blocked; it could layer onto the same
 bench later.
 
-**Built so far:** phase 1 only, which removes the sixteen vanilla wool-to-bed recipes so the proof of
-concept has a door to open. The proof of concept is the bed: tear down Dirty Mattresses until you
-learn the Clean Mattress blueprint, and a Clean Mattress plus three planks is then the only bed recipe
-in the game. The JEI locked-recipe overlay concern is moot under this design - blueprint recipes are
-their own JEI category with the blueprint as catalyst, the way the Burn Barrel already is.
+**Built:** all of it. Tearing something down at the Workbench grants an **Idea Fragment**; enough
+fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files
+them and joins the Scrap Network by placement; and the Scrap Crafting Table runs a
+`recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a
+cabinet in the same cluster. The proof of concept is the bed, and it is now the only bed in the game:
+all sixteen wool-to-bed recipes are deleted, and a Clean Mattress (blueprint-only) plus three planks
+is the sole route. The **Hydroponics Bay** followed as the second gated item, taught by a Broken
+Hydroponics Bay find.
+
+The JEI locked-recipe overlay concern is moot under this design: blueprint recipes are their own JEI
+category, and a vanilla crafting table needs no code to be excluded, since they are not of type
+`minecraft:crafting` and it cannot see them at all. The blueprint shows as a **crafting station**
+rather than a catalyst - JEI's roles here are INPUT / OUTPUT / CRAFTING_STATION / RENDER_ONLY, and
+declaring it an input made the transfer button demand it as a tenth ingredient.
 
 ## Phase 4 - Garbage regions  *(design P1.5)*
 

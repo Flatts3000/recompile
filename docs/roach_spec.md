@@ -1,8 +1,9 @@
 # Roach - spec (issue #78)
 
-**Status: design locked 2026-07-31, not built.** The dump's one native creature, and the mod's **first
-entity**. Every decision below was made in the design session; what remains is build order and the risks
-each phase carries.
+**Status: SHIPPED** (#78). All four phases landed 2026-07-31 to 2026-08-01 (PRs #79 entity, #80 food,
+#81 trigger and copy, #83 skin and spawn egg), and the spawn rate was retuned to one per 128 blocks of
+garbage on 2026-08-02 (PR #98). The dump's one native creature, and the mod's **first entity**. Every
+decision below was made in the design session; the phase order it describes is the order it was built.
 
 ## 0. The idea, and why it fits
 

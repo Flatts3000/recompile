@@ -1,6 +1,9 @@
 # Blueprints: teardown-as-knowledge - spec
 
-**Status: design locked 2026-08-01, phase 1 proven, rest not built.** The mod's namesake mechanic.
+**Status: SHIPPED 2026-08-02** (#95, PRs #108 and #110). The mod's namesake mechanic.
+Idea Fragments, the Filing Cabinet, the `recompile:blueprint_crafting` recipe type and its
+reachability rule all ship; the bed is the proof of concept and the Hydroponics Bay is the second
+item behind a sheet. What follows is the design as built, not a plan.
 Recompile has always been described as "disassemble items to recover their recipes, not just their
 materials", and recovering recipes is the one thing it does not do. `TeardownRecipe` has parsed a
 `teaches` field since Phase 0 and nothing has ever consumed it; `RecompileWorkbenchBlock`'s own javadoc

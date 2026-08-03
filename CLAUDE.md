@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **What this is:** a standalone **NeoForge** mod (MC 26.1.2). Core mechanic: **teardown-as-knowledge** - disassemble items to recover their recipes, not just their materials. Also ships the garbage-world systems (worldgen, Blocks of Garbage, sorting, mound regrowth) that the **Trashlands** modpack is built on. Mod id / package: `recompile` / `com.flatts.recompile`.
 
-**Status:** Phases 0 through 2.17 are shipped (through the full reclamation ladder - Grass, Vegetation, Farming, Trees, Animals), **Phase 4's region system and its first frontier region (the demolition yard) are shipped**, and **v0.3.0 is released** (2026-07-30; v0.1.0 and v0.2.0 on 2026-07-27). The grey-to-living arc the ModJam entry is built around now plays end to end. `docs/roadmap.md` is the engineering build order and tracks per-phase status; Phase 3 (teardown-as-knowledge, the distinct axis) is the next major system. Its long-open **knowledge-vs-function question was decided on 2026-08-01: knowledge**, as Immersive-Engineering-style **Blueprint items** (spec `docs/blueprints_spec.md`, issue #95), and **the system shipped on 2026-08-02**. Tear something down at the Workbench and you may come away with an **Idea Fragment**; enough fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files them and joins the Scrap Network by placement; and the **Scrap Crafting Table** will run a `recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a cabinet in the same cluster. A vanilla crafting table needs no code to be excluded - blueprint recipes are not of type `minecraft:crafting`, so it cannot see them at all.
+**Status:** Phases 0 through 2.17 are shipped (through the full reclamation ladder - Grass, Vegetation, Farming, Trees, Animals), **Phase 4's region system and its first frontier region (the demolition yard) are shipped**, and **v0.4.0 is released** (2026-08-01; v0.3.0 on 2026-07-30, v0.1.0 and v0.2.0 on 2026-07-27). The grey-to-living arc the ModJam entry is built around now plays end to end. `docs/roadmap.md` is the engineering build order and tracks per-phase status; Phase 3 (teardown-as-knowledge, the distinct axis) is the next major system. Its long-open **knowledge-vs-function question was decided on 2026-08-01: knowledge**, as Immersive-Engineering-style **Blueprint items** (spec `docs/blueprints_spec.md`, issue #95), and **the system shipped on 2026-08-02**. Tear something down at the Workbench and you may come away with an **Idea Fragment**; enough fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files them and joins the Scrap Network by placement; and the **Scrap Crafting Table** will run a `recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a cabinet in the same cluster. A vanilla crafting table needs no code to be excluded - blueprint recipes are not of type `minecraft:crafting`, so it cannot see them at all.
 
 **The proof of concept is the bed, and it is now the only bed in the game.** All sixteen wool-to-bed recipes are deleted; a Clean Mattress (blueprint-only, three wool and three string) plus three planks is the sole route, and dyeing the mattress at an ordinary table picks the colour. **The teardown schema's `teaches` field, parsed and ignored since Phase 0, is finally read** - which immediately turned the schema's own example recipe into live content, because it carried a `teaches` pointing at a blueprint that does not exist.
 
@@ -141,6 +141,36 @@ JEI and Jade are `runtimeOnly` viewers **plus** `compileOnly` APIs (`jei-...-neo
 - **`SortingData`** parses the **bundled loot JSON** (not a live table) because loot tables are not client-synced - so the categories work in singleplayer and on servers. It is server-safe and the only JEI/Jade logic a GameTest can cover (`SortingDataTests`); the categories/providers are thin renderers verified in `runClient`. Datapack-retuned pulls are not reflected in JEI - accepted, revisit if needed.
 - **The power tier speaks Forge Energy** (#72): `Capabilities.Energy.BLOCK` is a NeoForge standard, so the Solar Panel and Burner Generator interoperate with any energy mod at zero dependency cost. Energy moved to the **transfer API** in 26.1 exactly as fluids did (`EnergyHandler`, `SimpleEnergyHandler`, transactional insert/extract), so pre-1.21 `IEnergyStorage` snippets are wrong here.
 - **Teardown JEI is deferred to Phase 3** (only an example recipe exists; its locked-recipe overlay is the Phase 3 risk spike). EMI is not wired.
+
+## The guidebook (`data/recompile/modonomicon/`)
+
+An in-game **Modonomicon** book, `recompile:guide` (spec `docs/guidebook_spec.md`, #29). Engine is
+`runtimeOnly` and `transitive = false` - the book is pure data, so the mod ships and runs without
+Modonomicon present, and the guide item's recipe is gated `mod_loaded: modonomicon`. **One rule
+decides content: if a mechanic deviates from vanilla it earns an entry, if it behaves exactly like
+vanilla it does not.** Nine categories today.
+
+**Layout:** `books/guide/{book.json, categories/, entries/<cat>/<entry>.json, entries/<cat>/<entry>/pages/}`.
+An entry does **not** list its pages - the `pages/` directory is scanned, so adding a page is adding
+a file. Modonomicon scans a fixed `modonomicon/books` folder under every namespace, which is also how
+a pack extends this book without touching the mod.
+
+**Multiblock render pages are the one part with a drift risk, and it is locked** (#37). Patterns live
+in `modonomicon/multiblocks/` - **plural**, Modonomicon's own folder, not one of the dirs 26.1
+singularised, and the same silent-nonload trap as `loot_modifiers`. A `modonomicon:dense` pattern
+lists **layers top-first** (`stateMatchers[x][height - 1 - y][z]`), each string in a layer is one X
+and each character one Z. The shape therefore exists twice - there and in `Multiblock.java` - so
+`GuidebookMultiblockTests` compares them in both directions and fails if a page draws a machine that
+would not form. The pages draw the **loose components**, not the formed machine, because their job is
+to teach the build.
+
+**Three things that fail silently.** A `text` naming a lang key that does not exist renders the raw
+key to the player; an entry icon naming a missing item renders the pink-and-black missing texture on
+the category map; and a plain string in any text field is treated as a **translation key**
+(`BookTextHolder` runs it through `I18n`), so literal prose in one of those fields renders as itself.
+`GuidebookTests` covers the first two off the classpath. Everything else is
+**client-render-only** - GameTest and the JUnit layer are blind to it, so a `runClient` pass is the
+only proof a page draws.
 
 ## 26.1 API deltas that bite
 

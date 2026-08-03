@@ -1,8 +1,11 @@
 # In-game guidebook - build spec
 
-> **Status: SPEC / not yet built.** Tracks issue #29. This is the contract for the
-> guidebook work: the engine, the dependency posture, the voice, the content map
-> (every mechanic that deviates from vanilla), the build order, and verification.
+> **Status: SHIPPED.** The book landed as seven chapters on 2026-07-27 (#29, PR #35) and has
+> grown to **nine categories**; an audit on 2026-08-02 (PR #105) found and filled twelve
+> systems that had shipped without an entry, and the four multiblock render pages landed the
+> same week (#37, PR #111). This stays the contract for the work: the engine, the dependency
+> posture, the voice, the content map (every mechanic that deviates from vanilla), and
+> verification. The build order below is the order it was actually built in.
 
 ## The governing rule
 

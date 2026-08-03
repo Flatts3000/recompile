@@ -1,7 +1,8 @@
 # Steel I-Beam + Cutting Torch - spec (issue #48)
 
-**Status: design locked, not built.** The **bulk-iron** half of the demolition yard's iron path. Rebar (the
-trickle) shipped in #47; this adds the second, higher-volume grade and its dedicated tool. Parent spec:
+**Status: SHIPPED 2026-07-30** (#48, PRs #52 and #54). The **bulk-iron** half of the demolition yard's
+iron path. Rebar (the trickle) shipped in #47; this added the second, higher-volume grade and its
+dedicated tool, charged with Oily Rags rather than durability-only. Parent spec:
 [`demolition_yard_spec.md`](demolition_yard_spec.md) S4.3 / S6-torch. Everything ships config-gated; defaults
 are the design; tuning joins the pre-beta pass (#36).
 
