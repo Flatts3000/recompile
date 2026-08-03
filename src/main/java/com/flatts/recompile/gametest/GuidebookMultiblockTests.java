@@ -3,6 +3,8 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.multiblock.Multiblock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
+import com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock;
+import com.flatts.recompile.registry.RCBlocks;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -81,6 +83,7 @@ final class GuidebookMultiblockTests {
 
     static void register() {
         registerJeiPartRule();
+        registerSkinIndexRule();
         RCGameTests.test("every_guidebook_multiblock_matches_its_blueprint", 20, helper -> {
             List<String> problems = new ArrayList<>();
             for (Machine machine : MACHINES) {
@@ -377,6 +380,85 @@ final class GuidebookMultiblockTests {
                 into.add(object.get(key).getAsString());
             }
         }
+    }
+
+    /**
+     * The whole-machine skin's arithmetic, for every multiblock in the game.
+     *
+     * <p>A skinned cell shows the tile belonging to its position, and that position is a blockstate
+     * value with a hard ceiling. Two ways that breaks quietly:
+     *
+     * <ul>
+     *   <li>a machine grows past {@code MAX_CELLS} and the cells past the ceiling all fall back to
+     *       tile 0, so one corner of the machine wears the wrong face;</li>
+     *   <li>two cells collide on one index, so two positions draw the same tile and a third tile is
+     *       never drawn at all.</li>
+     * </ul>
+     *
+     * <p>Both look like bad art rather than a broken index, which is exactly why they need a test.
+     * Checked for every machine, not only the skinned ones - a machine that adopts the skin later
+     * should find out it does not fit before someone spends an afternoon on its art.
+     */
+    private static void registerSkinIndexRule() {
+        RCGameTests.test("every_multiblock_fits_the_whole_machine_skin", 20, helper -> {
+            List<String> problems = new ArrayList<>();
+            int checked = 0;
+            for (Block block : BuiltInRegistries.BLOCK) {
+                if (!(block instanceof MultiblockCoreBlock core)) {
+                    continue;
+                }
+                checked++;
+                String id = BuiltInRegistries.BLOCK.getKey(block).toString();
+                Multiblock blueprint = core.blueprint();
+                Map<Integer, String> seen = new LinkedHashMap<>();
+
+                // The core sits at the origin and is part of the machine's surface, so it takes an
+                // index too. Leave it out and every cell is numbered as if the core were not there.
+                List<Vec3i> offsets = new ArrayList<>();
+                offsets.add(Vec3i.ZERO);
+                for (Multiblock.Cell cell : blueprint.cells()) {
+                    offsets.add(cell.offset());
+                }
+
+                for (Vec3i offset : offsets) {
+                    int index = blueprint.cellIndex(offset);
+                    if (index < 0) {
+                        problems.add(id + " cell " + offset + " is outside its own bounds");
+                        continue;
+                    }
+                    if (index >= MultiblockSkinnedBlock.MAX_CELLS) {
+                        problems.add(id + " cell " + offset + " indexes " + index + ", past the "
+                            + MultiblockSkinnedBlock.MAX_CELLS + "-cell ceiling");
+                    }
+                    String previous = seen.put(index, offset.toString());
+                    if (previous != null && !previous.equals(offset.toString())) {
+                        problems.add(id + " indexes " + previous + " and " + offset + " both to "
+                            + index);
+                    }
+                }
+            }
+            helper.assertTrue(checked > 0,
+                "no multiblock cores were found - discovery is broken, so this would pass against a "
+                    + "machine that does not fit at all");
+            helper.assertTrue(problems.isEmpty(),
+                "machines that do not fit the skin index (" + problems.size() + "): " + problems);
+
+            // The Separator's exact numbering, pinned. tools/skin_machine.py computes this ordering
+            // independently in Python to cut the art, and the two agreeing is the whole contract: if
+            // they drift, every cell wears some other cell's tile and the machine's skin scrambles.
+            // That reads as bad art, not as an off-by-one, so nothing would point at either side.
+            Multiblock separator = RCBlocks.SEPARATOR.get().blueprint();
+            List<String> order = new ArrayList<>();
+            for (Vec3i offset : separator.skinOrder()) {
+                order.add(offset.getX() + "," + offset.getY() + "," + offset.getZ());
+            }
+            helper.assertTrue(order.equals(List.of(
+                    "0,0,0", "1,0,0", "2,0,0", "0,0,1", "1,0,1", "2,0,1",
+                    "0,1,0", "1,1,0", "2,1,0", "0,1,1", "1,1,1", "2,1,1")),
+                "the Separator's skin order changed to " + order + ". tools/skin_machine.py cuts its "
+                    + "art against the old one, so the machine's skin is now scrambled - re-run it");
+            helper.succeed();
+        });
     }
 
 }

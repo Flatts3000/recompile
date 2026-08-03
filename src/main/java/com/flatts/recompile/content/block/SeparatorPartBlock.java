@@ -1,13 +1,7 @@
 package com.flatts.recompile.content.block;
 
-import com.flatts.recompile.content.block.multiblock.MultiblockDummyBlock;
+import com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 /**
  * A formed cell of the Separator: chamber, housing or chute
@@ -27,22 +21,12 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
  * lines, and it means the day the housing gets a vent or a hatch on its front face, the state it needs
  * is already there and already correct.
  */
-public class SeparatorPartBlock extends MultiblockDummyBlock {
+public class SeparatorPartBlock extends MultiblockSkinnedBlock {
 
     public static final MapCodec<SeparatorPartBlock> CODEC = simpleCodec(SeparatorPartBlock::new);
 
-    /** The machine's facing, stamped by the core at assembly. */
-    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
-
     public SeparatorPartBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        super.createBlockStateDefinition(builder);
-        builder.add(FACING);
     }
 
     @Override

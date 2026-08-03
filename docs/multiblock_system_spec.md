@@ -343,3 +343,43 @@ shared components + per-machine core, strict blueprint, presence-not-counts, pla
 with unformed-until-completed), the two deviations from IE (code blueprint + per-cell static models,
 both because the machines are small and static), that it supersedes the "size drives radius"
 direction for now, and that components stay inert (no RF, no kinetics).
+
+## The whole-machine skin
+
+**Decided 2026-08-03 (owner).** A multiblock that renders as one machine wears **one texture per face**,
+cut into per-cell tiles, rather than one 16px panel repeated across every cell.
+
+**Why.** Six copies of a panel across a flank read as a grid of tiles, not as a machine, and the better
+the panel's art the worse it gets, because the eye counts the repeats. This is not a prompt problem: the
+failure is the repetition itself, so no amount of regenerating the tile fixes it. The Separator's 2x2
+grinding bay had already proved the alternative - one image quartered so the teeth run across the block
+seams - and this generalises it to every face of every machine.
+
+**How it works.**
+
+- `MultiblockSkinnedBlock` is a formed cell that carries `CELL` (where it sits in the machine) and
+  `FACING` (the machine's, not its own). A machine adopts the system by extending it; there is nothing
+  to register.
+- `MultiblockCoreBlock.stampSkin` runs for **every** machine at assembly, before `onFormed`, and is a
+  no-op on cells that lack the properties. The guard is the property rather than a per-machine opt-in,
+  because forgetting an opt-in shows up as every cell wearing tile 0 - which reads as bad art rather
+  than as a missing call.
+- Faces are authored whole as texgen `block_skin` surfaces: 16px per **block**, so the Separator's
+  3-wide-by-2-tall flank is 48x32. That kind keeps the native rectangle (a square resize shears the
+  panel lines) while still quantizing to the pack palette.
+- `tools/skin_machine.py` cuts the promoted sheets into tiles and emits the per-cell models and the
+  blockstate. A face with no sheet falls back to the plain panel, so a machine can be skinned one face
+  at a time. A part whose geometry is not a cube declares its boxes there, so the chute keeps its mouth.
+
+**Two things that scramble the skin silently, both tested.**
+
+- **The index is dense over the machine's real cells, not a position in its bounding box.** The Grass
+  Spreader is a sparse cross: thirty-six box positions for about seven cells. Indexing by box position
+  pushed it past any sane blockstate ceiling while most numbers addressed empty air. `cellIndex` walks a
+  canonical ordering instead - bottom to top, back to front, left to right - which also means reordering
+  `createBlueprint` cannot renumber anything.
+- **`skin_machine.py` must count every position the machine occupies, including the ones it emits
+  nothing for.** The core and the animated bay cells keep their own models but still take up numbers;
+  leaving them out shifts every index above them by one. `every_multiblock_fits_the_whole_machine_skin`
+  pins the Separator's exact ordering against the Python side, because the failure mode is every cell
+  wearing some other cell's tile - which looks like bad art, not an off-by-one.

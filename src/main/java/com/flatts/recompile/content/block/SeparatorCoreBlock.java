@@ -173,9 +173,9 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
     /**
      * Tell every formed cell which way the machine faces, and each bay cell which quarter it shows.
      *
-     * <p><b>Facing is not decoration here.</b> The chute's mouth is cut into one side of its model, so
-     * a cell that does not know the machine's direction points its opening whichever way the model was
-     * authored - correct by accident on a north-facing Separator and wrong on the other three.
+     * <p>Facing and the machine-position skin are stamped for every machine by
+     * {@code MultiblockCoreBlock.stampSkin} before this runs; only the bay quadrant is specific enough
+     * to belong here.
      *
      * <p>The quadrant is what makes four blocks read as <b>one</b> opening: the textures are quarters of
      * a single image, so the teeth run continuously across the seams instead of the pattern restarting
@@ -187,16 +187,6 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         BlockState coreState = level.getBlockState(pos);
         Rotation rotation = rotationFor(coreState);
         Direction facing = coreState.getValue(FACING);
-
-        // Every cell, from the blueprint, so a new cell type cannot be forgotten here.
-        for (Multiblock.Cell cell : blueprint().cells()) {
-            BlockPos at = pos.offset(Multiblock.rotate(cell.offset(), rotation));
-            BlockState state = level.getBlockState(at);
-            if (state.hasProperty(SeparatorPartBlock.FACING)) {
-                level.setBlock(at, state.setValue(SeparatorPartBlock.FACING, facing),
-                    Block.UPDATE_ALL);
-            }
-        }
 
         for (int x = BAY_X; x < BAY_X + 2; x++) {
             for (int z = 0; z < 2; z++) {

@@ -1285,6 +1285,52 @@ vanilla_ref = "block/iron_block"
 style = "rubble"
 palette = ["#2a2a2e", "#1e1e22", "#4a4a50", "#3a3a3e", "#5c5a58", "#141416", "#6b5f52"]
 
+# THE MACHINE'S SKIN IS ONE IMAGE PER FACE, NOT ONE REPEATING PANEL (owner, 2026-08-03). Six copies of
+# a 16px panel across a flank reads as a grid of tiles rather than as a machine, and the better the
+# panel's art the worse it gets, because the eye counts the repeats. So each face is authored whole at
+# 16px per BLOCK - the Separator is 3 wide x 2 tall x 2 deep, so its flanks are 48x32 and its ends
+# 32x32 - and tools/skin_machine.py cuts them into the per-cell tiles the game needs.
+#
+# kind = "block_skin" keeps the native rectangle (a square resize would shear the panel lines) while
+# still quantizing to the pack palette. The prompt must describe ONE object spanning the whole image,
+# never a tileable pattern: a seamless prompt defeats the entire point.
+
+[surface.separator_skin_north]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 48
+height = 32
+prompt = "the front of a single large industrial shredder machine housing, wide and squat, painted faded factory blue worn to rust, one continuous machine face spanning the whole image with panel seams, a hinged access hatch off to one side, weld lines and grease staining, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.separator_skin_south]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 48
+height = 32
+prompt = "the back of a single large industrial shredder machine housing, wide and squat, painted faded factory blue worn to rust, one continuous machine face spanning the whole image, a motor cover and cable runs and a cooling grille, weld lines and grease staining, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.separator_skin_east]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 32
+prompt = "the side end of a single large industrial shredder machine housing, painted faded factory blue worn to rust, one continuous machine face spanning the whole image, a bolted drive cover and a small inspection plate, weld lines and grease staining, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.separator_skin_west]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 32
+prompt = "the side end of a single large industrial shredder machine housing, painted faded factory blue worn to rust, one continuous machine face spanning the whole image, a bolted gearbox housing and a stencilled number, weld lines and grease staining, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
 [surface.separator_chute]
 kind = "block"
 backend = "ai"
