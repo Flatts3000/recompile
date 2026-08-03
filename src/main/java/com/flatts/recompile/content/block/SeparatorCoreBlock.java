@@ -41,9 +41,13 @@ import org.jspecify.annotations.Nullable;
  * anyone tries and it can never work, because there is nothing there to insert into. Draining the
  * container instead costs none of the properties above and removes the dead end.
  *
- * <p><b>2 wide x 2 deep x 2 tall</b>, eight cells. The entire top is a <b>2x2 grinding bay</b> that
- * reads as one opening rather than four blocks: each cell is stamped at assembly with which quarter of
- * the grinder it shows, and the four quadrant textures are quarters of a single image, so the teeth run
+ * <p><b>3 wide x 2 deep x 2 tall</b>, twelve cells. The grinding bay is a <b>2x2</b> square on top and
+ * the third column is solid housing, which is what gives the machine its bulk: a grinder that is all
+ * mouth reads as a hole in the ground rather than a machine with a hopper in it.
+ *
+ * <p>The four bay cells read as <b>one</b> opening rather than four blocks. Each is stamped at assembly
+ * with which quarter of the grinder it shows; the quadrant models draw a rim only on their outer edges
+ * and the floor textures are quarters of a single image, so both the border and the teeth run
  * continuously across the seams.
  *
  * <p>Two component types only: auto-assemble is all-or-nothing, so every extra component is another way
@@ -103,10 +107,10 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
      * core's facing everywhere else.
      *
      * <pre>
-     *   y=1   bay  bay        (the whole top is one 2x2 grinding bay)
-     *         bay  bay
-     *   y=0   CORE chute      (front: where material comes out)
-     *         hous hous       (back)
+     *   y=1   hous bay   bay      (a solid column for bulk, then the 2x2 bay)
+     *         hous bay   bay
+     *   y=0   CORE chute hous     (front: ONE chute, where everything comes out)
+     *         hous hous  hous     (back)
      * </pre>
      */
     @Override
@@ -115,31 +119,50 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         Block beam = RCBlocks.STEEL_I_BEAM.get();
         Block frame = RCBlocks.MACHINE_FRAME.get();
 
-        // THE WHOLE TOP IS THE BAY. An earlier build made the chamber one row with housing behind it,
-        // and housing looks exactly like a lid, so material dropped on the back half was silently
-        // refused by a surface that appeared to be the opening. Steel, because a shredder's cutters are
-        // steel and the yard's own material ties the machine to the region it stands in.
-        for (int x = 0; x < 2; x++) {
+        // The bay is a 2x2 square, not the whole top. An earlier build made the chamber one ROW with
+        // housing behind it, which was a real trap: the back half looked like part of the same surface
+        // and silently refused material. A square bay beside a full-height column does not have that
+        // problem, because the column plainly is not the opening. Steel, because a shredder's cutters
+        // are steel and the yard's own material ties the machine to the region it stands in.
+        for (int x = BAY_X; x < BAY_X + 2; x++) {
             for (int z = 0; z < 2; z++) {
                 cells.add(new Multiblock.Cell(new Vec3i(x, 1, z), beam, RCBlocks.SEPARATOR_CHAMBER.get()));
             }
         }
-        // Bottom: the chute beside the core, housing behind. Same component as the housing, a different
-        // formed block, which the framework allows and the Grass Spreader already does.
+        // ONE chute, and everything leaves through it. A recipe may one day split a feed into several
+        // outputs at once; they all still come out of the same opening, which is what a real machine
+        // does and what makes a single hopper under the chute enough to catch the lot. Same component
+        // as the housing, a different formed block - which the framework allows and the Grass Spreader
+        // already does.
         cells.add(new Multiblock.Cell(new Vec3i(1, 0, 0), frame, RCBlocks.SEPARATOR_CHUTE.get()));
-        cells.add(new Multiblock.Cell(new Vec3i(0, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
-        cells.add(new Multiblock.Cell(new Vec3i(1, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+        cells.add(new Multiblock.Cell(new Vec3i(2, 0, 0), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+        for (int x = 0; x < 3; x++) {
+            cells.add(new Multiblock.Cell(new Vec3i(x, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+        }
+        // The column beside the bay, top: solid. This is the bulk.
+        for (int z = 0; z < 2; z++) {
+            cells.add(new Multiblock.Cell(new Vec3i(BAY_X == 0 ? 2 : 0, 1, z), frame,
+                RCBlocks.SEPARATOR_HOUSING.get()));
+        }
         return new Multiblock(List.copyOf(cells));
     }
 
-    /** The four cells of the grinding bay, in world space. The entire top of the machine. */
+    /**
+     * Which column the 2x2 bay starts at, in unrotated space. <b>Single source of truth</b> for the
+     * blueprint, the mouth and the quadrant stamp, so moving the bay across the machine is one number
+     * and the three cannot end up describing different machines.
+     */
+    private static final int BAY_X = 1;
+
+    /** The four cells of the grinding bay, in world space. Not the whole top - the other column is
+     *  housing, and dropping material on it does nothing. */
     public static List<BlockPos> chamberCells(Level level, BlockPos core) {
         List<BlockPos> out = new ArrayList<>();
         if (!(level.getBlockState(core).getBlock() instanceof SeparatorCoreBlock block)) {
             return out;
         }
         Rotation rotation = block.rotationFor(level.getBlockState(core));
-        for (int x = 0; x < 2; x++) {
+        for (int x = BAY_X; x < BAY_X + 2; x++) {
             for (int z = 0; z < 2; z++) {
                 out.add(core.offset(Multiblock.rotate(new Vec3i(x, 1, z), rotation)));
             }
@@ -160,13 +183,15 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         BlockState coreState = level.getBlockState(pos);
         Rotation rotation = rotationFor(coreState);
         Direction facing = coreState.getValue(FACING);
-        for (int x = 0; x < 2; x++) {
+        for (int x = BAY_X; x < BAY_X + 2; x++) {
             for (int z = 0; z < 2; z++) {
                 BlockPos cell = pos.offset(Multiblock.rotate(new Vec3i(x, 1, z), rotation));
                 BlockState state = level.getBlockState(cell);
                 if (state.is(RCBlocks.SEPARATOR_CHAMBER.get())) {
+                    // Relative to the bay's own corner, not the machine's, so the quadrants stay 0..3
+                    // wherever the bay sits.
                     level.setBlock(cell, state
-                        .setValue(SeparatorChamberBlock.QUADRANT, x + z * 2)
+                        .setValue(SeparatorChamberBlock.QUADRANT, (x - BAY_X) + z * 2)
                         .setValue(SeparatorChamberBlock.FACING, facing), Block.UPDATE_ALL);
                 }
             }
@@ -196,7 +221,13 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         return box.expandTowards(0, 1, 0).inflate(0.25, 0, 0.25);
     }
 
-    /** Where output is thrown: just outside the chute's front face, so a hopper there catches it. */
+    /**
+     * Where output is thrown: just outside the one chute's front face, so a hopper there catches it.
+     *
+     * <p><b>A single point on purpose.</b> A recipe may produce a result and several byproducts in one
+     * operation, and every one of them leaves here - so catching a machine's whole output never takes
+     * more than one hopper, whatever a pack later writes into the recipe.
+     */
     public static BlockPos outlet(Level level, BlockPos core) {
         if (!(level.getBlockState(core).getBlock() instanceof SeparatorCoreBlock block)) {
             return core;

@@ -225,6 +225,48 @@ final class RegistryCompletenessTests {
             report(helper, missing, "biomes with untranslated names");
         });
 
+        // JADE'S CONFIG TRANSLATIONS ARE NOT COSMETIC - a missing one is an AssertionError thrown at
+        // the client on the title screen, and Minecraft's recovery is "Caught error loading
+        // resourcepacks, removing all selected resourcepacks". So the visible symptom is the player's
+        // resource packs silently turning themselves off, which points nowhere near a lang file. It
+        // shipped that way with the Separator (2026-08-03) and only surfaced by reading a boot log.
+        //
+        // Same family as the biome gap above: a key this mod alone never renders, so nothing in the
+        // GameTest or JUnit layers had any reason to touch it.
+        //
+        // Discovery walks the compiled package rather than a hand-written list, because a list is what
+        // let a third teardown recipe go unseen by every viewer. The UID is derived from the class name
+        // by the convention every provider follows; a provider that breaks the convention fails here,
+        // which is the correct outcome rather than a silent miss. Only display providers get a config
+        // entry - an IServerDataProvider has no toggle - which is what the *DataProvider filter means.
+        RCGameTests.test("every_jade_provider_has_a_config_translation", 20, helper -> {
+            List<String> providers = jadeDisplayProviders();
+            helper.assertTrue(!providers.isEmpty(),
+                "no Jade providers were discovered - discovery is broken, so this would pass against a "
+                    + "provider with no config translation at all");
+
+            String prefix = "config.jade.plugin_" + Recompile.MOD_ID + ".";
+            List<String> missing = new ArrayList<>();
+            Set<String> expected = new java.util.HashSet<>();
+            for (String provider : providers) {
+                String uid = snakeCase(provider.substring(0, provider.length() - "Provider".length()));
+                expected.add(uid);
+                if (Component.translatable(prefix + uid).getString().equals(prefix + uid)) {
+                    missing.add(provider + " -> " + prefix + uid);
+                }
+            }
+
+            // And the other direction, so a deleted provider cannot leave a key behind that makes the
+            // forward check look healthier than it is.
+            for (String key : langKeysStartingWith(prefix)) {
+                String uid = key.substring(prefix.length());
+                if (!expected.contains(uid)) {
+                    missing.add(key + " -> no such provider");
+                }
+            }
+            report(helper, missing, "Jade config translation mismatches");
+        });
+
         // 26.1 needs assets/<ns>/items/<id>.json IN ADDITION TO models/item/<id>.json. Miss it and
         // the item is the missing texture - which reads as a texture problem, so the hunt starts in
         // the wrong place. This is the single most repeated omission in the repo.
@@ -615,6 +657,67 @@ final class RegistryCompletenessTests {
 
     private static boolean resourceExists(String path) {
         return RegistryCompletenessTests.class.getResource(path) != null;
+    }
+
+    /**
+     * Simple class names of every Jade <b>display</b> provider, read off the compiled package.
+     *
+     * <p>{@code *DataProvider} is excluded: since MC 1.21.6 one class may not be both an
+     * {@code IServerDataProvider} and an {@code IBlockComponentProvider}, so the data half of each pair
+     * is a separate class - and only the display half gets a config toggle to translate.
+     *
+     * <p>Reads the directory rather than loading the classes, so this needs nothing from Jade on the
+     * classpath and cannot be broken by a provider that fails to link.
+     */
+    private static List<String> jadeDisplayProviders() {
+        List<String> out = new ArrayList<>();
+        // Anchor on a CLASS FILE and take its parent, not on the package directory. Asking a
+        // classloader for a directory is unreliable - it returned null here under NeoForge's union
+        // filesystem, which made discovery silently empty. A class file resource always resolves.
+        java.net.URL anchor = RegistryCompletenessTests.class
+            .getResource("/com/flatts/recompile/compat/jade/ToolHintProvider.class");
+        if (anchor == null) {
+            return out;   // the caller fails on empty, which is what an unreadable package should do
+        }
+        try (var entries = java.nio.file.Files.list(java.nio.file.Path.of(anchor.toURI()).getParent())) {
+            for (java.nio.file.Path entry : entries.toList()) {
+                String name = entry.getFileName().toString();
+                if (name.endsWith("Provider.class") && !name.endsWith("DataProvider.class")
+                        && !name.contains("$")) {
+                    out.add(name.substring(0, name.length() - ".class".length()));
+                }
+            }
+        } catch (Exception e) {
+            return List.of();
+        }
+        return out;
+    }
+
+    /** Every key in the bundled {@code en_us} under the given prefix. */
+    private static List<String> langKeysStartingWith(String prefix) {
+        List<String> out = new ArrayList<>();
+        try (var in = RegistryCompletenessTests.class
+                .getResourceAsStream("/assets/" + Recompile.MOD_ID + "/lang/en_us.json")) {
+            if (in == null) {
+                return out;
+            }
+            var json = com.google.gson.JsonParser.parseReader(
+                new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+            for (String key : json.getAsJsonObject().keySet()) {
+                if (key.startsWith(prefix)) {
+                    out.add(key);
+                }
+            }
+        } catch (Exception e) {
+            return List.of();
+        }
+        return out;
+    }
+
+    /** {@code SortProgress} -> {@code sort_progress}. The convention every provider UID follows. */
+    private static String snakeCase(String camel) {
+        return camel.replaceAll("(?<=[a-z0-9])(?=[A-Z])", "_")
+            .toLowerCase(java.util.Locale.ROOT);
     }
 
     private interface ItemCheck {

@@ -1,6 +1,7 @@
 package com.flatts.recompile.compat.jei;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.compat.MultiblockParts;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.compat.TeardownData;
 import com.flatts.recompile.registry.RCItems;
@@ -431,6 +432,27 @@ public class RecompileJeiPlugin implements IModPlugin {
         // answer is the mod's own table and nowhere else.
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_CRAFTING_TABLE.get()),
             BLUEPRINT_CRAFTING);
+    }
+
+    /**
+     * Take the uncraftable multiblock parts back out of JEI's item list.
+     *
+     * <p><b>The rule: a viewer must not list a part the player can never hold</b> (owner, 2026-08-03).
+     * A formed cell - a Separator Chamber, a Compost Cage - only exists once a machine is assembled, so
+     * showing it teaches nothing except that the mod has a block with no recipe. {@link MultiblockParts}
+     * derives the set from the blueprints rather than naming blocks, so this covers a machine written
+     * next year without anyone remembering this file exists.
+     *
+     * <p>Done at runtime rather than by hiding the items themselves: they stay in the creative tab,
+     * where a builder legitimately wants them.
+     */
+    @Override
+    public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime runtime) {
+        List<ItemStack> hidden = MultiblockParts.hiddenStacks();
+        if (!hidden.isEmpty()) {
+            runtime.getIngredientManager().removeIngredientsAtRuntime(
+                mezz.jei.api.constants.VanillaTypes.ITEM_STACK, hidden);
+        }
     }
 
     /**

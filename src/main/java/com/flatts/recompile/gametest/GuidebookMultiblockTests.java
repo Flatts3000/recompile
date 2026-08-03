@@ -80,6 +80,7 @@ final class GuidebookMultiblockTests {
     }
 
     static void register() {
+        registerJeiPartRule();
         RCGameTests.test("every_guidebook_multiblock_matches_its_blueprint", 20, helper -> {
             List<String> problems = new ArrayList<>();
             for (Machine machine : MACHINES) {
@@ -312,4 +313,70 @@ final class GuidebookMultiblockTests {
             return null;
         }
     }
+    /**
+     * The JEI rule, kept honest from both ends (owner, 2026-08-03): a viewer must not list a multiblock
+     * part the player can never hold.
+     *
+     * <p>{@code MultiblockParts} decides that structurally - a cell whose formed block differs from its
+     * component is a transformation, so the formed half is unobtainable. This asserts the structure
+     * actually lines up with reality, in both directions:
+     *
+     * <ul>
+     *   <li>nothing on the hide list has a recipe, so the rule never hides something craftable;</li>
+     *   <li>the list is not empty, so a broken derivation cannot pass as "nothing to hide".</li>
+     * </ul>
+     *
+     * <p>The first half is the one that bites. Give a formed cell a recipe one day - a perfectly
+     * reasonable thing to do - and the machine it belongs to keeps working while JEI quietly stops
+     * admitting the part exists.
+     */
+    private static void registerJeiPartRule() {
+        RCGameTests.test("jei_hides_only_multiblock_parts_that_cannot_be_crafted", 20, helper -> {
+            var hidden = com.flatts.recompile.compat.MultiblockParts.formedOnly();
+            helper.assertTrue(!hidden.isEmpty(),
+                "no formed-only multiblock parts were derived at all - the derivation is broken, so "
+                    + "this would pass against a JEI list full of uncraftable parts");
+
+            // Read the bundled recipe FILES rather than the loaded recipes. A Recipe cannot be asked
+            // what it makes without an input in 26.1 (assemble takes one and throws on null), and only
+            // this mod could ever add a recipe for its own formed block, so its own recipe folder is
+            // the complete answer. Same trick SeparatingData uses, for the same reason.
+            Set<String> results = new LinkedHashSet<>();
+            for (JsonObject recipe : com.flatts.recompile.compat.RecipeFiles.all()) {
+                collectResultIds(recipe.get("result"), results);
+            }
+            List<String> craftable = new ArrayList<>();
+            for (var block : hidden) {
+                String id = BuiltInRegistries.BLOCK.getKey(block).toString();
+                if (results.contains(id)) {
+                    craftable.add(id);
+                }
+            }
+            helper.assertTrue(craftable.isEmpty(),
+                "these are on the JEI hide list but ARE craftable (" + craftable.size() + "): "
+                    + craftable + ". A part with a recipe is real content and must stay visible");
+            helper.succeed();
+        });
+    }
+
+    /** Item ids named by a recipe's {@code result}, in any of the shapes 26.1 accepts. */
+    private static void collectResultIds(com.google.gson.JsonElement result, Set<String> into) {
+        if (result == null) {
+            return;
+        }
+        if (result.isJsonPrimitive()) {
+            into.add(result.getAsString());
+            return;
+        }
+        if (!result.isJsonObject()) {
+            return;
+        }
+        JsonObject object = result.getAsJsonObject();
+        for (String key : List.of("id", "item")) {
+            if (object.has(key) && object.get(key).isJsonPrimitive()) {
+                into.add(object.get(key).getAsString());
+            }
+        }
+    }
+
 }

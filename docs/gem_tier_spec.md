@@ -185,14 +185,34 @@ in front of a core that will not form.
 
 | Cells | Component placed | Formed block |
 |---|---|---|
-| 6 chamber | **Steel I-Beam** x6 | `separator_chamber` |
-| 3 housing | **Machine Frame** x3 | `separator_housing` |
-| 2 chute | **Machine Frame** x2 | `separator_chute` |
+| 4 bay | **Steel I-Beam** x4 | `separator_chamber` |
+| 6 housing | **Machine Frame** x6 | `separator_housing` |
+| 1 chute | **Machine Frame** x1 | `separator_chute` |
 
-**The whole top is the chamber, and that was a fix rather than the first design.** The mouth was
-originally the front row only, with housing behind it. Housing looks exactly like a lid, so material
-dropped on the back half was silently refused by a surface that appeared to be the opening. A machine
-whose mouth is half decoration is a trap that no tooltip repairs.
+```
+y=1   hous bay   bay      (a solid column for bulk, then the 2x2 grinding bay)
+      hous bay   bay
+y=0   CORE chute hous     (front: ONE chute, where everything comes out)
+      hous hous  hous     (back)
+```
+
+**The bay is a 2x2 square, and that shape took three tries.** It was first the front row only with
+housing behind it, which was a genuine trap: housing looks exactly like a lid, so material dropped on
+the back half was silently refused by a surface that appeared to be the opening. Widening it to the
+whole top fixed the trap and lost the machine, which read as a hole in the ground rather than a grinder.
+A 2x2 bay beside a full-height column keeps both - the column plainly is not the opening, so nothing is
+ambiguous, and the machine has bulk.
+
+**The four bay cells read as one opening.** Each is stamped at assembly with which quarter of the
+grinder it shows; the quadrant models draw a rim only on their **outer** edges and the floor textures are
+quarters of a single image, so both the border and the teeth run continuously across the seams. The rim
+being geometry is the part that bit: the first build gave every cell a full rim on all four sides, which
+drew a complete box around each block, and no amount of texture slicing can fix a border that is in the
+model.
+
+**One chute, and everything leaves through it** (owner, 2026-08-03). A recipe may one day split a feed
+into several outputs at once; they all still come out of the same opening, so catching a machine's whole
+output never takes more than one hopper.
 
 Machine Frame is the established multiblock component (the Compost Heap takes seven). Steel is the
 yard's own material and a shredder's cutters are steel, so the chamber costing steel ties the machine to
@@ -205,20 +225,27 @@ I-Beam and four Iron Ingot, shaped. The exact recipe joins #36; the constraint i
 
 ### How material actually gets in and out
 
-- **A ticker scans, nothing collides.** The core's BlockEntity scans the chamber's mouth for item
-  entities. The mouth spans the chamber cells **and** the block above them, because the chamber's top
-  face is recessed and a dropped stack settles down inside the well rather than on top of it. Scanning
-  only the block above shipped once and meant a player could watch an item sit visibly in the mouth
-  while the machine ignored it.
-- **It drains a container on the chamber.** Nothing can push into the machine, so it pulls. A hopper
-  pointed down at the chamber is the first thing anyone reaches for and can never work, because there is
-  nothing there to insert into; reaching out is how a hopper itself works and it costs none of the
-  properties above. The machine still exposes no item handler, so no pipe connects and nothing can
-  extract. Collision handlers fire per entity and are fragile around stacking and
-  despawn; a bounded scan on the machine's own tick is simpler and testable.
-- **No internal buffer, deliberately.** The machine holds nothing. It waits until entities above it carry
-  at least `count` of a matching item, then consumes them in one operation. This is what keeps it out of
-  the `Container` path entirely, which is the whole reason it has no automation surface to declare.
+- **A bounded internal queue** (owner, 2026-08-03). The machine swallows what lands in its bay into
+  nine internal slots and works through them in order, so several kinds of scrap go in at once and come
+  back out as their raw materials without the player standing over it. Bounded because a machine that
+  swallows an unbounded amount is a storage block, and this one is a grinder with a hopper on it.
+- **Internal is the load-bearing word.** The queue is **not** a `Container` and the machine exposes no
+  item handler on any side, so no hopper can insert and no pipe can connect - the closed door
+  `automation_policy_spec.md` describes. Automation still works; it goes through the world, with a
+  dropper over the bay and a hopper under the chute.
+- **Only what it can grind is let in.** An item with no `recompile:separating` recipe is never swallowed,
+  so the queue cannot jam on junk and a player cannot lose something by dropping it in the wrong place -
+  it simply lies in the bay where they can pick it back up. This matters more than it looks, because
+  nothing can extract from this block: anything it takes and cannot process would be gone for good.
+- **Everything queued drops on break**, so the machine is never an item sink.
+- **A ticker scans, nothing collides.** The mouth spans the bay cells **and** the block above them,
+  because the bay's top face is recessed and a dropped stack settles down inside the well rather than on
+  top of it. Scanning only the block above shipped once and meant a player could watch an item sit
+  visibly in the mouth while the machine ignored it.
+- **It drains a container on the bay.** Nothing can push into the machine, so it pulls. A hopper pointed
+  down at the bay is the first thing anyone reaches for and can never work, because there is nothing
+  there to insert into; reaching out is how a hopper itself works and it costs none of the properties
+  above.
 - **No power means the material waits.** Items do not bounce out and are not refused. The machine simply
   does not consume them, the way a furnace with no fuel sits full and cold. Legible without a screen.
 - **Output spawns at the chute face with a small outward velocity**, so it lands in front of the machine

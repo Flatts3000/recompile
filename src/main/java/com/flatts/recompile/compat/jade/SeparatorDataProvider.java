@@ -31,6 +31,16 @@ public enum SeparatorDataProvider implements IServerDataProvider<BlockAccessor> 
             data.putInt("goal", separator.goal());
             data.putInt("have", separator.feedHave());
             data.putInt("need", separator.feedNeed());
+            data.putInt("queued", separator.queuedCount());
+            data.putInt("slots",
+                com.flatts.recompile.content.block.entity.SeparatorBlockEntity.QUEUE_SLOTS);
+            int kinds = 0;
+            for (net.minecraft.world.item.ItemStack stack : separator.queued()) {
+                if (!stack.isEmpty()) {
+                    kinds++;
+                }
+            }
+            data.putInt("kinds", kinds);
         }
     }
 

@@ -3,6 +3,7 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.content.block.MechanicalWasteBlock;
 import com.flatts.recompile.content.block.SeparatorCoreBlock;
 import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.content.block.multiblock.Multiblock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
@@ -11,6 +12,7 @@ import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.Vec3i;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -266,6 +268,159 @@ final class GemTierTests {
             helper.succeed();
         });
 
+        // MULTIPLE TYPES AT ONCE, all queued (owner, 2026-08-03). The machine used to grind whatever
+        // single recipe the bay happened to satisfy, so a mixed pile was a coin toss over which one it
+        // saw. Feeding it three kinds at once has to leave three kinds queued and every one of them
+        // eventually ground - that is the whole point of an internal queue over a bay scan.
+        RCGameTests.test("the_separator_queues_several_kinds_of_scrap_at_once", 200, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(1_000_000, tx);
+                tx.commit();
+            }
+
+            // The three the tier actually ships a recipe for. E-Scrap deliberately is NOT one of them,
+            // and an earlier draft of this test used it - the machine correctly refused it and the
+            // test read as a queue bug.
+            drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 1));
+            drop(helper, core, new ItemStack(RCItems.SPENT_ABRASIVE.get(), 1));
+            drop(helper, core, new ItemStack(RCItems.MAGNET_SCRAP.get(), 1));
+
+            helper.runAfterDelay(5, () -> {
+                int kinds = 0;
+                for (ItemStack stack : be.queued()) {
+                    if (!stack.isEmpty()) {
+                        kinds++;
+                    }
+                }
+                helper.assertTrue(kinds == 3,
+                    "three kinds went into the bay and " + kinds + " ended up queued. A queue that "
+                        + "holds one kind at a time is the bay scan this replaced");
+            });
+
+            // And all three actually get processed, not just whichever reached the head first.
+            helper.runAfterDelay(160, () -> {
+                java.util.Set<net.minecraft.world.item.Item> out = new java.util.HashSet<>();
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    out.add(entity.getItem().getItem());
+                }
+                helper.assertTrue(out.contains(Items.AMETHYST_SHARD)
+                        && out.contains(Items.REDSTONE) && out.contains(Items.DIAMOND),
+                    "the queue did not work through every kind it swallowed. Out of the chute: " + out);
+                helper.succeed();
+            });
+        });
+
+        // The queue is BOUNDED and only takes what it can grind. Both halves matter: unbounded makes
+        // the machine a storage block, and swallowing junk means a player loses an item to a machine
+        // that will never give it back, since nothing can extract from this block.
+        RCGameTests.test("the_separator_queue_is_bounded_and_refuses_what_it_cannot_grind", 60, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            // No power on purpose: intake must not depend on the machine being able to run.
+
+            drop(helper, core, new ItemStack(Items.DIAMOND, 16));   // a gem, not scrap: no recipe
+            int slots = com.flatts.recompile.content.block.entity.SeparatorBlockEntity.QUEUE_SLOTS;
+            for (int i = 0; i < slots + 4; i++) {
+                drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 64));
+            }
+
+            helper.runAfterDelay(10, () -> {
+                for (ItemStack stack : be.queued()) {
+                    helper.assertTrue(!stack.is(Items.DIAMOND),
+                        "the machine swallowed a Diamond, which it has no recipe for. Nothing can "
+                            + "extract from this block, so anything it takes and cannot grind is gone");
+                }
+                helper.assertTrue(be.queued().size() == slots,
+                    "the queue grew past its " + slots + " slots to " + be.queued().size());
+                helper.assertTrue(be.queuedCount() <= slots * 64,
+                    "the queue holds " + be.queuedCount() + " items, past its bound");
+                boolean diamondStillThere = false;
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        SeparatorCoreBlock.mouth(helper.getLevel(), helper.absolutePos(core)))) {
+                    if (entity.getItem().is(Items.DIAMOND)) {
+                        diamondStillThere = true;
+                    }
+                }
+                helper.assertTrue(diamondStillThere,
+                    "what the machine refuses has to stay lying in the bay where the player can pick "
+                        + "it back up");
+                helper.succeed();
+            });
+        });
+
+        // Breaking the machine hands the queue back. It has no item capability and no Container, so a
+        // queue that did not drop would be an item sink with no way in and no way out.
+        RCGameTests.test("breaking_the_separator_drops_its_queue", 60, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 7));
+
+            helper.runAfterDelay(5, () -> {
+                helper.assertTrue(be.queuedCount() == 7,
+                    "expected 7 queued before the break, got " + be.queuedCount());
+                helper.getLevel().destroyBlock(helper.absolutePos(core), true);
+
+                int found = 0;
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    if (entity.getItem().is(RCItems.QUARTZ_GRIT.get())) {
+                        found += entity.getItem().getCount();
+                    }
+                }
+                helper.assertTrue(found == 7,
+                    "7 Quartz Grit were queued and " + found + " came back out on break");
+                helper.succeed();
+            });
+        });
+
+        // ONE chute, and everything leaves through it (owner, 2026-08-03). A recipe that produces a
+        // result plus several byproducts is exactly the moment someone would reach for a second
+        // opening, and the whole point is that catching a machine's output never needs more than one
+        // hopper. Asserts the count AND that the outlet is in front of that chute, because a chute the
+        // machine does not actually throw through is decoration.
+        RCGameTests.test("the_separator_has_exactly_one_chute", 40, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+
+            List<Multiblock.Cell> chutes = RCBlocks.SEPARATOR.get().blueprint().cells().stream()
+                .filter(cell -> cell.formed() == RCBlocks.SEPARATOR_CHUTE.get())
+                .toList();
+            helper.assertTrue(chutes.size() == 1,
+                "the Separator has " + chutes.size() + " chutes, not 1. Everything the machine makes "
+                    + "leaves through one opening, so one hopper catches all of it");
+
+            BlockPos outlet = SeparatorCoreBlock.outlet(helper.getLevel(), helper.absolutePos(core));
+            Vec3i offset = chutes.get(0).offset();
+            BlockPos chute = helper.absolutePos(core).offset(offset.getX(), offset.getY(), offset.getZ());
+            helper.assertTrue(helper.getLevel().getBlockState(chute).is(RCBlocks.SEPARATOR_CHUTE.get()),
+                "the blueprint's chute cell did not form into a chute");
+            helper.assertTrue(outlet.closerThan(chute, 1.5),
+                "output is thrown at " + outlet + " but the only chute is at " + chute
+                    + " - a chute the machine does not throw through is decoration");
+            helper.succeed();
+        });
+
         // No Container, no item capability, on every face AND on the null side - the
         // WorldlyContainerWrapper trap the automation policy records.
         RCGameTests.test("the_separator_is_unreachable_by_pipe_and_hopper", 40, helper -> {
@@ -300,15 +455,35 @@ final class GemTierTests {
         });
     }
 
-    /** Place the seven components a north-facing Separator needs, leaving the core alone. */
+    /**
+     * Drop a stack into the middle of the machine's bay, held still.
+     *
+     * <p>{@code ItemEntity}'s constructor gives it a random shove. In the world a dropped stack settles;
+     * in a test it would drift out of the mouth and the test would fail for a reason that has nothing to
+     * do with what it is checking.
+     */
+    private static void drop(GameTestHelper helper, BlockPos core, ItemStack stack) {
+        BlockPos into = SeparatorCoreBlock.chamberCells(
+            helper.getLevel(), helper.absolutePos(core)).get(0).above();
+        ItemEntity entity = new ItemEntity(helper.getLevel(), into.getX() + 0.5, into.getY() + 0.5,
+            into.getZ() + 0.5, stack);
+        entity.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+        entity.setNoGravity(true);
+        helper.getLevel().addFreshEntity(entity);
+    }
+
+    /**
+     * Place every component a north-facing Separator needs, leaving the core alone.
+     *
+     * <p>Read off the blueprint rather than written out by hand. These tests are about what the machine
+     * <b>does</b> - it grinds, it drains a container, it stamps its bay - and none of them is about its
+     * shape, so hardcoding the shape only meant every one of them broke on a reshape for no reason.
+     * {@code GuidebookMultiblockTests} is where the shape is actually pinned.
+     */
     private static void buildAround(GameTestHelper helper, BlockPos core) {
-        for (int x = 0; x < 2; x++) {
-            for (int z = 0; z < 2; z++) {
-                helper.setBlock(core.offset(x, 1, z), RCBlocks.STEEL_I_BEAM.get());
-            }
+        for (Multiblock.Cell cell : RCBlocks.SEPARATOR.get().blueprint().cells()) {
+            helper.setBlock(core.offset(cell.offset().getX(), cell.offset().getY(), cell.offset().getZ()),
+                cell.component());
         }
-        helper.setBlock(core.offset(1, 0, 0), RCBlocks.MACHINE_FRAME.get());
-        helper.setBlock(core.offset(0, 0, 1), RCBlocks.MACHINE_FRAME.get());
-        helper.setBlock(core.offset(1, 0, 1), RCBlocks.MACHINE_FRAME.get());
     }
 }
