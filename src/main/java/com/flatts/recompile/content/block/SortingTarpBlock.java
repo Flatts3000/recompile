@@ -67,7 +67,7 @@ public class SortingTarpBlock extends Block {
         if (player.isSecondaryUseActive()) {
             return fileAllIntoNetwork(level, pos, player);
         }
-        if (outputRolls(stack.getItem()) <= 0) {
+        if (SortableBlock.sortRolls(stack.getItem()) <= 0) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         // Holding right-click auto-repeats; the cooldown paces it (both sides track it,
@@ -87,8 +87,9 @@ public class SortingTarpBlock extends Block {
 
     /** Roll the input's pull table {@code rolls} times and drop the results onto the table. */
     private void sift(ServerLevel level, BlockPos pos, Item input) {
-        int rolls = outputRolls(input);
-        LootTable table = level.getServer().reloadableRegistries().getLootTable(pullTableFor(input));
+        int rolls = SortableBlock.sortRolls(input);
+        LootTable table = level.getServer().reloadableRegistries()
+            .getLootTable(SortableBlock.pullTableFor(input));
         LootParams params = new LootParams.Builder(level)
             .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
             .create(LootContextParamSets.CHEST);
@@ -151,58 +152,10 @@ public class SortingTarpBlock extends Block {
 
     /** Single entry point for interactions and gametests: sift one {@code input} at the tarp. */
     public static void siftInput(ServerLevel level, BlockPos pos, Item input) {
-        if (level.getBlockState(pos).getBlock() instanceof SortingTarpBlock tarp && outputRolls(input) > 0) {
+        if (level.getBlockState(pos).getBlock() instanceof SortingTarpBlock tarp
+                && SortableBlock.sortRolls(input) > 0) {
             tarp.sift(level, pos, input);
         }
     }
 
-    /**
-     * How many material rolls one of this input yields (0 = not a valid sorting input).
-     *
-     * <p>These are the middle rung of the recovery ladder documented on
-     * {@link SortableBlock}: each must stay clearly above what the same block gives to
-     * bare hands and leave room for automation above. The bale was 12 - a jackpot that
-     * outpaced everything else in the tier.
-     *
-     * <p>Hand averages are E[crumble] over {@code shouldCrumble}, which is NOT
-     * {@code (min+max)/2} once a window is wider than one step:
-     *
-     * <pre>
-     *   block            window   hand (avg)   tarp   ratio
-     *   garbage_block      2-3        2.50       6     2.40x
-     *   trash_bag          2-2        2.00       4     2.00x
-     *   compacted_bale     3-4        3.50       8     2.29x
-     *   stone_rubble       2-4        2.89       7     2.42x
-     * </pre>
-     *
-     * <p>Stone Rubble's 7 is picked to land inside that 2.0-2.4 band, not by eye. (This
-     * javadoc previously quoted 1.9 / 1.5 / 2.9 as the hand averages; those disagreed with
-     * {@link SortableBlock}'s own table and are wrong - the values above are simulated
-     * against the live {@code shouldCrumble}.)
-     */
-    private static int outputRolls(Item item) {
-        if (item == RCItems.GARBAGE_BLOCK.get().asItem()) {
-            return 6;
-        }
-        if (item == RCItems.TRASH_BAG.get().asItem()) {
-            return 4;
-        }
-        if (item == RCItems.COMPACTED_BALE.get().asItem()) {
-            return 8;
-        }
-        if (item == RCItems.STONE_RUBBLE.get().asItem()) {
-            return 7;
-        }
-        return 0;
-    }
-
-    private static ResourceKey<LootTable> pullTableFor(Item item) {
-        if (item == RCItems.TRASH_BAG.get().asItem()) {
-            return TrashBagBlock.BAG_PULLS;
-        }
-        if (item == RCItems.STONE_RUBBLE.get().asItem()) {
-            return RubbleBlock.RUBBLE_PULLS;   // the yard's stream: shards, not household scrap
-        }
-        return GarbageBlock.HOUSEHOLD_PULLS; // garbage block + dense bale
-    }
 }

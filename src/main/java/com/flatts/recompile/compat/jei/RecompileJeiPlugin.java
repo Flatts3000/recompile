@@ -410,6 +410,9 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addCraftingStation(RecipeTypes.CRAFTING, RCItems.SCRAP_CRAFTING_TABLE.get());
 
         registration.addRecipeCatalyst(new ItemStack(RCItems.SORTING_TARP.get()), SORTING);
+        // The Separator sorts at exactly the tarp's rate, so it belongs in the same category rather
+        // than a second one that would imply different numbers.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SEPARATOR.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.GARBAGE_BLOCK.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.TRASH_BAG.get()), SORTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.COMPACTED_BALE.get()), SORTING);

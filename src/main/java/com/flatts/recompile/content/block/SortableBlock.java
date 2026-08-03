@@ -12,6 +12,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import com.flatts.recompile.registry.RCItems;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -51,17 +52,23 @@ import org.jetbrains.annotations.Nullable;
  * {@link #maxPulls}, which is why these look low:
  *
  * <pre>
- *   block            hand (avg)   tarp   ratio
- *   garbage_block       2.5         6     2.4x
- *   trash_bag           2.0         4     2.0x
- *   compacted_bale      3.5         8     2.3x
+ *   block            hand (avg)   machine   ratio
+ *   garbage_block       2.5           6      2.4x
+ *   trash_bag           2.0           4      2.0x
+ *   compacted_bale      3.5           8      2.3x
  * </pre>
  *
  * Hand-sorting used to average 4.9/2.5/6.9 against a tarp that gave 5/2/12, so hand was
  * as good as the tarp for a garbage block and strictly better for a bag - the station
  * was a downgrade, and the early game handed out materials far too fast. Keep hand
  * visibly worse: it is the always-available option and needs no station and no hauling.
- * Automation must clear the tarp by a similar margin when it lands.
+ *
+ * <p><b>The ladder is two rungs of YIELD, not three</b> (owner, 2026-08-03, reversing
+ * "automation must clear the tarp by a similar margin"). The Separator sorts at exactly
+ * the tarp's rate - both read {@link #sortRolls} - and its reward is that it runs
+ * unattended. A third 2.4x step would have flooded the late game with scrap at the point
+ * the player has least use for more of it, and would have made the tarp's tuning
+ * pointless rather than merely superseded.
  *
  * <p><b>{@code minPulls} is a floor, and it is load-bearing.</b> It is not a tuning knob:
  * it is the guarantee that a block never comes apart in one touch. Dropping it to 1 made
@@ -157,6 +164,67 @@ public abstract class SortableBlock extends FallingBlock {
     /** Pulls at which the block is certain to crumble (the progress denominator). */
     public int sortCrumbleAt() {
         return maxPulls();
+    }
+
+    // ---- the machine rung of the recovery ladder, shared by every machine that sorts ----
+
+    /**
+     * How many material rolls one of this item yields to a <b>machine</b>. 0 = not a sorting input.
+     *
+     * <p><b>One function, every machine.</b> The Sorting Tarp and the Separator both call this, which
+     * is what makes "the Separator yields exactly what the tarp yields" a structural fact rather than
+     * two numbers somebody has to keep in sync. The Separator's reward for existing is that it runs
+     * unattended, not that it produces more (owner, 2026-08-03) - which reverses the earlier plan for
+     * automation to clear the tarp by another 2.0-2.4x. A third multiplying step would have flooded the
+     * late game with scrap at exactly the point the player has least use for it.
+     *
+     * <p>These are the middle rung of the recovery ladder documented on this class: each must stay
+     * clearly above what the same block gives to bare hands. Hand averages are E[crumble] over
+     * {@link #shouldCrumble}, which is NOT {@code (min+max)/2} once a window is wider than one step:
+     *
+     * <pre>
+     *   block              window   hand (avg)   machine   ratio
+     *   garbage_block        2-3        2.50         6      2.40x
+     *   trash_bag            2-2        2.00         4      2.00x
+     *   compacted_bale       3-4        3.50         8      2.29x
+     *   stone_rubble         2-4        2.89         7      2.42x
+     *   mechanical_waste     3-4        3.50         8      2.29x
+     * </pre>
+     *
+     * <p>Mechanical Waste is derived rather than picked: it shares the bale's 3-4 window, so it shares
+     * the bale's hand average, so it takes the bale's number. Stone Rubble's 7 was chosen the same way,
+     * to land inside the band rather than by eye.
+     */
+    public static int sortRolls(Item item) {
+        if (item == RCItems.GARBAGE_BLOCK.get().asItem()) {
+            return 6;
+        }
+        if (item == RCItems.TRASH_BAG.get().asItem()) {
+            return 4;
+        }
+        if (item == RCItems.COMPACTED_BALE.get().asItem()) {
+            return 8;
+        }
+        if (item == RCItems.STONE_RUBBLE.get().asItem()) {
+            return 7;
+        }
+        if (item == RCItems.MECHANICAL_WASTE.get().asItem()) {
+            return 8;
+        }
+        return 0;
+    }
+
+    /**
+     * The pull stream an item's block yields, or null if it is not a sortable block at all.
+     *
+     * <p><b>Asked of the block, not looked up in a list.</b> This replaced a hand-written item -> table
+     * mapping that had to be extended for every new variant; deriving it means a new {@code
+     * SortableBlock} works in every machine the day it is registered. A static may read another
+     * instance's protected {@link #pullTable()} because it lives in the same class.
+     */
+    @Nullable
+    public static ResourceKey<LootTable> pullTableFor(Item item) {
+        return Block.byItem(item) instanceof SortableBlock sortable ? sortable.pullTable() : null;
     }
 
     @Override
