@@ -1,14 +1,16 @@
 # The gem tier - spec (issue #119)
 
-**Status: design locked 2026-08-02, not built.** How this world reaches gold, diamond, redstone,
-amethyst and lapis. Every decision below was made in the 2026-08-02 design session; what remains is
-build order, art, and the numbers, which join the pre-beta balance pass (#36).
+**Status: design locked 2026-08-02, not built.** How this world reaches diamond, redstone, amethyst
+and lapis. **Gold was split out to #120** and is not part of this spec. Every decision below was made
+in the 2026-08-02 design session; what remains is build order, art, and the numbers, which join the
+pre-beta balance pass (#36).
 
 ## 0. The idea, and why it fits
 
 **Iron is where this world currently ends.** A reachability closure over every vanilla and mod recipe
 confirms it: past the iron gate there is no gold, no diamond, no redstone, no lapis, no amethyst, no
-emerald, and worldgen carries no ores at all. Everything above iron is greenfield.
+emerald, and worldgen carries no ores at all. Everything above iron is greenfield. (**Gold is tracked
+separately at #120**, because its input already exists and it can move without any of this.)
 
 In a real dump, the step past scrap iron is not a deeper hole, it is **a different stream**. Ferrous
 scrap is heavy, bulky and cheap; the valuable material stops being *the thing you find* and starts being
@@ -28,7 +30,6 @@ both the real economics and a gate that cannot be cheesed.
 | Decision | Answer | Why |
 |---|---|---|
 | Governing principle | **Refine, do not make** | Outside plants nothing in this mod is farmable; everything is found. Synthesis is the second half of an arc whose first half is unfinished. No press, no lab-grown diamond, no synthetic ultramarine, however real those are |
-| Gold | **Refined from E-Scrap** | Real: e-waste is the richest gold stream there is. E-Scrap already exists as a household pull |
 | Diamond | **Refined from Mechanical Waste** | Real: worn tooling. Saw blades, core bits, grinding wheels |
 | Redstone | **Refined from Mechanical Waste** | Real: rare-earth magnets in motors and speakers. **This is the tier's gate** |
 | Amethyst | **Refined from Mechanical Waste** | Weakest real fit; defensible read is recovered **quartz** that happens to be purple |
@@ -103,33 +104,9 @@ that this is automatable through the world rather than through the block, and th
 Blocks nothing else and costs an hour. It goes first because the spec it amends was written precisely to
 stop a block shipping without deciding this.
 
-## Phase 1 - the Separator, proven on gold
+## Phase 1 - Mechanical Waste
 
-**Ships:** the machine, working, with one recipe.
-
-This is the vertical slice and it is deliberately not the Mechanical Waste stream. **Gold refines from
-E-Scrap, and E-Scrap already exists** - a household pull at weight 15, available in the player's first
-hour. So the riskiest component can be built and played against an input that needs no new worldgen, no
-new block and no new region.
-
-It also fixes a standing oversight: **E-Scrap has almost no sink.** Its only consumers today are the
-guide book and the Solar Panel. Players have been stockpiling it since launch with nowhere to put it, and
-this hands a five-hour-old pile a purpose, which is a better feeling than introducing a new material.
-
-Contents: the multiblock structure and its formed art, FE consumption, the entity-in and entity-out
-interaction, the new recipe type with its input count, and one recipe (E-Scrap to gold).
-
-**Acceptance:**
-- Dropping a stack in the top consumes power and drops gold out the bottom.
-- A hopper beneath catches the output; a dropper above feeds it.
-- No item capability and no Container are exposed on any face, including the **null side** (the
-  `WorldlyContainerWrapper` trap the policy spec records).
-- Breaking any cell disbands it and returns the components, and a **two-or-more-dummy disband test counts
-  the core item** (the duplication bug that a single-dummy machine cannot catch).
-
-## Phase 2 - Mechanical Waste
-
-**Ships:** the found half of the tier.
+**Ships:** the found half of the tier, playable on its own.
 
 A fourth `SortableBlock` beside `GarbageBlock`, `TrashBagBlock` and `CompactedBaleBlock`, with its own
 `mechanical_pulls` table, its own crumble window and its own tool gate. Placed by a
@@ -147,21 +124,48 @@ The pull table yields the three intermediates and nothing precious. Names not fi
 Putting the luck in the pull stream rather than in the Separator keeps the Separator deterministic and
 therefore tunable.
 
-**Acceptance:** the pile generates at a measured density in the yard and nowhere else, and no entry in
-`mechanical_pulls` is a vanilla gem.
+**This phase goes first because gold left.** The earlier draft opened with the Separator proven against
+gold from E-Scrap, which needed no new worldgen at all; with gold at #120 there is no longer any input
+for the machine to chew on until this exists. The ordering is now the natural one, at the cost of the
+de-risking that gold was providing.
 
-## Phase 3 - the three gems, and the guard
+**Acceptance:** the pile generates at a measured density in the yard and nowhere else, no entry in
+`mechanical_pulls` is a vanilla gem, and each intermediate is obtainable by hand.
 
-**Ships:** diamond, redstone and amethyst.
+## Phase 2 - the Separator, proven on amethyst
 
-Three Separator recipes, three independent input counts, three independent times. **Redstone gets the
+**Ships:** the machine, working, with one recipe.
+
+The multiblock structure and its formed art, FE consumption, the entity-in and entity-out interaction,
+the new recipe type with its input count, and **one recipe: quartz grit to amethyst.**
+
+**Amethyst is the proving material deliberately.** It is the lowest-stakes output in the tier - it
+unlocks four things and one of them is the spyglass, which #113 already sources as a found tool, so its
+unique contribution is two decorative blocks. If the ratio is wrong, or the machine is rebuilt, or the
+art is redone, nothing important is disturbed. Diamond and redstone arrive in Phase 3 against a machine
+that has already been played.
+
+**Acceptance:**
+- Dropping a stack in the top consumes power and drops amethyst out the bottom.
+- A hopper beneath catches the output; a dropper above feeds it.
+- No item capability and no Container are exposed on any face, including the **null side** (the
+  `WorldlyContainerWrapper` trap the policy spec records).
+- Breaking any cell disbands it and returns the components, and a **two-or-more-dummy disband test counts
+  the core item** (the duplication bug that a single-dummy machine cannot catch).
+
+## Phase 3 - diamond and redstone, and the guard
+
+**Ships:** the two that matter.
+
+Two further Separator recipes, each with its own input count and time. **Redstone gets the
 harshest ratio**: it drags fifteen vanilla items behind it (piston, dispenser, dropper, observer,
 comparator, repeater, crafter, clock, compass, daylight detector, target, redstone lamp and torch, plus
 map through the compass), so it is the automation tier in a single material. Real rare-earth recycling
 rates are under 1%, which is a factual justification for a punishing number rather than an arbitrary one.
 
 **The guard:** `no_teardown_recipe_yields_a_gated_material`, asserting that no shipped
-`recompile:teardown` recipe produces diamond, emerald, lapis, redstone or gold. Direct analogue of the
+`recompile:teardown` recipe produces diamond, emerald, lapis, redstone or gold. Gold is included even
+though it lives at #120, because the guard is cheaper to write once than to remember to extend. Direct analogue of the
 existing `no_smelting_recipe_turns_a_mod_item_into_iron`, written after #91 for exactly this class of
 bug. Scoped to teardown; the Separator's own recipes are the sanctioned route.
 
@@ -196,8 +200,8 @@ JEI category for Separator recipes, Jade reporting stored FE and progress, and a
 ## The progression question, stated rather than buried
 
 This tier sits **after the demolition yard**, because Mechanical Waste generates there and travel already
-gates the yard. Gold is the exception and arrives earlier if Phase 1 ships alone, since E-Scrap is a
-household common.
+gates the yard. Every material in it is therefore travel-gated, with no early exception now that gold has
+moved to #120.
 
 **Redstone is the real gate and it should feel like one.** It is the automation tier, and it is the last
 thing in this progression that is genuinely scarce.
