@@ -36,12 +36,12 @@ both the real economics and a gate that cannot be cheesed.
 | Lapis | **Printer teardown** (#112) | Lapis is a pigment and a printer is full of pigment. Machinery contains none |
 | Emerald | **Deferred** | No industrial stream exists in reality, and vanilla uses it only as villager currency, which this world has none of |
 | Mechanical Waste | **A fourth `SortableBlock`**, generated in the demolition yard beside Stone Rubble | The yard already generates piles; no new region needed |
-| What the pile drops | **Intermediates, never gems** | The pile is the found half; the gem is the refined half |
-| How many intermediates | **Several, one per gem** | One shared intermediate would put every gem on a single difficulty curve, and redstone being the hard gate is a decision |
+| What the pile sorts into | **Industrial scrap variants, never gems** | The pile is the found half and is picked through like any other sortable block; the gem is the refined half |
+| How many variants | **Several, one per gem** | One shared scrap would put every gem on a single difficulty curve, and redstone being the hard gate is a decision |
 | The machine | **One Separator**: an industrial grinder in the IE Crusher mould. Drop material in the top, materials fall out the bottom | A separator is the actual machine in real recycling. "Teardown on steroids" |
 | Power | **Forge Energy** | Second FE consumer after the Hydroponics Bay; the tier already exists |
 | GUI | **None** | The interaction is a world interaction, so the no-new-machine-screen rule holds untouched |
-| Waste output | **Slag**, sink undecided | See Phase 4; it may be cut |
+| What the grinder outputs | **The raw material AND recovered ordinary scrap** | Real separation yields several streams, not one. The by-product is material the mod already has and already has sinks for, rather than a novel waste item |
 
 ## 2. The constraints that shape everything below
 
@@ -113,9 +113,11 @@ A fourth `SortableBlock` beside `GarbageBlock`, `TrashBagBlock` and `CompactedBa
 `mechanical_waste_pile` feature in the demolition yard's biome features, in the same step as
 `rubble_pile`, `steel_stack` and `building_husk`.
 
-The pull table yields the three intermediates and nothing precious. Names not final:
+The pull table yields **industrial scrap variants** and nothing precious. Sorting works exactly as it
+does everywhere else in the mod: right-click to pull one at a time, with a crumble window. Names not
+final:
 
-| Intermediate | Real source | Refines to |
+| Scrap variant | Real source | Separates into |
 |---|---|---|
 | Spent abrasive | Saw blades, core bits, grinding wheels | Diamond |
 | Magnet scrap | Hard drive and speaker magnets, motor windings | Redstone |
@@ -138,6 +140,12 @@ de-risking that gold was providing.
 
 The multiblock structure and its formed art, FE consumption, the entity-in and entity-out interaction,
 the new recipe type with its input count, and **one recipe: quartz grit to amethyst.**
+
+**The grinder separates, it does not transmute.** One run yields the raw material **plus recovered
+ordinary scrap** - metal, plastic, glass - because that is what a real separator does: it splits a mixed
+feed into several streams rather than converting one thing into another. This is also the answer to the
+waste-output question raised earlier: the by-product is material this mod already ships and already has
+sinks for, so nothing is invented and nothing becomes clutter.
 
 **Amethyst is the proving material deliberately.** It is the lowest-stakes output in the tier - it
 unlocks four things and one of them is the spyglass, which #113 already sources as a found tool, so its
@@ -169,23 +177,27 @@ though it lives at #120, because the guard is cheaper to write once than to reme
 existing `no_smelting_recipe_turns_a_mod_item_into_iron`, written after #91 for exactly this class of
 bug. Scoped to teardown; the Separator's own recipes are the sanctioned route.
 
-## Phase 4 - slag, or cut it
+## Phase 4 - obsidian, if it is wanted
 
-**Ships:** a waste output with somewhere to go, or nothing.
+**Ships:** possibly nothing.
 
-`material_economy.md` already records **obsidian as "not found, made only (melt slag/glass), Slag
-furnace"** and a **slag field** as a planned later region. So slag is an existing thread this machine
-could feed rather than a new one.
+**The waste-output question is already answered** by Phase 2: the grinder returns ordinary recovered
+scrap alongside the raw material, so there is no novel waste item to find a home for and no clutter risk.
+Slag as its own material is **not needed for this tier to work**.
 
-Two things to settle before it is built:
+What remains is a separate and optional question. `material_economy.md` records **obsidian as "not found,
+made only (melt slag/glass), Slag furnace"** and a **slag field** as a planned later region. If obsidian
+is wanted here, slag has to exist as a distinct material to melt, which means inventing the thing Phase 2
+just made unnecessary.
 
-- **A waste output nobody can use is clutter**, and this mod already holds that line for finds. Slag
-  needs a sink from the moment it exists: a building block, a later tier's input, or obsidian.
-- **Slag to obsidian may cross the line this spec draws.** "Refine, do not make" was decided the same
-  day, and melting slag into obsidian is closer to synthesis than to refining. It needs an explicit call
-  rather than arriving by momentum.
+Two reasons to leave it alone for now:
 
-If neither resolves, **cut slag**. The Separator works without it.
+- **It may cross the line this spec draws.** "Refine, do not make" was decided the same day, and melting
+  slag into obsidian is closer to synthesis than to refining.
+- **The slag field is already a planned region.** Slag arriving there, with fluorite and oily scrap and
+  its own identity, is a better home than bolting it onto a grinder that does not need it.
+
+**Default: cut slag from this tier.** Revisit with the slag field.
 
 ## Phase 5 - the surrounding work
 
@@ -218,6 +230,8 @@ tier is announced as finished.
 - Whether the Scrap Network should feed the Separator as well as hand-dropping, or whether that muddies a
   deliberately physical machine.
 - Whether Mechanical Waste piles need a tool gate, the way rubble and bales do, and which tool.
-- Final intermediate names.
+- Final scrap variant names.
 - All ratios and weights, which join #36.
-- Slag, per Phase 4.
+- Whether the intermediates are distinct items or blockstate variants of one Industrial Scrap item.
+- What each grinder recipe returns as recovered scrap, and in what ratio to the raw material.
+- Obsidian and slag, per Phase 4. Default is to leave both to the slag field.
