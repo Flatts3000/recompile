@@ -1,0 +1,9 @@
+{
+  "type": "recompile:separating",
+  "input": "recompile:spent_abrasive",
+  "count": 16,
+  "ticks": 200,
+  "energy": 16,
+  "results": [ { "item": "minecraft:diamond", "count": 1 } ],
+  "byproducts": [ { "item": "recompile:scrap_metal", "count": 2 } ]
+}

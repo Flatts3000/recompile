@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "recompile:block/separator_housing",
+    "front": "recompile:block/separator_core_front_active",
+    "side": "recompile:block/separator_housing"
+  }
+}

@@ -412,5 +412,13 @@
   "jei.recompile.transfer_missing": "Not in your inventory or any connected storage",
   "container.recompile.needs_blueprint": "No blueprint in your inventory or attached storage",
   "book.recompile.guide.reclamation.compost.structure.text": "The core is the bottom north-west corner, not the middle. The cage builds up, east and south of it.",
-  "book.recompile.guide.reclamation.nursery.structure.text": "The wall has a facing. It builds across whichever way you are looking when you place the core."
+  "book.recompile.guide.reclamation.nursery.structure.text": "The wall has a facing. It builds across whichever way you are looking when you place the core.",
+  "block.recompile.mechanical_waste": "Mechanical Waste",
+  "item.recompile.spent_abrasive": "Spent Abrasive",
+  "item.recompile.magnet_scrap": "Magnet Scrap",
+  "item.recompile.quartz_grit": "Quartz Grit",
+  "block.recompile.separator": "Separator",
+  "block.recompile.separator_chamber": "Separator Chamber",
+  "block.recompile.separator_housing": "Separator Housing",
+  "block.recompile.separator_chute": "Separator Chute"
 }

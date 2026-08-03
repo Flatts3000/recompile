@@ -57,6 +57,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.STONE_RUBBLE.get());
                     output.accept(RCItems.REINFORCED_CONCRETE.get());
                     output.accept(RCItems.STEEL_I_BEAM.get());
+                    output.accept(RCItems.MECHANICAL_WASTE.get());
 
                     // --- 2. Bulky Waste finds: the furniture the dump hands you ---
                     output.accept(RCItems.BULKY_WASTE.get());
@@ -75,6 +76,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.REBAR.get());
                     output.accept(RCItems.STEEL_OFFCUT.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
+                    RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
 
                     // --- 5. Machine parts: what every multiblock is assembled from ---
                     output.accept(RCItems.MACHINE_FRAME.get());
@@ -111,6 +113,10 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.COMPOST_HEAP.get());
                     output.accept(RCItems.TREE_NURSERY.get());
                     output.accept(RCItems.HYDROPONICS_BAY.get());
+                    output.accept(RCItems.SEPARATOR.get());
+                    output.accept(RCItems.SEPARATOR_CHAMBER.get());
+                    output.accept(RCItems.SEPARATOR_HOUSING.get());
+                    output.accept(RCItems.SEPARATOR_CHUTE.get());
 
                     // --- 10. Reclamation consumables, rung by rung ---
                     output.accept(RCItems.FERTILIZER.get());

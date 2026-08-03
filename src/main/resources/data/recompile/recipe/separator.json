@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IBI",
+    "IFI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "recompile:steel_i_beam",
+    "F": "recompile:machine_frame"
+  },
+  "result": { "id": "recompile:separator" }
+}

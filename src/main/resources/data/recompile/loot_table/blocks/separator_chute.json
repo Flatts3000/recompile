@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    { "rolls": 1, "entries": [ { "type": "minecraft:item", "name": "recompile:machine_frame" } ],
+      "conditions": [ { "condition": "minecraft:survives_explosion" } ] }
+  ]
+}

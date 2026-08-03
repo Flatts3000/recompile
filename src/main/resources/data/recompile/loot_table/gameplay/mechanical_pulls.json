@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:item", "name": "recompile:quartz_grit", "weight": 100 },
+        { "type": "minecraft:item", "name": "recompile:spent_abrasive", "weight": 55 },
+        { "type": "minecraft:item", "name": "recompile:magnet_scrap", "weight": 25 },
+        { "type": "minecraft:item", "name": "recompile:scrap_metal", "weight": 90 },
+        { "type": "minecraft:item", "name": "recompile:e_scrap", "weight": 40 },
+        { "type": "minecraft:item", "name": "recompile:copper_pipe", "weight": 12 },
+        { "type": "minecraft:item", "name": "recompile:rebar", "weight": 30 }
+      ]
+    }
+  ]
+}

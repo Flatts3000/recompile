@@ -94,6 +94,7 @@ public final class RCGameTests {
         HydroponicsTests.register();
         RegionBiomeSourceTests.register();
         DemolitionYardTests.register();
+        GemTierTests.register();
         RegistryCompletenessTests.register();
 
         FUNCTIONS.register(modEventBus);
