@@ -60,7 +60,8 @@ FACE_AXES = {
 class Machine:
     """A machine's shape plus which formed block sits at each cell."""
 
-    def __init__(self, name, width, height, depth, positions, cells, fallback, shapes=None):
+    def __init__(self, name, width, height, depth, positions, cells, fallback, shapes=None,
+                 bay=None):
         self.name = name
         self.w, self.h, self.d = width, height, depth
         self.positions = set(positions) | {(0, 0, 0)} | set(cells)
@@ -70,6 +71,8 @@ class Machine:
         # only its SKIN comes from the sheet - the chute's mouth is cut into its model, and a
         # generator that quietly replaced it with a cube would erase the machine's one opening.
         self.shapes = shapes or {}
+        # {(x, y, z): quadrant} for a machine with an animated grinding bay.
+        self.bay = bay or {}
 
     def skin_order(self):
         """Every position the machine occupies, in the SAME canonical order as Multiblock.skinOrder on
@@ -134,6 +137,82 @@ def load_sheet(machine, face):
         raise SystemExit('%s is %s, expected %s for a %dx%dx%d machine'
                          % (path, sheet.size, want, machine.w, machine.h, machine.d))
     return sheet
+
+
+# The Separator's grinding bay. Its top is the animated grinder and its rim is geometry, but its
+# OUTWARD SIDES are machine flank like everything else, so they take skin tiles too. Leaving them on
+# the plain panel put a repeating tile in the middle of an otherwise continuous face - the exact thing
+# the skin exists to remove, just harder to spot because it is only two blocks of it.
+BAY_RIM_BOTTOM, BAY_RIM_TOP, BAY_RIM_THICK, BAY_FLOOR_TOP = 13, 16, 2, 13
+
+# quadrant -> the two edges of the 2x2 bay that are on its outside
+BAY_OUTER = {0: ('west', 'north'), 1: ('east', 'north'), 2: ('west', 'south'), 3: ('east', 'south')}
+
+
+def bay_rim(side, has_ns):
+    """A rim wall on `side`, filling to the outside corner without overlapping its partner."""
+    lo, hi = 0, 16
+    if side in ('west', 'east'):
+        lo, hi = (BAY_RIM_THICK, 16) if has_ns == 'north' else (0, 16 - BAY_RIM_THICK)
+    if side == 'north':
+        return [0, BAY_RIM_BOTTOM, 0], [16, BAY_RIM_TOP, BAY_RIM_THICK]
+    if side == 'south':
+        return [0, BAY_RIM_BOTTOM, 16 - BAY_RIM_THICK], [16, BAY_RIM_TOP, 16]
+    if side == 'west':
+        return [0, BAY_RIM_BOTTOM, lo], [BAY_RIM_THICK, BAY_RIM_TOP, hi]
+    return [16 - BAY_RIM_THICK, BAY_RIM_BOTTOM, lo], [16, BAY_RIM_TOP, hi]
+
+
+def emit_bay(machine, sheets, bay_cells):
+    """Models for the four bay cells: animated grinder on top, skin on the outward sides."""
+    made = 0
+    for (x, y, z), quadrant in sorted(bay_cells.items()):
+        index = machine.index(x, y, z)
+        outward = machine.outward(x, y, z)
+        textures = {'particle': 'recompile:block/' + machine.fallback}
+        for face in ('down', 'up', 'north', 'south', 'west', 'east'):
+            key = machine.fallback
+            if face in outward and face not in ('up', 'down') and sheets.get(face) is not None:
+                u, v = machine.tile_at(face, x, y, z)
+                tile = sheets[face].crop((u * 16, v * 16, u * 16 + 16, v * 16 + 16))
+                key = '%s_skin_%s_%d' % (machine.name, face, index)
+                tile.save(os.path.join(ASSETS, 'textures/block', key + '.png'))
+                made += 1
+            textures[face] = 'recompile:block/' + key
+
+        for running in (False, True):
+            local = dict(textures)
+            local['floor'] = 'recompile:block/%s_bay_%d%s' % (
+                machine.name, quadrant, '_running' if running else '')
+            elements = [{
+                'from': [0, 0, 0], 'to': [16, BAY_FLOOR_TOP, 16],
+                'faces': {
+                    'down': {'texture': '#down', 'cullface': 'down'},
+                    'up': {'texture': '#floor'},
+                    'north': {'texture': '#north', 'cullface': 'north'},
+                    'south': {'texture': '#south', 'cullface': 'south'},
+                    'west': {'texture': '#west', 'cullface': 'west'},
+                    'east': {'texture': '#east', 'cullface': 'east'},
+                },
+            }]
+            sides = BAY_OUTER[quadrant]
+            ns = 'north' if 'north' in sides else 'south'
+            for side in sides:
+                frm, to = bay_rim(side, ns)
+                elements.append({
+                    'from': frm, 'to': to,
+                    # Cull only the face on the machine's outside; the inner wall of the well is
+                    # visible and culling it punches a hole straight through.
+                    'faces': {f: ({'texture': '#' + f, 'cullface': f} if f == side
+                                  else {'texture': '#' + f})
+                              for f in ('up', 'down', 'north', 'south', 'west', 'east')},
+                })
+            name = '%s_bay_%d%s' % (machine.name, quadrant, '_running' if running else '')
+            io.open(os.path.join(ASSETS, 'models/block', name + '.json'),
+                    'w', encoding='utf-8', newline='\n').write(
+                json.dumps({'parent': 'minecraft:block/block', 'textures': local,
+                            'elements': elements}, indent=2) + '\n')
+    print('bay: 4 quadrants x idle/running, %d skin tiles' % made)
 
 
 def emit(machine):
@@ -202,6 +281,8 @@ def emit(machine):
             json.dumps({'variants': variants}, indent=2) + '\n')
         print('blockstate %-24s %d cells' % (part, len(indices)))
 
+    if machine.bay:
+        emit_bay(machine, sheets, machine.bay)
     print('%(textures)d tiles, %(models)d models' % written)
 
 
@@ -222,6 +303,7 @@ SEPARATOR = Machine(
         (0, 1, 1): 'separator_housing',
     },
     fallback='separator_housing',
+    bay={(1, 1, 0): 0, (2, 1, 0): 1, (1, 1, 1): 2, (2, 1, 1): 3},
     shapes={
         # The chute: a body with the bottom front cut away, which is the mouth everything falls out
         # of. Matches the hand-authored model it replaces.
