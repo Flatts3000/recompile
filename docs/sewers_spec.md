@@ -29,7 +29,8 @@ superseded rather than closed by this** - see the progression note below.
 | Shape | **Vanilla mineshaft sprawl and levels** | Corridors that branch and descend, not a single floor |
 | Look | **Brick corridors, large brick rooms, scattered pipe, flowing water** | |
 | Extent | **Finite per sewer** | One is cleared and done. The world holds more |
-| Inhabitants | **Roaches, frogs, turtles, drowned** | |
+| Inhabitants | **Roaches, frogs, turtles, drowned, slime** | Slime added 2026-08-02; see phase 3 for the mob-or-substance question |
+| Cobwebs | **Generated in the corridors** | Decided 2026-08-02. The mineshaft parallel, and the only source in the game |
 | Reward | **Barrels with real loot** | Finite content needs a reason to clear it |
 | Generation | **A custom Java `StructureType`** | Vanilla mineshaft sprawl is code-backed; jigsaw would read like a bastion |
 | Water | **Sewage, filtered before use** | Keeps the Rain Collector's scarcity and earns a machine instead of undercutting one |
@@ -163,6 +164,21 @@ locked. So they are finds, not farms.
   The trident is a prize, not a break.
 - **Frogs and turtles** are atmosphere and a payoff for a player who wanted life back.
 
+**Cobwebs and slime (decided 2026-08-02).** Both are sewer-exclusive, and a reachability closure
+confirms neither has any other route in this world.
+
+- **Cobwebs** generate in the corridors the way they do in a vanilla mineshaft, which this structure
+  already mirrors. Harvesting one needs **shears** (a sword yields string instead), and found used
+  shears were decided the same day, so a player may arrive with them; iron shears are craftable in the
+  yard regardless. Their value here is **atmosphere rather than material** - string already comes from
+  mattress teardown and from the yard's spiders, so nothing downstream waits on it.
+- **Slime** is the reverse: near-worthless now, real later. A slimeball unlocks almost nothing on its
+  own, because its payoff is the **sticky piston** and a piston needs redstone, which does not exist
+  yet. Slime is a deposit against the redstone tier.
+- **Undecided: slime as a mob or as a found substance.** A spawning slime adds a combat encounter to an
+  inhabitant list that is otherwise passive apart from drowned, which changes what the sewer feels
+  like. That is a design call, not a loot-table entry.
+
 **Acceptance:**
 - The yard's surface spawn list is unchanged.
 - Density is survivable for a player in the gear the sewer implies: iron armour, iron tools.
@@ -209,3 +225,4 @@ material economy may need retuning with them rather than around them.
 - **What sewage is, mechanically.** A custom fluid, and what filters it. The filter is a machine this
   spec creates and does not design.
 - **Phase 0's answer.** Held torch light may not survive contact.
+- **Slime as a mob or as a found substance.**
