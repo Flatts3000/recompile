@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:dense",
+  "pattern": [
+    ["___", "_S_", "___"],
+    ["_P_", "PMP", "_P_"],
+    ["___", "_T_", "___"],
+    ["___", "_0_", "___"]
+  ],
+  "mapping": {
+    "0": { "type": "modonomicon:block", "block": "recompile:grass_spreader" },
+    "T": { "type": "modonomicon:block", "block": "recompile:water_tank" },
+    "M": { "type": "modonomicon:block", "block": "recompile:pump" },
+    "P": { "type": "modonomicon:block", "block": "recompile:copper_pipe" },
+    "S": { "type": "modonomicon:block", "block": "recompile:solar_panel" }
+  }
+}

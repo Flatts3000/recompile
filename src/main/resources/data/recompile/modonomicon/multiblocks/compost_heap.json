@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:dense",
+  "pattern": [
+    ["FF", "FF"],
+    ["0F", "FF"]
+  ],
+  "mapping": {
+    "0": { "type": "modonomicon:block", "block": "recompile:compost_heap" },
+    "F": { "type": "modonomicon:block", "block": "recompile:machine_frame" }
+  }
+}

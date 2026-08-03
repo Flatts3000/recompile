@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:multiblock",
+  "id": "structure",
+  "sort_number": 1,
+  "multiblock_id": "recompile:tree_nursery",
+  "multiblock_name": "block.recompile.tree_nursery",
+  "show_visualize_button": true,
+  "text": "book.recompile.guide.reclamation.nursery.structure.text"
+}

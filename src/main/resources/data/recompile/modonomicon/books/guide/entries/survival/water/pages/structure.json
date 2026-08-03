@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:multiblock",
+  "id": "structure",
+  "sort_number": 1,
+  "multiblock_id": "recompile:rain_collector",
+  "multiblock_name": "block.recompile.rain_collector",
+  "show_visualize_button": true,
+  "text": ""
+}
