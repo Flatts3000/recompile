@@ -1,5 +1,65 @@
 # Changelog
 
+## v0.5.0
+
+The mod does the thing it is named after. Tear something down at the Workbench and you can come away knowing how to build it.
+
+**Beds changed, and it reaches worlds you already have.** All sixteen wool-to-bed recipes are gone. A bed is now a Clean Mattress plus three planks, and a Clean Mattress can only be made from a blueprint. If you are mid-world and sleeping in a Dirty Mattress, nothing breaks; if you were about to craft a vanilla bed, you need to tear down Dirty Mattresses at the Workbench first.
+
+**Two other changes reach existing worlds.** Water no longer breeds (see below), because it is applied as a game rule on every load. And iron now needs a Cupola Furnace, so an ordinary furnace with rebar in it stopped working.
+
+### Blueprints
+- Tearing anything down at the Recompile Workbench now grants an **Idea Fragment** toward whatever that recipe teaches. Every teardown, not a chance roll.
+- Enough fragments about one thing craft into a **Blueprint** sheet. The Clean Mattress takes 4, the Hydroponics Bay takes 6.
+- A **Filing Cabinet** turns up in Bulky Waste. It holds sheets, accepts loose fragments, condenses them into sheets on its own, and throws the surplus away. Place it touching your other scrap blocks and it joins the cluster.
+- The **Scrap Crafting Table** runs a blueprint recipe only while the sheet is in your inventory or in a Filing Cabinet in the same cluster. A vanilla crafting table cannot see these recipes at all, so there is no locked-recipe grey-out to click at.
+- Fragments stop dropping for a blueprint you can already reach, so a cabinet full of sheets does not keep collecting scraps of paper.
+- If you lay out a recipe correctly and cannot run it, the table says so: **"No blueprint in your inventory or attached storage."** The empty result slot used to mean both "wrong arrangement" and "no sheet".
+- JEI shows blueprint recipes with a working transfer button, and it fills the grid from connected storage as well as your inventory.
+- `blueprintsEnabled` turns the whole system off and leaves the workbench materials-only.
+
+### The Clean Mattress, in sixteen colours
+- Three wool over three string at the Scrap Crafting Table, with the blueprint to hand.
+- Each colour of wool makes its own Clean Mattress, the same way wool is its own block per colour. Dye one at an ordinary table to change it.
+- A coloured bed takes the matching mattress. A black bed no longer accepts a white one.
+
+### The Hydroponics Bay
+- Grows a plant from water and power with no soil at all. The **first machine in the mod that spends FE**, which the last release promised and did not have.
+- 20 seconds a batch, 100 mB of water, 8 FE/tick. That is 3,200 FE per batch, roughly 160 seconds of one Solar Panel or 8 seconds of a Burner Generator.
+- **The crop you put in is never consumed.** One input is the output forever, until you take it out. It replants itself.
+- A second slot catches byproducts.
+- Right-click it with a water bucket to fill the tank. The screen shows water and power as separate gauges, because "why is it not running" has two answers.
+- If the output slot is full of something else, growth stops rather than converting. Sugar cane in a bay with potatoes in the output used to come out as potatoes.
+- It is now behind a blueprint: find a **Broken Hydroponics Bay** in Bulky Waste and tear it down.
+
+### Recovered paintings
+- Six real paintings, pixelated to Minecraft resolution, found in Bulky Waste at about 7% of finds.
+- They keep their identity through break and replace, which a vanilla painting does not, and the item in your hand names the work rather than saying "Painting".
+
+### Water does not breed
+- Two water sources no longer fill in a third. Every bucket you pour out is a bucket gone, which is why the Rain Collector stays worth having after you can make buckets.
+- Applied by setting vanilla's `water_source_conversion` game rule on load, so it reaches worlds made before this release. `disableInfiniteWater` stops the mod touching the rule at all.
+
+### Iron is gated on the machine now, not on an absence
+- Steel Offcut and rebar became **blasting** recipes, so only the Cupola Furnace makes iron. A vanilla blast furnace costs five iron ingots, so it cannot be the way in.
+- The old gate assumed no other furnace was craftable, and the Tree Nursery quietly ended that by supplying wood. Rebar is a common pull from household garbage, so iron was reachable on day one with no demolition yard, no Cutting Torch and no Cupola.
+- The Cupola still does not cook food. It melts metal. The Burn Barrel keeps refuse and food.
+
+### Fertilizer grows things
+- Fertilizer now also speeds up planted crops and saplings, the way bone meal does. This world has no bone meal and cannot have any, since it comes from skeletons.
+
+### The guidebook
+- Twelve shipped systems had no entry at all. They do now: the demolition yard, the power tier, the Hydroponics Bay, the Tree Nursery, recovered paintings, Animal Bait, sleeping, and the rule that water does not spread.
+- The four multiblocks (Rain Collector, Grass Spreader, Compost Heap, Tree Nursery) have **3D structure pages** with a button that projects the build into the world in front of you.
+
+### Smaller things
+- Roaches are much rarer: about one per 128 blocks of garbage picked through, up from one per 16. They were competing with the pull streams they live in.
+- The seven stone shards have real art instead of placeholders.
+- Both biomes have names. They were showing a raw translation key.
+- Multiblock status checks work on rotated structures, so a Tree Nursery placed facing any direction reports correctly.
+- The creative tab is regrouped into the order you actually meet things, and JEI's panel follows it.
+- The logo is pixelated, with REC on it.
+
 ## v0.4.0
 
 Something lives in the garbage, and the first power that is not a torch.
