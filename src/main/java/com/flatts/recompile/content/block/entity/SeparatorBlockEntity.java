@@ -27,6 +27,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
@@ -347,12 +349,63 @@ public class SeparatorBlockEntity extends BlockEntity {
 
         BlockPos outlet = SeparatorCoreBlock.outlet(level, pos);
         for (TeardownRecipe.ItemResult result : recipe.results()) {
-            Block.popResource(level, outlet, result.toStack());
+            deliver(level, outlet, result.toStack());
         }
         for (TeardownRecipe.ItemResult byproduct : recipe.byproducts()) {
-            Block.popResource(level, outlet, byproduct.toStack());
+            deliver(level, outlet, byproduct.toStack());
         }
         level.playSound(null, pos, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.4F, 0.6F);
+    }
+
+    /**
+     * Put one output through the chute: into whatever is standing in front of it, or on the floor.
+     *
+     * <p><b>The machine pushes; nothing pulls.</b> This is the same reach-out the intake already does
+     * at the other end, and it costs none of the closed-door properties - the Separator still exposes
+     * no item handler of its own, so no pipe can connect to it and nothing can extract from it. What
+     * changes is only that a barrel parked at the chute stops being decoration: the machine was piling
+     * its output on the lid of an obviously-correct container, which reads as broken rather than as
+     * deliberate.
+     *
+     * <p>Capability first, then {@code Container}. The capability covers modded storage and vanilla's
+     * own through its wrappers; {@code getContainerAt} is the fallback that also handles the things
+     * only the hopper path knows about, like a double chest resolving to one inventory. Whatever will
+     * not fit falls on the floor, so the machine never destroys what it made.
+     */
+    private static void deliver(ServerLevel level, BlockPos outlet, ItemStack stack) {
+        var handler = level.getCapability(Capabilities.Item.BLOCK, outlet, null);
+        if (handler != null && !stack.isEmpty()) {
+            try (Transaction tx = Transaction.openRoot()) {
+                int accepted = handler.insert(ItemResource.of(stack), stack.getCount(), tx);
+                if (accepted > 0) {
+                    tx.commit();
+                    stack.shrink(accepted);
+                }
+            }
+        }
+        if (!stack.isEmpty()) {
+            Container container = HopperBlockEntity.getContainerAt(level, outlet);
+            if (container != null) {
+                for (int slot = 0; slot < container.getContainerSize() && !stack.isEmpty(); slot++) {
+                    ItemStack held = container.getItem(slot);
+                    if (held.isEmpty()) {
+                        container.setItem(slot, stack.copy());
+                        stack.setCount(0);
+                    } else if (ItemStack.isSameItemSameComponents(held, stack)) {
+                        int room = held.getMaxStackSize() - held.getCount();
+                        int moved = Math.min(room, stack.getCount());
+                        if (moved > 0) {
+                            held.grow(moved);
+                            stack.shrink(moved);
+                        }
+                    }
+                }
+                container.setChanged();
+            }
+        }
+        if (!stack.isEmpty()) {
+            Block.popResource(level, outlet, stack);
+        }
     }
 
     /**

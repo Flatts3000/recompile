@@ -439,6 +439,52 @@ final class GemTierTests {
             });
         });
 
+        // The chute FILLS a container standing in front of it (owner, 2026-08-03). The machine was
+        // piling its output on the lid of an obviously-correct barrel, which reads as broken rather
+        // than as deliberate. Pushing out costs none of the closed-door properties - the machine still
+        // exposes no handler, so nothing can reach IN - and it is the same reach-out the intake
+        // already does at the other end.
+        RCGameTests.test("the_chute_fills_a_container_in_front_of_it", 120, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(1_000_000, tx);
+                tx.commit();
+            }
+
+            BlockPos outlet = SeparatorCoreBlock.outlet(helper.getLevel(), helper.absolutePos(core));
+            helper.getLevel().setBlockAndUpdate(outlet, Blocks.CHEST.defaultBlockState());
+            var chest = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(outlet);
+            helper.assertTrue(chest != null, "no chest at the outlet");
+            drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 1));
+
+            helper.runAfterDelay(80, () -> {
+                boolean inChest = false;
+                for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+                    if (chest.getItem(slot).is(Items.AMETHYST_SHARD)) {
+                        inChest = true;
+                    }
+                }
+                helper.assertTrue(inChest,
+                    "the chute did not fill the chest in front of it. Output on the floor beside a "
+                        + "container the player deliberately placed reads as the machine being broken");
+
+                // And nothing was duplicated on the way in - what went to the chest must not ALSO be
+                // lying on the ground, which is the obvious way an insert-then-drop path goes wrong.
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    helper.assertFalse(entity.getItem().is(Items.AMETHYST_SHARD),
+                        "an amethyst reached the chest AND the floor - the output was duplicated");
+                }
+                helper.succeed();
+            });
+        });
+
         // ONE chute, and everything leaves through it (owner, 2026-08-03). A recipe that produces a
         // result plus several byproducts is exactly the moment someone would reach for a second
         // opening, and the whole point is that catching a machine's output never needs more than one

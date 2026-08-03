@@ -134,7 +134,6 @@
   "config.jade.plugin_recompile.generator": "Generator power",
   "config.jade.plugin_recompile.separator": "Separator status",
   "jade.recompile.separator_queued": "Queued: %s",
-  "jade.recompile.separator_queued_kinds": "Queued: %s in %s kinds",
   "jade.recompile.compost_empty": "Empty - feed it muck or fiber",
   "jade.recompile.compost_layers": "Composting: %s / %s",
   "jade.recompile.nursery_running": "Running - %ss left",

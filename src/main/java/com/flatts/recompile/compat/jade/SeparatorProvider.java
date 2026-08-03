@@ -40,12 +40,13 @@ public enum SeparatorProvider implements IBlockComponentProvider {
         // The queue depth first, because with an internal queue it is the thing that answers "did it
         // take what I put in" - which is the question a player standing in front of a silent machine is
         // actually asking. It is invisible otherwise: nothing can open this block.
+        // WHAT is inside is drawn as an item grid by SeparatorStorageProvider, sprites and counts the
+        // way any inventory is shown, so this line only carries the total. A list of names was tried
+        // first and is strictly worse: a machine holding several kinds at once is read at a glance
+        // from icons and laboriously as prose.
         int queued = data.getIntOr("queued", 0);
         if (queued > 0) {
-            int kinds = data.getIntOr("kinds", 0);
-            tooltip.add(kinds > 1
-                ? Component.translatable("jade.recompile.separator_queued_kinds", queued, kinds)
-                : Component.translatable("jade.recompile.separator_queued", queued));
+            tooltip.add(Component.translatable("jade.recompile.separator_queued", queued));
         }
 
         if (goal > 0 && progress > 0) {

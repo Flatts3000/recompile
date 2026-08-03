@@ -679,12 +679,27 @@ final class RegistryCompletenessTests {
         if (anchor == null) {
             return out;   // the caller fails on empty, which is what an unreadable package should do
         }
+        // Only an IBlockComponentProvider gets a config toggle, so only it needs a translation. The
+        // filter was a NAME check first and swept in the item-storage view providers, which have no
+        // config entry at all - a test demanding a key for something Jade never asks about is a test
+        // that will be silenced by adding a dead string. Asking the class what it implements cannot
+        // drift; the cost is loading Jade, which is on the runtime classpath here.
         try (var entries = java.nio.file.Files.list(java.nio.file.Path.of(anchor.toURI()).getParent())) {
+            // BLOCK and ENTITY component providers both get a config toggle. Only the block one was
+            // listed at first, and the reverse check immediately named PaintingNameProvider - which is
+            // an entity provider, because a painting is an entity.
+            List<Class<?>> component = List.of(
+                Class.forName("snownee.jade.api.IBlockComponentProvider"),
+                Class.forName("snownee.jade.api.IEntityComponentProvider"));
             for (java.nio.file.Path entry : entries.toList()) {
                 String name = entry.getFileName().toString();
-                if (name.endsWith("Provider.class") && !name.endsWith("DataProvider.class")
-                        && !name.contains("$")) {
-                    out.add(name.substring(0, name.length() - ".class".length()));
+                if (!name.endsWith(".class") || name.contains("$")) {
+                    continue;
+                }
+                String simple = name.substring(0, name.length() - ".class".length());
+                Class<?> type = Class.forName("com.flatts.recompile.compat.jade." + simple);
+                if (component.stream().anyMatch(c -> c.isAssignableFrom(type))) {
+                    out.add(simple);
                 }
             }
         } catch (Exception e) {
