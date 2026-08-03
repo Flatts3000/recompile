@@ -1294,6 +1294,11 @@ palette = ["#2a2a2e", "#1e1e22", "#4a4a50", "#3a3a3e", "#5c5a58", "#141416", "#6
 # kind = "block_skin" keeps the native rectangle (a square resize would shear the panel lines) while
 # still quantizing to the pack palette. The prompt must describe ONE object spanning the whole image,
 # never a tileable pattern: a seamless prompt defeats the entire point.
+#
+# NO TEXT. The model puts stencilled numbers and warning labels on anything industrial unless told
+# not to, and at 16px per block a letter is a smudge that reads as a mistake rather than as texture.
+# The STYLE_ANCHOR now forbids it for every surface in every project; an early draft of the west
+# prompt asked for "a stencilled number" and duly got one.
 
 [surface.separator_skin_north]
 kind = "block_skin"
@@ -1328,7 +1333,7 @@ backend = "ai"
 size = 16
 width = 32
 height = 32
-prompt = "the side end of a single large industrial shredder machine housing, painted faded factory blue worn to rust, one continuous machine face spanning the whole image, a bolted gearbox housing and a stencilled number, weld lines and grease staining, viewed straight on, filling the frame edge to edge"
+prompt = "the side end of a single large industrial shredder machine housing, painted faded factory blue worn to rust, one continuous machine face spanning the whole image, a bolted gearbox housing and a round inspection port, weld lines and grease staining, viewed straight on, filling the frame edge to edge"
 vanilla_ref = "block/iron_block"
 
 [surface.separator_chute]
