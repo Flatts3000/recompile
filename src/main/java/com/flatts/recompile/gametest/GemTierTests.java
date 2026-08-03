@@ -485,6 +485,50 @@ final class GemTierTests {
             });
         });
 
+        // The chute RESPECTS a receiver that refuses items. The first version hand-rolled a slot loop
+        // and would have walked straight past canPlaceItem and WorldlyContainer face rules - posting
+        // an amethyst into a furnace's fuel slot, and worse, into the Burn Barrel, which returns NO
+        // slots on any face precisely to keep automation out of its smelt slots. Using vanilla's own
+        // addItem is what makes that hold, and this is the test that says so.
+        RCGameTests.test("the_chute_cannot_force_items_into_a_closed_container", 120, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(1_000_000, tx);
+                tx.commit();
+            }
+
+            BlockPos outlet = SeparatorCoreBlock.outlet(helper.getLevel(), helper.absolutePos(core));
+            helper.getLevel().setBlockAndUpdate(outlet, RCBlocks.BURN_BARREL.get().defaultBlockState());
+            var barrel = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(outlet);
+            helper.assertTrue(barrel != null, "no Burn Barrel at the outlet");
+            drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 1));
+
+            helper.runAfterDelay(80, () -> {
+                for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
+                    helper.assertFalse(barrel.getItem(slot).is(Items.AMETHYST_SHARD),
+                        "the chute forced an amethyst into the Burn Barrel, which closes every face to "
+                            + "automation. Pushing out must not be a way around a receiver's own rules");
+                }
+                boolean onFloor = false;
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    if (entity.getItem().is(Items.AMETHYST_SHARD)) {
+                        onFloor = true;
+                    }
+                }
+                helper.assertTrue(onFloor,
+                    "what a receiver refuses has to fall on the floor - the machine must never destroy "
+                        + "what it made just because nothing would take it");
+                helper.succeed();
+            });
+        });
+
         // ONE chute, and everything leaves through it (owner, 2026-08-03). A recipe that produces a
         // result plus several byproducts is exactly the moment someone would reach for a second
         // opening, and the whole point is that catching a machine's output never needs more than one

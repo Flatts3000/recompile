@@ -8,6 +8,7 @@ import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -230,6 +231,8 @@ public class SeparatorBlockEntity extends BlockEntity {
                 return slot;
             }
             Block.popResource(level, SeparatorCoreBlock.outlet(level, worldPosition), stack.copy());
+            // Dropped rather than delivered on purpose: this is the self-heal path for something a
+            // datapack change orphaned, and it should land where the player can see it.
             queue.set(slot, ItemStack.EMPTY);
             setChanged();
         }
@@ -271,7 +274,10 @@ public class SeparatorBlockEntity extends BlockEntity {
             ItemStack left = insert(stack);
             if (left.isEmpty()) {
                 entity.discard();
-            } else {
+            } else if (left.getCount() != stack.getCount()) {
+                // Only when something actually moved. A full queue with an item sitting in the mouth
+                // would otherwise re-set the same stack every tick, and setItem syncs the entity to
+                // every client watching it.
                 entity.setItem(left);
             }
         }
@@ -289,8 +295,12 @@ public class SeparatorBlockEntity extends BlockEntity {
                 // One slot's worth per tick, so the machine sips from a chest instead of vacuuming it
                 // in a single frame.
                 ItemStack left = insert(stack);
-                container.setItem(slot, left.isEmpty() ? ItemStack.EMPTY : left);
-                container.setChanged();
+                if (left.getCount() != stack.getCount()) {
+                    container.setItem(slot, left.isEmpty() ? ItemStack.EMPTY : left);
+                    container.setChanged();
+                }
+                // Whether or not anything moved: a full queue must not spin through the rest of the
+                // container's slots, and setChanged on a chest every tick is chunk-save churn.
                 break;
             }
         }
@@ -348,11 +358,16 @@ public class SeparatorBlockEntity extends BlockEntity {
         }
 
         BlockPos outlet = SeparatorCoreBlock.outlet(level, pos);
+        // The machine throws along its own facing, so the item enters the far side of the receiver.
+        Direction facing = level.getBlockState(pos).hasProperty(SeparatorCoreBlock.FACING)
+            ? level.getBlockState(pos).getValue(SeparatorCoreBlock.FACING)
+            : Direction.NORTH;
+        Direction entry = facing.getOpposite();
         for (TeardownRecipe.ItemResult result : recipe.results()) {
-            deliver(level, outlet, result.toStack());
+            deliver(level, outlet, entry, result.toStack());
         }
         for (TeardownRecipe.ItemResult byproduct : recipe.byproducts()) {
-            deliver(level, outlet, byproduct.toStack());
+            deliver(level, outlet, entry, byproduct.toStack());
         }
         level.playSound(null, pos, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.4F, 0.6F);
     }
@@ -367,12 +382,16 @@ public class SeparatorBlockEntity extends BlockEntity {
      * its output on the lid of an obviously-correct container, which reads as broken rather than as
      * deliberate.
      *
+     * <p>{@code entry} is the face of the receiving block the item goes in through: the machine pushes
+     * along its own facing, so the item enters the opposite side of whatever is standing there. It is
+     * what lets a receiver refuse the insert on the side it wants left alone.
+     *
      * <p>Capability first, then {@code Container}. The capability covers modded storage and vanilla's
      * own through its wrappers; {@code getContainerAt} is the fallback that also handles the things
      * only the hopper path knows about, like a double chest resolving to one inventory. Whatever will
      * not fit falls on the floor, so the machine never destroys what it made.
      */
-    private static void deliver(ServerLevel level, BlockPos outlet, ItemStack stack) {
+    private static void deliver(ServerLevel level, BlockPos outlet, Direction entry, ItemStack stack) {
         var handler = level.getCapability(Capabilities.Item.BLOCK, outlet, null);
         if (handler != null && !stack.isEmpty()) {
             try (Transaction tx = Transaction.openRoot()) {
@@ -386,21 +405,12 @@ public class SeparatorBlockEntity extends BlockEntity {
         if (!stack.isEmpty()) {
             Container container = HopperBlockEntity.getContainerAt(level, outlet);
             if (container != null) {
-                for (int slot = 0; slot < container.getContainerSize() && !stack.isEmpty(); slot++) {
-                    ItemStack held = container.getItem(slot);
-                    if (held.isEmpty()) {
-                        container.setItem(slot, stack.copy());
-                        stack.setCount(0);
-                    } else if (ItemStack.isSameItemSameComponents(held, stack)) {
-                        int room = held.getMaxStackSize() - held.getCount();
-                        int moved = Math.min(room, stack.getCount());
-                        if (moved > 0) {
-                            held.grow(moved);
-                            stack.shrink(moved);
-                        }
-                    }
-                }
-                container.setChanged();
+                // Vanilla's own helper, NOT a hand-rolled slot loop. It honours canPlaceItem and, for a
+                // WorldlyContainer, getSlotsForFace - which matters more here than it looks: the Burn
+                // Barrel deliberately returns NO slots on any face to keep automation out of its smelt
+                // slots, and a raw setItem loop would have walked straight past that. It would also
+                // have been happy to post an amethyst into a furnace's fuel slot.
+                stack = HopperBlockEntity.addItem(null, container, stack, entry);
             }
         }
         if (!stack.isEmpty()) {

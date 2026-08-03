@@ -169,8 +169,11 @@ public final class RCBlockEntities {
             (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
 
         // The Separator takes power and nothing else. INSERT-only, like the Bay: it is a consumer.
-        // Deliberately NO item capability and no Container - material arrives and leaves as dropped
-        // entities, so no pipe can connect and no hopper can reach in.
+        // Deliberately NO item capability and no Container, so no pipe can connect and no hopper can
+        // reach in. It still automates, because the machine REACHES OUT at both ends: it swallows what
+        // lands in its bay and drains a container standing on it, and it pushes finished material into
+        // whatever is parked at the chute. Reaching out and being reached into are different doors, and
+        // only the second one is shut.
         event.registerBlockEntity(
             Capabilities.Energy.BLOCK,
             SEPARATOR.get(),

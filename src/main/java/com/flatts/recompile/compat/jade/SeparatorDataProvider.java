@@ -32,8 +32,6 @@ public enum SeparatorDataProvider implements IServerDataProvider<BlockAccessor> 
             data.putInt("have", separator.feedHave());
             data.putInt("need", separator.feedNeed());
             data.putInt("queued", separator.queuedCount());
-            data.putInt("slots",
-                com.flatts.recompile.content.block.entity.SeparatorBlockEntity.QUEUE_SLOTS);
         }
     }
 
