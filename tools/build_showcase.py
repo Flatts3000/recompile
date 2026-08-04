@@ -369,13 +369,13 @@ MUSEUM = Scene(
         *[[_WALL_ROW] for _ in range(10)],
     ],
     block_entities={
-        (2, 1, 2): {"id": PLINTH, "Items": [{"slot": Byte(0), "id": "recompile:puzzle_cube",
+        (2, 1, 2): {"id": PLINTH, "Items": [{"Slot": Byte(0), "id": "recompile:puzzle_cube",
                                              "count": 1}]},
-        (5, 1, 2): {"id": PLINTH, "Items": [{"slot": Byte(0), "id": "recompile:toy_car",
+        (5, 1, 2): {"id": PLINTH, "Items": [{"Slot": Byte(0), "id": "recompile:toy_car",
                                              "count": 1}]},
-        (8, 1, 2): {"id": PLINTH, "Items": [{"slot": Byte(0), "id": "recompile:gold_coin",
+        (8, 1, 2): {"id": PLINTH, "Items": [{"Slot": Byte(0), "id": "recompile:gold_coin",
                                              "count": 1}]},
-        (11, 1, 2): {"id": PLINTH, "Items": [{"slot": Byte(0), "id": "recompile:present",
+        (11, 1, 2): {"id": PLINTH, "Items": [{"Slot": Byte(0), "id": "recompile:present",
                                               "count": 1}]},
     },
     paintings=[

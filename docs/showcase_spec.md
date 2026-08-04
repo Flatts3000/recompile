@@ -149,6 +149,30 @@ stacking a second set on top of the first.
   thing most likely to get quietly reversed by somebody moving the datapack into the jar for
   convenience.
 
+## 6b. Driving it from outside
+
+`gamebridge` (in `mc-pack-toolkit`) runs commands against a dev server over RCON and reads the replies,
+so a scene can be **placed and then verified** instead of placed and hoped about. `tools/verify_showcase.sh`
+is the worked example: it places the museum and asserts the wall, the floor, a pedestal and a count of
+six paintings, exiting non-zero if any of it is wrong.
+
+```
+./gradlew runServer          # once, in another shell
+bash tools/verify_showcase.sh
+```
+
+Two limits that are properties of Minecraft rather than of the tool:
+
+- **This cannot drive a singleplayer world.** The integrated server does not listen on anything, so
+  there is no remote command interface to reach; getting one means mod code running inside the game.
+  The dedicated server has RCON natively. Connect a client to `localhost` when you want to look at
+  what was built.
+- **Chunks unload with nobody standing in them.** A playerless server answers `data get block` with
+  "That position is not loaded" and otherwise appears to work, which reads as the scene having failed.
+  `forceload add` first; the verify script does.
+
+**Screenshots still need a person.** The bridge covers placing and checking, not framing and F2.
+
 ## 7. Open
 
 - **Which world.** A superflat studio is the cleanest backdrop but the garbage preset is the honest one,
