@@ -73,6 +73,7 @@ public final class RCGameTests {
         FoundToolTests.register();
         MattressTests.register();
         StrayTests.register();
+        ReflavourTests.register();
         RainCollectorTests.register();
         RecompileWorkbenchTests.register();
         LightingTests.register();
