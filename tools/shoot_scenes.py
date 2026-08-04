@@ -64,6 +64,16 @@ def main() -> None:
                 bridge.command(f"tp @s {x} {y} {z}", player=PLAYER)
                 bridge.command(f"function recompile:showcase/{scene}", player=PLAYER)
                 time.sleep(2.0)   # let the chunk meshes rebuild before grabbing the frame
+                # Re-pose IMMEDIATELY before the grab. The shot depends on where the player is
+                # looking, and anything that touches the window during that pause - an alt-tab, a
+                # nudged mouse - silently changes the picture.
+                #
+                # BACK TO THE ANCHOR FIRST. The camera function is written in coordinates relative to
+                # the anchor, so running it while already standing at the camera moves the player a
+                # second time by the same offset. Found by testing the recovery rather than assuming
+                # it: the frame came back level and pointing the right way, from the wrong place.
+                bridge.command(f"tp @s {x} {y} {z}", player=PLAYER)
+                bridge.command(f"function recompile:showcase/{scene}_camera", player=PLAYER)
                 print(f"{scene}: {bridge.screenshot(scene).get('path')}")
         finally:
             bridge.hud(True)
