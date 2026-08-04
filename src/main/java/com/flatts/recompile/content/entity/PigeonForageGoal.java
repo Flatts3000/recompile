@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.entity;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCTags;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -35,11 +36,20 @@ import net.minecraft.world.phys.Vec3;
  * which is the kind of bug that looks like a tuning problem and is not. The goal now ends on the peck,
  * so the cooldown is what a player actually experiences.
  *
- * <p><b>And it never finds what the pile itself would give you</b> (owner, 2026-08-04). A pigeon turning
- * up rotten flesh - a household pull - reads as the bird sorting on your behalf, which is a machine's
- * job. What it finds is the stuff a pull never gives: a crust of bread, an apple core, a dropped
- * feather. {@code a_pigeon_never_finds_what_the_pile_would_give} holds the line, since the overlap is
- * invisible until someone compares two JSON files by hand.
+ * <p><b>It can only ever find what the pile itself would have given you, and that is a gating rule</b>
+ * (owner, 2026-08-04). A pigeon must never be a source of anything a player could not already get out
+ * of that block by hand, because a mob that produces a NEW material is a route around whatever gates
+ * that material - and this one wanders into your base on its own.
+ *
+ * <p>So it does not have a loot table. It rolls <b>the block's own pull table</b>, which makes the
+ * subset structural rather than a thing two JSON files have to agree about. A bespoke table got this
+ * wrong twice in one afternoon: first with wheat seeds, which come from the Hydroponics Bay's seedling
+ * lottery and so walked past a Pump, water and power; then with bread, an apple and a feather, none of
+ * which this world produces at all. Both readings looked reasonable while the rule was in someone's
+ * head instead of in the code.
+ *
+ * <p>What stops that being "the bird sorts for you" is volume, not distribution: one peck per visit
+ * against a tarp that empties a block in seconds.
  *
  * <p><b>On the pigeon staying ambiance rather than becoming a resource.</b> Anything that produces an
  * item on a timer is a resource if you leave it running long enough, and this mob was decided not to be
@@ -51,11 +61,6 @@ import net.minecraft.world.phys.Vec3;
  * behaves exactly like a fox going to a berry bush.
  */
 public class PigeonForageGoal extends MoveToBlockGoal {
-
-    /** What a pigeon finds in the trash. Weighted in the JSON, not here. */
-    public static final ResourceKey<LootTable> FORAGE_TABLE = ResourceKey.create(
-        Registries.LOOT_TABLE,
-        Identifier.fromNamespaceAndPath("recompile", "gameplay/pigeon_forage"));
 
     private static final int PECK_TICKS = 40;
 
@@ -98,6 +103,17 @@ public class PigeonForageGoal extends MoveToBlockGoal {
     @Override
     protected boolean isValidTarget(LevelReader level, BlockPos pos) {
         return level.getBlockState(pos).is(RCTags.PIGEON_FORAGEABLE);
+    }
+
+    /**
+     * The table a peck at this block rolls: the block's own pull stream, and nothing else.
+     *
+     * <p>Exposed so a test can hold the gating rule to the wiring rather than to a comment. The whole
+     * point is that there is no second table to drift.
+     */
+    public static @org.jspecify.annotations.Nullable ResourceKey<LootTable> tableFor(
+            net.minecraft.world.level.block.Block block) {
+        return SortableBlock.pullTableOf(block);
     }
 
     @Override
@@ -147,7 +163,11 @@ public class PigeonForageGoal extends MoveToBlockGoal {
         if (level.getRandom().nextFloat() >= RCConfig.PIGEON_FORAGE_CHANCE.get()) {
             return;
         }
-        LootTable table = level.getServer().reloadableRegistries().getLootTable(FORAGE_TABLE);
+        ResourceKey<LootTable> key = tableFor(level.getBlockState(blockPos).getBlock());
+        if (key == null) {
+            return;   // the pile went away, or something untagged crept in
+        }
+        LootTable table = level.getServer().reloadableRegistries().getLootTable(key);
         LootParams params = new LootParams.Builder(level)
             .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(blockPos))
             .create(LootContextParamSets.CHEST);

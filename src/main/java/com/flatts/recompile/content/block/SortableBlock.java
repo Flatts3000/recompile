@@ -224,7 +224,13 @@ public abstract class SortableBlock extends FallingBlock {
      */
     @Nullable
     public static ResourceKey<LootTable> pullTableFor(Item item) {
-        return Block.byItem(item) instanceof SortableBlock sortable ? sortable.pullTable() : null;
+        return pullTableOf(Block.byItem(item));
+    }
+
+    /** The same question asked of a block, for callers that have one in the world already. */
+    @Nullable
+    public static ResourceKey<LootTable> pullTableOf(Block block) {
+        return block instanceof SortableBlock sortable ? sortable.pullTable() : null;
     }
 
     @Override
