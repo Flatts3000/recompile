@@ -582,6 +582,61 @@ prompt = "a full-bleed Minecraft block face: the front of a salvaged tree nurser
 # The Tree Nursery's formed tank cell (a full block): reads as the white PLASTIC water tank the player
 # placed, not dark machine metal - so it must look like the caged plastic IBC tote, framed to sit in the
 # machine. Used on the four sides + top of tree_nursery_tank; the bottom reuses tree_nursery_bottom.
+# THE NURSERY'S SKIN: its bottom row authored as one image per long face (2026-08-04).
+#
+# Only the bottom row. The top of the machine is two Solar Panels, and a Solar Panel is the same block
+# you place on its own and that the Grass Spreader also uses, so it cannot carry a per-machine tile
+# without changing every panel in the world. The panels stay themselves.
+#
+# Only north and south get sheets. The machine is one block deep, so its east and west faces are a
+# single tile each with no seam to hide - those keep tree_nursery_side, and a face with no sheet falls
+# back automatically.
+#
+# 32x16: two blocks wide, one tall, 16px per block. The prompt must describe ONE cabinet spanning the
+# whole image, never a tile.
+#
+# WHICH SIDE IS WHICH IS NOT OBVIOUS, AND THE PROMPT HAS TO GET IT RIGHT. The tank sits at x=1 and the
+# core at x=0, and a face is read from OUTSIDE the machine - so on the FRONT you are looking south,
+# which puts east on your left, which puts the TANK on the left and the window on the right. The BACK
+# is the mirror of that: core left, tank right. The first draft of this file asked for the opposite on
+# the front and got exactly what it asked for; the art was fine and the instruction was backwards.
+# Same axis reasoning as FACE_AXES in tools/skin_machine.py, and it has now caught people twice.
+
+[surface.tree_nursery_skin_north]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 16
+prompt = "the front of a single wide salvaged tree-nursery cabinet, one continuous machine face spanning the whole image, on the LEFT a grubby white plastic water tank strapped into the frame with a sight-gauge down it, on the RIGHT a scratched glass viewing window in a riveted rusty scrap-metal frame with a tiny green sapling in dark soil behind it, weld lines and grime, muted greys and rusty browns with a small pop of green, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+# The RUNNING front. This machine's ONLY cue that it is working is the window lighting up - the
+# Separator could lose its lit panel because its grinding bay animates, and this one has nothing else
+# to say so. Same cabinet, same tank, brighter window.
+[surface.tree_nursery_skin_north_active]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 16
+reference = "tree_nursery_skin_north"
+# NO match_hue here, and that is a decision rather than an omission. Recasting this onto the idle
+# sheet's colour does fix the slight frame drift at the seam - and it drains the glow to a pale cream,
+# because the warmth IS a hue difference. This machine has no other running cue, so a weaker glow costs
+# more than a frame that shifts a little; at block scale the shift reads as light spilling anyway.
+prompt = "the same wide salvaged tree-nursery cabinet actively running: the glass window on the RIGHT now floods with an intense bright warm-white grow-light and a vivid green sapling, faint condensation on the glass, the water tank on the LEFT and the rusty frame unchanged, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.tree_nursery_skin_south]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 16
+prompt = "the back of a single wide salvaged tree-nursery cabinet, one continuous machine face spanning the whole image, riveted weathered scrap-metal panels with a vertical corrugated seam, on the RIGHT the plain back of a white plastic water tank, on the LEFT the back of the cabinet with a thin copper pipe running across from the tank into it, grime streaks and rust, muted greys and rusty browns, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
 [surface.tree_nursery_tank]
 kind = "block"
 backend = "ai"
