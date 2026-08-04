@@ -1,13 +1,13 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "recompile:block/tree_nursery_side",
-    "down": "recompile:block/tree_nursery_side",
-    "up": "recompile:block/tree_nursery_side",
+    "particle": "recompile:block/tree_nursery_tank",
+    "down": "recompile:block/tree_nursery_tank",
+    "up": "recompile:block/tree_nursery_tank",
     "north": "recompile:block/tree_nursery_skin_north_1",
     "south": "recompile:block/tree_nursery_skin_south_1",
-    "west": "recompile:block/tree_nursery_side",
-    "east": "recompile:block/tree_nursery_side"
+    "west": "recompile:block/tree_nursery_tank",
+    "east": "recompile:block/tree_nursery_tank"
   },
   "elements": [
     {

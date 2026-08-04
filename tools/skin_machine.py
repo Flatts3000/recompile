@@ -90,6 +90,10 @@ class Machine:
         self.positions = set(positions) | {(0, 0, 0)} | set(cells)
         self.cells = cells          # {(x, y, z): part-name} - only the cells this tool skins
         self.fallback = fallback    # texture id used where a face has no sheet
+        # Per-part override of that. A machine is not one material: the nursery's tank keeps its white
+        # plastic on the faces no sheet covers, because a tank whose END is rusty cabinet panel stops
+        # reading as a tank. The default is right for the body and wrong for anything bolted to it.
+        self.fallbacks = {}
         # Parts whose geometry is not a full cube, as [from, to] boxes. A cell keeps its shape and
         # only its SKIN comes from the sheet - the chute's mouth is cut into its model, and a
         # generator that quietly replaced it with a cube would erase the machine's one opening.
@@ -311,23 +315,20 @@ def emit(machine):
         index = machine.index(x, y, z)
         by_part.setdefault(part, []).append(index)
 
-        textures = {'particle': 'recompile:block/' + machine.fallback}
+        plain = machine.fallbacks.get(part, machine.fallback)
+        textures = {'particle': 'recompile:block/' + plain}
         faces = {}
-        active_face_key = None
+        # NO active variant here: the lit state belongs to the CORE, which is where the window is.
+        # Emitting one per cell shipped a tank model and a tank tile that no blockstate ever referenced,
+        # because the tank does not light up and has no `active` to select them with.
         for face in ('down', 'up', 'north', 'south', 'west', 'east'):
-            key = machine.fallback
+            key = plain
             if face in machine.outward(x, y, z) and sheets.get(face) is not None:
                 u, v = machine.tile_at(face, x, y, z)
                 tile = sheets[face].crop((u * 16, v * 16, u * 16 + 16, v * 16 + 16))
                 key = '%s_skin_%s_%d' % (machine.name, face, index)
                 tile.save(os.path.join(ASSETS, 'textures/block', key + '.png'))
                 written['textures'] += 1
-                if active.get(face) is not None:
-                    lit = active[face].crop((u * 16, v * 16, u * 16 + 16, v * 16 + 16))
-                    lit_key = '%s_skin_%s_%d_active' % (machine.name, face, index)
-                    lit.save(os.path.join(ASSETS, 'textures/block', lit_key + '.png'))
-                    written['textures'] += 1
-                    active_face_key = (face, 'recompile:block/' + lit_key)
             textures[face] = 'recompile:block/' + key
             faces[face] = {'texture': '#' + face, 'cullface': face}
 
@@ -359,14 +360,7 @@ def emit(machine):
                 'w', encoding='utf-8', newline='\n').write(json.dumps(model, indent=2) + '\n')
         written['models'] += 1
 
-        if active_face_key is not None:
-            lit_textures = dict(textures)
-            lit_textures[active_face_key[0]] = active_face_key[1]
-            lit = dict(model)
-            lit['textures'] = lit_textures
-            io.open(os.path.join(ASSETS, 'models/block', name + '_active.json'),
-                    'w', encoding='utf-8', newline='\n').write(json.dumps(lit, indent=2) + '\n')
-            written['models'] += 1
+
 
     for part, indices in by_part.items():
         variants = {}
@@ -438,6 +432,7 @@ TREE_NURSERY = Machine(
     skin_height=1,
     active_face='north',
 )
+TREE_NURSERY.fallbacks = {'tree_nursery_tank': 'tree_nursery_tank'}
 
 MACHINES = {'separator': SEPARATOR, 'tree_nursery': TREE_NURSERY}
 
