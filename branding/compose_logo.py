@@ -1,24 +1,31 @@
-"""Pixelate the Recompile logo and stamp REC across it.
+"""Draw the Recompile logo - a sprout coming out of a scrap pile - and stamp REC across it.
 
-Input:  gen/logo_src.png  (the painterly AI render; gen/ is gitignored, so pull it from the
-        CurseForge project avatar - project id 1625740 - if you need to regenerate)
 Output: gen/logo_<variant>.png plus a 64px thumbnail for review, and the APPROVED variant
         written straight to both places it has to live: branding/logo.png (the artifact
-        uploaded to CurseForge and Modrinth) and src/main/resources/logo.png (what ships in
-        the jar for the in-game mod list). Writing both here rather than copying by hand is
-        the point: two copies of an image drift, and the one that drifts is always the one
-        nobody looks at.
+        uploaded to CurseForge and Modrinth as the project AVATAR) and
+        src/main/resources/logo.png (what ships in the jar for the in-game mod list).
+        Writing both here rather than copying by hand is the point: two copies of an image
+        drift, and the one that drifts is always the one nobody looks at.
 
-The source is a soft-focus digital painting, which reads as generic AI art next to a
-Minecraft mod list and turns to mush at the 64x64 CurseForge thumbnail. This pixelates it
-onto a real grid and stamps a wordmark that survives that thumbnail.
+**NOTHING HERE IS AI-GENERATED, AND THAT IS A CONTEST RULE** (2026-08-04). ModJam 2026 states
+that "AI-generated project avatars and gallery images are not allowed", and this file used to
+pixelate a painterly AI render (gen/logo_src.png) into the mark - which put a disqualifying
+asset on the project page. The artwork is now drawn from geometry in `draw_artwork`, so the
+avatar is provably not AI output and the claim survives someone checking. The gallery is real
+in-game screenshots and was never at risk.
 
-Two decisions worth knowing:
+The composition is unchanged, because the composition was never the problem: a green sprout
+rising out of a pile of junk is the mod's pitch in one image.
 
-  * The letters are drawn from hand-defined bitmaps on the LOW-RES grid, before the
-    upscale, so every letter edge lands exactly on a pixel boundary. A TTF rendered at
-    full size and then downscaled would produce anti-aliased fringes on a grid that has no
-    room for them - the same reason the Puzzle Cube's faces are procedural rather than AI.
+Three decisions worth knowing:
+
+  * Everything is drawn ON THE LOW-RES GRID, before the upscale, so every edge lands exactly
+    on a pixel boundary. Drawing at full size and downscaling produces anti-aliased fringes on
+    a grid that has no room for them - the same reason the Puzzle Cube's faces, the Luggage
+    sprites and the pigeon's skin are procedural rather than AI.
+  * The leaves are rotated ellipses rather than a hand-typed bitmap. A leaf is a smooth convex
+    shape and the maths gives a cleaner edge at this size than counting cells does; the pile
+    underneath is the opposite case and is deliberately noisy.
   * GRID divides the output size exactly. 50 into 400 gives 8px cells. A grid that does not
     divide evenly (64 into 400) forces a non-integer cell and the pixels come out uneven,
     which is visible and looks like a mistake rather than a style.
@@ -29,13 +36,14 @@ Run:
 
 from __future__ import annotations
 
+import math
+import random
 from pathlib import Path
 
-from PIL import Image, ImageEnhance
+from PIL import Image
 
 HERE = Path(__file__).parent
 REPO = HERE.parent
-SRC = REPO / "gen" / "logo_src.png"
 BRANDING = HERE / "logo.png"
 IN_JAR = REPO / "src" / "main" / "resources" / "logo.png"
 
@@ -45,10 +53,18 @@ APPROVED = "bottom"
 # ---- design constants ---------------------------------------------------
 OUT_SIZE = 400          # CurseForge/Modrinth project logo, square
 GRID = 50               # low-res cells across; must divide OUT_SIZE exactly
-PALETTE = 28            # colour cap. Low enough to read as pixel art, high enough for
-                        # the sprout's greens and the rust to stay separate.
-SATURATION = 1.25       # the source is muddy; lift it so it survives a 64px thumbnail
-CONTRAST = 1.12
+
+# The palette, chosen rather than sampled. Every colour is here so the mark survives the 64px
+# thumbnail: the greens are separated from the rusts by hue AND by value, because a thumbnail
+# loses hue first.
+SKY_TOP = (58, 56, 40)
+SKY_BOTTOM = (30, 29, 21)
+PILE = [(107, 74, 42), (125, 90, 51), (74, 58, 38), (138, 106, 63), (90, 90, 84), (110, 110, 102)]
+PILE_SHADOW = (44, 35, 24)
+STEM = (111, 156, 47)
+LEAF_LIGHT = (184, 220, 85)
+LEAF_MID = (140, 190, 58)
+LEAF_DARK = (93, 138, 34)
 
 TEXT = "REC"
 LETTER_SCALE = 2        # cells per font pixel. 3 letters at 6x7 + gaps = 20 * scale wide.
@@ -95,15 +111,72 @@ VARIANTS = {
 }
 
 
-def pixelate(src: Image.Image) -> Image.Image:
-    """Down to the grid, palette-capped, and back up with hard edges."""
-    img = src.convert("RGB")
-    img = ImageEnhance.Color(img).enhance(SATURATION)
-    img = ImageEnhance.Contrast(img).enhance(CONTRAST)
-    # BOX averages the block it collapses, so the low-res image keeps the source's tones
-    # rather than sampling one arbitrary pixel out of each cell.
-    small = img.resize((GRID, GRID), Image.BOX)
-    return small.quantize(colors=PALETTE, method=Image.MEDIANCUT).convert("RGB")
+def draw_artwork() -> Image.Image:
+    """The mark itself, drawn on the GRID x GRID cells. Seeded, so it is the same every run."""
+    rng = random.Random(20260804)
+    img = Image.new("RGB", (GRID, GRID))
+    px = img.load()
+
+    # Sky: a plain vertical ramp, darkest at the bottom so the pile has something to sit against.
+    for y in range(GRID):
+        t = y / (GRID - 1)
+        px_row = tuple(round(SKY_TOP[i] + (SKY_BOTTOM[i] - SKY_TOP[i]) * t) for i in range(3))
+        for x in range(GRID):
+            px[x, y] = px_row
+
+    # THE PILE. A mound profile, then junk scattered over it in 2x1 chunks - deliberately noisy,
+    # because a pile of scrap that reads as a smooth hill reads as a hill.
+    def crest(x: int) -> int:
+        edge = abs(x - (GRID / 2 - 0.5)) / (GRID / 2)
+        return int(26 + 11 * edge * edge)
+
+    for x in range(GRID):
+        top = crest(x)
+        for y in range(top, GRID):
+            px[x, y] = PILE_SHADOW
+    for _ in range(340):
+        x = rng.randrange(0, GRID - 1)
+        y = rng.randrange(crest(x), GRID)
+        if y < crest(x) or y < crest(x + 1):
+            continue
+        colour = PILE[rng.randrange(len(PILE))]
+        for dx in range(rng.choice((1, 2, 2, 3))):
+            if x + dx < GRID and y >= crest(x + dx):
+                px[x + dx, y] = colour
+
+    # THE SPROUT. Stem first so the leaves overlap it rather than the other way round.
+    stem_x, stem_top, stem_base = GRID // 2 - 1, 13, 30
+    for y in range(stem_top, stem_base):
+        for x in (stem_x, stem_x + 1):
+            px[x, y] = STEM
+
+    def leaf(cx: float, cy: float, major: float, minor: float, degrees: float) -> None:
+        rad = math.radians(degrees)
+        cos, sin = math.cos(rad), math.sin(rad)
+        cells = []
+        for y in range(GRID):
+            for x in range(GRID):
+                ox, oy = x - cx, y - cy
+                u = ox * cos + oy * sin
+                v = -ox * sin + oy * cos
+                if (u / major) ** 2 + (v / minor) ** 2 <= 1.0:
+                    cells.append((x, y, v))
+        inside = {(x, y) for x, y, _ in cells}
+        for x, y, v in cells:
+            # Light along the midrib, mid over the body, dark on the outer half - one light
+            # source, so the two leaves do not read as flat cut-outs.
+            px[x, y] = LEAF_LIGHT if abs(v) < 0.9 else (LEAF_MID if v < 0 else LEAF_DARK)
+        for x, y, _ in cells:
+            if any((x + dx, y + dy) not in inside
+                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                px[x, y] = LEAF_DARK
+
+    # Sign matters and is easy to get backwards: y grows DOWNWARD, so the angle that makes a
+    # leaf rise to the left is the POSITIVE one. Getting it the other way round drew a pair of
+    # leaves drooping off the stem like an umbrella, which reads as a palm rather than a sprout.
+    leaf(GRID / 2 - 6.5, 12.5, 8.0, 4.2, 32.0)
+    leaf(GRID / 2 + 5.5, 11.5, 8.0, 4.2, -32.0)
+    return img
 
 
 def stamp(small: Image.Image, top_row: int) -> Image.Image:
@@ -141,8 +214,7 @@ def stamp(small: Image.Image, top_row: int) -> Image.Image:
 
 
 def main() -> None:
-    src = Image.open(SRC)
-    small = pixelate(src)
+    small = draw_artwork()
     scale = OUT_SIZE // GRID
     assert GRID * scale == OUT_SIZE, "GRID must divide OUT_SIZE exactly"
 
