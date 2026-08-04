@@ -1,5 +1,49 @@
 # Changelog
 
+## v0.6.0
+
+Iron was where this world ended. It is not any more: the demolition yard now generates **Mechanical Waste**, and a machine called the **Separator** pulls diamond, redstone and amethyst back out of it. Nothing is transmuted and nothing is mined - the valuable material was always inside the thing you found, and this is the machine that gets it out.
+
+**One change reaches worlds you already have.** A **Dirty Mattress is now spent by sleeping on it.** It survives one night and breaks when you get up. Playtest was blunt about why: a found mattress did the whole job, so the Clean Mattress it was meant to lead to added nothing you could feel. If you want a respawn point without burning the mattress, **sneak-right-click** it - setting spawn is not sleeping, and only one of the two wears it out.
+
+**A bed colour that could not be made now can.** Black dye comes from an ink sac or a wither rose, the Nether is closed, and so grey dye was unreachable too - v0.5.0 shipped sixteen Clean Mattresses and two of them had no route. Printers fix it.
+
+### The gem tier
+- **Mechanical Waste** generates in the demolition yard and picks through by hand into industrial scrap: quartz grit, spent abrasive, magnet scrap.
+- The **Separator** is a multiblock built from steel and machine frames. Feed it scrap and power and it separates: **12 quartz grit into amethyst, 16 spent abrasive into diamond, 16 magnet scrap into redstone**.
+- The ratios are the gate, not a missing recipe. One piece of scrap is worth nothing; a stack is worth a gem. **Magnet scrap is the rare one**, which makes redstone - and therefore every piston, comparator and observer - the thing you work toward.
+- Nothing precious ever falls out of a pile. Gems are separated out of scrap, never found in it.
+- This does not complete enchanting. A table needs obsidian as well, and obsidian is somewhere else.
+
+### The Separator sorts, too
+- Once built, it **sorts garbage automatically** at exactly the Sorting Tarp's rate - drop Blocks of Garbage, bags, bales or Mechanical Waste in and it works through them unattended.
+- Same rate, deliberately. What you get for building it is that it runs while you are elsewhere, not that it yields more. The Sorting Tarp still works and is still the early answer; it just stops being the thing you stand at.
+- Output goes into the Scrap Network first, then the chute, then the floor.
+
+### Printers, and what comes out of them
+- A **Printer** is a new Bulky Waste find. Tear it down at the Workbench with a Prybar for paper, an **ink sac**, plastic and scrap, and about half the time a **lapis lazuli**.
+- Ink is the only black dye in the world, so printers are the only route to the grey and black mattresses.
+- Lapis is a pigment and a printer is full of pigment. It is deliberately not in Mechanical Waste - machinery contains no lapis at all.
+
+### Found tools
+- **Shears, flint and steel and a spyglass** now turn up in the dump, already worn. Shears and flint and steel are an earlier route to things you could eventually craft; the spyglass is not, because it needs an amethyst shard and there is no other amethyst before the Separator.
+
+### The dump is not empty any more
+- **Cats, dogs and pigeons** live here now, rarely. They are ambiance: the landfill has something alive on it. Cats and wolves come in every vanilla variant.
+- A **pigeon** will walk to a nearby pile of garbage and peck at it, and once in a while pull something out. It only ever finds what that pile would have given you anyway, and it never wears the pile down.
+
+### Steel you can build with
+- A **pickaxe now returns a Steel I-Beam** instead of destroying it, so a girder can be taken down and put up somewhere else. The **Cutting Torch** still cuts one into Steel Offcut, which is the only thing that feeds the iron path. One beam either way, so nothing is created.
+
+### Rope and Luggage
+- A lead is now **Rope** and a bundle is **Luggage**, with new art: a wheeled suitcase rather than a drawstring pouch, in all sixteen colours. Searching JEI for "lead" or "bundle" still finds them.
+
+### Smaller things
+- **Shift-clicking a craft no longer empties your whole Scrap Network.** Craft-from-storage and vanilla shift-crafting were jointly unbounded, so one keypress could spend a sorted wall. A shift-click is now one batch, and the grid is restocked afterwards.
+- Ordinary household rubbish - a bowl, a name tag, a music disc, leather scraps - now turns up in the pull streams.
+- The guidebook has a **Bulky Waste chapter** with an entry per find, instead of one page under Tools.
+- The Tree Nursery wears a single skin across its bottom row rather than reading as a stack of separate blocks.
+
 ## v0.5.0
 
 The mod does the thing it is named after. Tear something down at the Workbench and you can come away knowing how to build it.
