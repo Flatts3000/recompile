@@ -1,0 +1,63 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "gui",
+        "model": {
+          "type": "minecraft:condition",
+          "property": "minecraft:bundle/has_selected_item",
+          "on_false": {
+            "type": "minecraft:model",
+            "model": "minecraft:item/bundle",
+            "tints": [
+              {
+                "type": "minecraft:constant",
+                "value": 3949738
+              }
+            ]
+          },
+          "on_true": {
+            "type": "minecraft:composite",
+            "models": [
+              {
+                "type": "minecraft:model",
+                "model": "minecraft:item/bundle_open_back",
+                "tints": [
+                  {
+                    "type": "minecraft:constant",
+                    "value": 3949738
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:bundle/selected_item"
+              },
+              {
+                "type": "minecraft:model",
+                "model": "minecraft:item/bundle_open_front",
+                "tints": [
+                  {
+                    "type": "minecraft:constant",
+                    "value": 3949738
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/bundle",
+      "tints": [
+        {
+          "type": "minecraft:constant",
+          "value": 3949738
+        }
+      ]
+    }
+  }
+}

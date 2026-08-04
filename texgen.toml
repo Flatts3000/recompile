@@ -377,6 +377,39 @@ source = "entity/silverfish/silverfish"
 #
 # Slate grey-blue, the colour of a city pigeon and a deliberate contrast to the parrot's reds and
 # greens - a bird that reads as "vermin on a landfill" rather than "escaped pet".
+# LUGGAGE (#118): the vanilla bundle, reflavoured. Three sprites shared by all seventeen colours
+# rather than seventeen sets of three, which is why they are authored DESATURATED - the colour comes
+# from a constant tint in each client item definition, multiplying against near-grey art. Same pattern
+# the sixteen Clean Mattresses already use.
+#
+# namespace = "minecraft" because these REPLACE vanilla's bundle sprites in place. That is what makes
+# it a reflavour rather than a new item: every recipe, tag and mod that references a bundle keeps
+# working, and a resource pack can put the bundle back in one line because mod resources load below
+# packs.
+[surface.bundle]
+kind = "item"
+namespace = "minecraft"
+backend = "retint"
+size = 16
+tint = "#c8c2b6"
+source = "item/bundle"
+
+[surface.bundle_open_back]
+kind = "item"
+namespace = "minecraft"
+backend = "retint"
+size = 16
+tint = "#c8c2b6"
+source = "item/bundle_open_back"
+
+[surface.bundle_open_front]
+kind = "item"
+namespace = "minecraft"
+backend = "retint"
+size = 16
+tint = "#c8c2b6"
+source = "item/bundle_open_front"
+
 [surface.pigeon]
 kind = "entity"
 backend = "retint"
