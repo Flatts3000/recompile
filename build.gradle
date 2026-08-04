@@ -25,6 +25,14 @@ neoForge {
     runs {
         client {
             client()
+            // devbridge (mc-pack-toolkit): lets tooling drive this client from outside - run
+            // commands in a singleplayer world and take screenshots. Inert without this property,
+            // and the jar lives in run/mods rather than being a dependency, so it cannot ship.
+            systemProperty 'devbridge.port', '25580'
+            // Boot straight into a world instead of stopping at the title screen. Vanilla's own
+            // launch argument, not a mod feature. `--args` on the Gradle task does NOT do this: the
+            // moddev run treats it as a main class and the launch dies before Minecraft starts.
+            programArguments.addAll '--quickPlaySingleplayer', 'New World'
         }
         server {
             server()
