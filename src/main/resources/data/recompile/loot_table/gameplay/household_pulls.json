@@ -80,14 +80,23 @@
           "weight": 3
         },
         {
-          "type": "minecraft:tag",
-          "name": "minecraft:music_discs",
-          "expand": false,
-          "weight": 2
+          "type": "minecraft:item",
+          "name": "minecraft:name_tag",
+          "weight": 1
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:name_tag",
+          "name": "minecraft:music_disc_13",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:music_disc_cat",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:music_disc_chirp",
           "weight": 1
         }
       ]

@@ -44,6 +44,14 @@ final class SortingDataTests {
                 "glass bottles should be a household pull - the collector's only source of them");
             helper.assertTrue(Math.abs(bottle.chance() - tin.chance() * 0.5f) < 0.001f,
                 "glass bottles should be half as likely as tin cans");
+
+            // Named discs, not #minecraft:music_discs. That tag's Java constant is gone in 26.1 - only
+            // CREEPER_DROP_MUSIC_DISCS survives, discs being identified by the jukebox_playable
+            // component now - and a tag entry that fails to resolve contributes nothing and says
+            // nothing. The pool would just sum to slightly under 1, well inside the tolerance above.
+            helper.assertTrue(out.stream().anyMatch(w -> w.stack().is(
+                    net.minecraft.world.item.Items.MUSIC_DISC_13)),
+                "a music disc should be a household pull");
             helper.succeed();
         });
 
@@ -146,6 +154,11 @@ final class SortingDataTests {
                     "every colour in a tag entry shares its odds evenly - got " + w.chance()
                         + " against " + first);
             }
+
+            // Carpets are a second tag entry and a second chance to be silently dropped.
+            helper.assertTrue(out.stream().anyMatch(w -> w.stack().is(
+                    net.minecraft.tags.ItemTags.WOOL_CARPETS)),
+                "a carpet should be a bag pull - a tag that fails to resolve costs its whole entry");
 
             float sum = 0;
             for (SortingData.Weighted w : out) {
