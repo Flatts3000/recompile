@@ -367,6 +367,30 @@ source = "entity/silverfish/silverfish"
 #
 # 26.1 delta this exists because of: template_spawn_egg is GONE. Eggs are no longer a tinted two-layer
 # template - each one is an ordinary item/generated with its own PNG, so a mod egg needs real art now.
+# The Pigeon (#133): the dump's birds. Retinted from vanilla's parrot skin for the same reason the
+# Roach is retinted from a silverfish - the entity is bespoke so it can leave out everything a parrot
+# does, but a pigeon and a parrot are the same bird-shaped geometry, so the whole art budget is a hue.
+#
+# It has to be its own texture in OUR namespace rather than an override of the vanilla one: replacing
+# assets/minecraft/textures/entity/parrot/* would retexture every parrot in the game and a player could
+# never have one again. Adding a mob must not remove one.
+#
+# Slate grey-blue, the colour of a city pigeon and a deliberate contrast to the parrot's reds and
+# greens - a bird that reads as "vermin on a landfill" rather than "escaped pet".
+[surface.pigeon]
+kind = "entity"
+backend = "retint"
+size = 64
+tint = "#6b7079"
+source = "entity/parrot/parrot_blue"
+
+[surface.pigeon_spawn_egg]
+kind = "item"
+backend = "retint"
+size = 16
+tint = "#6b7079"
+source = "item/parrot_spawn_egg"
+
 [surface.roach_spawn_egg]
 kind = "item"
 backend = "retint"

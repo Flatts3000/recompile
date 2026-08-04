@@ -16,8 +16,28 @@
   },
   "spawners": {
     "monster": [],
-    "creature": [],
-    "ambient": [],
+    "creature": [
+      {
+        "type": "minecraft:cat",
+        "minCount": 1,
+        "maxCount": 1,
+        "weight": 2
+      },
+      {
+        "type": "minecraft:wolf",
+        "minCount": 1,
+        "maxCount": 2,
+        "weight": 2
+      }
+    ],
+    "ambient": [
+      {
+        "type": "recompile:pigeon",
+        "minCount": 1,
+        "maxCount": 3,
+        "weight": 3
+      }
+    ],
     "water_creature": [],
     "water_ambient": [],
     "misc": [],
@@ -27,8 +47,19 @@
   "spawn_costs": {},
   "carvers": [],
   "features": [
-    [], [], [], [], [], [], [], [], [],
-    [ "recompile:garbage_mound", "recompile:mycelium_patch" ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "recompile:garbage_mound",
+      "recompile:mycelium_patch"
+    ],
     []
   ]
 }
