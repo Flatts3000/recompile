@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -113,6 +114,17 @@ public class MattressBlock extends HorizontalDirectionalBlock {
             .map(standUp -> ServerPlayer.RespawnPosAngle.of(standUp, pos, 0.0F));
     }
 
+    /**
+     * Right-click to sleep; <b>shift-right-click to set spawn without sleeping</b>.
+     *
+     * <p>The second half exists because sleeping now spends the mattress (#128). Without it, the only
+     * way to put a respawn point on a Dirty Mattress was to destroy the Dirty Mattress - so a player
+     * who wanted a spawn had to burn the thing that provided it, and one who wanted to keep it could
+     * never respawn there. Setting spawn is not sleeping, and only one of the two wears a mattress out.
+     *
+     * <p>The message says the mattress is single-use, deliberately. That rule is otherwise learned by
+     * losing one, and this is the moment the player is already thinking about the block.
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hit) {
@@ -134,6 +146,12 @@ public class MattressBlock extends HorizontalDirectionalBlock {
             player.sendOverlayMessage(Component.translatable("block.minecraft.bed.occupied"));
             return InteractionResult.SUCCESS_SERVER;
         }
+        // Spawn without sleeping. Checked after the head is resolved so the respawn point lands on the
+        // same block a night here would have used.
+        if (player.isSecondaryUseActive()) {
+            setSpawnHere(player, bedPos);
+            return InteractionResult.SUCCESS_SERVER;
+        }
         // Vanilla surfaces the problem on the action bar, not in chat - mirror it.
         player.startSleepInBed(bedPos).ifLeft(problem -> {
             if (problem.message() != null) {
@@ -141,6 +159,20 @@ public class MattressBlock extends HorizontalDirectionalBlock {
             }
         });
         return InteractionResult.SUCCESS_SERVER;
+    }
+
+    /** Put the player's respawn point on this mattress, without sleeping and without spending it. */
+    private static void setSpawnHere(Player player, BlockPos bedPos) {
+        if (!(player instanceof ServerPlayer server)) {
+            return;
+        }
+        // forced = false, matching a bed: if the mattress is gone when they die, they respawn at world
+        // spawn rather than being dropped at a hole in the ground. That matters more here than for a
+        // bed, because this block is designed to be used up.
+        server.setRespawnPosition(new ServerPlayer.RespawnConfig(
+            LevelData.RespawnData.of(server.level().dimension(), bedPos, server.getYRot(), 0.0F),
+            false), false);
+        player.sendOverlayMessage(Component.translatable("message.recompile.mattress_spawn_set"));
     }
 
     // ---------------- two halves ----------------
