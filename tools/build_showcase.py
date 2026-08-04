@@ -352,9 +352,13 @@ MUSEUM = Scene(
     ],
     # Centred on the wall, backed off far enough to hold all six, tilted up slightly so the top row
     # is not foreshortened.
-    # Level with the middle of the wall so neither row is foreshortened, centred on x, and far enough
-    # back that all six fit the frame.
-    camera=Camera(pos=(6.5, 5.5, 14.5), yaw=180.0, pitch=0.0),
+    # Level with the middle of the wall so neither row is foreshortened, and centred on x.
+    #
+    # DISTANCE IS SET BY THE WALL'S HEIGHT, NOT ITS WIDTH. Minecraft's FOV option is the VERTICAL
+    # angle (70 by default), so an 11-block wall needs 5.5/tan(35) = 7.9 blocks to fill the frame,
+    # while its 13-block width needs only about 5 at any normal aspect ratio. The first shot was taken
+    # from 13.5 and left the wall sitting in a third of the frame surrounded by sky.
+    camera=Camera(pos=(6.5, 5.5, 10.5), yaw=180.0, pitch=0.0),
 )
 
 SCENES = [MUSEUM]

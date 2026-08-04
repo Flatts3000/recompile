@@ -21,4 +21,4 @@ summon minecraft:painting 2 128 1 {facing:0b, variant:"recompile:starry_night"}
 summon minecraft:painting 6 128 1 {facing:0b, variant:"recompile:mona_lisa"}
 summon minecraft:painting 10 127 1 {facing:0b, variant:"recompile:great_wave"}
 
-tp @s 6.5 125.5 14.5 180.0 0.0
+tp @s 6.5 125.5 10.5 180.0 0.0
