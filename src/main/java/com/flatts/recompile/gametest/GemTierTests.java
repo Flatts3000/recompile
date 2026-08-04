@@ -624,6 +624,223 @@ final class GemTierTests {
             helper.succeed();
         });
 
+        // THE CHUTE POINTS THE WAY THE MACHINE DOES. Its mouth is cut into one side of its model, and
+        // for a while the formed cell carried no facing at all - so it opened north whatever direction
+        // the machine was built in, correct by accident on a north-facing Separator and wrong on the
+        // other three. That was found by eye and fixed by hand; this is the regression test it never
+        // got. Built facing EAST on purpose, because NORTH is the orientation the bug hid behind.
+        RCGameTests.test("every_formed_part_carries_the_machines_facing", 40, helper -> {
+            BlockPos core = new BlockPos(2, 2, 2);
+            var rotation = net.minecraft.world.level.block.Rotation.CLOCKWISE_90;
+            helper.setBlock(core, RCBlocks.SEPARATOR.get().defaultBlockState()
+                .setValue(SeparatorCoreBlock.FACING, net.minecraft.core.Direction.EAST));
+            buildAround(helper, core, rotation);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the east-facing Separator did not form");
+
+            List<String> wrong = new ArrayList<>();
+            for (Multiblock.Cell cell : RCBlocks.SEPARATOR.get().blueprint().cells()) {
+                BlockPos at = helper.absolutePos(cell.at(core, rotation));
+                BlockState state = helper.getLevel().getBlockState(at);
+                var facing = state.hasProperty(
+                        com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock.FACING)
+                    ? state.getValue(
+                        com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock.FACING)
+                    : null;
+                if (facing != null && facing != net.minecraft.core.Direction.EAST) {
+                    wrong.add(cell.offset() + " faces " + facing);
+                }
+            }
+            helper.assertTrue(wrong.isEmpty(),
+                "formed parts of an EAST-facing machine that do not face east: " + wrong
+                    + ". The chute's mouth is geometry, so a cell that does not know the machine's "
+                    + "direction opens the wrong way");
+            helper.succeed();
+        });
+
+        // THE BAY MIRRORS THE CORE'S RUNNING STATE. ACTIVE lived only on the core once, so the
+        // blockstate had no variant that could ever select the running models - they shipped as dead
+        // files and the grinder never appeared to turn. Nothing in the build noticed, because the
+        // machine worked perfectly; it just looked stopped.
+        RCGameTests.test("the_bay_animates_while_the_machine_runs", 120, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+
+            // Idle first, so a bay stuck permanently ON would fail here rather than pass the next check.
+            for (BlockPos cell : SeparatorCoreBlock.chamberCells(
+                    helper.getLevel(), helper.absolutePos(core))) {
+                helper.assertFalse(helper.getLevel().getBlockState(cell).getValue(
+                        com.flatts.recompile.content.block.SeparatorChamberBlock.ACTIVE),
+                    "a bay cell was animating before the machine had anything to do");
+            }
+
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(1_000_000, tx);
+                tx.commit();
+            }
+            drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 1));
+
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(helper.getLevel().getBlockState(helper.absolutePos(core))
+                        .getValue(SeparatorCoreBlock.ACTIVE),
+                    "the core never went active");
+                for (BlockPos cell : SeparatorCoreBlock.chamberCells(
+                        helper.getLevel(), helper.absolutePos(core))) {
+                    helper.assertTrue(helper.getLevel().getBlockState(cell).getValue(
+                            com.flatts.recompile.content.block.SeparatorChamberBlock.ACTIVE),
+                        "the core is running and " + cell + " is not - the bay mirrors ACTIVE, and "
+                            + "without it the animated models are unreachable");
+                }
+                helper.succeed();
+            });
+        });
+
+        // The machine-position stamp actually reaching the world. The skin index arithmetic is checked
+        // in GuidebookMultiblockTests, but arithmetic being right and stampSkin running are different
+        // claims - and a machine whose cells all kept CELL 0 would wear one tile six times, which reads
+        // as bad art rather than as a hook that never fired.
+        RCGameTests.test("forming_stamps_every_cell_with_its_place_in_the_machine", 40, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+
+            Multiblock blueprint = RCBlocks.SEPARATOR.get().blueprint();
+            java.util.Set<Integer> seen = new java.util.HashSet<>();
+            List<String> wrong = new ArrayList<>();
+            for (Multiblock.Cell cell : blueprint.cells()) {
+                BlockState state = helper.getLevel().getBlockState(helper.absolutePos(cell.at(core)));
+                if (!state.hasProperty(
+                        com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock.CELL)) {
+                    continue;
+                }
+                int stamped = state.getValue(
+                    com.flatts.recompile.content.block.multiblock.MultiblockSkinnedBlock.CELL);
+                int expected = blueprint.cellIndex(cell.offset());
+                if (stamped != expected) {
+                    wrong.add(cell.offset() + " stamped " + stamped + ", expected " + expected);
+                }
+                seen.add(stamped);
+            }
+            helper.assertTrue(wrong.isEmpty(), "cells stamped with the wrong place: " + wrong);
+            helper.assertTrue(seen.size() > 1,
+                "every skinned cell carries the same index (" + seen + "), so the machine would wear "
+                    + "one tile everywhere - stampSkin is not running");
+            helper.succeed();
+        });
+
+        // NO POWER MEANS THE MATERIAL WAITS. It must not be consumed, destroyed, or spat back out - the
+        // furnace-with-no-fuel behaviour the spec promises. The half of this that matters is the second
+        // one: that it picks straight up once power arrives, so a solar gap costs time and nothing else.
+        RCGameTests.test("an_unpowered_separator_holds_its_material_and_resumes", 200, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 1));
+
+            helper.runAfterDelay(60, () -> {
+                helper.assertTrue(be.queuedCount() == 1,
+                    "an unpowered machine did not hold its material: " + be.queuedCount() + " queued");
+                helper.assertFalse(helper.getLevel().getBlockState(helper.absolutePos(core))
+                        .getValue(SeparatorCoreBlock.ACTIVE),
+                    "an unpowered machine was showing as running");
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    helper.assertFalse(entity.getItem().is(Items.AMETHYST_SHARD),
+                        "an unpowered machine produced output");
+                }
+                try (Transaction tx = Transaction.openRoot()) {
+                    be.battery().insert(1_000_000, tx);
+                    tx.commit();
+                }
+            });
+
+            helper.runAfterDelay(160, () -> {
+                boolean found = false;
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    if (entity.getItem().is(Items.AMETHYST_SHARD)) {
+                        found = true;
+                    }
+                }
+                helper.assertTrue(found,
+                    "the machine never resumed once power arrived - waiting has to be a pause, not a "
+                        + "state it gets stuck in");
+                helper.succeed();
+            });
+        });
+
+        // Energy is INSERT-only from outside: it is a consumer, and a generator next door must not be
+        // able to pull its own power back out. The handler itself is open both ways so the machine can
+        // draw on its own battery; it is the capability wrapper that limits the outside world, and that
+        // distinction cost a playtest once - built extract-disabled, the machine sat fully charged and
+        // never ran.
+        RCGameTests.test("the_separators_battery_cannot_be_drained_from_outside", 40, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var handler = helper.getLevel().getCapability(
+                net.neoforged.neoforge.capabilities.Capabilities.Energy.BLOCK,
+                helper.absolutePos(core), null);
+            helper.assertTrue(handler != null, "the Separator must expose an energy capability");
+
+            try (Transaction tx = Transaction.openRoot()) {
+                int taken = handler.insert(1_000, tx);
+                tx.commit();
+                helper.assertTrue(taken > 0, "the Separator refused energy from outside");
+            }
+            try (Transaction tx = Transaction.openRoot()) {
+                int pulled = handler.extract(1_000, tx);
+                tx.commit();
+                helper.assertTrue(pulled == 0,
+                    "something drained " + pulled + " FE out of the Separator. It is a consumer; a "
+                        + "generator that can pull its own energy back hands it back and forth forever");
+            }
+            helper.succeed();
+        });
+
+        // Mechanical Waste sorts too (owner, 2026-08-03) - the loop the yard closes on itself: the
+        // machine sorts its own region's piles into scrap, then grinds that scrap into gems.
+        RCGameTests.test("the_separator_sorts_mechanical_waste", 200, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(1_000_000, tx);
+                tx.commit();
+            }
+            drop(helper, core, new ItemStack(RCItems.MECHANICAL_WASTE.get(), 1));
+
+            helper.runAfterDelay(120, () -> {
+                int drops = 0;
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 14, 14, 14))) {
+                    if (!entity.getItem().is(RCItems.MECHANICAL_WASTE.get())) {
+                        drops += entity.getItem().getCount();
+                    }
+                }
+                helper.assertTrue(drops > 0,
+                    "Mechanical Waste went into the Separator and nothing came out");
+                helper.succeed();
+            });
+        });
+
         // ONE chute, and everything leaves through it (owner, 2026-08-03). A recipe that produces a
         // result plus several byproducts is exactly the moment someone would reach for a second
         // opening, and the whole point is that catching a machine's output never needs more than one
@@ -714,9 +931,14 @@ final class GemTierTests {
      * {@code GuidebookMultiblockTests} is where the shape is actually pinned.
      */
     private static void buildAround(GameTestHelper helper, BlockPos core) {
+        buildAround(helper, core, net.minecraft.world.level.block.Rotation.NONE);
+    }
+
+    /** The same, for a machine built facing somewhere other than north. */
+    private static void buildAround(GameTestHelper helper, BlockPos core,
+                                    net.minecraft.world.level.block.Rotation rotation) {
         for (Multiblock.Cell cell : RCBlocks.SEPARATOR.get().blueprint().cells()) {
-            helper.setBlock(core.offset(cell.offset().getX(), cell.offset().getY(), cell.offset().getZ()),
-                cell.component());
+            helper.setBlock(cell.at(core, rotation), cell.component());
         }
     }
 }
