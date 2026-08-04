@@ -2,9 +2,12 @@ package com.flatts.recompile.event;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCEntities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -45,7 +48,8 @@ public final class RCStraySpawns {
         // keeps vanilla's; only its predicate widens.
         event.register(EntityType.CAT,
             (type, level, reason, pos, random) ->
-                level.getBlockState(pos.below()).is(Blocks.COARSE_DIRT),
+                level.getBlockState(pos.below()).is(Blocks.COARSE_DIRT)
+                    && brightEnough(level, reason, pos),
             RegisterSpawnPlacementsEvent.Operation.OR);
 
         // The pigeon has no vanilla rule to preserve, so this is its whole placement: on the ground,
@@ -55,7 +59,27 @@ public final class RCStraySpawns {
         event.register(RCEntities.PIGEON.get(),
             SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
             (type, level, reason, pos, random) ->
-                level.getBlockState(pos.below()).is(Blocks.COARSE_DIRT),
+                level.getBlockState(pos.below()).is(Blocks.COARSE_DIRT)
+                    && brightEnough(level, reason, pos),
             RegisterSpawnPlacementsEvent.Operation.REPLACE);
+    }
+
+    /**
+     * Vanilla's daylight requirement, restored to both predicates.
+     *
+     * <p><b>Neither of them had it, and coarse dirt is the entire surface of this world.</b> Vanilla's
+     * animal rule is {@code ground is in #animals_spawnable_on AND bright enough}, and writing a bare
+     * ground test dropped the second half - for the cat because an {@code OR} branch replaces the whole
+     * conjunction rather than widening one term of it, and for the pigeon because it declares its rule
+     * outright. The result was strays spawning in the dark on any coarse dirt, which in this mod means
+     * inside an unlit building whose floor the player never replaced. Ambiance that appears in your
+     * base at night is not ambiance.
+     *
+     * <p>{@code ignoresLightRequirements} is honoured so a spawn egg, a command or a test still works in
+     * the dark, exactly as vanilla does it.
+     */
+    private static boolean brightEnough(LevelAccessor level, EntitySpawnReason reason, BlockPos pos) {
+        return EntitySpawnReason.ignoresLightRequirements(reason)
+            || level.getRawBrightness(pos, 0) > 8;
     }
 }

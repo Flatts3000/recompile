@@ -4,6 +4,7 @@ import com.flatts.recompile.content.entity.PigeonEntity;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.content.entity.PigeonForageGoal;
 import com.flatts.recompile.registry.RCBlocks;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import com.flatts.recompile.registry.RCEntities;
 import java.util.ArrayList;
@@ -111,6 +112,63 @@ final class StrayTests {
             helper.assertTrue(pigeon.getMaxHealth() > 0,
                 "a pigeon with no attributes has no health - EntityAttributeCreationEvent is missing");
             helper.succeed();
+        });
+
+        // STRAYS DO NOT SPAWN IN THE DARK, which they did until a review caught it (2026-08-04).
+        // Vanilla's animal rule is "ground is in #animals_spawnable_on AND bright enough". Both of this
+        // mod's predicates tested only the ground, so the light half was gone - for the cat because an
+        // OR branch replaces the whole conjunction rather than widening one term of it, and for the
+        // pigeon because it declares its rule outright.
+        //
+        // That matters here far more than it would elsewhere: coarse dirt is the entire surface of this
+        // world, so any unlit building whose floor a player never replaced was a spawn platform.
+        RCGameTests.test("strays_do_not_spawn_in_the_dark", 40, helper -> {
+            BlockPos floor = new BlockPos(1, 1, 1);
+            BlockPos on = floor.above();
+            helper.setBlock(floor, Blocks.COARSE_DIRT);
+            // Seal it: a roof three up plus walls, so no skylight and no block light reach `on`.
+            for (int x = 0; x <= 2; x++) {
+                for (int z = 0; z <= 2; z++) {
+                    helper.setBlock(new BlockPos(x, 3, z), Blocks.STONE);
+                }
+            }
+            for (int y = 1; y <= 2; y++) {
+                for (int x = 0; x <= 2; x++) {
+                    for (int z = 0; z <= 2; z++) {
+                        if (x == 1 && z == 1) {
+                            continue;
+                        }
+                        helper.setBlock(new BlockPos(x, y, z), Blocks.STONE);
+                    }
+                }
+            }
+
+            helper.succeedWhen(() -> {
+                BlockPos abs = helper.absolutePos(on);
+                int light = helper.getLevel().getRawBrightness(abs, 0);
+                helper.assertTrue(light <= 8,
+                    "the test chamber is not actually dark (light " + light + "), so this would pass "
+                        + "without proving anything");
+
+                List<String> spawnable = new ArrayList<>();
+                // NATURAL, not the test/command reasons - those ignore light on purpose, and asserting
+                // against one of them is how this test would quietly stop checking anything.
+                if (net.minecraft.world.entity.SpawnPlacements.checkSpawnRules(
+                        RCEntities.PIGEON.get(), helper.getLevel(),
+                        net.minecraft.world.entity.EntitySpawnReason.NATURAL, abs,
+                        helper.getLevel().getRandom())) {
+                    spawnable.add("pigeon");
+                }
+                if (net.minecraft.world.entity.SpawnPlacements.checkSpawnRules(
+                        EntityType.CAT, helper.getLevel(),
+                        net.minecraft.world.entity.EntitySpawnReason.NATURAL, abs,
+                        helper.getLevel().getRandom())) {
+                    spawnable.add("cat");
+                }
+                helper.assertTrue(spawnable.isEmpty(),
+                    spawnable + " can spawn on unlit coarse dirt. Coarse dirt is this world's whole "
+                        + "surface, so that is every unlit room a player ever builds");
+            });
         });
 
         // A PIGEON MUST NOT EAT THE DUMP. Foraging deliberately rolls its own table rather than calling
