@@ -33,9 +33,19 @@ import net.minecraft.world.item.Items;
  * server. The trade-off is that a datapack that retunes a pull table is not reflected in
  * JEI - acceptable for the mod's own tables; revisit if pack-tuned pulls need to show.
  *
- * <p>These tables are flat (one pool of weighted {@code minecraft:item} entries), so the
- * chance is simply the entry weight over the pool total. {@code set_count} functions
- * (e.g. scrap metal 1-2) are ignored for display - the item and its odds are the point.
+ * <p>Chance is the entry weight over the pool total, times the pool's own chance condition, times
+ * whatever share a parent table passed down. {@code set_count} functions (e.g. scrap metal 1-2) are
+ * ignored for display - the item and its odds are the point.
+ *
+ * <p><b>Three entry shapes are understood, and the last two were added because the alternative was a
+ * silent lie.</b> A {@code minecraft:item} is itself. A {@code minecraft:loot_table} entry is followed
+ * into the table it names, with the parent's share multiplied in - Bulky Waste is two nested tiers now,
+ * and skipping those entries would have shown a Prying category containing nothing but paintings. A
+ * {@code minecraft:tag} entry expands to the tag's members, splitting its share between them, which is
+ * how one wool entry reports as sixteen colours at a sixteenth each rather than vanishing.
+ *
+ * <p>Anything else is skipped rather than guessed at, and a table that references itself is cut off at
+ * the first repeat.
  */
 public final class SortingData {
 
@@ -74,13 +84,30 @@ public final class SortingData {
      */
     public static List<Weighted> outputs(String resourcePath,
             HolderLookup.@Nullable Provider registries) {
+        List<Weighted> out = new ArrayList<>();
+        collect(resourcePath, 1.0F, registries, out, new java.util.HashSet<>());
+        return out;
+    }
+
+    /**
+     * Walk one table, adding every item it can produce at its true odds.
+     *
+     * @param share      the probability of reaching this table at all, from its parents
+     * @param visited    resource paths already on this branch, so a table that references itself
+     *                   stops rather than recursing until the stack gives out
+     */
+    private static void collect(String resourcePath, float share,
+            HolderLookup.@Nullable Provider registries, List<Weighted> out,
+            java.util.Set<String> visited) {
+        if (!visited.add(resourcePath)) {
+            return;
+        }
         try (InputStream in = SortingData.class.getResourceAsStream(resourcePath)) {
             if (in == null) {
-                return List.of();
+                return;
             }
             JsonObject root = JsonParser.parseReader(
                 new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
-            List<Weighted> out = new ArrayList<>();
             for (JsonElement poolEl : root.getAsJsonArray("pools")) {
                 JsonObject pool = poolEl.getAsJsonObject();
                 // A pool can be gated behind a chance condition, and ignoring it overstates every entry
@@ -101,20 +128,65 @@ public final class SortingData {
                 }
                 for (JsonElement e : entries) {
                     JsonObject o = e.getAsJsonObject();
-                    if (!isItem(o)) {
-                        continue;
-                    }
-                    Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(o.get("name").getAsString()));
-                    if (item != Items.AIR) {
-                        out.add(new Weighted(withComponents(registries, new ItemStack(item), o),
-                            poolChance * weight(o) / total));
+                    float entryShare = share * poolChance * weight(o) / total;
+                    if (isItem(o)) {
+                        Item item = BuiltInRegistries.ITEM.getValue(
+                            Identifier.parse(o.get("name").getAsString()));
+                        if (item != Items.AIR) {
+                            out.add(new Weighted(
+                                withComponents(registries, new ItemStack(item), o), entryShare));
+                        }
+                    } else if (isType(o, "minecraft:loot_table") && o.has("value")) {
+                        collect(pathOf(o.get("value").getAsString()), entryShare, registries, out,
+                            visited);
+                    } else if (isType(o, "minecraft:tag") && o.has("name")) {
+                        expandTag(o.get("name").getAsString(), entryShare, out);
                     }
                 }
             }
-            return out;
         } catch (Exception ex) {
-            return List.of();
+            // A malformed table costs a category, not a crash.
+        } finally {
+            visited.remove(resourcePath);
         }
+    }
+
+    /** {@code recompile:gameplay/bulky_spine} to the classpath path its JSON lives at. */
+    private static String pathOf(String id) {
+        Identifier parsed = Identifier.parse(id);
+        return "/data/" + parsed.getNamespace() + "/loot_table/" + parsed.getPath() + ".json";
+    }
+
+    /**
+     * Split a tag entry's share evenly across the tag's members.
+     *
+     * <p>Even, because that is what {@code expand: false} actually does - the entry rolls once and then
+     * picks a member at random. Reporting the whole share against the tag's name would overstate every
+     * colour by sixteen times, and reporting nothing at all is what happens if this method does not
+     * exist.
+     */
+    private static void expandTag(String id, float share, List<Weighted> out) {
+        Identifier parsed = Identifier.tryParse(id.startsWith("#") ? id.substring(1) : id);
+        if (parsed == null) {
+            return;
+        }
+        var tag = BuiltInRegistries.ITEM.get(net.minecraft.tags.TagKey.create(
+            net.minecraft.core.registries.Registries.ITEM, parsed));
+        if (tag.isEmpty()) {
+            return;
+        }
+        var members = tag.get().stream().toList();
+        if (members.isEmpty()) {
+            return;
+        }
+        float each = share / members.size();
+        for (var holder : members) {
+            out.add(new Weighted(new ItemStack(holder.value()), each));
+        }
+    }
+
+    private static boolean isType(JsonObject entry, String type) {
+        return entry.has("type") && type.equals(entry.get("type").getAsString());
     }
 
     /**

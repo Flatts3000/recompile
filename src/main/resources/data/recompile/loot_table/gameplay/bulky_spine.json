@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:mattress",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:washing_machine",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:filing_cabinet",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:broken_hydroponics_bay",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

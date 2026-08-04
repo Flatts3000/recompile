@@ -10,23 +10,13 @@
       ],
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "recompile:mattress",
-          "weight": 3
+          "type": "minecraft:loot_table",
+          "value": "recompile:gameplay/bulky_spine",
+          "weight": 9
         },
         {
-          "type": "minecraft:item",
-          "name": "recompile:washing_machine",
-          "weight": 2
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:filing_cabinet",
-          "weight": 2
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:broken_hydroponics_bay",
+          "type": "minecraft:loot_table",
+          "value": "recompile:gameplay/bulky_windfall",
           "weight": 1
         }
       ]
