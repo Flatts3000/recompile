@@ -60,16 +60,16 @@ final class SortingDataTests {
         // "adding a find is a loot-table line" invariant working: a second find needed no code.
         RCGameTests.test("sorting_data_reads_bulky_finds", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BULKY);
-            // Four spine finds, three windfall finds, six recovered paintings (#99). Counted rather
-            // than listed so a new find has to come here and be acknowledged: a magic 10 that silently
-            // became 11 would mean nobody noticed the table changed.
+            // Four spine finds, four windfall finds (the fourth is the found spyglass, #113), six
+            // recovered paintings (#99). Counted rather than listed so a new find has to come here and
+            // be acknowledged: a magic 13 that silently became 14 would mean nobody noticed.
             //
             // Reaching 13 at all is the point of this number now. The spine and windfall tiers are
             // NESTED loot tables, and a reader that skipped minecraft:loot_table entries would return
             // six - a Prying category containing nothing but paintings, with every real find gone and
             // no error anywhere.
-            helper.assertTrue(out.size() == 13,
-                "Bulky Waste should offer four spine finds, three windfall finds and six paintings, "
+            helper.assertTrue(out.size() == 14,
+                "Bulky Waste should offer four spine finds, four windfall finds and six paintings, "
                     + "got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show

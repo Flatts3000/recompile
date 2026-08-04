@@ -70,6 +70,7 @@ public final class RCGameTests {
         BulkyWasteTests.register();
         BuildingBlockTests.register();
         SortingDataTests.register();
+        FoundToolTests.register();
         RainCollectorTests.register();
         RecompileWorkbenchTests.register();
         LightingTests.register();
