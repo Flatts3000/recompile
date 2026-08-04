@@ -81,9 +81,10 @@ releases a roach instead, which works out to about one roach per 128 blocks pick
 
 ## Teardown and blueprints
 
-Hold right-click on a found item at the Recompile Workbench with the matching tool. You get the
-materials it was made of, plus an Idea Fragment toward whatever recipe that item teaches. Every
-teardown grants one; there is no chance roll.
+Rack a Scrap Knife or a Prybar on the Recompile Workbench by right-clicking the bench with the tool,
+then hold right-click with a found item. You get the materials it was made of, plus an Idea Fragment
+toward whatever recipe that item teaches. Every teardown grants one; there is no chance roll. The
+racked tool takes the durability, and a broken one stops the line.
 
 - Enough fragments about one thing craft into a Blueprint sheet. A Clean Mattress takes 4, a
   Hydroponics Bay takes 6.
