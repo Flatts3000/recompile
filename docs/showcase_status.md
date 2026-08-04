@@ -8,7 +8,7 @@ resume point, not a design doc.
 | Scene | State |
 | --- | --- |
 | `museum` | **Done and approved.** Six recovered masterworks over four loaded pedestals, landfill on the horizon. Ready for the CurseForge gallery |
-| `machine_hall` | **Done.** The Separator assembled by the game, the bench line behind it, storage in front, dump on every side |
+| `machine_wall` | **Done.** Sixteen machines in one plane plus the Separator, assembled by the game, standing in the dump |
 | `reclaim_before` / `reclaim_after` | **Done, and shot automatically.** Ground-anchored, standing in real terrain with the dump around them, HUD off, identical camera. `tools/shoot_reclaim.py` takes both without a keystroke |
 
 ## Shooting them now
@@ -18,7 +18,7 @@ which opens devbridge on 25580):
 
 ```bash
 python tools/shoot_scenes.py                       # the reclamation pair
-python tools/shoot_scenes.py --at 300 300 machine_hall
+python tools/shoot_scenes.py --at 400 400 machine_wall
 bash tools/verify_showcase.sh            # the museum, placed and asserted (needs runServer)
 ```
 
@@ -27,6 +27,11 @@ The function ends by teleporting to the camera, so without that the second scene
 relative to the first shot's viewpoint. The anchor's ground height is found by probing rather than
 hardcoded, because the garbage world is mounds and a y that is open air in one place is inside a hill
 twenty blocks away.
+
+**The machine showcase is a wall, not a floor** (owner, 2026-08-04). Laid out as a workshop the
+machines occlude each other and shrink with distance, and no camera catches the Separator without
+losing the bench behind it. One plane gives every machine the same size and the same distance, which
+is why the museum works.
 
 **Multiblocks are assembled by the game, not written into the structure.** A scene lists a machine's
 loose components and the generator emits the setblocks; `tryForm` supplies the formed cells. That

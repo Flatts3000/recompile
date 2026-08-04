@@ -580,54 +580,66 @@ RECLAIM_AFTER = Scene(
 
 
 
-# ---------------------------------------------------------------- the machine hall
+# ---------------------------------------------------------------- the machine wall
 
-# For the technology-mod audience, who will not read a description. One floor with the whole chain on
-# it: what turns scrap into material, what burns and what powers, and where it all gets stored.
+# Every machine in one plane, facing the camera. For the technology audience, who will not read a
+# description.
 #
-# Ground-anchored like the reclamation pair, because the same thing that made those work applies here:
-# the dump standing around the shop is what says this is a mod about a landfill rather than a generic
-# tech mod. A floating platform would throw that away.
-HALL_W, HALL_D = 17, 13
-FLOOR = "recompile:corrugated_metal"
+# THIS WAS A FLOOR FIRST AND THE FLOOR WAS WRONG. Laid out as a workshop the machines occlude each
+# other, the far ones shrink with distance, and no camera catches the Separator without losing the
+# bench behind it. A wall gives every machine the same distance and the same size, which is the whole
+# reason the museum works, and here the subject is the machines rather than the room.
+WALL_W, WALL_H = 13, 9
+PANEL = "recompile:corrugated_metal"
 BEAM, FRAME = "recompile:steel_i_beam", "recompile:machine_frame"
 
+# Mounted on the wall face, read left to right, top row down: what you build, what you burn, what you
+# power it with, what you store it in, and what you feed it.
+#
+# SPACED TWO APART, NOT THREE. The first pass used a 19-wide wall on a three-block grid and the
+# machines read as scattered dots on a field of panel - a wall works by putting things next to each
+# other, and gaps that large undo the reason for building one.
+COLS = (1, 3, 5, 7, 9, 11)
+ROWS = (7, 5, 3)
 
-def _hall_cells() -> dict:
-    cells = plane(HALL_W, HALL_D, 0, FLOOR)
+WALL_MACHINES = {
+    (COLS[0], ROWS[0]): "recompile:recompile_workbench",
+    (COLS[1], ROWS[0]): "recompile:scrap_crafting_table",
+    (COLS[2], ROWS[0]): "recompile:cupola_furnace[facing=south,lit=true]",
+    (COLS[3], ROWS[0]): "recompile:burn_barrel[facing=south,lit=true]",
+    (COLS[4], ROWS[0]): "recompile:filing_cabinet[facing=south]",
+    (COLS[5], ROWS[0]): "recompile:display_pedestal",
 
-    # The bench line along the back, left to right: teardown, iron, then power.
-    bench = {
-        (2, 1, 2): "recompile:recompile_workbench",
-        (4, 1, 2): "recompile:scrap_crafting_table",
-        (6, 1, 2): "recompile:cupola_furnace[facing=south,lit=true]",
-        (8, 1, 2): "recompile:burn_barrel[facing=south,lit=true]",
-        (11, 1, 2): "recompile:burner_generator[facing=south]",
-        (13, 1, 2): "recompile:solar_panel",
-        (15, 1, 2): "recompile:hydroponics_bay",
-    }
-    cells.update(bench)
+    (COLS[0], ROWS[1]): "recompile:burner_generator[facing=south]",
+    (COLS[1], ROWS[1]): "recompile:solar_panel",
+    (COLS[2], ROWS[1]): "recompile:hydroponics_bay",
+    (COLS[3], ROWS[1]): "recompile:scrap_barrel",
+    (COLS[4], ROWS[1]): "recompile:sorting_tarp",
+    (COLS[5], ROWS[1]): "recompile:scrap_bin",
 
-    # Storage along the front, which is also the Scrap Network: these all carry
-    # #recompile:scrap_connectable and touching faces are one cluster, so a row of them is not just
-    # decoration, it is the mechanic.
-    for x in range(2, 8):
-        cells[(x, 1, 10)] = "recompile:scrap_bin"
-    cells[(8, 1, 10)] = "recompile:scrap_barrel"
-    cells[(9, 1, 10)] = "recompile:sorting_tarp"
+    (COLS[0], ROWS[2]): "recompile:mechanical_waste",
+    (COLS[1], ROWS[2]): "recompile:garbage_block",
+    (COLS[4], ROWS[2]): "recompile:trash_bag",
+    (COLS[5], ROWS[2]): "recompile:compacted_bale",
+}
 
-    # Feedstock for the Separator, so the shot shows something to process rather than an idle machine.
-    cells[(12, 1, 5)] = "recompile:mechanical_waste"
-    cells[(13, 1, 5)] = "recompile:garbage_block"
 
-    # Light, at the ends so nothing is lit from the middle of frame.
-    cells[(0, 1, 2)] = "recompile:scrap_torch"
-    cells[(16, 1, 2)] = "recompile:scrap_torch"
+def _wall_cells() -> dict:
+    cells = {}
+    for x in range(WALL_W):
+        for y in range(1, WALL_H + 1):
+            cells[(x, y, 0)] = PANEL            # the backing panel
+        for z in range(0, 3):
+            cells[(x, 0, z)] = PANEL            # a shallow floor lip so nothing floats
+    for (x, y), block in WALL_MACHINES.items():
+        cells[(x, y, 1)] = block
+    cells[(0, 1, 1)] = "recompile:scrap_torch"
+    cells[(WALL_W - 1, 1, 1)] = "recompile:scrap_torch"
     return cells
 
 
 # The Separator's blueprint, transcribed as COMPONENTS only - the formed cells are the game's job.
-# Core at the origin of the machine; offsets are the blueprint's own, valid at facing=north.
+# Offsets are the blueprint's own, valid at facing=north.
 SEPARATOR_CELLS = {
     (1, 0, 0): FRAME, (2, 0, 0): FRAME,
     (0, 0, 1): FRAME, (1, 0, 1): FRAME, (2, 0, 1): FRAME,
@@ -635,27 +647,24 @@ SEPARATOR_CELLS = {
     (1, 1, 0): BEAM, (1, 1, 1): BEAM, (2, 1, 0): BEAM, (2, 1, 1): BEAM,
 }
 
-MACHINE_HALL = Scene(
-    name="machine_hall",
+MACHINE_WALL = Scene(
+    name="machine_wall",
     origin=(0, -1, 0),
     legend={},
     layers=[],
-    cells=_hall_cells(),
-        # CENTRED, because it is the subject. Off to one side it kept falling out of frame and every
-    # camera that caught it lost the bench behind. Moving the machine is the fix; chasing it with the
-    # camera is not.
-    assemble=[Machine(core="recompile:separator", at=(7, 1, 5), cells=SEPARATOR_CELLS)],
-    # Eye height, looking down the hall so the bench line reads across the frame.
-    camera=Camera(pos=(8.5, 2.8, 14.0), yaw=180.0, pitch=5.0),
-    # Unlike the reclamation pair, this scene is not ABOUT the terrain - it only wants it as a
-    # backdrop - so it cuts itself some room. At clearance 0 the dump crowds right up to the bench
-    # and the camera has nowhere to stand.
+    cells=_wall_cells(),
+    # Centred at the bottom and standing proud of the wall, because it is the one machine that is
+    # three blocks wide and the only multiblock here. Its own depth carries it toward the camera.
+    assemble=[Machine(core="recompile:separator", at=(5, 1, 1), cells=SEPARATOR_CELLS)],
+    # Distance set by the wall's height, which is the binding dimension at this aspect: 4.5/tan(35)
+    # is about 6.4, so 8 back leaves a little margin without stranding it in the middle of the frame.
+    camera=Camera(pos=(6.5, 5.4, 10.0), yaw=180.0, pitch=2.0),
     clearance=4,
     anchor="player",
 )
 
 
-SCENES = [MUSEUM, RECLAIM_BEFORE, RECLAIM_AFTER, MACHINE_HALL]
+SCENES = [MUSEUM, RECLAIM_BEFORE, RECLAIM_AFTER, MACHINE_WALL]
 
 
 def main() -> None:
