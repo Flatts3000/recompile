@@ -62,3 +62,6 @@ docs/cf image gallery/_originals/
 
 # Playwright MCP scratch output (screenshots, snapshots) when driving Blockbench for branding.
 .playwright-mcp/
+
+# Python bytecode from the tools/ scripts.
+tools/__pycache__/
