@@ -24,6 +24,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultContainer;
@@ -410,9 +411,18 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Vanilla crafting quick-move, plus craft-from-storage: shift-clicking the result crafts, then
-     * refills the emptied grid slots from the connected network. The quick-move loop keeps calling this
-     * while the result slot still holds the same item, so a restocked grid crafts the whole run.
+     * Vanilla crafting quick-move.
+     *
+     * <p><b>The refill deliberately does NOT happen here</b>, and that is the whole of #127. Vanilla's
+     * quick-move loop calls this method over and over while the result slot still holds the same item,
+     * so restocking the grid from the network inside it meant the loop could never end on its own: one
+     * shift-click crafted until the network ran dry or the player's inventory filled. Two individually
+     * reasonable features - craft-from-storage and vanilla shift-crafting - are jointly unbounded, and
+     * nothing in this mod un-crafts, so a single keypress could spend a whole sorted wall.
+     *
+     * <p>The restock moved to {@link #clicked}, which runs once per click rather than once per craft.
+     * Shift-click is therefore bounded by what is in the grid, exactly like a vanilla table, and the
+     * grid is full again by the time the player looks at it.
      */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
@@ -423,9 +433,6 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         }
         ItemStack inSlot = slot.getItem();
         moved = inSlot.copy();
-        // For a craft, snapshot the grid BEFORE the craft consumes it, so the refill (below, after
-        // onTake has decremented the grid) knows what each emptied slot held.
-        Item[] pattern = index == RESULT_SLOT ? capturePattern() : null;
         if (index == RESULT_SLOT) {
             inSlot.getItem().onCraftedBy(inSlot, player);
             if (!this.moveItemStackTo(inSlot, GRID_END, INV_END, true)) {
@@ -457,14 +464,29 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         slot.onTake(player, inSlot);
         if (index == RESULT_SLOT) {
             player.drop(inSlot, false);
-            // Now that onTake has emptied the crafted slots, restock them from the network - server
-            // only, so the client never mutates its predicted bins. The result recomputes via the
-            // grid's container callback, so the quick-move loop crafts the whole run in one click.
-            if (!this.level.isClientSide() && pattern != null) {
-                refillGrid(player, pattern);
-            }
         }
         return moved;
+    }
+
+    /**
+     * Restock the grid from the network once the click is finished.
+     *
+     * <p>Once per CLICK, which is the difference that matters. A shift-click runs vanilla's quick-move
+     * loop to completion inside {@code super.clicked}; refilling after it returns means the run is
+     * bounded by the grid the player could see, and the grid is stocked again for the next one.
+     *
+     * <p>The pattern is captured BEFORE the click, because by the time it is over the grid is empty and
+     * there is nothing left to say what each slot held.
+     */
+    @Override
+    public void clicked(int slotId, int button, ContainerInput input, Player player) {
+        boolean crafted = slotId == RESULT_SLOT
+            && (input == ContainerInput.QUICK_MOVE || input == ContainerInput.PICKUP);
+        Item[] pattern = crafted ? capturePattern() : null;
+        super.clicked(slotId, button, input, player);
+        if (pattern != null && !this.level.isClientSide()) {
+            refillGrid(player, pattern);
+        }
     }
 
     // ---------------- craft-from-storage refill ----------------
