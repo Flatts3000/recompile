@@ -146,6 +146,7 @@ class Scene:
     block_entities: dict[tuple[int, int, int], dict] = field(default_factory=dict)
     time: str = "noon"
     weather: str = "clear"
+    clearance: int = 6   # blocks of air cut around the set before it is placed
 
     def size(self) -> tuple[int, int, int]:
         depth = max(len(layer) for layer in self.layers)
@@ -260,6 +261,17 @@ def build_function(scene: Scene) -> str:
         "# hanging a second set on top of the first.",
         "kill @e[type=minecraft:painting,distance=..64]",
         "",
+    ]
+
+    # CUT THE SPACE BEFORE PLACING IT. A scene dropped into the garbage world lands inside whatever
+    # mound happens to be at its coordinates: the first run placed the whole museum inside terrain and
+    # teleported the camera into a pile of rubbish, which looks exactly like the function having done
+    # nothing. /place does not clear, and a set has to own its own room.
+    width, height, depth = scene.size()
+    m = scene.clearance
+    lines += [
+        f"fill {ox - m} {oy} {oz - m} {ox + width + m} {oy + height + m} {oz + depth + m} air",
+        "",
         f"place template recompile:showcase/{scene.name} {ox} {oy} {oz}",
         "",
     ]
@@ -308,7 +320,7 @@ FLOOR_DEPTH = 16
 
 MUSEUM = Scene(
     name="museum",
-    origin=(0, 64, 0),
+    origin=(0, 120, 0),
     legend=MUSEUM_LEGEND,
     layers=[
         # y=0: the floor, running from the wall out past where the camera stands.

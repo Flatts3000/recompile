@@ -10,13 +10,15 @@ weather clear
 # hanging a second set on top of the first.
 kill @e[type=minecraft:painting,distance=..64]
 
-place template recompile:showcase/museum 0 64 0
+fill -6 120 -6 19 138 22 air
 
-summon minecraft:painting 2 67 1 {facing:0b, variant:"recompile:pearl_earring"}
-summon minecraft:painting 6 67 1 {facing:0b, variant:"recompile:the_scream"}
-summon minecraft:painting 10 66 1 {facing:0b, variant:"recompile:la_grande_jatte"}
-summon minecraft:painting 2 72 1 {facing:0b, variant:"recompile:starry_night"}
-summon minecraft:painting 6 72 1 {facing:0b, variant:"recompile:mona_lisa"}
-summon minecraft:painting 10 71 1 {facing:0b, variant:"recompile:great_wave"}
+place template recompile:showcase/museum 0 120 0
 
-tp @s 6.5 69.5 14.5 180.0 0.0
+summon minecraft:painting 2 123 1 {facing:0b, variant:"recompile:pearl_earring"}
+summon minecraft:painting 6 123 1 {facing:0b, variant:"recompile:the_scream"}
+summon minecraft:painting 10 122 1 {facing:0b, variant:"recompile:la_grande_jatte"}
+summon minecraft:painting 2 128 1 {facing:0b, variant:"recompile:starry_night"}
+summon minecraft:painting 6 128 1 {facing:0b, variant:"recompile:mona_lisa"}
+summon minecraft:painting 10 127 1 {facing:0b, variant:"recompile:great_wave"}
+
+tp @s 6.5 125.5 14.5 180.0 0.0
