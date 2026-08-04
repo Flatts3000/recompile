@@ -1,7 +1,7 @@
 package com.flatts.recompile.content.entity;
 
 import com.flatts.recompile.RCConfig;
-import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.registry.RCTags;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -23,11 +23,23 @@ import net.minecraft.world.phys.Vec3;
 /**
  * A pigeon walks to a pile of garbage and pecks at it, and once in a while pulls something out.
  *
- * <p><b>It does not sort the block, and that is the whole safety of it.</b> A pull through
- * {@link SortableBlock} advances the {@code sorted} blockstate and eventually crumbles the block - so a
- * pigeon that really sorted would slowly eat the player's dump while they were away, which is the one
- * thing an ambient mob must never do. This rolls its own small table and leaves the block exactly as it
- * found it: the peck is additive, never destructive.
+ * <p><b>It does not sort the block, and that is the whole safety of it.</b> A real pull advances the
+ * {@code sorted} blockstate and eventually crumbles the block - so a pigeon that really sorted would
+ * slowly eat the player's dump while they were away, which is the one thing an ambient mob must never
+ * do. This rolls its own small table and leaves the block exactly as it found it: the peck is additive,
+ * never destructive.
+ *
+ * <p><b>One peck per visit</b> (owner, 2026-08-04). The first version kept the goal running once it
+ * arrived, so a bird that reached a pile pecked every two seconds for as long as it stood there and
+ * produced a small heap of loot in under a minute. The cooldown existed but only gated <em>starting</em>,
+ * which is the kind of bug that looks like a tuning problem and is not. The goal now ends on the peck,
+ * so the cooldown is what a player actually experiences.
+ *
+ * <p><b>And it never finds what the pile itself would give you</b> (owner, 2026-08-04). A pigeon turning
+ * up rotten flesh - a household pull - reads as the bird sorting on your behalf, which is a machine's
+ * job. What it finds is the stuff a pull never gives: a crust of bread, an apple core, a dropped
+ * feather. {@code a_pigeon_never_finds_what_the_pile_would_give} holds the line, since the overlap is
+ * invisible until someone compares two JSON files by hand.
  *
  * <p><b>On the pigeon staying ambiance rather than becoming a resource.</b> Anything that produces an
  * item on a timer is a resource if you leave it running long enough, and this mob was decided not to be
@@ -50,6 +62,7 @@ public class PigeonForageGoal extends MoveToBlockGoal {
     private final PigeonEntity pigeon;
     private int cooldown;
     private int pecking;
+    private boolean pecked;
 
     public PigeonForageGoal(PigeonEntity pigeon) {
         super(pigeon, 1.0, 8, 3);
@@ -72,24 +85,26 @@ public class PigeonForageGoal extends MoveToBlockGoal {
 
     @Override
     public boolean canContinueToUse() {
-        return RCConfig.PIGEON_FORAGE_ENABLED.get() && super.canContinueToUse();
+        return !pecked && RCConfig.PIGEON_FORAGE_ENABLED.get() && super.canContinueToUse();
     }
 
     /**
-     * Any of the pick-through piles: a Block of Garbage, a Trash Bag, a Compacted Bale.
+     * Household garbage only, by tag.
      *
-     * <p>Asks the class rather than naming blocks, so a pile added later is foraged the day it is
-     * registered - the same reason the Sorting Tarp derives its pull table from the block.
+     * <p>This asked {@code instanceof SortableBlock} once and it was wrong: Stone Rubble and Mechanical
+     * Waste are sortable too, so pigeons foraged in broken concrete out in the demolition yard. See
+     * {@link RCTags#PIGEON_FORAGEABLE}.
      */
     @Override
     protected boolean isValidTarget(LevelReader level, BlockPos pos) {
-        return level.getBlockState(pos).getBlock() instanceof SortableBlock;
+        return level.getBlockState(pos).is(RCTags.PIGEON_FORAGEABLE);
     }
 
     @Override
     public void start() {
         super.start();
         pecking = 0;
+        pecked = false;
     }
 
     @Override
@@ -110,6 +125,10 @@ public class PigeonForageGoal extends MoveToBlockGoal {
             return;
         }
         pecking = 0;
+        // Set BEFORE the roll, so a peck that finds nothing still ends the visit. Otherwise a bird
+        // stands there retrying until it succeeds, which is the same heap of loot arriving slightly
+        // later.
+        pecked = true;
         if (pigeon.level() instanceof ServerLevel level) {
             forage(level);
         }

@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.entity.PigeonEntity;
+import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.content.entity.PigeonForageGoal;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -153,6 +154,62 @@ final class StrayTests {
             helper.assertTrue(helper.getBlockState(pos).equals(before),
                 "foraging must leave the pile exactly as it was - a pigeon that advances the sorted "
                     + "count is a pigeon that eats an unattended dump");
+            helper.succeed();
+        });
+
+        // A PIGEON NEVER FINDS WHAT THE PILE ITSELF WOULD GIVE YOU (owner, 2026-08-04). It turned up
+        // rotten flesh, which is a household pull, and that reads as the bird sorting on your behalf -
+        // a machine's job, and the thing the Sorting Tarp and the Separator exist to be. What a pigeon
+        // finds is the stuff a pull never gives.
+        //
+        // The overlap is two JSON files that have to disagree, which nothing notices by itself. Both
+        // sides are read exactly rather than sampled, so a rare entry cannot slip through on luck.
+        RCGameTests.test("a_pigeon_never_finds_what_the_pile_would_give", 20, helper -> {
+            java.util.Set<net.minecraft.world.item.Item> pulls = new java.util.HashSet<>();
+            for (String table : List.of(SortingData.HOUSEHOLD, SortingData.BAG)) {
+                for (var weighted : SortingData.outputs(table)) {
+                    pulls.add(weighted.stack().getItem());
+                }
+            }
+            helper.assertTrue(pulls.size() > 15,
+                "only " + pulls.size() + " pull items were read - discovery is broken, so this would "
+                    + "pass against a pigeon that finds everything the pile does");
+
+            var forage = SortingData.outputs("/data/recompile/loot_table/gameplay/pigeon_forage.json");
+            helper.assertTrue(!forage.isEmpty(), "the pigeon forage table must parse to outputs");
+
+            List<String> overlap = new ArrayList<>();
+            for (var weighted : forage) {
+                if (pulls.contains(weighted.stack().getItem())) {
+                    overlap.add(weighted.stack().getItem().toString());
+                }
+            }
+            helper.assertTrue(overlap.isEmpty(),
+                "a pigeon can find " + overlap + ", which the pile already gives you. A bird handing "
+                    + "back the block's own loot is sorting, and sorting is a machine's job");
+            helper.succeed();
+        });
+
+        // AND IT ONLY PECKS AT HOUSEHOLD GARBAGE. Stone Rubble and Mechanical Waste are SortableBlocks
+        // too, and deriving the target from that class had pigeons foraging in broken concrete out in
+        // the demolition yard - which is where this was actually caught.
+        RCGameTests.test("a_pigeon_only_forages_household_garbage", 20, helper -> {
+            List<String> wrong = new ArrayList<>();
+            for (var block : List.of(RCBlocks.STONE_RUBBLE.get(), RCBlocks.MECHANICAL_WASTE.get())) {
+                if (block.defaultBlockState().is(
+                        com.flatts.recompile.registry.RCTags.PIGEON_FORAGEABLE)) {
+                    wrong.add(block.toString());
+                }
+            }
+            helper.assertTrue(wrong.isEmpty(),
+                "a pigeon would peck at " + wrong + ". Those are demolition yard piles of stone and "
+                    + "machinery, and a bird finding food in them is the bug this tag exists for");
+            for (var block : List.of(RCBlocks.GARBAGE_BLOCK.get(), RCBlocks.TRASH_BAG.get(),
+                    RCBlocks.COMPACTED_BALE.get())) {
+                helper.assertTrue(block.defaultBlockState().is(
+                        com.flatts.recompile.registry.RCTags.PIGEON_FORAGEABLE),
+                    block + " must be forageable, or the pigeon has nothing to peck at");
+            }
             helper.succeed();
         });
 
