@@ -11,6 +11,22 @@ resume point, not a design doc.
 | `machine_wall` | **Done.** Sixteen machines in one plane plus the Separator, assembled by the game, standing in the dump |
 | `reclaim_before` / `reclaim_after` | **Done, and shot automatically.** Ground-anchored, standing in real terrain with the dump around them, HUD off, identical camera. `tools/shoot_reclaim.py` takes both without a keystroke |
 
+## Where the images go
+
+`run/screenshots/` is gitignored, so a shot is not in the project until it is processed:
+
+```bash
+python tools/prepare_gallery.py     # crop to subject, fit under 2 MB, write the numbered files
+```
+
+Output lands in `docs/cf image gallery/` alongside the existing eleven. **CurseForge rejects a gallery
+image over 2 MB**, and the raw 1920x1080 captures are 1.5 to 2.6 MB, so this step is not optional.
+`_originals/` there is untracked and holds raw captures; only the numbered files are committed.
+
+**The reclamation pair shares one crop constant**, and the tool refuses to run if somebody splits it
+into two. Cropping those frames separately would reintroduce exactly the difference the identical
+camera exists to remove.
+
 ## Shooting them now
 
 Both scenes are driven by tooling rather than by hand. With a dev client up (`./gradlew runClient`,
@@ -21,6 +37,10 @@ python tools/shoot_scenes.py                       # the reclamation pair
 python tools/shoot_scenes.py --at 400 400 machine_wall
 bash tools/verify_showcase.sh            # the museum, placed and asserted (needs runServer)
 ```
+
+**The window size is forced to 1920x1080** in the client run. A screenshot IS the framebuffer, so it
+comes out at whatever the window happens to be - the default gave 854x480, unusable next to a gallery
+of 1300px images.
 
 **The pair anchors to the player**, so the script returns them to the same block before each scene.
 The function ends by teleporting to the camera, so without that the second scene would place itself
