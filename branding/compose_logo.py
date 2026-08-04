@@ -14,8 +14,15 @@ asset on the project page. The artwork is now drawn from geometry in `draw_artwo
 avatar is provably not AI output and the claim survives someone checking. The gallery is real
 in-game screenshots and was never at risk.
 
-The composition is unchanged, because the composition was never the problem: a green sprout
-rising out of a pile of junk is the mod's pitch in one image.
+The composition is a green sprout rising out of a pile of junk - the mod's pitch in one image - with
+the RECOMPILE wordmark across the pile. The wordmark is `branding/wordmark_single_row.png`, rendered in
+the Minecraft Title Generator (see `docs/branding.md`); this file only places it. That replaced a
+hand-stamped `REC` bitmap, which is why the glyph table below is gone.
+
+**The full name costs thumbnail legibility and that is a deliberate trade** (owner, 2026-08-04). Nine
+glyphs across a 64px icon is about six pixels a letter, where the old three-letter stamp stayed
+readable. The mark is scaled and placed for the 400px view; at 64 it reads as a sprout over a coloured
+bar, which is a recognisable silhouette even when the word is not.
 
 Three decisions worth knowing:
 
@@ -26,6 +33,9 @@ Three decisions worth knowing:
   * The leaves are rotated ellipses rather than a hand-typed bitmap. A leaf is a smooth convex
     shape and the maths gives a cleaner edge at this size than counting cells does; the pile
     underneath is the opposite case and is deliberately noisy.
+  * The wordmark is composited AFTER the upscale, at full resolution, rather than being forced onto
+    the 50x50 grid. It is a 3D render with real shading - quantising it to the grid would destroy the
+    bevel that makes it read as the Minecraft title font, which is the whole reason it exists.
   * GRID divides the output size exactly. 50 into 400 gives 8px cells. A grid that does not
     divide evenly (64 into 400) forces a non-integer cell and the pixels come out uneven,
     which is visible and looks like a mistake rather than a style.
@@ -47,9 +57,6 @@ REPO = HERE.parent
 BRANDING = HERE / "logo.png"
 IN_JAR = REPO / "src" / "main" / "resources" / "logo.png"
 
-# Which variant ships. The rest are generated for comparison only.
-APPROVED = "bottom"
-
 # ---- design constants ---------------------------------------------------
 OUT_SIZE = 400          # CurseForge/Modrinth project logo, square
 GRID = 50               # low-res cells across; must divide OUT_SIZE exactly
@@ -66,50 +73,9 @@ LEAF_LIGHT = (184, 220, 85)
 LEAF_MID = (140, 190, 58)
 LEAF_DARK = (93, 138, 34)
 
-TEXT = "REC"
-LETTER_SCALE = 2        # cells per font pixel. 3 letters at 6x7 + gaps = 20 * scale wide.
-TEXT_FILL = (245, 245, 238)
-TEXT_SHADOW = (18, 16, 12)
-
-# 6x7 blocky face, hand-set. Wide strokes so the letters hold at thumbnail size.
-GLYPHS = {
-    "R": [
-        "XXXXX.",
-        "X....X",
-        "X....X",
-        "XXXXX.",
-        "X..X..",
-        "X...X.",
-        "X....X",
-    ],
-    "E": [
-        "XXXXXX",
-        "X.....",
-        "X.....",
-        "XXXXX.",
-        "X.....",
-        "X.....",
-        "XXXXXX",
-    ],
-    "C": [
-        ".XXXX.",
-        "X....X",
-        "X.....",
-        "X.....",
-        "X.....",
-        "X....X",
-        ".XXXX.",
-    ],
-}
-
-# Row on the low-res grid where the wordmark's top edge sits, per variant.
-# Bottom only. The sprout owns rows 5-22 and it is the whole idea of the mark - green coming
-# out of the scrap - so anything stamped over it removes the thing the logo is about. The pile
-# is the part that can carry text.
-VARIANTS = {
-    "bottom": 33,
-}
-
+WORDMARK = HERE / "wordmark_single_row.png"
+WORDMARK_WIDTH_PCT = 0.92   # of the canvas, after trimming the render's transparent padding
+WORDMARK_BOTTOM_PCT = 0.07  # gap under it, as a fraction of the canvas
 
 def draw_artwork() -> Image.Image:
     """The mark itself, drawn on the GRID x GRID cells. Seeded, so it is the same every run."""
@@ -179,61 +145,53 @@ def draw_artwork() -> Image.Image:
     return img
 
 
-def stamp(small: Image.Image, top_row: int) -> Image.Image:
-    """Draw the wordmark onto the low-res grid, shadow first."""
-    out = small.copy()
-    px = out.load()
+def place_wordmark(canvas: Image.Image) -> Image.Image:
+    """Composite the rendered wordmark across the bottom of the mark.
 
-    glyph_w, glyph_h = 6, 7
-    gap = 1
-    total = len(TEXT) * glyph_w * LETTER_SCALE + (len(TEXT) - 1) * gap * LETTER_SCALE
-    left = (GRID - total) // 2
+    Trimmed to its glyphs first, so placement follows the letters rather than whatever transparent
+    canvas the renderer emitted - the render is 2048x352 and the padding is not symmetric.
+    """
+    out = canvas.convert("RGBA")
+    mark = Image.open(WORDMARK).convert("RGBA")
+    box = mark.getbbox()
+    if box:
+        mark = mark.crop(box)
 
-    def draw(dx: int, dy: int, colour: tuple[int, int, int]) -> None:
-        x0 = left + dx
-        for index, char in enumerate(TEXT):
-            rows = GLYPHS[char]
-            ox = x0 + index * (glyph_w + gap) * LETTER_SCALE
-            for row in range(glyph_h):
-                for col in range(glyph_w):
-                    if rows[row][col] != "X":
-                        continue
-                    for sy in range(LETTER_SCALE):
-                        for sx in range(LETTER_SCALE):
-                            x = ox + col * LETTER_SCALE + sx
-                            y = top_row + dy + row * LETTER_SCALE + sy
-                            if 0 <= x < GRID and 0 <= y < GRID:
-                                px[x, y] = colour
+    width = round(out.width * WORDMARK_WIDTH_PCT)
+    height = max(1, round(mark.height * width / mark.width))
+    # LANCZOS, not NEAREST: this is a shaded 3D render being made smaller, which is the one case in
+    # this file where a smooth resample is right. NEAREST would drop whole rows of the bevel.
+    mark = mark.resize((width, height), Image.LANCZOS)
 
-    # A one-cell offset shadow in every direction is an outline, which is what keeps the
-    # letters legible over both the dark background and the pale rust.
-    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, -1), (-1, 1), (1, 1)):
-        draw(dx, dy, TEXT_SHADOW)
-    draw(0, 0, TEXT_FILL)
-    return out
+    x = (out.width - width) // 2
+    y = out.height - height - round(out.height * WORDMARK_BOTTOM_PCT)
+    out.alpha_composite(mark, (x, y))
+    return out.convert("RGB")
 
 
 def main() -> None:
     small = draw_artwork()
     scale = OUT_SIZE // GRID
     assert GRID * scale == OUT_SIZE, "GRID must divide OUT_SIZE exactly"
-
-    plain = small.resize((OUT_SIZE, OUT_SIZE), Image.NEAREST)
-    plain.save(REPO / "gen" / "logo_pixel_only.png")
-    print("wrote logo_pixel_only.png")
+    assert WORDMARK.exists(), f"missing {WORDMARK} - render it per docs/branding.md"
 
     gen = REPO / "gen"
-    for name, row in VARIANTS.items():
-        stamped = stamp(small, row).resize((OUT_SIZE, OUT_SIZE), Image.NEAREST)
-        stamped.save(gen / f"logo_{name}.png")
-        # The 64px thumbnail is how most people meet a mod, in a list. If the mark does not
-        # survive this it does not matter how it looks at 400.
-        stamped.resize((64, 64), Image.NEAREST).save(gen / f"logo_{name}_64.png")
-        print(f"wrote gen/logo_{name}.png and its 64px thumbnail")
-        if name == APPROVED:
-            stamped.save(BRANDING)
-            stamped.save(IN_JAR)
-            print(f"  approved: also wrote {BRANDING} and {IN_JAR}")
+    gen.mkdir(exist_ok=True)
+
+    art = small.resize((OUT_SIZE, OUT_SIZE), Image.NEAREST)
+    art.save(gen / "logo_artwork_only.png")
+    print("wrote gen/logo_artwork_only.png")
+
+    logo = place_wordmark(art)
+    logo.save(gen / "logo.png")
+    # The 64px thumbnail is how most people meet a mod, in a list. It is written every run so the
+    # cost of the full wordmark stays visible rather than being something you find out later.
+    logo.resize((64, 64), Image.LANCZOS).save(gen / "logo_64.png")
+    print("wrote gen/logo.png and its 64px thumbnail")
+
+    logo.save(BRANDING)
+    logo.save(IN_JAR)
+    print(f"  also wrote {BRANDING} and {IN_JAR}")
 
 
 if __name__ == "__main__":
