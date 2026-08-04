@@ -2,6 +2,7 @@ package com.flatts.recompile.compat.jei;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.compat.MultiblockParts;
+import com.flatts.recompile.compat.SearchAliases;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.compat.TeardownData;
 import com.flatts.recompile.registry.RCItems;
@@ -19,6 +20,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.registration.IIngredientAliasRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
@@ -401,6 +403,20 @@ public class RecompileJeiPlugin implements IModPlugin {
             new ScrapTableTransfer<>(ASSEMBLY, helper), ASSEMBLY);
         registration.addRecipeTransferHandler(
             new ScrapTableTransfer<>(RecipeTypes.CRAFTING, helper), RecipeTypes.CRAFTING);
+    }
+
+    /**
+     * The renamed vanilla items answer to their old names in search (#118).
+     *
+     * <p>A player looking for a lead types "lead". Renaming it to Rope without this makes the item
+     * unfindable by the only word they have for it, and every wiki page and video still uses that word.
+     * The alias is a <b>translation key</b>, so it translates with the pack rather than pinning search
+     * to English.
+     */
+    @Override
+    public void registerIngredientAliases(IIngredientAliasRegistration registration) {
+        SearchAliases.all().forEach((item, alias) ->
+            registration.addAlias(new ItemStack(item), alias));
     }
 
     @Override
