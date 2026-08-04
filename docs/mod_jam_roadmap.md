@@ -47,13 +47,13 @@ published on CurseForge prior to the contest Start Date)."* Reusing our own fram
   is submitted.
 - [x] **Re-read the 2026 ToS** for the start date, "new project" wording, and the judging split (confirmed
   before submission).
-- [ ] **No AI-generated project avatar or gallery images.** Announced 2026-07-29 in the ModJam Discord as
+- [x] **No AI-generated project avatar or gallery images.** Announced 2026-07-29 in the ModJam Discord as
   one of the rules entries were failing on, alongside the three above. **We were failing it.** The avatar
   was a pixelated AI render - `branding/compose_logo.py` said so in its own docstring - and the fix landed
-  in #144: the artwork is drawn from geometry now, so the claim survives someone checking. **The remaining
-  step is manual and is not done:** the live avatar on CurseForge project 1625740 is still the old file,
-  because the upload API handles project *files*, not project *images*. Upload `branding/logo.png` in the
-  project settings. Until then the rule is still being broken.
+  in #144: the artwork is drawn from geometry now, so the claim survives someone checking. The
+  upload itself is manual, because the upload API handles project *files* and not project *images*:
+  `branding/logo.png` was uploaded by hand in the project settings and **verified live on 2026-08-04**
+  (the avatar on project 1625740 is the sprout-and-wordmark mark; the old one read white `REC`).
   - The **gallery was never at risk** - all eleven images are in-game screenshots, and a screenshot is not
     an AI-generated image.
   - The rule names avatars and gallery images, **not in-game assets**. This mod's textures are generated
