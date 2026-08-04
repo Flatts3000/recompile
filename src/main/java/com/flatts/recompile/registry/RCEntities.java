@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.entity.PigeonEntity;
 import com.flatts.recompile.content.entity.RoachEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -40,6 +41,23 @@ public final class RCEntities {
             .clientTrackingRange(8)
             .build(ROACH_KEY));
 
+    private static final ResourceKey<EntityType<?>> PIGEON_KEY = ResourceKey.create(
+        Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "pigeon"));
+
+    /**
+     * The Pigeon: {@link MobCategory#AMBIENT}, the category bats use - a low cap that keeps trickling
+     * rather than filling once at chunk generation. Cat and wolf could not be ambient even though they
+     * play the same role here, because a vanilla entity's category is fixed on its type and both are
+     * {@code CREATURE}. Sized like a parrot, because it wears a parrot's model.
+     */
+    public static final Supplier<EntityType<PigeonEntity>> PIGEON = ENTITIES.register(
+        "pigeon",
+        () -> EntityType.Builder.of(PigeonEntity::new, MobCategory.AMBIENT)
+            .sized(0.5F, 0.9F)
+            .eyeHeight(0.6F)
+            .clientTrackingRange(8)
+            .build(PIGEON_KEY));
+
     private RCEntities() {
     }
 
@@ -50,5 +68,6 @@ public final class RCEntities {
 
     private static void onAttributes(EntityAttributeCreationEvent event) {
         event.put(ROACH.get(), RoachEntity.createAttributes().build());
+        event.put(PIGEON.get(), PigeonEntity.createAttributes().build());
     }
 }

@@ -27,5 +27,6 @@ public final class RecompileClientEvents {
         event.registerBlockEntityRenderer(RCBlockEntities.DISPLAY_PEDESTAL.get(), DisplayPedestalRenderer::new);
         // The Roach (#78) - the mod's first ENTITY renderer, alongside its one block-entity renderer.
         event.registerEntityRenderer(RCEntities.ROACH.get(), RoachRenderer::new);
+        event.registerEntityRenderer(RCEntities.PIGEON.get(), PigeonRenderer::new);
     }
 }

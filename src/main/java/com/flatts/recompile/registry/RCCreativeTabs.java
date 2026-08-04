@@ -164,6 +164,7 @@ public final class RCCreativeTabs {
 
                     // --- 16. Spawn eggs last, the way vanilla keeps them out of the way ---
                     output.accept(RCItems.ROACH_SPAWN_EGG.get());
+                    output.accept(RCItems.PIGEON_SPAWN_EGG.get());
                 })
                 .build()
         );

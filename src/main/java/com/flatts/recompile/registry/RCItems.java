@@ -388,6 +388,13 @@ public final class RCItems {
         props -> new net.minecraft.world.item.SpawnEggItem(
             props.spawnEgg(RCEntities.ROACH.get())));
 
+    /** The Pigeon's spawn egg (#133), for the same reason the Roach has one: an entity with no egg
+     *  cannot be placed by hand in creative, which is the loop this gets tuned through. */
+    public static final DeferredItem<Item> PIGEON_SPAWN_EGG = ITEMS.registerItem(
+        "pigeon_spawn_egg",
+        props -> new net.minecraft.world.item.SpawnEggItem(
+            props.spawnEgg(RCEntities.PIGEON.get())));
+
     public static final DeferredItem<BlockItem> BURNER_GENERATOR =
         ITEMS.registerSimpleBlockItem("burner_generator", RCBlocks.BURNER_GENERATOR);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
