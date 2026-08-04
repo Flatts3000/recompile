@@ -229,3 +229,36 @@ Feature design is decided there, not here. Read before changing gameplay:
 - Data-driven first: tuning, drop rates, and variants belong in JSON, not Java.
 - Conventional commits (`feat(food):`, `fix(...)`, `docs:`). Phases land as squash-merged PRs.
 - The mod was working-named "Salvage" during design; renamed because several materials-recovery mods already own that name on CurseForge/Modrinth - exactly the mods this would be confused with.
+
+## Driving a running game from outside (gamebridge / devbridge)
+
+**Already wired here.** `./gradlew runClient` opens the devbridge socket on 25580 and boots straight
+into a world; `run/mods/devbridge-26.1.2-0.1.0.jar` is the mod half (`run/` is gitignored, so a fresh
+clone needs the jar copied in from `F:\devbridge`).
+
+```bash
+pip install -e F:/minecraft-repos/mc-pack-toolkit/gamebridge
+
+gamebridge --devbridge 25580 cmd "function recompile:showcase/museum"
+gamebridge --devbridge 25580 shot museum
+
+# Or RCON against ./gradlew runServer, which needs no mod at all.
+bash tools/verify_showcase.sh     # places the museum and asserts it landed
+```
+
+The point is **verification**: `gamebridge check "entity @e[type=minecraft:painting]" --count 6` exits
+non-zero, which is a check a screenshot cannot make - a painting that fails to hang deletes itself
+silently and just leaves the picture looking emptier.
+
+**Two limits that are properties of Minecraft, not of the tool.** RCON cannot reach a singleplayer
+world (its integrated server listens on nothing) or take a screenshot (a dedicated server has no
+framebuffer); that is what devbridge is for. And chunks unload with nobody standing in them, so a
+playerless server answers `data get block` with "That position is not loaded" and otherwise looks like
+it worked - `forceload add` first.
+
+**Commands run as the console, so `@s` matches nothing and `~` is spawn-relative.** Every showcase
+function ends in `tp @s`, so driving one over the bridge places the set correctly and silently does not
+move the camera. Tracked in `F:\devbridge/SPEC.md`.
+
+**devbridge must never ship.** It binds loopback only and is inert without `-Ddevbridge.port`, but it
+executes arbitrary commands and is deliberately a separate jar rather than a dependency.
