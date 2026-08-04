@@ -219,6 +219,53 @@ final class DemolitionYardTests {
         // girder out of that wall. This is the beam's headline behaviour and the ONLY rule that reads
         // BlockPlaceContext, so every other test in this file - which all set states directly - would keep
         // passing if getStateForPlacement broke. Hence driving the real placement path here.
+        // THE TOOL DECIDES WHAT A BEAM GIVES BACK (#129). A pickaxe returns the beam so players can
+        // build with steel; the Cutting Torch cuts it into offcuts, which is the only thing that feeds
+        // the iron path. Exactly one beam either way, so nothing is created - and that is why this
+        // needed no recipe. A craft-from-offcut recipe would have been an iron duplicator unless it
+        // cost more than the 4 offcuts a beam can drop, because offcut blasts into an ingot.
+        //
+        // Driven through Block.getDrops with an explicit tool, NOT through destroyBlock: that overload
+        // passes ItemStack.EMPTY as the tool, so match_tool never sees anything and both halves fall
+        // through to the same branch. A first draft of this test used it and "passed" the pickaxe half
+        // for exactly the wrong reason.
+        RCGameTests.test("a_pickaxe_returns_the_beam_and_a_torch_cuts_it", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 2, 1);
+            helper.setBlock(pos, RCBlocks.STEEL_I_BEAM.get());
+            BlockState state = helper.getLevel().getBlockState(helper.absolutePos(pos));
+
+            var byPick = net.minecraft.world.level.block.Block.getDrops(state, helper.getLevel(),
+                helper.absolutePos(pos), null, null,
+                new ItemStack(net.minecraft.world.item.Items.IRON_PICKAXE));
+            helper.assertTrue(byPick.stream().anyMatch(d -> d.is(RCItems.STEEL_I_BEAM.get())),
+                "a pickaxe must hand the beam back, so a girder can be taken down and moved. Got "
+                    + byPick);
+            helper.assertTrue(byPick.stream().noneMatch(d -> d.is(RCItems.STEEL_OFFCUT.get())),
+                "a pickaxe must NOT yield offcuts - offcut is the iron path and belongs to the torch");
+
+            var byTorch = net.minecraft.world.level.block.Block.getDrops(state, helper.getLevel(),
+                helper.absolutePos(pos), null, null,
+                new ItemStack(RCItems.CUTTING_TORCH.get()));
+            helper.assertTrue(byTorch.stream().anyMatch(d -> d.is(RCItems.STEEL_OFFCUT.get())),
+                "the Cutting Torch must still cut a beam into offcuts, or the iron path has no input. "
+                    + "Got " + byTorch);
+            helper.assertTrue(byTorch.stream().noneMatch(d -> d.is(RCItems.STEEL_I_BEAM.get())),
+                "cutting must consume the beam - returning it too would make the torch a duplicator");
+
+            // Bare hands still get nothing. Asserted through isCorrectToolForDrops rather than through
+            // getDrops, because requiresCorrectToolForDrops is enforced at the HARVEST layer - getDrops
+            // runs the loot table and knows nothing about it, so asking it returns the beam and proves
+            // the opposite of what it looks like it proves.
+            helper.assertTrue(state.requiresCorrectToolForDrops(),
+                "the beam must stay a tooled resource rather than something punched out of the yard");
+            helper.assertFalse(ItemStack.EMPTY.isCorrectToolForDrops(state),
+                "bare hands must not be a correct tool for a steel beam");
+            helper.assertTrue(new ItemStack(net.minecraft.world.item.Items.IRON_PICKAXE)
+                    .isCorrectToolForDrops(state),
+                "a pickaxe must be a correct tool, or the beam cannot be picked up at all");
+            helper.succeed();
+        });
+
         RCGameTests.test("steel_beam_placement_takes_axis_from_clicked_face", 20, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos anchor = helper.absolutePos(new BlockPos(3, 3, 3));
