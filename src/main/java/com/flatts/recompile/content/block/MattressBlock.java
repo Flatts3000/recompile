@@ -142,14 +142,16 @@ public class MattressBlock extends HorizontalDirectionalBlock {
                 return InteractionResult.CONSUME;
             }
         }
-        if (bedState.getValue(OCCUPIED)) {
-            player.sendOverlayMessage(Component.translatable("block.minecraft.bed.occupied"));
-            return InteractionResult.SUCCESS_SERVER;
-        }
-        // Spawn without sleeping. Checked after the head is resolved so the respawn point lands on the
-        // same block a night here would have used.
+        // Spawn without sleeping. BEFORE the occupied check, because setting a respawn point is not
+        // sleeping - whether somebody else is currently asleep in it has nothing to do with whether you
+        // may mark it as where you come back to. Placed after the head is resolved so the point lands
+        // on the same block a night here would have used.
         if (player.isSecondaryUseActive()) {
             setSpawnHere(player, bedPos);
+            return InteractionResult.SUCCESS_SERVER;
+        }
+        if (bedState.getValue(OCCUPIED)) {
+            player.sendOverlayMessage(Component.translatable("block.minecraft.bed.occupied"));
             return InteractionResult.SUCCESS_SERVER;
         }
         // Vanilla surfaces the problem on the action bar, not in chat - mirror it.
