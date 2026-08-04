@@ -155,16 +155,16 @@ public class RecompileJeiPlugin implements IModPlugin {
     private static int widest(String... tables) {
         int max = 1;
         for (String table : tables) {
-            max = Math.max(max, SortingData.outputs(table).size());
+            max = Math.max(max, SortingData.visibleOutputs(table).size());
         }
         return max;
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        List<SortingData.Weighted> household = SortingData.outputs(SortingData.HOUSEHOLD);
-        List<SortingData.Weighted> bag = SortingData.outputs(SortingData.BAG);
-        List<SortingData.Weighted> rubble = SortingData.outputs(SortingData.RUBBLE);
+        List<SortingData.Weighted> household = SortingData.visibleOutputs(SortingData.HOUSEHOLD);
+        List<SortingData.Weighted> bag = SortingData.visibleOutputs(SortingData.BAG);
+        List<SortingData.Weighted> rubble = SortingData.visibleOutputs(SortingData.RUBBLE);
         registration.addRecipes(SORTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.GARBAGE_BLOCK.get()), household),
             new SalvageRecipe(new ItemStack(RCItems.COMPACTED_BALE.get()), household),
@@ -203,11 +203,11 @@ public class RecompileJeiPlugin implements IModPlugin {
 
         registration.addRecipes(TORCH_CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.STEEL_I_BEAM.get()),
-                SortingData.outputs(SortingData.STEEL_BEAM))));
+                SortingData.visibleOutputs(SortingData.STEEL_BEAM))));
 
         registration.addRecipes(PRYING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),
-                SortingData.outputs(SortingData.BULKY, clientRegistries()))));
+                SortingData.visibleOutputs(SortingData.BULKY, clientRegistries()))));
 
         // The Hydroponics Bay, in two halves that are the two halves of the mechanic.
         //
@@ -220,7 +220,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         // free and this list cannot drift from what the machine will actually accept.
         List<SalvageRecipe> growing = new ArrayList<>();
         growing.add(new SalvageRecipe(new ItemStack(RCItems.UNKNOWN_SEEDLING.get()),
-            SortingData.outputs(SortingData.SEEDLING)));
+            SortingData.visibleOutputs(SortingData.SEEDLING)));
         int yield = com.flatts.recompile.RCConfig.HYDROPONICS_YIELD.get();
         for (var holder : net.minecraft.core.registries.BuiltInRegistries.ITEM
                 .getTagOrEmpty(com.flatts.recompile.registry.RCTags.HYDROPONIC)) {

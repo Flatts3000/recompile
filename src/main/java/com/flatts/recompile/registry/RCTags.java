@@ -251,4 +251,20 @@ public final class RCTags {
      */
     public static final TagKey<Block> PIGEON_FORAGEABLE = TagKey.create(
         Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "pigeon_forageable"));
+
+    /**
+     * Treasure a viewer must not spoil: the collectibles and the recovered paintings.
+     *
+     * <p>Finding a Puzzle Cube piece in a bag of rubbish should be a surprise, and a JEI category
+     * listing every collectible and all six paintings spends that before the player breaks a block.
+     * The odds are the point of those categories for ordinary materials and the opposite of the point
+     * for treasure.
+     *
+     * <p>Read only by {@code SortingData.visibleOutputs}, which is the salvage categories. It does not
+     * hide the items from JEI's item list - somebody holding a piece still needs to look up that nine
+     * of them make the cube - and it does not touch the loot tables, so nothing about what the world
+     * actually drops changes.
+     */
+    public static final TagKey<Item> UNDISCOVERABLE = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "undiscoverable"));
 }

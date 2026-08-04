@@ -1,5 +1,6 @@
 package com.flatts.recompile.compat;
 
+import com.flatts.recompile.registry.RCTags;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -74,6 +75,39 @@ public final class SortingData {
     /** Weighted item outputs of a bundled loot table, or empty if it cannot be read. */
     public static List<Weighted> outputs(String resourcePath) {
         return outputs(resourcePath, null);
+    }
+
+    /**
+     * What a <b>viewer</b> is allowed to show: {@link #outputs} minus {@code #recompile:undiscoverable}.
+     *
+     * <p><b>Finding a Puzzle Cube piece in a bag of rubbish should be a surprise</b> (owner,
+     * 2026-08-04), and a JEI category that lists every collectible and all six recovered paintings
+     * spends that surprise before the player has broken a single block. The odds are the point of these
+     * categories for ordinary materials and the opposite of the point for treasure.
+     *
+     * <p>Hidden from the <b>salvage categories only</b>, not from JEI's item list. A player who has
+     * found a piece still needs to look up that nine of them make the cube; hiding the item outright
+     * would take that away to protect a surprise they have already had.
+     *
+     * <p>This is deliberately NOT done inside {@link #outputs}. That method answers "what can this
+     * table produce", which the GameTests use to prove things are reachable - a reachability check that
+     * silently skipped treasure would be worse than no check. Presentation filters; the data does not
+     * lie.
+     */
+    public static List<Weighted> visibleOutputs(String resourcePath,
+            HolderLookup.@Nullable Provider registries) {
+        List<Weighted> out = new ArrayList<>();
+        for (Weighted weighted : outputs(resourcePath, registries)) {
+            if (!weighted.stack().is(RCTags.UNDISCOVERABLE)) {
+                out.add(weighted);
+            }
+        }
+        return out;
+    }
+
+    /** As {@link #visibleOutputs(String, HolderLookup.Provider)}, without registry access. */
+    public static List<Weighted> visibleOutputs(String resourcePath) {
+        return visibleOutputs(resourcePath, null);
     }
 
     /**

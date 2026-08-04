@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,6 +59,41 @@ final class SortingDataTests {
         // Prying reads the block loot table, which now holds five weighted spine finds. This is the
         // "adding a find is a loot-table line" invariant working: the printer needed one JSON line to
         // appear here, and the only Java it touched was this count.
+        // TREASURE IS HIDDEN FROM THE VIEWER, NOT FROM THE WORLD (owner, 2026-08-04). A JEI category
+        // listing every collectible and all six recovered paintings spends the surprise before the
+        // player has broken a block.
+        //
+        // Asserted in BOTH directions on purpose. "It is not in the category" alone would pass just as
+        // happily if somebody deleted the entries from the loot tables, which is the opposite of what
+        // was asked for - the drop must still be there, unchanged, and only the viewer blind to it.
+        RCGameTests.test("a_viewer_does_not_spoil_the_collectibles", 20, helper -> {
+            List<String> problems = new ArrayList<>();
+            for (String table : List.of(SortingData.HOUSEHOLD, SortingData.BAG, SortingData.BULKY)) {
+                var all = SortingData.outputs(table);
+                var shown = SortingData.visibleOutputs(table);
+                helper.assertTrue(!all.isEmpty(), table + " must parse to outputs");
+
+                long hidden = all.stream()
+                    .filter(w -> w.stack().is(com.flatts.recompile.registry.RCTags.UNDISCOVERABLE))
+                    .count();
+                if (hidden == 0) {
+                    problems.add(table + " contains no tagged treasure at all - either the tag is empty "
+                        + "or the loot tables stopped dropping it, and this test then proves nothing");
+                }
+                for (var weighted : shown) {
+                    if (weighted.stack().is(com.flatts.recompile.registry.RCTags.UNDISCOVERABLE)) {
+                        problems.add(table + " still shows " + weighted.stack().getItem());
+                    }
+                }
+                if (shown.size() != all.size() - hidden) {
+                    problems.add(table + " hid " + (all.size() - shown.size()) + " entries but only "
+                        + hidden + " are tagged - the filter is removing something else");
+                }
+            }
+            helper.assertTrue(problems.isEmpty(), "collectible spoiler check: " + problems);
+            helper.succeed();
+        });
+
         RCGameTests.test("sorting_data_reads_bulky_finds", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BULKY);
             // Five spine finds (the fifth is the printer, #112), four windfall finds (the fourth is

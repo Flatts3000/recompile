@@ -1,0 +1,12 @@
+{
+  "values": [
+    "recompile:puzzle_cube_piece",
+    "recompile:puzzle_cube",
+    "recompile:puzzle_cube_scrambled",
+    "recompile:avocado",
+    "recompile:present",
+    "recompile:gold_coin",
+    "recompile:toy_car",
+    "minecraft:painting"
+  ]
+}
