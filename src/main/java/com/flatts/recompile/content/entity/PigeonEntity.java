@@ -59,13 +59,16 @@ public class PigeonEntity extends Animal {
 
     @Override
     protected void registerGoals() {
-        // Float, flee, wander, look. Nothing else: a bird that reacts to being walked at is alive, and
-        // anything past that starts being a feature.
+        // Float, flee, forage, wander, look. Nothing past that: a bird that reacts to being walked at
+        // is alive, and everything else starts being a feature.
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new PanicGoal(this, 1.4));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0));
-        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+        // Foraging outranks wandering: a pigeon that spots a pile goes to it. It still panics and
+        // floats first, so being walked at or pushed into water always wins over lunch.
+        this.goalSelector.addGoal(2, new PigeonForageGoal(this));
+        this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0));
+        this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
     }
 
     /**
