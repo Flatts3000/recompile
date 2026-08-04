@@ -52,11 +52,17 @@ final class SortingDataTests {
         // "adding a find is a loot-table line" invariant working: a second find needed no code.
         RCGameTests.test("sorting_data_reads_bulky_finds", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BULKY);
-            // The furniture finds plus the six recovered paintings (#99), which live in their own 7%
-            // pool. Counted rather than listed so a new find has to come here and be acknowledged: a
-            // magic 8 that silently became 9 would mean nobody noticed the table changed.
-            helper.assertTrue(out.size() == 10,
-                "Bulky Waste should offer the four finds and the six paintings, got " + out.size());
+            // Four spine finds, three windfall finds, six recovered paintings (#99). Counted rather
+            // than listed so a new find has to come here and be acknowledged: a magic 10 that silently
+            // became 11 would mean nobody noticed the table changed.
+            //
+            // Reaching 13 at all is the point of this number now. The spine and windfall tiers are
+            // NESTED loot tables, and a reader that skipped minecraft:loot_table entries would return
+            // six - a Prying category containing nothing but paintings, with every real find gone and
+            // no error anywhere.
+            helper.assertTrue(out.size() == 13,
+                "Bulky Waste should offer four spine finds, three windfall finds and six paintings, "
+                    + "got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show
             // each at 1/6 = 16.7% instead of 0.07/6 = 1.2%. JEI's whole job in these categories is the
@@ -92,13 +98,62 @@ final class SortingDataTests {
                 "the Broken Hydroponics Bay must be a Bulky Waste find - it is the only thing that "
                     + "teaches the working bay, so if it leaves this table the machine is unbuildable");
 
-            float sum = mattress.chance() + appliance.chance() + cabinet.chance()
-                + brokenBay.chance();
+            // A WINDFALL IS RARE, AND ITS RARITY IS THE WHOLE POINT. The jukebox and the bell need
+            // diamond and gold, so finding one hands the player a capability this world cannot make;
+            // if it turned up as often as a mattress the spine would be crowded out by novelties.
+            SortingData.Weighted jukebox = out.stream()
+                .filter(w -> w.stack().is(net.minecraft.world.item.Items.JUKEBOX))
+                .findFirst().orElse(null);
+            helper.assertTrue(jukebox != null, "the jukebox must be a windfall find");
+            helper.assertTrue(jukebox.chance() < brokenBay.chance(),
+                "a windfall (" + jukebox.chance() + ") must be rarer than the rarest spine find ("
+                    + brokenBay.chance() + ") - the spine is what moves the player forward");
+
+            // The two tiers partition the same pool, so everything that is not a painting sums to 1.
+            // Summing only the spine is what made this fail when the tiers arrived: the assertion read
+            // as if it were about odds and was really "these are ALL the finds".
+            float sum = 0;
+            for (SortingData.Weighted w : out) {
+                if (!w.stack().is(net.minecraft.world.item.Items.PAINTING)) {
+                    sum += w.chance();
+                }
+            }
             helper.assertTrue(Math.abs(sum - 1.0f) < 0.001f,
-                "the furniture pool's chances should sum to ~1, got " + sum);
+                "the spine and windfall tiers should partition the pool and sum to ~1, got " + sum);
             helper.assertTrue(mattress.chance() > appliance.chance(),
                 "the mattress stays the commonest find (weight 3 vs 2) - it is the teardown source the "
                     + "whole blueprint loop runs on");
+            helper.succeed();
+        });
+
+        // A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. Bags carry wool and carpet as tag entries, which
+        // is what keeps a new vanilla dye colour from silently changing how often WOOL comes up. A
+        // reader that did not expand them would drop both from the Sorting category entirely - no
+        // error, just two rows missing from a screen whose whole job is telling the player what is in
+        // a bag.
+        RCGameTests.test("sorting_data_expands_a_tag_entry", 10, helper -> {
+            List<SortingData.Weighted> out = SortingData.outputs(SortingData.BAG);
+            List<SortingData.Weighted> wools = out.stream()
+                .filter(w -> w.stack().is(net.minecraft.tags.ItemTags.WOOL)).toList();
+            helper.assertTrue(wools.size() > 8,
+                "a wool tag entry should read as every colour in the tag, got " + wools.size());
+
+            // Evenly, because that is what expand:false does - roll once, then pick a member at
+            // random. Reporting the whole share against one colour would overstate it sixteenfold.
+            float first = wools.get(0).chance();
+            for (SortingData.Weighted w : wools) {
+                helper.assertTrue(Math.abs(w.chance() - first) < 0.0001F,
+                    "every colour in a tag entry shares its odds evenly - got " + w.chance()
+                        + " against " + first);
+            }
+
+            float sum = 0;
+            for (SortingData.Weighted w : out) {
+                sum += w.chance();
+            }
+            helper.assertTrue(Math.abs(sum - 1.0F) < 0.01F,
+                "expanding a tag must not create or destroy probability - the bag pool still sums to "
+                    + "~1, got " + sum);
             helper.succeed();
         });
 

@@ -33,25 +33,98 @@
           "type": "minecraft:item",
           "name": "recompile:tin_can",
           "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:book",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:tag",
+          "name": "minecraft:wool",
+          "expand": false,
+          "weight": 6
+        },
+        {
+          "type": "minecraft:tag",
+          "name": "minecraft:wool_carpets",
+          "expand": false,
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:leather_helmet",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:leather_chestplate",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:leather_leggings",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:leather_boots",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bundle",
+          "weight": 1
         }
       ]
     },
     {
       "rolls": 1,
       "entries": [
-        { "type": "minecraft:empty", "weight": 999 },
-        { "type": "minecraft:item", "name": "recompile:puzzle_cube_piece", "weight": 1 }
+        {
+          "type": "minecraft:empty",
+          "weight": 999
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:puzzle_cube_piece",
+          "weight": 1
+        }
       ]
     },
     {
       "comment": "Whole collectibles - found intact, each ~1-in-4000 (a few times rarer than a cube piece).",
       "rolls": 1,
       "entries": [
-        { "type": "minecraft:empty", "weight": 3996 },
-        { "type": "minecraft:item", "name": "recompile:avocado", "weight": 1 },
-        { "type": "minecraft:item", "name": "recompile:present", "weight": 1 },
-        { "type": "minecraft:item", "name": "recompile:gold_coin", "weight": 1 },
-        { "type": "minecraft:item", "name": "recompile:toy_car", "weight": 1 }
+        {
+          "type": "minecraft:empty",
+          "weight": 3996
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:avocado",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:present",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:gold_coin",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:toy_car",
+          "weight": 1
+        }
       ]
     }
   ]
