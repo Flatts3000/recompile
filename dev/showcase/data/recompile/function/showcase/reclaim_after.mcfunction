@@ -10,7 +10,7 @@ weather clear
 # hanging a second set on top of the first.
 kill @e[type=minecraft:painting,distance=..64]
 
-fill ~0 ~-1 ~0 ~21 ~14 ~19 air
+fill ~0 ~-1 ~0 ~21 ~14 ~28 air
 
 place template recompile:showcase/reclaim_after ~0 ~-1 ~0
 

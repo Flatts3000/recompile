@@ -122,6 +122,33 @@ class Painting:
 
 
 @dataclass(frozen=True)
+class Machine:
+    """A multiblock, placed as its loose COMPONENTS and assembled by the game.
+
+    **The formed blocks are deliberately not written into the structure.** A formed cell carries a
+    `CELL` index that drives the whole-machine skin, and hand-transcribing those would put a scrambled
+    machine in the shot and a second copy of the blueprint in this file - the exact drift the
+    guidebook's multiblock pages already have a test to prevent. Placing components and letting
+    `tryForm` run means the game supplies the formed states, so the scene cannot disagree with the
+    machine.
+
+    Three things this has to get right, all learned the hard way:
+
+      * `facing=north` is the identity rotation. The others rotate the blueprint (south is 180), so
+        offsets written here would land on the opposite side.
+      * The core only sees a neighbour update from a cell ADJACENT to it, so placing components in
+        blueprint order runs `tryForm` too early and never again.
+      * `setblock` to a state a block already has is a no-op and fires nothing. The nudge has to be a
+        real change: clear a neighbouring cell and put it back.
+    """
+
+    core: str                       # block id, without state
+    at: tuple[int, int, int]        # scene coordinates of the core
+    cells: dict                     # offset -> component block id
+    facing: str = "north"
+
+
+@dataclass(frozen=True)
 class Camera:
     """Camera pose, scene-relative like everything else.
 
@@ -144,6 +171,7 @@ class Scene:
     camera: Camera
     paintings: list[Painting] = field(default_factory=list)
     cells: dict[tuple[int, int, int], str] = field(default_factory=dict)
+    assemble: list = field(default_factory=list)   # multiblocks the GAME builds, see Machine
     block_entities: dict[tuple[int, int, int], dict] = field(default_factory=dict)
     time: str = "noon"
     weather: str = "clear"
@@ -301,17 +329,43 @@ def build_function(scene: Scene) -> str:
     # nothing. /place does not clear, and a set has to own its own room.
     width, height, depth = scene.size()
     m = scene.clearance
+    pad = 2.0
+    lo = (min(-m, cx - pad), min(0, cy - pad), min(-m, cz - pad))
+    hi = (max(width + m, cx + pad), max(height + max(m, 8), cy + pad), max(depth + m, cz + pad))
+    lo = tuple(int(v // 1) for v in lo)
+    hi = tuple(int(-(-v // 1)) for v in hi)
     lines += [
         # Headroom is not the same dial as margin. A scene with clearance 0 still has to clear what
         # is ABOVE it, or an overhanging mound stays put and hangs over the set; it just must not cut
         # sideways into terrain that is part of the shot.
-        f"fill {coord(ox, -m)} {coord(oy, 0)} {coord(oz, -m)} "
-        f"{coord(ox, width + m)} {coord(oy, height + max(m, 8))} {coord(oz, depth + m)} air",
+        #
+        # THE CAMERA IS PART OF THE SCENE and the box is stretched to hold it. A camera standing
+        # outside the cleared volume is standing in whatever was there, and the shot is a close-up of
+        # the inside of a block - which looks like a broken scene rather than a mispositioned camera.
+        f"fill {coord(ox, lo[0])} {coord(oy, lo[1])} {coord(oz, lo[2])} "
+        f"{coord(ox, hi[0])} {coord(oy, hi[1])} {coord(oz, hi[2])} air",
         "",
         f"place template recompile:showcase/{scene.name} "
         f"{coord(ox, 0)} {coord(oy, 0)} {coord(oz, 0)}",
         "",
     ]
+    for machine in scene.assemble:
+        mx, my, mz = machine.at
+        lines.append(f"# {machine.core}: components placed, then assembled by the game")
+        for (dx, dy, dz), component in machine.cells.items():
+            lines.append(f"setblock {coord(ox, mx + dx)} {coord(oy, my + dy)} "
+                         f"{coord(oz, mz + dz)} {component}")
+        lines.append(f"setblock {coord(ox, mx)} {coord(oy, my)} {coord(oz, mz)} "
+                     f"{machine.core}[facing={machine.facing}]")
+        # The nudge, and it must be two real state changes: see the Machine docstring.
+        first = next(iter(machine.cells))
+        nudge = (mx + first[0], my + first[1], mz + first[2])
+        lines.append(f"setblock {coord(ox, nudge[0])} {coord(oy, nudge[1])} "
+                     f"{coord(oz, nudge[2])} minecraft:air")
+        lines.append(f"setblock {coord(ox, nudge[0])} {coord(oy, nudge[1])} "
+                     f"{coord(oz, nudge[2])} {machine.cells[first]}")
+        lines.append("")
+
     for painting in scene.paintings:
         ax, ay, az = painting.anchor()
         facing = FACING_ID[painting.facing]
@@ -525,7 +579,83 @@ RECLAIM_AFTER = Scene(
 )
 
 
-SCENES = [MUSEUM, RECLAIM_BEFORE, RECLAIM_AFTER]
+
+# ---------------------------------------------------------------- the machine hall
+
+# For the technology-mod audience, who will not read a description. One floor with the whole chain on
+# it: what turns scrap into material, what burns and what powers, and where it all gets stored.
+#
+# Ground-anchored like the reclamation pair, because the same thing that made those work applies here:
+# the dump standing around the shop is what says this is a mod about a landfill rather than a generic
+# tech mod. A floating platform would throw that away.
+HALL_W, HALL_D = 17, 13
+FLOOR = "recompile:corrugated_metal"
+BEAM, FRAME = "recompile:steel_i_beam", "recompile:machine_frame"
+
+
+def _hall_cells() -> dict:
+    cells = plane(HALL_W, HALL_D, 0, FLOOR)
+
+    # The bench line along the back, left to right: teardown, iron, then power.
+    bench = {
+        (2, 1, 2): "recompile:recompile_workbench",
+        (4, 1, 2): "recompile:scrap_crafting_table",
+        (6, 1, 2): "recompile:cupola_furnace[facing=south,lit=true]",
+        (8, 1, 2): "recompile:burn_barrel[facing=south,lit=true]",
+        (11, 1, 2): "recompile:burner_generator[facing=south]",
+        (13, 1, 2): "recompile:solar_panel",
+        (15, 1, 2): "recompile:hydroponics_bay",
+    }
+    cells.update(bench)
+
+    # Storage along the front, which is also the Scrap Network: these all carry
+    # #recompile:scrap_connectable and touching faces are one cluster, so a row of them is not just
+    # decoration, it is the mechanic.
+    for x in range(2, 8):
+        cells[(x, 1, 10)] = "recompile:scrap_bin"
+    cells[(8, 1, 10)] = "recompile:scrap_barrel"
+    cells[(9, 1, 10)] = "recompile:sorting_tarp"
+
+    # Feedstock for the Separator, so the shot shows something to process rather than an idle machine.
+    cells[(12, 1, 5)] = "recompile:mechanical_waste"
+    cells[(13, 1, 5)] = "recompile:garbage_block"
+
+    # Light, at the ends so nothing is lit from the middle of frame.
+    cells[(0, 1, 2)] = "recompile:scrap_torch"
+    cells[(16, 1, 2)] = "recompile:scrap_torch"
+    return cells
+
+
+# The Separator's blueprint, transcribed as COMPONENTS only - the formed cells are the game's job.
+# Core at the origin of the machine; offsets are the blueprint's own, valid at facing=north.
+SEPARATOR_CELLS = {
+    (1, 0, 0): FRAME, (2, 0, 0): FRAME,
+    (0, 0, 1): FRAME, (1, 0, 1): FRAME, (2, 0, 1): FRAME,
+    (0, 1, 0): FRAME, (0, 1, 1): FRAME,
+    (1, 1, 0): BEAM, (1, 1, 1): BEAM, (2, 1, 0): BEAM, (2, 1, 1): BEAM,
+}
+
+MACHINE_HALL = Scene(
+    name="machine_hall",
+    origin=(0, -1, 0),
+    legend={},
+    layers=[],
+    cells=_hall_cells(),
+        # CENTRED, because it is the subject. Off to one side it kept falling out of frame and every
+    # camera that caught it lost the bench behind. Moving the machine is the fix; chasing it with the
+    # camera is not.
+    assemble=[Machine(core="recompile:separator", at=(7, 1, 5), cells=SEPARATOR_CELLS)],
+    # Eye height, looking down the hall so the bench line reads across the frame.
+    camera=Camera(pos=(8.5, 2.8, 14.0), yaw=180.0, pitch=5.0),
+    # Unlike the reclamation pair, this scene is not ABOUT the terrain - it only wants it as a
+    # backdrop - so it cuts itself some room. At clearance 0 the dump crowds right up to the bench
+    # and the camera has nowhere to stand.
+    clearance=4,
+    anchor="player",
+)
+
+
+SCENES = [MUSEUM, RECLAIM_BEFORE, RECLAIM_AFTER, MACHINE_HALL]
 
 
 def main() -> None:

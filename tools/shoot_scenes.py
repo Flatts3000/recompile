@@ -1,6 +1,8 @@
-"""Shoot the reclamation pair automatically. Needs a dev client with devbridge on port 25580.
+"""Shoot showcase scenes automatically. Needs a dev client with devbridge on port 25580.
 
-    python tools/shoot_reclaim.py [x y z]
+    python tools/shoot_scenes.py                          # the reclamation pair
+    python tools/shoot_scenes.py machine_hall             # one scene
+    python tools/shoot_scenes.py --at 300 300 machine_hall
 
 The pair is only worth anything if the two frames share a camera to the pixel, and three things have
 to be right for that:
@@ -21,15 +23,40 @@ sys.path.insert(0, "F:/minecraft-repos/mc-pack-toolkit/gamebridge")
 from gamebridge.devbridge import DevBridge   # noqa: E402
 
 PLAYER = "Dev"
-ANCHOR = tuple(int(a) for a in sys.argv[1:4]) if len(sys.argv) >= 4 else (100, 69, 100)
-SCENES = ("reclaim_before", "reclaim_after")
+
+args = sys.argv[1:]
+if args[:1] == ["--at"]:
+    ANCHOR_XZ = (int(args[1]), int(args[2]))
+    args = args[3:]
+else:
+    ANCHOR_XZ = (100, 100)
+# The pair by default, because they are the ones that must share a camera and so must be shot
+# together. Any other scene can be named on its own.
+SCENES = tuple(args) if args else ("reclaim_before", "reclaim_after")
+
+
+def find_surface(bridge, x: int, z: int, high: int = 110, low: int = 55) -> int:
+    """The y a player would stand on at these coordinates.
+
+    Worth doing rather than hardcoding: the garbage world is mounds, so a y that is open air at one
+    spot is inside a hill twenty blocks away. Getting it wrong puts the camera inside a block, which
+    is a screenshot of the inside of a block.
+    """
+    for y in range(high, low, -1):
+        solid = bridge.command(f"execute unless block {x} {y - 1} {z} minecraft:air")
+        clear = bridge.command(f"execute if block {x} {y} {z} minecraft:air")
+        if "passed" in solid and "passed" in clear:
+            return y
+    raise SystemExit(f"no surface found at {x},{z} between y {low} and {high}")
 
 
 def main() -> None:
-    x, y, z = ANCHOR
+    x, z = ANCHOR_XZ
     with DevBridge(port=25580) as bridge:
         # Chunks unload with nobody in them, and /place into an unloaded chunk quietly does nothing.
         bridge.command(f"forceload add {x - 20} {z - 20} {x + 40} {z + 40}")
+        y = find_surface(bridge, x, z)
+        print(f"anchor: {x} {y} {z}")
         bridge.command(f"gamemode spectator {PLAYER}")
         bridge.hud(False)
         try:
