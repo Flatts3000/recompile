@@ -277,6 +277,7 @@
   "book.recompile.guide.reference.viewers.name": "JEI & Jade",
   "book.recompile.guide.reference.viewers.intro.text": "Two viewer mods, if you run them, surface the non-vanilla mechanics in-game.\n\nJEI adds Sorting, Cutting, and Prying categories, so you can look up what a garbage block, a knife, or a prybar yields, and it shows the Scrap Crafting Table as the station.\n\nJade shows block hints on look: which tool a block wants, how far a Grass Spreader reaches, how many layers a Compost Heap has, and the sort progress on a garbage block.",
   "book.recompile.guide.reference.viewers.intro.title": "The mechanics that are not recipes",
+  "message.recompile.mattress_spawn_set": "Respawn point set. Sleeping here will use up the mattress.",
   "message.recompile.torch_no_fuel": "The torch is empty - right-click with an Oily Rag to charge it",
   "message.recompile.torch_needs_rag": "You need an Oily Rag to charge the torch",
   "tooltip.recompile.torch_fuel": "Fuel: %s / %s cuts",

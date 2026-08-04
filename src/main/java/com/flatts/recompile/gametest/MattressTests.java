@@ -66,6 +66,33 @@ final class MattressTests {
             helper.assertBlockPresent(RCBlocks.MATTRESS.get(), FOOT);
             helper.succeed();
         });
+
+        // SETTING SPAWN IS NOT SLEEPING, and only one of them wears the mattress out. Without this,
+        // the only way to put a respawn point on a Dirty Mattress was to destroy it - so wanting a
+        // spawn and wanting to keep the mattress were mutually exclusive.
+        RCGameTests.test("shift_clicking_a_mattress_sets_spawn_without_spending_it", 60, helper -> {
+            BlockPos head = place(helper);
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            player.setShiftKeyDown(true);
+
+            helper.getLevel().getBlockState(helper.absolutePos(head))
+                .useWithoutItem(helper.getLevel(), player, new net.minecraft.world.phys.BlockHitResult(
+                    net.minecraft.world.phys.Vec3.atCenterOf(helper.absolutePos(head)),
+                    Direction.UP, helper.absolutePos(head), false));
+
+            var config = player.getRespawnConfig();
+            helper.assertTrue(config != null,
+                "shift-clicking a mattress must set a respawn point - it is the only way to get one "
+                    + "here without spending the block");
+            helper.assertTrue(config.respawnData().pos().equals(helper.absolutePos(head)),
+                "the respawn point should be this mattress, got " + config.respawnData().pos());
+
+            helper.assertFalse(player.isSleeping(), "shift-clicking must not put the player to sleep");
+            helper.assertBlockPresent(RCBlocks.MATTRESS.get(), head);
+            helper.assertBlockPresent(RCBlocks.MATTRESS.get(), FOOT);
+            helper.succeed();
+        });
     }
 
     /** Lay a two-half mattress and return the HEAD position. */
