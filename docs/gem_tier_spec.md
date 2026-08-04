@@ -337,10 +337,17 @@ map through the compass), so it is the automation tier in a single material. Rea
 rates are under 1%, which is a factual justification for a punishing number rather than an arbitrary one.
 
 **The guard:** `no_teardown_recipe_yields_a_gated_material`, asserting that no shipped
-`recompile:teardown` recipe produces diamond, emerald, lapis, redstone or gold. Gold is included even
+`recompile:teardown` recipe produces diamond, emerald, redstone or gold. Gold is included even
 though it lives at #120, because the guard is cheaper to write once than to remember to extend. Direct analogue of the
 existing `no_smelting_recipe_turns_a_mod_item_into_iron`, written after #91 for exactly this class of
 bug. Scoped to teardown; the Separator's own recipes are the sanctioned route.
+
+**Lapis is the one thing the guard no longer covers**, and that is the decision at line 36 arriving in
+code (#112, shipped 2026-08-04). The Printer's teardown is a teardown, so lapis had to leave the
+teardown half of the guard for the find to exist at all. It stays in the *pile* half - Mechanical Waste
+must still never drop it - so the two lists are now genuinely different and the test carries both. What
+makes the opening safe is that lapis gates nothing on its own: its only real job is enchanting, and an
+enchanting table needs obsidian and diamond too, both still behind the yard.
 
 ## Phase 4 - the surrounding work *(done)*
 
@@ -371,9 +378,10 @@ returning ordinary recovered scrap removes any need for slag here, and `material
 queues a **slag field** region where slag, fluorite and oily scrap belong together.
 
 That leaves one thing worth stating plainly, because it will otherwise be assumed: **this tier does not
-complete enchanting.** An enchanting table needs obsidian, diamond and lapis. This spec delivers diamond
-and lapis; obsidian is elsewhere and unbuilt. So the gem tier can ship complete and enchanting will still
-not be reachable, and that is by design rather than an oversight.
+complete enchanting.** An enchanting table needs obsidian, diamond and lapis. This spec delivers the
+diamond and the Printer delivers the lapis (#112); obsidian is elsewhere and unbuilt. So the gem tier
+can ship complete and enchanting will still not be reachable, and that is by design rather than an
+oversight.
 
 ## Open
 

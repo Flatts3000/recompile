@@ -1,7 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.MattressBlock;
-import com.flatts.recompile.content.block.WashingMachineBlock;
+import com.flatts.recompile.content.block.FoundApplianceBlock;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
@@ -173,8 +173,8 @@ final class BulkyWasteTests {
 
             helper.assertTrue(placed != null, "placement must produce a state");
             helper.assertTrue(
-                placed.getValue(WashingMachineBlock.FACING) == net.minecraft.core.Direction.NORTH,
-                "the door must face the player, got " + placed.getValue(WashingMachineBlock.FACING));
+                placed.getValue(FoundApplianceBlock.FACING) == net.minecraft.core.Direction.NORTH,
+                "the door must face the player, got " + placed.getValue(FoundApplianceBlock.FACING));
             helper.succeed();
         });
 

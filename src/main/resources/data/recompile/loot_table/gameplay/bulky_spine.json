@@ -21,6 +21,11 @@
         },
         {
           "type": "minecraft:item",
+          "name": "recompile:printer",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
           "name": "recompile:broken_hydroponics_bay",
           "weight": 1
         }

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "recompile:block/printer" },
+    "facing=east":  { "model": "recompile:block/printer", "y":  90 },
+    "facing=south": { "model": "recompile:block/printer", "y": 180 },
+    "facing=west":  { "model": "recompile:block/printer", "y": 270 }
+  }
+}

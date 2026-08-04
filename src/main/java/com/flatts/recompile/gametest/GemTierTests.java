@@ -34,10 +34,28 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  */
 final class GemTierTests {
 
-    /** Everything past the iron gate. Nothing may reach these except through the Separator. */
+    /** Everything past the iron gate. None of it may be found lying in a pile. */
     private static final Set<Item> GATED = Set.of(
         Items.DIAMOND, Items.EMERALD, Items.LAPIS_LAZULI, Items.REDSTONE, Items.GOLD_INGOT,
         Items.GOLD_NUGGET, Items.AMETHYST_SHARD);
+
+    /**
+     * The same set minus lapis, for the teardown guard only.
+     *
+     * <p><b>Lapis moved to the Printer (owner, 2026-08-02, #112)</b> and that reverses this spec's
+     * placement of it. The reasoning is worth keeping, because it also says where lapis must not go:
+     * lapis is a <em>pigment</em> - ultramarine is ground lapis, and cyan toner is phthalocyanine blue -
+     * so it belongs in a printer and does not belong in machinery, which contains no lapis at all.
+     * Vanilla puts it at {@code needs_stone_tool}, beside iron and copper rather than beside diamond, so
+     * arriving before the demolition yard is where vanilla already has it. And it gates nothing on its
+     * own: its only real job is enchanting, which also needs obsidian and diamond, both still yard-gated.
+     *
+     * <p>Lapis stays in {@link #GATED} because the <em>pile</em> rule is unchanged - Mechanical Waste
+     * must still never drop it. Only the teardown route opened.
+     */
+    private static final Set<Item> TEARDOWN_GATED = GATED.stream()
+        .filter(item -> item != Items.LAPIS_LAZULI)
+        .collect(java.util.stream.Collectors.toUnmodifiableSet());
 
     private GemTierTests() {
     }
@@ -79,12 +97,12 @@ final class GemTierTests {
                 checked++;
                 List<TeardownRecipe.ItemResult> all = new ArrayList<>(holder.value().results());
                 for (var extra : holder.value().extras()) {
-                    if (GATED.contains(extra.item())) {
+                    if (TEARDOWN_GATED.contains(extra.item())) {
                         leaks.add(holder.id() + " rolls " + extra.item());
                     }
                 }
                 for (TeardownRecipe.ItemResult result : all) {
-                    if (GATED.contains(result.item())) {
+                    if (TEARDOWN_GATED.contains(result.item())) {
                         leaks.add(holder.id() + " yields " + result.item());
                     }
                 }

@@ -1,0 +1,35 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:printer",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 100,
+  "results": [
+    {
+      "item": "minecraft:paper",
+      "count": 3
+    },
+    {
+      "item": "minecraft:ink_sac",
+      "count": 1
+    },
+    {
+      "item": "recompile:plastic_scrap",
+      "count": 2
+    },
+    {
+      "item": "recompile:scrap_metal",
+      "count": 1
+    }
+  ],
+  "extras": [
+    {
+      "item": "minecraft:lapis_lazuli",
+      "chance": 0.5
+    },
+    {
+      "item": "minecraft:glow_ink_sac",
+      "chance": 0.12
+    }
+  ]
+}
