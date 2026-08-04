@@ -42,9 +42,11 @@ public class PigeonRenderer extends MobRenderer<PigeonEntity, ParrotRenderState,
     public void extractRenderState(PigeonEntity entity, ParrotRenderState state, float partialTick) {
         super.extractRenderState(entity, state, partialTick);
         state.variant = Parrot.Variant.RED_BLUE;
-        // Wings beat while airborne and settle on the ground. Driven off the entity's own tick count so
-        // two pigeons side by side are not in lockstep.
-        state.flapAngle = entity.tickCount + partialTick;
+        // Wings beat while airborne and settle on the ground. The value MUST stay bounded: the parrot
+        // model spends it as a y offset on every part, and y is down, so an unbounded one walks the bird
+        // into the ground away from its own hitbox. See PigeonEntity.flapAngle.
+        state.flapAngle = PigeonEntity.flapAngle(
+            entity.tickCount, partialTick, entity.onGround(), entity.getId());
         state.pose = entity.onGround() ? ParrotModel.Pose.STANDING : ParrotModel.Pose.FLYING;
     }
 
