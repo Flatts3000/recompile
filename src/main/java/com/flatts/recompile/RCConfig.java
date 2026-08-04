@@ -131,10 +131,15 @@ public final class RCConfig {
                 "",
                 "This number and the one below are what keep the pigeon ambiance rather than a food",
                 "source. Anything producing an item on a timer is a resource if you leave it running,",
-                "and this mob was decided not to be one - so the default is roughly one item per bird",
-                "every five minutes, against a mob that is deliberately rare to begin with. Turning",
-                "either dial up makes pigeons a farm; that is a choice, not an accident.")
-            .defineInRange("pigeonForageIntervalTicks", 1200, 20, 24000);
+                "and this mob was decided not to be one - so the default works out at roughly one",
+                "item per bird every ten minutes, against a mob that is deliberately rare to begin",
+                "with. Turning either dial up makes pigeons a farm; that is a choice, not an accident.",
+                "",
+                "A pigeon pecks ONCE per visit, so this is the interval a player actually experiences.",
+                "It was not, briefly: the goal used to keep running after it arrived, so a bird pecked",
+                "every two seconds for as long as it stood at a pile and this number gated nothing but",
+                "the first approach.")
+            .defineInRange("pigeonForageIntervalTicks", 2400, 20, 24000);
         PIGEON_FORAGE_CHANCE = builder
             .comment("Chance a completed peck actually turns something up. The rest are just pecking.")
             .defineInRange("pigeonForageChance", 0.2, 0.0, 1.0);

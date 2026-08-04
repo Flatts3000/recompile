@@ -239,4 +239,16 @@ public final class RCTags {
      */
     public static final TagKey<Block> SCRAP_CONNECTABLE = TagKey.create(
         Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "scrap_connectable"));
+
+    /**
+     * The piles a pigeon will peck at: household garbage, bags and bales.
+     *
+     * <p><b>A tag, because {@code instanceof SortableBlock} was wrong</b> (playtest, 2026-08-04). Stone
+     * Rubble and Mechanical Waste are sortable too, so deriving the target from the class had pigeons
+     * pulling rotten flesh out of a pile of broken concrete in the demolition yard. The shared behaviour
+     * is "you can pick through it"; what a bird is interested in is a different and smaller question, and
+     * only a list can answer it.
+     */
+    public static final TagKey<Block> PIGEON_FORAGEABLE = TagKey.create(
+        Registries.BLOCK, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "pigeon_forageable"));
 }
