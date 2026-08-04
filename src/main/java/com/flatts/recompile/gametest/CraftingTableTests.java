@@ -128,11 +128,20 @@ final class CraftingTableTests {
             helper.succeed();
         });
 
-        // End-to-end through the real quick-move loop: a shift-craft bulk-crafts straight from a bin,
-        // restocking the grid between crafts. This is what refillGrid-in-isolation cannot prove - it
-        // pins the ordering (refill must run AFTER onTake empties the grid, or the run makes one item).
+        // ONE SHIFT-CLICK IS ONE BATCH, NOT THE WHOLE NETWORK (#127).
+        //
+        // This test used to assert the opposite: that a single shift-click drained a 40-item bin into
+        // 11 crafts. That was the shipped behaviour and it was deliberate, which is why it had a test -
+        // but playtest found it as a bug, twice, and the owner's call is that shift-click should behave
+        // like a crafting station rather than like AE2. Nothing in this mod un-crafts, so one keypress
+        // spending a whole sorted wall is not a convenience.
+        //
+        // Driven through `clicked` rather than quickMoveStack, because the fix lives in the difference
+        // between them: the refill is once per CLICK now, and calling quickMoveStack directly would
+        // exercise a path the player never takes.
+        //
         // scrap_plating is 4 scrap_metal -> 1, a single-material recipe, so the math is exact.
-        RCGameTests.test("scrap_crafting_table_bulk_crafts_from_a_bin", 40, helper -> {
+        RCGameTests.test("one_shift_click_crafts_one_batch_not_the_whole_network", 40, helper -> {
             helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
             ScrapBinBlockEntity bin = placeBin(helper, new BlockPos(2, 1, 1));
             bin.deposit(new ItemStack(RCItems.SCRAP_METAL.get(), 40));
@@ -146,20 +155,25 @@ final class CraftingTableTests {
             helper.assertTrue(menu.getSlot(0).getItem().is(RCItems.SCRAP_PLATING.get()),
                 "the grid must produce scrap plating, got " + menu.getSlot(0).getItem());
 
-            int crafts = 0;
-            while (menu.getSlot(0).hasItem() && crafts < 200) {
-                ItemStack out = menu.quickMoveStack(player, 0);
-                if (out.isEmpty()) {
-                    break;
-                }
-                crafts++;
-            }
+            // One shift-click on the result, exactly as a player does it.
+            menu.clicked(0, 0, net.minecraft.world.inventory.ContainerInput.QUICK_MOVE, player);
 
-            // 4 in the grid + 40 in the bin = 44 scrap metal = 11 crafts; the bin ends empty.
-            helper.assertTrue(crafts == 11, "should bulk-craft 11 plating from grid+bin, got " + crafts);
-            helper.assertTrue(bin.amount() == 0, "the bin should be fully drained, has " + bin.amount());
-            helper.assertTrue(countIn(player, RCItems.SCRAP_PLATING.get()) == 11,
-                "the player should hold 11 scrap plating, has " + countIn(player, RCItems.SCRAP_PLATING.get()));
+            // The grid held one craft's worth, so one craft came out - not eleven. The bin is the
+            // point: 40 scrap metal sat there the whole time and the click did not touch it.
+            int made = countIn(player, RCItems.SCRAP_PLATING.get());
+            helper.assertTrue(made == 1,
+                "one shift-click should craft one batch, got " + made + ". A click that keeps going "
+                    + "until the network is empty cannot be undone");
+            helper.assertTrue(bin.amount() == 36,
+                "the bin should have paid for exactly the ONE refill, leaving 36, has " + bin.amount());
+
+            // And the convenience survives: the grid is stocked again, so the next click works without
+            // the player restocking by hand. That is the half that makes this a fix and not a removal.
+            for (int gridSlot : new int[] {1, 2, 4, 5}) {
+                helper.assertTrue(menu.getSlot(gridSlot).getItem().is(RCItems.SCRAP_METAL.get()),
+                    "grid slot " + gridSlot + " should have been restocked from the bin after the "
+                        + "click, holds " + menu.getSlot(gridSlot).getItem());
+            }
             helper.succeed();
         });
 
