@@ -22,6 +22,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -839,6 +840,36 @@ final class GemTierTests {
                     "Mechanical Waste went into the Separator and nothing came out");
                 helper.succeed();
             });
+        });
+
+        // The machine has two modes and one input queue, so an item that is BOTH sortable and
+        // separable would pick its mode by accident of which branch is written first. Nothing is both
+        // today; this is what keeps it that way, because the failure would be silent - a pack adding a
+        // separating recipe for a garbage block would find it quietly sorted instead.
+        RCGameTests.test("no_input_is_both_sortable_and_separable", 20, helper -> {
+            List<String> ambiguous = new ArrayList<>();
+            int checked = 0;
+            for (RecipeHolder<SeparatingRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
+                checked++;
+                for (Block block : BuiltInRegistries.BLOCK) {
+                    Item item = block.asItem();
+                    if (com.flatts.recompile.content.block.SortableBlock.sortRolls(item) > 0
+                            && holder.value().matches(
+                                new net.minecraft.world.item.crafting.SingleRecipeInput(
+                                    new ItemStack(item)), helper.getLevel())) {
+                        ambiguous.add(BuiltInRegistries.BLOCK.getKey(block) + " via " + holder.id());
+                    }
+                }
+            }
+            helper.assertTrue(checked > 0,
+                "no separating recipes found - discovery is broken, so this would pass against a "
+                    + "genuinely ambiguous input");
+            helper.assertTrue(ambiguous.isEmpty(),
+                "inputs that are both sortable and separable (" + ambiguous.size() + "): " + ambiguous
+                    + ". Sorting would win silently; decide which it should be rather than letting the "
+                    + "order of two branches decide");
+            helper.succeed();
         });
 
         // ONE chute, and everything leaves through it (owner, 2026-08-03). A recipe that produces a

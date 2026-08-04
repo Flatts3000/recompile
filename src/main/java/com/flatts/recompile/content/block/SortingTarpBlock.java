@@ -1,10 +1,8 @@
 package com.flatts.recompile.content.block;
 
-import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;

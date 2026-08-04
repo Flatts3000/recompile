@@ -188,6 +188,8 @@ public class SeparatorBlockEntity extends BlockEntity {
             return;
         }
         ItemStack stack = be.queue.get(head);
+        // Sorting wins if an item were somehow both. Nothing is today and a test keeps it that way -
+        // an ambiguous input would pick a mode by accident of this line rather than by decision.
         int rolls = SortableBlock.sortRolls(stack.getItem());
         RecipeHolder<SeparatingRecipe> match = rolls > 0 ? null : be.recipeFor(server, stack);
         if (match == null && rolls <= 0) {
@@ -277,7 +279,9 @@ public class SeparatorBlockEntity extends BlockEntity {
      * from this block.
      */
     private boolean accepts(ServerLevel level, ItemStack stack) {
-        return recipeFor(level, stack) != null || SortableBlock.sortRolls(stack.getItem()) > 0;
+        // sortRolls first: it is a handful of reference compares, where recipeFor walks every
+        // separating recipe. This runs per loose item and per container slot, every tick.
+        return SortableBlock.sortRolls(stack.getItem()) > 0 || recipeFor(level, stack) != null;
     }
 
     private @Nullable RecipeHolder<SeparatingRecipe> recipeFor(ServerLevel level, ItemStack stack) {
