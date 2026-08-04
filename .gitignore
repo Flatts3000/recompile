@@ -59,3 +59,6 @@ build_errors.txt
 # Raw screenshots behind the CurseForge gallery. Same rule as texgen's gen/ and art_src/: the source
 # material stays local, only the finished artifact is committed. These are 16MB of 2560px PNGs.
 docs/cf image gallery/_originals/
+
+# Playwright MCP scratch output (screenshots, snapshots) when driving Blockbench for branding.
+.playwright-mcp/
