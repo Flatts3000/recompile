@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Recompile showcase scenes - screenshot scaffolding, not shipped in the mod",
+    "min_format": 84,
+    "max_format": 84
+  }
+}
