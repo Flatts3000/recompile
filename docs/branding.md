@@ -6,7 +6,7 @@ constraint on this file rather than a preference.
 
 | Asset | What it is | How it is made |
 | --- | --- | --- |
-| `branding/logo.png` | 400x400 square. The **CurseForge project avatar**, and the in-jar mod-list icon (`src/main/resources/logo.png` is written from the same run) | Drawn from geometry by `branding/compose_logo.py` |
+| `branding/logo.png` | 400x400 square. The **CurseForge project avatar**, and the in-jar mod-list icon (`src/main/resources/logo.png` is written from the same run) | Artwork drawn from geometry by `branding/compose_logo.py`, with the wordmark composited over it |
 | `branding/wordmark_single_row.png` | 2048x352 transparent PNG. The full name, for the gallery, banners and any wide surface | Rendered in the Minecraft Title Generator, settings below |
 
 The gallery is real in-game screenshots and needs no tooling.
@@ -22,9 +22,16 @@ Everything is drawn on the 50x50 low-res grid before the upscale, so every edge 
 boundary - the same reason the Puzzle Cube's faces, the Luggage sprites and the pigeon's skin are
 procedural rather than generated.
 
-**Short text on the avatar is deliberate.** `REC` survives the 64x64 thumbnail, which is how most
-people meet a mod; the full name at that size is about seven pixels a letter and turns to mush. That is
-why the wordmark is a separate asset rather than the icon.
+**The avatar carries the full wordmark** (owner, 2026-08-04), composited over the pile after the
+upscale rather than stamped onto the low-res grid - it is a 3D render with real shading, and quantising
+it to 50x50 cells would destroy the bevel that makes it read as the Minecraft title font.
+
+It was `REC` first, on the reasoning that nine glyphs across a 64px icon is about six pixels a letter.
+Worth recording that the prediction was too pessimistic: the copper reads against the dark pile and the
+name is still legible in the thumbnail. `compose_logo.py` writes `gen/logo_64.png` on every run so that
+cost stays visible instead of being discovered later.
+
+The wordmark also ships on its own, for wide surfaces where a square crop would waste it.
 
 ## The wordmark
 
