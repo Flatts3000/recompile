@@ -418,19 +418,22 @@ size = 16
 [surface.bundle_open_front.procedural]
 style = "rolling_bag_open_front"
 
-# Source is parrot_GREY, and that is the whole fix for a pigeon that shipped invisible (#133,
-# 2026-08-04). Retint preserves LUMINANCE and recasts hue, so a saturated source comes back dark: the
-# blue parrot's body is (13,33,221), which is luma 42 - the retint faithfully produced a 20/255 grey
-# and the bird rendered as a black silhouette with no detail at all. The grey parrot's body is 144-187,
-# so it carries the shading that makes a retint read as feathers. Rule of thumb: retint from the
-# LIGHTEST, least saturated variant available, never from the one whose colour you happen to like.
+# PAINTED PER PART, not retinted (owner, 2026-08-04). A retint of the grey parrot gave a grey parrot:
+# a pigeon is a dark head, an iridescent neck, a pale mantle, two black wing bars and pink feet, and a
+# whole-image tint cannot express any of them. The style paints vanilla's parrot UV rectangles, which
+# are computed from the mesh definition rather than eyeballed.
+#
+# Two earlier lessons this replaces, kept because they still bind on every OTHER retint surface: retint
+# preserves LUMINANCE and recasts hue, so a saturated source comes back dark - the blue parrot's body is
+# (13,33,221), luma 42, and the retint faithfully produced a 20/255 grey that rendered as a black
+# silhouette. Retint from the LIGHTEST, least saturated variant available, never from the one whose
+# colour you happen to like.
 [surface.pigeon]
 kind = "entity"
-backend = "retint"
-size = 64
-tint = "#6b7079"
-source = "entity/parrot/parrot_grey"
-brightness = 1.3
+backend = "procedural"
+size = 32
+[surface.pigeon.procedural]
+style = "pigeon_skin"
 
 # Sourced from the CHICKEN egg, not the parrot's, for the same luminance reason the skin is sourced
 # from the grey parrot. Every spawn egg is the same silhouette, so the source only decides the tone: the

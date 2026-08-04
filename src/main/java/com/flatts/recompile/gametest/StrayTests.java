@@ -1,6 +1,9 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.entity.PigeonEntity;
+import com.flatts.recompile.content.entity.PigeonForageGoal;
+import com.flatts.recompile.registry.RCBlocks;
+import net.minecraft.world.level.block.state.BlockState;
 import com.flatts.recompile.registry.RCEntities;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +109,84 @@ final class StrayTests {
             helper.assertTrue(pigeon.isAlive(), "a freshly spawned pigeon must be alive");
             helper.assertTrue(pigeon.getMaxHealth() > 0,
                 "a pigeon with no attributes has no health - EntityAttributeCreationEvent is missing");
+            helper.succeed();
+        });
+
+        // A PIGEON MUST NOT EAT THE DUMP. Foraging deliberately rolls its own table rather than calling
+        // SortableBlock.sortOnce, because a real pull advances the sorted blockstate and eventually
+        // crumbles the block - so a bird that really sorted would quietly dismantle a player's garbage
+        // while they were away. The block must come out of a peck exactly as it went in.
+        //
+        // Asserted against the loot table rather than by running the goal, which needs pathing and a
+        // real walk. The destructive half is the part that matters and it is the part that is checkable.
+        RCGameTests.test("a_pigeon_forages_without_consuming_the_pile", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 2, 1);
+            helper.setBlock(pos, RCBlocks.GARBAGE_BLOCK.get());
+            BlockState before = helper.getBlockState(pos);
+
+            var level = helper.getLevel();
+            var table = level.getServer().reloadableRegistries()
+                .getLootTable(PigeonForageGoal.FORAGE_TABLE);
+            helper.assertTrue(table != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
+                "the pigeon forage table must exist, or a peck silently turns up nothing forever");
+
+            List<net.minecraft.world.item.Item> seen = new ArrayList<>();
+            for (int i = 0; i < 200; i++) {
+                var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+                    .withParameter(
+                        net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN,
+                        net.minecraft.world.phys.Vec3.atCenterOf(helper.absolutePos(pos)))
+                    .create(net.minecraft.world.level.storage.loot.parameters
+                        .LootContextParamSets.CHEST);
+                for (var stack : table.getRandomItems(params)) {
+                    if (!stack.isEmpty()) {
+                        seen.add(stack.getItem());
+                    }
+                }
+            }
+            helper.assertTrue(seen.size() > 150,
+                "the forage table yielded almost nothing over 200 rolls (" + seen.size() + ") - an "
+                    + "empty table is indistinguishable from a bird that never finds anything");
+
+            // The block is untouched: same state, same sorted count, still there.
+            helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), pos);
+            helper.assertTrue(helper.getBlockState(pos).equals(before),
+                "foraging must leave the pile exactly as it was - a pigeon that advances the sorted "
+                    + "count is a pigeon that eats an unattended dump");
+            helper.succeed();
+        });
+
+        // NOTHING VALUABLE COMES OUT OF A BIRD. The pigeon is ambiance, and the moment its table can
+        // hand out something worth waiting for, it is a farm instead. Guards the gem tier explicitly,
+        // since that is the line the rest of the mod is built to hold.
+        RCGameTests.test("a_pigeon_never_finds_anything_worth_farming", 20, helper -> {
+            var level = helper.getLevel();
+            var table = level.getServer().reloadableRegistries()
+                .getLootTable(PigeonForageGoal.FORAGE_TABLE);
+            List<String> rich = new ArrayList<>();
+            for (int i = 0; i < 300; i++) {
+                var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+                    .withParameter(
+                        net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN,
+                        net.minecraft.world.phys.Vec3.atCenterOf(helper.absolutePos(new BlockPos(1, 2, 1))))
+                    .create(net.minecraft.world.level.storage.loot.parameters
+                        .LootContextParamSets.CHEST);
+                for (var stack : table.getRandomItems(params)) {
+                    var item = stack.getItem();
+                    if (item == net.minecraft.world.item.Items.DIAMOND
+                        || item == net.minecraft.world.item.Items.EMERALD
+                        || item == net.minecraft.world.item.Items.LAPIS_LAZULI
+                        || item == net.minecraft.world.item.Items.REDSTONE
+                        || item == net.minecraft.world.item.Items.GOLD_INGOT
+                        || item == net.minecraft.world.item.Items.AMETHYST_SHARD
+                        || item == net.minecraft.world.item.Items.IRON_INGOT) {
+                        rich.add(item.toString());
+                    }
+                }
+            }
+            helper.assertTrue(rich.isEmpty(),
+                "a pigeon found " + rich + ". Everything in that list is gated on the demolition yard "
+                    + "or the Separator, and a bird is neither");
             helper.succeed();
         });
     }

@@ -18,6 +18,9 @@ public final class RCConfig {
      */
     public static final ModConfigSpec.BooleanValue GARBAGE_GRAVITY_ENABLED;
     public static final ModConfigSpec.BooleanValue ROACHES_ENABLED;
+    public static final ModConfigSpec.BooleanValue PIGEON_FORAGE_ENABLED;
+    public static final ModConfigSpec.IntValue PIGEON_FORAGE_INTERVAL_TICKS;
+    public static final ModConfigSpec.DoubleValue PIGEON_FORAGE_CHANCE;
     public static final ModConfigSpec.IntValue ROACH_CHANCE_DENOMINATOR;
 
     /**
@@ -120,6 +123,21 @@ public final class RCConfig {
                 "rate a player actually experiences is one roach per N/2.5 blocks. 320 is the tuned",
                 "target of roughly one roach per 128 blocks of garbage (owner, 2026-08-01).")
             .defineInRange("roachChanceDenominator", 320, 2, 10_000);
+        PIGEON_FORAGE_ENABLED = builder
+            .comment("Whether pigeons peck at nearby garbage piles and occasionally pull something out.")
+            .define("pigeonForageEnabled", true);
+        PIGEON_FORAGE_INTERVAL_TICKS = builder
+            .comment("Ticks a pigeon waits between foraging attempts. 1200 = one minute.",
+                "",
+                "This number and the one below are what keep the pigeon ambiance rather than a food",
+                "source. Anything producing an item on a timer is a resource if you leave it running,",
+                "and this mob was decided not to be one - so the default is roughly one item per bird",
+                "every five minutes, against a mob that is deliberately rare to begin with. Turning",
+                "either dial up makes pigeons a farm; that is a choice, not an accident.")
+            .defineInRange("pigeonForageIntervalTicks", 1200, 20, 24000);
+        PIGEON_FORAGE_CHANCE = builder
+            .comment("Chance a completed peck actually turns something up. The rest are just pecking.")
+            .defineInRange("pigeonForageChance", 0.2, 0.0, 1.0);
         builder.pop();
 
         builder.push("dimensions");
