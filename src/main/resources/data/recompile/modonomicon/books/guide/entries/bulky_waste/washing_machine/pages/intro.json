@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "intro",
+  "sort_number": 0,
+  "item": "recompile:washing_machine",
+  "title": "book.recompile.guide.bulky_waste.washing_machine.intro.title",
+  "text": "book.recompile.guide.bulky_waste.washing_machine.intro.text"
+}

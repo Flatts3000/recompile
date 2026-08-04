@@ -36,8 +36,6 @@ final class FoundToolTests {
 
     private static final String HOUSEHOLD_JSON =
         "/data/recompile/loot_table/gameplay/household_pulls.json";
-    private static final String WINDFALL_JSON =
-        "/data/recompile/loot_table/gameplay/bulky_windfall.json";
 
     private FoundToolTests() {
     }
@@ -66,6 +64,15 @@ final class FoundToolTests {
         // teaser. A set_damage function dropped from a table would hand out pristine tools and nothing
         // else would ever complain, because a pristine tool works perfectly - it is only the economy
         // that quietly changes.
+        //
+        // THE SPYGLASS IS EXEMPT, and it was the reason this test was passing for the wrong reason
+        // (2026-08-04). It checked that the JSON DECLARES set_damage, which the windfall table did -
+        // but a spyglass is registered stacksTo(1) with no durability at all, so
+        // SetItemDamageFunction.run takes its else branch, logs "Couldn't set damage of loot item" at
+        // WARN and hands over a pristine one anyway. The declaration was inert and the test was reading
+        // the intent rather than the outcome. The dead function is gone and the exemption is stated
+        // here, because "this tool cannot express wear" is a fact about vanilla, not a gap to fix.
+        // `no_loot_table_asks_an_item_for_damage_it_cannot_take` now guards the general case.
         RCGameTests.test("a_found_tool_arrives_used", 20, helper -> {
             List<String> pristine = new ArrayList<>();
             for (Item tool : List.of(Items.SHEARS, Items.FLINT_AND_STEEL)) {
@@ -73,9 +80,9 @@ final class FoundToolTests {
                     pristine.add(tool.toString());
                 }
             }
-            if (!hasSetDamage(WINDFALL_JSON, Items.SPYGLASS)) {
-                pristine.add(Items.SPYGLASS.toString());
-            }
+            helper.assertFalse(new ItemStack(Items.SPYGLASS).isDamageableItem(),
+                "the spyglass gained durability in this MC version, so it can carry wear now and "
+                    + "belongs back under the rule above rather than in this exemption");
             helper.assertTrue(pristine.isEmpty(),
                 "found tools that come out undamaged: " + pristine
                     + ". A found tool is a used tool; a pristine one is a crafted tool you did not pay "

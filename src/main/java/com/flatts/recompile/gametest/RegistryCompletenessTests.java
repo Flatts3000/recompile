@@ -332,6 +332,65 @@ final class RegistryCompletenessTests {
             helper.succeed();
         });
 
+        // A LOOT FUNCTION THAT THE ITEM CANNOT ANSWER DOES NOTHING AND SAYS NOTHING USEFUL.
+        // {@code set_damage} on an item with no durability is the case that shipped: the windfall pool
+        // handed out a spyglass at 20-60% wear, and a spyglass is registered {@code stacksTo(1)} with no
+        // durability at all, so {@code SetItemDamageFunction.run} took its else branch and logged
+        // "Couldn't set damage of loot item" at WARN. The player always got a pristine one, the
+        // guidebook said otherwise, and the only evidence was a line in the server log that names
+        // neither the table nor the reason.
+        //
+        // Written as a sweep rather than a fix for that one entry, because the shape generalises: the
+        // JSON is valid, the table loads, the drop happens, and the only thing that does not happen is
+        // the part someone wrote on purpose.
+        RCGameTests.test("no_loot_table_asks_an_item_for_damage_it_cannot_take", 20, helper -> {
+            List<String> problems = new ArrayList<>();
+            int seen = 0;
+            for (java.nio.file.Path file : lootTableFiles(helper)) {
+                String json;
+                try {
+                    json = java.nio.file.Files.readString(file, java.nio.charset.StandardCharsets.UTF_8);
+                } catch (java.io.IOException e) {
+                    problems.add(file + " unreadable: " + e);
+                    continue;
+                }
+                seen++;
+                // Each entry is "name": "<item>" followed, if at all, by its own functions block. Pair
+                // them by scanning forward from the item to the next item, so a set_damage is attributed
+                // to the entry it actually sits in.
+                java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("\"name\"\\s*:\\s*\"([a-z0-9_.-]+:[a-z0-9_/.-]+)\"").matcher(json);
+                List<Integer> starts = new ArrayList<>();
+                List<String> names = new ArrayList<>();
+                while (m.find()) {
+                    starts.add(m.start());
+                    names.add(m.group(1));
+                }
+                for (int i = 0; i < names.size(); i++) {
+                    int from = starts.get(i);
+                    int to = i + 1 < starts.size() ? starts.get(i + 1) : json.length();
+                    if (!json.substring(from, to).contains("minecraft:set_damage")) {
+                        continue;
+                    }
+                    Identifier id = Identifier.tryParse(names.get(i));
+                    Item item = id == null ? null : BuiltInRegistries.ITEM.getValue(id);
+                    if (item == null) {
+                        continue;   // a tag or a table reference, not an item entry
+                    }
+                    if (!new net.minecraft.world.item.ItemStack(item).isDamageableItem()) {
+                        problems.add(file.getFileName() + " sets damage on " + names.get(i)
+                            + ", which has no durability - the function is skipped with a WARN");
+                    }
+                }
+            }
+            helper.assertTrue(seen > 10,
+                "only " + seen + " loot tables were read - discovery is broken, so this would pass "
+                    + "against a mod whose every table sets damage on a rock");
+            helper.assertTrue(problems.isEmpty(),
+                "loot functions the item cannot perform (" + problems.size() + "): " + problems);
+            helper.succeed();
+        });
+
         // A block with no item cannot be held, crafted into anything, or put in the creative tab.
         // Some legitimately should not be - but each of those is a decision, so they are named in
         // NO_ITEM_FORM rather than the test being loosened to accommodate them.
@@ -653,6 +712,34 @@ final class RegistryCompletenessTests {
         return (rendered.startsWith("item.") || rendered.startsWith("block."))
             && rendered.contains(".")
             && !rendered.contains(" ");
+    }
+
+    /**
+     * Every loot table this mod ships, as real paths.
+     *
+     * <p>Anchored on a file rather than the directory: asking the classloader for a directory does not
+     * reliably return a URL under NeoForge's union filesystem, and a sweep that silently finds nothing
+     * is the failure this class exists to prevent - hence the count assertion at the call site.
+     */
+    private static List<java.nio.file.Path> lootTableFiles(GameTestHelper helper) {
+        List<java.nio.file.Path> out = new ArrayList<>();
+        java.net.URL anchor = RegistryCompletenessTests.class.getResource(
+            "/data/" + Recompile.MOD_ID + "/loot_table/gameplay/bulky_windfall.json");
+        if (anchor == null) {
+            helper.fail("the loot tables are not on the classpath");
+            return out;
+        }
+        try (java.util.stream.Stream<java.nio.file.Path> walk = java.nio.file.Files.walk(
+                java.nio.file.Path.of(anchor.toURI()).getParent().getParent())) {
+            for (java.nio.file.Path path : walk.filter(java.nio.file.Files::isRegularFile).toList()) {
+                if (path.toString().endsWith(".json")) {
+                    out.add(path);
+                }
+            }
+        } catch (java.io.IOException | java.net.URISyntaxException e) {
+            helper.fail("could not walk the loot tables: " + e);
+        }
+        return out;
     }
 
     private static boolean resourceExists(String path) {

@@ -386,43 +386,63 @@ source = "entity/silverfish/silverfish"
 # it a reflavour rather than a new item: every recipe, tag and mod that references a bundle keeps
 # working, and a resource pack can put the bundle back in one line because mod resources load below
 # packs.
+# A ROLLING BAG, not a retinted pouch (owner, 2026-08-04). The first pass recoloured vanilla's
+# drawstring bundle, which read as exactly what it was. Luggage in a dump is a wheeled suitcase.
+#
+# PROCEDURAL, and that is the load-bearing choice. The bundle renders as a sandwich - open_back, then
+# whatever item is inside, then open_front - so the three sprites must register to the pixel. Generated
+# separately they come back as three different suitcases; drawn from one coordinate model in code they
+# cannot disagree. The row bands are taken from vanilla's own sprites so the contents still sit in the
+# bag rather than floating outside it.
 [surface.bundle]
 kind = "item"
 namespace = "minecraft"
-backend = "retint"
+backend = "procedural"
 size = 16
-tint = "#c8c2b6"
-source = "item/bundle"
+[surface.bundle.procedural]
+style = "rolling_bag_closed"
 
 [surface.bundle_open_back]
 kind = "item"
 namespace = "minecraft"
-backend = "retint"
+backend = "procedural"
 size = 16
-tint = "#c8c2b6"
-source = "item/bundle_open_back"
+[surface.bundle_open_back.procedural]
+style = "rolling_bag_open_back"
 
 [surface.bundle_open_front]
 kind = "item"
 namespace = "minecraft"
-backend = "retint"
+backend = "procedural"
 size = 16
-tint = "#c8c2b6"
-source = "item/bundle_open_front"
+[surface.bundle_open_front.procedural]
+style = "rolling_bag_open_front"
 
+# Source is parrot_GREY, and that is the whole fix for a pigeon that shipped invisible (#133,
+# 2026-08-04). Retint preserves LUMINANCE and recasts hue, so a saturated source comes back dark: the
+# blue parrot's body is (13,33,221), which is luma 42 - the retint faithfully produced a 20/255 grey
+# and the bird rendered as a black silhouette with no detail at all. The grey parrot's body is 144-187,
+# so it carries the shading that makes a retint read as feathers. Rule of thumb: retint from the
+# LIGHTEST, least saturated variant available, never from the one whose colour you happen to like.
 [surface.pigeon]
 kind = "entity"
 backend = "retint"
 size = 64
 tint = "#6b7079"
-source = "entity/parrot/parrot_blue"
+source = "entity/parrot/parrot_grey"
+brightness = 1.3
 
+# Sourced from the CHICKEN egg, not the parrot's, for the same luminance reason the skin is sourced
+# from the grey parrot. Every spawn egg is the same silhouette, so the source only decides the tone: the
+# parrot egg averages luma 78 and retinted to slate it came back a black blob in the hotbar, while the
+# chicken egg averages 160 and keeps its speckles. Bird either way.
 [surface.pigeon_spawn_egg]
 kind = "item"
 backend = "retint"
 size = 16
 tint = "#6b7079"
-source = "item/parrot_spawn_egg"
+source = "item/chicken_spawn_egg"
+brightness = 1.6
 
 [surface.roach_spawn_egg]
 kind = "item"

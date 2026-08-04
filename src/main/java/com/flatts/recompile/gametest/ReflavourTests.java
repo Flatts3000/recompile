@@ -85,6 +85,37 @@ final class ReflavourTests {
             helper.assertTrue(problems.isEmpty(), "broken luggage definitions: " + problems);
             helper.succeed();
         });
+
+        // A RENAME BREAKS SEARCH, and that is the part of a reflavour that costs a player something.
+        // Everything they know about a lead is filed under the word "lead", so the item has to keep
+        // answering to it. The JEI plugin that registers these only loads when JEI is installed and is
+        // invisible to every test layer here, which is exactly why the data lives outside it.
+        RCGameTests.test("renamed_items_still_answer_to_their_old_names", 20, helper -> {
+            var aliases = com.flatts.recompile.compat.SearchAliases.all();
+            helper.assertTrue(aliases.containsKey(Items.LEAD),
+                "a lead must be searchable as 'lead' - it is the only name a player has for it");
+            helper.assertTrue(aliases.size() >= 18,
+                "one lead plus seventeen bundles should carry an alias, got " + aliases.size()
+                    + ". They are found by registry suffix, so a short count means the sweep missed");
+
+            List<String> problems = new ArrayList<>();
+            for (var entry : aliases.entrySet()) {
+                // The alias is a TRANSLATION KEY, so an unresolvable one registers the raw key as the
+                // search term and the item answers to "recompile.alias.lead" instead of to "lead".
+                String resolved = Component.translatable(entry.getValue()).getString();
+                if (resolved.equals(entry.getValue())) {
+                    problems.add(entry.getValue() + " does not resolve");
+                }
+                // And it has to be the OLD name. An alias equal to the new name is a no-op that looks
+                // like a working feature.
+                String current = new ItemStack(entry.getKey()).getHoverName().getString();
+                if (resolved.equalsIgnoreCase(current)) {
+                    problems.add(entry.getValue() + " is just the new name (" + current + ")");
+                }
+            }
+            helper.assertTrue(problems.isEmpty(), "broken search aliases: " + problems);
+            helper.succeed();
+        });
     }
 
     private static @org.jspecify.annotations.Nullable JsonObject read(String path) {

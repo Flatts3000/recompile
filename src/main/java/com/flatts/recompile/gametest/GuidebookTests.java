@@ -46,6 +46,9 @@ final class GuidebookTests {
     /** Any of this mod's guidebook lang keys, wherever it appears in the JSON. */
     private static final Pattern LANG_KEY =
         Pattern.compile("\"(book\\." + Recompile.MOD_ID + "\\.[A-Za-z0-9_.]+)\"");
+    /** A {@code "entry": "<id>"} inside an entry's parents list. */
+    private static final Pattern PARENT_ENTRY =
+        Pattern.compile("\"entry\"\\s*:\\s*\"([a-z0-9_.-]+:[a-z0-9_/.-]+)\"");
     /** An {@code "id": "<namespace>:<path>"} pair, which in this book is always an item icon. */
     private static final Pattern ICON_ID =
         Pattern.compile("\"id\"\\s*:\\s*\"([a-z0-9_.-]+:[a-z0-9_/.-]+)\"");
@@ -105,6 +108,102 @@ final class GuidebookTests {
             }
             report(helper, unknown, "guidebook icons naming an item that does not exist");
         });
+
+        // THE BOOK'S INTERNAL LINKS. An entry filed under a category that does not exist simply never
+        // appears, and a parent naming an entry that does not exist draws a line to nowhere - both
+        // silent, both exactly the mistake a restructure makes. The Bulky Waste chapter moved seven
+        // entries at once (2026-08-04) and nothing mechanical would have caught a typo in any of them.
+        RCGameTests.test("every_guidebook_entry_is_wired_up", 20, helper -> {
+            Path root = bookRoot(helper);
+            if (root == null) {
+                return;
+            }
+            Set<String> categories = new LinkedHashSet<>();
+            Set<String> entries = new LinkedHashSet<>();
+            List<Path> entryFiles = new ArrayList<>();
+            try (Stream<Path> walk = Files.walk(root)) {
+                for (Path path : walk.filter(Files::isRegularFile).toList()) {
+                    String name = path.getFileName().toString();
+                    if (!name.endsWith(".json")) {
+                        continue;
+                    }
+                    Path parent = path.getParent();
+                    if (parent.getFileName().toString().equals("categories")) {
+                        categories.add(Recompile.MOD_ID + ":" + name.substring(0, name.length() - 5));
+                    } else if (parent.getParent() != null
+                        && parent.getParent().getFileName().toString().equals("entries")) {
+                        entryFiles.add(path);
+                        entries.add(Recompile.MOD_ID + ":" + parent.getFileName() + "/"
+                            + name.substring(0, name.length() - 5));
+                    }
+                }
+            } catch (IOException e) {
+                helper.fail("could not walk the guidebook: " + e);
+                return;
+            }
+            helper.assertTrue(categories.size() > 5 && entries.size() > 20,
+                "found " + categories.size() + " categories and " + entries.size() + " entries - "
+                    + "discovery is broken, so this would pass against an empty book");
+
+            List<String> problems = new ArrayList<>();
+            for (Path file : entryFiles) {
+                String json;
+                try {
+                    json = Files.readString(file, StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    problems.add(file + " unreadable: " + e);
+                    continue;
+                }
+                String id = field(json, "id");
+                String category = field(json, "category");
+                if (category != null && !categories.contains(category)) {
+                    problems.add(id + " is filed under " + category + ", which has no category file");
+                }
+                Matcher m = PARENT_ENTRY.matcher(json);
+                while (m.find()) {
+                    if (!entries.contains(m.group(1))) {
+                        problems.add(id + " has a parent " + m.group(1) + " that does not exist");
+                    }
+                }
+                // An entry does not list its pages - the directory is scanned - so an entry with no
+                // pages directory is a node that opens onto nothing.
+                String name = file.getFileName().toString();
+                Path pages = file.getParent().resolve(name.substring(0, name.length() - 5))
+                    .resolve("pages");
+                boolean hasPage = false;
+                if (Files.isDirectory(pages)) {
+                    try (Stream<Path> inside = Files.list(pages)) {
+                        hasPage = inside.anyMatch(p -> p.toString().endsWith(".json"));
+                    } catch (IOException ignored) {
+                        hasPage = false;
+                    }
+                }
+                if (!hasPage) {
+                    problems.add(id + " has no pages, so it opens blank");
+                }
+            }
+            report(helper, problems, "guidebook entries that are not wired up");
+        });
+    }
+
+    /** {@code "<key>": "<value>"} at the top level of an entry file. */
+    private static @org.jspecify.annotations.Nullable String field(String json, String key) {
+        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]+)\"").matcher(json);
+        return m.find() ? m.group(1) : null;
+    }
+
+    private static @org.jspecify.annotations.Nullable Path bookRoot(GameTestHelper helper) {
+        URL anchor = GuidebookTests.class.getResource(BOOK_ROOT + "/book.json");
+        if (anchor == null) {
+            helper.fail("the guidebook is not on the classpath at " + BOOK_ROOT + "/book.json");
+            return null;
+        }
+        try {
+            return Path.of(anchor.toURI()).getParent();
+        } catch (java.net.URISyntaxException e) {
+            helper.fail("could not resolve the guidebook root: " + e);
+            return null;
+        }
     }
 
     /**
