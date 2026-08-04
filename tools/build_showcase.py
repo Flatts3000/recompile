@@ -143,15 +143,38 @@ class Scene:
     layers: list[list[str]]          # index 0 is the BOTTOM layer
     camera: Camera
     paintings: list[Painting] = field(default_factory=list)
+    cells: dict[tuple[int, int, int], str] = field(default_factory=dict)
     block_entities: dict[tuple[int, int, int], dict] = field(default_factory=dict)
     time: str = "noon"
     weather: str = "clear"
     clearance: int = 6   # blocks of air cut around the set before it is placed
 
     def size(self) -> tuple[int, int, int]:
-        depth = max(len(layer) for layer in self.layers)
-        width = max(len(row) for layer in self.layers for row in layer)
-        return width, len(self.layers), depth
+        width = height = depth = 0
+        for y, layer in enumerate(self.layers):
+            height = max(height, y + 1)
+            for z, row in enumerate(layer):
+                depth = max(depth, z + 1)
+                width = max(width, len(row))
+        for x, y, z in self.cells:
+            width, height, depth = max(width, x + 1), max(height, y + 1), max(depth, z + 1)
+        return width, height, depth
+
+    def occupied(self) -> dict[tuple[int, int, int], str]:
+        """Every filled cell, layers first and then `cells`, which wins on a clash.
+
+        Two ways in on purpose. Walls and floors are grids and read best as aligned text; mounds,
+        scatter and tree canopies are round and would be unreadable spelled out layer by layer.
+        """
+        out: dict[tuple[int, int, int], str] = {}
+        for y, layer in enumerate(self.layers):
+            for z, row in enumerate(layer):
+                for x, char in enumerate(row):
+                    spec = self.legend[char]
+                    if spec is not None:
+                        out[(x, y, z)] = spec
+        out.update(self.cells)
+        return out
 
 
 def parse_state(spec: str) -> dict:
@@ -171,20 +194,17 @@ def build_structure(scene: Scene) -> dict:
     index_of: dict[str, int] = {}
     blocks: list[dict] = []
 
-    for y, layer in enumerate(scene.layers):
-        for z, row in enumerate(layer):
-            for x, char in enumerate(row):
-                spec = scene.legend[char]
-                if spec is None:
-                    continue      # absent from `blocks`, so /place leaves whatever is there
-                if spec not in index_of:
-                    index_of[spec] = len(palette)
-                    palette.append(parse_state(spec))
-                entry = {"state": index_of[spec], "pos": [x, y, z]}
-                extra = scene.block_entities.get((x, y, z))
-                if extra:
-                    entry["nbt"] = extra
-                blocks.append(entry)
+    # Sorted so the file is byte-stable across runs: an unordered dict would reshuffle `blocks` and
+    # make every rebuild look like a change in the diff.
+    for pos, spec in sorted(scene.occupied().items()):
+        if spec not in index_of:
+            index_of[spec] = len(palette)
+            palette.append(parse_state(spec))
+        entry = {"state": index_of[spec], "pos": list(pos)}
+        extra = scene.block_entities.get(pos)
+        if extra:
+            entry["nbt"] = extra
+        blocks.append(entry)
 
     width, height, depth = scene.size()
     return {
@@ -204,13 +224,7 @@ def validate(scene: Scene) -> list[str]:
     the whole reason this function exists: the failure looks identical to a typo in a variant name.
     """
     problems: list[str] = []
-    filled = {
-        (x, y, z)
-        for y, layer in enumerate(scene.layers)
-        for z, row in enumerate(layer)
-        for x, char in enumerate(row)
-        if scene.legend[char] is not None
-    }
+    filled = set(scene.occupied())
 
     for painting in scene.paintings:
         # The wall is one block behind the painting, opposite the way it faces.
@@ -270,7 +284,11 @@ def build_function(scene: Scene) -> str:
     width, height, depth = scene.size()
     m = scene.clearance
     lines += [
-        f"fill {ox - m} {oy} {oz - m} {ox + width + m} {oy + height + m} {oz + depth + m} air",
+        # Headroom is not the same dial as margin. A scene with clearance 0 still has to clear what
+        # is ABOVE it, or an overhanging mound stays put and hangs over the set; it just must not cut
+        # sideways into terrain that is part of the shot.
+        f"fill {ox - m} {oy} {oz - m} "
+        f"{ox + width + m} {oy + height + max(m, 8)} {oz + depth + m} air",
         "",
         f"place template recompile:showcase/{scene.name} {ox} {oy} {oz}",
         "",
@@ -361,7 +379,127 @@ MUSEUM = Scene(
     camera=Camera(pos=(6.5, 5.5, 10.5), yaw=180.0, pitch=0.0),
 )
 
-SCENES = [MUSEUM]
+
+# ---------------------------------------------------------------- terrain helpers
+
+def plane(width: int, depth: int, y: int, block: str) -> dict:
+    return {(x, y, z): block for x in range(width) for z in range(depth)}
+
+
+def mound(cx: int, cz: int, y: int, radius: int, block: str) -> dict:
+    """A dome of garbage. Rounded rather than a cube because a cube reads as a building."""
+    out = {}
+    for dx in range(-radius, radius + 1):
+        for dz in range(-radius, radius + 1):
+            distance = (dx * dx + dz * dz) ** 0.5
+            if distance > radius + 0.4:
+                continue
+            for dy in range(int(round(radius - distance)) + 1):
+                out[(cx + dx, y + dy, cz + dz)] = block
+    return out
+
+
+def tree(x: int, y: int, z: int, height: int = 5) -> dict:
+    """Oak, placed as logs and leaves. A sapling would not do: in this world nothing grows on its own
+    and a structure cannot wait for one anyway."""
+    out = {(x, y + i, z): "minecraft:oak_log" for i in range(height)}
+    for dy in (height - 2, height - 1):
+        spread = 2 if dy == height - 2 else 1
+        for dx in range(-spread, spread + 1):
+            for dz in range(-spread, spread + 1):
+                if abs(dx) == spread and abs(dz) == spread:
+                    continue
+                out.setdefault((x + dx, y + dy, z + dz), "minecraft:oak_leaves[persistent=true]")
+    out[(x, y + height, z)] = "minecraft:oak_leaves[persistent=true]"
+    return out
+
+
+def scatter(rng, positions, block: str, chance: float) -> dict:
+    return {pos: block for pos in positions if rng.random() < chance}
+
+
+# ---------------------------------------------------------------- the reclamation pair
+
+# The mod's whole argument in two frames: one plot, shot before and after, from a camera that is
+# identical to the pixel. That last part is the only reason this is worth automating - two hand-flown
+# screenshots are never quite the same shot, and the comparison is exactly what a viewer is being asked
+# to make.
+#
+# CLEARANCE IS 0 ON BOTH, and that is not an oversight. The museum cuts a six block hole to escape the
+# terrain; this pair IS the terrain, and a fill would erase its own subject.
+PLOT_W, PLOT_D = 21, 19
+PLOT_ORIGIN = (200, 120, 200)
+# Level with the ground and pulled back, looking slightly down: high enough to read the plot as a
+# landscape, low enough that it is not a map.
+PLOT_CAMERA = Camera(pos=(10.5, 7.0, 27.0), yaw=180.0, pitch=18.0)
+
+
+def _before_cells() -> dict:
+    import random
+    rng = random.Random(2026)
+    cells = plane(PLOT_W, PLOT_D, 0, "minecraft:coarse_dirt")
+    for cx, cz, r in ((5, 6, 3), (14, 5, 2), (9, 13, 3), (17, 14, 2)):
+        cells.update(mound(cx, cz, 1, r, "recompile:garbage_block"))
+    flat = [(x, 1, z) for x in range(PLOT_W) for z in range(PLOT_D) if (x, 1, z) not in cells]
+    cells.update(scatter(rng, flat, "recompile:trash_bag", 0.03))
+    cells.update(scatter(rng, [p for p in flat if p not in cells], "recompile:bulky_waste", 0.012))
+    return cells
+
+
+def _after_cells() -> dict:
+    import random
+    rng = random.Random(2026)
+    cells = plane(PLOT_W, PLOT_D, 0, "minecraft:grass_block")
+
+    # A coarse dirt fringe, because healed ground really does stop somewhere. Encroachment is a
+    # mechanic in this mod and a plot healed edge to edge would be a picture of something the game
+    # does not do.
+    for x in range(PLOT_W):
+        for z in range(PLOT_D):
+            if x < 2 or x >= PLOT_W - 2 or z < 2 or z >= PLOT_D - 2:
+                cells[(x, 0, z)] = "minecraft:coarse_dirt"
+
+    green = [(x, 1, z) for x in range(3, PLOT_W - 3) for z in range(3, PLOT_D - 3)]
+    cells.update(scatter(rng, green, "recompile:weedgrass", 0.22))
+    cells.update(scatter(rng, [p for p in green if p not in cells], "recompile:fireweed", 0.07))
+
+    # A worked plot: wet farmland under grown wheat.
+    for x in range(4, 9):
+        for z in range(4, 7):
+            cells[(x, 0, z)] = "minecraft:farmland[moisture=7]"
+            cells[(x, 1, z)] = "minecraft:wheat[age=7]"
+
+    cells.update(tree(15, 1, 7))
+    cells.update(tree(12, 1, 14, height=4))
+
+    # One mound kept. Reclaiming a plot retires the garbage it was making, so a player who wants both
+    # leaves one standing - and the picture should say that rather than pretend the dump is gone.
+    cells.update(mound(17, 4, 1, 2, "recompile:garbage_block"))
+    return cells
+
+
+RECLAIM_BEFORE = Scene(
+    name="reclaim_before",
+    origin=PLOT_ORIGIN,
+    legend={},
+    layers=[],
+    cells=_before_cells(),
+    camera=PLOT_CAMERA,
+    clearance=0,
+)
+
+RECLAIM_AFTER = Scene(
+    name="reclaim_after",
+    origin=PLOT_ORIGIN,
+    legend={},
+    layers=[],
+    cells=_after_cells(),
+    camera=PLOT_CAMERA,
+    clearance=0,
+)
+
+
+SCENES = [MUSEUM, RECLAIM_BEFORE, RECLAIM_AFTER]
 
 
 def main() -> None:

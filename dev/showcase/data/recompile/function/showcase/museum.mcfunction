@@ -10,7 +10,7 @@ weather clear
 # hanging a second set on top of the first.
 kill @e[type=minecraft:painting,distance=..64]
 
-fill -6 120 -6 19 138 22 air
+fill -6 120 -6 19 140 22 air
 
 place template recompile:showcase/museum 0 120 0
 
