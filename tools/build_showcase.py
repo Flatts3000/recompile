@@ -148,6 +148,7 @@ class Scene:
     time: str = "noon"
     weather: str = "clear"
     clearance: int = 6   # blocks of air cut around the set before it is placed
+    anchor: str = "absolute"   # or "player": placed at your feet, framed relative to the plot
 
     def size(self) -> tuple[int, int, int]:
         width = height = depth = 0
@@ -256,6 +257,23 @@ def validate(scene: Scene) -> list[str]:
 
 
 def build_function(scene: Scene) -> str:
+    """The commands that place a scene and put you at its camera.
+
+    ANCHOR IS THE INTERESTING PART. A set that wants a clean backdrop is placed at fixed coordinates
+    high in the air. A scene that is ABOUT the terrain cannot be: floated, it reads as an island, with
+    a slab edge across the bottom of the frame and sky where the world should be. Those want to sit in
+    real ground, and the tool has no way to know how high the ground is - so they anchor to wherever
+    you are standing and frame relative to the plot instead. An A/B pair stays honest under that as
+    long as you do not move between the two commands, which is the same discipline as not nudging a
+    tripod.
+    """
+    relative = scene.anchor == "player"
+
+    # Same arithmetic either way; only the prefix differs. In relative mode `origin` is an offset
+    # from where you stand rather than a world position.
+    def coord(base: int, offset: float) -> str:
+        return f"~{base + offset:g}" if relative else f"{base + offset:g}"
+
     ox, oy, oz = scene.origin
     cx, cy, cz = scene.camera.pos
     lines = [
@@ -287,21 +305,23 @@ def build_function(scene: Scene) -> str:
         # Headroom is not the same dial as margin. A scene with clearance 0 still has to clear what
         # is ABOVE it, or an overhanging mound stays put and hangs over the set; it just must not cut
         # sideways into terrain that is part of the shot.
-        f"fill {ox - m} {oy} {oz - m} "
-        f"{ox + width + m} {oy + height + max(m, 8)} {oz + depth + m} air",
+        f"fill {coord(ox, -m)} {coord(oy, 0)} {coord(oz, -m)} "
+        f"{coord(ox, width + m)} {coord(oy, height + max(m, 8))} {coord(oz, depth + m)} air",
         "",
-        f"place template recompile:showcase/{scene.name} {ox} {oy} {oz}",
+        f"place template recompile:showcase/{scene.name} "
+        f"{coord(ox, 0)} {coord(oy, 0)} {coord(oz, 0)}",
         "",
     ]
     for painting in scene.paintings:
         ax, ay, az = painting.anchor()
         facing = FACING_ID[painting.facing]
         lines.append(
-            f"summon minecraft:painting {ox + ax} {oy + ay} {oz + az} "
+            f"summon minecraft:painting {coord(ox, ax)} {coord(oy, ay)} {coord(oz, az)} "
             f'{{facing:{facing}b, variant:"{painting.variant}"}}'
         )
     lines += ["",
-              f"tp @s {ox + cx} {oy + cy} {oz + cz} {scene.camera.yaw} {scene.camera.pitch}", ""]
+              f"tp @s {coord(ox, cx)} {coord(oy, cy)} {coord(oz, cz)} "
+              f"{scene.camera.yaw} {scene.camera.pitch}", ""]
     return "\n".join(lines)
 
 
@@ -428,10 +448,14 @@ def scatter(rng, positions, block: str, chance: float) -> dict:
 # CLEARANCE IS 0 ON BOTH, and that is not an oversight. The museum cuts a six block hole to escape the
 # terrain; this pair IS the terrain, and a fill would erase its own subject.
 PLOT_W, PLOT_D = 21, 19
-PLOT_ORIGIN = (200, 120, 200)
-# Level with the ground and pulled back, looking slightly down: high enough to read the plot as a
-# landscape, low enough that it is not a map.
-PLOT_CAMERA = Camera(pos=(10.5, 7.0, 27.0), yaw=180.0, pitch=18.0)
+# y = -1 so the plot's ground layer REPLACES the block you are standing on rather than being laid on
+# top of it, which would bury you in your own scene.
+PLOT_ORIGIN = (0, -1, 0)
+# EYE HEIGHT, NOT A DRONE. The first version looked down from six blocks up and the plot read as a
+# floating island: a slab of coarse dirt across the bottom of the frame and sky above it. Standing on
+# the ground and looking across puts the plot underfoot and the dump on the horizon behind it, which
+# is the comparison the pair is for.
+PLOT_CAMERA = Camera(pos=(10.5, 2.6, 26.0), yaw=180.0, pitch=4.0)
 
 
 def _before_cells() -> dict:
@@ -486,6 +510,7 @@ RECLAIM_BEFORE = Scene(
     cells=_before_cells(),
     camera=PLOT_CAMERA,
     clearance=0,
+    anchor="player",
 )
 
 RECLAIM_AFTER = Scene(
@@ -496,6 +521,7 @@ RECLAIM_AFTER = Scene(
     cells=_after_cells(),
     camera=PLOT_CAMERA,
     clearance=0,
+    anchor="player",
 )
 
 

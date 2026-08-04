@@ -10,9 +10,9 @@ weather clear
 # hanging a second set on top of the first.
 kill @e[type=minecraft:painting,distance=..64]
 
-fill 200 120 200 221 135 219 air
+fill ~0 ~-1 ~0 ~21 ~14 ~19 air
 
-place template recompile:showcase/reclaim_after 200 120 200
+place template recompile:showcase/reclaim_after ~0 ~-1 ~0
 
 
-tp @s 210.5 127.0 227.0 180.0 18.0
+tp @s ~10.5 ~1.6 ~26 180.0 4.0
