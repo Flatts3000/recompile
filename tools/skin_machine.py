@@ -72,9 +72,21 @@ class Machine:
     """A machine's shape plus which formed block sits at each cell."""
 
     def __init__(self, name, width, height, depth, positions, cells, fallback, shapes=None,
-                 bay=None, core=None):
+                 bay=None, core=None, skin_height=None, active_face=None):
         self.name = name
         self.w, self.h, self.d = width, height, depth
+        # How many rows UP FROM THE BOTTOM the sheets cover. Defaults to the whole machine.
+        #
+        # A machine is not always skinnable all the way up: the Tree Nursery's top row is two Solar
+        # Panels, and a Solar Panel is the same block you place on its own and that the Grass Spreader
+        # also uses, so it cannot carry a per-machine tile without changing every panel in the world.
+        # Its sheets therefore cover the bottom row only. `height` stays the TRUE height, because that
+        # is what decides which faces are on the outside.
+        self.skin_h = skin_height if skin_height is not None else height
+        # A face that also ships an `_active` sheet, for a machine whose running state is a change in
+        # its skin rather than a separate model. The nursery's only running cue is its window lighting
+        # up, so losing it to the skin would cost the machine its readability.
+        self.active_face = active_face
         self.positions = set(positions) | {(0, 0, 0)} | set(cells)
         self.cells = cells          # {(x, y, z): part-name} - only the cells this tool skins
         self.fallback = fallback    # texture id used where a face has no sheet
@@ -121,7 +133,7 @@ class Machine:
 
     def sheet_size(self, face):
         hor, ver, _ = FACE_AXES[face]
-        span = {'x': self.w, 'y': self.h, 'z': self.d}
+        span = {'x': self.w, 'y': self.skin_h, 'z': self.d}
         return span[hor] * 16, span[ver] * 16
 
     def tile_at(self, face, x, y, z):
@@ -134,14 +146,18 @@ class Machine:
             u = span[hor] - 1 - u
         v = pos[ver]
         # Image rows run downward and the machine's y runs upward, so the top row of a side sheet is
-        # the machine's top layer. Get this wrong and the skin is upside down but still "works".
+        # the machine's top skinned layer. Get this wrong and the skin is upside down but still "works".
         if ver == 'y':
-            v = self.h - 1 - v
+            v = self.skin_h - 1 - v
         return u, v
 
+    def skinned(self, x, y, z):
+        """Whether this cell is inside the region the sheets cover."""
+        return y < self.skin_h
 
-def load_sheet(machine, face):
-    path = os.path.join(SHEETS, '%s_skin_%s.png' % (machine.name, face))
+
+def load_sheet(machine, face, variant=''):
+    path = os.path.join(SHEETS, '%s_skin_%s%s.png' % (machine.name, face, variant))
     if not os.path.exists(path):
         return None
     sheet = Image.open(path).convert('RGBA')
@@ -228,7 +244,7 @@ def emit_bay(machine, sheets, bay_cells):
     print('bay: 4 quadrants x idle/running, %d skin tiles' % made)
 
 
-def emit_core(machine, sheets):
+def emit_core(machine, sheets, active=None):
     """The core's FORMED model: it wears the skin like every other cell.
 
     The core is part of the machine's surface, and a core that keeps its own control panel is the one
@@ -255,26 +271,49 @@ def emit_core(machine, sheets):
             made += 1
         textures[face] = 'recompile:block/' + key
         faces[face] = {'texture': '#' + face, 'cullface': face}
-    io.open(os.path.join(ASSETS, 'models/block', machine.core + '.json'),
-            'w', encoding='utf-8', newline='\n').write(json.dumps({
-        'parent': 'minecraft:block/block',
-        'textures': textures,
-        'elements': [{'from': [0, 0, 0], 'to': [16, 16, 16], 'faces': faces}],
-    }, indent=2) + '\n')
+    def write(name, tex):
+        io.open(os.path.join(ASSETS, 'models/block', name + '.json'),
+                'w', encoding='utf-8', newline='\n').write(json.dumps({
+            'parent': 'minecraft:block/block',
+            'textures': tex,
+            'elements': [{'from': [0, 0, 0], 'to': [16, 16, 16], 'faces': faces}],
+        }, indent=2) + '\n')
+
+    write(machine.core, textures)
+
+    # THE LIT VARIANT IS THE CORE'S ALONE. Only the core's half of the active sheet is ever read,
+    # because the tank does not light up - so the tank keeps its idle tile in both states and needs no
+    # `active` in its blockstate at all. That is also why the lit sheet has to be chosen for how well
+    # its FRAME matches the idle one: the two halves meet at a seam and only one of them changes.
+    face = machine.active_face
+    if active and face and active.get(face) is not None and face in machine.outward(x, y, z):
+        u, v = machine.tile_at(face, x, y, z)
+        lit = active[face].crop((u * 16, v * 16, u * 16 + 16, v * 16 + 16))
+        lit_key = '%s_skin_%s_%d_active' % (machine.name, face, index)
+        lit.save(os.path.join(ASSETS, 'textures/block', lit_key + '.png'))
+        made += 1
+        lit_textures = dict(textures)
+        lit_textures[face] = 'recompile:block/' + lit_key
+        write(machine.core + '_active', lit_textures)
     print('core: formed model + %d skin tiles' % made)
 
 
 def emit(machine):
     sheets = {face: load_sheet(machine, face) for face in FACE_AXES}
+    active = ({machine.active_face: load_sheet(machine, machine.active_face, '_active')}
+              if machine.active_face else {})
     written = {'textures': 0, 'models': 0}
     by_part = {}
 
     for (x, y, z), part in sorted(machine.cells.items()):
+        if not machine.skinned(x, y, z):
+            continue
         index = machine.index(x, y, z)
         by_part.setdefault(part, []).append(index)
 
         textures = {'particle': 'recompile:block/' + machine.fallback}
         faces = {}
+        active_face_key = None
         for face in ('down', 'up', 'north', 'south', 'west', 'east'):
             key = machine.fallback
             if face in machine.outward(x, y, z) and sheets.get(face) is not None:
@@ -283,6 +322,12 @@ def emit(machine):
                 key = '%s_skin_%s_%d' % (machine.name, face, index)
                 tile.save(os.path.join(ASSETS, 'textures/block', key + '.png'))
                 written['textures'] += 1
+                if active.get(face) is not None:
+                    lit = active[face].crop((u * 16, v * 16, u * 16 + 16, v * 16 + 16))
+                    lit_key = '%s_skin_%s_%d_active' % (machine.name, face, index)
+                    lit.save(os.path.join(ASSETS, 'textures/block', lit_key + '.png'))
+                    written['textures'] += 1
+                    active_face_key = (face, 'recompile:block/' + lit_key)
             textures[face] = 'recompile:block/' + key
             faces[face] = {'texture': '#' + face, 'cullface': face}
 
@@ -314,6 +359,15 @@ def emit(machine):
                 'w', encoding='utf-8', newline='\n').write(json.dumps(model, indent=2) + '\n')
         written['models'] += 1
 
+        if active_face_key is not None:
+            lit_textures = dict(textures)
+            lit_textures[active_face_key[0]] = active_face_key[1]
+            lit = dict(model)
+            lit['textures'] = lit_textures
+            io.open(os.path.join(ASSETS, 'models/block', name + '_active.json'),
+                    'w', encoding='utf-8', newline='\n').write(json.dumps(lit, indent=2) + '\n')
+            written['models'] += 1
+
     for part, indices in by_part.items():
         variants = {}
         # Every value the property can take, not just the ones this machine uses: a missing variant
@@ -333,7 +387,7 @@ def emit(machine):
     if machine.bay:
         emit_bay(machine, sheets, machine.bay)
     if machine.core:
-        emit_core(machine, sheets)
+        emit_core(machine, sheets, active)
     print('%(textures)d tiles, %(models)d models' % written)
 
 
@@ -366,7 +420,26 @@ SEPARATOR = Machine(
     },
 )
 
-MACHINES = {'separator': SEPARATOR}
+# The Tree Nursery: a 2x2x1 wall, but only its BOTTOM ROW wears a skin.
+#
+# The top row is two Solar Panels, and a Solar Panel is the same block you place on its own and that the
+# Grass Spreader also uses - so it cannot carry a per-machine tile without changing every panel in the
+# world. Its cells are therefore left alone and the sheets cover one row (owner, 2026-08-04).
+#
+# north_active exists because the nursery's ONLY running cue is its window lighting up. The Separator
+# could afford to lose its lit panel to the skin, since its grinding bay animates; this machine has
+# nothing else to say "I am working", so the cue has to survive into the skin.
+TREE_NURSERY = Machine(
+    'tree_nursery', 2, 2, 1,
+    positions=[(x, y, 0) for x in range(2) for y in range(2)],
+    cells={(1, 0, 0): 'tree_nursery_tank'},
+    fallback='tree_nursery_side',
+    core='tree_nursery_formed',
+    skin_height=1,
+    active_face='north',
+)
+
+MACHINES = {'separator': SEPARATOR, 'tree_nursery': TREE_NURSERY}
 
 if __name__ == '__main__':
     if len(sys.argv) != 2 or sys.argv[1] not in MACHINES:
