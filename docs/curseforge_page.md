@@ -19,13 +19,22 @@ before restating a feature - the design docs describe the intended end state, no
 
 | Field | Value |
 |---|---|
-| **Summary** | `A garbage world with no ore or trees. Materials come out of the trash, and tearing found items down is how you learn new recipes.` |
+| **Summary** | `A world buried under its own rubbish, where the recipes went in the bin with everything else. Tear found objects apart to relearn them, and heal the ground a tier at a time.` |
 | **Categories** | Processing, World Gen, Technology |
 | **License** | MIT |
 | **Source / issues** | `https://github.com/Flatts3000/recompile` |
 
-The old summary ("...and reclaim the wasteland back to life") sold the premise rather than stating
-it. This one names the world, the material source, and the distinct axis.
+The first summary sold the premise ("...and reclaim the wasteland back to life"). The second stated
+the mechanic and nothing else, which is the opposite failure: it named the material source and left
+out what the mod is *about*. This one leads with the loss and still names the two axes, teardown and
+reclamation.
+
+**Written for ModJam 2026 ("Echoes of the Past"), and that is a deliberate reframing rather than a
+rewrite of the mod.** Theme Fit is one of the three judging pillars, every worked example the
+organisers gave is literal history, and ours is interpretive - so the interpretation has to be on the
+page instead of in a design doc. The literal half was already built and buried under "Also in": six
+recovered masterworks and a shelf of found objects. See
+`../mod-jam-2026/round_1_rewards_analysis.md`.
 
 ---
 
@@ -33,12 +42,33 @@ it. This one names the world, the material source, and the distinct axis.
 
 # Recompile
 
-A standalone NeoForge mod for Minecraft 26.1.2. It adds a garbage world: coarse dirt, mounds of
-garbage blocks, no ore, no trees, and no water anywhere. Materials come from the trash, and tearing
-found items apart is how you learn recipes.
+**Something lived here before the landfill.** The ground is coarse dirt under mounds of garbage.
+There is no ore, no trees and no water anywhere, and the only things left of the world that came
+first are the ones somebody threw away.
 
-The teardown and machine systems work in any world. The garbage world is a preset you select at
-world creation.
+**The recipes went in the bin too.** Tearing a found object apart at the Recompile Workbench gives
+you the materials it was made of and an idea of how it was made. Enough ideas about one thing and you
+can build it again. That is what the mod is named for: what you recover from a discarded object is
+the knowledge, not only the metal.
+
+A standalone NeoForge mod for Minecraft 26.1.2. The teardown and machine systems work in any world.
+The garbage world is a preset you select at world creation.
+
+## What comes back out
+
+Bulky Waste is the buried find. Pry one open with a Prybar and you get something intact rather than a
+material: a Dirty Mattress, a Washing Machine, a Filing Cabinet, a Printer, a Broken Hydroponics Bay,
+or about one time in ten something out of a rarer pool.
+
+- **Recovered paintings.** Six real works turn up in the trash: the Great Wave, the Starry Night, the
+  Mona Lisa, the Scream, Girl with a Pearl Earring, and La Grande Jatte. A painting keeps its variant
+  when broken and replaced, so the one you hang stays the one you found.
+- **Collectibles.** A Puzzle Cube assembled from nine pieces found separately, and objects that turn
+  up whole: a toy car, a gold coin, a wrapped present, an avocado.
+- **The Display Pedestal** holds one item and turns it above the cap. It takes any item, not a
+  tag-gated trophy list.
+
+None of these appear in JEI's salvage categories. Finding one is meant to be a surprise.
 
 ## Picking through
 
@@ -112,8 +142,6 @@ Erosion rules:
 - **Food** - tin cans, which apply a random effect on eating the way Suspicious Stew does, and
   foraged dump mushrooms.
 - **Demolition yard** - rubble, steel beams, a Cutting Torch, reinforced concrete.
-- **Collectibles** - a Puzzle Cube in nine pieces, intact found objects, six recovered paintings
-  that keep their variant when broken and replaced, and a Display Pedestal.
 - **Guidebook** - in-game, via Modonomicon. Multiblock entries have 3D pages that project the build
   into the world in front of you.
 - **JEI and Jade plugins** - the mod's own recipe categories, and tooltips reporting which tool a
