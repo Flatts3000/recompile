@@ -453,6 +453,9 @@ public final class RCItems {
 
     public static final DeferredItem<BlockItem> WASHING_MACHINE =
         ITEMS.registerSimpleBlockItem("washing_machine", RCBlocks.WASHING_MACHINE);
+
+    public static final DeferredItem<BlockItem> PRINTER =
+        ITEMS.registerSimpleBlockItem("printer", RCBlocks.PRINTER);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */
     public static final DeferredItem<StandingAndWallBlockItem> SCRAP_TORCH = ITEMS.registerItem(
         "scrap_torch",

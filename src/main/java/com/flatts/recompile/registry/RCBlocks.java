@@ -27,7 +27,7 @@ import com.flatts.recompile.content.block.GarbageBlock;
 import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
 import com.flatts.recompile.content.block.GrassSpreaderFrameBlock;
 import com.flatts.recompile.content.block.GrassSpreaderSpigotBlock;
-import com.flatts.recompile.content.block.WashingMachineBlock;
+import com.flatts.recompile.content.block.FoundApplianceBlock;
 import com.flatts.recompile.content.block.WaterTankBlock;
 import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.RainCollectorCoreBlock;
@@ -399,11 +399,6 @@ public final class RCBlocks {
     );
 
     /**
-     * Washing Machine: the second Bulky Waste find, and the only source of the Pump. Placeable so a
-     * find can be carried home rather than only consumed, following the mattress. A plain full cube
-     * with no behaviour - the four-face art and the facing are the whole block.
-     */
-    /**
      * Broken Hydroponics Bay: a Bulky Waste find, and the only thing that teaches the working one.
      *
      * <p><b>A plain cube with no behaviour.</b> No block entity, no facing, no menu - it is a wreck, and
@@ -419,13 +414,42 @@ public final class RCBlocks {
             .sound(SoundType.METAL)
     );
 
-    public static final DeferredBlock<WashingMachineBlock> WASHING_MACHINE = BLOCKS.registerBlock(
+    /**
+     * Washing Machine: the second Bulky Waste find, and the only source of the Pump. Placeable so a
+     * find can be carried home rather than only consumed, following the mattress. A plain full cube
+     * with no behaviour - the four-face art and the facing are the whole block.
+     */
+    public static final DeferredBlock<FoundApplianceBlock> WASHING_MACHINE = BLOCKS.registerBlock(
         "washing_machine",
-        WashingMachineBlock::new,
+        FoundApplianceBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.TERRACOTTA_WHITE)
             .strength(1.4F)
             .sound(SoundType.METAL)
+    );
+
+    /**
+     * Printer (#112): a Bulky Waste find, and this world's only source of <b>ink</b>.
+     *
+     * <p>Black dye has exactly two vanilla sources - an ink sac, or a wither rose - and the wither rose
+     * is behind the dimension lockout. So black dye was unreachable, which took grey dye with it and
+     * left one of the sixteen Clean Mattresses with no route: v0.5.0 shipped a {@code gray_bed} that
+     * could not be made. Tearing a printer down closes the sixteen-colour set.
+     *
+     * <p>It carries <b>lapis</b> too (owner, 2026-08-02), because lapis is a pigment and cyan toner is
+     * phthalocyanine blue, so pigment out of a printer needs no hand-waving. Machinery, by contrast,
+     * contains no lapis at all - it is ornamental stone with no industrial use - which is why it is not
+     * in Mechanical Waste.
+     *
+     * <p>Softer and quieter than the metal appliances: a printer is mostly plastic shell.
+     */
+    public static final DeferredBlock<FoundApplianceBlock> PRINTER = BLOCKS.registerBlock(
+        "printer",
+        FoundApplianceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_WHITE)
+            .strength(1.2F)
+            .sound(SoundType.WOOD)
     );
 
     /**

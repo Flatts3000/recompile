@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/printer_front",
+    "down":  "recompile:block/printer_side",
+    "up":    "recompile:block/printer_top",
+    "north": "recompile:block/printer_front",
+    "south": "recompile:block/printer_side",
+    "east":  "recompile:block/printer_side",
+    "west":  "recompile:block/printer_side"
+  }
+}

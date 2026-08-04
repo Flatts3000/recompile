@@ -55,21 +55,22 @@ final class SortingDataTests {
             helper.succeed();
         });
 
-        // Prying reads the block loot table, which now holds two weighted finds - the mattress
-        // (weight 3) and the broken appliance the Motor comes out of (weight 2). This is the
-        // "adding a find is a loot-table line" invariant working: a second find needed no code.
+        // Prying reads the block loot table, which now holds five weighted spine finds. This is the
+        // "adding a find is a loot-table line" invariant working: the printer needed one JSON line to
+        // appear here, and the only Java it touched was this count.
         RCGameTests.test("sorting_data_reads_bulky_finds", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BULKY);
-            // Four spine finds, four windfall finds (the fourth is the found spyglass, #113), six
-            // recovered paintings (#99). Counted rather than listed so a new find has to come here and
-            // be acknowledged: a magic 13 that silently became 14 would mean nobody noticed.
+            // Five spine finds (the fifth is the printer, #112), four windfall finds (the fourth is
+            // the found spyglass, #113), six recovered paintings (#99). Counted rather than listed so a
+            // new find has to come here and be acknowledged: a magic 14 that silently became 15 would
+            // mean nobody noticed.
             //
             // Reaching 13 at all is the point of this number now. The spine and windfall tiers are
             // NESTED loot tables, and a reader that skipped minecraft:loot_table entries would return
             // six - a Prying category containing nothing but paintings, with every real find gone and
             // no error anywhere.
-            helper.assertTrue(out.size() == 14,
-                "Bulky Waste should offer four spine finds, four windfall finds and six paintings, "
+            helper.assertTrue(out.size() == 15,
+                "Bulky Waste should offer five spine finds, four windfall finds and six paintings, "
                     + "got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show
