@@ -141,6 +141,8 @@ public final class SortingData {
                             visited);
                     } else if (isType(o, "minecraft:tag") && o.has("name")) {
                         expandTag(o.get("name").getAsString(), entryShare, out);
+                    } else if (isType(o, "minecraft:alternatives") && o.has("children")) {
+                        alternatives(o.getAsJsonArray("children"), entryShare, registries, out);
                     }
                 }
             }
@@ -182,6 +184,35 @@ public final class SortingData {
         float each = share / members.size();
         for (var holder : members) {
             out.add(new Weighted(new ItemStack(holder.value()), each));
+        }
+    }
+
+    /**
+     * The interesting outcomes of an {@code alternatives} entry: its <b>conditioned</b> children.
+     *
+     * <p>Alternatives are tried in order and the first whose conditions pass wins, so they are not a
+     * probability split - each child is the whole outcome under its own condition, and gets the parent's
+     * full share rather than a fraction of it.
+     *
+     * <p>The unconditioned child is skipped on purpose. In a block table that is the ordinary self-drop
+     * - the Steel I-Beam handing itself back to a pickaxe - and "you get the block you broke" is not a
+     * salvage outcome; showing it in a Cutting Torch category would say the torch returns beams, which
+     * it never does. If a table ever needs that fallback surfaced, this is the line to revisit.
+     */
+    private static void alternatives(JsonArray children, float share,
+            HolderLookup.@Nullable Provider registries, List<Weighted> out) {
+        for (JsonElement childEl : children) {
+            JsonObject child = childEl.getAsJsonObject();
+            if (!child.has("conditions")) {
+                continue;
+            }
+            if (isItem(child)) {
+                Item item = BuiltInRegistries.ITEM.getValue(
+                    Identifier.parse(child.get("name").getAsString()));
+                if (item != Items.AIR) {
+                    out.add(new Weighted(withComponents(registries, new ItemStack(item), child), share));
+                }
+            }
         }
     }
 

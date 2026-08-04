@@ -5,16 +5,33 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "recompile:steel_offcut",
-          "functions": [
+          "type": "minecraft:alternatives",
+          "children": [
             {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 2,
-                "max": 4
-              }
+              "type": "minecraft:item",
+              "name": "recompile:steel_offcut",
+              "conditions": [
+                {
+                  "condition": "minecraft:match_tool",
+                  "predicate": {
+                    "items": "recompile:cutting_torch"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "minecraft:set_count",
+                  "count": {
+                    "type": "minecraft:uniform",
+                    "min": 2,
+                    "max": 4
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "recompile:steel_i_beam"
             }
           ]
         }

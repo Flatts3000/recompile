@@ -50,10 +50,19 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * <p>A beam keeps a run on its non-native axis only while that run is actually supported at one end (see
  * {@link #updateShape}), so dragging a girder out of a wall retracts it instead of leaving it floating.
  *
- * <p>Cut only with the Cutting Torch ({@code requiresCorrectToolForDrops} + {@code
- * #recompile:mineable/cutting_torch}); drops raw iron in bulk. {@code noOcclusion} (set on the block
- * properties) is load-bearing: without it this slim model would cull neighbouring faces and punch holes in the
- * world (the CLAUDE.md occlusion trap).
+ * <p><b>The tool decides what you get</b> (#129). A Cutting Torch cuts the beam into 2-4 Steel Offcut -
+ * the only thing that feeds the iron path - while an ordinary pickaxe hands the beam itself back, so a
+ * girder can be taken down and put up somewhere else. Exactly one beam either way, so nothing is
+ * created: the supply is still whatever the demolition yard generated.
+ *
+ * <p>That asymmetry is what lets players build with steel without opening a loop. A recipe would have
+ * been the obvious answer and is the dangerous one - offcut blasts into an iron ingot, so anything that
+ * turns offcuts back into a beam is an iron duplicator unless it costs more than the 4 a beam can drop.
+ * Returning the placed block sidesteps the arithmetic entirely.
+ *
+ * <p>{@code requiresCorrectToolForDrops} still holds, so bare hands get nothing. {@code noOcclusion}
+ * (set on the block properties) is load-bearing: without it this slim model would cull neighbouring
+ * faces and punch holes in the world (the CLAUDE.md occlusion trap).
  *
  * <p><b>Attribution.</b> The connection state machine below (the X/Z/TOP/BOTTOM/AXIS scheme, the placement
  * rule, and the retract-when-unsupported rule) is ported from Create's {@code GirderBlock}, trimmed to this
