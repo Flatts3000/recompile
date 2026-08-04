@@ -84,4 +84,27 @@ public class PigeonEntity extends Animal {
     public @Nullable AgeableMob getBreedOffspring(ServerLevel level, AgeableMob partner) {
         return null;
     }
+
+    /**
+     * The wingbeat, as a <b>bounded</b> number in {@code [0, 1]}.
+     *
+     * <p><b>This lives here, and it is bounded, because the first version was neither</b> (2026-08-04).
+     * The renderer set the flap angle to the raw {@code tickCount}, which grows forever - and vanilla's
+     * parrot model spends it as {@code bobbingBody = flapAngle * 0.3F}, added to the {@code y} of every
+     * part. In model space {@code +y} is <em>down</em>, so the art slid steadily into the ground while
+     * the entity never moved: the pigeon looked like it was sinking, and looked like it had no hitbox,
+     * because players were swinging at a bird that was no longer where it was drawn. One bug, two
+     * symptoms, and neither of them mentions the number that caused it.
+     *
+     * <p>Zero on the ground, so a standing pigeon sits exactly on its own feet. {@code entityId} only
+     * shifts the phase, so two birds side by side are not in lockstep - which is what the tick count
+     * was reaching for before it was asked to be an amplitude as well.
+     */
+    public static float flapAngle(int tickCount, float partialTick, boolean onGround, int entityId) {
+        if (onGround) {
+            return 0.0F;
+        }
+        float phase = (tickCount + partialTick) * 0.3F + entityId;
+        return (net.minecraft.util.Mth.sin(phase) + 1.0F) * 0.5F;
+    }
 }
