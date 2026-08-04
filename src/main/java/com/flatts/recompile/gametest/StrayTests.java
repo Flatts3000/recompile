@@ -126,10 +126,10 @@ final class StrayTests {
             BlockState before = helper.getBlockState(pos);
 
             var level = helper.getLevel();
-            var table = level.getServer().reloadableRegistries()
-                .getLootTable(PigeonForageGoal.FORAGE_TABLE);
-            helper.assertTrue(table != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
-                "the pigeon forage table must exist, or a peck silently turns up nothing forever");
+            var key = PigeonForageGoal.tableFor(RCBlocks.GARBAGE_BLOCK.get());
+            helper.assertTrue(key != null,
+                "a peck at a garbage block must resolve a table, or it silently yields nothing forever");
+            var table = level.getServer().reloadableRegistries().getLootTable(key);
 
             List<net.minecraft.world.item.Item> seen = new ArrayList<>();
             for (int i = 0; i < 200; i++) {
@@ -157,36 +157,37 @@ final class StrayTests {
             helper.succeed();
         });
 
-        // A PIGEON NEVER FINDS WHAT THE PILE ITSELF WOULD GIVE YOU (owner, 2026-08-04). It turned up
-        // rotten flesh, which is a household pull, and that reads as the bird sorting on your behalf -
-        // a machine's job, and the thing the Sorting Tarp and the Separator exist to be. What a pigeon
-        // finds is the stuff a pull never gives.
+        // A PIGEON CAN ONLY FIND WHAT THE PILE ITSELF WOULD GIVE YOU, AND THAT IS A GATING RULE
+        // (owner, 2026-08-04). A mob that produces a NEW material is a route around whatever gates that
+        // material, and this one wanders into your base on its own.
         //
-        // The overlap is two JSON files that have to disagree, which nothing notices by itself. Both
-        // sides are read exactly rather than sampled, so a rare entry cannot slip through on luck.
-        RCGameTests.test("a_pigeon_never_finds_what_the_pile_would_give", 20, helper -> {
-            java.util.Set<net.minecraft.world.item.Item> pulls = new java.util.HashSet<>();
-            for (String table : List.of(SortingData.HOUSEHOLD, SortingData.BAG)) {
-                for (var weighted : SortingData.outputs(table)) {
-                    pulls.add(weighted.stack().getItem());
+        // It holds structurally: the goal rolls the block's own pull table, so there is no second table
+        // to drift. This asserts the wiring rather than comparing two files, because the previous
+        // version DID compare two files and the bespoke table was wrong twice in one afternoon - wheat
+        // seeds, which are behind the Hydroponics Bay, and then bread, an apple and a feather, none of
+        // which this world produces at all.
+        RCGameTests.test("a_pigeon_can_only_find_what_the_pile_itself_gives", 20, helper -> {
+            List<String> problems = new ArrayList<>();
+            for (var block : List.of(RCBlocks.GARBAGE_BLOCK.get(), RCBlocks.TRASH_BAG.get(),
+                    RCBlocks.COMPACTED_BALE.get())) {
+                var foraged = PigeonForageGoal.tableFor(block);
+                var pulled = com.flatts.recompile.content.block.SortableBlock.pullTableOf(block);
+                if (foraged == null) {
+                    problems.add(block + " resolves no forage table, so a peck at it does nothing");
+                } else if (!foraged.equals(pulled)) {
+                    problems.add(block + " forages " + foraged + " but is picked through for " + pulled
+                        + " - a bird must not have its own stream");
                 }
             }
-            helper.assertTrue(pulls.size() > 15,
-                "only " + pulls.size() + " pull items were read - discovery is broken, so this would "
-                    + "pass against a pigeon that finds everything the pile does");
+            helper.assertTrue(problems.isEmpty(), "pigeon foraging is not gated to the pile: " + problems);
 
-            var forage = SortingData.outputs("/data/recompile/loot_table/gameplay/pigeon_forage.json");
-            helper.assertTrue(!forage.isEmpty(), "the pigeon forage table must parse to outputs");
-
-            List<String> overlap = new ArrayList<>();
-            for (var weighted : forage) {
-                if (pulls.contains(weighted.stack().getItem())) {
-                    overlap.add(weighted.stack().getItem().toString());
-                }
-            }
-            helper.assertTrue(overlap.isEmpty(),
-                "a pigeon can find " + overlap + ", which the pile already gives you. A bird handing "
-                    + "back the block's own loot is sorting, and sorting is a machine's job");
+            // And the mod ships no separate forage table to fall back to. A leftover file is how the
+            // rule quietly comes undone later.
+            helper.assertTrue(
+                StrayTests.class.getResource(
+                    "/data/recompile/loot_table/gameplay/pigeon_forage.json") == null,
+                "a bespoke pigeon forage table is back. It cannot be a subset of the pile by "
+                    + "construction, so it will drift, and the drift is a progression leak");
             helper.succeed();
         });
 
@@ -219,7 +220,7 @@ final class StrayTests {
         RCGameTests.test("a_pigeon_never_finds_anything_worth_farming", 20, helper -> {
             var level = helper.getLevel();
             var table = level.getServer().reloadableRegistries()
-                .getLootTable(PigeonForageGoal.FORAGE_TABLE);
+                .getLootTable(PigeonForageGoal.tableFor(RCBlocks.GARBAGE_BLOCK.get()));
             List<String> rich = new ArrayList<>();
             for (int i = 0; i < 300; i++) {
                 var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
