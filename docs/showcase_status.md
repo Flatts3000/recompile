@@ -19,7 +19,11 @@ resume point, not a design doc.
 python tools/prepare_gallery.py     # crop to subject, fit under 2 MB, write the numbered files
 ```
 
-Output lands in `docs/cf image gallery/` alongside the existing eleven. **CurseForge rejects a gallery
+Output lands in `docs/cf image gallery/`, numbered into the running order rather than appended.
+**The numbers are the gallery's order and the order is an argument:** theme first, because Theme Fit
+is the pillar this entry is weakest on and a judge skims the strip before reading a word. The museum
+leads, the reclamation pair follows as one beat, and the materials tier sits at the back. See
+`../mod-jam-2026/round_1_rewards_analysis.md`. **CurseForge rejects a gallery
 image over 2 MB**, and the raw 1920x1080 captures are 1.5 to 2.6 MB, so this step is not optional.
 `_originals/` there is untracked and holds raw captures; only the numbered files are committed.
 

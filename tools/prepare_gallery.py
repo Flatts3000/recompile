@@ -37,11 +37,15 @@ FULL = (0.0, 0.0, 1.0, 1.0)
 # One box for both reclamation frames. Do not split this into two constants.
 RECLAIM_CROP = (0.07, 0.09, 0.93, 0.80)
 
+# The numbers are the gallery's ORDER, and the order is an argument: theme first, because Theme Fit is
+# the pillar this entry is weakest on and a judge skims the strip before reading a word. See
+# ../mod-jam-2026/round_1_rewards_analysis.md. The rest of the gallery is numbered around these, so
+# changing a number here means renumbering there too.
 PLAN = [
-    ("museum", 12, (0.19, 0.10, 0.81, 1.0)),
-    ("reclaim_before", 13, RECLAIM_CROP),
-    ("reclaim_after", 14, RECLAIM_CROP),
-    ("machine_wall", 15, (0.17, 0.20, 0.83, 1.0)),
+    ("museum", 1, (0.19, 0.10, 0.81, 1.0)),
+    ("reclaim_before", 2, RECLAIM_CROP),
+    ("reclaim_after", 3, RECLAIM_CROP),
+    ("machine_wall", 7, (0.17, 0.20, 0.83, 1.0)),
 ]
 
 
@@ -82,9 +86,12 @@ def main() -> None:
         image = crop(Image.open(source), box)
         data, extension = encode(image)
 
-        for stale in GALLERY.glob(f"{number}-*"):
+        # Only clear this scene's own file, matched by name as well as number. Globbing on the
+        # number alone would delete whatever else happened to hold that slot.
+        stem = f"{number:02d}-{name.replace('_', '-')}"
+        for stale in GALLERY.glob(f"{stem}.*"):
             stale.unlink()
-        out = GALLERY / f"{number}-{name.replace('_', '-')}.{extension}"
+        out = GALLERY / f"{stem}.{extension}"
         out.write_bytes(data)
         print(f"{out.name}: {image.size[0]}x{image.size[1]}, {len(data) // 1024} KB")
 
