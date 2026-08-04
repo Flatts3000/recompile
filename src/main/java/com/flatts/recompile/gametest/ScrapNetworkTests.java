@@ -64,6 +64,14 @@ final class ScrapNetworkTests {
             roles.put(RCBlocks.CUPOLA_FURNACE.get(), "SOURCE");
             roles.put(RCBlocks.SCRAP_CRAFTING_TABLE.get(), "READER");
             roles.put(RCBlocks.FILING_CABINET.get(), "READER");
+            // The Separator sorts garbage straight into the cluster, the way the tarp does.
+            roles.put(RCBlocks.SEPARATOR.get(), "SOURCE");
+            // Its formed cells are RELAYs and nothing more. They are in the tag so a bin parked against
+            // any face of the machine joins the cluster - a formed machine should behave as one object
+            // here as it does everywhere else, rather than connecting only at the core's corner.
+            roles.put(RCBlocks.SEPARATOR_CHAMBER.get(), "RELAY");
+            roles.put(RCBlocks.SEPARATOR_CHUTE.get(), "RELAY");
+            roles.put(RCBlocks.SEPARATOR_HOUSING.get(), "RELAY");
 
             List<String> undeclared = new ArrayList<>();
             int members = 0;

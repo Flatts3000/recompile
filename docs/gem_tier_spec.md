@@ -177,6 +177,29 @@ matter more than detail**: pale grey grit, dark iron-blue magnets, translucent g
 **Acceptance:** the pile generates at the stated density in the yard and nowhere else, no entry in
 `mechanical_pulls` is a vanilla gem, and each variant is obtainable by hand.
 
+## The Separator also sorts (added 2026-08-03)
+
+The machine has a **second mode**: feed it a sortable block - Garbage Block, Trash Bag, Compacted Bale,
+Stone Rubble, Mechanical Waste - and it rolls that block's pull stream instead of running a recipe.
+This is the automation rung of the recovery ladder `../trashlands/docs/design_decisions.md` has
+described since P1 and nothing had built.
+
+**A mode, not a recipe type.** Sorting is a weighted loot roll and `separating` is deliberately
+deterministic, so a `recompile:sorting` type would have had to restate what the pull tables already
+say. The queue's gate widens from "has a separating recipe" to "has a separating recipe **or** is a
+sortable", as one predicate used by both the intake and the head scan - which is what keeps the two
+guarantees the queue rests on intact: it cannot jam on something it will never process, and it cannot
+swallow something the player has no way to get back.
+
+**Rates are the tarp's, exactly**, because both call `SortableBlock.sortRolls`. See the reversal
+recorded in `design_decisions.md`: the reward is unattended operation, not more material. Output goes
+to the **Scrap Network first**, then the chute, then the floor - a machine that made you empty its
+chute by hand would be a worse tarp, not a better one.
+
+**40 ticks and 16 FE/tick per block**, the same as a grind. That is slower per block than a determined
+player at a tarp, which is the honest consequence of equal yields. If it reads as too weak in playtest
+(#36) **the dial is ticks, never rolls.**
+
 ## Phase 2 - the Separator, proven on amethyst
 
 **Ships:** the machine, working, with one recipe.

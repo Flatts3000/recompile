@@ -7,6 +7,10 @@
     "recompile:burn_barrel",
     "recompile:scrap_crafting_table",
     "recompile:cupola_furnace",
-    "recompile:filing_cabinet"
+    "recompile:filing_cabinet",
+    "recompile:separator",
+    "recompile:separator_chamber",
+    "recompile:separator_chute",
+    "recompile:separator_housing"
   ]
 }
