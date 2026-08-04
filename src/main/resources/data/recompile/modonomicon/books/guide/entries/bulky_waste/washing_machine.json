@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:bulky_waste/washing_machine",
+  "category": "recompile:bulky_waste",
+  "name": "book.recompile.guide.bulky_waste.washing_machine.name",
+  "icon": {
+    "id": "recompile:washing_machine"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": -1,
+  "parents": [
+    {
+      "entry": "recompile:bulky_waste/prying"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "type": "modonomicon:content",
-  "id": "recompile:tools/bulky",
-  "category": "recompile:tools",
-  "name": "book.recompile.guide.tools.bulky.name",
+  "id": "recompile:bulky_waste/prying",
+  "category": "recompile:bulky_waste",
+  "name": "book.recompile.guide.bulky_waste.prying.name",
   "icon": {
     "id": "recompile:bulky_waste"
   },
@@ -11,6 +11,6 @@
     "width": 26,
     "height": 26
   },
-  "x": 1,
+  "x": 0,
   "y": 0
 }

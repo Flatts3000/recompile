@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "intro",
+  "sort_number": 0,
+  "item": "recompile:mattress",
+  "title": "book.recompile.guide.bulky_waste.mattress.intro.title",
+  "text": "book.recompile.guide.bulky_waste.mattress.intro.text"
+}

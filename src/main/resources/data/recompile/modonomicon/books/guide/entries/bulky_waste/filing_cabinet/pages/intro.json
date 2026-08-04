@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "intro",
+  "sort_number": 0,
+  "item": "recompile:filing_cabinet",
+  "title": "book.recompile.guide.bulky_waste.filing_cabinet.intro.title",
+  "text": "book.recompile.guide.bulky_waste.filing_cabinet.intro.text"
+}

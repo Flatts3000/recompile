@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:bulky_waste/filing_cabinet",
+  "category": "recompile:bulky_waste",
+  "name": "book.recompile.guide.bulky_waste.filing_cabinet.name",
+  "icon": {
+    "id": "recompile:filing_cabinet"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 1,
+  "parents": [
+    {
+      "entry": "recompile:bulky_waste/prying"
+    }
+  ]
+}

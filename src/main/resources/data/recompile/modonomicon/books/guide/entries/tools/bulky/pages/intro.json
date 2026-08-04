@@ -1,8 +1,0 @@
-{
-  "type": "modonomicon:spotlight",
-  "id": "intro",
-  "sort_number": 0,
-  "item": "recompile:bulky_waste",
-  "title": "book.recompile.guide.tools.bulky.intro.title",
-  "text": "book.recompile.guide.tools.bulky.intro.text"
-}

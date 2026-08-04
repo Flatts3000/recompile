@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:bulky_waste/broken_hydroponics_bay",
+  "category": "recompile:bulky_waste",
+  "name": "book.recompile.guide.bulky_waste.broken_hydroponics_bay.name",
+  "icon": {
+    "id": "recompile:broken_hydroponics_bay"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 2,
+  "parents": [
+    {
+      "entry": "recompile:bulky_waste/prying"
+    }
+  ]
+}

@@ -1,8 +1,0 @@
-{
-  "type": "modonomicon:spotlight",
-  "id": "printer",
-  "sort_number": 1,
-  "item": "recompile:printer",
-  "title": "book.recompile.guide.tools.bulky.printer.title",
-  "text": "book.recompile.guide.tools.bulky.printer.text"
-}
