@@ -72,10 +72,21 @@ public final class RCBlocks {
         DeferredRegister.createBlocks(Recompile.MOD_ID);
 
     /**
-     * The household Block of Garbage. Strength 0.6 (dirt-ish): hand-breakable but
-     * slow, fast with a shovel (via the {@code mineable/shovel} tag). No
-     * {@code requiresCorrectToolForDrops} - always drops itself. Randomized visual
-     * variants come from the blockstate JSON, not code.
+     * The household Block of Garbage. Strength 0.6 (dirt-ish) and
+     * {@code requiresCorrectToolForDrops}: the Junk Shovel (via {@code minecraft:mineable/shovel})
+     * is the only way to take one home, and bare hands get nothing.
+     *
+     * <p><b>A {@code mineable} tag was never a gate on its own.</b> It sets speed, not permission, so
+     * the shovel was pure convenience here for a long time and a bare hand dug up garbage in about a
+     * second. {@code requiresCorrectToolForDrops} is what makes the tool required.
+     *
+     * <p><b>Digging is gated; sorting is deliberately not.</b> Right-clicking a placed block to pick
+     * through it does not run the harvest check, so a new player still sorts by hand - which is what
+     * keeps the gate safe to have. Rebar and Scrap Metal come from {@code household_pulls} and from
+     * nowhere else ({@code bag_pulls} has neither) and the shovel costs 1 Scrap Metal + 2 Rebar, so
+     * gating the SORT as well would be circular and a fresh world would be unwinnable.
+     *
+     * <p>Randomized visual variants come from the blockstate JSON, not code.
      */
     public static final DeferredBlock<GarbageBlock> GARBAGE_BLOCK = BLOCKS.registerBlock(
         "garbage_block",
@@ -84,6 +95,7 @@ public final class RCBlocks {
             .mapColor(MapColor.DIRT)
             .strength(0.6F)
             .sound(SoundType.GRAVEL)
+            .requiresCorrectToolForDrops()
     );
 
     /**
@@ -92,7 +104,14 @@ public final class RCBlocks {
      */
     /**
      * Mechanical Waste: the yard's machinery pile and the gem tier's found half
-     * ({@code docs/gem_tier_spec.md}). Beside Stone Rubble, and like it takes no tool.
+     * ({@code docs/gem_tier_spec.md}). Beside Stone Rubble, and like it takes no tool <em>to sort</em>
+     * - but {@code requiresCorrectToolForDrops} to carry off, and on the <b>pickaxe</b> rather than
+     * the shovel: it is machinery, not a loose pile, and Stone Rubble beside it stays shovel work.
+     *
+     * <p><b>This mod ships no pickaxe</b> (tier-zero tools only, "nothing to mine"), so the tool is
+     * vanilla's - reachable once the Tree Nursery gives wood, which is Phase 2 and long before the
+     * demolition yard at Phase 4. A player who walks to the yard early can still <em>sort</em> the
+     * pile bare-handed and simply cannot carry it home, so this gates hauling, never material.
      */
     public static final DeferredBlock<MechanicalWasteBlock> MECHANICAL_WASTE = BLOCKS.registerBlock(
         "mechanical_waste",
@@ -101,8 +120,13 @@ public final class RCBlocks {
             .mapColor(MapColor.COLOR_GRAY)
             .strength(0.9F)
             .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
     );
 
+    /**
+     * Stone Rubble (demolition yard): a pick-through pile like a Block of Garbage, but its pull stream
+     * is stone shards. Bare-hand sift, shovel to carry off ({@code requiresCorrectToolForDrops}).
+     */
     public static final DeferredBlock<RubbleBlock> STONE_RUBBLE = BLOCKS.registerBlock(
         "stone_rubble",
         RubbleBlock::new,
@@ -110,6 +134,7 @@ public final class RCBlocks {
             .mapColor(MapColor.STONE)
             .strength(0.8F)
             .sound(SoundType.GRAVEL)
+            .requiresCorrectToolForDrops()
     );
 
     /**
@@ -143,7 +168,15 @@ public final class RCBlocks {
             .sound(SoundType.METAL)
     );
 
-    /** Trash bag (P1.1): soft surface litter. Instant hand-break, quiet. */
+    /**
+     * Trash bag (P1.1): soft surface litter. Instant hand-break, quiet.
+     *
+     * <p><b>The one sortable pile with no {@code requiresCorrectToolForDrops}</b>, deliberately: it is
+     * loose litter you gather by the armful, and it is the first block a new player meets. It is in
+     * {@code mineable/shovel} anyway, so a shovel is faster - but faster is all it is, and bare hands
+     * must keep working. Adding the gate here would make the opening move of the game destroy
+     * something and say nothing.
+     */
     public static final DeferredBlock<TrashBagBlock> TRASH_BAG = BLOCKS.registerBlock(
         "trash_bag",
         TrashBagBlock::new,
@@ -153,7 +186,12 @@ public final class RCBlocks {
             .sound(SoundType.WOOL)
     );
 
-    /** Compacted bale (P1.1): dense, strapped trash. Sturdier; opened with a scrap knife. */
+    /**
+     * Compacted bale (P1.1): dense, strapped trash. Sturdier; opened with a scrap knife, and
+     * {@code requiresCorrectToolForDrops} so the knife (via {@code recompile:mineable/knife}) is also
+     * the only way to carry one off. The knife was already the tool that sorts it - now the same tool
+     * cuts it loose, rather than the strapping mattering to a sort and not to a pair of hands.
+     */
     public static final DeferredBlock<CompactedBaleBlock> COMPACTED_BALE = BLOCKS.registerBlock(
         "compacted_bale",
         CompactedBaleBlock::new,
@@ -161,6 +199,7 @@ public final class RCBlocks {
             .mapColor(MapColor.DIRT)
             .strength(0.9F)
             .sound(SoundType.GRASS)
+            .requiresCorrectToolForDrops()
     );
 
     /**

@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "recompile:garbage_block"
+    "recompile:garbage_block",
+    "recompile:stone_rubble",
+    "recompile:trash_bag"
   ]
 }

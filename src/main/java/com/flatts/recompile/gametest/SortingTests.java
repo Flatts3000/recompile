@@ -7,12 +7,14 @@ import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -116,6 +118,157 @@ final class SortingTests {
                     }
                 }
             }
+            helper.succeed();
+        });
+
+        // Bare hands must not carry off a sortable pile - only the trash bag, which is loose surface
+        // litter you can gather by the armful (owner, 2026-08-05).
+        //
+        // Both directions per block, because either half alone passes for the wrong reason: a block
+        // that requires a tool NOBODY has is unharvestable rather than gated, and that fails silently -
+        // it looks exactly like a gated block until you go to pick one up. So this asserts the gate is
+        // on AND that the intended tool actually satisfies it. Stone Rubble and Mechanical Waste were
+        // in no mineable tag at all when the gate went on, which is precisely that trap.
+        //
+        // SORTING is untouched by any of this and stays bare-hand: the harvest check does not run on
+        // use, and the crumble path is destroyBlock(pos, false), which drops nothing.
+        // Asserted through Player.hasCorrectToolForDrops, which is the predicate that actually decides
+        // a drop: `!requiresCorrectToolForDrops() || selected.isCorrectToolForDrops(state)`. Asking
+        // the ItemStack alone is the wrong question and gets a wrong answer on the exemption - an
+        // empty hand is not "a correct tool" for a Trash Bag, the bag simply never asks.
+        RCGameTests.test("bare_hands_carry_off_only_the_trash_bag", 20, helper -> {
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            record Pile(String name, Block block, Item tool) {}
+            List<Pile> gated = List.of(
+                new Pile("Block of Garbage", RCBlocks.GARBAGE_BLOCK.get(), RCItems.JUNK_SHOVEL.get()),
+                new Pile("Compacted Bale", RCBlocks.COMPACTED_BALE.get(), RCItems.SCRAP_KNIFE.get()),
+                new Pile("Stone Rubble", RCBlocks.STONE_RUBBLE.get(), RCItems.JUNK_SHOVEL.get()),
+                // Machinery, so a pickaxe rather than the shovel - and the WOODEN one on purpose, to
+                // prove no tier gate crept in. This mod ships no pickaxe of its own, so the tool is
+                // vanilla's and arrives with the Tree Nursery's wood, well before the yard.
+                new Pile("Mechanical Waste", RCBlocks.MECHANICAL_WASTE.get(), Items.WOODEN_PICKAXE));
+
+            for (Pile pile : gated) {
+                BlockState state = pile.block().defaultBlockState();
+                player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                helper.assertFalse(player.hasCorrectToolForDrops(state),
+                    pile.name() + " must not drop for a bare hand - a mineable tag alone is only a "
+                        + "speed bonus, it takes requiresCorrectToolForDrops to gate the drop");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(pile.tool()));
+                helper.assertTrue(player.hasCorrectToolForDrops(state),
+                    pile.name() + " must drop for its own tool - if this fails the block is "
+                        + "unharvestable by anything, which reads exactly like a working gate");
+            }
+
+            // The Junk Shovel is not special-cased: ANY shovel carries off a shovel pile (owner,
+            // 2026-08-05). That falls out of tagging the blocks mineable/shovel with no needs_*_tool
+            // tag beside them, so nothing enforces it and a tier tag added later would silently take
+            // it away. The WOODEN shovel is the one worth asserting - it is the weakest in the game
+            // and below the Junk Shovel's own stone tier, so it fails the moment a tier gate appears.
+            for (Block pile : List.of(RCBlocks.GARBAGE_BLOCK.get(), RCBlocks.STONE_RUBBLE.get())) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.WOODEN_SHOVEL));
+                helper.assertTrue(player.hasCorrectToolForDrops(pile.defaultBlockState()),
+                    "any shovel must carry off " + pile.getName().getString() + ", not just the Junk "
+                        + "Shovel - check no needs_*_tool tag has been added");
+            }
+
+            // Mechanical Waste moved from the shovel to the pickaxe (owner, 2026-08-05), and asserting
+            // only that a pickaxe works would not pin the move - leaving it in both tags would pass.
+            // The shovel must now fail on it, which is what makes it the pickaxe's block.
+            BlockState machinery = RCBlocks.MECHANICAL_WASTE.get().defaultBlockState();
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.JUNK_SHOVEL.get()));
+            helper.assertFalse(player.hasCorrectToolForDrops(machinery),
+                "the Junk Shovel must NOT carry off Mechanical Waste - it is machinery on the pickaxe, "
+                    + "and Stone Rubble beside it is the shovel's");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.WOODEN_PICKAXE));
+            helper.assertFalse(player.hasCorrectToolForDrops(
+                    RCBlocks.STONE_RUBBLE.get().defaultBlockState()),
+                "a pickaxe must NOT carry off Stone Rubble - that one stays shovel work");
+
+            // The one exemption, asserted so nobody "finishes the set" by gating it too.
+            BlockState bag = RCBlocks.TRASH_BAG.get().defaultBlockState();
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            helper.assertFalse(bag.requiresCorrectToolForDrops(),
+                "the Trash Bag is deliberately still bare-hand: it is loose surface litter, and it is "
+                    + "the block a new player meets first");
+            helper.assertTrue(player.hasCorrectToolForDrops(bag),
+                "a bare hand must still pick up a Trash Bag");
+
+            // A shovel helps on the bag without being required - it is in mineable/shovel for speed
+            // only (owner, 2026-08-05). Asserted on destroy SPEED, because that is the whole of the
+            // difference: hasCorrectToolForDrops answers true either way on an ungated block, so it
+            // cannot tell the tag apart from no tag at all.
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            float bare = player.getDestroySpeed(bag);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.JUNK_SHOVEL.get()));
+            helper.assertTrue(player.getDestroySpeed(bag) > bare,
+                "a shovel must clear Trash Bags faster than bare hands - check trash_bag is in "
+                    + "minecraft:mineable/shovel");
+            helper.succeed();
+        });
+
+        // The refusal, which is the half that makes the gate humane. requiresCorrectToolForDrops
+        // suppresses the DROP but not the mining, so without RCHarvestGate a bare-hand punch - the
+        // universal Minecraft reflex, and a garbage block goes in about a second - would delete the
+        // pile and say nothing. Cancelling instead is the same call RCTorchFuel already made.
+        //
+        // Asserted through the static entry point rather than by firing the event, the way
+        // RCTorchFuel's tests drive cutCostsFuel.
+        RCGameTests.test("digging_a_pile_without_its_tool_is_refused", 20, helper -> {
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            List<Block> gated = com.flatts.recompile.event.RCHarvestGate.gatedSortables();
+            helper.assertTrue(gated.size() == 4,
+                "expected 4 gated sortable piles (garbage, bale, rubble, mechanical waste), got "
+                    + gated.size() + " - a new one is fine, but say so here");
+
+            for (Block block : gated) {
+                BlockState state = block.defaultBlockState();
+                player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                helper.assertTrue(
+                    com.flatts.recompile.event.RCHarvestGate.refusesDig(player, state),
+                    block.getName().getString() + " must refuse a bare-hand dig rather than break "
+                        + "and drop nothing");
+                // And the message must name a real tool, not fall through to the generic.
+                helper.assertFalse(
+                    com.flatts.recompile.event.RCHarvestGate.toolKey(state)
+                        .equals("tool.recompile.right_tool"),
+                    block.getName().getString() + " is in no tool tag, so the nudge cannot say what "
+                        + "to bring - that also means nothing can harvest it");
+            }
+
+            // The bag is not gated, so it must never be refused.
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            helper.assertFalse(
+                com.flatts.recompile.event.RCHarvestGate.refusesDig(
+                    player, RCBlocks.TRASH_BAG.get().defaultBlockState()),
+                "a Trash Bag must never refuse a bare hand");
+            helper.succeed();
+        });
+
+        // And the same thing END TO END, because the test above only proves the predicate is right.
+        // It would pass with @EventBusSubscriber missing, the wrong event subscribed, or setCanceled
+        // never called - the feature dead and the rule perfectly stated. This breaks a real block with
+        // a real server player and looks at whether it is still standing.
+        RCGameTests.test("a_bare_hand_cannot_actually_break_a_garbage_block", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.GARBAGE_BLOCK.get());
+            // instabuild is set on a mock server player and skips the harvest check entirely, so
+            // without this the test asserts the creative exemption instead of the rule.
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+            player.gameMode.destroyBlock(helper.absolutePos(pos));
+            helper.assertTrue(helper.getBlockState(pos).is(RCBlocks.GARBAGE_BLOCK.get()),
+                "a bare hand must not break a Block of Garbage at all - the break is cancelled, so "
+                    + "the pile survives to be sorted, got " + helper.getBlockState(pos));
+
+            // The other half: with the tool it really does come up. Without this the test passes on a
+            // block that is simply unbreakable by anybody.
+            player.setItemInHand(InteractionHand.MAIN_HAND,
+                new ItemStack(RCItems.JUNK_SHOVEL.get()));
+            player.gameMode.destroyBlock(helper.absolutePos(pos));
+            helper.assertBlockPresent(Blocks.AIR, pos);
             helper.succeed();
         });
 

@@ -1,5 +1,7 @@
 {
+  "replace": false,
   "values": [
-    "recompile:steel_i_beam"
+    "recompile:steel_i_beam",
+    "recompile:mechanical_waste"
   ]
 }
