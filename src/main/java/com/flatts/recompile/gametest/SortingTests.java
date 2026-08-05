@@ -216,6 +216,7 @@ final class SortingTests {
         // RCTorchFuel's tests drive cutCostsFuel.
         RCGameTests.test("digging_a_pile_without_its_tool_is_refused", 20, helper -> {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            BlockPos probe = new BlockPos(1, 1, 1);
             List<Block> gated = com.flatts.recompile.event.RCHarvestGate.gatedSortables();
             helper.assertTrue(gated.size() == 4,
                 "expected 4 gated sortable piles (garbage, bale, rubble, mechanical waste), got "
@@ -225,7 +226,7 @@ final class SortingTests {
                 BlockState state = block.defaultBlockState();
                 player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
                 helper.assertTrue(
-                    com.flatts.recompile.event.RCHarvestGate.refusesDig(player, state),
+                    com.flatts.recompile.event.RCHarvestGate.refusesDig(player, state, helper.absolutePos(probe)),
                     block.getName().getString() + " must refuse a bare-hand dig rather than break "
                         + "and drop nothing");
                 // And the message must name a real tool, not fall through to the generic.
@@ -236,11 +237,25 @@ final class SortingTests {
                         + "to bring - that also means nothing can harvest it");
             }
 
+            // The nudge's own lang keys, which nothing else covers: GuidebookTests only walks the book
+            // and RegistryCompletenessTests only walks item and block names. An unresolved key here
+            // renders raw to the player at the exact moment the message exists to help them, and it is
+            // invisible to a compile. Same idiom as every_guidebook_lang_key_resolves.
+            for (Block block : gated) {
+                String key = com.flatts.recompile.event.RCHarvestGate.toolKey(block.defaultBlockState());
+                helper.assertFalse(Component.translatable(key).getString().equals(key),
+                    "the nudge for " + block.getName().getString() + " names lang key " + key
+                        + ", which has no translation - the player would be shown the raw key");
+            }
+            String message = "message.recompile.needs_dig_tool";
+            helper.assertFalse(Component.translatable(message).getString().equals(message),
+                message + " has no translation, so the nudge would render as its own key");
+
             // The bag is not gated, so it must never be refused.
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
             helper.assertFalse(
                 com.flatts.recompile.event.RCHarvestGate.refusesDig(
-                    player, RCBlocks.TRASH_BAG.get().defaultBlockState()),
+                    player, RCBlocks.TRASH_BAG.get().defaultBlockState(), helper.absolutePos(probe)),
                 "a Trash Bag must never refuse a bare hand");
             helper.succeed();
         });

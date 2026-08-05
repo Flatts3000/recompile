@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCTags;
 import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
@@ -69,7 +70,7 @@ public final class RCHarvestGate {
     @SubscribeEvent
     public static void onBlockBreak(BreakBlockEvent event) {
         Player player = event.getPlayer();
-        if (player == null || !refusesDig(player, event.getState())) {
+        if (player == null || !refusesDig(player, event.getState(), event.getPos())) {
             return;
         }
         event.setCanceled(true);
@@ -80,12 +81,20 @@ public final class RCHarvestGate {
     /**
      * Whether this break is a sortable pile the player has no tool for. The static entry point the
      * GameTests drive, the same way {@link RCTorchFuel#cutCostsFuel} is.
+     *
+     * <p><b>The three-argument harvest check, not the bare one.</b> {@code ServerPlayerGameMode}
+     * decides drops with {@code state.canHarvestBlock(level, pos, player)} - NeoForge's own comment
+     * there reads "previously player.hasCorrectToolForDrops(blockstate)" - and the three-argument
+     * form is the one that fires NeoForge's harvest-check event. The level comes off the player
+     * because BreakBlockEvent hands back a LevelAccessor, which is the wrong type and the same level. Asking the bare two-argument version
+     * would let this refuse a break the game was going to allow the moment another mod grants harvest
+     * through that hook, which is exactly the compatibility seam it exists to provide.
      */
-    public static boolean refusesDig(Player player, BlockState state) {
+    public static boolean refusesDig(Player player, BlockState state, BlockPos pos) {
         return !player.getAbilities().instabuild
             && state.getBlock() instanceof SortableBlock
             && state.requiresCorrectToolForDrops()
-            && !player.hasCorrectToolForDrops(state);
+            && !player.hasCorrectToolForDrops(state, player.level(), pos);
     }
 
     /** The lang key naming the tool this block wants, or a generic one if it is in no tool tag. */
