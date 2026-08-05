@@ -16,9 +16,15 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * A shallow pool of leachate (issue #156, design I-8): rain that has drained down through refuse and
  * pooled at a low point, which is the most characteristic thing a landfill actually produces.
  *
- * <p>Placed sparingly in the household sprawl and the demolition yard. Deliberately a feature rather
- * than a region (owner, 2026-08-05) - leachate forms at every dump, so scattering it is truer than
+ * <p>Placed sparingly, and <b>only in the household sprawl</b>. Deliberately a feature rather than a
+ * region (owner, 2026-08-05) - leachate forms across a dump, so scattering it is truer than
  * concentrating it somewhere you have to travel to.
+ *
+ * <p><b>The demolition yard deliberately has none</b> (owner, 2026-08-05). Leachate is rain that has
+ * percolated through <i>refuse</i>; it is a municipal-solid-waste phenomenon. A demolition yard is
+ * concrete, steel and rubble - largely inert, and real C&amp;D landfills produce very little of it and
+ * nothing like the black organic runoff of a household dump. Putting pools in both would also cost
+ * the regions their contrast: the sprawl is the wet, rotting one and the yard is the dry, grey one.
  *
  * <p><b>The pool is dug, not poured.</b> The feature excavates a shallow basin and fills it, rather
  * than dropping a slab of fluid on the surface. Two reasons, and the second is the one that bites:
@@ -28,6 +34,11 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  *
  * <p>Pools bind themselves to the ground they eat. Only the coarse-dirt family and Mound Ground are
  * excavated, so a pool never carves into a mound, a build, or a machine.
+ *
+ * <p><b>It is a surface feature, and that is an ordering constraint as much as a code one.</b> A pool
+ * refuses any cell with something standing on it, but that check can only see what already exists -
+ * so the feature has to run after everything that piles blocks, or it gets buried by whatever lands
+ * on it afterwards.
  */
 public class LeachatePoolFeature extends Feature<NoneFeatureConfiguration> {
 
@@ -76,8 +87,17 @@ public class LeachatePoolFeature extends Feature<NoneFeatureConfiguration> {
                 if (!isDiggable(level.getBlockState(cursor))) {
                     continue;
                 }
-                // Anything standing on this column - a mound, a plant, a husk - means this cell is
-                // spoken for. Carving under it would leave the thing above floating over a pond.
+                // A pool is a surface feature and must stay one: nothing may be standing on the
+                // cell, and nothing may be able to fall onto it later. Carving under a mound would
+                // leave the mound floating over a pond nobody can see, which is worse than not
+                // placing the pool at all.
+                //
+                // This check is only as good as the ORDER the biome runs its features in - it
+                // cannot see a mound that has not been placed yet. Pools were originally in the
+                // lakes step (index 1), which runs long before the mounds in step 9, so every pool
+                // under a mound footprint was placed first and then quietly buried. Both biomes now
+                // run leachate_pool LAST, and `leachate_pools_run_after_everything_that_piles_blocks`
+                // asserts it stays that way.
                 if (!level.getBlockState(cursor.above()).isAir()) {
                     continue;
                 }

@@ -3,8 +3,14 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCFluids;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
@@ -12,6 +18,7 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.material.Fluids;
 
 /**
@@ -28,6 +35,17 @@ final class LeachateTests {
     }
 
     private static final BlockPos GROUND = new BlockPos(1, 1, 1);
+
+    private static boolean isPool(Holder<PlacedFeature> holder) {
+        return holder.unwrapKey()
+            .map(key -> key.identifier().equals(
+                Identifier.fromNamespaceAndPath("recompile", "leachate_pool")))
+            .orElse(false);
+    }
+
+    private static String name(Holder<PlacedFeature> holder) {
+        return holder.unwrapKey().map(key -> key.identifier().toString()).orElse("<inline feature>");
+    }
 
     /** Same idiom as {@code SteelStackTests}: drive the registered feature directly at a position. */
     private static boolean placePool(ServerLevel level, BlockPos origin) {
@@ -136,6 +154,74 @@ final class LeachateTests {
                 level.getBlockState(helper.absolutePos(centre)).is(RCBlocks.LEACHATE.get()),
                 "the centre of the pool must be leachate - if the feature reports success without "
                     + "filling its own origin, it has placed a pool somewhere nobody asked for");
+            helper.succeed();
+        });
+
+        // ORDERING, WHICH NO AMOUNT OF CARE INSIDE THE FEATURE CAN FIX (owner, 2026-08-05).
+        //
+        // A pool refuses any cell with something standing on it, but that check can only see blocks
+        // that already exist. Pools originally sat in the LAKES step (features index 1), which runs
+        // eight steps before the mounds in index 9 - so a pool under a mound footprint was placed
+        // correctly, and then the mound was piled straight on top of it. In-world that reads as
+        // leachate simply not being there, because it is under a mound, which is the one place a
+        // player will never look.
+        //
+        // Asserted against the loaded biome registry rather than the JSON text, so a datapack that
+        // overrides these biomes is held to the same rule.
+        RCGameTests.test("leachate_pools_run_after_everything_that_piles_blocks", 20, helper -> {
+            var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
+            List<String> problems = new ArrayList<>();
+            int checked = 0;
+
+            for (var entry : biomes.entrySet()) {
+                Identifier biomeId = entry.getKey().identifier();
+                if (!biomeId.getNamespace().equals("recompile")) {
+                    continue;
+                }
+                List<HolderSet<PlacedFeature>> steps = entry.getValue().getGenerationSettings().features();
+
+                int poolStep = -1;
+                int poolIndex = -1;
+                for (int step = 0; step < steps.size(); step++) {
+                    List<Holder<PlacedFeature>> inStep = steps.get(step).stream().toList();
+                    for (int i = 0; i < inStep.size(); i++) {
+                        if (isPool(inStep.get(i))) {
+                            poolStep = step;
+                            poolIndex = i;
+                        }
+                    }
+                }
+                if (poolStep < 0) {
+                    continue; // biome has no pools; nothing to order
+                }
+                checked++;
+
+                // Anything at all after the pool can bury it, so the rule is simply "nothing after".
+                for (int step = 0; step < steps.size(); step++) {
+                    List<Holder<PlacedFeature>> inStep = steps.get(step).stream().toList();
+                    for (int i = 0; i < inStep.size(); i++) {
+                        if (isPool(inStep.get(i))) {
+                            continue;
+                        }
+                        if (step > poolStep || (step == poolStep && i > poolIndex)) {
+                            problems.add(biomeId + " runs " + name(inStep.get(i))
+                                + " at step " + step + " index " + i
+                                + ", after leachate_pool at step " + poolStep + " index " + poolIndex);
+                        }
+                    }
+                }
+            }
+
+            // Exactly one biome should carry pools: the household sprawl. The demolition yard was
+            // dropped on purpose (owner, 2026-08-05) - leachate comes from refuse, and a yard full
+            // of concrete and steel does not produce it.
+            helper.assertTrue(checked == 1,
+                "expected exactly one recompile biome to place leachate pools (the household "
+                    + "sprawl), found " + checked + ". Zero means the feature was dropped from the "
+                    + "biomes or this test reads the wrong registry; more than one means it came "
+                    + "back somewhere it was deliberately removed from");
+            helper.assertTrue(problems.isEmpty(),
+                "leachate pools must run last, or whatever runs after them buries them: " + problems);
             helper.succeed();
         });
 

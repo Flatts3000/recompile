@@ -397,7 +397,7 @@
   "block.recompile.leachate": "Leachate",
   "fluid.recompile.leachate": "Leachate",
   "item.recompile.leachate_bucket": "Leachate Bucket",
-  "jei.recompile.info.leachate_bucket": "Rain that has drained down through the refuse and pooled at a low point. Pools of it sit in the sprawl and the demolition yard. It does not water crops and it is not a source of clean water: it is what the dump does to rain, not a resource.",
+  "jei.recompile.info.leachate_bucket": "Rain that has drained down through the refuse and pooled at a low point. Pools of it sit out in the household sprawl. It does not water crops and it is not a source of clean water: it is what the dump does to rain, not a resource.",
   "block.recompile.printer": "Printer",
   "jei.recompile.info.printer": "Pried out of Bulky Waste. Tear it down at the Recompile Workbench with a Prybar for paper, an ink sac, plastic and scrap, and often a lapis lazuli. Toner comes out too: fourteen dye colours are possible, cyan, magenta and yellow most often. Blue and black are not among them because the lapis and the ink sac already grind into those dyes.",
   "item.recompile.white_clean_mattress": "White Clean Mattress",

@@ -48,9 +48,7 @@
   "carvers": [],
   "features": [
     [],
-    [
-      "recompile:leachate_pool"
-    ],
+    [],
     [],
     [],
     [],
@@ -60,7 +58,8 @@
     [],
     [
       "recompile:garbage_mound",
-      "recompile:mycelium_patch"
+      "recompile:mycelium_patch",
+      "recompile:leachate_pool"
     ],
     []
   ]
