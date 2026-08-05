@@ -237,7 +237,7 @@ into a world; `run/mods/devbridge-26.1.2-0.1.0.jar` is the mod half (`run/` is g
 clone needs the jar copied in from `F:\devbridge`).
 
 ```bash
-pip install -e F:/minecraft-repos/mc-pack-toolkit/gamebridge
+pip install -e F:/devbridge/gamebridge   # ships with the mod it talks to, since 2026-08-04
 
 gamebridge --devbridge 25580 cmd "function recompile:showcase/museum"
 gamebridge --devbridge 25580 shot museum

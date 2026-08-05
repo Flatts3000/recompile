@@ -19,8 +19,12 @@ to be right for that:
 import sys
 import time
 
-sys.path.insert(0, "F:/minecraft-repos/mc-pack-toolkit/gamebridge")
-from gamebridge.devbridge import DevBridge   # noqa: E402
+try:
+    from gamebridge.devbridge import DevBridge
+except ImportError:
+    sys.exit("gamebridge is not installed. It now ships with the devbridge mod it talks to:\n"
+             '  pip install "gamebridge @ git+https://github.com/Flatts3000/devbridge.git'
+             '#subdirectory=gamebridge"')
 
 PLAYER = "Dev"
 
