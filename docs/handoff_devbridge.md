@@ -5,21 +5,16 @@
 that session. This is a task brief; the design is `F:\devbridge\SPEC.md` and
 `F:\devbridge\gamebridge\README.md`.
 
-## The one thing to change
+## The one thing to change - DONE 2026-08-04
 
-**`build.gradle` line 31 sets `systemProperty 'devbridge.port', '25580'`, which is devbridge's own
-default.** Every project that uses the mod therefore lands on the same port, and two of them now do.
+**`build.gradle` set `systemProperty 'devbridge.port', '25580'`, which is devbridge's own default.**
+Every project that used the mod therefore landed on the same port, and two of them did.
 
-Trashlands has claimed **8604** for its instance. Recompile should claim its own rather than keep the
-shared default:
+Recompile now claims **8605**, pinned in the `client` run block; Trashlands holds **8604** for its
+instance. Both are in `~/.claude/port_registry.yaml` alongside `Trashlands [packwiz-serve] 8603`.
+`tools/shoot_scenes.py` reads the same number from a single `PORT` constant.
 
-```bash
-ports claim Recompile --root F:/minecraft-repos/recompile --service devbridge --band tool
-```
-
-then put the number it returns in `build.gradle` in place of `25580`. The registry lives at
-`~/.claude/port_registry.yaml`; `Trashlands [packwiz-serve] 8603` and `Trashlands [devbridge] 8604`
-are already in it.
+The rest of this document is the reasoning, which is still worth reading before trusting a port.
 
 ## Why it matters, with the actual failure
 

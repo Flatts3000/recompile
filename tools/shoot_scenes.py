@@ -1,4 +1,4 @@
-"""Shoot showcase scenes automatically. Needs a dev client with devbridge on port 25580.
+"""Shoot showcase scenes automatically. Needs a dev client with devbridge on port 8605.
 
     python tools/shoot_scenes.py                          # the reclamation pair
     python tools/shoot_scenes.py machine_hall             # one scene
@@ -26,7 +26,14 @@ except ImportError:
              '  pip install "gamebridge @ git+https://github.com/Flatts3000/devbridge.git'
              '#subdirectory=gamebridge"')
 
-PLAYER = "Dev"
+# The port this repo has CLAIMED. Not devbridge's 25580 default, which every project that copies the
+# example lands on together - see build.gradle's run block.
+PORT = 8605
+
+# "@s" rather than a hardcoded account name: devbridge resolves it to the only player online, so this
+# works whoever is signed in. A name that does not match fails loudly ("no player named ..."), it does
+# not quietly fall back to the console - but it still fails, and there is nothing to gain by naming.
+PLAYER = "@s"
 
 args = sys.argv[1:]
 if args[:1] == ["--at"]:
@@ -56,12 +63,13 @@ def find_surface(bridge, x: int, z: int, high: int = 110, low: int = 55) -> int:
 
 def main() -> None:
     x, z = ANCHOR_XZ
-    with DevBridge(port=25580) as bridge:
+    with DevBridge(port=PORT) as bridge:
         # Chunks unload with nobody in them, and /place into an unloaded chunk quietly does nothing.
         bridge.command(f"forceload add {x - 20} {z - 20} {x + 40} {z + 40}")
         y = find_surface(bridge, x, z)
         print(f"anchor: {x} {y} {z}")
-        bridge.command(f"gamemode spectator {PLAYER}")
+        # player= on these two as well: they target @s now, and as the console @s matches nothing.
+        bridge.command(f"gamemode spectator {PLAYER}", player=PLAYER)
         bridge.hud(False)
         try:
             for scene in SCENES:
@@ -81,7 +89,7 @@ def main() -> None:
                 print(f"{scene}: {bridge.screenshot(scene).get('path')}")
         finally:
             bridge.hud(True)
-            bridge.command(f"gamemode creative {PLAYER}")
+            bridge.command(f"gamemode creative {PLAYER}", player=PLAYER)
 
 
 if __name__ == "__main__":
