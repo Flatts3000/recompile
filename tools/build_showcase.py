@@ -186,6 +186,15 @@ class Scene:
                 depth = max(depth, z + 1)
                 width = max(width, len(row))
         for x, y, z in self.cells:
+            if x < 0 or y < 0 or z < 0:
+                # A structure's size is a bounding box measured from its own corner, so there is no
+                # room below zero. Taking only max() would report a box too small on that axis and the
+                # out-of-range block would be dropped or misplaced by the loader with nothing logged.
+                # Every scene today pre-shifts into cells-space; say so rather than let the first one
+                # that does not fail quietly.
+                raise SystemExit(
+                    f"scene {self.name}: cell at {(x, y, z)} is negative, but scene coordinates start "
+                    f"at the origin corner - shift the whole set so nothing is below zero")
             width, height, depth = max(width, x + 1), max(height, y + 1), max(depth, z + 1)
         return width, height, depth
 
@@ -277,9 +286,22 @@ def validate(scene: Scene) -> list[str]:
                     problems.append(f"{painting.variant} overlaps {seen[cell]} at {cell}")
                 seen[cell] = painting.variant
 
-    for pos in scene.block_entities:
+    # Block entity data has to land on the block that actually has that block entity. Checking only
+    # that SOMETHING is there passes vacuously for the drift this is meant to catch: the positions are
+    # hand-keyed while the blocks come from the legend strings, so reflowing a row moves the pedestals
+    # out from under their contents and the data then merges onto a wall block, silently holding
+    # nothing. The declaration already names the block it expects, so compare against it rather than
+    # trusting two structures to stay in step by eye.
+    placed = scene.occupied()
+    for pos, data in scene.block_entities.items():
         if pos not in filled:
             problems.append(f"block entity data at {pos} but no block there")
+            continue
+        expected = data.get("id")
+        actual = placed[pos].split("[")[0]   # the legend may carry blockstate syntax
+        if expected and actual != expected:
+            problems.append(
+                f"block entity at {pos} declares {expected} but the scene puts {actual} there")
 
     return problems
 
@@ -382,8 +404,19 @@ def build_function(scene: Scene) -> str:
                          f"{coord(oz, mz + dz)} {component}")
         lines.append(f"setblock {coord(ox, mx)} {coord(oy, my)} {coord(oz, mz)} "
                      f"{machine.core}[facing={machine.facing}]")
-        # The nudge, and it must be two real state changes: see the Machine docstring.
-        first = next(iter(machine.cells))
+        # The nudge, and it must be two real state changes: see the Machine docstring. The cell it
+        # touches has to be FACE-ADJACENT to the core, or the core never sees the neighbour update and
+        # never runs tryForm. Picking whichever cell happened to be declared first would satisfy that
+        # by luck - it does for the Separator - and a future machine that listed a diagonal first would
+        # generate a function that places every part, reports no error, and quietly leaves the machine
+        # unformed. So take the first declared cell that is genuinely adjacent, and refuse to emit a
+        # nudge that cannot work.
+        adjacent = [off for off in machine.cells if sum(abs(c) for c in off) == 1]
+        if not adjacent:
+            raise SystemExit(
+                f"{machine.core} has no cell face-adjacent to its core, so nothing can nudge it "
+                f"into forming; cells are {sorted(machine.cells)}")
+        first = adjacent[0]
         nudge = (mx + first[0], my + first[1], mz + first[2])
         lines.append(f"setblock {coord(ox, nudge[0])} {coord(oy, nudge[1])} "
                      f"{coord(oz, nudge[2])} minecraft:air")

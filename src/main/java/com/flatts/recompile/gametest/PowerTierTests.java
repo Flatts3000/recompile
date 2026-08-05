@@ -82,21 +82,30 @@ final class PowerTierTests {
         // Roofed over, it makes nothing. The sky check is what stops a panel buried in a base from
         // powering it, and it is easy to lose when the daylight maths is refactored.
         //
-        // Asserted after a delay on purpose: immediately after setBlock the heightmap and the light
-        // engine have not caught up, so canSeeSky still answers true and sky light still reads 15 with a
-        // stone slab visibly sitting on top. Checking at tick 0 measures the world's staleness rather
-        // than the panel's rule.
+        // Asserted with succeedWhen rather than at a fixed tick, and that distinction is load-bearing.
+        // outputAt reads the SKY LIGHT LAYER - 26.1's canSeeSky is literally
+        // `getBrightness(LightLayer.SKY, pos) >= 15`, not the heightmap query it reads as - and on a
+        // server that layer is maintained by ThreadedLevelLightEngine on its own thread, whose
+        // runLightUpdates() throws "Ran automatically on a different thread!". So there is no way to
+        // drain lighting from the test, and NO fixed delay is ever sound: a longer one only narrows the
+        // race. This test previously waited 5 ticks and failed on CI reading 2, which is
+        // GENERATION_PER_TICK * 15/15 - full sky light, the roof not propagated at all rather than
+        // partly.
+        //
+        // succeedWhen retries every tick and fails by timeout, which is the honest shape for an
+        // eventually-consistent value. It cannot pass vacuously, because
+        // solar_panel_generates_under_open_sky asserts the same method returns nonzero with no roof:
+        // the pair is what pins both sides, and neither half means much alone.
         RCGameTests.test("solar_panel_makes_nothing_under_a_roof", 40, helper -> {
             helper.setBlock(PANEL, RCBlocks.SOLAR_PANEL.get());
             helper.setBlock(PANEL.above(), Blocks.STONE);
             ServerLevel level = helper.getLevel();
             setNoon(level);
 
-            helper.runAfterDelay(5, () -> {
-                BlockPos abs = helper.absolutePos(PANEL);
+            BlockPos abs = helper.absolutePos(PANEL);
+            helper.succeedWhen(() -> {
                 int rate = SolarPanelBlockEntity.outputAt(level, abs);
                 helper.assertTrue(rate == 0, "a roofed panel must have zero output, got " + rate);
-                helper.succeed();
             });
         });
 
