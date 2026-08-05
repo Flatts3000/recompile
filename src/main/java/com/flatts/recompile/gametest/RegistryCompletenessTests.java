@@ -48,7 +48,10 @@ final class RegistryCompletenessTests {
     private static final List<String> NO_LOOT_TABLE = List.of(
         // The wall form of the scrap torch is placed by the same item as the standing form and
         // drops through it, so a table here would be a second, competing drop.
-        "wall_scrap_torch"
+        "wall_scrap_torch",
+        // A liquid. Breaking it yields nothing anywhere in the game, which is why its Properties
+        // say noLootTable() - a JSON here would be a table that can never roll.
+        "leachate"
     );
 
     /**
@@ -59,6 +62,9 @@ final class RegistryCompletenessTests {
      * an explicit list rather than a blanket exemption for {@code MultiblockDummyBlock}.
      */
     private static final List<String> NO_ITEM_FORM = List.of(
+        // The leachate fluid's in-world block. Its "item" is the bucket, which is a BucketItem
+        // registered against the fluid rather than a BlockItem, so there is no block-item to find.
+        "leachate",
         // Formed-only cells: what a Pump and a Copper Pipe BECOME inside an assembled Grass
         // Spreader. They are never held - disband returns the component you placed, not these.
         "grass_spreader_frame",

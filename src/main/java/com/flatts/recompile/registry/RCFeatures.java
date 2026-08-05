@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.worldgen.LeachatePoolFeature;
 import com.flatts.recompile.content.worldgen.MechanicalWastePileFeature;
 import com.flatts.recompile.content.worldgen.MoundFeature;
 import com.flatts.recompile.content.worldgen.MyceliumPatchFeature;
@@ -42,6 +43,10 @@ public final class RCFeatures {
     /** Stacked salvage steel: the survival source of beams, reinforced concrete and copper pipe. */
     public static final Supplier<Feature<NoneFeatureConfiguration>> STEEL_STACK =
         FEATURES.register("steel_stack", SteelStackFeature::new);
+
+    /** Sparse pools of leachate in the sprawl and the yard (#156) - the dump's own runoff. */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> LEACHATE_POOL =
+        FEATURES.register("leachate_pool", LeachatePoolFeature::new);
 
     private RCFeatures() {
         // utility class

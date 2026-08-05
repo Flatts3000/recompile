@@ -55,7 +55,9 @@
   "carvers": [],
   "features": [
     [],
-    [],
+    [
+      "recompile:leachate_pool"
+    ],
     [],
     [],
     [],

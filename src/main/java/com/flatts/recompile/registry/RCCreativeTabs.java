@@ -58,6 +58,8 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.REINFORCED_CONCRETE.get());
                     output.accept(RCItems.STEEL_I_BEAM.get());
                     output.accept(RCItems.MECHANICAL_WASTE.get());
+                    // The only way to hold leachate, and the only way to place it in creative.
+                    output.accept(RCItems.LEACHATE_BUCKET.get());
 
                     // --- 2. Bulky Waste finds: the furniture the dump hands you ---
                     output.accept(RCItems.BULKY_WASTE.get());

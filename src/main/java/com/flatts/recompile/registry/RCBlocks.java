@@ -44,6 +44,7 @@ import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.StairBlock;
@@ -165,6 +166,28 @@ public final class RCBlocks {
      * {@code requiresCorrectToolForDrops} - only the Sledgehammer crushes it (bare hands and the wrong
      * tool yield nothing). Its loot is aggregate + rebar; see {@code loot_table/blocks/reinforced_concrete}.
      */
+    /**
+     * Leachate: the pond block, the in-world half of {@link RCFluids#LEACHATE} (#156).
+     *
+     * <p>Water's own block properties, with one deliberate difference: {@code MapColor.TERRACOTTA_BROWN}
+     * rather than {@code WATER}, so a pool reads as a dark stain on the map instead of a pretty lake.
+     * {@code noLootTable} because breaking a liquid yields nothing, and {@code liquid()} so vanilla
+     * treats it as one for pathing and placement.
+     */
+    public static final DeferredBlock<LiquidBlock> LEACHATE = BLOCKS.registerBlock(
+        "leachate",
+        props -> new LiquidBlock(RCFluids.LEACHATE.get(), props),
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_BROWN)
+            .replaceable()
+            .noCollision()
+            .strength(100.0F)
+            .pushReaction(PushReaction.DESTROY)
+            .noLootTable()
+            .liquid()
+            .sound(SoundType.EMPTY)
+    );
+
     public static final DeferredBlock<Block> REINFORCED_CONCRETE = BLOCKS.registerBlock(
         "reinforced_concrete",
         Block::new,
