@@ -57,6 +57,53 @@ final class GuidebookTests {
     }
 
     static void register() {
+        // A LIST in prose goes stale in the one way that does not read as wrong: it reads as complete.
+        // Both of these had already rotted before anyone noticed - the tarp entry never learned that
+        // Mechanical Waste became sortable, and the network entry named six members when the tag held
+        // twelve, while the Filing Cabinet's own entry told the player to connect one.
+        //
+        // Nothing else here can catch that. every_guidebook_lang_key_resolves proves a sentence
+        // EXISTS; no test layer knows whether it is true. This is the narrow slice that is checkable:
+        // a prose list that enumerates a set the code also defines.
+        //
+        // It works because the prose quotes the game's own display names, which is why those entries
+        // say "Block of Garbage" rather than "garbage". That is the whole mechanism - a friendlier
+        // wording would need a keyword mapping here, and the mapping would be the next thing to drift.
+        RCGameTests.test("prose_lists_name_every_member_of_the_set_they_describe", 20, helper -> {
+            List<String> problems = new ArrayList<>();
+
+            // Every block the tarp and the Separator will sift, wherever a page enumerates them.
+            List<net.minecraft.world.level.block.Block> sortables = BuiltInRegistries.BLOCK.stream()
+                .filter(b -> com.flatts.recompile.content.block.SortableBlock
+                    .sortRolls(b.asItem()) > 0)
+                .toList();
+            helper.assertTrue(sortables.size() >= 5,
+                "only " + sortables.size() + " sortable blocks found - discovery is broken, so this "
+                    + "test would pass by checking nothing");
+            for (String key : List.of(
+                    "book.recompile.guide.workstations.sorting_tarp.intro.text",
+                    "book.recompile.guide.demolition.separator.sorting.text")) {
+                checkNames(problems, key, sortables);
+            }
+
+            // Every Scrap Network member, minus the cells that only exist once a machine is assembled -
+            // a player never places a Separator Chamber, so the prose has no business naming one.
+            Set<net.minecraft.world.level.block.Block> formedOnly =
+                com.flatts.recompile.compat.MultiblockParts.formedOnly();
+            List<net.minecraft.world.level.block.Block> members = new ArrayList<>();
+            for (var holder : BuiltInRegistries.BLOCK
+                    .getTagOrEmpty(com.flatts.recompile.registry.RCTags.SCRAP_CONNECTABLE)) {
+                if (!formedOnly.contains(holder.value())) {
+                    members.add(holder.value());
+                }
+            }
+            helper.assertTrue(members.size() >= 7,
+                "only " + members.size() + " placeable network members found - discovery is broken");
+            checkNames(problems, "book.recompile.guide.workstations.scrap_network.intro.text", members);
+
+            report(helper, problems, "guidebook lists missing a member the code defines");
+        });
+
         // A key that does not resolve renders as itself. It is the most visible possible bug and the
         // least visible possible failure: the book still opens, the page still turns.
         RCGameTests.test("every_guidebook_lang_key_resolves", 20, helper -> {
@@ -230,6 +277,25 @@ final class GuidebookTests {
             helper.fail("could not walk the guidebook: " + e);
         }
         return out;
+    }
+
+    /**
+     * Record every block whose display name is missing from the entry's rendered text.
+     *
+     * <p>Singular names, so an entry may still write "Scrap Bins" and read naturally; the singular is
+     * a substring of the plural. Matching is on the rendered string rather than the raw key, so this
+     * fails the same way a player would see it.
+     */
+    private static void checkNames(List<String> problems, String key,
+            List<net.minecraft.world.level.block.Block> expected) {
+        String prose = Component.translatable(key).getString();
+        String entry = key.substring("book.recompile.guide.".length());
+        for (net.minecraft.world.level.block.Block block : expected) {
+            String name = Component.translatable(block.getDescriptionId()).getString();
+            if (!prose.contains(name)) {
+                problems.add(entry + " never names " + name);
+            }
+        }
     }
 
     private static void report(GameTestHelper helper, List<String> problems, String label) {
