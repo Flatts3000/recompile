@@ -104,6 +104,15 @@ public final class RCConfig {
      */
     public static final ModConfigSpec.IntValue SCRAP_BIN_CAPACITY;
 
+    /**
+     * Mound regrowth (P1.6, Phase 5). A mound is a renewable quarry: it grows back toward the size it
+     * was and never past it. Rarity is per random tick per bed cell, so it is a rate rather than a
+     * timer - default slow enough to read as recovery rather than respawn.
+     */
+    public static final ModConfigSpec.BooleanValue MOUND_REGROWTH_ENABLED;
+    public static final ModConfigSpec.IntValue MOUND_REGROWTH_RARITY;
+    public static final ModConfigSpec.IntValue MOUND_REGROWTH_DROP_HEIGHT;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -111,6 +120,22 @@ public final class RCConfig {
         GARBAGE_GRAVITY_ENABLED = builder
             .comment("Whether Blocks of Garbage obey gravity (slump when quarried, deorbit on regrowth).")
             .define("garbageGravityEnabled", true);
+        MOUND_REGROWTH_ENABLED = builder
+            .comment("Whether quarried mounds grow back toward their original footprint and height.",
+                "Off makes garbage in a world strictly finite.")
+            .define("moundRegrowthEnabled", true);
+        MOUND_REGROWTH_RARITY = builder
+            .comment("One random tick in N on a mound bed puts a block back. Higher is slower.",
+                "Random ticks only fire near a player, so a mound grows where somebody can watch it",
+                "and an unattended world does not refill behind your back.",
+                "First-pass number; joins the pre-beta balance pass with every other placeholder.")
+            .defineInRange("moundRegrowthRarity", 16, 1, 4096);
+        MOUND_REGROWTH_DROP_HEIGHT = builder
+            .comment("How far above the mound a regrowing block is spawned to fall from.",
+                "The design said 'from the top of the world'; this world's build limit is 320 over a",
+                "surface near -60, and a 380-block fall is nine seconds of entity per block for a",
+                "beat that reads the same from thirty. The flight path is checked clear first.")
+            .defineInRange("moundRegrowthDropHeight", 30, 1, 320);
         ROACHES_ENABLED = builder
             .comment("Whether picking through garbage can disturb a roach (#78).")
             .define("roachesEnabled", true);

@@ -66,7 +66,11 @@ final class RegistryCompletenessTests {
         // A formed cell of the Compost Heap's 2x2x2 cage - disband returns the Machine Frame, not this.
         "compost_cage",
         // The Tree Nursery's formed tank cell - disband returns the Water Tank you placed, not this.
-        "tree_nursery_tank"
+        "tree_nursery_tank",
+        // The mound bed is world memory, not a material - it records what a mound's column used to be
+        // so Phase 5 can grow it back. There is nothing to hold: digging one out forgets that column,
+        // which is the same outcome as retiring it with grass and wants no second rule.
+        "mound_ground"
     );
 
     /**

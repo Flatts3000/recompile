@@ -3,6 +3,7 @@
   "values": [
     "recompile:garbage_block",
     "recompile:stone_rubble",
-    "recompile:trash_bag"
+    "recompile:trash_bag",
+    "recompile:mound_ground"
   ]
 }

@@ -152,8 +152,9 @@ Erosion rules:
 
 Alpha, in active development.
 
-- **Mounds do not regrow.** Renewable mounds and the choice between keeping one as a quarry or
-  healing its footprint are designed and not built. Garbage in a world is currently finite.
+- **Mound regrowth needs a new world.** Quarried mounds grow back, but the memory of what a mound
+  was is written into the ground when the world generates, so a save made before this update has
+  none and its mounds stay finite.
 - **One garbage region.** The distance-banded region system is in; the scrapyard and e-waste regions
   are not.
 - **Balance numbers are first-pass.** Drop rates, recipe costs, and teardown yields were picked to

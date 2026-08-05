@@ -5,6 +5,7 @@
     "recompile:garbage_block",
     "recompile:trash_bag",
     "recompile:compacted_bale",
-    "recompile:bulky_waste"
+    "recompile:bulky_waste",
+    "recompile:mound_ground"
   ]
 }
