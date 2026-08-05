@@ -112,10 +112,11 @@ final class PrinterTests {
         //
         // The reason this is a test and not a comment is that the gap it closes is invisible from any
         // single dye. White dye's only vanilla routes are bone meal and lily of the valley; there is no
-        // lily in the fertilizer scatter and bone meal needs a composter, which needs wood - so white
-        // was a rung-4 unlock, and it took gray, pink and light blue with it (all are white plus
-        // something) and magenta after those (it needs pink). Five colours behind the tree rung, and
-        // every one of them would read as individually fine.
+        // lily in the fertilizer scatter, and bone meal means either skeleton bones (which live in the
+        // demolition yard, not the starting biome - household_sprawl has empty monster spawners) or a
+        // composter, which needs wood. So white waits on leaving the starting region either way, and it
+        // takes gray, pink and light blue with it (all are white plus something) and magenta after
+        // those (it needs pink). Five colours behind one trip, and every one reads as fine alone.
         RCGameTests.test("a_printer_covers_every_dye_colour", 20, helper -> {
             TeardownRecipe printer = teardownFor(helper, RCItems.PRINTER.get());
             helper.assertTrue(printer != null, "the printer must have a teardown recipe");

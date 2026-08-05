@@ -3,9 +3,9 @@
 ## Unreleased
 
 ### Printers carry the whole dye set
-- A printer teardown can now yield **any of the sixteen dye colours**. Cyan, magenta and yellow come up several times more often than the rest, because those are the cartridges actually in the machine.
-- **Blue and black still arrive as lapis lazuli and an ink sac**, not as the dye items. Vanilla already grinds each into its dye, and both are worth more than the dye alone - lapis is this world's only lapis, and an ink sac is also the bait and the book-and-quill.
-- This un-gates five colours from the tree rung. White dye's only routes are bone meal and lily of the valley: no lily grows here, and bone meal needs a composter, which needs wood. Gray, pink and light blue are each white plus something, and magenta needs pink, so all five used to wait on trees.
+- A printer teardown can now yield **fourteen of the sixteen dye colours**. Cyan, magenta and yellow come up several times more often than the rest, because those are the cartridges actually in the machine.
+- **Blue and black are the other two, and they still arrive as lapis lazuli and an ink sac** rather than as the dye items. Vanilla already grinds each into its dye, and both are worth more than the dye alone - lapis is this world's only lapis, and an ink sac is also the bait and the book-and-quill.
+- **White is the colour this really changes.** Its only other route is bone meal, which means either skeleton bones from the demolition yard or a composter, which needs wood. Gray, pink and light blue are each white plus something, and magenta needs pink, so five colours used to wait on one of those two trips.
 
 ## v0.7.0
 
