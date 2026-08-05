@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
+import com.flatts.recompile.event.RCHarvestGate;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -33,6 +34,15 @@ public enum ToolHintProvider implements IBlockComponentProvider {
                 Component.translatable(tool.getDescriptionId())));
         } else if (block instanceof SortableBlock) {
             tooltip.add(Component.translatable("jade.recompile.sort_by_hand"));
+        }
+
+        // The DIGGING tool as well, because they are different questions and the answers differ: a
+        // Block of Garbage sorts bare-handed and needs a shovel to carry off. Saying only "Sort by
+        // hand" on a block a bare hand cannot pick up is a half-truth, and the half it leaves out is
+        // the one that costs the player a block.
+        if (block.defaultBlockState().requiresCorrectToolForDrops() && block instanceof SortableBlock) {
+            tooltip.add(Component.translatable("jade.recompile.dig_with",
+                Component.translatable(RCHarvestGate.toolKey(block.defaultBlockState()))));
         }
     }
 

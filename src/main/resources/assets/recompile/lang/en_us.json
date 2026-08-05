@@ -464,5 +464,18 @@
   "book.recompile.guide.bulky_waste.windfall.intro.text": "About one find in ten comes from a second, rarer pool: a bookshelf, a jukebox, a bell, or a spyglass.\n\nA bell has no crafting recipe in any version of the game. A jukebox needs a diamond and a spyglass needs an amethyst shard, and both of those are behind the demolition yard and the Separator. Finding one skips a long way ahead.",
   "book.recompile.guide.category.bulky_waste": "Bulky Waste",
   "recompile.alias.lead": "Lead",
-  "recompile.alias.bundle": "Bundle"
+  "recompile.alias.bundle": "Bundle",
+  "message.recompile.needs_dig_tool": "You need a %s to dig this out - or right-click to sort it by hand",
+  "tool.recompile.knife": "Scrap Knife",
+  "tool.recompile.prybar": "Prybar",
+  "tool.recompile.sledgehammer": "Sledgehammer",
+  "tool.recompile.cutting_torch": "Cutting Torch",
+  "tool.recompile.shovel": "shovel",
+  "tool.recompile.pickaxe": "pickaxe",
+  "tool.recompile.axe": "axe",
+  "tool.recompile.hoe": "hoe",
+  "tool.recompile.right_tool": "different tool",
+  "jade.recompile.dig_with": "Dig out with a %s",
+  "book.recompile.guide.getting_started.pick_through.digging.title": "Digging it out",
+  "book.recompile.guide.getting_started.pick_through.digging.text": "Sorting a pile is bare-hand work and always will be. Carrying one home is a different job and wants a tool: a shovel for garbage and rubble, a pickaxe for mechanical waste, a scrap knife for a bale. Swing without one and the pile stays where it is and tells you what it wants, so nothing is lost while you learn it. Trash bags come up by hand."
 }
