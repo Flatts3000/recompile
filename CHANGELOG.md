@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Printers carry the whole dye set
+- A printer teardown can now yield **any of the sixteen dye colours**. Cyan, magenta and yellow come up several times more often than the rest, because those are the cartridges actually in the machine.
+- **Blue and black still arrive as lapis lazuli and an ink sac**, not as the dye items. Vanilla already grinds each into its dye, and both are worth more than the dye alone - lapis is this world's only lapis, and an ink sac is also the bait and the book-and-quill.
+- This un-gates five colours from the tree rung. White dye's only routes are bone meal and lily of the valley: no lily grows here, and bone meal needs a composter, which needs wood. Gray, pink and light blue are each white plus something, and magenta needs pink, so all five used to wait on trees.
+
 ## v0.7.0
 
 **Mounds grow back.** Quarry one out and it starts rebuilding itself toward the footprint and height it had, delivered as garbage falling out of the sky - so you can see across the plain which mounds are refilling. It never grows past what it was, and it never seeds a new one.
