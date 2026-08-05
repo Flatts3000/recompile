@@ -122,6 +122,35 @@ final class MoundRegrowthTests {
             helper.succeed();
         });
 
+        // THE WIRING, which every other test here is blind to. They all call regrowOnce directly, so
+        // the feature could be completely dead in a real world - the Properties flag missing, or the
+        // override misspelled so it silently shadows nothing - and all of them would still pass. Two
+        // assertions, because either alone leaves half the path unproven: the block must be REGISTERED
+        // for random ticks, and its override must be the one the game actually calls.
+        RCGameTests.test("the_random_tick_really_reaches_regrowth", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(GROUND);
+            helper.setBlock(GROUND, RCBlocks.MOUND_GROUND.get().defaultBlockState()
+                .setValue(MoundGroundBlock.HEIGHT, 1));
+
+            helper.assertTrue(level.getBlockState(abs).isRandomlyTicking(),
+                "Mound Ground must be registered for random ticks - without randomTicks() in its "
+                    + "Properties nothing ever calls it and mounds never grow back");
+
+            int wasRarity = RCConfig.MOUND_REGROWTH_RARITY.get();
+            int wasDrop = RCConfig.MOUND_REGROWTH_DROP_HEIGHT.get();
+            try {
+                RCConfig.MOUND_REGROWTH_RARITY.set(1);      // fire every tick, so this is not a dice roll
+                RCConfig.MOUND_REGROWTH_DROP_HEIGHT.set(2);  // see withShortDrop
+                level.getBlockState(abs).randomTick(level, abs, level.getRandom());
+            } finally {
+                RCConfig.MOUND_REGROWTH_RARITY.set(wasRarity);
+                RCConfig.MOUND_REGROWTH_DROP_HEIGHT.set(wasDrop);
+            }
+            helper.assertEntityPresent(EntityType.FALLING_BLOCK);
+            helper.succeed();
+        });
+
         // The config lever really is a lever. A gate that cannot be closed is a gate nobody can trust
         // in a pack, and "defaults are the design" only holds if the switch works.
         RCGameTests.test("regrowth_can_be_switched_off", 20, helper -> {
