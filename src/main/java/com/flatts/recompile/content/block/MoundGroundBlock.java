@@ -117,6 +117,17 @@ public class MoundGroundBlock extends Block {
             return Outcome.BLOCKED;
         }
 
+        // Gravity off means no deorbit: the block is simply put there. GARBAGE_GRAVITY_ENABLED's own
+        // comment has read "slump when quarried, deorbit on regrowth" since Phase 0, so this delivery
+        // was always meant to answer to it - but it governs the FALL, not the feature. Turning gravity
+        // off should change how a mound comes back, not stop it coming back, which is why regrowth
+        // keeps its own switch. With nothing in flight there is also no flight path to keep clear, so
+        // a roofed mound still fills in from underneath.
+        if (!RCConfig.GARBAGE_GRAVITY_ENABLED.get()) {
+            level.setBlockAndUpdate(target, RCBlocks.GARBAGE_BLOCK.get().defaultBlockState());
+            return Outcome.GREW;
+        }
+
         int drop = RCConfig.MOUND_REGROWTH_DROP_HEIGHT.get();
         if (target.getY() + drop >= level.getMaxY()) {
             return Outcome.BLOCKED;

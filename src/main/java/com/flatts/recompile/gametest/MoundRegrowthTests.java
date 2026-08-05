@@ -151,6 +151,30 @@ final class MoundRegrowthTests {
             helper.succeed();
         });
 
+        // Gravity off changes the DELIVERY, not the feature. GARBAGE_GRAVITY_ENABLED has promised
+        // "deorbit on regrowth" in its own comment since Phase 0, so a pack that turns gravity off and
+        // still gets blocks raining out of the sky has been lied to by the config file. Regrowth keeps
+        // its own switch, so this must still fill the mound - just by placing rather than dropping.
+        RCGameTests.test("gravity_off_places_the_block_instead_of_dropping_it", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(GROUND);
+            helper.setBlock(GROUND, RCBlocks.MOUND_GROUND.get().defaultBlockState()
+                .setValue(MoundGroundBlock.HEIGHT, 2));
+
+            boolean was = RCConfig.GARBAGE_GRAVITY_ENABLED.get();
+            try {
+                RCConfig.GARBAGE_GRAVITY_ENABLED.set(false);
+                helper.assertTrue(MoundGroundBlock.regrowOnce(level, abs) == Outcome.GREW,
+                    "regrowth must still work with gravity off - that flag governs the fall, not "
+                        + "whether mounds come back");
+            } finally {
+                RCConfig.GARBAGE_GRAVITY_ENABLED.set(was);
+            }
+            helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), GROUND.above(1));
+            helper.assertEntityNotPresent(EntityType.FALLING_BLOCK);
+            helper.succeed();
+        });
+
         // The config lever really is a lever. A gate that cannot be closed is a gate nobody can trust
         // in a pack, and "defaults are the design" only holds if the switch works.
         RCGameTests.test("regrowth_can_be_switched_off", 20, helper -> {
