@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "minecraft:coarse_dirt",
-    "minecraft:dirt"
+    "minecraft:dirt",
+    "recompile:mound_ground"
   ]
 }

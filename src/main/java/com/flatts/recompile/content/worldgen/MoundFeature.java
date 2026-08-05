@@ -1,5 +1,8 @@
 package com.flatts.recompile.content.worldgen;
 
+import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.MoundGroundBlock;
+import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -74,9 +77,41 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
                         placedAny = true;
                     }
                 }
+                writeBed(level, origin.offset(dx, -1, dz), column);
             }
         }
         return placedAny;
+    }
+
+    /**
+     * Remember this column's original height under its footprint, so Phase 5 can grow it back.
+     *
+     * <p><b>Takes the taller of the two when mounds overlap.</b> The loop above only writes into air,
+     * so a later mound interleaves with an earlier one rather than replacing it - and its rim, which
+     * is a column of 0, would otherwise overwrite a tall neighbour's memory and permanently flatten
+     * what regrows there. Silent, and invisible until somebody quarries that mound and watches it come
+     * back wrong.
+     *
+     * <p>Only ever replaces ground. Writing into another mound's garbage would punch a hole in a
+     * stack nobody has touched yet.
+     *
+     * <p>Stores the block COUNT, not the top offset: this loop fills {@code dy = 0..column}
+     * inclusive, so a rim cell of column 0 still carries one block. Storing the offset would build
+     * every mound one block short, and would leave 0 meaning both "a one-block rim" and "nothing
+     * here" - which is the value a hand-placed block has, and it must stay inert.
+     */
+    private void writeBed(WorldGenLevel level, BlockPos pos, int column) {
+        BlockState existing = level.getBlockState(pos);
+        if (existing.getBlock() instanceof MoundGroundBlock) {
+            if (existing.getValue(MoundGroundBlock.HEIGHT) >= column + 1) {
+                return;
+            }
+        } else if (!existing.isSolidRender() || existing.getBlock() instanceof SortableBlock
+                || existing.getBlock() instanceof BulkyWasteBlock) {
+            return;
+        }
+        level.setBlock(pos, RCBlocks.MOUND_GROUND.get().defaultBlockState()
+            .setValue(MoundGroundBlock.HEIGHT, Math.min(column + 1, 16)), 2);
     }
 
     /** Pick the block for a mound cell: bags on the surface, bales/bulky waste in the core. */

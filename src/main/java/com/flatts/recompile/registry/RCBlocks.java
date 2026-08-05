@@ -16,6 +16,7 @@ import com.flatts.recompile.content.block.HydroponicsBayBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.MechanicalWasteBlock;
+import com.flatts.recompile.content.block.MoundGroundBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
 import com.flatts.recompile.content.block.SeparatorPartBlock;
 import com.flatts.recompile.content.block.SeparatorChamberBlock;
@@ -96,6 +97,28 @@ public final class RCBlocks {
             .strength(0.6F)
             .sound(SoundType.GRAVEL)
             .requiresCorrectToolForDrops()
+    );
+
+    /**
+     * The mound bed (P1.6, Phase 5): the memory under a mound's footprint and the block that grows it
+     * back. Vanilla coarse dirt's own hardness, sound and map colour, because it IS coarse dirt with a
+     * different name and a darker face - the texture is that same face retinted, not a new drawing.
+     * The player learns to read the ground: dark means this one comes back, which puts the
+     * quarry-or-heal decision underfoot.
+     *
+     * <p>No {@code requiresCorrectToolForDrops} and it drops nothing, so it digs exactly like the
+     * coarse dirt it is - and there is nothing to carry off, because this is world memory rather than
+     * a material. Digging one out simply forgets that column, which is the same outcome as retiring
+     * it with grass and wants no second rule.
+     */
+    public static final DeferredBlock<MoundGroundBlock> MOUND_GROUND = BLOCKS.registerBlock(
+        "mound_ground",
+        MoundGroundBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.DIRT)
+            .strength(0.5F)
+            .sound(SoundType.GRAVEL)
+            .randomTicks()
     );
 
     /**

@@ -389,8 +389,28 @@ it **visually distinct** (dark, saturated earth) so the player learns to read th
 this one comes back, which puts the quarry-vs-heal decision underfoot. Rung 1 converting mound bed
 to grass is what retires it forever.
 
-Blocked on the `mound_bed` texture (texgen + art approval). Pre-existing saved worlds will have no
-mound beds; acceptable pre-beta.
+**Status: SHIPPED.** `MoundGroundBlock` carries the memory and the regrowth; `MoundFeature` writes
+it; rate, on/off and drop height are config. Pre-existing saved worlds have no mound ground, so their
+mounds stay finite - accepted (owner, 2026-08-05).
+
+Three things in the plan above did not survive building it:
+
+- **The texture was never a blocker.** "Dark saturated earth" is a retint of vanilla coarse dirt, not
+  a drawing: same grain, calibrated to mean luma 66 against coarse dirt's 90.4, so it reads as the
+  same material and unmistakably darker ground.
+- **It is not a `mound_bed`, it is `mound_ground`, named Mound Ground** (owner). "Bed" collides with
+  the vanilla noun in a mod that ships a real bed, and the block is coarse dirt with a different name
+  and face - so it takes coarse dirt's hardness, sound, shovel and lack of a tool gate, and stays out
+  of `#minecraft:dirt` so `#encroachable` cannot reach it.
+- **The property stores a COUNT, not the top offset the plan described.** The feature fills
+  `dy = 0..column` inclusive, so a rim cell of column 0 still carries a block; storing the offset
+  builds every mound one short, and leaves 0 meaning both "one-block rim" and "nothing here". As a
+  count, 0 can only mean the latter, which is what makes a hand-placed block inert instead of the
+  seed of a mound that never existed.
+- **Delivery drops from 30 blocks, not the top of the world.** The build limit is 320 over a surface
+  near -60; a 380-block fall is nine seconds of live entity per block of garbage for a beat that
+  reads identically from thirty. The flight path is checked clear first, so a roof stops regrowth
+  rather than collecting it.
 
 ---
 

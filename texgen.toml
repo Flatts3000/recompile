@@ -1514,3 +1514,23 @@ vanilla_ref = "block/blast_furnace_front_on"
 [surface.separator_core_front_active.procedural]
 style = "rubble"
 palette = ["#3a5a7a", "#2e4a66", "#d8a03a", "#7a5a42", "#4a6a8a", "#f0c060", "#26384c"]
+
+
+# Mound Ground (Phase 5): the memory block under a mound's footprint. It IS coarse dirt with a
+# different name and a darker face, so the texture is vanilla coarse dirt retinted rather than a new
+# drawing - same grain, same read, unmistakably darker. Generating one blind would have invented a
+# material that merely sat next to coarse dirt instead of being it.
+[surface.mound_ground]
+kind = "block"
+backend = "retint"
+size = 16
+source = "block/coarse_dirt"
+tint = "#cdb298"
+brightness = 1.0
+prompt = "vanilla coarse dirt, darkened"
+# Calibrated, not eyeballed: vanilla coarse dirt is mean luma 90.4 and this lands at 66, about
+# three quarters. Dark enough to read as a different ground at a glance, close enough that it
+# still reads as the same material. The tint looks too light for the job because retint
+# multiplies - a tint at coarse dirt's own colour comes back at a third of it - so the pale value
+# is what keeps brightness at a truthful 1.0 instead of a 2.0 that would read as "lighten".
+vanilla_ref = "block/coarse_dirt"

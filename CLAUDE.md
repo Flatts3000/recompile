@@ -57,6 +57,15 @@ Anything (collectibles the star use) displays on the **Display Pedestal** (`cont
 
 `household_sprawl` has **all spawner lists empty by design** - the starting biome is creature-free, which is why food comes from tin cans and foraged mushrooms rather than mobs.
 
+**Mounds regrow, and the memory is a block** (`MoundGroundBlock`, design P1.6, Phase 5). `MoundFeature` writes **Mound Ground** (`recompile:mound_ground`) under every footprint cell carrying **how many blocks belong on that column** - so the exact footprint and profile survive with no `SavedData`, no worldgen-thread concurrency and no region tracking, the same palette-flyweight idiom as `SortableBlock`'s `sorted`. It random-ticks: short column, and one Block of Garbage is spawned above and falls in, so replenishing mounds are visible across the plain. Four things bite:
+
+- **It is coarse dirt with a different name and a darker face** (owner, 2026-08-05), and everything follows: coarse dirt's hardness, sound, shovel, and no tool gate. Its texture is a *retint* of vanilla coarse dirt calibrated to mean luma 66 against coarse dirt's 90.4 - the same material, unmistakably darker ground. It is deliberately **out of `#minecraft:dirt`**, because membership would reach `#encroachable` through `#substrate_overworld` and the junkyard would eat its own memory.
+- **`HEIGHT` is a COUNT, and 0 means inert.** The feature fills `dy = 0..column` *inclusive*, so a rim cell of column 0 still carries one block; storing the top offset builds every mound one block short and leaves 0 ambiguous. As a count, 0 can only mean "nobody remembers a mound here", which is what makes a hand-placed block inert rather than the seed of a mound that never existed.
+- **Overlapping mounds must take the taller.** `MoundFeature` only writes into air, so mounds interleave - and a later mound's rim (column 0) would otherwise overwrite a tall neighbour's memory and permanently flatten what regrows there.
+- **Retirement is the block being gone.** Rung 1 greens it (`#recompile:spreadable`) and the memory goes with it. Encroachment reverts grass to *plain* coarse dirt and never to Mound Ground (P1.7-R item 5), so only the green is contested and mound retirement is permanent.
+
+**Worldgen writes it, so only new worlds regrow.** A save made before this shipped has no Mound Ground and its mounds stay finite; accepted (owner).
+
 **Encroachment: the junkyard fights back, and it needs no saved state** (`RCEncroachment`, design P1.7-R). Healed grass bordering unhealed ground reverts to coarse dirt; the reclamation ladder is the defence (bare grass reverts, cover is stripped *instead*, logs/leaves make it permanent). Three facts make the whole system cheap and are worth keeping in mind:
 
 - **Coarse dirt is the universal world surface** (the `noise_settings` surface rule), so every healed patch is by definition ringed by unhealed ground. The frontier test is a local neighbour check - no mound memory, no `SavedData`, no region tracking.

@@ -56,6 +56,7 @@ public final class RCGameTests {
     /** Wire up from the {@code Recompile} constructor. */
     public static void register(IEventBus modEventBus) {
         SortingTests.register();
+        MoundRegrowthTests.register();
         SortingTarpTests.register();
         ForageTests.register();
         CraftingTableTests.register();
