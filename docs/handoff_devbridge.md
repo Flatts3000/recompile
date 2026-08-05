@@ -3,7 +3,7 @@
 **Written 2026-08-04 from the Trashlands session that consumed
 `../trashlands/docs/handoff_gamebridge.md`.** Everything below was verified on this machine during
 that session. This is a task brief; the design is `F:\devbridge\SPEC.md` and
-`F:\minecraft-repos\mc-pack-toolkit\gamebridge\README.md`.
+`F:\devbridge\gamebridge\README.md`.
 
 ## The one thing to change
 
@@ -108,7 +108,7 @@ here reads that format.
 | Thing | Path |
 | --- | --- |
 | devbridge mod, spec, own repo | `F:\devbridge\` |
-| gamebridge CLI and README | `F:\minecraft-repos\mc-pack-toolkit\gamebridge\` |
+| gamebridge CLI and README | `F:\devbridge\gamebridge\` |
 | The pack-side brief this answers | `F:\minecraft-repos\trashlands\docs\handoff_gamebridge.md` |
 | The verifier built from it | `F:\minecraft-repos\trashlands\tools\verify_quests.py` |
 | This repo's devbridge wiring | `build.gradle`, the `client` run block |
