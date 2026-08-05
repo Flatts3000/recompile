@@ -95,7 +95,14 @@ final class PowerTierTests {
         // succeedWhen retries every tick and fails by timeout, which is the honest shape for an
         // eventually-consistent value. It cannot pass vacuously, because
         // solar_panel_generates_under_open_sky asserts the same method returns nonzero with no roof:
-        // the pair is what pins both sides, and neither half means much alone.
+        // the pair is what pins both sides, and neither half means much alone. Confirmed by making
+        // outputAt ignore the roof, which fails this at tick 42 - it does retry to the timeout.
+        //
+        // What this does NOT cover, measured rather than assumed: the canSeeSky gate itself. Deleting
+        // it leaves this test green, because under a solid roof sky light at the block above reaches 0
+        // and the daylight check below returns 0 on its own. The gate only changes the answer under
+        // PARTIAL sky light, where brightness sits between 1 and 14 - a panel under an overhang rather
+        // than a ceiling. So do not read a green here as proof that gate still works.
         RCGameTests.test("solar_panel_makes_nothing_under_a_roof", 40, helper -> {
             helper.setBlock(PANEL, RCBlocks.SOLAR_PANEL.get());
             helper.setBlock(PANEL.above(), Blocks.STONE);
