@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.7.0
+
+**Mounds grow back.** Quarry one out and it starts rebuilding itself toward the footprint and height it had, delivered as garbage falling out of the sky - so you can see across the plain which mounds are refilling. It never grows past what it was, and it never seeds a new one.
+
+Which makes the choice underneath it the real change. **Grass a mound's footprint and that mound is retired for good.** A regrowing mound is income; healed ground is permanent. Healing the world shrinks your garbage economy, and that trade is now something you make deliberately instead of something the world decides for you.
+
+**This one needs a new world.** The memory of what a mound was is written into the ground when the world generates, so a save made before this update has none, and its mounds stay finite.
+
+**Bare hands no longer carry off a pile.** A Block of Garbage, Stone Rubble or Mechanical Waste stays where it is unless you bring the right tool, and tells you which one. You can still pick through any of them by hand, which is the point: sorting is free, hauling is not.
+
+### Mound regrowth
+- Quarried mounds regrow toward their original footprint and height, never beyond, one block at a time.
+- Delivery is a falling block from above, so a replenishing mound is visible from a distance.
+- **Mound Ground** is the dark earth under a mound's footprint. It is coarse dirt with a different name and a darker face: same hardness, same shovel. Dark ground means that mound comes back.
+- Greening Mound Ground with the Grass Spreader retires that mound permanently. Encroachment can take the grass back, but never back to Mound Ground - only the green is contested.
+- A roof or a build over a mound stops it regrowing rather than being buried by it.
+- Rate, on/off and the drop height are all config. Regrowth only runs near a player, so an unattended world does not refill behind your back.
+- With `garbageGravityEnabled` off the block is placed instead of dropped - the switch governs the fall, not whether mounds come back.
+
+### Tools to move a pile
+- **Block of Garbage** and **Stone Rubble** need a shovel; **Mechanical Waste** needs a pickaxe; a **Compacted Bale** needs the Scrap Knife. Any vanilla shovel or pickaxe works - the Junk Shovel is not special-cased.
+- **Trash Bags still come up by hand.** They are loose litter and the first block you meet.
+- Swing without the tool and the pile stays put and says what it wants, so nothing is lost while you learn it.
+- Sorting is untouched. Every pile still picks through bare-handed at the same rate.
+
+### Corrections
+- Six claims in the in-game guide were wrong and are fixed: the Workbench holds a Scrap Knife **and** a Prybar rather than either; the Sorting Tarp takes one block per press rather than a stack; its accepted-input list had never learned about Mechanical Waste; the Scrap Network entry listed six members when there are nine; the Burn Barrel is an allowlist rather than an ordinary furnace; and a Block of Garbage no longer "drops itself like gravel".
+
 ## v0.6.0
 
 Iron was where this world ended. It is not any more: the demolition yard now generates **Mechanical Waste**, and a machine called the **Separator** pulls diamond, redstone and amethyst back out of it. Nothing is transmuted and nothing is mined - the valuable material was always inside the thing you found, and this is the machine that gets it out.

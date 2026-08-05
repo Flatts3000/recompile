@@ -1,7 +1,6 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 4's region system and its first frontier
-region shipped**, and **v0.4.0 is released** (2026-08-01; v0.3.0 on 2026-07-30, v0.1.0 and v0.2.0 on 2026-07-27,
+**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, and **Phase 5 (mound regrowth) shipped 2026-08-05**. **v0.7.0 is released** (2026-08-05; v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27).
 the latter as the CurseForge ModJam 2026 entry). The mod is a
 playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
 Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
