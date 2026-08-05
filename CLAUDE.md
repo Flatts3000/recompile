@@ -260,6 +260,13 @@ enumerates IPv4 only while devbridge binds `getLoopbackAddress()` (`::1` here), 
 the port free while a game holds it. **For the same reason the client must dial `localhost`, never the
 `127.0.0.1` literal**, which otherwise gets connection refused from a socket the log says is listening.
 
+**So a tool that must be sure asks what answered, and `ping` cannot tell it** - that reports dedicated
+vs integrated, and two projects' dev clients are both integrated. `tools/shoot_scenes.py` probes
+instead: it hands `recompile:garbage_block` to the command parser, which rejects an unknown item as a
+*parse* error, and stops rather than shoot the wrong game. The selector matches nobody on purpose -
+against a singleplayer world with a real player connected, a bare `@a` would hand them the item rather
+than merely ask about it.
+
 The point is **verification**: `gamebridge check "entity @e[type=minecraft:painting]" --count 6` exits
 non-zero, which is a check a screenshot cannot make - a painting that fails to hang deletes itself
 silently and just leaves the picture looking emptier.

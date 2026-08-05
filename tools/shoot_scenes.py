@@ -14,6 +14,8 @@ to be right for that:
     scene places correctly while silently not moving the camera.
   * The HUD is hidden around both shots rather than per shot, because Screenshot.grab captures the
     frame already drawn.
+
+It also proves what answered the port before it drives anything - see `assert_it_is_this_repo`.
 """
 
 import sys
@@ -61,9 +63,37 @@ def find_surface(bridge, x: int, z: int, high: int = 110, low: int = 55) -> int:
     raise SystemExit(f"no surface found at {x},{z} between y {low} and {high}")
 
 
+def assert_it_is_this_repo(bridge) -> None:
+    """Prove the game that answered is Recompile's dev client and not somebody else's.
+
+    A fixed port is a guess about who is listening, and claiming one prevents a clash without
+    detecting it: `ports check` enumerates IPv4 only while devbridge binds `getLoopbackAddress()`,
+    which is `::1` here, so the registry calls a port free while a game holds it. `ping` cannot settle
+    it either - it reports dedicated vs integrated, and two projects' dev clients are both integrated.
+
+    This is not hypothetical. Trashlands' quest verifier connected to THIS repo's client and reported
+    six item ids resolving: not a lie so much as an answer about the wrong game, and far worse than an
+    error because it looked like a pass.
+
+    The probe hands a Recompile-only id to the command parser, which rejects an unknown item as a
+    PARSE error before the command looks for anything to act on. The selector deliberately matches
+    nobody, which is the load-bearing part - against a singleplayer world with a real player connected,
+    a bare @a would hand them the item instead of merely asking about it.
+    """
+    out = bridge.command("give @a[tag=recompile_sentinel_matches_nobody] recompile:garbage_block")
+    # Item known -> the selector is what fails ("No player was found"). Item unknown -> the parse
+    # fails first, and whatever answered is not running this mod.
+    if "Unknown item" in out:
+        raise SystemExit(
+            f"port {PORT} answered, but it is not Recompile's dev client - recompile:garbage_block "
+            f"does not exist there. Something else is on this port; shooting it would produce "
+            f"screenshots of the wrong game. Reply was: {out.strip()!r}")
+
+
 def main() -> None:
     x, z = ANCHOR_XZ
     with DevBridge(port=PORT) as bridge:
+        assert_it_is_this_repo(bridge)
         # Chunks unload with nobody in them, and /place into an unloaded chunk quietly does nothing.
         bridge.command(f"forceload add {x - 20} {z - 20} {x + 40} {z + 40}")
         y = find_surface(bridge, x, z)
