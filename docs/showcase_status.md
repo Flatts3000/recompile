@@ -34,7 +34,7 @@ camera exists to remove.
 ## Shooting them now
 
 Both scenes are driven by tooling rather than by hand. With a dev client up (`./gradlew runClient`,
-which opens devbridge on 25580):
+which opens devbridge on **8605**, the port claimed for this repo):
 
 ```bash
 python tools/shoot_scenes.py                       # the reclamation pair

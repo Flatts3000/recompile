@@ -25,10 +25,18 @@ neoForge {
     runs {
         client {
             client()
-            // devbridge (mc-pack-toolkit): lets tooling drive this client from outside - run
-            // commands in a singleplayer world and take screenshots. Inert without this property,
+            // devbridge (its own repo, F:\devbridge): lets tooling drive this client from outside -
+            // run commands in a singleplayer world and take screenshots. Inert without this property,
             // and the jar lives in run/mods rather than being a dependency, so it cannot ship.
-            systemProperty 'devbridge.port', '25580'
+            //
+            // 8605 is CLAIMED for this repo in ~/.claude/port_registry.yaml, deliberately not
+            // devbridge's own 25580 default. Every project that keeps the default lands on one socket:
+            // Trashlands' quest verifier once connected to THIS client and reported six item ids
+            // resolving, a clean pass about the wrong game. Claiming prevents the clash but cannot
+            // detect it, because the ports helper enumerates IPv4 only and devbridge binds
+            // getLoopbackAddress(), which is ::1 here - so the registry reports the port free while a
+            // game holds it. A tool that must be sure asks what answered.
+            systemProperty 'devbridge.port', '8605'
             // Boot straight into a world instead of stopping at the title screen. Vanilla's own
             // launch argument, not a mod feature. `--args` on the Gradle task does NOT do this: the
             // moddev run treats it as a main class and the launch dies before Minecraft starts.

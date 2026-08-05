@@ -233,19 +233,39 @@ Feature design is decided there, not here. Read before changing gameplay:
 
 ## Driving a running game from outside (gamebridge / devbridge)
 
-**Already wired here.** `./gradlew runClient` opens the devbridge socket on 25580 and boots straight
+**devbridge is its own repo** (`F:\devbridge`, MIT), and its onboarding doc (`docs/onboarding.md`
+there) is the reference - this section is only what is specific to this repo. It is two halves of one
+wire protocol: a dev-only NeoForge jar and the `gamebridge` Python client, kept in one repo so they
+cannot drift.
+
+**Already wired here.** `./gradlew runClient` opens the devbridge socket on **8605** and boots straight
 into a world; `run/mods/devbridge-26.1.2-0.1.0.jar` is the mod half (`run/` is gitignored, so a fresh
-clone needs the jar copied in from `F:\devbridge`).
+clone needs the jar from that repo's Releases).
 
 ```bash
-pip install -e F:/devbridge/gamebridge   # ships with the mod it talks to, since 2026-08-04
+pip install "gamebridge @ git+https://github.com/Flatts3000/devbridge.git#subdirectory=gamebridge"
 
-gamebridge --devbridge 25580 cmd "function recompile:showcase/museum"
-gamebridge --devbridge 25580 shot museum
+gamebridge --devbridge 8605 cmd "function recompile:showcase/museum" --player @s
+gamebridge --devbridge 8605 shot museum
 
 # Or RCON against ./gradlew runServer, which needs no mod at all.
 bash tools/verify_showcase.sh     # places the museum and asserts it landed
 ```
+
+**8605 is claimed for this repo**, deliberately not devbridge's own 25580 default. Every project that
+keeps the default shares one socket, and that has already produced a wrong answer rather than an
+error: Trashlands' quest verifier connected to *this* client and reported six item ids resolving, a
+clean pass about the wrong game. Claiming prevents a clash but cannot detect one - `ports check`
+enumerates IPv4 only while devbridge binds `getLoopbackAddress()` (`::1` here), so the registry calls
+the port free while a game holds it. **For the same reason the client must dial `localhost`, never the
+`127.0.0.1` literal**, which otherwise gets connection refused from a socket the log says is listening.
+
+**So a tool that must be sure asks what answered, and `ping` cannot tell it** - that reports dedicated
+vs integrated, and two projects' dev clients are both integrated. `tools/shoot_scenes.py` probes
+instead: it hands `recompile:garbage_block` to the command parser, which rejects an unknown item as a
+*parse* error, and stops rather than shoot the wrong game. The selector matches nobody on purpose -
+against a singleplayer world with a real player connected, a bare `@a` would hand them the item rather
+than merely ask about it.
 
 The point is **verification**: `gamebridge check "entity @e[type=minecraft:painting]" --count 6` exits
 non-zero, which is a check a screenshot cannot make - a painting that fails to hang deletes itself
@@ -257,9 +277,17 @@ framebuffer); that is what devbridge is for. And chunks unload with nobody stand
 playerless server answers `data get block` with "That position is not loaded" and otherwise looks like
 it worked - `forceload add` first.
 
-**Commands run as the console, so `@s` matches nothing and `~` is spawn-relative.** Every showcase
-function ends in `tp @s`, so driving one over the bridge places the set correctly and silently does not
-move the camera. Tracked in `F:\devbridge/SPEC.md`.
+**Commands run as the console unless you pass a player, so `@s` matches nothing and `~` is
+spawn-relative.** Every showcase function ends in `tp @s`, so driving one over the bridge places the
+set correctly and silently does not move the camera. **The fix is `--player @s`** (`player=` from
+Python), which devbridge resolves to the only player online; an unmatched name fails loudly rather
+than falling back to the console. `tools/shoot_scenes.py` passes it on every command.
+
+Beyond `cmd` and `shot` the verbs are `ping`, `hud`, `input`, `pause` and `stop`, and a toggle with no
+argument restores vanilla behaviour (`hud on`, `input on`, `pause on`). Loading a world turns off
+pause-on-lost-focus and takes the mouse on purpose: an unfocused singleplayer client stops ticking and
+would answer nothing, and a stray alt-tab between framing a shot and grabbing it silently changes the
+picture.
 
 **devbridge must never ship.** It binds loopback only and is inert without `-Ddevbridge.port`, but it
 executes arbitrary commands and is deliberately a separate jar rather than a dependency.
