@@ -106,7 +106,7 @@ machine GUIs and no BlockEntity for the structure.
 
 | Block | Behaviour |
 |---|---|
-| Rain Collector | The only water source in the world. Water does not spread here, so a poured bucket is a spent bucket. |
+| Rain Collector | The only water source in the world. Water does not spread here, so two sources never fill in a third and water cannot be duplicated. |
 | Grass Spreader | Drip irrigator. Converts coarse dirt to grass within a radius. Consumes nothing once built. |
 | Compost Heap | Turns organic muck into fertilizer. Fertilizer speeds crops and saplings the way bone meal would, which this world has no source of. |
 | Tree Nursery | The only source of trees. Saplings are not obtainable. |
