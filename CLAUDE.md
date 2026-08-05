@@ -248,7 +248,7 @@ wire protocol: a dev-only NeoForge jar and the `gamebridge` Python client, kept 
 cannot drift.
 
 **Already wired here.** `./gradlew runClient` opens the devbridge socket on **8605** and boots straight
-into a world; `run/mods/devbridge-26.1.2-0.1.0.jar` is the mod half (`run/` is gitignored, so a fresh
+into a world; `run/mods/devbridge-26.1.2-0.2.0.jar` is the mod half (`run/` is gitignored, so a fresh
 clone needs the jar from that repo's Releases).
 
 ```bash
@@ -269,12 +269,13 @@ enumerates IPv4 only while devbridge binds `getLoopbackAddress()` (`::1` here), 
 the port free while a game holds it. **For the same reason the client must dial `localhost`, never the
 `127.0.0.1` literal**, which otherwise gets connection refused from a socket the log says is listening.
 
-**So a tool that must be sure asks what answered, and `ping` cannot tell it** - that reports dedicated
-vs integrated, and two projects' dev clients are both integrated. `tools/shoot_scenes.py` probes
-instead: it hands `recompile:garbage_block` to the command parser, which rejects an unknown item as a
-*parse* error, and stops rather than shoot the wrong game. The selector matches nobody on purpose -
-against a singleplayer world with a real player connected, a bare `@a` would hand them the item rather
-than merely ask about it.
+**So a tool that must be sure asks what answered - and since devbridge 0.2.0, `ping` can tell it.** It
+reports the game's own `gameDir` and world name, and the client checks it: `ping(expect_instance=...)`
+raises rather than let you drive the wrong game. `tools/shoot_scenes.py` passes `run/`, which is the
+moddev default game directory and NOT the repo root - pointing it at the repo fails the check against
+the game that is behaving correctly. This replaced a hand-rolled sentinel here (a Recompile-only item
+id handed to the command parser, which rejects an unknown item as a *parse* error); same guard, now
+the tool's job.
 
 The point is **verification**: `gamebridge check "entity @e[type=minecraft:painting]" --count 6` exits
 non-zero, which is a check a screenshot cannot make - a painting that fails to hang deletes itself
@@ -292,11 +293,20 @@ set correctly and silently does not move the camera. **The fix is `--player @s`*
 Python), which devbridge resolves to the only player online; an unmatched name fails loudly rather
 than falling back to the console. `tools/shoot_scenes.py` passes it on every command.
 
-Beyond `cmd` and `shot` the verbs are `ping`, `hud`, `input`, `pause` and `stop`, and a toggle with no
-argument restores vanilla behaviour (`hud on`, `input on`, `pause on`). Loading a world turns off
-pause-on-lost-focus and takes the mouse on purpose: an unfocused singleplayer client stops ticking and
-would answer nothing, and a stray alt-tab between framing a shot and grabbing it silently changes the
-picture.
+Beyond `cmd` and `shot` the verbs are `ping`, `hud`, `input`, `pause`, `stop`, and since 0.2.0
+`screen`, `cursor`, `click` and `log` - so a tool can drive an open GUI and read what the game logged.
+A toggle with no argument restores vanilla behaviour (`hud on`, `input on`, `pause on`).
+
+**0.2.0 reversed the mouse default and it matters here.** Loading a world still turns off
+pause-on-lost-focus - an unfocused singleplayer client stops ticking and would answer nothing - but it
+no longer takes the mouse unless asked, because a person who opened the game to fly around has no idea
+a mod took it and the symptom looks like a broken game. An unattended run has to ask: `shoot_scenes.py`
+calls `input(False)` explicitly, or a stray alt-tab between framing a shot and grabbing it silently
+changes the picture, and gives it back in a `finally`.
+
+**`shot` can capture at an exact size** (0.2.0), resizing the window for the moment of the grab. The
+`--width 1920 --height 1080` in the client run block predates that and is now belt-and-braces rather
+than the only way to get a usable frame.
 
 **devbridge must never ship.** It binds loopback only and is inert without `-Ddevbridge.port`, but it
 executes arbitrary commands and is deliberately a separate jar rather than a dependency.
