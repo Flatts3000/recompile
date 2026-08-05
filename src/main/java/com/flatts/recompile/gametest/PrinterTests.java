@@ -8,6 +8,9 @@ import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -24,6 +27,12 @@ import net.minecraft.world.level.block.Blocks;
  * <p>That makes the interesting assertions <b>reachability</b> ones rather than block behaviour. A
  * printer that places, faces and drops correctly but yields no ink would satisfy every structural
  * check the repo already has and still leave the gap exactly where it was.
+ *
+ * <p><b>It now carries the whole set, not only the ink</b> (owner, 2026-08-05): toner is the one thing
+ * in a junkyard that is pigment by design. Blue and black stay routed through their pigment - lapis
+ * and an ink sac - because vanilla already turns each into its dye, so shipping the dye item too would
+ * orphan a vanilla recipe and hand over a strictly worse item (an ink sac is also bait and a
+ * book-and-quill; black dye is neither).
  */
 final class PrinterTests {
 
@@ -98,6 +107,60 @@ final class PrinterTests {
             helper.succeed();
         });
 
+        // THE WHOLE DYE SET, WHICH IS THE PRINTER'S SECOND JOB (owner, 2026-08-05). Toner is the one
+        // thing in a junkyard that is pigment by design, so the printer carries every colour.
+        //
+        // The reason this is a test and not a comment is that the gap it closes is invisible from any
+        // single dye. White dye's only vanilla routes are bone meal and lily of the valley; there is no
+        // lily in the fertilizer scatter, and bone meal means either skeleton bones (which live in the
+        // demolition yard, not the starting biome - household_sprawl has empty monster spawners) or a
+        // composter, which needs wood. So white waits on leaving the starting region either way, and it
+        // takes gray, pink and light blue with it (all are white plus something) and magenta after
+        // those (it needs pink). Five colours behind one trip, and every one reads as fine alone.
+        RCGameTests.test("a_printer_covers_every_dye_colour", 20, helper -> {
+            TeardownRecipe printer = teardownFor(helper, RCItems.PRINTER.get());
+            helper.assertTrue(printer != null, "the printer must have a teardown recipe");
+
+            List<String> missing = new ArrayList<>();
+            for (DyeColor colour : DyeColor.values()) {
+                Item wanted = upstreamOf(colour);
+                // An id that resolves to nothing comes back as AIR, not null, and AIR is in no
+                // teardown - so a typo here would report every colour missing rather than pass
+                // vacuously. Named anyway, because the failure would otherwise read as a content bug.
+                helper.assertTrue(wanted != Items.AIR,
+                    "no item resolved for " + colour.getName() + " - the test's own id mapping is "
+                        + "broken, not the printer");
+                if (!yields(printer, wanted)) {
+                    missing.add(colour.getName());
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "the printer must be able to yield every dye colour, and these have no route out of "
+                    + "it: " + missing);
+            helper.succeed();
+        });
+
+        // BLUE AND BLACK ARE THE PIGMENT, NOT THE DYE (owner, 2026-08-05). Vanilla already grinds lapis
+        // into blue dye and an ink sac into black, so shipping the dye items too would hand the player
+        // a strictly better version of an item they can already make and quietly orphan two vanilla
+        // recipes. It also matters downstream: an ink sac is fishing bait and a book-and-quill, and a
+        // black dye is neither, so the substitution is not free either way.
+        //
+        // Asserted as an exclusion because the failure is silent - the set test above passes whether
+        // blue arrives as lapis or as blue_dye, so nothing else here would notice the drift.
+        RCGameTests.test("blue_and_black_arrive_as_lapis_and_ink", 20, helper -> {
+            TeardownRecipe printer = teardownFor(helper, RCItems.PRINTER.get());
+            helper.assertTrue(printer != null, "the printer must have a teardown recipe");
+
+            helper.assertTrue(!yields(printer, Items.BLUE_DYE),
+                "blue comes out of a printer as lapis lazuli, not as blue dye - lapis grinds into "
+                    + "blue dye and is also the only lapis in this world");
+            helper.assertTrue(!yields(printer, Items.BLACK_DYE),
+                "black comes out of a printer as an ink sac, not as black dye - the sac makes the "
+                    + "dye, and it is also the only bait and the only book-and-quill here");
+            helper.succeed();
+        });
+
         // IT IS ACTUALLY IN THE PILE. A find with a perfect teardown that no Bulky Waste ever hands out
         // is unreachable, and nothing about the recipe would say so. Reads the same parsed loot the JEI
         // Prying category renders, so this also proves the printer shows up there.
@@ -128,6 +191,24 @@ final class PrinterTests {
             helper.succeedWhen(() ->
                 helper.assertItemEntityCountIs(RCItems.PRINTER.get(), pos, 3.0, 1));
         });
+    }
+
+    /**
+     * The item the printer is expected to hand over for a colour: the dye itself, except for the two
+     * the owner routed through their pigment instead (blue as lapis, black as an ink sac).
+     *
+     * <p>Resolved by id rather than through {@code DyeItem}, because <b>26.1 severed the link</b>: a
+     * {@code DyeItem} no longer takes a {@link DyeColor} in its constructor, no longer exposes
+     * {@code getDyeColor()}, and the static {@code DyeItem.byColor(DyeColor)} that every 1.21-era
+     * snippet uses is gone. The colour lives in item data now, so the registry id is the mapping.
+     */
+    private static Item upstreamOf(DyeColor colour) {
+        return switch (colour) {
+            case BLUE -> Items.LAPIS_LAZULI;
+            case BLACK -> Items.INK_SAC;
+            default -> BuiltInRegistries.ITEM.getValue(
+                Identifier.withDefaultNamespace(colour.getName() + "_dye"));
+        };
     }
 
     private static boolean yields(TeardownRecipe recipe, Item item) {
