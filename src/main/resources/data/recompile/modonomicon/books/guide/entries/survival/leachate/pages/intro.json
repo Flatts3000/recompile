@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "intro",
+  "sort_number": 0,
+  "item": "recompile:leachate_bucket",
+  "title": "book.recompile.guide.survival.leachate.intro.title",
+  "text": "book.recompile.guide.survival.leachate.intro.text"
+}

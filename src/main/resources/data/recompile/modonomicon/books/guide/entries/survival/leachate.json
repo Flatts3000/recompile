@@ -1,0 +1,19 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:survival/leachate",
+  "category": "recompile:survival",
+  "name": "book.recompile.guide.survival.leachate.name",
+  "icon": {
+    "id": "recompile:leachate_bucket"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "parents": [
+    { "entry": "recompile:survival/water" }
+  ],
+  "x": 2,
+  "y": 1
+}

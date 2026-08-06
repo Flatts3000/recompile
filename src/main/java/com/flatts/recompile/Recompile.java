@@ -10,6 +10,7 @@ import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCMenus;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCFeatures;
+import com.flatts.recompile.registry.RCFluids;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCLootModifiers;
 import com.flatts.recompile.registry.RCRecipeTypes;
@@ -39,6 +40,9 @@ public final class Recompile {
 
         // Blocks before Items (the garbage block-item references the block);
         // creative tab after items.
+        // Fluids first: the leachate block and bucket are built from the fluid, and the fluid
+        // refers back to both as suppliers, so nothing here forces a circular class-init.
+        RCFluids.register(modEventBus);
         RCBlocks.register(modEventBus);
         RCItems.register(modEventBus);
         RCDataComponents.register(modEventBus);

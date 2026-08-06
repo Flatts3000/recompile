@@ -13,8 +13,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.core.registries.Registries;
@@ -42,6 +44,19 @@ public final class RCItems {
         DeferredRegister.createItems(Recompile.MOD_ID);
 
     // ---------------- Base material vocabulary (P0.4) ----------------
+    /**
+     * A bucket of leachate (#156). Exists because a fluid without a bucket cannot be picked up, moved,
+     * or looked at in creative - not because carrying it around is a designed activity.
+     *
+     * <p>Placing it does not irrigate: that is a property of the fluid, not of how it got there
+     * (see {@link RCFluids}).
+     */
+    public static final DeferredItem<BucketItem> LEACHATE_BUCKET = ITEMS.registerItem(
+        "leachate_bucket",
+        props -> new BucketItem(RCFluids.LEACHATE.get(), props),
+        () -> new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)
+    );
+
     public static final DeferredItem<Item> SCRAP_METAL = ITEMS.registerItem("scrap_metal", Item::new);
     public static final DeferredItem<Item> PLASTIC_SCRAP = ITEMS.registerItem("plastic_scrap", Item::new);
     public static final DeferredItem<Item> GLASS_SHARDS = ITEMS.registerItem("glass_shards", Item::new);

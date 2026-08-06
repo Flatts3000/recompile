@@ -16,6 +16,8 @@ public final class RCConfig {
      * and mound-regrowth deorbit delivery (P1.6). Registered now so the config file
      * exists from first boot; consumed once those blocks land.
      */
+    public static final ModConfigSpec.BooleanValue LEACHATE_SICKENS;
+    public static final ModConfigSpec.IntValue LEACHATE_SICKNESS_TICKS;
     public static final ModConfigSpec.BooleanValue GARBAGE_GRAVITY_ENABLED;
     public static final ModConfigSpec.BooleanValue ROACHES_ENABLED;
     public static final ModConfigSpec.BooleanValue PIGEON_FORAGE_ENABLED;
@@ -117,6 +119,17 @@ public final class RCConfig {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         builder.push("world");
+        LEACHATE_SICKENS = builder
+            .comment("Whether standing in leachate gives Hunger for a few seconds.",
+                "It never damages, poisons or kills - the designed cost of leachate is that it is",
+                "water you cannot use, and this is only a nudge so a pond does not read as free",
+                "decoration to wade through.")
+            .define("leachateSickens", true);
+        LEACHATE_SICKNESS_TICKS = builder
+            .comment("How long the Hunger lasts, in ticks. Refreshed while you stay in the pool,",
+                "so this is the cost of leaving rather than a total.",
+                "First-pass number; joins the pre-beta balance pass with every other placeholder.")
+            .defineInRange("leachateSicknessTicks", 100, 20, 1200);
         GARBAGE_GRAVITY_ENABLED = builder
             .comment("Whether Blocks of Garbage obey gravity (slump when quarried, deorbit on regrowth).")
             .define("garbageGravityEnabled", true);
