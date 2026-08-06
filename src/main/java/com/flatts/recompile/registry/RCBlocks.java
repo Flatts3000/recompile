@@ -13,6 +13,7 @@ import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.DisplayPedestalBlock;
 import com.flatts.recompile.content.block.HydroponicsBayBlock;
+import com.flatts.recompile.content.block.LeachateBlock;
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.MechanicalWasteBlock;
@@ -174,9 +175,9 @@ public final class RCBlocks {
      * {@code noLootTable} because breaking a liquid yields nothing, and {@code liquid()} so vanilla
      * treats it as one for pathing and placement.
      */
-    public static final DeferredBlock<LiquidBlock> LEACHATE = BLOCKS.registerBlock(
+    public static final DeferredBlock<LeachateBlock> LEACHATE = BLOCKS.registerBlock(
         "leachate",
-        props -> new LiquidBlock(RCFluids.LEACHATE.get(), props),
+        props -> new LeachateBlock(RCFluids.LEACHATE.get(), props),
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.TERRACOTTA_BROWN)
             .replaceable()

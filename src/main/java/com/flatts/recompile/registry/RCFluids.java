@@ -49,8 +49,15 @@ public final class RCFluids {
      *   <li><b>No {@code canHydrate(true)}.</b> See the class note - this is the whole no-irrigation
      *       decision, and it is one word away from being undone.
      *   <li><b>Denser and far more viscous than water</b> (1400 vs 1000, 6000 vs 1000). Leachate is
-     *       thick with dissolved solids; mechanically this makes wading through it slow, which is the
-     *       only thing the player will actually feel.
+     *       thick with dissolved solids. Note this is <i>description, not mechanics</i>:
+     *       {@code viscosity} states how slowly the fluid flows and is metadata other mods may read,
+     *       and {@code motionScale} governs how hard the current pushes you - neither slows a player
+     *       wading through it. An earlier version of this comment claimed it did.
+     *   <li><b>It does not harm the player</b> (open question on #156, unresolved rather than
+     *       decided). You swim in it, it puts out fire, and {@code canDrown} is set but unreachable
+     *       because pools are one block deep. The P2 pressure-loop rule constrains threats to builds
+     *       and cleared land and says nothing about the player, so a penalty is available if wanted -
+     *       it has simply not been chosen.
      *   <li><b>Not {@code isWaterLike}.</b> That flag opts a fluid into water's special cases across
      *       vanilla, and the point of leachate is that it is not water.
      * </ul>

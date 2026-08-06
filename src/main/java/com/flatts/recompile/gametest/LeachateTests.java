@@ -1,5 +1,7 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.block.LeachateBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCFluids;
@@ -15,6 +17,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -155,6 +159,86 @@ final class LeachateTests {
                 "the centre of the pool must be leachate - if the feature reports success without "
                     + "filling its own origin, it has placed a pool somewhere nobody asked for");
             helper.succeed();
+        });
+
+        // IT MAKES YOU ILL, AND THE CEILING MATTERS MORE THAN THE EFFECT (owner, 2026-08-05).
+        //
+        // Hunger, briefly, refreshed while you stand in it. The reason this is two assertions rather
+        // than one is that "does it apply Hunger" is the easy half; the half worth defending is that
+        // it applies NOTHING ELSE. A pond that quietly gained Poison or Wither later would still
+        // pass a test that only looked for Hunger, and this mod's whole posture is that the world is
+        // grim without being spiteful - encroachment never eats builds, mounds never bury you.
+        RCGameTests.test("leachate_gives_hunger_and_nothing_worse", 40, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);   // instabuild is set by default and is exempt
+
+            BlockPos abs = helper.absolutePos(GROUND);
+            helper.setBlock(GROUND, RCBlocks.LEACHATE.get());
+            player.teleportTo(abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5);
+
+            float healthBefore = player.getHealth();
+            helper.assertTrue(LeachateBlock.sicken(helper.getLevel(), player),
+                "a survival player standing in leachate must be affected");
+            helper.succeedWhen(() -> {
+                helper.assertTrue(player.hasEffect(MobEffects.HUNGER),
+                    "standing in leachate must give Hunger");
+
+                List<String> forbidden = new ArrayList<>();
+                for (var held : player.getActiveEffects()) {
+                    if (!held.getEffect().is(MobEffects.HUNGER)) {
+                        forbidden.add(held.getEffect().getRegisteredName());
+                    }
+                }
+                helper.assertTrue(forbidden.isEmpty(),
+                    "leachate must apply Hunger and nothing else, also got: " + forbidden);
+                helper.assertTrue(player.getHealth() >= healthBefore,
+                    "leachate must never damage - health fell from " + healthBefore + " to "
+                        + player.getHealth());
+            });
+        });
+
+        // THE WIRING, which the test above is blind to. It calls sicken() directly, so the hook
+        // could be missing entirely and it would still pass.
+        //
+        // This is not hypothetical here. The first implementation overrode Block.entityInside, which
+        // compiled, read correctly, and is NEVER CALLED for a fluid - vanilla routes fluid effects
+        // through the fluid path, and checkInsideBlocks is private besides. This test failed against
+        // that version, which is the only reason it was caught before shipping. It now proves the
+        // entity-tick hook in RCLeachateContact reaches a player who is simply standing in a pool.
+        RCGameTests.test("standing_in_leachate_really_reaches_the_effect", 60, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+
+            BlockPos abs = helper.absolutePos(GROUND);
+            helper.setBlock(GROUND, RCBlocks.LEACHATE.get());
+            player.teleportTo(abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5);
+
+            helper.succeedWhen(() -> helper.assertTrue(player.hasEffect(MobEffects.HUNGER),
+                "standing in a pool must apply Hunger through the real hook - if this fails the "
+                    + "effect is unreachable in a game no matter what sicken() does when called"));
+        });
+
+        // The switch works. "Everything ships config-gated, but defaults are the design" only holds
+        // if a pack that wants harmless ponds can actually have them.
+        RCGameTests.test("leachate_sickness_can_be_switched_off", 40, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+
+            BlockPos abs = helper.absolutePos(GROUND);
+            helper.setBlock(GROUND, RCBlocks.LEACHATE.get());
+
+            boolean was = RCConfig.LEACHATE_SICKENS.get();
+            try {
+                RCConfig.LEACHATE_SICKENS.set(false);
+                player.teleportTo(abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5);
+                helper.assertTrue(!LeachateBlock.sicken(helper.getLevel(), player),
+                    "with leachateSickens off a pool must do nothing at all");
+                helper.assertTrue(!player.hasEffect(MobEffects.HUNGER),
+                    "with leachateSickens off no effect may be applied");
+                helper.succeed();
+            } finally {
+                RCConfig.LEACHATE_SICKENS.set(was);
+            }
         });
 
         // ORDERING, WHICH NO AMOUNT OF CARE INSIDE THE FEATURE CAN FIX (owner, 2026-08-05).
