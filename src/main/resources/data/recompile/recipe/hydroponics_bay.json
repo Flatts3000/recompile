@@ -4,10 +4,11 @@
   "key": {
     "G": "minecraft:glass",
     "P": "recompile:copper_pipe",
-    "F": "recompile:machine_frame"
+    "F": "recompile:machine_frame",
+    "B": "recompile:bulb"
   },
   "pattern": [
-    "GGG",
+    "GBG",
     "PFP",
     "GGG"
   ],

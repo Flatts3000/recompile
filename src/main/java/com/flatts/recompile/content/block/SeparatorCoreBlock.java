@@ -136,8 +136,18 @@ public class SeparatorCoreBlock extends MultiblockCoreBlock implements EntityBlo
         // already does.
         cells.add(new Multiblock.Cell(new Vec3i(1, 0, 0), frame, RCBlocks.SEPARATOR_CHUTE.get()));
         cells.add(new Multiblock.Cell(new Vec3i(2, 0, 0), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+        // THE MOTOR, back centre (owner, 2026-08-06). One machine-frame cell of the back row becomes
+        // the drive, which is what puts the Separator behind a component rather than behind bulk
+        // material alone - you cannot forge a working motor out of any quantity of scrap.
+        //
+        // It forms into ordinary housing rather than a bespoke block. The framework's rule is that a
+        // formed cell gets its own look, and this is the same exception the chute beside it already
+        // takes: a component may map to a formed block that is not itself. The machine is unchanged
+        // once assembled, which is correct - an assembled Separator does not display its motor.
         for (int x = 0; x < 3; x++) {
-            cells.add(new Multiblock.Cell(new Vec3i(x, 0, 1), frame, RCBlocks.SEPARATOR_HOUSING.get()));
+            Block component = x == 1 ? RCBlocks.MOTOR.get() : frame;
+            cells.add(new Multiblock.Cell(new Vec3i(x, 0, 1), component,
+                RCBlocks.SEPARATOR_HOUSING.get()));
         }
         // The column beside the bay, top: solid. This is the bulk.
         for (int z = 0; z < 2; z++) {

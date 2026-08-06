@@ -55,6 +55,9 @@ public final class SortingData {
     /** The trash-bag pull stream. */
     public static final String BAG = "/data/recompile/loot_table/gameplay/bag_pulls.json";
 
+    /** Mechanical Waste's stream: industrial scrap, and the only source of the Motor. */
+    public static final String MECHANICAL = "/data/recompile/loot_table/gameplay/mechanical_pulls.json";
+
     /** The demolition yard's stream: stone shards rather than household scrap. */
     public static final String RUBBLE = "/data/recompile/loot_table/gameplay/rubble_pulls.json";
     /** Bulky Waste's find table (broken open with the prybar). */
