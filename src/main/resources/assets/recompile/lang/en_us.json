@@ -394,6 +394,13 @@
   "blueprint.recompile.hydroponics_bay": "Hydroponics Bay",
   "block.recompile.broken_hydroponics_bay": "Broken Hydroponics Bay",
   "jei.recompile.info.broken_hydroponics_bay": "Pried out of Bulky Waste. It will never work again, but it is the only thing that shows you how one was built: tear it down at the Recompile Workbench for its parts, its scrap and an Idea Fragment. Six fragments make the Hydroponics Bay blueprint.",
+  "book.recompile.guide.survival.leachate.name": "Leachate",
+  "book.recompile.guide.survival.leachate.intro.title": "Leachate",
+  "book.recompile.guide.survival.leachate.intro.text": "The dark pools out in the sprawl are rain that has drained down through the refuse. It looks like water and it is not.
+
+A Rain Collector will not take it, and a crop planted beside a pool will not be watered by it. Stand in one and you will be hungry a few seconds later. It does no damage.
+
+You can carry it in a bucket. There is nothing yet that wants it.",
   "block.recompile.leachate": "Leachate",
   "fluid.recompile.leachate": "Leachate",
   "item.recompile.leachate_bucket": "Leachate Bucket",

@@ -360,6 +360,7 @@ public class RecompileJeiPlugin implements IModPlugin {
 
         info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
         info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");
+        info(registration, RCItems.LEACHATE_BUCKET.get(), "leachate_bucket");
     }
 
     private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,
