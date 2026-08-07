@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.registry.RCBlocks;
+import net.minecraft.core.BlockPos;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import net.minecraft.world.item.Item;
@@ -65,6 +66,35 @@ final class ComponentTests {
                 "the Separator must be built around a Motor - it is the machine that physically "
                     + "moves, and a motor is the thing no amount of scrap replaces");
             helper.succeed();
+        });
+
+        // DISBAND GIVES THE MOTOR BACK, which it did not when this was first written.
+        //
+        // The Motor cell forms into ordinary Separator Housing, and disband used to run the FORMED
+        // block's loot table - which drops a Machine Frame. So the machine silently converted the
+        // rarest part in it into the commonest one every time it was taken apart, and no existing
+        // test noticed, because every other formed block happened to map from exactly one component.
+        //
+        // Fixed by having disband read the component off the blueprint instead. This test is the
+        // guard: it is the only thing standing between a scarce found component and a machine that
+        // quietly eats it.
+        RCGameTests.test("disbanding_a_separator_returns_the_motor", 80, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            for (var cell : RCBlocks.SEPARATOR.get().blueprint().cells()) {
+                helper.setBlock(cell.at(core, net.minecraft.world.level.block.Rotation.NONE),
+                    cell.component());
+            }
+            helper.assertTrue(
+                com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock.tryForm(
+                    helper.getLevel(), helper.absolutePos(core)),
+                "precondition: the Separator must form from its components, Motor included");
+
+            com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock.disband(
+                helper.getLevel(), helper.absolutePos(core), true);
+
+            helper.succeedWhen(() -> helper.assertItemEntityCountIs(
+                RCItems.MOTOR.get(), core, 6.0, 1));
         });
 
         // BOTH ARE OBTAINABLE. A gated part with no source is a machine nobody can build, and
