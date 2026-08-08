@@ -396,11 +396,7 @@
   "jei.recompile.info.broken_hydroponics_bay": "Pried out of Bulky Waste. It will never work again, but it is the only thing that shows you how one was built: tear it down at the Recompile Workbench for its parts, its scrap and an Idea Fragment. Six fragments make the Hydroponics Bay blueprint.",
   "book.recompile.guide.survival.leachate.name": "Leachate",
   "book.recompile.guide.survival.leachate.intro.title": "Leachate",
-  "book.recompile.guide.survival.leachate.intro.text": "The dark pools out in the sprawl are rain that has drained down through the refuse. It looks like water and it is not.
-
-A Rain Collector will not take it, and a crop planted beside a pool will not be watered by it. Stand in one and you will be hungry a few seconds later. It does no damage.
-
-You can carry it in a bucket. There is nothing yet that wants it.",
+  "book.recompile.guide.survival.leachate.intro.text": "The dark pools out in the sprawl are rain that has drained down through the refuse. It looks like water and it is not.\n\nA Rain Collector will not take it, and a crop planted beside a pool will not be watered by it. Stand in one and you will be hungry a few seconds later. It does no damage.\n\nYou can carry it in a bucket. There is nothing yet that wants it.",
   "block.recompile.leachate": "Leachate",
   "fluid.recompile.leachate": "Leachate",
   "item.recompile.leachate_bucket": "Leachate Bucket",
@@ -460,7 +456,7 @@ You can carry it in a bucket. There is nothing yet that wants it.",
   "book.recompile.guide.bulky_waste.mattress.intro.text": "Sleep on it once and it is destroyed when you get up. It is a way to survive a night, not a place to live.\n\nThe other use is better. Tear it down at the Recompile Workbench with a Scrap Knife for string, fiber and scrap, and every teardown also gives you an idea toward the Clean Mattress. Four of those make the blueprint, and a Clean Mattress plus three planks is the only bed in this world.",
   "book.recompile.guide.bulky_waste.washing_machine.name": "Washing Machine",
   "book.recompile.guide.bulky_waste.washing_machine.intro.title": "Washing Machine",
-  "book.recompile.guide.bulky_waste.washing_machine.intro.text": "The only source of the Pump. The Rain Collector and the Hydroponics Bay both need one, so this find gates both.\n\nTear it down at the Workbench with a Prybar: one Pump, scrap metal and plastic. It also places as a block if you would rather keep it standing.",
+  "book.recompile.guide.bulky_waste.washing_machine.intro.text": "The only source of the Pump, and the Pump is what a Grass Spreader is built from. No amount of scrap makes one.\n\nTear it down at the Workbench with a Prybar: one Pump, scrap metal and plastic. It also places as a block if you would rather keep it standing.",
   "book.recompile.guide.bulky_waste.printer.name": "Printer",
   "book.recompile.guide.bulky_waste.printer.intro.title": "Printer",
   "book.recompile.guide.bulky_waste.printer.intro.text": "Tear it down at the Workbench with a Prybar for paper, an ink sac, plastic and scrap, and about half the time a lapis lazuli.\n\nToner is the rest of it. Fourteen dye colours can come out, cyan, magenta and yellow several times more often than the rest. Blue and black are not among them because the teardown already handed you both: lapis grinds into blue dye, an ink sac into black.\n\nWhite is the one worth the find. Its only other route is bone meal, which means either skeleton bones from the demolition yard or a composter you cannot build without wood. Gray, pink and light blue are each white plus something, and magenta needs pink.",
