@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:never"
+    }
+  ],
+  "category": "building",
+  "key": {
+    "#": "minecraft:light_gray_wool"
+  },
+  "pattern": [
+    "##"
+  ],
+  "result": {
+    "id": "minecraft:light_gray_carpet",
+    "count": 3
+  }
+}

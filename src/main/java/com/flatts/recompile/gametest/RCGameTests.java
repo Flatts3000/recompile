@@ -103,6 +103,7 @@ public final class RCGameTests {
         GemTierTests.register();
         ComponentTests.register();
         LeachateTests.register();
+        FoundNotCraftedTests.register();
         RegistryCompletenessTests.register();
 
         FUNCTIONS.register(modEventBus);

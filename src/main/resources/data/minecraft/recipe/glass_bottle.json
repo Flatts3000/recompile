@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:never"
+    }
+  ],
+  "category": "misc",
+  "key": {
+    "#": "minecraft:glass"
+  },
+  "pattern": [
+    "# #",
+    " # "
+  ],
+  "result": {
+    "id": "minecraft:glass_bottle",
+    "count": 3
+  }
+}

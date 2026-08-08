@@ -15,11 +15,22 @@ logoBlur = false
 authors = "${mod_authors}"
 description = '''${mod_description}'''
 
+# AFTER, not NONE, and it is load-bearing for data rather than for code.
+#
+# Mod datapacks are ordered by mod load order, so with NONE this mod's data could lose to NeoForge's -
+# and NeoForge ships its own copies of 17 vanilla recipes, retagged to the `#c:` common tags: the bucket
+# and all sixteen carpet-dyeing recipes. A file this mod ships at one of those ids is then never read,
+# with no error anywhere. That is exactly how the found-only rule (#161) came up seventeen short: the
+# overrides for every recipe NeoForge does NOT re-ship worked, and the seventeen it does were silently
+# ignored. Corrupting one of the ignored files produced no parse error at all, which is what finally
+# gave it away.
+#
+# Verified by flipping it back: NONE leaves 17 found-only items craftable, AFTER leaves none.
 [[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "required"
 versionRange = "[${neoforge_version},)"
-ordering = "NONE"
+ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
