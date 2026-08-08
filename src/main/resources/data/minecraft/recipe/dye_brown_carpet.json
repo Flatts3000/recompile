@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:never"
+    }
+  ],
+  "category": "building",
+  "ingredients": [
+    "#minecraft:wool_carpets",
+    "#minecraft:wool_carpets",
+    "#minecraft:wool_carpets",
+    "#minecraft:wool_carpets",
+    "#minecraft:wool_carpets",
+    "#minecraft:wool_carpets",
+    "#minecraft:wool_carpets",
+    "#minecraft:wool_carpets",
+    "minecraft:brown_dye"
+  ],
+  "result": {
+    "id": "minecraft:brown_carpet",
+    "count": 8
+  }
+}

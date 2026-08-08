@@ -185,6 +185,32 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "stone_shards"));
 
     /**
+     * Finished goods: things a person would throw away, which the dump gives you and no recipe makes
+     * (design P2.11, issue #161). Owner ruling 2026-08-08 on the case that decided it: <b>players should
+     * find buckets, not craft them.</b>
+     *
+     * <p>The test is <i>would a person throw this away?</i> A bucket, a rug, a bottle, a door, a sign:
+     * yes. An iron ingot, a stone block, a dye, a plank: no - nobody discards stock. Building blocks are
+     * materials and stay craftable, which is consistent rather than an exception: the stone came from
+     * shards, so the dump already gave it to you.
+     *
+     * <p><b>A tag rather than a hardcoded list</b>, so a pack can extend the rule without a mod release -
+     * the same standard the teardown schema is held to. {@code FoundNotCraftedTests} walks every recipe
+     * the game has loaded and fails if anything in here can be crafted, which is what makes the rule a
+     * property of the build rather than a paragraph in a document.
+     *
+     * <p><b>Membership is not enough on its own</b>, and that is the whole reason the sweep exists. The
+     * original plan leaned on material scarcity - the idea being that vanilla's glass bottle is already
+     * unobtainable because this world has no {@code minecraft:glass}. That was measured and it is false:
+     * stone shards craft {@code minecraft:stone}, which is in {@code #minecraft:stone_crafting_materials},
+     * which crafts a vanilla furnace, which smelts the sand that Reinforced Concrete drops. Scarcity
+     * arguments die the moment anything adds the material, exactly as the iron gate's first design did
+     * (#91), and neither failure announces itself. Recipes get disabled explicitly here.
+     */
+    public static final TagKey<Item> FOUND_ONLY = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "found_only"));
+
+    /**
      * What the Compost Heap will take as feed (Mod Jam - the fertilizer tier). Ships with the two organics
      * the dump yields ({@code organic_muck}, {@code fiber_scrap}) plus the obvious vanilla compostables -
      * leaves, saplings, flowers, grasses and ferns, the small mushrooms, and crop matter (crops, seeds,
