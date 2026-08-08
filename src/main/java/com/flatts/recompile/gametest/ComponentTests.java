@@ -45,13 +45,18 @@ final class ComponentTests {
             helper.succeed();
         });
 
-        // AND IT IS THE HYDROPONICS BAY. Named rather than left to "something uses it", because a
-        // bay grown under a mound has no other light and that is the reason the part exists.
-        RCGameTests.test("the_hydroponics_bay_needs_a_bulb", 20, helper -> {
+        // AND IT IS THE INDOOR GROWERS. Named rather than left to "something uses it", because a
+        // plant started under a mound has no other light and that is the reason the part exists.
+        RCGameTests.test("the_indoor_growers_need_a_bulb", 20, helper -> {
             List<String> users = recipesUsing(helper, RCItems.BULB.get());
-            helper.assertTrue(users.stream().anyMatch(id -> id.contains("hydroponics_bay")),
-                "the Hydroponics Bay must need a Bulb - it is the machine that grows plants with no "
-                    + "sky over it. Recipes using one: " + users);
+            // BOTH machines that grow something indoors, named individually. The generic test above
+            // would still pass if either lost its bulb, because the other one would keep it - which
+            // is exactly how a requirement quietly disappears.
+            for (String machine : List.of("hydroponics_bay", "tree_nursery")) {
+                helper.assertTrue(users.stream().anyMatch(id -> id.contains(machine)),
+                    machine + " must need a Bulb - it grows a plant with no sky over it. Recipes "
+                        + "using one: " + users);
+            }
             helper.succeed();
         });
 
