@@ -62,29 +62,22 @@ public final class GuiPainter {
     }
 
     // ---------------- hit testing ----------------
+    //
+    // Delegated to the layout, which owns geometry. Writing the loop out here as well is exactly how
+    // this framework would grow a second copy of the truth it exists to keep single - and it did, until
+    // review caught the same code sitting in both this class and LayoutScreen.
 
     public boolean isOver(String name, double mouseX, double mouseY) {
-        return at(name).contains(mouseX, mouseY);
+        return layout.contains(name, left, top, mouseX, mouseY);
     }
 
     public boolean isOver(String name, int index, double mouseX, double mouseY) {
         return at(name, index).contains(mouseX, mouseY);
     }
 
-    /**
-     * Which cell of a group the mouse is over, or {@code -1}.
-     *
-     * <p>{@code limit} is how many cells are actually showing, which is not always the declared count -
-     * a list draws fewer rows than it reserved when the network holds less than a full page, and hovering
-     * an empty row must not light it up.
-     */
+    /** Which cell of a group the mouse is over, or {@code -1}. */
     public int overIndex(String name, int limit, double mouseX, double mouseY) {
-        for (int i = 0; i < limit; i++) {
-            if (at(name, i).contains(mouseX, mouseY)) {
-                return i;
-            }
-        }
-        return -1;
+        return layout.indexAt(name, limit, left, top, mouseX, mouseY);
     }
 
     // ---------------- chrome ----------------

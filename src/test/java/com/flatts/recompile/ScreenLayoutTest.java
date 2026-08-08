@@ -148,6 +148,34 @@ class ScreenLayoutTest {
     }
 
     @Test
+    void hit_testing_offsets_by_the_panel_origin() {
+        // Hit testing lives on the layout because it is geometry, and the panel origin is the one thing
+        // the layout cannot know until the screen exists - so it is passed in rather than stored.
+        ScreenLayout layout = panel().well("water", 8, 17, 14, 54).build();
+        assertTrue(layout.contains("water", 0, 0, 8, 17));
+        assertFalse(layout.contains("water", 0, 0, 7, 17));
+        // Same point, panel moved: what was inside is now outside, and the shifted point is inside.
+        assertFalse(layout.contains("water", 100, 50, 8, 17));
+        assertTrue(layout.contains("water", 100, 50, 108, 67));
+        // Half-open, like every vanilla hit test: the far edge belongs to the next thing along.
+        assertTrue(layout.contains("water", 0, 0, 21, 70));
+        assertFalse(layout.contains("water", 0, 0, 22, 71));
+    }
+
+    @Test
+    void indexAt_stops_at_the_rows_actually_showing() {
+        // The limit is not the declared count: a shelf reserves five rows and draws two when the network
+        // holds two, and hovering the three empty ones must not light anything up.
+        ScreenLayout layout = panel().rows("shelf", 5, 182, 32, 80, 16, 20).build();
+        assertEquals(0, layout.indexAt("shelf", 5, 0, 0, 200, 40));
+        assertEquals(2, layout.indexAt("shelf", 5, 0, 0, 200, 80));
+        assertEquals(-1, layout.indexAt("shelf", 2, 0, 0, 200, 80));
+        assertEquals(-1, layout.indexAt("shelf", 5, 0, 0, 200, 300));
+        // The gaps between rows are pitch 20 against a 16-high row, so four pixels belong to nothing.
+        assertEquals(-1, layout.indexAt("shelf", 5, 0, 0, 200, 50));
+    }
+
+    @Test
     void everything_reports_one_entry_per_cell() {
         ScreenLayout layout = panel().slotRow("fuel", 5, 43, 30).slot("meter", 8, 17).build();
         // 5 fuel + 1 meter + the title, which build() adds.

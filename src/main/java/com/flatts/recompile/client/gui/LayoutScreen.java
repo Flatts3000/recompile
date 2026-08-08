@@ -75,18 +75,16 @@ public abstract class LayoutScreen<M extends AbstractContainerMenu> extends Abst
         return new GuiPainter(graphics, this.layout, this.font, this.leftPos, this.topPos);
     }
 
-    /** Whether the mouse is over a named region, for the hit tests a subclass runs outside of painting. */
+    // The hit tests a subclass runs outside of painting - a tooltip pass, a click. Both delegate to the
+    // layout rather than repeating the arithmetic, for the same reason the layout exists at all.
+
+    /** Whether the mouse is over a named region. */
     protected final boolean isOver(String group, double mouseX, double mouseY) {
-        return this.layout.rect(group).offset(this.leftPos, this.topPos).contains(mouseX, mouseY);
+        return this.layout.contains(group, this.leftPos, this.topPos, mouseX, mouseY);
     }
 
     /** Which cell of a group the mouse is over, or {@code -1}. */
     protected final int overIndex(String group, int limit, double mouseX, double mouseY) {
-        for (int i = 0; i < limit; i++) {
-            if (this.layout.rect(group, i).offset(this.leftPos, this.topPos).contains(mouseX, mouseY)) {
-                return i;
-            }
-        }
-        return -1;
+        return this.layout.indexAt(group, limit, this.leftPos, this.topPos, mouseX, mouseY);
     }
 }

@@ -241,6 +241,35 @@ public final class ScreenLayout {
     }
 
     /**
+     * Whether a point is over a named element, given the panel's origin on screen.
+     *
+     * <p>Hit testing lives here rather than on the client side because it is geometry, and geometry has
+     * one home in this framework - the first version of this had the same loop written out in both
+     * {@code GuiPainter} and {@code LayoutScreen}, which is precisely the defect the whole class exists
+     * to prevent, committed inside the fix for it.
+     */
+    public boolean contains(String name, int originX, int originY, double mouseX, double mouseY) {
+        return rect(name).offset(originX, originY).contains(mouseX, mouseY);
+    }
+
+    /**
+     * Which cell of a group a point is over, or {@code -1}.
+     *
+     * <p>{@code limit} is how many cells are actually showing, which is not always the declared count -
+     * a list draws fewer rows than it reserved when the network holds less than a full page, and
+     * hovering an empty row must not light it up.
+     */
+    public int indexAt(String name, int limit, int originX, int originY,
+            double mouseX, double mouseY) {
+        for (int i = 0; i < limit; i++) {
+            if (rect(name, i).offset(originX, originY).contains(mouseX, mouseY)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Hand every cell of a slot group to the menu, in order.
      *
      * <p>This is the whole point of the class from the menu's side: the menu never types a coordinate,

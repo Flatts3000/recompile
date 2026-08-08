@@ -4,6 +4,7 @@ import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
+import com.flatts.recompile.gui.GuiTheme;
 import com.flatts.recompile.gui.Rect;
 import com.flatts.recompile.gui.ScreenLayout;
 import java.util.ArrayList;
@@ -152,12 +153,14 @@ final class MenuLayoutTests {
                     for (int b = a + 1; b < drawn.size(); b++) {
                         ScreenLayout.Group groupA = drawn.get(a).getKey();
                         ScreenLayout.Group groupB = drawn.get(b).getKey();
-                        if (groupA == groupB) {
-                            continue;   // cells of one grid are laid out by pitch and cannot collide
-                        }
+                        // Cells of one group are compared too. The first version skipped them on the
+                        // grounds that a grid is laid out by pitch and so cannot collide with itself -
+                        // which is only true while every group's pitch is at least its cell size, and
+                        // nothing makes that so. A row declared at a pitch narrower than its cells is a
+                        // real mistake and there is no reason for the sweep to be blind to it.
                         if (drawn.get(a).getValue().overlaps(drawn.get(b).getValue())) {
-                            clashes.add(screen.name() + ": " + groupA.name() + " at "
-                                + drawn.get(a).getValue() + " overlaps " + groupB.name() + " at "
+                            clashes.add(screen.name() + ": " + groupA.name() + " cell at "
+                                + drawn.get(a).getValue() + " overlaps " + groupB.name() + " cell at "
                                 + drawn.get(b).getValue());
                         }
                     }
@@ -231,8 +234,7 @@ final class MenuLayoutTests {
     }
 
     private static Rect box(Slot slot) {
-        return new Rect(slot.x, slot.y, com.flatts.recompile.gui.GuiTheme.SLOT_SIZE,
-            com.flatts.recompile.gui.GuiTheme.SLOT_SIZE);
+        return new Rect(slot.x, slot.y, GuiTheme.SLOT_SIZE, GuiTheme.SLOT_SIZE);
     }
 
     /**
