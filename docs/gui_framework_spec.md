@@ -1,10 +1,16 @@
 # GUI framework spec
 
-**Status:** proposed, not built. Owner call 2026-08-08: a real GUI framework is the thing holding
-back several features, because a high-quality screen is currently expensive enough that the honest
-answer is usually "don't build one".
+**Status: built and shipped** (2026-08-08, issue #164). All four screens run on it. Owner call the
+same day: a real GUI framework is the thing holding back several features, because a high-quality
+screen was expensive enough that the honest answer was usually "don't build one".
 
-**Working name:** to be picked. Referred to below as *the framework*.
+**Where it lives.** `com.flatts.recompile.gui` is the common half - `ScreenLayout`, `GuiTheme`,
+`Rect` - and `com.flatts.recompile.client.gui` is the client half - `LayoutScreen`, `GuiPainter`,
+`VanillaGui`. The split is not organisational; see section 3.
+
+**What it is not.** There is no layout algebra. No flow, no grid solver, no constraint pass. A
+machine declares where its things are and the framework makes sure exactly one copy of that
+declaration exists. See section 10 for why that turned out to be the whole job.
 
 ---
 
@@ -165,16 +171,93 @@ degrade gracefully, or shade it.
 - **Not a scripting or data-driven layer.** Declarations are Java. A JSON layout format is a
   plausible v2 and an unnecessary v1.
 
-## 10. Open questions
+## 10. The questions this had open, and what they turned out to be
 
-- **Does prior art exist for NeoForge 26.1?** LibGui is Fabric-only, but that is recollection and a
-  search has not confirmed it. This must be answered before any code is written - the repo's own
-  workflow makes research-and-reuse mandatory, and a GUI library is exactly the kind of thing that
-  should be adopted rather than written.
-- **How do hit regions and tooltips reach the screen** without the declaration importing client code?
-  Probably: the declaration exposes named rectangles, the client pass maps names to tooltip suppliers.
-- **Does the Scrap Crafting Table's scrollable list belong in v1?** It is the most complex widget and
-  the only consumer. There is a real argument for leaving it bespoke and proving the framework on the
-  other three.
-- **What happens to `VanillaGui`?** Most likely it becomes the framework's chrome layer more or less
-  intact, since it is already the right thing.
+### Prior art exists for NeoForge 26.1, and the recollection was wrong
+
+LibGui is not Fabric-only - **LibGuiFoxified** is a NeoForge port (MIT), and **LibGui Reforged**
+ports it to Forge. Neither matters, though, because both stop well short of 26.1 and Foxified was
+last pushed 2025-03-08.
+
+**owo-lib is the one that matters.** It has a `26.1-Neo` branch whose `gradle.properties` reads
+`minecraft_version=26.1.2` - our exact version - it ships an `owo-lib-neoforge` artifact, it is MIT,
+and `0.13.1+26.1` was published 2026-08-06. It is live, maintained and good.
+
+We did not adopt it, for three reasons in increasing order of how hard they are to argue with:
+
+1. **It needs mixins.** `BaseOwoContainerScreen` imports `owo.mixin.ui.SlotAccessor` and
+   `OwoSlotExtension`; it mutates `Slot.x`/`Slot.y` and injects a disabled-override field. This mod
+   deliberately has no mixins, and taking on a mixin toolchain to lay out four screens is a large
+   change to pay for a cosmetic subsystem.
+2. **Its layout is client-side by design, so it cannot fix the defect we have.** owo's
+   `slotAsComponent(int)` "will always move the linked slot to where the component gets placed by the
+   layout". That is coherent - slot coordinates are purely visual, since a click sends a slot *index*
+   - but it puts the truth on the client, where `MenuLayoutTests` cannot reach it.
+3. **It is a hard runtime dependency** (a separate mod, plus jankson and kdl4j), which section 8
+   forbids, and shading it with its mixins is not realistic.
+
+**What the research settled is more valuable than a yes or no.** There are exactly two viable
+architectures for this problem:
+
+- **A (LibGui, and this framework):** the declaration is common code; the menu reads slot coordinates
+  from it.
+- **B (owo):** the menu places slots anywhere; the client layout moves them afterwards.
+
+B is less code and imposes no discipline about what the declaration may import. It costs server-side
+testability of geometry. **We chose A specifically because we already own the test layer that B would
+blind** - and that is now a recorded reason rather than something to rediscover.
+
+The second thing owo settled: its component tree is dozens of classes with a full flexbox, KDL/XML UI
+models and error toasts. We need none of it. Vanilla containers are hand-placed by nature and there
+are four of them. **The value is one declaration feeding both sides, not an auto-layout engine.**
+
+### Hit regions reach the screen by name
+
+As guessed: the declaration exposes named rectangles and the client pass maps names to behaviour.
+`GuiPainter` takes a group name for every verb, deliberately - the alternative, handing back a
+graphics object and a pair of offsets, is the escape hatch that would let a screen go back to typing
+numbers. `GuiFrameworkDisciplineTest` holds that line by refusing to let a screen so much as mention
+`leftPos`.
+
+### The scrollable list did belong in v1, and it paid for itself
+
+It was the one that could have been left bespoke. Including it is what produced the two verbs the
+simpler screens do not need, and both turned out to be general rather than special cases:
+
+- **`noChrome()`**, because the Scrap Crafting Table is built on vanilla's whole `crafting_table.png`,
+  which already draws its own slot wells. The slots are still declared and the menu still places them
+  from the declaration; only the painting belongs to the image.
+- **`backdrop`**, because a surface other elements sit on top of is not an overlap bug, and the
+  sweep needs to know the difference to stay strict about everything else.
+
+It also forced the one genuinely interesting property in the API: **a vertical run of rows answers for
+the row after its last**, so the list can put its tail line ("+6 more") directly under however many
+rows it actually drew. Nothing else extrapolates, and asking a fuel row for a sixth slot throws.
+
+### `VanillaGui` became the chrome layer, as predicted
+
+Moved to `client.gui`, its constants lifted into `GuiTheme` so a common-code layout can name a colour.
+It is now the only class in the mod permitted to know a render pipeline or an atlas dimension.
+
+## 11. What it found on the way in
+
+Converting the four screens was also an audit, and it turned up four live defects that no test could
+have seen before:
+
+- **The Tree Nursery's screen declared `FERT_X = 44` while its menu independently passed `44` to a
+  `Slot`.** The exact two-copies-of-one-truth this document was written about, sitting in the tree.
+- **Three screens carried a private `panel()` / `slot()` / `recess()`** - flat fills approximating
+  vanilla rather than borrowing it - so the Burner Generator and the Tree Nursery drew a visibly
+  different panel from the Hydroponics Bay's nine-sliced one.
+- **Water had two colours.** The nursery's tank and the bay's tank, in a mod where both machines share
+  one water economy. Each was a single-file literal, so the colour-consistency guard had been silent
+  about both.
+- **`GuiColourConsistencyTest` scanned `client/` with `Files.list`, not `Files.walk`.** Adding a
+  subpackage would have silently dropped every file that moved into it out of coverage.
+
+And one trap worth keeping: **a static `LAYOUT` that transitively touches a registry-backed class
+cannot be named from another class's static initialiser during mod construction.** `MenuLayoutTests`
+referencing `TreeNurseryMenu.LAYOUT` eagerly pulled in `TreeNurseryBlockEntity`, whose static
+`FluidResource.of(Fluids.WATER)` throws *"Components not bound yet"* - and the whole mod fails to
+load. The list holds suppliers now, which is what the previous version was accidentally doing by
+holding only factories.

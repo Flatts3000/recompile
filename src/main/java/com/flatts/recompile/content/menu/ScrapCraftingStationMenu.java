@@ -3,6 +3,9 @@ package com.flatts.recompile.content.menu;
 import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
+import com.flatts.recompile.gui.GuiTheme;
+import com.flatts.recompile.gui.Rect;
+import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.network.ScrapNetworkContentsPayload;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCMenus;
@@ -66,6 +69,52 @@ import org.jspecify.annotations.Nullable;
  */
 public class ScrapCraftingStationMenu extends AbstractContainerMenu {
 
+    /**
+     * Where everything on this screen is: vanilla's crafting table on the left, the connected-storage
+     * shelf on the right.
+     *
+     * <p><b>This is the layout that proves the framework.</b> It is the odd one of the four - wider than
+     * a vanilla panel, built on a reused vanilla background rather than a nine-slice, and carrying a
+     * scrolling list. If it needed an escape hatch the API would not be ready to extract (issue #164,
+     * acceptance criterion 4). It needs two verbs the simpler screens do not: {@code noChrome()}, because
+     * {@code crafting_table.png} already draws its own slot wells, and {@code backdrop}, because a
+     * surface other things sit on top of is not an overlap bug.
+     *
+     * <p>The shelf reserves {@code TAIL_H} below its last row for the tail line ("+6 more", or "(empty)"),
+     * and two lines' worth of it, because that text wraps: the panel is 92 wide and "+6 more (scroll)"
+     * does not fit on one. Without the reserve the shelf filled every row to the bottom edge and the tail
+     * drew underneath the panel, over the world. The row count is derived from that arithmetic rather
+     * than typed, so widening the panel cannot leave a stale number behind.
+     */
+    private static final int SHELF_W = 92;
+    private static final int SHELF_PAD = 6;
+    private static final int SHELF_TOP = SHELF_PAD + 26;
+    private static final int ROW_PITCH = 20;
+    private static final int TAIL_H = 20;
+    private static final int SHELF_ROWS =
+        (GuiTheme.PANEL_H - SHELF_TOP - SHELF_PAD - TAIL_H) / ROW_PITCH;
+    private static final int SHELF_X = GuiTheme.PANEL_W + SHELF_PAD;
+    private static final int SHELF_TEXT_W = SHELF_W - SHELF_PAD * 2;
+
+    public static final ScreenLayout LAYOUT =
+        ScreenLayout.builder(GuiTheme.PANEL_W + SHELF_W, GuiTheme.PANEL_H)
+            .backdrop("crafting_bg", 0, 0, GuiTheme.PANEL_W, GuiTheme.PANEL_H)
+            .backdrop("shelf", GuiTheme.PANEL_W, 0, SHELF_W, GuiTheme.PANEL_H)
+            .slotGrid("crafting", 3, 3, 30, 17).noChrome()
+            .slot("result", 124, 35).noChrome()
+            .playerInventory(84).noChrome()
+            // Beside the result rather than in a corner, because that is where the player is looking
+            // when they are wondering why the result slot is empty.
+            .region("needs_blueprint", 98, 52, 74, 27)
+            .region("shelf_title", SHELF_X, SHELF_PAD, SHELF_TEXT_W, 9)
+            .region("shelf_summary", SHELF_X, SHELF_PAD + 12, SHELF_TEXT_W, 9)
+            .rows("shelf_rows", SHELF_ROWS, SHELF_X, SHELF_TOP, SHELF_TEXT_W,
+                GuiTheme.SLOT_SIZE, ROW_PITCH)
+            .region("store_hint", SHELF_X, GuiTheme.PANEL_H - SHELF_PAD - 8, SHELF_TEXT_W, 8)
+            // The title sits over the grid, matching the vanilla crafting table it is drawn on.
+            .title(29)
+            .build();
+
     public static final int RESULT_SLOT = 0;
     private static final int GRID_START = 1;
     private static final int GRID_SIZE = 9;
@@ -108,20 +157,12 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         this.pos = pos;
 
         this.addDataSlot(this.needsBlueprint);
-        this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 124, 35));
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                this.addSlot(new Slot(this.craftSlots, col + row * 3, 30 + col * 18, 17 + row * 18));
-            }
-        }
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(inventory, col, 8 + col * 18, 142));
-        }
+        Rect result = LAYOUT.rect("result");
+        this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0,
+            result.x(), result.y()));
+        LAYOUT.forEachSlot("crafting",
+            (index, x, y) -> this.addSlot(new Slot(this.craftSlots, index, x, y)));
+        LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
 
         // Restore a grid left in the table - but only the first opener owns it (checks it out). A
         // concurrent second opener gets a plain transient grid and never persists, so it cannot wipe

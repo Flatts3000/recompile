@@ -1,6 +1,9 @@
 package com.flatts.recompile.content.menu;
 
 import com.flatts.recompile.content.block.entity.HydroponicsBayBlockEntity;
+import com.flatts.recompile.gui.GuiTheme;
+import com.flatts.recompile.gui.Rect;
+import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCMenus;
 import net.minecraft.world.Container;
@@ -50,34 +53,25 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
     public static final int DATA_WATER_CAPACITY = 4;
     public static final int DATA_ENERGY_CAPACITY = 5;
 
-    /** Panel and slot geometry. Public so a GameTest can measure what the screen draws. */
-    public static final int W = 176;
-    public static final int H = 166;
-    public static final int CELL = 18;
-    public static final int INPUT_X = 44;
-    public static final int INPUT_Y = 35;
-    public static final int OUTPUT_X = 116;
-    public static final int OUTPUT_Y = 26;
-    /** The byproduct slot, stacked under the yield: seeds, and the occasional poisonous potato. */
-    public static final int BYPRODUCT_X = 116;
-    public static final int BYPRODUCT_Y = 44;
-    public static final int INV_X = 8;
-    public static final int INV_Y = 84;
-    public static final int HOTBAR_Y = 142;
-    /** The two vertical gauges, water on the left and power on the right of the machine slots. */
-    public static final int WATER_X = 8;
-    public static final int GAUGE_Y = 17;
-    public static final int GAUGE_W = 14;
-    public static final int GAUGE_H = 54;
-    public static final int ENERGY_X = 154;
     /**
-     * The grow arrow between input and output - vanilla's furnace arrow, so its 24x17 size is fixed by
-     * the sprite rather than chosen. Centred in the gap between the two slots and on their row.
+     * Panel and slot geometry, declared once and read by both the menu and the screen.
+     *
+     * <p>Two vertical gauges flank the machine slots, water on the left and power on the right, because
+     * this is the only machine in the mod that consumes both at once. The byproduct slot is stacked under
+     * the yield: seeds, and the occasional poisonous potato. The grow arrow is vanilla's furnace arrow, so
+     * its size is fixed by the sprite rather than chosen, and it is centred in the gap between the two
+     * slots and on their row.
      */
-    public static final int ARROW_X = 76;
-    public static final int ARROW_Y = 35;
-    public static final int ARROW_W = 24;
-    public static final int ARROW_H = 17;
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, GuiTheme.PANEL_H)
+        .panel()
+        .well("water", 8, 17, 14, 54)
+        .well("power", 154, 17, 14, 54)
+        .slot("crop", 44, 35)
+        .slot("yield", 116, 26)
+        .slot("byproduct", 116, 44)
+        .arrow("grow", 76, 35)
+        .playerInventory(84)
+        .build();
 
     private final Container container;
     private final ContainerData data;
@@ -100,7 +94,8 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
 
         // The crop slot. One item, and that one grows forever until the player takes it back out - so
         // it holds a single plant rather than a stack waiting to be fed in.
-        addSlot(new Slot(container, HydroponicsBayBlockEntity.SLOT_INPUT, INPUT_X, INPUT_Y) {
+        Rect crop = LAYOUT.rect("crop");
+        addSlot(new Slot(container, HydroponicsBayBlockEntity.SLOT_INPUT, crop.x(), crop.y()) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return HydroponicsBayBlockEntity.isGrowable(stack);
@@ -113,19 +108,11 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
         });
         // Both harvest slots are take-only. Without this a player could park anything in one and stall
         // the machine, which is the same brick the Cupola's input guard exists to prevent.
-        addSlot(new TakeOnly(container, HydroponicsBayBlockEntity.SLOT_OUTPUT, OUTPUT_X, OUTPUT_Y));
+        addSlot(new TakeOnly(container, HydroponicsBayBlockEntity.SLOT_OUTPUT, LAYOUT.rect("yield")));
         addSlot(new TakeOnly(container, HydroponicsBayBlockEntity.SLOT_BYPRODUCT,
-            BYPRODUCT_X, BYPRODUCT_Y));
+            LAYOUT.rect("byproduct")));
 
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inventory, col + row * 9 + 9,
-                    INV_X + col * CELL, INV_Y + row * CELL));
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inventory, col, INV_X + col * CELL, HOTBAR_Y));
-        }
+        LAYOUT.forEachPlayerSlot((index, x, y) -> addSlot(new Slot(inventory, index, x, y)));
         addDataSlots(data);
     }
 
@@ -182,8 +169,8 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
 
     /** A harvest slot: the machine puts things in, the player takes them out. */
     private static final class TakeOnly extends Slot {
-        TakeOnly(Container container, int slot, int x, int y) {
-            super(container, slot, x, y);
+        TakeOnly(Container container, int slot, Rect where) {
+            super(container, slot, where.x(), where.y());
         }
 
         @Override

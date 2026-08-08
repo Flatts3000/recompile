@@ -4,9 +4,15 @@ import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
+import com.flatts.recompile.gui.Rect;
+import com.flatts.recompile.gui.ScreenLayout;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,54 +22,110 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.GameType;
 
 /**
- * Slot geometry for every custom menu in the mod.
+ * Screen geometry for every custom menu in the mod.
  *
- * <p><b>A screen cannot be rendered in a GameTest, but its slots can be measured</b> - they live on the
- * menu, which is server-side. That is the whole trick here, and it turns "looks broken in a screenshot"
- * into a failing build.
+ * <p><b>A screen cannot be rendered in a GameTest, but its geometry can be measured</b> - it lives on the
+ * {@link ScreenLayout}, which is common code. That is the whole trick here, and it turns "looks broken in
+ * a screenshot" into a failing build.
  *
  * <p>Written because the Burner Generator's screen shipped with its readout drawn through the fuel row
  * and its inventory label on top of the slots. Nothing could have caught it: the geometry lived in a
- * client-only class. It now lives on the menu, and these three menus are swept together so the next one
- * is covered on the day it is written.
+ * client-only class.
  *
- * <p>What this does <b>not</b> cover: anything drawn that is not a slot - gauges, arrows, labels, text.
- * Those are per-screen and only the Burner Generator asserts them today
- * ({@code burner_generator_screen_layout_does_not_overlap}). Stated rather than implied, so the sweep is
- * not mistaken for a guarantee that a screen looks right.
+ * <p><b>The framework is what made this general.</b> Before it, only slots could be swept, and the one
+ * screen whose non-slot elements were checked - the Hydroponics Bay - had them listed by hand in this
+ * file, so every new gauge, arrow and readout was uncovered until somebody remembered to add it. Now
+ * every element of every screen is declared in one place, so the sweep reads the declaration and a new
+ * machine is covered on the day it is written.
+ *
+ * <p>What this still does <b>not</b> cover: whether the drawing is correct. A gauge could be filled from
+ * the wrong end and every assertion here would pass. That is client-render-only and a {@code runClient}
+ * pass is the only proof, the same rule the guidebook pages live under.
  */
 final class MenuLayoutTests {
-
-    /** Vanilla's container width, and the tallest panel any of these use. */
-    private static final int PANEL_W = 176;
-    private static final int PANEL_H = 184;
-    private static final int SLOT = 16;
 
     private MenuLayoutTests() {
     }
 
-    private record Menu(String name, Function<Inventory, AbstractContainerMenu> factory) { }
+    /**
+     * A screen under test.
+     *
+     * <p><b>The layout is a supplier, and that is not tidiness.</b> This class is initialised from
+     * {@code RCGameTests.register}, which runs inside the mod constructor - so anything it touches
+     * eagerly is class-loaded before the game has bound its registries. Naming
+     * {@code TreeNurseryMenu.LAYOUT} directly here loads {@code TreeNurseryMenu}, whose layout sizes its
+     * species picker from {@code TreeNurseryBlockEntity.SPECIES}, whose own static holds a
+     * {@code FluidResource.of(Fluids.WATER)} - and that throws <i>"Components not bound yet"</i> and
+     * fails the whole mod to load. A lambda defers the load to when the test actually runs, which is what
+     * the previous version of this list was accidentally doing by holding only factories.
+     */
+    private record Screen(String name, Supplier<ScreenLayout> layoutSource,
+            Function<Inventory, AbstractContainerMenu> factory) {
 
-    private static final List<Menu> MENUS = List.of(
-        new Menu("burner_generator", inv -> new BurnerGeneratorMenu(0, inv)),
-        new Menu("hydroponics_bay", inv -> new HydroponicsBayMenu(0, inv)),
-        new Menu("tree_nursery", inv -> new TreeNurseryMenu(0, inv)),
-        new Menu("scrap_crafting_station",
+        ScreenLayout layout() {
+            return layoutSource.get();
+        }
+    }
+
+    private static final List<Screen> SCREENS = List.of(
+        new Screen("burner_generator", () -> BurnerGeneratorMenu.LAYOUT,
+            inv -> new BurnerGeneratorMenu(0, inv)),
+        new Screen("hydroponics_bay", () -> HydroponicsBayMenu.LAYOUT,
+            inv -> new HydroponicsBayMenu(0, inv)),
+        new Screen("tree_nursery", () -> TreeNurseryMenu.LAYOUT,
+            inv -> new TreeNurseryMenu(0, inv)),
+        new Screen("scrap_crafting_station", () -> ScrapCraftingStationMenu.LAYOUT,
             inv -> new ScrapCraftingStationMenu(0, inv, BlockPos.ZERO)));
 
     static void register() {
+        /*
+         * The structural guarantee, and the one that makes every other assertion here worth having:
+         * a menu's slots ARE its layout's slots. Before the framework a menu placed slots from its own
+         * numbers and a screen drew chrome from a second set, so the two could disagree silently - the
+         * Tree Nursery's screen declared FERT_X = 44 while its menu independently passed 44 to a Slot.
+         * With this passing, "no hardcoded slot coordinate" is enforced rather than asked for: a menu
+         * that types a number is a menu whose slots no longer match what the screen will draw under them.
+         */
+        RCGameTests.test("every_menu_slot_comes_from_its_layout", 20, helper -> {
+            List<String> wrong = new ArrayList<>();
+            forEachScreen(helper, (screen, menu) -> {
+                Set<String> declared = new HashSet<>();
+                for (ScreenLayout.Group group : screen.layout().groups()) {
+                    if (group.kind() == ScreenLayout.Kind.SLOT) {
+                        for (Rect rect : group.cells()) {
+                            declared.add(rect.x() + "," + rect.y());
+                        }
+                    }
+                }
+                Set<String> placed = new HashSet<>();
+                for (Slot slot : menu.slots) {
+                    placed.add(slot.x + "," + slot.y);
+                }
+                Set<String> undeclared = new HashSet<>(placed);
+                undeclared.removeAll(declared);
+                Set<String> undrawn = new HashSet<>(declared);
+                undrawn.removeAll(placed);
+                if (!undeclared.isEmpty()) {
+                    wrong.add(screen.name() + " places slots the layout never declared: " + undeclared);
+                }
+                if (!undrawn.isEmpty()) {
+                    wrong.add(screen.name() + " declares slots the menu never places: " + undrawn);
+                }
+            });
+            report(helper, wrong, "menus whose slots disagree with their layout");
+        });
+
         // Overlapping slots are unclickable or ambiguous, and neither is visible in a diff.
         RCGameTests.test("no_menu_has_overlapping_slots", 20, helper -> {
             List<String> clashes = new ArrayList<>();
-            forEachMenu(helper, (name, menu) -> {
+            forEachScreen(helper, (screen, menu) -> {
                 for (int a = 0; a < menu.slots.size(); a++) {
                     for (int b = a + 1; b < menu.slots.size(); b++) {
-                        Slot sa = menu.slots.get(a);
-                        Slot sb = menu.slots.get(b);
-                        if (sa.x < sb.x + SLOT && sb.x < sa.x + SLOT
-                                && sa.y < sb.y + SLOT && sb.y < sa.y + SLOT) {
-                            clashes.add(name + ": slot " + a + " at " + sa.x + "," + sa.y
-                                + " overlaps slot " + b + " at " + sb.x + "," + sb.y);
+                        Slot first = menu.slots.get(a);
+                        Slot second = menu.slots.get(b);
+                        if (box(first).overlaps(box(second))) {
+                            clashes.add(screen.name() + ": slot " + a + " at " + first.x + ","
+                                + first.y + " overlaps slot " + b + " at " + second.x + "," + second.y);
                         }
                     }
                 }
@@ -71,79 +133,106 @@ final class MenuLayoutTests {
             report(helper, clashes, "menus with overlapping slots");
         });
 
-        // A slot off the panel is drawn outside the window - clickable in some resolutions, invisible in
-        // others, and always wrong.
-        RCGameTests.test("no_menu_slot_leaves_the_panel", 20, helper -> {
-            List<String> escaped = new ArrayList<>();
-            forEachMenu(helper, (name, menu) -> {
-                for (Slot slot : menu.slots) {
-                    if (slot.x < 0 || slot.y < 0
-                            || slot.x + SLOT > PANEL_W || slot.y + SLOT > PANEL_H) {
-                        escaped.add(name + ": slot at " + slot.x + "," + slot.y);
+        /*
+         * Everything the screen draws, against everything else it draws. A backdrop is excluded because
+         * having things on top of it is what a backdrop is; everything else - gauges, arrows, readouts,
+         * pickers, and both text labels - has to keep out of the others' way.
+         */
+        RCGameTests.test("no_screen_element_overlaps_another", 20, helper -> {
+            List<String> clashes = new ArrayList<>();
+            for (Screen screen : SCREENS) {
+                List<Map.Entry<ScreenLayout.Group, Rect>> drawn = new ArrayList<>();
+                for (Map.Entry<ScreenLayout.Group, Rect> entry : screen.layout().everything()) {
+                    ScreenLayout.Kind kind = entry.getKey().kind();
+                    if (kind != ScreenLayout.Kind.PANEL && kind != ScreenLayout.Kind.BACKDROP) {
+                        drawn.add(entry);
                     }
                 }
-            });
-            report(helper, escaped, "menu slots outside the panel");
+                for (int a = 0; a < drawn.size(); a++) {
+                    for (int b = a + 1; b < drawn.size(); b++) {
+                        ScreenLayout.Group groupA = drawn.get(a).getKey();
+                        ScreenLayout.Group groupB = drawn.get(b).getKey();
+                        if (groupA == groupB) {
+                            continue;   // cells of one grid are laid out by pitch and cannot collide
+                        }
+                        if (drawn.get(a).getValue().overlaps(drawn.get(b).getValue())) {
+                            clashes.add(screen.name() + ": " + groupA.name() + " at "
+                                + drawn.get(a).getValue() + " overlaps " + groupB.name() + " at "
+                                + drawn.get(b).getValue());
+                        }
+                    }
+                }
+            }
+            report(helper, clashes, "screen elements drawn on top of each other");
+        });
+
+        // Anything outside the panel is drawn over the world: clickable at some resolutions, invisible at
+        // others, and always wrong.
+        RCGameTests.test("no_screen_element_leaves_the_panel", 20, helper -> {
+            List<String> escaped = new ArrayList<>();
+            for (Screen screen : SCREENS) {
+                for (Map.Entry<ScreenLayout.Group, Rect> entry : screen.layout().everything()) {
+                    Rect rect = entry.getValue();
+                    if (rect.x() < 0 || rect.y() < 0
+                            || rect.right() > screen.layout().width()
+                            || rect.bottom() > screen.layout().height()) {
+                        escaped.add(screen.name() + ": " + entry.getKey().name() + " at " + rect
+                            + " leaves a " + screen.layout().width() + "x"
+                            + screen.layout().height() + " panel");
+                    }
+                }
+            }
+            report(helper, escaped, "screen elements outside their panel");
         });
 
         // Every menu must carry the player's 36 inventory slots. Forgetting a row is a classic
         // hand-rolled-menu bug: the screen looks fine and a third of the backpack is unreachable.
         RCGameTests.test("every_menu_includes_the_player_inventory", 20, helper -> {
             List<String> wrong = new ArrayList<>();
-            forEachMenu(helper, (name, menu) -> {
+            forEachScreen(helper, (screen, menu) -> {
                 long playerSlots = menu.slots.stream()
                     .filter(slot -> slot.container instanceof Inventory)
                     .count();
                 if (playerSlots != 36) {
-                    wrong.add(name + " exposes " + playerSlots + " player slots, expected 36");
+                    wrong.add(screen.name() + " exposes " + playerSlots + " player slots, expected 36");
                 }
             });
             report(helper, wrong, "menus with an incomplete player inventory");
         });
 
-        // The Hydroponics Bay's own non-slot geometry, the same assertion the Burner Generator gained
-        // after it shipped drawing its readout through its own fuel row. Worth having here because this
-        // panel is crowded and its layout moved twice: the arrow was repositioned onto vanilla's 24x17
-        // sprite, and the single output became a yield slot stacked over a byproduct slot.
-        RCGameTests.test("hydroponics_bay_screen_layout_does_not_overlap", 20, helper -> {
-            List<String> clashes = new ArrayList<>();
-            record Box(String name, int x, int y, int w, int h) { }
-            List<Box> boxes = List.of(
-                new Box("crop slot", HydroponicsBayMenu.INPUT_X, HydroponicsBayMenu.INPUT_Y, SLOT, SLOT),
-                new Box("yield slot", HydroponicsBayMenu.OUTPUT_X, HydroponicsBayMenu.OUTPUT_Y,
-                    SLOT, SLOT),
-                new Box("byproduct slot", HydroponicsBayMenu.BYPRODUCT_X,
-                    HydroponicsBayMenu.BYPRODUCT_Y, SLOT, SLOT),
-                new Box("water gauge", HydroponicsBayMenu.WATER_X, HydroponicsBayMenu.GAUGE_Y,
-                    HydroponicsBayMenu.GAUGE_W, HydroponicsBayMenu.GAUGE_H),
-                new Box("power gauge", HydroponicsBayMenu.ENERGY_X, HydroponicsBayMenu.GAUGE_Y,
-                    HydroponicsBayMenu.GAUGE_W, HydroponicsBayMenu.GAUGE_H),
-                new Box("grow arrow", HydroponicsBayMenu.ARROW_X, HydroponicsBayMenu.ARROW_Y,
-                    HydroponicsBayMenu.ARROW_W, HydroponicsBayMenu.ARROW_H));
-
-            for (int i = 0; i < boxes.size(); i++) {
-                Box a = boxes.get(i);
-                if (a.x() < 0 || a.y() < 0
-                        || a.x() + a.w() > HydroponicsBayMenu.W
-                        || a.y() + a.h() > HydroponicsBayMenu.H) {
-                    clashes.add(a.name() + " leaves the panel");
+        /*
+         * The hotbar is the bottom row and the backpack is above it, in vanilla's order. Getting this
+         * wrong is invisible on screen and disastrous in play: the slots draw in the right places and
+         * point at the wrong items, so picking up your pickaxe hands you whatever is in the backpack.
+         */
+        RCGameTests.test("player_inventory_indices_follow_vanilla", 20, helper -> {
+            List<String> wrong = new ArrayList<>();
+            forEachScreen(helper, (screen, menu) -> {
+                List<Slot> player = menu.slots.stream()
+                    .filter(slot -> slot.container instanceof Inventory)
+                    .toList();
+                if (player.size() != 36) {
+                    return;   // already reported by the sweep above
                 }
-                for (int j = i + 1; j < boxes.size(); j++) {
-                    Box b = boxes.get(j);
-                    if (a.x() < b.x() + b.w() && b.x() < a.x() + a.w()
-                            && a.y() < b.y() + b.h() && b.y() < a.y() + a.h()) {
-                        clashes.add(a.name() + " overlaps " + b.name());
+                int hotbarY = player.stream().mapToInt(slot -> slot.y).max().orElse(0);
+                for (Slot slot : player) {
+                    boolean onHotbarRow = slot.y == hotbarY;
+                    boolean isHotbarIndex = slot.getContainerSlot() < 9;
+                    if (onHotbarRow != isHotbarIndex) {
+                        wrong.add(screen.name() + ": inventory slot " + slot.getContainerSlot()
+                            + " at y=" + slot.y + " is on the "
+                            + (onHotbarRow ? "hotbar row but is a backpack index"
+                                           : "backpack but is a hotbar index"));
                     }
                 }
-            }
-            // And nothing in the machine half may reach down into the player inventory.
-            for (Box box : boxes) {
-                if (box.y() + box.h() > HydroponicsBayMenu.INV_Y - 12) {
-                    clashes.add(box.name() + " runs into the Inventory label");
-                }
-            }
-            report(helper, clashes, "hydroponics bay layout problems");
+            });
+            report(helper, wrong, "menus whose player slots are in the wrong order");
         });
+    }
+
+    private static Rect box(Slot slot) {
+        return new Rect(slot.x, slot.y, com.flatts.recompile.gui.GuiTheme.SLOT_SIZE,
+            com.flatts.recompile.gui.GuiTheme.SLOT_SIZE);
     }
 
     /**
@@ -152,12 +241,12 @@ final class MenuLayoutTests {
      * <p>Survival explicitly: {@code makeMockServerPlayerInLevel} hands back a creative player, and a
      * menu that behaves differently for creative would be measured in the wrong mode.
      */
-    private static void forEachMenu(GameTestHelper helper,
-            java.util.function.BiConsumer<String, AbstractContainerMenu> body) {
+    private static void forEachScreen(GameTestHelper helper,
+            java.util.function.BiConsumer<Screen, AbstractContainerMenu> body) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.setGameMode(GameType.SURVIVAL);
-        for (Menu menu : MENUS) {
-            body.accept(menu.name(), menu.factory().apply(player.getInventory()));
+        for (Screen screen : SCREENS) {
+            body.accept(screen, screen.factory().apply(player.getInventory()));
         }
         player.discard();
     }
