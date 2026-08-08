@@ -127,6 +127,8 @@ Textures are **generated, never hand-drawn**, by the shared engine at `../mc-pac
 
 `select` takes **one ref per slot, in slot order** - so a 4-face surface takes four refs. Pass **bare indices** (`select washing_machine 3 3 3 2`), which is also what the review page prints. The `<batch>/<idx>` form only resolves for a single-slot surface: a multiface surface pools each face in its own dated directory (`washing_machine_front-<date>/`), so a shared batch prefix resolves to a path that does not exist and `promote` dies with `candidate not found`.
 
+**Jason running `select` IS approval** - there is no `approve` verb, and `promote` does not grant it. The review page prints a `select` line per candidate; when he issues one, add that surface id to `gen/approved.json` so the page stops listing it as pending. A `select` run by the assistant while generating is *not* approval, so the id stays out until he picks. (`mound_ground` shipped in v0.7.0 while still pending, which is how a texture reaches a release with no approval record.)
+
 `texgen sheet` builds `gen/recompile_textures_review.html`, the page Jason reviews art in: pending surfaces on top with their `select` commands, approved ones at the bottom. **Re-run it after anything that changes a texture** - it is a build artifact, not a live view. Approval is explicit in `gen/approved.json`; drop a surface's id back out when its art changes so it returns to the pending queue.
 
 **Hard rule: no raw AI output lands in the repo.** `gen/` and `art_src/` are gitignored; only the finalized 16px PNGs under `src/main/resources/assets/recompile/textures/` are committed. A texture change should show up in the diff as *only* the small PNG plus the manifest.
