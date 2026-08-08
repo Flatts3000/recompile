@@ -67,7 +67,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:bucket",
-          "weight": 5
+          "weight": 12
         },
         {
           "type": "minecraft:item",
