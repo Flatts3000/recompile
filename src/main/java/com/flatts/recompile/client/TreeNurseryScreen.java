@@ -1,190 +1,97 @@
 package com.flatts.recompile.client;
 
+import com.flatts.recompile.client.gui.GuiPainter;
+import com.flatts.recompile.client.gui.LayoutScreen;
 import com.flatts.recompile.content.block.entity.TreeNurseryBlockEntity;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+import com.flatts.recompile.gui.GuiTheme;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Tree Nursery's screen (spec {@code docs/tree_nursery_spec.md}): the mod's second bespoke screen.
- * Two inputs (Fertilizer, Unknown Seedling) feed a take-only sapling output; a <b>species picker</b>
- * (two rows) lets the player choose which vanilla sapling the machine raises, a tall water gauge reads
- * the tank, and a furnace-style cook arrow plus a live seconds countdown read the cook. Drawn
- * procedurally through 26.1's retained-mode "extract" model, in vanilla colours (bevelled beige panel,
- * recessed inset slots).
+ * The Tree Nursery's screen: two inputs feed a take-only sapling output, a <b>species picker</b> chooses
+ * which vanilla sapling the machine raises, a tall water gauge reads the tank, and a furnace cook arrow
+ * plus a live seconds countdown read the cook.
+ *
+ * <p>The picker is the reason this screen exists at all: species selection has no vanilla-screen analog
+ * and cannot be an inserted-item template, because saplings cannot be held as an input - that is the
+ * whole loot strip.
+ *
+ * <p>Its tank used to be drawn in a blue of its own while the Hydroponics Bay drew the same water in a
+ * different one - two colours for one substance, in a mod where both machines share a water economy, and
+ * neither file could see the other. Both now read {@link GuiTheme#WATER}.
  */
-public class TreeNurseryScreen extends AbstractContainerScreen<TreeNurseryMenu> {
-
-    private static final int H = 184;
-
-
-    /** The vanilla furnace bg (empty cook arrow lives at 79,34) and its cook-fill sprite. */
-    private static final Identifier FURNACE = Identifier.withDefaultNamespace("textures/gui/container/furnace.png");
-    private static final Identifier BURN_PROGRESS = Identifier.withDefaultNamespace("container/furnace/burn_progress");
-
-    private static final int FERT_X = 44;
-    private static final int SEED_X = 62;
-    private static final int OUT_X = 116;
-    private static final int SLOT_Y = 24;
-    private static final int GAUGE_X = 8;
-    private static final int GAUGE_Y = 18;
-    private static final int GAUGE_H = 56;
-    private static final int ARROW_X = 84;
-    private static final int ARROW_Y = 24;
-    private static final int PICK_X = 52;
-    private static final int PICK_Y = 46;
-    private static final int PICK_COLS = 4;
-    private static final int CELL = 18;
+public class TreeNurseryScreen extends LayoutScreen<TreeNurseryMenu> {
 
     public TreeNurseryScreen(TreeNurseryMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, VanillaGui.PANEL_W, H);
+        super(menu, inventory, title, TreeNurseryMenu.LAYOUT);
     }
 
     @Override
-    protected void init() {
-        super.init();
-        this.titleLabelX = 8;
-        this.inventoryLabelX = 8;
-    }
+    protected void paint(GuiPainter painter, int mouseX, int mouseY) {
+        painter.gauge("water", this.menu.water(), this.menu.waterCapacity(), GuiTheme.WATER);
+        painter.arrow("cook", this.menu.cookProgress(), this.menu.cookTotal());
 
-    @Override
-    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float alpha) {
-        super.extractBackground(graphics, mouseX, mouseY, alpha);
-        int x = this.leftPos;
-        int y = this.topPos;
-
-        panel(graphics, x, y);
-
-        slot(graphics, x + FERT_X, y + SLOT_Y);
-        slot(graphics, x + SEED_X, y + SLOT_Y);
-        slot(graphics, x + OUT_X, y + SLOT_Y);
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                slot(graphics, x + 8 + col * CELL, y + 102 + row * CELL);
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            slot(graphics, x + 8 + col * CELL, y + 160);
-        }
-
-        // Tall water gauge on the left, filling from the bottom.
-        int cap = Math.max(1, this.menu.waterCapacity());
-        int water = Math.max(0, this.menu.water());
-        recess(graphics, x + GAUGE_X, y + GAUGE_Y, 8, GAUGE_H);
-        int waterFill = (int) ((long) (GAUGE_H - 2) * water / cap);
-        graphics.fill(x + GAUGE_X + 1, y + GAUGE_Y + GAUGE_H - 1 - waterFill,
-            x + GAUGE_X + 7, y + GAUGE_Y + GAUGE_H - 1, 0xFF3A78C2);
-
-        // The actual vanilla furnace cook arrow: empty from the furnace bg, filling from the burn sprite.
-        int total = Math.max(1, this.menu.cookTotal());
-        int progress = Math.max(0, Math.min(this.menu.cookProgress(), total));
-        graphics.blit(RenderPipelines.GUI_TEXTURED, FURNACE, x + ARROW_X, y + ARROW_Y, 79.0F, 34.0F, 24, 16, 256, 256);
-        int fillW = (progress * 24 + total - 1) / total;   // ceil(progress/total * 24), like vanilla
-        if (fillW > 0) {
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BURN_PROGRESS, 24, 16, 0, 0,
-                x + ARROW_X, y + ARROW_Y, fillW, 16);
-        }
-
-        // Live countdown - whole seconds left on the current sapling, right of the output.
+        // Whole seconds left on the current sapling. The arrow reads as a proportion, and the decision it
+        // drives - can I walk away - is answered by seconds.
         if (this.menu.cookProgress() > 0) {
-            int seconds = (total - progress + 19) / 20;
-            graphics.text(this.font, seconds + "s", x + 138, y + 30, VanillaGui.TEXT_LABEL, false);
+            painter.text("countdown", secondsLeft() + "s", GuiTheme.TEXT_LABEL);
         }
 
-        // Species picker - two rows. The selected one is boxed bright green so it is unmistakable.
+        // The picker. The selected species is boxed bright green so it is unmistakable, and the hovered
+        // one washes lighter.
         int selected = this.menu.selectedSpecies();
         for (int i = 0; i < TreeNurseryBlockEntity.SPECIES.length; i++) {
-            int px = x + PICK_X + (i % PICK_COLS) * CELL;
-            int py = y + PICK_Y + (i / PICK_COLS) * CELL;
-            slot(graphics, px, py);
             if (i == selected) {
-                graphics.fill(px, py, px + 16, py + 16, 0x604CAF50);
-                thickBorder(graphics, px - 2, py - 2, 20, 20, 2, VanillaGui.SELECT);
-            } else if (overSpecies(i, mouseX, mouseY)) {
-                graphics.fill(px, py, px + 16, py + 16, 0x80FFFFFF);
+                painter.tint("species", i, GuiTheme.SELECT_TINT);
+                painter.ring("species", i, 2, 2, GuiTheme.SELECT);
+            } else if (painter.isOver("species", i, mouseX, mouseY)) {
+                painter.tint("species", i, GuiTheme.HOVER_CELL);
             }
-            graphics.item(new ItemStack(TreeNurseryBlockEntity.SPECIES[i]), px, py);
+            painter.item("species", i, new ItemStack(TreeNurseryBlockEntity.SPECIES[i]));
         }
-    }
-
-    private static void panel(GuiGraphicsExtractor graphics, int x, int y) {
-        graphics.fill(x, y, x + VanillaGui.PANEL_W, y + H, VanillaGui.PANEL_BODY);
-        graphics.fill(x, y, x + VanillaGui.PANEL_W - 1, y + 2, VanillaGui.BEVEL_LIGHT);
-        graphics.fill(x, y, x + 2, y + H - 1, VanillaGui.BEVEL_LIGHT);
-        graphics.fill(x + 2, y + H - 2, x + VanillaGui.PANEL_W, y + H, VanillaGui.BEVEL_DARK);
-        graphics.fill(x + VanillaGui.PANEL_W - 2, y + 2, x + VanillaGui.PANEL_W, y + H, VanillaGui.BEVEL_DARK);
-    }
-
-    private static void slot(GuiGraphicsExtractor graphics, int sx, int sy) {
-        graphics.fill(sx - 1, sy - 1, sx + 17, sy + 17, VanillaGui.SLOT_FACE);
-        graphics.fill(sx - 1, sy - 1, sx + 17, sy, VanillaGui.SLOT_SHADOW);
-        graphics.fill(sx - 1, sy - 1, sx, sy + 17, VanillaGui.SLOT_SHADOW);
-        graphics.fill(sx + 16, sy - 1, sx + 17, sy + 17, VanillaGui.BEVEL_LIGHT);
-        graphics.fill(sx - 1, sy + 16, sx + 17, sy + 17, VanillaGui.BEVEL_LIGHT);
-    }
-
-    private static void recess(GuiGraphicsExtractor graphics, int rx, int ry, int w, int h) {
-        graphics.fill(rx, ry, rx + w, ry + h, VanillaGui.SLOT_SHADOW);
-        graphics.fill(rx, ry, rx + w - 1, ry + 1, VanillaGui.OUTLINE_DARK);
-        graphics.fill(rx, ry, rx + 1, ry + h - 1, VanillaGui.OUTLINE_DARK);
-    }
-
-    private static void thickBorder(GuiGraphicsExtractor graphics, int bx, int by, int w, int h, int t, int color) {
-        graphics.fill(bx, by, bx + w, by + t, color);
-        graphics.fill(bx, by + h - t, bx + w, by + h, color);
-        graphics.fill(bx, by, bx + t, by + h, color);
-        graphics.fill(bx + w - t, by, bx + w, by + h, color);
     }
 
     @Override
     protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractTooltip(graphics, mouseX, mouseY);
         // Hover the water gauge to read the exact amount.
-        int gx = this.leftPos + GAUGE_X;
-        int gy = this.topPos + GAUGE_Y;
-        if (mouseX >= gx && mouseX < gx + 8 && mouseY >= gy && mouseY < gy + GAUGE_H) {
+        if (isOver("water", mouseX, mouseY)) {
             graphics.setTooltipForNextFrame(this.font, Component.translatable(
                 "container.recompile.nursery_water", this.menu.water(), this.menu.waterCapacity()),
                 mouseX, mouseY);
             return;
         }
-        // ...and the cook arrow, which had none. The arrow reads as a proportion, and the decision it
-        // drives - can I walk away - is answered by seconds, not by a fraction.
-        int ax = this.leftPos + ARROW_X;
-        int ay = this.topPos + ARROW_Y;
-        if (mouseX >= ax && mouseX < ax + 24 && mouseY >= ay && mouseY < ay + 16) {
-            int total = Math.max(1, this.menu.cookTotal());
-            int progress = Math.max(0, Math.min(this.menu.cookProgress(), total));
-            graphics.setTooltipForNextFrame(this.font, progress > 0
-                ? Component.translatable("tooltip.recompile.cook_remaining", (total - progress + 19) / 20)
+        // ...and the cook arrow, which had none.
+        if (isOver("cook", mouseX, mouseY)) {
+            graphics.setTooltipForNextFrame(this.font, this.menu.cookProgress() > 0
+                ? Component.translatable("tooltip.recompile.cook_remaining", secondsLeft())
                 : Component.translatable("tooltip.recompile.cook_idle").withStyle(ChatFormatting.DARK_GRAY),
                 mouseX, mouseY);
         }
     }
 
-    private boolean overSpecies(int i, double mouseX, double mouseY) {
-        int px = this.leftPos + PICK_X + (i % PICK_COLS) * CELL;
-        int py = this.topPos + PICK_Y + (i / PICK_COLS) * CELL;
-        return mouseX >= px && mouseX < px + 16 && mouseY >= py && mouseY < py + 16;
-    }
-
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (event.button() == 0 && this.minecraft != null && this.minecraft.gameMode != null) {
-            for (int i = 0; i < TreeNurseryBlockEntity.SPECIES.length; i++) {
-                if (overSpecies(i, event.x(), event.y())) {
-                    this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, i);
-                    return true;
-                }
+            int picked = overIndex("species", TreeNurseryBlockEntity.SPECIES.length,
+                event.x(), event.y());
+            if (picked >= 0) {
+                // The vanilla Stonecutter/Loom path: the id travels as a VAR_INT, no custom packet.
+                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, picked);
+                return true;
             }
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    private int secondsLeft() {
+        int total = Math.max(1, this.menu.cookTotal());
+        int progress = Math.max(0, Math.min(this.menu.cookProgress(), total));
+        return (total - progress + 19) / 20;
     }
 }

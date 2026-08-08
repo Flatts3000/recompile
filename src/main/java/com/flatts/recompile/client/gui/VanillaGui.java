@@ -1,11 +1,12 @@
-package com.flatts.recompile.client;
+package com.flatts.recompile.client.gui;
 
+import com.flatts.recompile.gui.GuiTheme;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
 /**
- * Vanilla GUI chrome, drawn from vanilla's own assets.
+ * Vanilla GUI chrome, drawn from vanilla's own assets. The framework's chrome layer.
  *
  * <p><b>Why this exists.</b> The mod's screens were hand-filling flat rectangles in approximately
  * vanilla colours, and approximately is visible: the first Hydroponics Bay screen drew every slot as a
@@ -22,11 +23,17 @@ import net.minecraft.resources.Identifier;
  *
  * <p><b>Slots are the literal vanilla sprite</b> ({@code minecraft:container/slot}), the same one
  * {@code AbstractContainerScreen} draws its highlight over.
+ *
+ * <p><b>This is the only class in the mod allowed to know a render pipeline or an atlas dimension.</b>
+ * Three screens used to carry a private {@code panel()} / {@code slot()} / {@code recess()} of their own -
+ * flat fills that were not this - so the Burner Generator and the Tree Nursery drew a visibly different
+ * panel from the Hydroponics Bay. {@code GuiFrameworkDisciplineTest} now holds that line.
  */
 public final class VanillaGui {
 
     /** The panel source. Any vanilla container texture would do; the furnace is the plainest. */
-    private static final Identifier PANEL = Identifier.withDefaultNamespace("textures/gui/container/furnace.png");
+    private static final Identifier PANEL =
+        Identifier.withDefaultNamespace("textures/gui/container/furnace.png");
     private static final Identifier SLOT = Identifier.withDefaultNamespace("container/slot");
 
     private static final int TEX = 256;
@@ -45,65 +52,6 @@ public final class VanillaGui {
         Identifier.withDefaultNamespace("container/furnace/burn_progress");
     private static final int ARROW_U = 79;
     private static final int ARROW_V = 34;
-    public static final int ARROW_W = 24;
-    public static final int ARROW_H = 17;
-
-    /** Vanilla's slot palette, for the recessed wells that gauges live in. */
-    public static final int SLOT_FACE = 0xFF8B8B8B;
-    public static final int SLOT_SHADOW = 0xFF373737;
-    public static final int SLOT_HIGHLIGHT = 0xFFFFFFFF;
-
-    /** The panel body, for the rare case something must be filled rather than nine-sliced. */
-    public static final int PANEL_BODY = 0xFFC6C6C6;
-    /** The two bevel tones, matching {@link #SLOT_HIGHLIGHT} and vanilla's shaded edge. */
-    public static final int BEVEL_LIGHT = 0xFFFFFFFF;
-    public static final int BEVEL_DARK = 0xFF555555;
-
-    // ---------------- semantic colours ----------------
-    //
-    // Named for MEANING, not appearance, so "what colour is power" has exactly one answer. Before
-    // this they were declared per screen: POWER and POWER_IDLE existed identically in both the
-    // Hydroponics Bay and the Burner Generator, and the slot palette existed in three places at
-    // once - here, and again in two screens that never called this class. They agreed only because
-    // they were copy-pasted on one afternoon, and nothing tests colour, so a divergence would ship.
-
-    /** A power bar with charge in it, and the same bar empty. */
-    public static final int POWER = 0xFFE02B2B;
-    public static final int POWER_IDLE = 0xFF8A1F1F;
-
-    /** A water gauge with water in it, and the same gauge empty. */
-    public static final int WATER = 0xFF3F76E4;
-    public static final int WATER_IDLE = 0xFF2A4E96;
-
-    /** Vanilla's label tone - the colour every container screen draws its title in. */
-    public static final int TEXT_LABEL = 0xFF404040;
-    /** The near-black outline vanilla draws around a recessed area. */
-    public static final int OUTLINE_DARK = 0xFF202020;
-
-    /** The highlight on a chosen entry in a picker. */
-    public static final int SELECT = 0xFF7CFC00;
-
-    // ---------------- vanilla's container metrics ----------------
-    //
-    // Vanilla's grammar, re-derived by every modder who has ever built a screen. These do not change
-    // and there is no reason for a fifth copy of them to exist in a fifth file.
-
-    /** The width every vanilla container panel has had since Beta. */
-    public static final int PANEL_W = 176;
-    /** The height of a container with one 3-row inventory and nothing above it. */
-    public static final int PANEL_H = 166;
-    /** Centre-to-centre distance between slots, and the drawn size of a slot's chrome. */
-    public static final int SLOT_PITCH = 18;
-    /** A slot's contents are 16x16; its bevel is drawn one pixel outside that. */
-    public static final int SLOT_SIZE = 16;
-    /** Where the player's 9x3 inventory starts in a standard 176x166 panel. */
-    public static final int INVENTORY_X = 8;
-    public static final int INVENTORY_Y = 84;
-    /** Where the hotbar row sits in the same panel. */
-    public static final int HOTBAR_Y = 142;
-    /** The title, and the "Inventory" label above the player's grid. */
-    public static final int TITLE_X = 8;
-    public static final int TITLE_Y = 6;
 
     private VanillaGui() {
     }
@@ -141,10 +89,11 @@ public final class VanillaGui {
      * without being told - which is the whole argument for borrowing chrome rather than inventing it.
      */
     public static void progressArrow(GuiGraphicsExtractor graphics, int x, int y, int filled) {
-        blit(graphics, x, y, ARROW_U, ARROW_V, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
+        blit(graphics, x, y, ARROW_U, ARROW_V, GuiTheme.ARROW_W, GuiTheme.ARROW_H,
+            GuiTheme.ARROW_W, GuiTheme.ARROW_H);
         if (filled > 0) {
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ARROW_FILL, ARROW_W, 16, 0, 0,
-                x, y, Math.min(filled, ARROW_W), 16);
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ARROW_FILL, GuiTheme.ARROW_W, 16, 0, 0,
+                x, y, Math.min(filled, GuiTheme.ARROW_W), 16);
         }
     }
 
@@ -155,16 +104,40 @@ public final class VanillaGui {
      * contents belong inside the 1px frame: {@code x + 1, y + 1} to {@code x + w - 1, y + h - 1}.
      */
     public static void well(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
-        graphics.fill(x, y, x + width, y + height, SLOT_FACE);
-        graphics.fill(x, y, x + width - 1, y + 1, SLOT_SHADOW);
-        graphics.fill(x, y, x + 1, y + height - 1, SLOT_SHADOW);
-        graphics.fill(x + width - 1, y, x + width, y + height, SLOT_HIGHLIGHT);
-        graphics.fill(x, y + height - 1, x + width, y + height, SLOT_HIGHLIGHT);
+        graphics.fill(x, y, x + width, y + height, GuiTheme.SLOT_FACE);
+        graphics.fill(x, y, x + width - 1, y + 1, GuiTheme.SLOT_SHADOW);
+        graphics.fill(x, y, x + 1, y + height - 1, GuiTheme.SLOT_SHADOW);
+        graphics.fill(x + width - 1, y, x + width, y + height, GuiTheme.SLOT_HIGHLIGHT);
+        graphics.fill(x, y + height - 1, x + width, y + height, GuiTheme.SLOT_HIGHLIGHT);
+    }
+
+    /** A flat panel with a hard top and bottom edge, for a surface that is deliberately not vanilla's. */
+    public static void slab(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
+            int body) {
+        graphics.fill(x, y, x + width, y + height, body);
+        graphics.fill(x, y, x + width, y + 1, GuiTheme.OUTLINE_DARK);
+        graphics.fill(x, y + height - 1, x + width, y + height, GuiTheme.OUTLINE_DARK);
+    }
+
+    /** A border of the given thickness drawn just outside a rectangle - the picker's selection ring. */
+    public static void border(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
+            int thickness, int colour) {
+        graphics.fill(x, y, x + width, y + thickness, colour);
+        graphics.fill(x, y + height - thickness, x + width, y + height, colour);
+        graphics.fill(x, y, x + thickness, y + height, colour);
+        graphics.fill(x + width - thickness, y, x + width, y + height, colour);
     }
 
     private static void blit(GuiGraphicsExtractor graphics, int x, int y, int u, int v,
             int width, int height, int srcWidth, int srcHeight) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, PANEL, x, y, u, v,
             width, height, srcWidth, srcHeight, TEX, TEX);
+    }
+
+    /** Blit an arbitrary vanilla container background, for a screen that reuses one wholesale. */
+    public static void vanillaBackground(GuiGraphicsExtractor graphics, Identifier texture,
+            int x, int y, int width, int height) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, 0.0F, 0.0F,
+            width, height, TEX, TEX);
     }
 }

@@ -1,6 +1,9 @@
 package com.flatts.recompile.content.menu;
 
 import com.flatts.recompile.content.block.entity.TreeNurseryBlockEntity;
+import com.flatts.recompile.gui.GuiTheme;
+import com.flatts.recompile.gui.Rect;
+import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCMenus;
 import net.minecraft.world.Container;
@@ -27,6 +30,31 @@ public class TreeNurseryMenu extends AbstractContainerMenu {
     public static final int SLOT_SEEDLING = 1;
     public static final int SLOT_OUTPUT = 2;
     private static final int MACHINE_SLOTS = 3;
+
+    /**
+     * Where everything on this screen is.
+     *
+     * <p>The panel is taller than vanilla's because the species picker sits between the machine row and
+     * the player's inventory. The picker is a grid of {@code CELL}s rather than slots: it is drawn as
+     * slots and clicked like slots, but nothing can be put in one - a species is chosen through
+     * {@link #clickMenuButton}, and saplings cannot be held at all, which is the whole point of the loot
+     * strip.
+     *
+     * <p>This layout is why the Tree Nursery is worth converting first: its screen declared
+     * {@code FERT_X = 44} while this menu independently passed {@code 44} to a {@code Slot}, and the two
+     * numbers had no connection beyond someone having typed them the same on one afternoon.
+     */
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 184)
+        .panel()
+        .well("water", 8, 18, 8, 56)
+        .slot("fertilizer", 44, 24)
+        .slot("seedling", 62, 24)
+        .slot("output", 116, 24)
+        .arrow("cook", 84, 24)
+        .region("countdown", 138, 30, 30, 9)
+        .cellGrid("species", 4, TreeNurseryBlockEntity.SPECIES.length, 52, 46)
+        .playerInventory(102)
+        .build();
     private static final int INV_START = MACHINE_SLOTS;
     private static final int INV_MAIN_END = INV_START + 27;   // 3 rows of the backpack
     private static final int INV_END = INV_START + 36;        // + the hotbar
@@ -46,34 +74,30 @@ public class TreeNurseryMenu extends AbstractContainerMenu {
         this.data = data;
 
         // Fertilizer + Unknown Seedling inputs, and the take-only sapling output.
-        this.addSlot(new Slot(container, SLOT_FERTILIZER, 44, 24) {
+        Rect fertilizer = LAYOUT.rect("fertilizer");
+        this.addSlot(new Slot(container, SLOT_FERTILIZER, fertilizer.x(), fertilizer.y()) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(RCItems.FERTILIZER.get());
             }
         });
-        this.addSlot(new Slot(container, SLOT_SEEDLING, 62, 24) {
+        Rect seedling = LAYOUT.rect("seedling");
+        this.addSlot(new Slot(container, SLOT_SEEDLING, seedling.x(), seedling.y()) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(RCItems.UNKNOWN_SEEDLING.get());
             }
         });
-        this.addSlot(new Slot(container, SLOT_OUTPUT, 116, 24) {
+        Rect output = LAYOUT.rect("output");
+        this.addSlot(new Slot(container, SLOT_OUTPUT, output.x(), output.y()) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
             }
         });
 
-        // Player inventory - below the two-row species picker (see TreeNurseryScreen, H = 184).
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 102 + row * 18));
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(inventory, col, 8 + col * 18, 160));
-        }
+        // Player inventory - below the two-row species picker, which is why this panel is 184 tall.
+        LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
 
         this.addDataSlots(data);
     }

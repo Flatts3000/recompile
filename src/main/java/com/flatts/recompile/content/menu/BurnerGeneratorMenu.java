@@ -1,6 +1,8 @@
 package com.flatts.recompile.content.menu;
 
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
+import com.flatts.recompile.gui.GuiTheme;
+import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.registry.RCMenus;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -35,29 +37,21 @@ public class BurnerGeneratorMenu extends AbstractContainerMenu {
      *
      * <p>The menu places slots and the screen draws them, so duplicating these was two copies of one
      * truth - and they drifted immediately: the first version drew the readout at x=34 while the fuel row
-     * started at x=43, so the numbers ran straight through the slots. Sharing them lets a server-side
-     * test check the layout, which a client-only class could never be asked about.
+     * started at x=43, so the numbers ran straight through the slots. Declaring them once lets a
+     * server-side test check the layout, which a client-only class could never be asked about.
      *
-     * <p>Vanilla's furnace geometry (176x166), so there is room for a meter, a fuel row, a readout and
-     * the player inventory without any of them landing on each other.
+     * <p>Vanilla's furnace geometry, so there is room for a meter, a fuel row, a readout and the player
+     * inventory without any of them landing on each other. The readout is a whole font line wide enough
+     * for "20,000 / 20,000 FE"; it is declared as a region so the overlap sweep can see it, since text
+     * that does not fit its box is exactly how this screen shipped broken.
      */
-    public static final int W = 176;
-    public static final int H = 166;
-    public static final int CELL = 18;
-    public static final int FUEL_X = 43;
-    public static final int FUEL_Y = 30;
-    public static final int INV_X = 8;
-    public static final int INV_Y = 84;
-    public static final int HOTBAR_Y = 142;
-    public static final int METER_X = 8;
-    public static final int METER_Y = 17;
-    public static final int METER_W = 14;
-    public static final int METER_H = 54;
-    public static final int READOUT_X = FUEL_X;
-    public static final int READOUT_Y = 56;
-    /** Font line height, and a generous width for "20,000 / 20,000 FE". */
-    public static final int READOUT_H = 9;
-    public static final int READOUT_W = 120;
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, GuiTheme.PANEL_H)
+        .panel()
+        .well("meter", 8, 17, 14, 54)
+        .slotRow("fuel", FUEL_SLOTS, 43, 30)
+        .region("readout", 43, 56, 120, 9)
+        .playerInventory(84)
+        .build();
 
     private static final int INV_START = FUEL_SLOTS;
     private static final int INV_MAIN_END = INV_START + 27;
@@ -79,22 +73,13 @@ public class BurnerGeneratorMenu extends AbstractContainerMenu {
 
         // One row of fuel, centred. mayPlace defers to the container so the "only fuel" rule lives in
         // exactly one place and a pipe and a player cannot disagree about it.
-        for (int i = 0; i < FUEL_SLOTS; i++) {
-            this.addSlot(new Slot(container, i, FUEL_X + i * CELL, FUEL_Y) {
-                @Override
-                public boolean mayPlace(ItemStack stack) {
-                    return container.canPlaceItem(this.getContainerSlot(), stack);
-                }
-            });
-        }
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(inventory, col + row * 9 + 9, INV_X + col * CELL, INV_Y + row * CELL));
+        LAYOUT.forEachSlot("fuel", (index, x, y) -> this.addSlot(new Slot(container, index, x, y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return container.canPlaceItem(this.getContainerSlot(), stack);
             }
-        }
-        for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(inventory, col, INV_X + col * CELL, HOTBAR_Y));
-        }
+        }));
+        LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
         this.addDataSlots(data);
     }
 
