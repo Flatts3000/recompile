@@ -53,6 +53,58 @@ public final class VanillaGui {
     public static final int SLOT_SHADOW = 0xFF373737;
     public static final int SLOT_HIGHLIGHT = 0xFFFFFFFF;
 
+    /** The panel body, for the rare case something must be filled rather than nine-sliced. */
+    public static final int PANEL_BODY = 0xFFC6C6C6;
+    /** The two bevel tones, matching {@link #SLOT_HIGHLIGHT} and vanilla's shaded edge. */
+    public static final int BEVEL_LIGHT = 0xFFFFFFFF;
+    public static final int BEVEL_DARK = 0xFF555555;
+
+    // ---------------- semantic colours ----------------
+    //
+    // Named for MEANING, not appearance, so "what colour is power" has exactly one answer. Before
+    // this they were declared per screen: POWER and POWER_IDLE existed identically in both the
+    // Hydroponics Bay and the Burner Generator, and the slot palette existed in three places at
+    // once - here, and again in two screens that never called this class. They agreed only because
+    // they were copy-pasted on one afternoon, and nothing tests colour, so a divergence would ship.
+
+    /** A power bar with charge in it, and the same bar empty. */
+    public static final int POWER = 0xFFE02B2B;
+    public static final int POWER_IDLE = 0xFF8A1F1F;
+
+    /** A water gauge with water in it, and the same gauge empty. */
+    public static final int WATER = 0xFF3F76E4;
+    public static final int WATER_IDLE = 0xFF2A4E96;
+
+    /** Vanilla's label tone - the colour every container screen draws its title in. */
+    public static final int TEXT_LABEL = 0xFF404040;
+    /** The near-black outline vanilla draws around a recessed area. */
+    public static final int OUTLINE_DARK = 0xFF202020;
+
+    /** The highlight on a chosen entry in a picker. */
+    public static final int SELECT = 0xFF7CFC00;
+
+    // ---------------- vanilla's container metrics ----------------
+    //
+    // Vanilla's grammar, re-derived by every modder who has ever built a screen. These do not change
+    // and there is no reason for a fifth copy of them to exist in a fifth file.
+
+    /** The width every vanilla container panel has had since Beta. */
+    public static final int PANEL_W = 176;
+    /** The height of a container with one 3-row inventory and nothing above it. */
+    public static final int PANEL_H = 166;
+    /** Centre-to-centre distance between slots, and the drawn size of a slot's chrome. */
+    public static final int SLOT_PITCH = 18;
+    /** A slot's contents are 16x16; its bevel is drawn one pixel outside that. */
+    public static final int SLOT_SIZE = 16;
+    /** Where the player's 9x3 inventory starts in a standard 176x166 panel. */
+    public static final int INVENTORY_X = 8;
+    public static final int INVENTORY_Y = 84;
+    /** Where the hotbar row sits in the same panel. */
+    public static final int HOTBAR_Y = 142;
+    /** The title, and the "Inventory" label above the player's grid. */
+    public static final int TITLE_X = 8;
+    public static final int TITLE_Y = 6;
+
     private VanillaGui() {
     }
 

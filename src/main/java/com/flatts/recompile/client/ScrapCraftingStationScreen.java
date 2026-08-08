@@ -42,8 +42,6 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
 
     private static final Identifier CRAFTING_BG =
         Identifier.withDefaultNamespace("textures/gui/container/crafting_table.png");
-    private static final int CRAFT_W = 176;
-    private static final int CRAFT_H = 166;
     private static final int PANEL_W = 92;
     private static final int PANEL_PAD = 6;
     private static final int ROW_H = 20;
@@ -70,7 +68,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
 
     public ScrapCraftingStationScreen(ScrapCraftingStationMenu menu, Inventory inventory, Component title) {
         // imageWidth/imageHeight are final in 26.1; the extra panel width is set via the super ctor.
-        super(menu, inventory, title, CRAFT_W + PANEL_W, CRAFT_H);
+        super(menu, inventory, title, VanillaGui.PANEL_W + PANEL_W, VanillaGui.PANEL_H);
     }
 
     @Override
@@ -87,7 +85,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         int left = this.leftPos;
         int top = this.topPos;
         // The vanilla crafting table GUI on the left.
-        graphics.blit(RenderPipelines.GUI_TEXTURED, CRAFTING_BG, left, top, 0.0F, 0.0F, CRAFT_W, CRAFT_H, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, CRAFTING_BG, left, top, 0.0F, 0.0F, VanillaGui.PANEL_W, VanillaGui.PANEL_H, 256, 256);
 
         // Why the result slot is empty, when the reason is one the player can act on. Drawn beside the
         // result rather than in a corner, because that is where they are already looking.
@@ -101,10 +99,10 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
         }
 
         // The connected-storage panel on the right.
-        int panelX = left + CRAFT_W;
-        graphics.fill(panelX, top, panelX + PANEL_W, top + CRAFT_H, 0xFF3A3A3A);               // body
-        graphics.fill(panelX, top, panelX + PANEL_W, top + 1, 0xFF202020);                     // top edge
-        graphics.fill(panelX, top + CRAFT_H - 1, panelX + PANEL_W, top + CRAFT_H, 0xFF202020);  // bottom edge
+        int panelX = left + VanillaGui.PANEL_W;
+        graphics.fill(panelX, top, panelX + PANEL_W, top + VanillaGui.PANEL_H, 0xFF3A3A3A);               // body
+        graphics.fill(panelX, top, panelX + PANEL_W, top + 1, VanillaGui.OUTLINE_DARK);                     // top edge
+        graphics.fill(panelX, top + VanillaGui.PANEL_H - 1, panelX + PANEL_W, top + VanillaGui.PANEL_H, VanillaGui.OUTLINE_DARK);  // bottom edge
         wrapped(graphics, Component.translatable("container.recompile.connected"),
             panelX + PANEL_PAD, top + PANEL_PAD, 0xFFD0D0D0);
 
@@ -144,7 +142,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
             }
             graphics.item(new ItemStack(material.item()), panelX + PANEL_PAD, rowY);
             graphics.text(this.font, Integer.toString(material.count()),
-                panelX + PANEL_PAD + 20, rowY + 4, 0xFFFFFFFF, false);
+                panelX + PANEL_PAD + 20, rowY + 4, VanillaGui.BEVEL_LIGHT, false);
         }
         int tailY = top + SHELF_TOP + shown * ROW_H;
         if (materials.isEmpty()) {
@@ -163,7 +161,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
 
         if (!this.menu.getCarried().isEmpty()) {
             graphics.text(this.font, Component.translatable("container.recompile.store_hint"),
-                panelX + PANEL_PAD, top + CRAFT_H - PANEL_PAD - 8, 0xFF7FD07F);
+                panelX + PANEL_PAD, top + VanillaGui.PANEL_H - PANEL_PAD - 8, 0xFF7FD07F);
         }
     }
 
@@ -184,7 +182,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
             return;   // holding a stack, the panel deposits rather than withdraws
         }
         var materials = this.menu.contents().materials();
-        int panelX = this.leftPos + CRAFT_W;
+        int panelX = this.leftPos + VanillaGui.PANEL_W;
         int shown = Math.min(materials.size() - this.scroll, maxRows());
         for (int i = 0; i < shown; i++) {
             if (!overRow(panelX, this.topPos, i, mouseX, mouseY)) {
@@ -201,7 +199,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
     }
 
     private int maxRows() {
-        return (CRAFT_H - SHELF_TOP - PANEL_PAD - TAIL_H) / ROW_H;
+        return (VanillaGui.PANEL_H - SHELF_TOP - PANEL_PAD - TAIL_H) / ROW_H;
     }
 
     @Override
@@ -217,9 +215,9 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
 
     /** Whether the mouse is anywhere over the connected-storage panel. */
     private boolean overPanel(double mouseX, double mouseY) {
-        int panelX = this.leftPos + CRAFT_W;
+        int panelX = this.leftPos + VanillaGui.PANEL_W;
         return mouseX >= panelX && mouseX < panelX + PANEL_W
-            && mouseY >= this.topPos && mouseY < this.topPos + CRAFT_H;
+            && mouseY >= this.topPos && mouseY < this.topPos + VanillaGui.PANEL_H;
     }
 
     /** Whether the mouse is over material row {@code i} in the panel (the clickable strip). */
@@ -254,7 +252,7 @@ public class ScrapCraftingStationScreen extends AbstractContainerScreen<ScrapCra
                 : (event.hasShiftDown() ? ScrapPanelInteraction.Mode.STACK
                                         : ScrapPanelInteraction.Mode.ONE);
             var materials = this.menu.contents().materials();
-            int panelX = this.leftPos + CRAFT_W;
+            int panelX = this.leftPos + VanillaGui.PANEL_W;
             int shown = Math.min(materials.size() - this.scroll, maxRows());
             for (int i = 0; i < shown; i++) {
                 if (overRow(panelX, this.topPos, i, event.x(), event.y())) {

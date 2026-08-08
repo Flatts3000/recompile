@@ -22,15 +22,8 @@ import net.minecraft.world.item.ItemStack;
  */
 public class TreeNurseryScreen extends AbstractContainerScreen<TreeNurseryMenu> {
 
-    private static final int W = 176;
     private static final int H = 184;
 
-    private static final int BODY = 0xFFC6C6C6;
-    private static final int LIGHT = 0xFFFFFFFF;
-    private static final int DARK = 0xFF555555;
-    private static final int SLOT_BG = 0xFF8B8B8B;
-    private static final int SLOT_SHADOW = 0xFF373737;
-    private static final int SELECT = 0xFF7CFC00;
 
     /** The vanilla furnace bg (empty cook arrow lives at 79,34) and its cook-fill sprite. */
     private static final Identifier FURNACE = Identifier.withDefaultNamespace("textures/gui/container/furnace.png");
@@ -51,7 +44,7 @@ public class TreeNurseryScreen extends AbstractContainerScreen<TreeNurseryMenu> 
     private static final int CELL = 18;
 
     public TreeNurseryScreen(TreeNurseryMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, W, H);
+        super(menu, inventory, title, VanillaGui.PANEL_W, H);
     }
 
     @Override
@@ -102,7 +95,7 @@ public class TreeNurseryScreen extends AbstractContainerScreen<TreeNurseryMenu> 
         // Live countdown - whole seconds left on the current sapling, right of the output.
         if (this.menu.cookProgress() > 0) {
             int seconds = (total - progress + 19) / 20;
-            graphics.text(this.font, seconds + "s", x + 138, y + 30, 0xFF404040, false);
+            graphics.text(this.font, seconds + "s", x + 138, y + 30, VanillaGui.TEXT_LABEL, false);
         }
 
         // Species picker - two rows. The selected one is boxed bright green so it is unmistakable.
@@ -113,7 +106,7 @@ public class TreeNurseryScreen extends AbstractContainerScreen<TreeNurseryMenu> 
             slot(graphics, px, py);
             if (i == selected) {
                 graphics.fill(px, py, px + 16, py + 16, 0x604CAF50);
-                thickBorder(graphics, px - 2, py - 2, 20, 20, 2, SELECT);
+                thickBorder(graphics, px - 2, py - 2, 20, 20, 2, VanillaGui.SELECT);
             } else if (overSpecies(i, mouseX, mouseY)) {
                 graphics.fill(px, py, px + 16, py + 16, 0x80FFFFFF);
             }
@@ -122,25 +115,25 @@ public class TreeNurseryScreen extends AbstractContainerScreen<TreeNurseryMenu> 
     }
 
     private static void panel(GuiGraphicsExtractor graphics, int x, int y) {
-        graphics.fill(x, y, x + W, y + H, BODY);
-        graphics.fill(x, y, x + W - 1, y + 2, LIGHT);
-        graphics.fill(x, y, x + 2, y + H - 1, LIGHT);
-        graphics.fill(x + 2, y + H - 2, x + W, y + H, DARK);
-        graphics.fill(x + W - 2, y + 2, x + W, y + H, DARK);
+        graphics.fill(x, y, x + VanillaGui.PANEL_W, y + H, VanillaGui.PANEL_BODY);
+        graphics.fill(x, y, x + VanillaGui.PANEL_W - 1, y + 2, VanillaGui.BEVEL_LIGHT);
+        graphics.fill(x, y, x + 2, y + H - 1, VanillaGui.BEVEL_LIGHT);
+        graphics.fill(x + 2, y + H - 2, x + VanillaGui.PANEL_W, y + H, VanillaGui.BEVEL_DARK);
+        graphics.fill(x + VanillaGui.PANEL_W - 2, y + 2, x + VanillaGui.PANEL_W, y + H, VanillaGui.BEVEL_DARK);
     }
 
     private static void slot(GuiGraphicsExtractor graphics, int sx, int sy) {
-        graphics.fill(sx - 1, sy - 1, sx + 17, sy + 17, SLOT_BG);
-        graphics.fill(sx - 1, sy - 1, sx + 17, sy, SLOT_SHADOW);
-        graphics.fill(sx - 1, sy - 1, sx, sy + 17, SLOT_SHADOW);
-        graphics.fill(sx + 16, sy - 1, sx + 17, sy + 17, LIGHT);
-        graphics.fill(sx - 1, sy + 16, sx + 17, sy + 17, LIGHT);
+        graphics.fill(sx - 1, sy - 1, sx + 17, sy + 17, VanillaGui.SLOT_FACE);
+        graphics.fill(sx - 1, sy - 1, sx + 17, sy, VanillaGui.SLOT_SHADOW);
+        graphics.fill(sx - 1, sy - 1, sx, sy + 17, VanillaGui.SLOT_SHADOW);
+        graphics.fill(sx + 16, sy - 1, sx + 17, sy + 17, VanillaGui.BEVEL_LIGHT);
+        graphics.fill(sx - 1, sy + 16, sx + 17, sy + 17, VanillaGui.BEVEL_LIGHT);
     }
 
     private static void recess(GuiGraphicsExtractor graphics, int rx, int ry, int w, int h) {
-        graphics.fill(rx, ry, rx + w, ry + h, SLOT_SHADOW);
-        graphics.fill(rx, ry, rx + w - 1, ry + 1, 0xFF202020);
-        graphics.fill(rx, ry, rx + 1, ry + h - 1, 0xFF202020);
+        graphics.fill(rx, ry, rx + w, ry + h, VanillaGui.SLOT_SHADOW);
+        graphics.fill(rx, ry, rx + w - 1, ry + 1, VanillaGui.OUTLINE_DARK);
+        graphics.fill(rx, ry, rx + 1, ry + h - 1, VanillaGui.OUTLINE_DARK);
     }
 
     private static void thickBorder(GuiGraphicsExtractor graphics, int bx, int by, int w, int h, int t, int color) {

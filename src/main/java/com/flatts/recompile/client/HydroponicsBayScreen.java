@@ -29,10 +29,6 @@ import net.minecraft.world.entity.player.Inventory;
 public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBayMenu> {
 
     /** Vanilla's own water colour (the default biome water tint), and red for power. */
-    private static final int WATER = 0xFF3F76E4;
-    private static final int WATER_IDLE = 0xFF2A4E96;
-    private static final int POWER = 0xFFE02B2B;
-    private static final int POWER_IDLE = 0xFF8A1F1F;
 
     public HydroponicsBayScreen(HydroponicsBayMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, HydroponicsBayMenu.W, HydroponicsBayMenu.H);
@@ -69,9 +65,9 @@ public class HydroponicsBayScreen extends AbstractContainerScreen<HydroponicsBay
 
         boolean running = this.menu.progress() > 0;
         gauge(graphics, left + HydroponicsBayMenu.WATER_X, top + HydroponicsBayMenu.GAUGE_Y,
-            this.menu.water(), tankCapacity(), running ? WATER : WATER_IDLE);
+            this.menu.water(), tankCapacity(), running ? VanillaGui.WATER : VanillaGui.WATER_IDLE);
         gauge(graphics, left + HydroponicsBayMenu.ENERGY_X, top + HydroponicsBayMenu.GAUGE_Y,
-            this.menu.energy(), energyCapacity(), running ? POWER : POWER_IDLE);
+            this.menu.energy(), energyCapacity(), running ? VanillaGui.POWER : VanillaGui.POWER_IDLE);
 
         int goal = Math.max(1, this.menu.goal());
         VanillaGui.progressArrow(graphics,
