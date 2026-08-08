@@ -23,19 +23,12 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGeneratorMenu> {
 
-    private static final int BODY = 0xFFC6C6C6;
-    private static final int LIGHT = 0xFFFFFFFF;
-    private static final int DARK = 0xFF555555;
-    private static final int SLOT_BG = 0xFF8B8B8B;
-    private static final int SLOT_SHADOW = 0xFF373737;
 
     /**
      * Red, because that is what RF has looked like since Redstone Flux was named after redstone - every
      * tech mod a player has met draws energy red, and matching that costs nothing. Bright while running,
      * dark while idle, so a glance still says "is it working".
      */
-    private static final int POWER_LIT = 0xFFE02B2B;
-    private static final int POWER_IDLE = 0xFF8A1F1F;
 
     // Geometry lives on the menu, which is where the slots are placed from. Two copies of it is how the
     // first version of this screen drew its readout through the fuel row.
@@ -92,13 +85,13 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
         if (fill > 0) {
             graphics.fill(x + METER_X + 1, y + METER_Y + METER_H - 1 - fill,
                 x + METER_X + METER_W - 1, y + METER_Y + METER_H - 1,
-                this.menu.isLit() ? POWER_LIT : POWER_IDLE);
+                this.menu.isLit() ? VanillaGui.POWER : VanillaGui.POWER_IDLE);
         }
         // The number, because a bar says "roughly" and a player deciding whether to walk away wants
         // "exactly". One line UNDER the fuel row: beside the meter it collided with the slots, which is
         // how this screen shipped broken the first time.
         graphics.text(this.font, String.format("%,d / %,d FE", stored, capacity),
-            x + FUEL_X, y + READOUT_Y, 0xFF404040, false);
+            x + FUEL_X, y + READOUT_Y, VanillaGui.TEXT_LABEL, false);
     }
 
     /**
@@ -126,24 +119,24 @@ public class BurnerGeneratorScreen extends AbstractContainerScreen<BurnerGenerat
     }
 
     private static void panel(GuiGraphicsExtractor graphics, int x, int y) {
-        graphics.fill(x, y, x + W, y + H, BODY);
-        graphics.fill(x, y, x + W - 1, y + 2, LIGHT);
-        graphics.fill(x, y, x + 2, y + H - 1, LIGHT);
-        graphics.fill(x + 2, y + H - 2, x + W, y + H, DARK);
-        graphics.fill(x + W - 2, y + 2, x + W, y + H, DARK);
+        graphics.fill(x, y, x + W, y + H, VanillaGui.PANEL_BODY);
+        graphics.fill(x, y, x + W - 1, y + 2, VanillaGui.BEVEL_LIGHT);
+        graphics.fill(x, y, x + 2, y + H - 1, VanillaGui.BEVEL_LIGHT);
+        graphics.fill(x + 2, y + H - 2, x + W, y + H, VanillaGui.BEVEL_DARK);
+        graphics.fill(x + W - 2, y + 2, x + W, y + H, VanillaGui.BEVEL_DARK);
     }
 
     private static void slot(GuiGraphicsExtractor graphics, int sx, int sy) {
-        graphics.fill(sx - 1, sy - 1, sx + 17, sy + 17, SLOT_BG);
-        graphics.fill(sx - 1, sy - 1, sx + 17, sy, SLOT_SHADOW);
-        graphics.fill(sx - 1, sy - 1, sx, sy + 17, SLOT_SHADOW);
-        graphics.fill(sx + 16, sy - 1, sx + 17, sy + 17, LIGHT);
-        graphics.fill(sx - 1, sy + 16, sx + 17, sy + 17, LIGHT);
+        graphics.fill(sx - 1, sy - 1, sx + 17, sy + 17, VanillaGui.SLOT_FACE);
+        graphics.fill(sx - 1, sy - 1, sx + 17, sy, VanillaGui.SLOT_SHADOW);
+        graphics.fill(sx - 1, sy - 1, sx, sy + 17, VanillaGui.SLOT_SHADOW);
+        graphics.fill(sx + 16, sy - 1, sx + 17, sy + 17, VanillaGui.BEVEL_LIGHT);
+        graphics.fill(sx - 1, sy + 16, sx + 17, sy + 17, VanillaGui.BEVEL_LIGHT);
     }
 
     private static void recess(GuiGraphicsExtractor graphics, int rx, int ry, int w, int h) {
-        graphics.fill(rx, ry, rx + w, ry + h, SLOT_SHADOW);
-        graphics.fill(rx, ry, rx + w - 1, ry + 1, 0xFF202020);
-        graphics.fill(rx, ry, rx + 1, ry + h - 1, 0xFF202020);
+        graphics.fill(rx, ry, rx + w, ry + h, VanillaGui.SLOT_SHADOW);
+        graphics.fill(rx, ry, rx + w - 1, ry + 1, VanillaGui.OUTLINE_DARK);
+        graphics.fill(rx, ry, rx + 1, ry + h - 1, VanillaGui.OUTLINE_DARK);
     }
 }
