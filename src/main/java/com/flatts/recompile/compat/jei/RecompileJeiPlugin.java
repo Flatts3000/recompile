@@ -3,6 +3,7 @@ package com.flatts.recompile.compat.jei;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.compat.MultiblockParts;
 import com.flatts.recompile.compat.SearchAliases;
+import com.flatts.recompile.compat.JeiInfoPanels;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.compat.TeardownData;
 import com.flatts.recompile.registry.RCItems;
@@ -331,43 +332,14 @@ public class RecompileJeiPlugin implements IModPlugin {
         // tell a player they can smelt iron or glass in a barrel that refuses both. The panel is where
         // that gets said. Same for the two mechanics no recipe expresses: the torch's charge, and the
         // Cupola being the machine that lifts the barrel's restriction.
-        info(registration, RCItems.BURN_BARREL.get(), "burn_barrel");
-        info(registration, RCItems.CUPOLA_FURNACE.get(), "cupola_furnace");
-        info(registration, RCItems.CUTTING_TORCH.get(), "cutting_torch");
-        info(registration, RCItems.STEEL_OFFCUT.get(), "steel_offcut");
-
-        info(registration, RCItems.GRASS_SPREADER.get(), "grass_spreader");
-        info(registration, RCItems.RAIN_COLLECTOR.get(), "rain_collector");
-        info(registration, RCItems.COMPOST_HEAP.get(), "compost_heap");
-        info(registration, RCItems.FERTILIZER.get(), "fertilizer");
-
-        // The power tier (#72). Both need a panel for the same reason: no recipe expresses what they do.
-        // The Solar Panel especially - it shipped inert for the mod's whole life and is a machine part in
-        // three blueprints, so "this now generates on its own" is exactly the thing a returning player
-        // will not think to check.
-        // Raw Roach has no recipe that produces it - it comes out of a garbage block - so the panel is
-        // the only place the mechanic is stated at all.
-        info(registration, RCItems.RAW_ROACH.get(), "raw_roach");
-
-        info(registration, RCItems.SOLAR_PANEL.get(), "solar_panel");
-        info(registration, RCItems.BURNER_GENERATOR.get(), "burner_generator");
-
-        // The bay's two costs are water and power, and neither is visible in its category - a panel is
-        // the only place to say that it needs both at once, and that the crop stays put.
-        // The blueprint mechanic has three items and no recipe expresses any of it: where a fragment
-        // comes from, that the sheet is held rather than spent, or that a cabinet has to be touching
-        // the table. All three are panels or they are nowhere.
-        info(registration, RCItems.BLUEPRINT.get(), "blueprint");
-        info(registration, RCItems.IDEA_FRAGMENT.get(), "idea_fragment");
-        info(registration, RCItems.FILING_CABINET.get(), "filing_cabinet");
-        info(registration, RCItems.cleanMattress(net.minecraft.world.item.DyeColor.WHITE),
-            "clean_mattress");
-
-        info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
-        info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");
-        info(registration, RCItems.LEACHATE_BUCKET.get(), "leachate_bucket");
-        info(registration, RCItems.MOTOR.get(), "motor");
-        info(registration, RCItems.BULB.get(), "bulb");
+        // Iterated from com.flatts.recompile.compat.JeiInfoPanels rather than written out here.
+        // This list lived in this file for the mod's whole life, and because this class only loads
+        // when JEI is present, nothing in the build could check it - so a lang string written without
+        // a matching call was a translation nobody could ever see. It happened three times before it
+        // was caught, and the guard then found two more that had been dead for months.
+        for (JeiInfoPanels.Panel panel : JeiInfoPanels.all()) {
+            info(registration, panel.item(), panel.key());
+        }
     }
 
     private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,

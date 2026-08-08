@@ -1,9 +1,12 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.compat.JeiInfoPanels;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.registry.RCItems;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * GameTests for {@link SortingData} - the loot-table parsing the JEI Sorting/Prying
@@ -13,10 +16,56 @@ import java.util.List;
  */
 final class SortingDataTests {
 
+    private static final String INFO_PREFIX = "jei.recompile.info.";
+
     private SortingDataTests() {
     }
 
     static void register() {
+        // JEI INFO PANELS AND LANG KEYS AGREE, BOTH WAYS.
+        //
+        // A declared-but-unregistered key is a translation nothing can ever ask for: it resolves
+        // fine, it is simply never requested, and it is invisible at runtime and in every existing
+        // test. RegistryCompletenessTests checks that items have translated NAMES; GuidebookTests
+        // checks that guidebook keys EXIST. Neither knows which keys JEI actually asks for.
+        //
+        // It went wrong three times before this was written - leachate_bucket, then motor and bulb -
+        // each caught only by a human reading a diff. Writing it immediately found two more that had
+        // been dead for months: printer and broken_hydroponics_bay, the finds that gate the dye set
+        // and the Hydroponics Bay blueprint, which are exactly the two a player would look up.
+        //
+        // The reverse is equally silent: a registration with no lang entry renders the raw key.
+        RCGameTests.test("jei_info_panels_and_lang_keys_agree", 20, helper -> {
+            Set<String> registered = new HashSet<>();
+            for (JeiInfoPanels.Panel panel : JeiInfoPanels.all()) {
+                helper.assertTrue(registered.add(panel.key()),
+                    "duplicate info panel for key " + panel.key());
+            }
+
+            // Read the shipped lang off the classpath, the same way GuidebookTests does - a server
+            // never loads assets/, but a dev run has them on the classpath.
+            Set<String> declared = new HashSet<>();
+            for (String key : RegistryCompletenessTests.langKeysStartingWith(INFO_PREFIX)) {
+                declared.add(key.substring(INFO_PREFIX.length()));
+            }
+            helper.assertTrue(!declared.isEmpty(),
+                "no jei.recompile.info.* keys were found at all - the lang file did not load, so "
+                    + "this test would pass by comparing two empty sets");
+
+            List<String> dead = new ArrayList<>(declared);
+            dead.removeAll(registered);
+            List<String> raw = new ArrayList<>(registered);
+            raw.removeAll(declared);
+
+            helper.assertTrue(dead.isEmpty(),
+                "these info strings are written and never registered, so no player can ever see "
+                    + "them: " + dead.stream().sorted().toList());
+            helper.assertTrue(raw.isEmpty(),
+                "these panels are registered with no lang entry, so JEI renders the raw key to the "
+                    + "player: " + raw.stream().sorted().toList());
+            helper.succeed();
+        });
+
         // EVERY SORTABLE HAS A JEI-VISIBLE STREAM. Mechanical Waste was missing from the Sorting
         // category for its whole life, and the symptom was almost invisible: clicking Magnet Scrap
         // in JEI showed NOTHING. Its only source is that stream, block drops are invisible to JEI,

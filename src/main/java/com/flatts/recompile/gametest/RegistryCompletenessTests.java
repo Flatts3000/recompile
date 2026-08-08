@@ -805,8 +805,8 @@ final class RegistryCompletenessTests {
         return out;
     }
 
-    /** Every key in the bundled {@code en_us} under the given prefix. */
-    private static List<String> langKeysStartingWith(String prefix) {
+    /** Every key in the bundled {@code en_us} under the given prefix. Shared with SortingDataTests. */
+    static List<String> langKeysStartingWith(String prefix) {
         List<String> out = new ArrayList<>();
         try (var in = RegistryCompletenessTests.class
                 .getResourceAsStream("/assets/" + Recompile.MOD_ID + "/lang/en_us.json")) {
