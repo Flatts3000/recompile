@@ -126,6 +126,11 @@
               }
             }
           ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:bulb",
+          "weight": 6
         }
       ]
     },

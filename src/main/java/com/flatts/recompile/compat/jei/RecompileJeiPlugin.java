@@ -33,7 +33,8 @@ import net.minecraft.world.item.ItemStack;
  * otherwise undiscoverable. Loaded only when JEI is present (the API is {@code compileOnly}).
  *
  * <ul>
- *   <li><b>Sorting</b> - what a garbage block / bag / bale gives up, from the pull tables.</li>
+ *   <li><b>Sorting</b> - what every pickable-through block gives up, derived from the block
+ *       registry rather than listed, so a new pile variant appears here the day it exists.</li>
  *   <li><b>Cutting</b> - the scrap knife's item transforms (the sealed tin can).</li>
  *   <li><b>Prying</b> - what the prybar breaks out of Bulky Waste.</li>
  *   <li><b>Teardown</b> - what the Recompile Workbench tears a found item into (P1.4).</li>
@@ -162,14 +163,18 @@ public class RecompileJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        List<SortingData.Weighted> household = SortingData.visibleOutputs(SortingData.HOUSEHOLD);
-        List<SortingData.Weighted> bag = SortingData.visibleOutputs(SortingData.BAG);
-        List<SortingData.Weighted> rubble = SortingData.visibleOutputs(SortingData.RUBBLE);
-        registration.addRecipes(SORTING, List.of(
-            new SalvageRecipe(new ItemStack(RCItems.GARBAGE_BLOCK.get()), household),
-            new SalvageRecipe(new ItemStack(RCItems.COMPACTED_BALE.get()), household),
-            new SalvageRecipe(new ItemStack(RCItems.TRASH_BAG.get()), bag),
-            new SalvageRecipe(new ItemStack(RCItems.STONE_RUBBLE.get()), rubble)));
+        // Mechanical Waste was missing here for its whole life, and the symptom was subtle: clicking
+        // Magnet Scrap in JEI showed NOTHING AT ALL. Its only source is this stream, block drops are
+        // invisible to JEI, and no recipe makes it - so the panel was simply empty, which reads as a
+        // broken item rather than a missing entry. Quartz Grit, Spent Abrasive and the Motor were all
+        // in the same state. `every_sortable_block_is_a_jei_sorting_source` now asserts the list is
+        // complete, derived from the registry rather than maintained here.
+        List<SalvageRecipe> sorting = new ArrayList<>();
+        for (SortingData.SortingSource source : SortingData.sortingSources()) {
+            sorting.add(new SalvageRecipe(new ItemStack(source.block()),
+                SortingData.visibleOutputs(source.path())));
+        }
+        registration.addRecipes(SORTING, sorting);
 
         registration.addRecipes(CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.TIN_CAN.get()),
@@ -361,6 +366,8 @@ public class RecompileJeiPlugin implements IModPlugin {
         info(registration, RCItems.HYDROPONICS_BAY.get(), "hydroponics_bay");
         info(registration, RCItems.UNKNOWN_SEEDLING.get(), "unknown_seedling");
         info(registration, RCItems.LEACHATE_BUCKET.get(), "leachate_bucket");
+        info(registration, RCItems.MOTOR.get(), "motor");
+        info(registration, RCItems.BULB.get(), "bulb");
     }
 
     private static void info(IRecipeRegistration registration, net.minecraft.world.level.ItemLike item,

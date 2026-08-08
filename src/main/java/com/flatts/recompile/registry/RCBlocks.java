@@ -707,6 +707,28 @@ public final class RCBlocks {
      * of a broken appliance, which is what puts reclamation rung 1 behind the teardown spine.
      * <b>Inert</b>: no rotation, no kinetics, never requires Create (P2.3).
      */
+    /**
+     * Motor: the second placeable component (owner, 2026-08-06), and the drive of anything that
+     * physically moves. Salvaged out of Mechanical Waste in the demolition yard - magnet scrap
+     * already comes from that stream, and a magnet is what a motor is mostly made of.
+     *
+     * <p><b>Inert</b>, like every component in the vocabulary (P2.4-R item 6): it turns nothing,
+     * exposes no kinetics and never requires Create. The name invites the opposite, which is exactly
+     * why the rule is written down rather than assumed.
+     *
+     * <p>A plain cube on purpose. It forms into Separator Housing once the machine is assembled, so
+     * it is only ever seen held or placed loose, and a boxy motor housing reads correctly at that
+     * size without the bespoke multi-element model the Pump carries.
+     */
+    public static final DeferredBlock<Block> MOTOR = BLOCKS.registerBlock(
+        "motor",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .strength(1.6F)
+            .sound(SoundType.METAL)
+    );
+
     public static final DeferredBlock<Block> PUMP = BLOCKS.registerBlock(
         "pump",
         Block::new,

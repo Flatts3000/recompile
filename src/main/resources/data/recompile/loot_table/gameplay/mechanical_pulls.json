@@ -33,6 +33,11 @@
           "type": "minecraft:item",
           "name": "recompile:rebar",
           "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:motor",
+          "weight": 5
         }
       ]
     }

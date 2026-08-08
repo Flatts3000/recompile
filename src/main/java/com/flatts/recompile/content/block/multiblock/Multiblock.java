@@ -8,6 +8,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
@@ -240,7 +243,29 @@ public record Multiblock(List<Cell> cells) {
                 continue;
             }
             if (drop) {
-                Block.dropResources(state, level, pos);
+                // DROP THE COMPONENT, not the formed block's loot.
+                //
+                // This used to run the formed block's loot table, which worked only because every
+                // formed block happened to map from exactly ONE component and its table was kept in
+                // sync by hand. The moment two components share a formed appearance that breaks
+                // silently: the Separator's Motor cell forms into ordinary housing, whose table
+                // drops a Machine Frame, so disbanding turned the rarest part in the machine into
+                // the commonest one and nothing said a word.
+                //
+                // Reading the component off the blueprint makes the invariant structural. The
+                // blueprint is already the single source of truth for validation, auto-assemble and
+                // the guidebook pattern; it is now the source of truth for what disband gives back
+                // too, so those four cannot disagree.
+                // Respect block_drops the way the loot table did. popResource does NOT - it is a
+                // plain item spawn - so switching to it silently exempted machines from a gamerule
+                // that governs every other block in the game. Breaking a formed cell redirects here,
+                // so this genuinely is block-breaking and the rule genuinely applies.
+                // getGameRules lives on ServerLevel in 26.1, not on Level. Disband only ever runs
+                // server-side, so an unexpected client Level means drop nothing rather than guess.
+                if (level instanceof ServerLevel server
+                    && server.getGameRules().get(GameRules.BLOCK_DROPS)) {
+                    Block.popResource(level, pos, new ItemStack(cell.component()));
+                }
             }
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         }

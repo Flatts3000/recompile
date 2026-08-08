@@ -57,6 +57,13 @@ public final class RCItems {
         () -> new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)
     );
 
+    /**
+     * Bulb: the first CRAFTING component (owner, 2026-08-06), as opposed to the placeable ones.
+     * Found in household sorting, and spent as an ingredient rather than stacked into a structure -
+     * the Hydroponics Bay needs one, because a bay under a mound has no other light.
+     */
+    public static final DeferredItem<Item> BULB = ITEMS.registerItem("bulb", Item::new);
+
     public static final DeferredItem<Item> SCRAP_METAL = ITEMS.registerItem("scrap_metal", Item::new);
     public static final DeferredItem<Item> PLASTIC_SCRAP = ITEMS.registerItem("plastic_scrap", Item::new);
     public static final DeferredItem<Item> GLASS_SHARDS = ITEMS.registerItem("glass_shards", Item::new);
@@ -447,6 +454,10 @@ public final class RCItems {
     public static final DeferredItem<AnimalBaitItem> RICH_OMNIVORE_BAIT = ITEMS.registerItem("rich_omnivore_bait",
         props -> new AnimalBaitItem(RCBlocks.ANIMAL_BAIT.get(), props, Diet.OMNIVORE, true));
     /** Salvaged, never crafted - it comes out of a broken appliance at the workbench. */
+    /** The Motor's item form - a placeable component, so a block item like the Pump. */
+    public static final DeferredItem<BlockItem> MOTOR =
+        ITEMS.registerSimpleBlockItem("motor", RCBlocks.MOTOR);
+
     public static final DeferredItem<BlockItem> PUMP =
         ITEMS.registerSimpleBlockItem("pump", RCBlocks.PUMP);
     public static final DeferredItem<BlockItem> SOLAR_PANEL =

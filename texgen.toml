@@ -1534,3 +1534,18 @@ prompt = "vanilla coarse dirt, darkened"
 # multiplies - a tint at coarse dirt's own colour comes back at a third of it - so the pale value
 # is what keeps brightness at a truthful 1.0 instead of a 2.0 that would read as "lighten".
 vanilla_ref = "block/coarse_dirt"
+
+# Motor: the second placeable component. A salvaged electric motor housing - boxy, because it is
+# a cube model, and grimy because everything here came out of a dump.
+[surface.motor]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a salvaged electric motor housing seen head on, a dark grey ribbed steel casing with a rusty end plate and a copper winding visible, grimy and scavenged, flat Minecraft block texture, seamless, no scene"
+
+# Bulb: the first crafting component. A loose incandescent bulb, scavenged and dusty.
+[surface.bulb]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a single incandescent light bulb, clear dusty glass with a visible filament and a dull brass screw base, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
