@@ -1,4 +1,6 @@
 package com.flatts.recompile.compat;
+import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.SortableBlock;
 
 import com.flatts.recompile.registry.RCTags;
 import com.google.gson.JsonArray;
@@ -17,6 +19,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.entity.decoration.painting.PaintingVariant;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -76,6 +80,45 @@ public final class SortingData {
     }
 
     /** Weighted item outputs of a bundled loot table, or empty if it cannot be read. */
+    /**
+     * Every block a player can pick through, paired with the stream it draws from.
+     *
+     * <p><b>Derived from the block registry, deliberately.</b> The JEI Sorting category used to hold
+     * a hand-written list of four, and Mechanical Waste was never added to it - so clicking Magnet
+     * Scrap in JEI showed <i>nothing at all</i>. Block drops are invisible to JEI and no recipe makes
+     * the stuff, so the panel was simply empty, which reads as a broken item rather than a missing
+     * entry. Quartz Grit, Spent Abrasive and the Motor were in the same state.
+     *
+     * <p>Deriving it means a new pile variant is covered the day it is registered, which is precisely
+     * what a list maintained by hand failed to do.
+     */
+    public static List<SortingSource> sortingSources() {
+        List<SortingSource> sources = new ArrayList<>();
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (!(block instanceof SortableBlock)) {
+                continue;
+            }
+            Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+            if (!Recompile.MOD_ID.equals(id.getNamespace())) {
+                continue;
+            }
+            ResourceKey<LootTable> table = SortableBlock.pullTableOf(block);
+            if (table != null) {
+                sources.add(new SortingSource(block, pathFor(table)));
+            }
+        }
+        return List.copyOf(sources);
+    }
+
+    /** A sortable block and the classpath path of the pull stream it draws from. */
+    public record SortingSource(Block block, String path) {}
+
+    /** {@code recompile:gameplay/household_pulls} to the bundled JSON this class reads. */
+    public static String pathFor(ResourceKey<LootTable> table) {
+        Identifier id = table.identifier();
+        return "/data/" + id.getNamespace() + "/loot_table/" + id.getPath() + ".json";
+    }
+
     public static List<Weighted> outputs(String resourcePath) {
         return outputs(resourcePath, null);
     }

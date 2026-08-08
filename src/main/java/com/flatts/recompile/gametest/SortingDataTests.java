@@ -17,6 +17,38 @@ final class SortingDataTests {
     }
 
     static void register() {
+        // EVERY SORTABLE HAS A JEI-VISIBLE STREAM. Mechanical Waste was missing from the Sorting
+        // category for its whole life, and the symptom was almost invisible: clicking Magnet Scrap
+        // in JEI showed NOTHING. Its only source is that stream, block drops are invisible to JEI,
+        // and no recipe produces it - so the panel was empty, which a player reads as a broken item
+        // rather than a missing entry. Quartz Grit, Spent Abrasive and the Motor were all the same.
+        //
+        // The list JEI registers is now derived from the block registry, so this asserts the
+        // derivation covers every sortable and that each stream actually has something to show.
+        RCGameTests.test("every_sortable_block_is_a_jei_sorting_source", 20, helper -> {
+            var sources = SortingData.sortingSources();
+            helper.assertTrue(sources.size() >= 5,
+                "expected every sortable (garbage, bag, bale, rubble, mechanical waste) to be a "
+                    + "sorting source, got " + sources.size());
+
+            List<String> empty = new ArrayList<>();
+            for (var source : sources) {
+                if (SortingData.visibleOutputs(source.path()).isEmpty()) {
+                    empty.add(source.block() + " -> " + source.path());
+                }
+            }
+            helper.assertTrue(empty.isEmpty(),
+                "these sortables have nothing for JEI to show, so whatever they alone drop looks "
+                    + "like a broken item: " + empty);
+
+            boolean mechanical = sources.stream()
+                .anyMatch(src -> src.path().contains("mechanical_pulls"));
+            helper.assertTrue(mechanical,
+                "Mechanical Waste must be a sorting source - it is the only place Magnet Scrap, "
+                    + "Quartz Grit, Spent Abrasive and the Motor come from");
+            helper.succeed();
+        });
+
         RCGameTests.test("sorting_data_reads_household", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.HOUSEHOLD);
             helper.assertTrue(!out.isEmpty(), "household pulls must parse to outputs");
