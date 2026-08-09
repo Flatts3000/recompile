@@ -539,6 +539,46 @@ public final class RCBlocks {
     );
 
     /**
+     * The Broken Fan (#170): where the <b>Motor</b> comes from.
+     *
+     * <p><b>It exists because the Motor had no teardown.</b> Issue #160 gave the Pump a blueprint
+     * learned from tearing down the Washing Machine it drops out of, and assumed the Motor could follow
+     * the same pattern. It could not: {@code teaches} lives on a teardown recipe, and the Motor came
+     * from <i>sorting</i> Mechanical Waste, so there was nothing to hang the lesson on. Owner ruling
+     * 2026-08-08 was to give it an object, which is this.
+     *
+     * <p>A fan is the right object because the teardown needs no explaining - the thing visibly spun,
+     * so a motor is what is obviously inside it. Plastic rather than sheet metal, like the printer, so
+     * that four finds in one pile still read as four different things.
+     */
+    public static final DeferredBlock<FoundApplianceBlock> BROKEN_FAN = BLOCKS.registerBlock(
+        "broken_fan",
+        FoundApplianceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .strength(1.0F)
+            .sound(SoundType.WOOD)
+    );
+
+    /**
+     * The Light Fixture (#171): where the <b>Bulb</b> comes from, for the same reason as the fan.
+     *
+     * <p>A ceiling troffer rather than a lamp. A lamp reads as furniture you would keep; this is
+     * something torn out of a ceiling, which is what the rest of Bulky Waste is.
+     *
+     * <p>Two machines depend on the Bulb, not one - the Hydroponics Bay and, since 2026-08-08, the
+     * Tree Nursery. #160's table listed only the bay.
+     */
+    public static final DeferredBlock<FoundApplianceBlock> LIGHT_FIXTURE = BLOCKS.registerBlock(
+        "light_fixture",
+        FoundApplianceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_WHITE)
+            .strength(1.0F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
      * Mattress (P1.11): the first find in the Bulky Waste table, and this world's bed -
      * a vanilla bed needs planks, and there are no trees. Two blocks like a bed, soft and
      * quiet, {@code noOcclusion} because it is 5 pixels tall rather than a cube.

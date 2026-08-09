@@ -1,0 +1,17 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:motor",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "M": "recompile:scrap_metal",
+    "E": "recompile:e_scrap"
+  },
+  "pattern": [
+    "CMC",
+    " E ",
+    "CMC"
+  ],
+  "result": {
+    "item": "recompile:motor"
+  }
+}

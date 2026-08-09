@@ -1,0 +1,16 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:bulb",
+  "key": {
+    "G": "recompile:cullet_glass",
+    "N": "minecraft:copper_nugget"
+  },
+  "pattern": [
+    " G ",
+    "GNG",
+    " N "
+  ],
+  "result": {
+    "item": "recompile:bulb"
+  }
+}

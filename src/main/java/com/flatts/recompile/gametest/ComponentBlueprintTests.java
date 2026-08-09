@@ -22,26 +22,48 @@ import net.minecraft.world.item.crafting.RecipeHolder;
  * crafted": the literal wording no longer holds, the reason behind it does, and four washing machines
  * is a harder gate than one lucky find.
  *
- * <p><b>Why the Pump needs its own tests rather than riding the existing sweep.</b>
+ * <p><b>Why these need their own tests rather than riding the existing sweep.</b>
  * {@code a_blueprint_result_has_no_other_route} asserts that nothing else makes a blueprint-gated item.
- * That is true of the Clean Mattress and the Hydroponics Bay and deliberately <b>false</b> of the Pump,
- * which is still salvage. The sweep would have passed anyway, because it reads {@code display()} and
- * {@code TeardownRecipe} does not implement it - so it is structurally blind to salvage routes. A green
- * there says nothing about the Pump, and this file is what says something.
+ * That is true of the Clean Mattress and the Hydroponics Bay and deliberately <b>false</b> of all three
+ * components, which are still salvage. The sweep would have passed anyway, because it reads
+ * {@code display()} and {@code TeardownRecipe} does not implement it - so it is structurally blind to
+ * salvage routes. A green there says nothing about a component, and this file is what says something.
  *
  * <p><b>What this does NOT fix, stated because the issue implied otherwise.</b> #160 argued that a
  * found-only component is a hard gate whose failure mode is "if the stream never rolls one, the machine
- * is unbuildable and the player has no lever to pull". <b>The Pump was never luck-gated.</b> It sits in
- * the washing machine's {@code results} rather than its {@code extras}, so a teardown yields one
- * <i>every time</i> - the only roll anywhere in the chain is whether Bulky Waste gives you a washing
- * machine at all. Since the blueprint costs <b>four</b> washing machines, it cannot help a player who
- * has found none; it helps a player who has run out. That is a real problem and a smaller one, and
- * {@code a_pump_from_a_teardown_is_never_a_dice_roll} pins the fact the argument got wrong so nobody
- * re-derives the original claim from a green suite.
+ * is unbuildable and the player has no lever to pull". <b>None of the three was ever luck-gated.</b>
+ * Each sits in its object's {@code results} rather than its {@code extras}, so a teardown yields one
+ * <i>every time</i> - the only roll anywhere in the chain is whether Bulky Waste gives you the object
+ * at all. Since a blueprint costs <b>four</b> of them, it cannot help a player who has found none; it
+ * helps a player who has run out. That is a real problem and a smaller one, and
+ * {@code a_component_from_a_teardown_is_never_a_dice_roll} pins the fact the argument got wrong so
+ * nobody re-derives the original claim from a green suite.
+ *
+ * <p>The Motor and the Bulb keep their <b>sorting</b> sources as well (Mechanical Waste and household
+ * pulls), so those two have three routes rather than two. Only the Pump depends on a single object.
  */
 final class ComponentBlueprintTests {
 
     private ComponentBlueprintTests() {
+    }
+
+    /**
+     * The three components that are salvage first and blueprint second.
+     *
+     * <p>All of #160's subjects, finished across three PRs: the Pump out of a Washing Machine, and
+     * then the Motor and the Bulb once each was given a found object to be torn out of - a Broken Fan
+     * and a Light Fixture (#170, #171). Before those existed neither could carry a {@code teaches}
+     * entry at all, because the field lives on a teardown and they only came from sorting.
+     *
+     * <p><b>A method rather than a static field, and that is not style.</b> This class is initialised
+     * from {@code RCGameTests.register}, which runs inside the mod constructor - so a static
+     * {@code List.of(RCItems.PUMP.get(), ...)} resolves DeferredItems before registration has finished
+     * and fails the whole mod to load with a bare {@code ExceptionInInitializerError}. The same trap
+     * caught {@code MenuLayoutTests} holding layouts eagerly, in this same week; deferring the lookup
+     * to call time is the fix in both places.
+     */
+    private static List<Item> gatedComponents() {
+        return List.of(RCItems.PUMP.get(), RCItems.MOTOR.get(), RCItems.BULB.get());
     }
 
     static void register() {
@@ -50,32 +72,40 @@ final class ComponentBlueprintTests {
          * teardown the Pump stops being a find and P2.4-R item 7 is gone rather than reworded; without
          * the blueprint the whole issue is unbuilt.
          */
-        RCGameTests.test("a_pump_is_reachable_by_salvage_and_by_blueprint", 20, helper -> {
-            Item pump = RCItems.PUMP.get();
+        RCGameTests.test("every_gated_component_is_reachable_by_salvage_and_by_blueprint", 20, helper -> {
+            List<String> broken = new ArrayList<>();
+            for (Item component : gatedComponents()) {
+                String name = String.valueOf(BuiltInRegistries.ITEM.getKey(component));
 
-            boolean salvaged = false;
-            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
-                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                for (TeardownRecipe.ItemResult result : holder.value().results()) {
-                    if (result.item() == pump) {
-                        salvaged = true;
+                boolean salvaged = false;
+                for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                        .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                    for (TeardownRecipe.ItemResult result : holder.value().results()) {
+                        if (result.item() == component) {
+                            salvaged = true;
+                        }
                     }
                 }
-            }
-            helper.assertTrue(salvaged,
-                "no teardown yields a Pump any more. The blueprint route was added ALONGSIDE salvage, "
-                    + "not instead of it - losing this makes rung 1 a crafting recipe, which is the "
-                    + "half of P2.4-R item 7 that was never up for reversal");
+                if (!salvaged) {
+                    broken.add(name + " comes out of no teardown. The blueprint route was added "
+                        + "ALONGSIDE salvage, never instead of it - losing this turns a gated "
+                        + "component into an ordinary crafting recipe, which is the half of P2.4-R "
+                        + "item 7 that was never up for reversal");
+                }
 
-            boolean blueprinted = false;
-            for (RecipeHolder<BlueprintCraftingRecipe> holder : helper.getLevel().recipeAccess()
-                    .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
-                if (holder.value().result().item() == pump) {
-                    blueprinted = true;
+                boolean blueprinted = false;
+                for (RecipeHolder<BlueprintCraftingRecipe> holder : helper.getLevel().recipeAccess()
+                        .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                    if (holder.value().result().item() == component) {
+                        blueprinted = true;
+                    }
+                }
+                if (!blueprinted) {
+                    broken.add(name + " has no blueprint recipe");
                 }
             }
-            helper.assertTrue(blueprinted,
-                "no blueprint recipe makes a Pump, so #160 is not built");
+            helper.assertTrue(broken.isEmpty(),
+                "these components do not have both routes (" + broken.size() + "): " + broken);
             helper.succeed();
         });
 
@@ -85,20 +115,26 @@ final class ComponentBlueprintTests {
          * So "the stream never rolls one" was never about the Pump - it is about finding a washing
          * machine, which the blueprint needs four of and therefore cannot rescue.
          */
-        RCGameTests.test("a_pump_from_a_teardown_is_never_a_dice_roll", 20, helper -> {
-            boolean guaranteed = false;
-            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
-                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                for (TeardownRecipe.ItemResult result : holder.value().results()) {
-                    if (result.item() == RCItems.PUMP.get()) {
-                        guaranteed = true;
+        RCGameTests.test("a_component_from_a_teardown_is_never_a_dice_roll", 20, helper -> {
+            List<String> rolled = new ArrayList<>();
+            for (Item component : gatedComponents()) {
+                boolean guaranteed = false;
+                for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                        .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                    for (TeardownRecipe.ItemResult result : holder.value().results()) {
+                        if (result.item() == component) {
+                            guaranteed = true;
+                        }
                     }
                 }
+                if (!guaranteed) {
+                    rolled.add(String.valueOf(BuiltInRegistries.ITEM.getKey(component)));
+                }
             }
-            helper.assertTrue(guaranteed,
-                "the Pump must stay a guaranteed teardown result rather than a rolled extra. Moving it "
-                    + "to extras would turn rung 1 into a dice game, and the blueprint could not "
-                    + "rescue that either - it costs four of the same teardown");
+            helper.assertTrue(rolled.isEmpty(),
+                "these components are not a guaranteed teardown result, so taking the object apart "
+                    + "might give you nothing. The blueprint cannot rescue that - it costs four of the "
+                    + "same teardown: " + rolled);
             helper.succeed();
         });
 
@@ -107,30 +143,42 @@ final class ComponentBlueprintTests {
          * because both numbers have a design reason rather than being tuning: every teardown teaches
          * (a dice roll is not the thing that ends a grind), and a one-fragment blueprint IS the sheet.
          */
-        RCGameTests.test("tearing_down_a_washing_machine_teaches_the_pump", 20, helper -> {
-            TeardownRecipe.TeachEntry toPump = null;
-            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
-                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                boolean yieldsPump = holder.value().results().stream()
-                    .anyMatch(result -> result.item() == RCItems.PUMP.get());
-                if (!yieldsPump) {
-                    continue;
-                }
-                for (TeardownRecipe.TeachEntry teach : holder.value().teaches()) {
-                    if (teach.recipe().equals(BlueprintItem.PUMP)) {
-                        toPump = teach;
+        RCGameTests.test("the_object_that_yields_a_component_is_the_one_that_teaches_it", 20, helper -> {
+            List<String> broken = new ArrayList<>();
+            for (Item component : gatedComponents()) {
+                Identifier blueprint = BuiltInRegistries.ITEM.getKey(component);
+                TeardownRecipe.TeachEntry lesson = null;
+                for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                        .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                    boolean yields = holder.value().results().stream()
+                        .anyMatch(result -> result.item() == component);
+                    if (!yields) {
+                        continue;
+                    }
+                    for (TeardownRecipe.TeachEntry teach : holder.value().teaches()) {
+                        if (teach.recipe().equals(blueprint)) {
+                            lesson = teach;
+                        }
                     }
                 }
+                if (lesson == null) {
+                    broken.add(blueprint + ": the teardown that yields it does not teach it. Hanging "
+                        + "the lesson on some other object breaks the tie between the thing you take "
+                        + "apart and the thing you learn, which is the whole shape of #160");
+                    continue;
+                }
+                if (lesson.chance() < 1.0f) {
+                    broken.add(blueprint + ": teaches at chance " + lesson.chance()
+                        + ". Every teardown teaches (owner, 2026-08-02) - below 1 the cost is a dice "
+                        + "game, and what ends a grind is knowing the recipe, not getting lucky");
+                }
+                if (lesson.scrapsRequired() <= 1) {
+                    broken.add(blueprint + ": scraps_required is " + lesson.scrapsRequired()
+                        + " - at 1 the fragment IS the sheet, so fragments stop meaning anything");
+                }
             }
-            helper.assertTrue(toPump != null,
-                "the teardown that yields a Pump must also teach the Pump blueprint - that is the "
-                    + "whole shape of #160, and hanging the lesson on some other object would break "
-                    + "the tie between the thing you take apart and the thing you learn");
-            helper.assertTrue(toPump.chance() >= 1.0f,
-                "every teardown teaches (owner, 2026-08-02); a chance below 1 turns the cost into a "
-                    + "dice game - got " + toPump.chance());
-            helper.assertTrue(toPump.scrapsRequired() > 1,
-                "scraps_required is the whole reason fragments exist - at 1 the fragment is the sheet");
+            helper.assertTrue(broken.isEmpty(),
+                "component teardowns are wrong (" + broken.size() + "): " + broken);
             helper.succeed();
         });
 

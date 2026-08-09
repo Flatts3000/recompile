@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/broken_fan_front",
+    "down": "recompile:block/broken_fan_side",
+    "up": "recompile:block/broken_fan_top",
+    "north": "recompile:block/broken_fan_front",
+    "south": "recompile:block/broken_fan_side",
+    "east": "recompile:block/broken_fan_side",
+    "west": "recompile:block/broken_fan_side"
+  }
+}

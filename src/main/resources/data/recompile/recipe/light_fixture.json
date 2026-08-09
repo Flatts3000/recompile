@@ -1,0 +1,28 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:light_fixture",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 80,
+  "results": [
+    {
+      "item": "recompile:bulb",
+      "count": 1
+    },
+    {
+      "item": "recompile:scrap_metal",
+      "count": 1
+    },
+    {
+      "item": "recompile:glass_shards",
+      "count": 2
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:bulb",
+      "chance": 1.0,
+      "scraps_required": 4
+    }
+  ]
+}
