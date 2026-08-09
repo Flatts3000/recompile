@@ -36,6 +36,13 @@ final class BlueprintTests {
     static void register() {
         // THE GATE. Nothing in the crafting recipe manager may produce a Clean Mattress: the blueprint
         // bench is the only route, and that is the entire proposition of the feature.
+        //
+        // READ THE SCOPE BEFORE TRUSTING A GREEN HERE. This sweeps CRAFTING routes, via display(), and
+        // TeardownRecipe does not implement display() - so it is structurally blind to salvage. That is
+        // correct for the two blueprints that are genuinely exclusive, and says nothing at all about the
+        // Pump, which is deliberately reachable both ways (#160). A component that gains a blueprint
+        // while staying a find passes this test without being tested by it; ComponentBlueprintTests is
+        // where that pairing is actually pinned.
         RCGameTests.test("a_blueprint_result_has_no_other_route", 20, helper -> {
             // EVERY blueprint-gated result, not one named item. The Hydroponics Bay moved behind a
             // blueprint after this test was written, and a mattress-only sweep would have said nothing
