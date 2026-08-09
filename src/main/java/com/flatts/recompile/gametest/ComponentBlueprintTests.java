@@ -28,6 +28,16 @@ import net.minecraft.world.item.crafting.RecipeHolder;
  * which is still salvage. The sweep would have passed anyway, because it reads {@code display()} and
  * {@code TeardownRecipe} does not implement it - so it is structurally blind to salvage routes. A green
  * there says nothing about the Pump, and this file is what says something.
+ *
+ * <p><b>What this does NOT fix, stated because the issue implied otherwise.</b> #160 argued that a
+ * found-only component is a hard gate whose failure mode is "if the stream never rolls one, the machine
+ * is unbuildable and the player has no lever to pull". <b>The Pump was never luck-gated.</b> It sits in
+ * the washing machine's {@code results} rather than its {@code extras}, so a teardown yields one
+ * <i>every time</i> - the only roll anywhere in the chain is whether Bulky Waste gives you a washing
+ * machine at all. Since the blueprint costs <b>four</b> washing machines, it cannot help a player who
+ * has found none; it helps a player who has run out. That is a real problem and a smaller one, and
+ * {@code a_pump_from_a_teardown_is_never_a_dice_roll} pins the fact the argument got wrong so nobody
+ * re-derives the original claim from a green suite.
  */
 final class ComponentBlueprintTests {
 
@@ -66,6 +76,29 @@ final class ComponentBlueprintTests {
             }
             helper.assertTrue(blueprinted,
                 "no blueprint recipe makes a Pump, so #160 is not built");
+            helper.succeed();
+        });
+
+        /*
+         * The fact #160's motivation got wrong, pinned so it cannot be re-derived from a green suite.
+         * A teardown yields its `results` every time and rolls only its `extras`; the Pump is a result.
+         * So "the stream never rolls one" was never about the Pump - it is about finding a washing
+         * machine, which the blueprint needs four of and therefore cannot rescue.
+         */
+        RCGameTests.test("a_pump_from_a_teardown_is_never_a_dice_roll", 20, helper -> {
+            boolean guaranteed = false;
+            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                for (TeardownRecipe.ItemResult result : holder.value().results()) {
+                    if (result.item() == RCItems.PUMP.get()) {
+                        guaranteed = true;
+                    }
+                }
+            }
+            helper.assertTrue(guaranteed,
+                "the Pump must stay a guaranteed teardown result rather than a rolled extra. Moving it "
+                    + "to extras would turn rung 1 into a dice game, and the blueprint could not "
+                    + "rescue that either - it costs four of the same teardown");
             helper.succeed();
         });
 
