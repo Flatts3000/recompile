@@ -17,5 +17,12 @@
       "item": "recompile:plastic_scrap",
       "count": 2
     }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:pump",
+      "chance": 1.0,
+      "scraps_required": 4
+    }
   ]
 }

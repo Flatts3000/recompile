@@ -78,7 +78,7 @@ public class BlueprintItem extends Item {
 
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
-        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY);
+        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP);
     }
 
     /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
@@ -89,10 +89,34 @@ public class BlueprintItem extends Item {
      * The second blueprint, and the one that proves the mechanic was worth building.
      *
      * <p>A single gated object is a demo. The spec said as much: "the POC only earns its cost if the
-     * bed is not the only one." This is a machine rather than a trinket, learned from tearing apart a
-     * washing machine - which is already where the Pump comes from, so the thing that teaches you to
-     * circulate water is the thing you take the pump out of.
+     * bed is not the only one." This is a machine rather than a trinket, and it is learned from the
+     * wreck of itself - tearing down a <b>Broken Hydroponics Bay</b>, found in Bulky Waste.
+     *
+     * <p><i>This javadoc used to say the bay was learned from a washing machine, "which is already
+     * where the Pump comes from". That was never what shipped -</i> {@code broken_hydroponics_bay.json}
+     * <i>is what carries the</i> {@code teaches} <i>entry, and the washing machine carried none at all
+     * until the Pump gained one. Corrected 2026-08-08 (#160).</i>
      */
     public static final Identifier HYDROPONICS_BAY =
         Identifier.fromNamespaceAndPath("recompile", "hydroponics_bay");
+
+    /**
+     * The third blueprint, and the first for a <b>component</b> rather than a machine (#160).
+     *
+     * <p>Owner ruling 2026-08-08. This is a scoped reversal of <b>P2.4-R item 7</b>, which says the
+     * Pump is "torn out of a Washing Machine found in Bulky Waste, <b>never crafted</b>" so that
+     * reclamation rung 1 sits behind the teardown spine and a find. The literal "never crafted" no
+     * longer holds; <b>the reason for it does</b>, and arguably harder than before. Fragments come only
+     * from tearing down washing machines, so the blueprint is still behind Bulky Waste, a prybar and
+     * the Workbench - and it now takes <i>four</i> of them rather than one lucky find.
+     *
+     * <p><b>The Pump is therefore not gated the way the other two are.</b> A Clean Mattress and a
+     * Hydroponics Bay exist only at the blueprint bench; a Pump is <i>also</i> salvage, and that dual
+     * route is the design rather than a leak in it. {@code a_blueprint_result_has_no_other_route}
+     * sweeps crafting recipes and is blind to teardown by construction, so it would have passed here
+     * without meaning anything - {@code a_pump_is_reachable_by_salvage_and_by_blueprint} pins both
+     * halves on purpose.
+     */
+    public static final Identifier PUMP =
+        Identifier.fromNamespaceAndPath("recompile", "pump");
 }

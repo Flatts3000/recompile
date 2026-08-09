@@ -1,0 +1,17 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:pump",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "M": "recompile:scrap_metal",
+    "P": "recompile:plastic_scrap"
+  },
+  "pattern": [
+    " C ",
+    "CMC",
+    " P "
+  ],
+  "result": {
+    "item": "recompile:pump"
+  }
+}
