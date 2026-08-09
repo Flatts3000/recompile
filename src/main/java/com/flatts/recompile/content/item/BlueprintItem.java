@@ -78,7 +78,7 @@ public class BlueprintItem extends Item {
 
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
-        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP);
+        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB);
     }
 
     /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
@@ -119,4 +119,22 @@ public class BlueprintItem extends Item {
      */
     public static final Identifier PUMP =
         Identifier.fromNamespaceAndPath("recompile", "pump");
+
+    /**
+     * The Motor (#170), and the Bulb (#171) below it - the other two components #160 wanted covered.
+     *
+     * <p><b>Neither could have the Pump's treatment, and that is why they arrived late.</b> The Pump
+     * falls out of a Washing Machine teardown, so its lesson had a recipe to hang on. The Motor came
+     * from sorting Mechanical Waste and the Bulb from household sorting, and {@code teaches} lives on
+     * {@code recompile:teardown} only - there was nothing to attach. Owner ruling 2026-08-08: give each
+     * a found object that tears down into it, which is the Broken Fan and the Light Fixture.
+     *
+     * <p>All three components are therefore <b>salvage first and blueprint second</b>, unlike the Clean
+     * Mattress and the Hydroponics Bay which exist nowhere but the bench.
+     */
+    public static final Identifier MOTOR =
+        Identifier.fromNamespaceAndPath("recompile", "motor");
+
+    public static final Identifier BULB =
+        Identifier.fromNamespaceAndPath("recompile", "bulb");
 }

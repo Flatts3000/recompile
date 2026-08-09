@@ -67,6 +67,8 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.WASHING_MACHINE.get());
                     output.accept(RCItems.FILING_CABINET.get());
                     output.accept(RCItems.PRINTER.get());
+                    output.accept(RCItems.BROKEN_FAN.get());
+                    output.accept(RCItems.LIGHT_FIXTURE.get());
                     output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
 
                     // --- 3. Tools ---

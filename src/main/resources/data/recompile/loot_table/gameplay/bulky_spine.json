@@ -28,6 +28,16 @@
           "type": "minecraft:item",
           "name": "recompile:broken_hydroponics_bay",
           "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:broken_fan",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:light_fixture",
+          "weight": 2
         }
       ]
     }

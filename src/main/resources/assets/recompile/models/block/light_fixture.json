@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/light_fixture_front",
+    "down": "recompile:block/light_fixture_side",
+    "up": "recompile:block/light_fixture_top",
+    "north": "recompile:block/light_fixture_front",
+    "south": "recompile:block/light_fixture_side",
+    "east": "recompile:block/light_fixture_side",
+    "west": "recompile:block/light_fixture_side"
+  }
+}
