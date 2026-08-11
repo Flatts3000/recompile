@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -301,6 +302,7 @@ public abstract class SortableBlock extends FallingBlock {
         // disturbed pull costs you the material as well as the fight. It also does not advance the
         // sorted count, so the block is not consumed by an encounter - you can try again.
         if (releaseRoach(level, pos)) {
+            RCAnalytics.roach(state.getBlock());
             return false;
         }
 
@@ -314,10 +316,15 @@ public abstract class SortableBlock extends FallingBlock {
                 Block.popResource(level, pos, drop);
             }
         }
+        // Logged here rather than at the call sites: this is the ONE place a pull can happen, which
+        // is what makes the measurement complete rather than a sample of the paths somebody
+        // remembered to instrument.
+        RCAnalytics.pull(level, state.getBlock(), pulled);
         level.playSound(null, pos, sound.getHitSound(), SoundSource.BLOCKS, 0.6F, 0.9F);
 
         int pulls = state.getValue(sortedProperty()) + 1;
         if (shouldCrumble(pulls, level.getRandom())) {
+            RCAnalytics.crumble(state.getBlock());
             level.destroyBlock(pos, false);
             level.playSound(null, pos, sound.getBreakSound(), SoundSource.BLOCKS, 0.8F, 0.9F);
             return true;

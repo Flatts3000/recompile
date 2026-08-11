@@ -20,6 +20,7 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue LEACHATE_SICKNESS_TICKS;
     public static final ModConfigSpec.BooleanValue GARBAGE_GRAVITY_ENABLED;
     public static final ModConfigSpec.BooleanValue ROACHES_ENABLED;
+    public static final ModConfigSpec.BooleanValue ANALYTICS_ENABLED;
     public static final ModConfigSpec.BooleanValue PIGEON_FORAGE_ENABLED;
     public static final ModConfigSpec.IntValue PIGEON_FORAGE_INTERVAL_TICKS;
     public static final ModConfigSpec.DoubleValue PIGEON_FORAGE_CHANCE;
@@ -149,6 +150,21 @@ public final class RCConfig {
                 "surface near -60, and a 380-block fall is nine seconds of entity per block for a",
                 "beat that reads the same from thirty. The flight path is checked clear first.")
             .defineInRange("moundRegrowthDropHeight", 30, 1, 320);
+        ANALYTICS_ENABLED = builder
+            .comment("Write a local log of what sorting produces, to logs/recompile-pulls.tsv.",
+                "",
+                "LOCAL FILE ONLY. No network, no upload, no identifier - it is a tab-separated",
+                "text file you can read, delete, or turn off here. Said plainly because a setting",
+                "called analytics usually means the other thing.",
+                "",
+                "It exists because every drop rate in this mod was tuned against an ESTIMATE of how",
+                "many pulls an hour a player makes, and that estimate was wrong twice in one day.",
+                "A weight is only as good as the number of pulls you think it is rolled against, so",
+                "that number is worth counting rather than deriving. tools/analyse_pulls.py turns",
+                "the file into rates.",
+                "",
+                "On by default while the mod is in alpha and the numbers are still being settled.")
+            .define("analyticsEnabled", true);
         ROACHES_ENABLED = builder
             .comment("Whether picking through garbage can disturb a roach (#78).")
             .define("roachesEnabled", true);
