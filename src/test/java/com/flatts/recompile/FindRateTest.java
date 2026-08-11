@@ -160,10 +160,14 @@ class FindRateTest {
 
     /** Pulls needed on average for one of each item household sorting can yield. */
     private static Map<String, Double> pullsPerDrop() throws IOException {
+        return pullsPerDrop("household_pulls");
+    }
+
+    private static Map<String, Double> pullsPerDrop(String stream) throws IOException {
         JsonObject table;
         try (InputStream in = FindRateTest.class.getResourceAsStream(
-                "/data/recompile/loot_table/gameplay/household_pulls.json")) {
-            assertTrue(in != null, "household_pulls.json is not on the classpath");
+                "/data/recompile/loot_table/gameplay/" + stream + ".json")) {
+            assertTrue(in != null, stream + ".json is not on the classpath");
             table = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8))
                 .getAsJsonObject();
         }
@@ -256,6 +260,35 @@ class FindRateTest {
             "collectibles should be " + (int) RARER_THAN_SHIPPED + "x rarer than v0.8.0 shipped them "
                 + "(owner, 2026-08-11): " + wrong + ". The playtest that set this was getting three "
                 + "in fifteen minutes");
+    }
+
+    @Test
+    @DisplayName("both pull streams price a collectible the same")
+    void bothStreamsAgreeOnCollectibles() throws IOException {
+        // Collectibles are declared TWICE - once in household_pulls, once in bag_pulls - and a player
+        // meets them through whichever they happen to be sorting. Because both carry the same
+        // denominator the combined rate is that denominator regardless of the mix, which is the only
+        // reason a single number can be quoted in hours at all. Two files that must agree is exactly
+        // the shape that drifts, and every rate in this file is measured against the household one.
+        Map<String, Double> household = pullsPerDrop("household_pulls");
+        Map<String, Double> bag = pullsPerDrop("bag_pulls");
+
+        List<String> disagree = new ArrayList<>();
+        List<String> checked = new ArrayList<>(COLLECTIBLES);
+        checked.add(CUBE_PIECE);
+        for (String item : checked) {
+            Double one = household.get(item);
+            Double other = bag.get(item);
+            assertTrue(one != null, item + " is missing from household_pulls");
+            assertTrue(other != null, item + " is missing from bag_pulls");
+            if (Math.abs(one - other) / one > 0.01) {
+                disagree.add(String.format("%s is 1/%.0f in household but 1/%.0f in bags",
+                    item, one, other));
+            }
+        }
+        assertTrue(disagree.isEmpty(),
+            "the two streams price the same collectible differently, so how often you find one "
+                + "depends on which pile you happen to be picking through: " + disagree);
     }
 
     @Test
