@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+**Drop rates were being reasoned about in the wrong unit, and it showed.** Fifteen minutes of play was handing over nine buckets, three pairs of shears, nine leads and three collectibles. Every rate was written as "one pull in N", which reads as rare and never got converted into anything a person experiences.
+
+The numbers below are derived rather than guessed. A held right-click sorts at five pulls a second; sorting was about a quarter of playtime, so roughly 4,500 pulls an hour. As a sanity check on the model: a junk shovel takes 4.5 ticks a block, so a 322-block mound flattens in about a minute - and sorting that same mound is 712 pulls, or nearly two and a half minutes. Flattening a mound is the cheap half, which is exactly why "mounds an hour" was the wrong yardstick.
+
+### Rarer
+- **Buckets, shears, flint and steel, and leads** now turn up about **once every half hour each**. A bucket was arriving roughly every two minutes.
+- **Name tags** about hourly, **music discs** about every two hours.
+- **Collectibles are trophies again.** The four whole objects work out at about nineteen hours apiece, so the full set lands near **forty hours**, and a Puzzle Cube costs about the same in pieces.
+- **Roaches** were interrupting a pull two and a half times per mound sorted. Now about once a mound, or one every ten minutes or so.
+- Bulk material is untouched. Junk, scrap, plastic, glass shards and the rest come out just as fast as before.
+
+### Carpets
+- **Wool carpets no longer turn up in trash bags, and are craftable again.** A rug you find every few minutes is not worth finding. Wool is still a bag pull, so you make them the ordinary way.
+
+### Fixes
+- **The Scrap Crafting Table could not see everything in a connected barrel.** What the network reported was capped at eighteen distinct materials - fewer than a single barrel holds - so a well-stocked cluster had items the shelf could not show and that JEI's recipe transfer called missing. A barrel holding nineteen Rebar would report "Not in your inventory or any connected storage". The cap is gone, and connecting several barrels aggregates all of them.
+
 ## v0.8.0
 
 **The dump gives you objects; your machines give you materials.** A bucket, a rug, a glass bottle - anything a person would actually throw away - is found now, not crafted. Materials and what you build out of them are still yours to make. The bucket is the one you will hit first: it turns up in ordinary household sorting, and there is no longer a recipe for one.

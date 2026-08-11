@@ -157,10 +157,16 @@ public final class RCConfig {
                 "This is a progression lever as well as a difficulty one: roaches are the earliest",
                 "renewable food in the game, so the rate decides how much they feed you.",
                 "",
-                "NOTE: this is per PULL, not per block. A garbage block averages 2.5 pulls, so the",
-                "rate a player actually experiences is one roach per N/2.5 blocks. 320 is the tuned",
-                "target of roughly one roach per 128 blocks of garbage (owner, 2026-08-01).")
-            .defineInRange("roachChanceDenominator", 320, 2, 10_000);
+                "THE UNIT THAT MATTERS IS MOUNDS, NOT BLOCKS. This is per PULL; a garbage block",
+                "averages 2.5 pulls, so a player meets one roach per N/2.5 blocks - and an average",
+                "mound is about 322 blocks. The first tuning was 320, stated as 'one per 128 blocks',",
+                "which sounds rare and is two and a half roaches per mound: an encounter every time",
+                "you quarry a third of one, each costing a pull. Retuned to 800 on playtest feedback",
+                "(owner, 2026-08-11), which is about one roach per mound.",
+                "",
+                "RoachRateTest holds that arithmetic so a future retune cannot drift from its own",
+                "stated intent the way this one did.")
+            .defineInRange("roachChanceDenominator", 800, 2, 10_000);
         PIGEON_FORAGE_ENABLED = builder
             .comment("Whether pigeons peck at nearby garbage piles and occasionally pull something out.")
             .define("pigeonForageEnabled", true);

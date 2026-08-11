@@ -591,8 +591,21 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
 
     // ---------------- the connected-storage panel (server computes, client renders) ----------------
 
-    /** Cap on distinct materials synced to the panel - a sane bound, and the panel shows a few rows. */
-    private static final int MATERIAL_CAP = 18;
+    // THERE IS DELIBERATELY NO CAP ON WHAT THE NETWORK REPORTS.
+    //
+    // There was one, of 18, chosen because "the panel shows a few rows" - and a number picked for a
+    // layout ended up deciding gameplay. A Scrap Barrel alone holds 27 stacks and a cluster may hold
+    // any number of barrels, so everything past the eighteenth distinct item did not exist as far as
+    // the client was concerned. Two failures, one cause:
+    //
+    //   * The shelf SCROLLS (#86), so the cap truncated content the player was meant to scroll to.
+    //     "+6 more" meant "+6 of the 18 I happen to know about".
+    //   * ScrapTableTransfer reads this snapshot to decide whether a recipe's ingredients are
+    //     reachable, so a barrel holding 19 Rebar reported "Not in your inventory or any connected
+    //     storage" because Rebar was the 25th distinct item (playtest, 2026-08-11).
+    //
+    // A bound was never needed for the wire either: a Material is an item id and a count, so even a
+    // hoarder's cluster is a couple of kilobytes, and it is only sent when it changes.
 
     /** Client-side: the last contents the server sent, rendered by the screen. */
     private ScrapNetworkContentsPayload contents = ScrapNetworkContentsPayload.EMPTY;
@@ -651,15 +664,17 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
 
         List<ScrapNetworkContentsPayload.Material> materials = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry : totals.entrySet()) {
-            if (materials.size() >= MATERIAL_CAP) {
-                break;
-            }
             materials.add(new ScrapNetworkContentsPayload.Material(entry.getKey(), entry.getValue()));
         }
         return new ScrapNetworkContentsPayload(bins.size(), !barrels.isEmpty(), materials);
     }
 
     // ---------------- test seams ----------------
+
+    /** Test seam: what the server would send the viewer, cap and all. */
+    public ScrapNetworkContentsPayload contentsForTest() {
+        return computeContents();
+    }
 
     /** Test seam: the current grid pattern. */
     public Item[] capturePatternForTest() {

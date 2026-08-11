@@ -43,7 +43,7 @@ final class SortingTests {
         //
         //     P(at least one roach in 3 pulls) = 1 - (39/40)^3 = 7.3%
         //
-        // which is how often this failed. The rate has since been tuned to 1-in-320, which lowers the
+        // which is how often this failed. The rate has since been tuned to 1-in-800, which lowers the
         // odds to 0.9% without removing them - the isolation below is what actually fixes it, and a
         // rarer flake is a worse flake because it survives longer before anyone believes it. It gates every merge, so roughly one merge in fourteen
         // stalled on a test that was not describing a defect - the exact rate at which people start
