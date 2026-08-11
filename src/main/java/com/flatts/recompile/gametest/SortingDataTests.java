@@ -3,6 +3,9 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.compat.JeiInfoPanels;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.registry.RCItems;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -253,38 +256,50 @@ final class SortingDataTests {
             helper.succeed();
         });
 
-        // A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. Bags carry wool as a tag entry, which is what
-        // keeps a new vanilla dye colour from silently changing how often WOOL comes up. A reader that
-        // did not expand it would drop the entry from the Sorting category entirely - no error, just a
-        // row missing from a screen whose whole job is telling the player what is in a bag.
+        /*
+         * A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. A reader that did not expand one would drop the
+         * whole entry from the Sorting category - no error, just a row missing from a screen whose only
+         * job is telling the player what is in a bag.
+         *
+         * READ THIS BEFORE TRUSTING A GREEN. The mod currently ships NO tag entry in any pull stream.
+         * Wool and wool carpets were the two, and both left on 2026-08-11 - carpets because they were
+         * clutter, wool because fiber scrap already makes string and string already makes wool. So the
+         * expansion half of this is DORMANT: it guards the behaviour for whoever adds the next tag
+         * entry, and it is not exercising it today.
+         *
+         * The probability half still is. Summing to ~1 is what catches a parse that silently drops
+         * entries, tag or not, and that is the failure this file exists for.
+         */
         RCGameTests.test("sorting_data_expands_a_tag_entry", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BAG);
-            List<SortingData.Weighted> wools = out.stream()
-                .filter(w -> w.stack().is(net.minecraft.tags.ItemTags.WOOL)).toList();
-            helper.assertTrue(wools.size() > 8,
-                "a wool tag entry should read as every colour in the tag, got " + wools.size());
+            helper.assertTrue(!out.isEmpty(), "bag pulls must parse to outputs");
 
-            // Evenly, because that is what expand:false does - roll once, then pick a member at
-            // random. Reporting the whole share against one colour would overstate it sixteenfold.
-            float first = wools.get(0).chance();
-            for (SortingData.Weighted w : wools) {
-                helper.assertTrue(Math.abs(w.chance() - first) < 0.0001F,
-                    "every colour in a tag entry shares its odds evenly - got " + w.chance()
-                        + " against " + first);
+            // Every tag the streams DO carry must expand past one item and share its odds evenly -
+            // expand:false rolls the entry once, then picks a member, so reporting the whole share
+            // against one colour would overstate it by the size of the tag.
+            for (TagKey<Item> tag : List.of(ItemTags.WOOL, ItemTags.WOOL_CARPETS)) {
+                List<SortingData.Weighted> members = out.stream()
+                    .filter(w -> w.stack().is(tag)).toList();
+                if (members.isEmpty()) {
+                    continue;   // not a bag pull any more; see the note above
+                }
+                helper.assertTrue(members.size() > 8,
+                    tag + " is a tag entry and should read as every item in it, got " + members.size());
+                float first = members.get(0).chance();
+                for (SortingData.Weighted w : members) {
+                    helper.assertTrue(Math.abs(w.chance() - first) < 0.0001F,
+                        "every item in a tag entry shares its odds evenly - got " + w.chance()
+                            + " against " + first);
+                }
             }
-
-            // Carpets used to be the second tag entry here and are no longer a bag pull at all
-            // (owner, 2026-08-11 - they were clutter in the stream and went back to being craftable).
-            // Wool carries the property on its own; a second example would only be a second fixture to
-            // maintain, and this one already broke when the first was removed.
 
             float sum = 0;
             for (SortingData.Weighted w : out) {
                 sum += w.chance();
             }
             helper.assertTrue(Math.abs(sum - 1.0F) < 0.01F,
-                "expanding a tag must not create or destroy probability - the bag pool still sums to "
-                    + "~1, got " + sum);
+                "parsing a pool must not create or destroy probability - the bag pool should still "
+                    + "sum to ~1, got " + sum);
             helper.succeed();
         });
 

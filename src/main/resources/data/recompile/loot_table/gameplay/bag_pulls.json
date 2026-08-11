@@ -45,12 +45,6 @@
           "weight": 6
         },
         {
-          "type": "minecraft:tag",
-          "name": "minecraft:wool",
-          "expand": false,
-          "weight": 6
-        },
-        {
           "type": "minecraft:item",
           "name": "minecraft:leather_helmet",
           "weight": 1
