@@ -71,8 +71,13 @@ public final class RCAnalytics {
         return RCConfig.ANALYTICS_ENABLED.get();
     }
 
+    // Synchronized like every other writer access. Everything here runs on the server thread today,
+    // so this is not a live race - but `writer` is guarded by this monitor in record() and close(),
+    // and a field assigned outside the monitor that guards it is not reliably visible to a thread
+    // inside it. Cheaper to hold the lock once at startup than to rely on a claim about which
+    // threads call what staying true.
     @SubscribeEvent
-    public static void onServerStarted(ServerStartedEvent event) {
+    public static synchronized void onServerStarted(ServerStartedEvent event) {
         if (!enabled()) {
             return;
         }

@@ -68,12 +68,16 @@ def human_time(minutes: float) -> str:
     return f"{hours:.0f} h"
 
 
-def confidence(seen: int, predicted_hits: float) -> str:
+def confidence(predicted_hits: float) -> str:
     """Whether the census actually SAW enough of this to say anything about it.
 
     A rate of one in half a million is arithmetic, not observation - 250,000 rolls will
     turn up zero or one of it either way. Saying so beats printing a number that looks
     equally solid as the one next to it.
+
+    Keyed on the PREDICTED count, not the observed one, and deliberately: how many the
+    census happened to see is the thing being qualified, so using it to qualify itself
+    would let one lucky drop promote a row to "measured".
     """
     if predicted_hits >= 100:
         return "measured"
@@ -121,14 +125,14 @@ def main() -> int:
         print(f"  {'item':<36}{'one per':>12}{'play time':>12}{'basis':>13}")
         # Rarest last: the interesting reading is the top of the list for materials and the
         # bottom for treasure, and sorting by rarity puts both where they are looked for.
-        for _stream, item, seen, _rolls, predicted in sorted(items, key=lambda r: -r[4]):
+        for _stream, item, _seen, _rolls, predicted in sorted(items, key=lambda r: -r[4]):
             if predicted <= 0:
                 continue
             if wanted and not any(w in item for w in wanted):
                 continue
             per = 1.0 / predicted
             minutes = per / args.pulls_per_hour * 60.0
-            basis = confidence(seen, predicted * rolls)
+            basis = confidence(predicted * rolls)
             print(f"  {item:<36}{per:>11,.0f}{human_time(minutes):>12}{basis:>13}")
         print()
 

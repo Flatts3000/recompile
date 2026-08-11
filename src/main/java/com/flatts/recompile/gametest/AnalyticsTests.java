@@ -47,11 +47,16 @@ final class AnalyticsTests {
             }
             RCAnalytics.flushForTest();
 
-            List<String> added = new ArrayList<>();
-            for (String line : readLines(helper, file).subList((int) before,
-                    readLines(helper, file).size())) {
-                added.add(line);
-            }
+            // ONE read, not two. This used to call readLines twice in the same expression - once for
+            // the list to slice and once for the end index - and the whole suite shares this file, so
+            // another test appending between the two calls made the index outrun the list and threw
+            // IndexOutOfBounds. Exactly the interleaving the comment below is about, in the code that
+            // was written to cope with it.
+            List<String> all = readLines(helper, file);
+            helper.assertTrue(all.size() >= before,
+                "the log shrank mid-test (" + before + " lines before, " + all.size() + " now), so "
+                    + "something truncated a file this test only ever appends to");
+            List<String> added = new ArrayList<>(all.subList((int) before, all.size()));
             helper.assertTrue(!added.isEmpty(),
                 "sorting a garbage block wrote nothing to " + file + " - the log is a pipe with "
                     + "two ends, and this is the end that fills it");
