@@ -316,9 +316,12 @@ public abstract class SortableBlock extends FallingBlock {
                 Block.popResource(level, pos, drop);
             }
         }
-        // Logged here rather than at the call sites: this is the ONE place a pull can happen, which
-        // is what makes the measurement complete rather than a sample of the paths somebody
-        // remembered to instrument.
+        // The one place a pull BY HAND can happen - not the one place a pull can happen. This comment
+        // claimed the latter and the claim went straight into the analytics' own commit message, so
+        // the first real playtest recorded 136 blocks broken and zero pulls: the player mined the
+        // mound and sifted it at a Sorting Tarp, which rolls the same table from its own code. The
+        // Tarp and the Separator log their own (RCAnalytics.sifted) and
+        // RollSitesAreInstrumentedTest fails the build if a new roll site records nothing.
         RCAnalytics.pull(level, state.getBlock(), pulled);
         level.playSound(null, pos, sound.getHitSound(), SoundSource.BLOCKS, 0.6F, 0.9F);
 

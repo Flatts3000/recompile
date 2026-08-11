@@ -107,6 +107,7 @@ public final class RCGameTests {
         FoundNotCraftedTests.register();
         ComponentBlueprintTests.register();
         AnalyticsTests.register();
+        RateCensusTests.register();
         RegistryCompletenessTests.register();
 
         FUNCTIONS.register(modEventBus);

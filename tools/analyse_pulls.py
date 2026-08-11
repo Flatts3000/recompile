@@ -209,10 +209,13 @@ def main() -> int:
         stream_clicks[stream] += 1
         if detail == "-":
             continue
-        # "item*n;item*n" - the whole yield of one pull.
+        # "item*n;item*n" - the whole yield of one pull. Count STACKS, not items: how many
+        # are in the stack is a set_count function on top of the entry winning, so counting
+        # items makes scrap metal (which rolls 1-2) read as 50% commoner than its weight.
+        # That is a defect in the counter, not a finding about the table.
         for part in detail.split(";"):
-            name, _, qty = part.partition("*")
-            by_stream[stream][name] += int(qty or 1)
+            name, _, _qty = part.partition("*")
+            by_stream[stream][name] += 1
 
     for stream, items in sorted(by_stream.items()):
         trials = stream_clicks[stream]
