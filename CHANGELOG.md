@@ -1,11 +1,49 @@
 # Changelog
 
-## Unreleased
+## v0.8.0
+
+**The dump gives you objects; your machines give you materials.** A bucket, a rug, a glass bottle - anything a person would actually throw away - is found now, not crafted. Materials and what you build out of them are still yours to make. The bucket is the one you will hit first: it turns up in ordinary household sorting, and there is no longer a recipe for one.
+
+**And the dump has started leaking.** Pools of leachate sit on the open ground between the mounds, the runoff a landfill really produces. It looks like water and is not: it will not fill a Rain Collector, it will not water a crop, and standing in it makes you hungry. Water is still something you collect from the sky.
+
+### Found, not crafted
+- **Buckets, glass bottles and all sixteen wool carpets can no longer be crafted.** Every one of them already turned up in sorting, competing with a recipe that made finding one pointless.
+- **The bucket now drops from household sorting**, at a weight that respects what it does: with no fluid pipes in this world, a bucket is the only way to move water out of a Rain Collector and into a Tree Nursery or a Hydroponics Bay.
+- Building blocks are materials and stay craftable. The stone came out of shards you sorted, so putting it back together is ordinary.
+- Packs can extend the rule without touching the mod: membership is the `recompile:found_only` item tag.
+
+### Leachate
+- **Leachate pools generate on open ground in the household sprawl**, on the surface only, never buried under a mound.
+- **It is not water.** It will not fill a tank, will not irrigate farmland, and a Rain Collector ignores it.
+- Standing in it gives **Hunger for five seconds**, refreshed while you stay in. It never damages, never poisons and cannot kill you. Both the effect and its length are config.
+- It is a real fluid, so it flows, it has a bucket, and it behaves the way you expect a liquid to.
+- Pools appear in newly generated ground, so an existing save picks them up as you explore outward.
+
+### Components, and how to learn them
+- **The Motor** comes out of sorting Mechanical Waste, and the Separator's back row wants one.
+- **The Bulb** comes out of household sorting. The Hydroponics Bay needs one, and **the Tree Nursery now needs one too** - a nursery built under a mound has no other light.
+- **Components come in two kinds and it is worth knowing which is which.** A Motor is placeable: you stack it into a machine. A Bulb is spent in a recipe. Both are inert on their own - the Motor turns nothing.
+- **The Pump, the Motor and the Bulb can now be learned rather than only found.** Tear down the thing each comes out of four times and you come away with its Blueprint, after which the Scrap Crafting Table will build them from copper and salvage.
+- Finding one is still better than making one, and that is deliberate: salvage hands you the part and its scrap for a single prybar action.
+
+### Two new finds
+- **The Broken Fan** turns up in Bulky Waste and tears down into a Motor.
+- **The Light Fixture** turns up beside it and tears down into a Bulb.
+- Neither replaces sorting. Both components still come up in their own streams, so these are the route to the Blueprint rather than a new bottleneck.
 
 ### Printers carry the whole dye set
 - A printer teardown can now yield **fourteen of the sixteen dye colours**. Cyan, magenta and yellow come up several times more often than the rest, because those are the cartridges actually in the machine.
 - **Blue and black are the other two, and they still arrive as lapis lazuli and an ink sac** rather than as the dye items. Vanilla already grinds each into its dye, and both are worth more than the dye alone - lapis is this world's only lapis, and an ink sac is also the bait and the book-and-quill.
 - **White is the colour this really changes.** Its only other route is bone meal, which means either skeleton bones from the demolition yard or a composter, which needs wood. Gray, pink and light blue are each white plus something, and magenta needs pink, so five colours used to wait on one of those two trips.
+
+### Screens
+- **The Burner Generator and the Tree Nursery now look like the rest of the game.** Both were drawing an approximation of a Minecraft panel - flat grey with holes in it - while the Hydroponics Bay used the real thing. All four screens are now cut from vanilla's own chrome, so a resource pack that restyles containers restyles these too.
+- The Tree Nursery's water gauge was a different blue from the Hydroponics Bay's. There is one water colour now.
+
+### Fixes
+- **Two guide panels in JEI had been blank for months.** Looking up a Printer or a Broken Hydroponics Bay - the find that gates the dye set, and the one that teaches the Hydroponics Bay - showed nothing at all.
+- The in-game guide's blueprint entry, the Washing Machine entry and the Bulky Waste list all said things that stopped being true. They now say what the game does.
+- A malformed line in the language file could have shown raw text to players in place of a description.
 
 ## v0.7.0
 
