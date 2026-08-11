@@ -86,7 +86,7 @@
       ]
     },
     {
-      "comment": "Whole collectibles - found intact, each ~1-in-4000 (a few times rarer than a cube piece).",
+      "comment": "Whole collectibles - found intact, each 1-in-480,000 pulls (about 107 hours of play each, 222 for the set). Four times rarer than a cube piece, which needs nine. Verified against the game by RateCensusTests; tools/rate_report.py prints these in hours.",
       "rolls": 1,
       "entries": [
         {

@@ -6,6 +6,7 @@ import com.flatts.recompile.content.block.SeparatorCoreBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
+import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.List;
@@ -525,7 +526,9 @@ public class SeparatorBlockEntity extends BlockEntity {
             ? level.getBlockState(pos).getValue(SeparatorCoreBlock.FACING).getOpposite()
             : Direction.NORTH;
         for (int i = 0; i < rolls; i++) {
-            for (ItemStack drop : table.getRandomItems(params)) {
+            List<ItemStack> pulled = table.getRandomItems(params);
+            RCAnalytics.sifted("SEPARATOR", stack.getItem(), pulled);
+            for (ItemStack drop : pulled) {
                 if (!drop.isEmpty()) {
                     deliver(level, pos, outlet, entry, drop);
                 }

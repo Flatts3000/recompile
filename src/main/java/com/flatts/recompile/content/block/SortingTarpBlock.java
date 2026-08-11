@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.block;
 
+import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCTags;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -93,6 +94,7 @@ public class SortingTarpBlock extends Block {
             .create(LootContextParamSets.CHEST);
         for (int i = 0; i < rolls; i++) {
             List<ItemStack> pulled = table.getRandomItems(params);
+            RCAnalytics.sifted("TARP", input, pulled);
             for (ItemStack drop : pulled) {
                 if (drop.isEmpty()) {
                     continue;

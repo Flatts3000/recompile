@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -301,6 +302,7 @@ public abstract class SortableBlock extends FallingBlock {
         // disturbed pull costs you the material as well as the fight. It also does not advance the
         // sorted count, so the block is not consumed by an encounter - you can try again.
         if (releaseRoach(level, pos)) {
+            RCAnalytics.roach(state.getBlock());
             return false;
         }
 
@@ -314,10 +316,18 @@ public abstract class SortableBlock extends FallingBlock {
                 Block.popResource(level, pos, drop);
             }
         }
+        // The one place a pull BY HAND can happen - not the one place a pull can happen. This comment
+        // claimed the latter and the claim went straight into the analytics' own commit message, so
+        // the first real playtest recorded 136 blocks broken and zero pulls: the player mined the
+        // mound and sifted it at a Sorting Tarp, which rolls the same table from its own code. The
+        // Tarp and the Separator log their own (RCAnalytics.sifted) and
+        // RollSitesAreInstrumentedTest fails the build if a new roll site records nothing.
+        RCAnalytics.pull(level, state.getBlock(), pulled);
         level.playSound(null, pos, sound.getHitSound(), SoundSource.BLOCKS, 0.6F, 0.9F);
 
         int pulls = state.getValue(sortedProperty()) + 1;
         if (shouldCrumble(pulls, level.getRandom())) {
+            RCAnalytics.crumble(state.getBlock());
             level.destroyBlock(pos, false);
             level.playSound(null, pos, sound.getBreakSound(), SoundSource.BLOCKS, 0.8F, 0.9F);
             return true;

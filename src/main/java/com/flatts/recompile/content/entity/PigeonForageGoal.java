@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.entity;
 
+import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCTags;
@@ -172,6 +173,7 @@ public class PigeonForageGoal extends MoveToBlockGoal {
             .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(blockPos))
             .create(LootContextParamSets.CHEST);
         List<ItemStack> found = table.getRandomItems(params);
+        RCAnalytics.foraged(found);
         for (ItemStack stack : found) {
             if (!stack.isEmpty()) {
                 Block.popResource(level, blockPos.above(), stack);
