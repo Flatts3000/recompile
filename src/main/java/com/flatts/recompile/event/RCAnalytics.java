@@ -12,6 +12,7 @@ import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -124,8 +125,33 @@ public final class RCAnalytics {
         }
     }
 
-    /** One pull, and what it produced. Called from the single place a pull can happen. */
+    /** One hand pull, and what it produced. */
     public static void pull(ServerLevel level, Block source, List<ItemStack> yielded) {
+        rolled("PULL", id(source), yielded);
+    }
+
+    /**
+     * One roll of a pull table by a machine - the Sorting Tarp or the Separator.
+     *
+     * <p><b>A separate event from PULL, and the distinction is the whole point.</b> The tables are
+     * the same, so per-item RATES combine across both; throughput does not. The first version of this
+     * class recorded only {@code SortableBlock.sort} and claimed in its own commit message that this
+     * was "the ONE place a pull can happen". It is the one place a HAND pull can happen. The first
+     * real playtest came back with 136 blocks broken and <b>zero</b> pulls, because the player mined
+     * the mound and sifted it at a tarp - which is how anyone processing garbage in bulk plays.
+     *
+     * @param method {@code TARP} or {@code SEPARATOR}, so machine throughput can be told from hand
+     */
+    public static void sifted(String method, Item input, List<ItemStack> yielded) {
+        rolled("SIFT_" + method, String.valueOf(BuiltInRegistries.ITEM.getKey(input)), yielded);
+    }
+
+    /** A pigeon pecking something out of a pile. A real item source, and not sorting. */
+    public static void foraged(List<ItemStack> yielded) {
+        rolled("FORAGE", "recompile:pigeon", yielded);
+    }
+
+    private static void rolled(String event, String from, List<ItemStack> yielded) {
         if (writer == null || !enabled()) {
             return;
         }
@@ -147,9 +173,9 @@ public final class RCAnalytics {
             detail.append(BuiltInRegistries.ITEM.getKey(stack.getItem()))
                 .append('*').append(stack.getCount());
         }
-        // A pull that rolled nothing is still a pull. Leaving it out would make the stream look
-        // richer per click than it is.
-        record("PULL", id(source), detail.length() == 0 ? "-" : detail.toString(), 1);
+        // A roll that produced nothing is still a roll. Leaving it out would make the stream look
+        // richer per action than it is.
+        record(event, from, detail.length() == 0 ? "-" : detail.toString(), 1);
     }
 
     public static void roach(Block source) {

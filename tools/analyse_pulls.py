@@ -43,6 +43,8 @@ LOOT = REPO / "src" / "main" / "resources" / "data" / "recompile" / "loot_table"
 # Which stream each sortable rolls. Mirrors the pullTable() overrides; a block missing
 # from here still counts toward throughput, it just gets no expected-rate column.
 STREAM = {
+    # Hand pulls record the BLOCK id; a tarp or Separator records the ITEM it consumed. They are
+    # the same string for a block-item, which is why one map serves both.
     "recompile:garbage_block": "household_pulls",
     "recompile:trash_bag": "bag_pulls",
     "recompile:compacted_bale": "household_pulls",
@@ -133,7 +135,12 @@ def main() -> int:
         print(f"{path} has no events yet.")
         return 1
 
-    pulls = [r for r in rows if r[1] == "PULL"]
+    # SIFT_* is a machine rolling the same tables. Rates combine across all of them; throughput
+    # does not, which is why they stay distinguishable in the log.
+    hand = [r for r in rows if r[1] == "PULL"]
+    sifted = [r for r in rows if r[1].startswith("SIFT_")]
+    forage = [r for r in rows if r[1] == "FORAGE"]
+    pulls = hand + sifted
     roaches = [r for r in rows if r[1] == "ROACH"]
     crumbles = [r for r in rows if r[1] == "CRUMBLE"]
     breaks = [r for r in rows if r[1] == "BREAK"]
@@ -154,11 +161,16 @@ def main() -> int:
     # separate pulls share a millisecond at any real sorting speed.
     clicks = len(pulls) + len(roaches)
 
+    by_method = Counter(r[1] for r in sifted)
     print(f"log: {path}")
     print(f"active play : {hours * 60:.1f} min")
-    print(f"pulls       : {clicks:,}")
+    print(f"rolls       : {clicks:,}   (hand {len(hand):,}"
+          + "".join(f", {k.replace('SIFT_','').lower()} {v:,}" for k, v in sorted(by_method.items()))
+          + ")")
     if hours > 0:
-        print(f"pulls/hour  : {clicks / hours:,.0f}")
+        print(f"rolls/hour  : {clicks / hours:,.0f}")
+    if forage:
+        print(f"pigeon finds: {len(forage):,}")
     print(f"roaches     : {len(roaches)}"
           + (f"  (one per {clicks / len(roaches):,.0f} pulls)" if roaches else ""))
     print()
