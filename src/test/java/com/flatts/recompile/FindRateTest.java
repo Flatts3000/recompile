@@ -96,13 +96,14 @@ class FindRateTest {
     /**
      * Owner instruction 2026-08-11: <b>collectibles should be 480 times rarer than they were</b>.
      *
-     * <p><b>This supersedes the "all collectibles in about forty hours" target given the same day, and
-     * the two are not close.</b> 480x works out at roughly 427 hours for each whole object and about
-     * 890 for the set of four, against 40 for the earlier figure - a factor of twenty-two. The ratio is
-     * the later and more specific of the two, so it is what is encoded here; if the forty-hour figure
-     * was the real intent, the fix is to set this to about 22 instead.
+     * <p><b>Settled at 120 after the arithmetic was put in front of the owner.</b> The first figure
+     * given was 480, which works out at about 890 hours for the set of four and sat twenty-two times
+     * away from the "all collectibles in about forty hours" target given minutes earlier. Shown both
+     * numbers, the owner chose 120: roughly 107 hours for a whole object, 222 for the set, and 240 for
+     * a Puzzle Cube. Still a long-tail trophy, and deliberately nowhere near forty - the forty-hour
+     * figure is superseded, not approximated.
      */
-    private static final double RARER_THAN_SHIPPED = 480.0;
+    private static final double RARER_THAN_SHIPPED = 120.0;
     private static final double RATIO_TOLERANCE = 0.15;
 
     // ---------------- the mound, from the feature's own maths ----------------
@@ -228,8 +229,8 @@ class FindRateTest {
     }
 
     @Test
-    @DisplayName("collectibles are 480 times rarer than v0.8.0 shipped them")
-    void collectiblesAre480TimesRarer() throws IOException {
+    @DisplayName("collectibles are 120 times rarer than v0.8.0 shipped them")
+    void collectiblesAre120TimesRarer() throws IOException {
         Map<String, Double> pulls = pullsPerDrop();
         List<String> wrong = new ArrayList<>();
 
