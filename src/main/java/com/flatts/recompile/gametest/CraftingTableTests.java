@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -350,6 +351,71 @@ final class CraftingTableTests {
 
             helper.assertTrue(menu.getSlot(FIRST_GRID_SLOT).getItem().isEmpty(),
                 "with no bin, barrel or inventory copy the grid slot must stay empty");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Register the network-reporting tests. Split out only to keep {@code register} readable.
+     */
+    static void registerNetworkReporting() {
+        /*
+         * WHAT THE NETWORK REPORTS IS NOT ALLOWED TO BE A SHORT LIST.
+         *
+         * The snapshot the client gets was capped at 18 distinct materials because "the panel shows a
+         * few rows" - and two things read it. The shelf scrolls, so the cap hid content the player was
+         * meant to reach; and ScrapTableTransfer decides from it whether a recipe's ingredients are
+         * available, so a barrel holding 19 Rebar answered "Not in your inventory or any connected
+         * storage" because Rebar was the 25th distinct item (playtest, 2026-08-11).
+         *
+         * Driven with TWO barrels and more distinct items than any cap anyone would pick by eye,
+         * because "what if I connect several barrels" is the question that makes a cap indefensible.
+         */
+        RCGameTests.test("the_network_reports_every_material_across_every_barrel", 20, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            helper.setBlock(TABLE, RCBlocks.SCRAP_CRAFTING_TABLE.get());
+
+            // Two barrels, both touching the table, so this covers aggregation as well as the cap.
+            BlockPos[] barrelPositions = {TABLE.east(), TABLE.west()};
+            List<Container> barrels = new ArrayList<>();
+            for (BlockPos pos : barrelPositions) {
+                helper.setBlock(pos, RCBlocks.SCRAP_BARREL.get());
+                barrels.add((Container) helper.getLevel().getBlockEntity(helper.absolutePos(pos)));
+            }
+
+            // Fill them with distinct items, well past any plausible display cap. Taken from the item
+            // registry so this does not need a hand-written list of forty ids.
+            List<Item> distinct = new ArrayList<>();
+            for (Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
+                if (item != net.minecraft.world.item.Items.AIR) {
+                    distinct.add(item);
+                }
+                if (distinct.size() >= 40) {
+                    break;
+                }
+            }
+            for (int i = 0; i < distinct.size(); i++) {
+                Container barrel = barrels.get(i % barrels.size());
+                barrel.setItem(i / barrels.size(), new ItemStack(distinct.get(i), 1));
+            }
+
+            ScrapCraftingStationMenu menu = openMenu(helper, player);
+            var reported = menu.contentsForTest().materials().stream()
+                .map(m -> m.item()).collect(java.util.stream.Collectors.toSet());
+
+            List<String> missing = new ArrayList<>();
+            for (Item item : distinct) {
+                if (!reported.contains(item)) {
+                    missing.add(String.valueOf(
+                        net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item)));
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "the network holds " + distinct.size() + " distinct materials across two barrels and "
+                    + "reported " + reported.size() + ". These were dropped, so the shelf cannot show "
+                    + "them and JEI transfer will call them missing: " + missing);
+            player.discard();
             helper.succeed();
         });
     }

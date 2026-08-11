@@ -27,13 +27,21 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
 
     // Height and width are drawn independently and uniformly, so the field mixes
     // tall spires, low wide heaps, and everything between. Width is a diameter.
-    private static final int MIN_HEIGHT = 3;
-    private static final int MAX_HEIGHT = 15;
-    private static final int MIN_WIDTH = 4;
-    private static final int MAX_WIDTH = 15;
+    //
+    // Public because how big a mound is, is the unit other tuning has to be expressed in. The roach
+    // rate was set at "one per 128 blocks" and shipped at two and a half per mound, because nobody
+    // converted one into the other; FindRateTest now reads these rather than restating them.
+    public static final int MIN_HEIGHT = 3;
+    public static final int MAX_HEIGHT = 15;
+    public static final int MIN_WIDTH = 4;
+    public static final int MAX_WIDTH = 15;
 
-    private static final float SURFACE_BAG_CHANCE = 0.22F;
-    private static final float CORE_BALE_CHANCE = 0.35F;
+    // Public alongside the dimensions, and for the same reason: what fraction of a mound is actually
+    // GARBAGE decides how many pulls a mound is worth, which is the unit every drop rate has to be
+    // read in. FindRateTest computes that fraction from these rather than assuming a mound is all
+    // garbage - it is 88 percent of it.
+    public static final float SURFACE_BAG_CHANCE = 0.22F;
+    public static final float CORE_BALE_CHANCE = 0.35F;
     /**
      * Bulky Waste per core cell (P1.11). Inherited unchanged from the appliance it
      * replaced, because it is already playtested: measured 2026-07-15 at ~2.41 per mound
@@ -42,7 +50,7 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
      * buried here" fires. Which find it turns out to be is the loot table's job, not this
      * number's, so a new find never needs worldgen retuned.
      */
-    private static final float CORE_BULKY_WASTE_CHANCE = 0.05F;
+    public static final float CORE_BULKY_WASTE_CHANCE = 0.05F;
 
     public MoundFeature() {
         super(NoneFeatureConfiguration.CODEC);

@@ -60,6 +60,7 @@ public final class RCGameTests {
         SortingTarpTests.register();
         ForageTests.register();
         CraftingTableTests.register();
+        CraftingTableTests.registerNetworkReporting();
         ScrapBarrelTests.register();
         VanillaParityTests.register();
         PowerTierTests.register();

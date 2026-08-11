@@ -1,7 +1,6 @@
 {
   "values": [
     "minecraft:bucket",
-    "minecraft:glass_bottle",
-    "#minecraft:wool_carpets"
+    "minecraft:glass_bottle"
   ]
 }

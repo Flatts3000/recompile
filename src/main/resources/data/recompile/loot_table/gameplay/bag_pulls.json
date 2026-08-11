@@ -51,12 +51,6 @@
           "weight": 6
         },
         {
-          "type": "minecraft:tag",
-          "name": "minecraft:wool_carpets",
-          "expand": false,
-          "weight": 4
-        },
-        {
           "type": "minecraft:item",
           "name": "minecraft:leather_helmet",
           "weight": 1
@@ -88,7 +82,7 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 999
+          "weight": 119999
         },
         {
           "type": "minecraft:item",
@@ -103,7 +97,7 @@
       "entries": [
         {
           "type": "minecraft:empty",
-          "weight": 3996
+          "weight": 479996
         },
         {
           "type": "minecraft:item",

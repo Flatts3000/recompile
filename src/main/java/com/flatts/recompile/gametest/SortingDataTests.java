@@ -253,11 +253,10 @@ final class SortingDataTests {
             helper.succeed();
         });
 
-        // A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. Bags carry wool and carpet as tag entries, which
-        // is what keeps a new vanilla dye colour from silently changing how often WOOL comes up. A
-        // reader that did not expand them would drop both from the Sorting category entirely - no
-        // error, just two rows missing from a screen whose whole job is telling the player what is in
-        // a bag.
+        // A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. Bags carry wool as a tag entry, which is what
+        // keeps a new vanilla dye colour from silently changing how often WOOL comes up. A reader that
+        // did not expand it would drop the entry from the Sorting category entirely - no error, just a
+        // row missing from a screen whose whole job is telling the player what is in a bag.
         RCGameTests.test("sorting_data_expands_a_tag_entry", 10, helper -> {
             List<SortingData.Weighted> out = SortingData.outputs(SortingData.BAG);
             List<SortingData.Weighted> wools = out.stream()
@@ -274,10 +273,10 @@ final class SortingDataTests {
                         + " against " + first);
             }
 
-            // Carpets are a second tag entry and a second chance to be silently dropped.
-            helper.assertTrue(out.stream().anyMatch(w -> w.stack().is(
-                    net.minecraft.tags.ItemTags.WOOL_CARPETS)),
-                "a carpet should be a bag pull - a tag that fails to resolve costs its whole entry");
+            // Carpets used to be the second tag entry here and are no longer a bag pull at all
+            // (owner, 2026-08-11 - they were clutter in the stream and went back to being craftable).
+            // Wool carries the property on its own; a second example would only be a second fixture to
+            // maintain, and this one already broke when the first was removed.
 
             float sum = 0;
             for (SortingData.Weighted w : out) {
