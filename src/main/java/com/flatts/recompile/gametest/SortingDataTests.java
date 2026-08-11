@@ -3,6 +3,7 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.compat.JeiInfoPanels;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.registry.RCItems;
+import net.minecraft.tags.ItemTags;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -253,19 +254,35 @@ final class SortingDataTests {
             helper.succeed();
         });
 
-        // A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. Bags carry wool as a tag entry, which is what
-        // keeps a new vanilla dye colour from silently changing how often WOOL comes up. A reader that
-        // did not expand it would drop the entry from the Sorting category entirely - no error, just a
-        // row missing from a screen whose whole job is telling the player what is in a bag.
+        /*
+         * A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. A reader that did not expand one would drop the
+         * whole entry from the Sorting category - no error, just a row missing from a screen whose only
+         * job is telling the player what is in a bag.
+         *
+         * RUN AGAINST A FIXTURE, AND THAT IS THE POINT. This used to read bag_pulls, where wool was a
+         * tag entry. Wool left the stream on 2026-08-11 (fiber scrap already makes string and string
+         * already makes wool), carpets had gone the same day, and with them went the last tag entry in
+         * the mod: SortingData.expandTag kept shipping with an unreachable call site while a test named
+         * for it passed by finding nothing to expand. Coverage that depends on a piece of CONTENT still
+         * existing disappears the moment that content is retuned, and it disappears silently - the same
+         * shape as a pull hook that only ever covered hand sorting.
+         *
+         * data/recompile/gametest/ is not a loot-table directory, so the fixture is on the classpath
+         * for SortingData (which reads raw paths) and invisible to the game.
+         */
         RCGameTests.test("sorting_data_expands_a_tag_entry", 10, helper -> {
-            List<SortingData.Weighted> out = SortingData.outputs(SortingData.BAG);
+            List<SortingData.Weighted> out =
+                SortingData.outputs("/data/recompile/gametest/tag_entry_fixture.json");
+            helper.assertTrue(!out.isEmpty(),
+                "the tag fixture did not parse at all, so everything below would pass vacuously");
+
             List<SortingData.Weighted> wools = out.stream()
-                .filter(w -> w.stack().is(net.minecraft.tags.ItemTags.WOOL)).toList();
+                .filter(w -> w.stack().is(ItemTags.WOOL)).toList();
             helper.assertTrue(wools.size() > 8,
                 "a wool tag entry should read as every colour in the tag, got " + wools.size());
 
-            // Evenly, because that is what expand:false does - roll once, then pick a member at
-            // random. Reporting the whole share against one colour would overstate it sixteenfold.
+            // Evenly, because that is what expand:false does - roll the entry once, then pick a
+            // member. Reporting the whole share against one colour would overstate it sixteenfold.
             float first = wools.get(0).chance();
             for (SortingData.Weighted w : wools) {
                 helper.assertTrue(Math.abs(w.chance() - first) < 0.0001F,
@@ -273,18 +290,26 @@ final class SortingDataTests {
                         + " against " + first);
             }
 
-            // Carpets used to be the second tag entry here and are no longer a bag pull at all
-            // (owner, 2026-08-11 - they were clutter in the stream and went back to being craftable).
-            // Wool carries the property on its own; a second example would only be a second fixture to
-            // maintain, and this one already broke when the first was removed.
+            // The tag's whole share, not a member's: 32 of 100, split across the tag rather than
+            // created or destroyed by the split. This is the assertion that would have caught an
+            // expansion that silently multiplied the entry instead of dividing it.
+            float tagShare = 0;
+            for (SortingData.Weighted w : wools) {
+                tagShare += w.chance();
+            }
+            helper.assertTrue(Math.abs(tagShare - 0.32F) < 0.01F,
+                "expanding a tag must not create or destroy probability - the entry is weight 32 of "
+                    + "100, so its colours should still sum to 0.32, got " + tagShare);
 
+            // And the live stream still parses to a whole, tag entry or not. Catches a pool that
+            // silently drops entries, which is the failure this file exists for.
             float sum = 0;
-            for (SortingData.Weighted w : out) {
+            for (SortingData.Weighted w : SortingData.outputs(SortingData.BAG)) {
                 sum += w.chance();
             }
             helper.assertTrue(Math.abs(sum - 1.0F) < 0.01F,
-                "expanding a tag must not create or destroy probability - the bag pool still sums to "
-                    + "~1, got " + sum);
+                "parsing a pool must not create or destroy probability - the bag pool should still "
+                    + "sum to ~1, got " + sum);
             helper.succeed();
         });
 

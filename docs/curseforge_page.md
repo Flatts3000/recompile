@@ -46,7 +46,7 @@ recovered masterworks and a shelf of found objects. See
 There is no ore, no trees and no water anywhere, and the only things left of the world that came
 first are the ones somebody threw away.
 
-**The recipes went in the bin too.** Tearing a found object apart at the Recompile Workbench gives
+**The recipes went in the bin too.** Tearing a found object apart at the Teardown Workbench gives
 you the materials it was made of and an idea of how it was made. Enough ideas about one thing and you
 can build it again. That is what the mod is named for: what you recover from a discarded object is
 the knowledge, not only the metal.
@@ -81,7 +81,7 @@ releases a roach instead, which works out to about one roach per 128 blocks pick
 
 ## Teardown and blueprints
 
-Rack a Scrap Knife or a Prybar on the Recompile Workbench by right-clicking the bench with the tool,
+Rack a Scrap Knife or a Prybar on the Teardown Workbench by right-clicking the bench with the tool,
 then hold right-click with a found item. You get the materials it was made of, plus an Idea Fragment
 toward whatever recipe that item teaches. Every teardown grants one; there is no chance roll. The
 racked tool takes the durability, and a broken one stops the line.

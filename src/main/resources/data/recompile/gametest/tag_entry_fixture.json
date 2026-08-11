@@ -1,0 +1,40 @@
+{
+  "_comment": [
+    "A FIXTURE, not a loot table. Deliberately NOT under data/recompile/loot_table/, so the game",
+    "never loads it and no player can ever roll it - SortingData reads raw classpath paths, so a",
+    "test can point at it without it becoming content.",
+    "",
+    "It exists because tag expansion lost all of its coverage the day wool left the bag stream.",
+    "Wool and wool carpets were the only two tag entries the mod shipped; with both gone, ZERO loot",
+    "tables use one, SortingData.expandTag has an unreachable call site, and the test named",
+    "sorting_data_expands_a_tag_entry passed while expanding nothing. Coverage that depends on a",
+    "piece of content still existing disappears silently when the content is retuned, which is the",
+    "same shape as a pull hook that only covered hand sorting.",
+    "",
+    "Shape mirrors a real pull pool: one tag entry with expand:false (roll once, then pick a member,",
+    "so the share splits evenly across the tag) alongside plain item entries, weights summing to 100."
+  ],
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:junk",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:tag",
+          "name": "minecraft:wool",
+          "expand": false,
+          "weight": 32
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 8
+        }
+      ]
+    }
+  ]
+}
