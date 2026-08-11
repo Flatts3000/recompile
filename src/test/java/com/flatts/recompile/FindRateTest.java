@@ -83,8 +83,27 @@ class FindRateTest {
 
     private static final String CUBE_PIECE = "recompile:puzzle_cube_piece";
     private static final int PIECES_PER_CUBE = 9;
-    private static final double FULL_SET_TARGET_HOURS = 40.0;
-    private static final double FULL_SET_TOLERANCE_HOURS = 15.0;
+
+    /**
+     * What v0.8.0 shipped: one pull in 4,000 for a whole object, one in 1,000 for a cube piece.
+     *
+     * <p>Kept because the owner's instruction was a <b>ratio against these</b> rather than a playtime,
+     * so this is the number the target is actually relative to.
+     */
+    private static final double SHIPPED_OBJECT_PULLS = 4000.0;
+    private static final double SHIPPED_PIECE_PULLS = 1000.0;
+
+    /**
+     * Owner instruction 2026-08-11: <b>collectibles should be 480 times rarer than they were</b>.
+     *
+     * <p><b>This supersedes the "all collectibles in about forty hours" target given the same day, and
+     * the two are not close.</b> 480x works out at roughly 427 hours for each whole object and about
+     * 890 for the set of four, against 40 for the earlier figure - a factor of twenty-two. The ratio is
+     * the later and more specific of the two, so it is what is encoded here; if the forty-hour figure
+     * was the real intent, the fix is to set this to about 22 instead.
+     */
+    private static final double RARER_THAN_SHIPPED = 480.0;
+    private static final double RATIO_TOLERANCE = 0.15;
 
     // ---------------- the mound, from the feature's own maths ----------------
 
@@ -209,39 +228,31 @@ class FindRateTest {
     }
 
     @Test
-    @DisplayName("the whole collectible set takes about forty hours")
-    void theFullSetTakesAboutFortyHours() throws IOException {
+    @DisplayName("collectibles are 480 times rarer than v0.8.0 shipped them")
+    void collectiblesAre480TimesRarer() throws IOException {
         Map<String, Double> pulls = pullsPerDrop();
         List<String> wrong = new ArrayList<>();
 
-        // The LAST of n independent finds, not one of them. Waiting for all four takes
-        // (1 + 1/2 + 1/3 + 1/4) times the wait for a single one, so tuning each object to forty hours
-        // would put the full set past eighty and you would rarely hold all four at the target.
-        double harmonic = 0.0;
-        for (int k = 1; k <= COLLECTIBLES.size(); k++) {
-            harmonic += 1.0 / k;
-        }
-        double slowestObject = 0.0;
         for (String item : COLLECTIBLES) {
             Double needed = pulls.get(item);
             assertTrue(needed != null, item + " has no source at all");
-            slowestObject = Math.max(slowestObject, minutesFor(needed) / 60.0);
-        }
-        double allFour = slowestObject * harmonic;
-        if (Math.abs(allFour - FULL_SET_TARGET_HOURS) > FULL_SET_TOLERANCE_HOURS) {
-            wrong.add(String.format("all four whole collectibles take %.0f h", allFour));
+            double ratio = needed / SHIPPED_OBJECT_PULLS;
+            if (Math.abs(ratio - RARER_THAN_SHIPPED) / RARER_THAN_SHIPPED > RATIO_TOLERANCE) {
+                wrong.add(String.format("%s is %.0fx rarer, wanted %.0fx (that is %.0f h each)",
+                    item, ratio, RARER_THAN_SHIPPED, needed / PULLS_PER_HOUR));
+            }
         }
 
-        // The cube is nine pieces, so a piece has to be nine times commoner to land in the same place.
         Double piece = pulls.get(CUBE_PIECE);
         assertTrue(piece != null, CUBE_PIECE + " has no source at all");
-        double cubeHours = minutesFor(piece * PIECES_PER_CUBE) / 60.0;
-        if (Math.abs(cubeHours - FULL_SET_TARGET_HOURS) > FULL_SET_TOLERANCE_HOURS) {
-            wrong.add(String.format("a Puzzle Cube takes %.0f h", cubeHours));
+        double pieceRatio = piece / SHIPPED_PIECE_PULLS;
+        if (Math.abs(pieceRatio - RARER_THAN_SHIPPED) / RARER_THAN_SHIPPED > RATIO_TOLERANCE) {
+            wrong.add(String.format("a cube piece is %.0fx rarer, wanted %.0fx (a whole cube is %.0f h)",
+                pieceRatio, RARER_THAN_SHIPPED, piece * PIECES_PER_CUBE / PULLS_PER_HOUR));
         }
 
         assertTrue(wrong.isEmpty(),
-            "the collectibles should all land around " + (int) FULL_SET_TARGET_HOURS + " hours "
+            "collectibles should be " + (int) RARER_THAN_SHIPPED + "x rarer than v0.8.0 shipped them "
                 + "(owner, 2026-08-11): " + wrong + ". The playtest that set this was getting three "
                 + "in fifteen minutes");
     }

@@ -9,7 +9,7 @@ The numbers below are derived rather than guessed. A held right-click sorts at f
 ### Rarer
 - **Buckets, shears, flint and steel, and leads** now turn up about **once every half hour each**. A bucket was arriving roughly every two minutes.
 - **Name tags** about hourly, **music discs** about every two hours.
-- **Collectibles are trophies again.** The four whole objects work out at about nineteen hours apiece, so the full set lands near **forty hours**, and a Puzzle Cube costs about the same in pieces.
+- **Collectibles are 480 times rarer than they were.** They are meant to be the thing you remember finding, not something the barrel fills up with. A whole one now runs to hundreds of hours, and a Puzzle Cube longer still.
 - **Roaches** were interrupting a pull two and a half times per mound sorted. Now about once a mound, or one every ten minutes or so.
 - Bulk material is untouched. Junk, scrap, plastic, glass shards and the rest come out just as fast as before.
 
