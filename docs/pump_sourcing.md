@@ -1,21 +1,61 @@
 # Where a Pump comes from
 
-**Written 2026-07-23.** One page on how the Grass Spreader's Pump is sourced, what the numbers
-actually are, and the decisions still open. The Pump matters more than its size suggests: it is the
-only part of reclamation rung 1 with no recipe, and currently the only salvaged machine part in the
-mod, so whatever gates it gates the whole chain.
+**Written 2026-07-23. Corrected 2026-08-12 against `main` at v0.9.0** - most of what this page
+predicted has since happened, and three of its load-bearing facts are now false. The original
+reasoning is kept below because it is a decision record and the arguments still explain *why* things
+are shaped as they are; the corrections are marked where they bite.
+
+One page on how the Grass Spreader's Pump is sourced, what the numbers actually are, and the
+decisions still open.
+
+## Corrections (2026-08-12)
+
+**1. A Pump IS craftable now.** Open question 1 below asked "should a Pump ever be craftable? Today:
+no", and argued that "salvaged, never made" was a strong identity line. The blueprint system (#95,
+shipped 2026-08-02) answered it: `recipe/pump.json` is a `recompile:blueprint_crafting` recipe, and
+you unlock it by tearing down four of the object that yields one. So the identity line survives in a
+modified form - you still cannot make a Pump until salvage has taught you how - but "nothing crafts a
+Pump" is simply no longer true, and this page said it twice.
+
+**2. It is not the only salvaged machine part.** The **Motor** and the **Bulb** both exist, and the
+line below saying "the Motor no longer exists (it became the Pump)" is stale - the Motor came back as
+its own component. Components now split into **placeable** (Motor, Pump, Solar Panel, ...) and
+**crafting** (Bulb); see CLAUDE.md.
+
+**3. The washing machine is no longer the only source, and a fridge is one of them.** The section
+below rules a fridge out as "the worst first pick" because "its signature part is a compressor, which
+reads as a different component than a pump". The **Dead Fridge** shipped anyway in v0.9.0 and draws
+one of motor / pump / bulb. That is a real reversal, and the reasoning that beat it is worth stating:
+a fridge holds all three plausibly, so it became the one find where *which* component you get is a
+draw - which is a mechanic, where "it has a compressor" was only a quibble about naming.
+
+**4. The find table is six entries, not two**, which is exactly the fix this page recommends. See
+"The find table is two entries" below, which is now purely historical.
+
+**What the numbers become.** On `bulky_spine.json` at v0.9.0 - mattress 3, washing_machine 2,
+filing_cabinet 2, printer 2, broken_hydroponics_bay 1, fridge 4, total 14 - a washing machine is
+**14.3%** of finds rather than 40%, and a fridge yields a Pump on a third of its 28.6%. So roughly
+**24% of finds give a Pump**, against 40% when this was written. Carrying this page's own ~12 Bulky
+Waste per chunk forward (measured 2026-07-15, **not** re-verified in this pass) that is about **2.9
+Pumps per chunk** rather than 4.8. Still not scarce; the conclusion below survives its arithmetic
+being halved.
+
+**What did not change:** the renewability argument (mounds regrow, so the supply cannot be
+permanently lost) and the recommendation not to retune worldgen's 5% for one find.
 
 ## The chain today
 
 ```
 mound worldgen -> Bulky Waste block (5% per core cell)
-               -> pry it open -> Washing Machine (40% of finds; mattress is the other 60%)
-               -> tear down at the Recompile Workbench with a prybar, 120 ticks
-               -> 1 Pump + 3 scrap metal + 2 plastic scrap
+               -> pry it open -> Washing Machine (14.3% of finds) or Dead Fridge (28.6%)
+               -> tear down at the Teardown Workbench with a prybar
+               -> washing machine: 1 Pump + 5 scrap, split metal/plastic
+               -> fridge:          1 of motor/pump/bulb + 8 scrap + snow or ice
 ```
 
-Nothing crafts a Pump. That is deliberate: it puts rung 1 behind the teardown spine, so you have to
-have built a Workbench and a prybar before you can water anything.
+Salvage is still the *first* route: you cannot craft a Pump until four teardowns have taught you how,
+so rung 1 remains behind the teardown spine and you must have a Workbench and a prybar before you can
+water anything. What changed is that the gate is now a **one-time** gate rather than a permanent one.
 
 ## Why it is a washing machine and not a "Broken Appliance"
 
@@ -63,6 +103,11 @@ should be a choice rather than an accident of numbers nobody added up.
 
 ## The find table is two entries, and that is the real problem
 
+> **Historical from here (2026-07-23).** The table is six entries now and this section's
+> recommendation - "the fix for both problems is the same: more finds" - is what shipped. Kept because
+> the reasoning about *why* a dead entry is worse competition than a useful one is still the argument
+> to make when weighing a seventh.
+
 | Find | Weight | Share | Exit |
 |---|---|---|---|
 | Mattress | 3 | 60% | The bed (`MattressBlock`), or cut with a scrap knife |
@@ -88,9 +133,11 @@ Dishwasher and refrigerator are the obvious siblings, and they are worth adding,
 one machine part and one machine, so three finds that all yield a Pump is three textures, three lang
 keys, and three loot lines for the same coin flip - a table that looks richer while being identical.
 
-**The trigger to split is a second machine needing a second part.** Note the Motor no longer exists
-(it became the Pump), so when a machine wants one back, the washing machine's drum motor is already
-sitting there as the obvious source. Naming the find concretely now is what makes that split
+**The trigger to split is a second machine needing a second part.** ~~Note the Motor no longer exists
+(it became the Pump)~~ - **stale: the Motor came back as its own component and the Separator's back
+row wants one.** The prediction that "when a machine wants one back, the drum motor is already sitting
+there as the obvious source" is roughly what happened, except the source became Mechanical Waste and
+then the fridge rather than the washing machine. Naming the find concretely now is what makes that split
 additive instead of a rename plus three additions.
 
 One justification to rule out in advance: **copper is not scarce.** `copper_from_scrap.json` smelts
@@ -111,7 +158,8 @@ designed for.
 
 ## Open questions
 
-1. **Should a Pump ever be craftable?** Today: no. A late recipe (copper + scrap, once the metal tier
+1. ~~**Should a Pump ever be craftable?**~~ **ANSWERED 2026-08-02: yes, through the blueprint
+   system.** The original text follows. Today: no. A late recipe (copper + scrap, once the metal tier
    exists) would let a player who has healed their mounds keep building. Against it: "salvaged, never
    made" is a strong identity line, and the renewability above means the hole never opens.
 2. **Should the teardown yield more than one?** One in, one out is legible. A yield of 2 would halve
@@ -122,9 +170,15 @@ designed for.
    that want them, not ahead of them.
 4. **Each added find re-cuts this.** Every new line takes share from both existing entries, so the
    Pump rate falls whenever the found economy grows. Worth re-checking the washing machine's share
-   each time rather than discovering it drifted.
-5. **Does the knowledge system (P1.4) touch this?** If teardown ever gates on *studying* a recipe,
-   the Pump inherits that gate. P1.4 is under review; nothing here should assume it lands.
+   each time rather than discovering it drifted. **This happened exactly as predicted and was in fact
+   discovered by drift** - the share fell from 40% to 14.3% across four additions, and nobody
+   re-checked until the 2026-08-12 scrub. The lesson is that "worth re-checking" is not a mechanism;
+   `FindRateTest` is.
+5. ~~**Does the knowledge system (P1.4) touch this?**~~ **ANSWERED: it landed, and it does.** Every
+   teardown of a Pump-yielding object also grants an Idea Fragment toward the Pump blueprint, and the
+   fridge grants the fragment for whichever component it drew. Original text: If teardown ever gates
+   on *studying* a recipe, the Pump inherits that gate. P1.4 is under review; nothing here should
+   assume it lands.
 
 ## Recommendation
 
