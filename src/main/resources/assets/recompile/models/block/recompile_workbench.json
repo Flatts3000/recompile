@@ -1,9 +1,10 @@
 {
-  "comment": "cube_bottom_top: a distinct steel worktop on a riveted metal frame (frame also on the bottom). The racked tool sprites lie on the top face via the multipart pieces.",
-  "parent": "minecraft:block/cube_bottom_top",
+  "__comment": "The shared workstation shape. The racked knife and prybar sit on the worktop at y=13 via the multipart pieces.",
+  "parent": "recompile:block/workstation_table",
   "textures": {
     "top": "recompile:block/recompile_workbench_top",
     "side": "recompile:block/recompile_workbench_side",
-    "bottom": "recompile:block/recompile_workbench_side"
+    "bottom": "recompile:block/recompile_workbench_side",
+    "leg": "recompile:block/recompile_workbench_side"
   }
 }

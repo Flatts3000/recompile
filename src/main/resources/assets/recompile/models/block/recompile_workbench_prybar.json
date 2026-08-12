@@ -1,16 +1,42 @@
 {
-  "comment": "The racked prybar, lying flat on the right of the table top (driven by has_prybar).",
+  "comment": "The racked prybar, lying flat on the right of the table top (driven by has_prybar). Y is 13 because the shared workstation worktop ends there.",
   "textures": {
     "prybar": "recompile:block/prybar",
     "particle": "recompile:block/prybar"
   },
   "elements": [
     {
-      "from": [9, 16, 2],
-      "to": [14, 16.4, 14],
+      "from": [
+        9,
+        13.0,
+        2
+      ],
+      "to": [
+        14,
+        13.4,
+        14
+      ],
       "faces": {
-        "up":   { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#prybar" },
-        "down": { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#prybar" }
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "rotation": 180,
+          "texture": "#prybar"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "rotation": 180,
+          "texture": "#prybar"
+        }
       }
     }
   ]

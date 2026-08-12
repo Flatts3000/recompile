@@ -1,0 +1,86 @@
+{
+  "__comment": [
+    "The shared Scrap Network workstation shape: a bench top on four short legs.",
+    "",
+    "One model, three blocks. The Scrap Crafting Table, the Sorting Tarp and the Teardown Workbench",
+    "are the blocks a player lines up into a cluster, and two of them used to be plain cubes while",
+    "the third was a table - so a row of them read as three unrelated objects rather than one",
+    "workstation. Children override only the four texture slots.",
+    "",
+    "THE TOP SPANS THE FULL 16 AND THAT IS THE POINT. It was 1..15, which left a pixel of daylight",
+    "on each side and a two-pixel gap between neighbours, so adjacent stations never visually",
+    "touched and the cluster did not read as one surface. Legs stay inset; only the worktop is flush.",
+    "",
+    "Any block using this needs noOcclusion() - it is not a full cube, and without it the game still",
+    "culls the neighbouring block's face and you see straight through the ground.",
+    "",
+    "The Java collision shape lives in WorkstationTable.SHAPE and must match these boxes."
+  ],
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#side"
+  },
+  "elements": [
+    {
+      "__comment": "worktop - full width so a row of stations forms one continuous surface",
+      "from": [0, 3, 0],
+      "to": [16, 13, 16],
+      "faces": {
+        "up":    { "uv": [0, 0, 16, 16], "texture": "#top" },
+        "down":  { "uv": [0, 0, 16, 16], "texture": "#bottom" },
+        "north": { "uv": [0, 0, 16, 16], "texture": "#side" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#side" },
+        "west":  { "uv": [0, 0, 16, 16], "texture": "#side" },
+        "east":  { "uv": [0, 0, 16, 16], "texture": "#side" }
+      }
+    },
+    {
+      "__comment": "leg NW",
+      "from": [2, 0, 2],
+      "to": [5, 3, 5],
+      "faces": {
+        "down":  { "uv": [0, 0, 3, 3], "texture": "#leg" },
+        "north": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "south": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "west":  { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "east":  { "uv": [0, 13, 3, 16], "texture": "#leg" }
+      }
+    },
+    {
+      "__comment": "leg NE",
+      "from": [11, 0, 2],
+      "to": [14, 3, 5],
+      "faces": {
+        "down":  { "uv": [0, 0, 3, 3], "texture": "#leg" },
+        "north": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "south": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "west":  { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "east":  { "uv": [0, 13, 3, 16], "texture": "#leg" }
+      }
+    },
+    {
+      "__comment": "leg SW",
+      "from": [2, 0, 11],
+      "to": [5, 3, 14],
+      "faces": {
+        "down":  { "uv": [0, 0, 3, 3], "texture": "#leg" },
+        "north": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "south": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "west":  { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "east":  { "uv": [0, 13, 3, 16], "texture": "#leg" }
+      }
+    },
+    {
+      "__comment": "leg SE",
+      "from": [11, 0, 11],
+      "to": [14, 3, 14],
+      "faces": {
+        "down":  { "uv": [0, 0, 3, 3], "texture": "#leg" },
+        "north": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "south": { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "west":  { "uv": [0, 13, 3, 16], "texture": "#leg" },
+        "east":  { "uv": [0, 13, 3, 16], "texture": "#leg" }
+      }
+    }
+  ]
+}

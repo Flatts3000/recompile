@@ -1,12 +1,10 @@
 {
-  "parent": "minecraft:block/cube",
+  "__comment": "The shared workstation shape, keeping every texture it already had - the front face reads on all four sides now that it is a bench rather than a cube.",
+  "parent": "recompile:block/workstation_table",
   "textures": {
-    "particle": "recompile:block/scrap_crafting_table_front",
-    "down": "recompile:block/scrap_crafting_table_bottom",
-    "up": "recompile:block/scrap_crafting_table_top",
-    "north": "recompile:block/scrap_crafting_table_front",
-    "west": "recompile:block/scrap_crafting_table_front",
-    "east": "recompile:block/scrap_crafting_table_side",
-    "south": "recompile:block/scrap_crafting_table_side"
+    "top": "recompile:block/scrap_crafting_table_top",
+    "side": "recompile:block/scrap_crafting_table_front",
+    "bottom": "recompile:block/scrap_crafting_table_bottom",
+    "leg": "recompile:block/scrap_crafting_table_side"
   }
 }

@@ -14,6 +14,9 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
@@ -29,6 +32,15 @@ import org.jspecify.annotations.Nullable;
  * closing the screen (the Tinkers' Crafting Station QoL); the crafting itself is still menu-driven.
  */
 public class ScrapCraftingTableBlock extends BaseEntityBlock {
+
+    @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos,
+            CollisionContext context) {
+        // The shared workstation bench. Was a full cube, so standing on one put you three pixels
+        // above the top face you can see.
+        return WorkstationTable.SHAPE;
+    }
+
 
     public static final MapCodec<ScrapCraftingTableBlock> CODEC = simpleCodec(ScrapCraftingTableBlock::new);
 

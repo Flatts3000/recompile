@@ -266,7 +266,13 @@ public final class RCBlocks {
             .requiresCorrectToolForDrops()
     );
 
-    /** Scrap crafting table: the tier-zero 3x3 crafting station (no wood in this world). */
+    /**
+     * Scrap crafting table: the tier-zero 3x3 crafting station (no wood in this world).
+     *
+     * <p>{@code noOcclusion} because it draws the shared workstation bench rather than a full cube.
+     * Without it the game still treats the block as solid for face culling and you see straight
+     * through the ground next to it - a hole with no obvious cause, since the model is fine.
+     */
     public static final DeferredBlock<ScrapCraftingTableBlock> SCRAP_CRAFTING_TABLE = BLOCKS.registerBlock(
         "scrap_crafting_table",
         ScrapCraftingTableBlock::new,
@@ -274,6 +280,7 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(2.0F)
             .sound(SoundType.METAL)
+            .noOcclusion()
     );
 
     /**

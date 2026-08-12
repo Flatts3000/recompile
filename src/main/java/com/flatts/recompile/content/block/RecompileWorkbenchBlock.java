@@ -17,6 +17,9 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -48,6 +51,15 @@ import org.jspecify.annotations.Nullable;
  * disassembler stays a tier-3+ upgrade.
  */
 public class RecompileWorkbenchBlock extends BaseEntityBlock {
+
+    @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos,
+            CollisionContext context) {
+        // The shared workstation bench. Was a full cube, so standing on one put you three pixels
+        // above the top face you can see.
+        return WorkstationTable.SHAPE;
+    }
+
 
     public static final MapCodec<RecompileWorkbenchBlock> CODEC = simpleCodec(RecompileWorkbenchBlock::new);
 
