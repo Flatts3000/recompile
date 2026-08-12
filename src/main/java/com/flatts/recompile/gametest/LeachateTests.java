@@ -122,7 +122,13 @@ final class LeachateTests {
 
         // It is not water, and the distinction is load-bearing rather than cosmetic: the Rain
         // Collector's tank accepts water only, so anything that answers "yes" to being water is a
-        // free clean-water source and the P1.10 water economy stops meaning anything.
+        // free clean-water source.
+        //
+        // THE RULE IS SCALE, NOT PURITY - the Dead Fridge sanctions exactly one water source (ice
+        // from its teardown, owner ruling 2026-08-12) and the economy survives it, because that
+        // costs a find, a prybar and a 1-in-4 draw. Leachate is AMBIENT: it is scattered across the
+        // map in pools, so it answering yes would make every pool a tap, which is a different thing
+        // entirely. Do not read the fridge exception as permission here.
         RCGameTests.test("leachate_is_not_water", 20, helper -> {
             helper.setBlock(GROUND, RCBlocks.LEACHATE.get());
             BlockPos abs = helper.absolutePos(GROUND);
