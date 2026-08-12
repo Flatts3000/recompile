@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.Nullable;
@@ -88,6 +89,29 @@ public class TallApplianceBlock extends HorizontalDirectionalBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer,
             ItemStack stack) {
         level.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER), Block.UPDATE_ALL);
+    }
+
+    /**
+     * Creative-break the upper half without the lower one dropping a fridge.
+     *
+     * <p>Breaking a block in creative suppresses <i>its</i> drops, and only its own. The orphaned
+     * partner is removed separately, through {@code updateShape} into {@code Block.updateOrDestroy},
+     * which runs that block's loot table normally - and the loot sits on the LOWER half. So breaking
+     * the head in creative handed over a free fridge. {@link MattressBlock} guards the mirror image
+     * of this for the same reason; flag 35 is the setBlock that skips drops.
+     */
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide() && player.preventsBlockDrops()
+                && state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            BlockPos below = pos.below();
+            BlockState lower = level.getBlockState(below);
+            if (lower.is(this) && lower.getValue(HALF) == DoubleBlockHalf.LOWER) {
+                level.setBlock(below, Blocks.AIR.defaultBlockState(), 35);
+                level.levelEvent(player, 2001, below, Block.getId(lower));
+            }
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     /**

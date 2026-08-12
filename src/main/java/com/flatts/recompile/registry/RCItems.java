@@ -379,13 +379,16 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> FIREWEED =
         ITEMS.registerSimpleBlockItem("fireweed", RCBlocks.FIREWEED);
     /**
-     * The mattress: place it and it is a bed, or tear it down at the Recompile Workbench
-     * (P1.4) for string. Never craftable - the dump gives you the bed (P1.11).
+     * The Dead Fridge: two blocks tall, and the one teardown where which component you recover is
+     * a draw rather than a certainty.
      */
-    /** The Dead Fridge: two blocks tall, and the only source of a random component. */
     public static final DeferredItem<BlockItem> FRIDGE =
         ITEMS.registerSimpleBlockItem("fridge", RCBlocks.FRIDGE);
 
+    /**
+     * The mattress: place it and it is a bed, or tear it down at the Recompile Workbench
+     * (P1.4) for string. Never craftable - the dump gives you the bed (P1.11).
+     */
     public static final DeferredItem<BlockItem> MATTRESS =
         ITEMS.registerSimpleBlockItem("mattress", RCBlocks.MATTRESS);
     public static final DeferredItem<BlockItem> SCRAP_CRAFTING_TABLE =

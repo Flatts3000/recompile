@@ -142,10 +142,57 @@ final class ComponentBlueprintTests {
                     }
                 }
             }
+            // extras is the other door into the same failure. A gated component written as an
+            // extra rolls its own independent chance, so the object can come apart and give you
+            // none - which is exactly what this test forbids, and the pool loop above would never
+            // look at it. The old results-based test caught this by accident; say it out loud.
+            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                for (TeardownRecipe.ChanceResult extra : holder.value().extras()) {
+                    if (gatedComponents().contains(extra.item()) && extra.chance() < 1.0F) {
+                        rolled.add(holder.id() + " offers "
+                            + BuiltInRegistries.ITEM.getKey(extra.item())
+                            + " as a chance extra, not a certainty");
+                    }
+                }
+            }
+
             helper.assertTrue(rolled.isEmpty(),
-                "a pool that offers a gated component must be certain to hand one over - a filler "
-                    + "slot beside a component means tearing the object apart can give you nothing, "
-                    + "and four of the same teardown is what the blueprint costs: " + rolled);
+                "a teardown that offers a gated component must be certain to hand one over - a "
+                    + "filler slot beside a component, or a component written as a chance extra, "
+                    + "means tearing the object apart can give you nothing, and four of the same "
+                    + "teardown is what the blueprint costs: " + rolled);
+            helper.succeed();
+        });
+
+        // NOTHING A TEARDOWN GIVES YOU MAY BE A FREE WATER SOURCE.
+        //
+        // leachate_is_not_water states this rule for fluids in as many words: "anything that answers
+        // yes to being water is a free clean-water source and the P1.10 water economy stops meaning
+        // anything". An ITEM can walk straight through that door. minecraft:ice broken without silk
+        // touch on solid ground leaves a water SOURCE block - two of them are infinite water - so a
+        // fridge that hands out ice quietly retires the Rain Collector, the bucket gate, and the
+        // farmland-hydration half of encroachment immunity (#156) all at once.
+        //
+        // Keyed on IceBlock, which is exactly the family whose playerDestroy creates water (ice and
+        // frosted_ice). Packed and blue ice are plain blocks and stay legal, which is what lets a
+        // freezer still contain something icy.
+        RCGameTests.test("no_teardown_hands_out_a_free_water_source", 20, helper -> {
+            List<String> taps = new ArrayList<>();
+            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                holder.value().everyPossibleOutput().forEach(item -> {
+                    boolean melts = item instanceof net.minecraft.world.item.BlockItem block
+                        && block.getBlock() instanceof net.minecraft.world.level.block.IceBlock;
+                    if (melts || item == net.minecraft.world.item.Items.WATER_BUCKET) {
+                        taps.add(holder.id() + " -> " + BuiltInRegistries.ITEM.getKey(item));
+                    }
+                });
+            }
+            helper.assertTrue(taps.isEmpty(),
+                "these teardown outputs are a free water source - break the placed block without "
+                    + "silk touch and you have a water source block, two of which are infinite "
+                    + "water, with no Rain Collector and no bucket: " + taps);
             helper.succeed();
         });
 

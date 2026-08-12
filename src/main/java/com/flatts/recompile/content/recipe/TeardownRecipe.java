@@ -222,9 +222,19 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
      * recipe with neither still fails loudly at datapack load.
      */
     private static DataResult<TeardownRecipe> mustProduceSomething(TeardownRecipe recipe) {
-        if (recipe.results().isEmpty() && recipe.pools().isEmpty()) {
+        if (!recipe.results().isEmpty()) {
+            return DataResult.success(recipe);
+        }
+        // A non-empty pools list is not the same as a pools list that can produce anything.
+        // "rolls": 0 is legal (a pack may want to disable a pool without deleting it) and an
+        // all-filler pool is legal too, so a recipe can satisfy the shallow check and still be the
+        // quiet no-op this guard exists to reject.
+        boolean canProduce = recipe.pools().stream().anyMatch(pool -> pool.rolls() > 0
+            && pool.entries().stream().anyMatch(entry -> entry.item().isPresent()));
+        if (!canProduce) {
             return DataResult.error(() ->
-                "a teardown must produce something: give it \"results\", \"pools\", or both");
+                "a teardown must produce something: give it \"results\", or \"pools\" with at "
+                    + "least one pool that rolls at least once and has an entry carrying an item");
         }
         return DataResult.success(recipe);
     }
@@ -298,26 +308,6 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
                 extras.stream().map(ChanceResult::item)),
             pools.stream().flatMap(pool -> pool.entries().stream())
                 .flatMap(entry -> entry.item().stream()));
-    }
-
-    /**
-     * Whether this teardown <b>always</b> hands over the given item.
-     *
-     * <p>A {@code results} entry always does. A pool entry does only when the pool cannot produce
-     * anything else - one entry, no filler, at least one roll - which is how a single-component pool
-     * says "you get the pump" in the new form without becoming a dice roll.
-     *
-     * <p>The distinction is load-bearing: {@code a_component_from_a_teardown_is_never_a_dice_roll}
-     * asserts that taking an object apart for its component cannot come up empty, because the
-     * blueprint route costs four of the same teardown and so cannot rescue a bad streak.
-     */
-    public boolean alwaysYields(Item item) {
-        if (results.stream().anyMatch(r -> r.item() == item)) {
-            return true;
-        }
-        return pools.stream().anyMatch(pool -> pool.rolls() > 0
-            && !pool.entries().isEmpty()
-            && pool.entries().stream().allMatch(e -> e.item().isPresent() && e.item().get() == item));
     }
 
     /** Every pool this teardown draws from. */

@@ -270,6 +270,60 @@ final class BulkyWasteTests {
                 helper.assertItemEntityCountIs(RCItems.FRIDGE.get(), lower, 3.0, 1));
         });
 
+        // Creative gets nothing, from either half.
+        //
+        // Breaking a block in creative suppresses ITS drops and only its own. The orphaned partner
+        // is removed separately, through updateShape into Block.updateOrDestroy, which runs that
+        // block's loot table normally - and the loot sits on the lower half. So breaking the HEAD in
+        // creative handed over a free fridge. MattressBlock guards the mirror image of this, which
+        // is how we know the shape of the bug rather than guessing at it.
+        RCGameTests.test("creative_breaking_a_fridge_drops_nothing", 60, helper -> {
+            BlockPos lower = new BlockPos(1, 1, 1);
+            BlockState base = RCBlocks.FRIDGE.get().defaultBlockState();
+            helper.setBlock(lower, base.setValue(TallApplianceBlock.HALF, DoubleBlockHalf.LOWER));
+            helper.setBlock(lower.above(),
+                base.setValue(TallApplianceBlock.HALF, DoubleBlockHalf.UPPER));
+
+            // makeMockPlayer(CREATIVE) IS NOT ENOUGH, and this cost a red test to find. It overrides
+            // isCreative() and nothing else - abilities.instabuild stays FALSE, and
+            // Player.preventsBlockDrops() reads exactly that field. So a creative-drop guard tested
+            // with this player alone silently exercises the SURVIVAL path and passes for the wrong
+            // reason. Same family as the documented makeMockServerPlayerInLevel trap, opposite
+            // direction. Set the ability a real creative player actually has.
+            Player player = helper.makeMockPlayer(GameType.CREATIVE);
+            player.getAbilities().instabuild = true;
+            BlockPos upperAbs = helper.absolutePos(lower.above());
+            BlockState upperState = helper.getLevel().getBlockState(upperAbs);
+            upperState.getBlock().playerWillDestroy(
+                helper.getLevel(), upperAbs, upperState, player);
+            helper.getLevel().destroyBlock(upperAbs, false);
+
+            helper.assertBlockPresent(Blocks.AIR, lower.above());
+            helper.assertBlockPresent(Blocks.AIR, lower);
+            helper.succeedWhen(() ->
+                helper.assertItemEntityCountIs(RCItems.FRIDGE.get(), lower, 3.0, 0));
+        });
+
+        // The other direction, which the comment above promises and one test cannot stand in for.
+        // Breaking the LOWER half is where a double-drop would actually appear: the loot table fires
+        // on the block being broken AND the orphaned upper is removed through the same
+        // updateOrDestroy path that runs loot tables. Only the half=lower condition stops that
+        // second removal paying out again.
+        RCGameTests.test("breaking_the_lower_fridge_half_yields_one_fridge", 60, helper -> {
+            BlockPos lower = new BlockPos(1, 1, 1);
+            BlockState base = RCBlocks.FRIDGE.get().defaultBlockState();
+            helper.setBlock(lower, base.setValue(TallApplianceBlock.HALF, DoubleBlockHalf.LOWER));
+            helper.setBlock(lower.above(),
+                base.setValue(TallApplianceBlock.HALF, DoubleBlockHalf.UPPER));
+
+            helper.getLevel().destroyBlock(helper.absolutePos(lower), true);
+
+            helper.assertBlockPresent(Blocks.AIR, lower);
+            helper.assertBlockPresent(Blocks.AIR, lower.above());
+            helper.succeedWhen(() ->
+                helper.assertItemEntityCountIs(RCItems.FRIDGE.get(), lower, 3.0, 1));
+        });
+
         // The mattress -> string exit moved to the Recompile Workbench (P1.4); its teardown
         // is covered by RecompileWorkbenchTests. The in-hand knife-cut was retired here.
     }

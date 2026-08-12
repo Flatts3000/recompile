@@ -6,8 +6,26 @@
   "ticks": 100,
   "pools": [
     {
-      "_comment": "The carcass: paper, plastic, the ink cartridge and its frame.",
-      "rolls": 7,
+      "_comment": [
+        "THE INK SAC IS GUARANTEED, in its own single-entry pool with no filler.",
+        "",
+        "It was a `results` entry before the pool conversion, so it came out every time. Folded into",
+        "the carcass pool as weight 1 of 7 it would have been missing from about a THIRD of printers",
+        "- and no test could see it, because PrinterTests only asserts reachability. Ink is the only",
+        "black dye, the only book-and-quill and a bait ingredient, and the JEI blurb promises it by",
+        "name. A guarantee that quietly became a two-in-three is the kind of regression that surfaces",
+        "as a player who thinks the recipe is broken."
+      ],
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "minecraft:ink_sac"
+        }
+      ]
+    },
+    {
+      "_comment": "The carcass: paper, plastic and the cartridge frame.",
+      "rolls": 6,
       "entries": [
         {
           "item": "minecraft:paper",
@@ -19,10 +37,6 @@
         },
         {
           "item": "recompile:scrap_metal",
-          "weight": 1
-        },
-        {
-          "item": "minecraft:ink_sac",
           "weight": 1
         }
       ]

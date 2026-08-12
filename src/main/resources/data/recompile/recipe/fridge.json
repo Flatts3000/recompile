@@ -15,11 +15,22 @@
       ]
     },
     {
-      "_comment": "Secondary roll: what was left in the freezer. The only ice or snow in this world - the garbage biome has no weather that makes either.",
+      "_comment": [
+        "Secondary roll: what was left in the freezer. The only ice or snow in this world - the",
+        "garbage biome has no weather that makes either.",
+        "",
+        "PACKED ice, not minecraft:ice, and the distinction is the water economy. Plain ice broken",
+        "without silk touch on solid ground leaves a water SOURCE block, and two sources are",
+        "infinite water - so it would retire the Rain Collector, the bucket gate and the",
+        "farmland-hydration half of encroachment immunity (#156) in one drop. leachate_is_not_water",
+        "already states that rule for fluids; an item walks through the same door.",
+        "Packed ice never melts and yields no water, so the freezer still contains something icy.",
+        "Locked by no_teardown_hands_out_a_free_water_source."
+      ],
       "rolls": 1,
       "entries": [
         { "item": "minecraft:snowball", "weight": 3 },
-        { "item": "minecraft:ice", "weight": 1 }
+        { "item": "minecraft:packed_ice", "weight": 1 }
       ]
     },
     {

@@ -325,6 +325,32 @@ final class SortingDataTests {
         // constant; when the Broken Hydroponics Bay teardown shipped, it was invisible to every viewer
         // - the block could be torn down in-world while JEI denied the recipe existed, and nothing
         // failed. This asserts the count matches the files on disk rather than a number written here.
+        // A POOL'S QUANTITY MUST REACH THE VIEWER, not just its existence.
+        //
+        // The fridge's scrap pool rolls EIGHT times over metal/plastic/e-scrap. Expressed as a bare
+        // per-item chance that saturates at 100%, a player reads "one metal, one plastic, maybe an
+        // e-scrap" for a teardown that actually hands over eight items - the viewer would be off by
+        // a factor of four on the mod's flagship recipe. Same family as #180: the mechanic works and
+        // the viewer quietly describes a different game. Chance alone cannot carry "how many", so
+        // the stack count has to.
+        RCGameTests.test("a_viewer_reads_how_many_a_pool_gives", 20, helper -> {
+            var fridge = com.flatts.recompile.compat.TeardownData.all().stream()
+                .filter(e -> e.input().getItem() == RCItems.FRIDGE.get())
+                .findFirst();
+            helper.assertTrue(fridge.isPresent(), "the fridge teardown must reach the viewers");
+
+            var metal = fridge.get().outputs().stream()
+                .filter(w -> w.stack().getItem() == RCItems.SCRAP_METAL.get())
+                .findFirst();
+            helper.assertTrue(metal.isPresent(), "scrap metal must be listed as a fridge output");
+
+            // 8 rolls, weight 5 of 10 -> four scrap metal per teardown on average.
+            int shown = metal.get().stack().getCount();
+            helper.assertTrue(shown == 4,
+                "a viewer must show the ~4 scrap metal a fridge actually gives, showed " + shown);
+            helper.succeed();
+        });
+
         RCGameTests.test("every_bundled_teardown_reaches_the_viewers", 20, helper -> {
             int onDisk = com.flatts.recompile.compat.RecipeFiles.ofType("recompile:teardown").size();
             int surfaced = com.flatts.recompile.compat.TeardownData.all().size();

@@ -158,8 +158,18 @@ public final class TeardownData {
                         }
                         float weight = o.has("weight") ? o.get("weight").getAsFloat() : 1.0f;
                         int count = o.has("count") ? o.get("count").getAsInt() : 1;
+                        // CHANCE ALONE CANNOT CARRY "HOW MANY", so the stack count does. A pool
+                        // that rolls eight times is the normal case here, and its per-item chance
+                        // saturates at 100% long before the eighth roll - the fridge's scrap pool
+                        // read as "one metal, one plastic, maybe an e-scrap" for a teardown that
+                        // hands over eight items. That is #180's failure mode again in miniature:
+                        // the mechanic works and the viewer describes a different game.
+                        float expected = weight / total * rolls * count;
                         float chance = Math.min(1.0f, weight / total * rolls);
-                        outputs.add(new SortingData.Weighted(new ItemStack(item, count), chance));
+                        // Never round down to zero: a rare draw still has to appear in the list, it
+                        // just appears as one item at its real chance.
+                        int shown = Math.max(1, Math.round(expected));
+                        outputs.add(new SortingData.Weighted(new ItemStack(item, shown), chance));
                         if (teaches) {
                             // A teaching pool hands over the fragment for whatever it drew, so the
                             // fragment is exactly as likely as the component beside it.
