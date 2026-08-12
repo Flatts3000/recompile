@@ -80,10 +80,10 @@ final class ComponentBlueprintTests {
                 boolean salvaged = false;
                 for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                         .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                    for (TeardownRecipe.ItemResult result : holder.value().results()) {
-                        if (result.item() == component) {
-                            salvaged = true;
-                        }
+                    // everyPossibleOutput, not results: a component declared in a pool is still
+                    // salvaged. Reading one field made the invariant a fact about JSON layout.
+                    if (holder.value().everyPossibleOutput().anyMatch(i -> i == component)) {
+                        salvaged = true;
                     }
                 }
                 if (!salvaged) {
@@ -121,10 +121,11 @@ final class ComponentBlueprintTests {
                 boolean guaranteed = false;
                 for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                         .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                    for (TeardownRecipe.ItemResult result : holder.value().results()) {
-                        if (result.item() == component) {
-                            guaranteed = true;
-                        }
+                    // alwaysYields knows a single-entry pool with no filler is still a promise,
+                    // while a pool that could draw something else is exactly the dice roll this
+                    // test forbids.
+                    if (holder.value().alwaysYields(component)) {
+                        guaranteed = true;
                     }
                 }
                 if (!guaranteed) {
@@ -150,8 +151,8 @@ final class ComponentBlueprintTests {
                 TeardownRecipe.TeachEntry lesson = null;
                 for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                         .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                    boolean yields = holder.value().results().stream()
-                        .anyMatch(result -> result.item() == component);
+                    boolean yields = holder.value().everyPossibleOutput()
+                        .anyMatch(i -> i == component);
                     if (!yields) {
                         continue;
                     }

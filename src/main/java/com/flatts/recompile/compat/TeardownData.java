@@ -1,5 +1,6 @@
 package com.flatts.recompile.compat;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -126,6 +127,50 @@ public final class TeardownData {
                         com.flatts.recompile.content.item.IdeaFragmentItem.of(
                             com.flatts.recompile.registry.RCItems.IDEA_FRAGMENT.get(), set, 1),
                         chance));
+                }
+            }
+            // POOLS ARE OUTPUTS TOO, and a viewer that skipped them would show a teardown missing
+            // most of what it gives. That is the failure mode #180 was: a mechanic working in-world
+            // while every viewer quietly denied it. Weight over pool total is the real per-draw
+            // chance, times rolls, which is what a player wants to read.
+            if (root.has("pools")) {
+                for (JsonElement poolEl : root.getAsJsonArray("pools")) {
+                    JsonObject pool = poolEl.getAsJsonObject();
+                    int rolls = pool.has("rolls") ? pool.get("rolls").getAsInt() : 1;
+                    JsonArray entries = pool.getAsJsonArray("entries");
+                    float total = 0.0f;
+                    for (JsonElement e : entries) {
+                        JsonObject o = e.getAsJsonObject();
+                        total += o.has("weight") ? o.get("weight").getAsFloat() : 1.0f;
+                    }
+                    if (total <= 0.0f) {
+                        continue;
+                    }
+                    boolean teaches = pool.has("teaches") && pool.get("teaches").getAsBoolean();
+                    for (JsonElement e : entries) {
+                        JsonObject o = e.getAsJsonObject();
+                        if (!o.has("item")) {
+                            continue;   // the filler slot has nothing to show
+                        }
+                        Item item = item(o.get("item").getAsString());
+                        if (item == Items.AIR) {
+                            continue;
+                        }
+                        float weight = o.has("weight") ? o.get("weight").getAsFloat() : 1.0f;
+                        int count = o.has("count") ? o.get("count").getAsInt() : 1;
+                        float chance = Math.min(1.0f, weight / total * rolls);
+                        outputs.add(new SortingData.Weighted(new ItemStack(item, count), chance));
+                        if (teaches) {
+                            // A teaching pool hands over the fragment for whatever it drew, so the
+                            // fragment is exactly as likely as the component beside it.
+                            outputs.add(new SortingData.Weighted(
+                                com.flatts.recompile.content.item.IdeaFragmentItem.of(
+                                    com.flatts.recompile.registry.RCItems.IDEA_FRAGMENT.get(),
+                                    net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item),
+                                    1),
+                                chance));
+                        }
+                    }
                 }
             }
             if (root.has("extras")) {

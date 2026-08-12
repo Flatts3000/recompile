@@ -268,7 +268,10 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
                 entry.item().ifPresent(item -> {
                     Identifier id = BuiltInRegistries.ITEM.getKey(item);
                     if (all.stream().noneMatch(e -> e.recipe().equals(id))) {
-                        all.add(new TeachEntry(id, 0.0F, pool.scrapsRequired()));
+                        // Chance 1: drawing the component ALWAYS teaches it. Zero would read as
+                        // "might teach", and every teardown teaches (owner, 2026-08-02) - below one
+                        // the cost becomes a dice game on top of a dice game.
+                        all.add(new TeachEntry(id, 1.0F, pool.scrapsRequired()));
                     }
                 });
             }
@@ -276,6 +279,45 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
         this.teaches = List.copyOf(all);
         this.tool = tool;
         this.ticks = ticks;
+    }
+
+
+    /**
+     * Every item this teardown can possibly produce, by any route.
+     *
+     * <p><b>Exists because "what can this give you" was being asked of {@code results()} alone.</b>
+     * Seven call sites across the reachability tests did that, so the moment an output moved into a
+     * pool the mod would have believed lapis, ink and half the dye set had no source at all - and
+     * those tests are exactly the guarantees that stop a colour becoming unobtainable. Asking a
+     * recipe what it makes should not require knowing which field it was written in.
+     */
+    public java.util.stream.Stream<Item> everyPossibleOutput() {
+        return java.util.stream.Stream.concat(
+            java.util.stream.Stream.concat(
+                results.stream().map(ItemResult::item),
+                extras.stream().map(ChanceResult::item)),
+            pools.stream().flatMap(pool -> pool.entries().stream())
+                .flatMap(entry -> entry.item().stream()));
+    }
+
+    /**
+     * Whether this teardown <b>always</b> hands over the given item.
+     *
+     * <p>A {@code results} entry always does. A pool entry does only when the pool cannot produce
+     * anything else - one entry, no filler, at least one roll - which is how a single-component pool
+     * says "you get the pump" in the new form without becoming a dice roll.
+     *
+     * <p>The distinction is load-bearing: {@code a_component_from_a_teardown_is_never_a_dice_roll}
+     * asserts that taking an object apart for its component cannot come up empty, because the
+     * blueprint route costs four of the same teardown and so cannot rescue a bad streak.
+     */
+    public boolean alwaysYields(Item item) {
+        if (results.stream().anyMatch(r -> r.item() == item)) {
+            return true;
+        }
+        return pools.stream().anyMatch(pool -> pool.rolls() > 0
+            && !pool.entries().isEmpty()
+            && pool.entries().stream().allMatch(e -> e.item().isPresent() && e.item().get() == item));
     }
 
     /** Every pool this teardown draws from. */

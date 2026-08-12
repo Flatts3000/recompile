@@ -1587,3 +1587,29 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "a single incandescent light bulb, clear dusty glass with a visible filament and a dull brass screw base, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------
+# The Fridge: the appliance find that replaces the Broken Fan and the Light Fixture.
+#
+# It earns the swap on identity alone. A fridge is the one household appliance that genuinely
+# contains a compressor MOTOR, a refrigerant PUMP and an interior BULB, so "tear it down, get one of
+# the three" needs no justification - where a light fixture only ever plausibly held a bulb, which is
+# why it read as filler.
+#
+# TWO BLOCKS TALL, so it needs a split front. The Light Fixture died of exactly the mistake to avoid
+# here: its prompts asked for prismatic ribbing, a cracked corner, dead insects and dust, all of which
+# are sub-pixel at 16 and averaged into a flat yellow square. Identity at this size comes from
+# STRUCTURE - a door seam, a long handle, a hard edge - not from surface detail. So each face below
+# leads with one big shape and the grime is secondary.
+# ---------------------------------------------------------------------------
+
+[surface.fridge]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front_upper", "front_lower", "side", "top"]
+[surface.fridge.prompt]
+front_upper = "a full-bleed Minecraft block face: the upper door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a hard horizontal door seam across the very bottom, yellowed with age, a few rust spots and a peeling sticker, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+front_lower = "a full-bleed Minecraft block face: the lower door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a dark recessed kick plate along the very bottom, yellowed and grubby with scuffs and rust creeping from the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+side = "a full-bleed Minecraft block face: the plain side panel of a dumped white kitchen fridge, flat off-white enamel gone cream with age, one hard vertical seam line near the front edge, dents, scuffs and rust streaks running down, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+top = "a full-bleed top-down Minecraft block face: the dusty top of a dumped white kitchen fridge, flat off-white enamel under a thick layer of grey dust and grime, a few dark ring stains and scattered debris, rust at the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"

@@ -4,25 +4,18 @@
   "station": "recompile:workbench",
   "tool": "recompile:scrap_knife",
   "ticks": 80,
-  "results": [
+  "pools": [
     {
-      "item": "minecraft:string",
-      "count": 4
-    },
-    {
-      "item": "recompile:fiber_scrap",
-      "count": 2
-    },
-    {
-      "item": "recompile:scrap_metal",
-      "count": 1
+      "_comment": "Seven draws of stuffing and ticking. Same expected yield as the fixed 4/2/1 pile it replaces, but a mattress never comes apart the same way twice.",
+      "rolls": 7,
+      "entries": [
+        { "item": "minecraft:string", "weight": 4 },
+        { "item": "recompile:fiber_scrap", "weight": 2 },
+        { "item": "recompile:scrap_metal", "weight": 1 }
+      ]
     }
   ],
   "teaches": [
-    {
-      "recipe": "recompile:clean_mattress",
-      "chance": 1.0,
-      "scraps_required": 4
-    }
+    { "recipe": "recompile:clean_mattress", "chance": 1.0, "scraps_required": 4 }
   ]
 }

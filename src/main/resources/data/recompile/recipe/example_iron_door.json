@@ -1,17 +1,31 @@
 {
+  "_comment": [
+    "THE SCHEMA'S WORKED EXAMPLE, and it is live content - shipping an example in data/ means a",
+    "player can actually do this, which caught the mod out once already when the teaches field was",
+    "first read and this file's contents became real.",
+    "",
+    "Kept as the demonstration of the pool form: one weighted materials draw with a filler slot."
+  ],
   "type": "recompile:teardown",
   "input": "minecraft:iron_door",
   "station": "recompile:workbench",
-  "results": [
+  "ticks": 100,
+  "pools": [
     {
-      "item": "recompile:scrap_metal",
-      "count": 2
-    }
-  ],
-  "extras": [
-    {
-      "item": "recompile:junk",
-      "chance": 0.5
+      "rolls": 3,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 6
+        },
+        {
+          "item": "recompile:junk",
+          "weight": 3
+        },
+        {
+          "weight": 1
+        }
+      ]
     }
   ]
 }
