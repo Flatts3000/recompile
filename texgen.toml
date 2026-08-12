@@ -1231,32 +1231,6 @@ front = "a full-bleed Minecraft block face: the front of a discarded beige plast
 side = "a full-bleed Minecraft block face: the plain side panel of a discarded beige plastic office printer, blank yellowed plastic with one shallow moulded seam and a small dark ventilation grille near a corner, dust, scuffs and grime, muted, flat, no perspective, fills the whole tile"
 top = "a full-bleed top-down Minecraft block face: the top of a discarded beige plastic office printer, a flat hinged scanner lid with a shallow recessed paper feed tray along one edge, a few loose yellowed sheets of paper and dust on it, sun-faded plastic and scuffs, muted, flat, no perspective, fills the whole tile"
 
-# The Broken Fan (#170): where the Motor comes from. It has to read as the one find in the pile whose
-# job is obviously to SPIN - the motor teardown needs no explanation if the object visibly had one.
-# Grey-black moulded plastic and bare steel wire, deliberately unlike the enamel of the appliances and
-# the beige shell of the printer, so four finds in one pile still read as four different objects.
-[surface.broken_fan]
-kind = "block_multiface"
-backend = "ai"
-size = 16
-faces = ["front", "side", "top"]
-[surface.broken_fan.prompt]
-front = "a full-bleed Minecraft block face: the front of a discarded box fan, a round bare-steel wire guard of concentric rings over three dull grey plastic blades sitting in a dark recess behind it, grubby grey plastic frame around the circle, thick dust caked on the wires, rust spots, muted, flat, no perspective, fills the whole tile"
-side = "a full-bleed Minecraft block face: the plain side of a discarded box fan, grubby grey moulded plastic with a column of narrow vertical ventilation slots and one shallow moulded seam, dust, scuffs and a hairline crack, muted, flat, no perspective, fills the whole tile"
-top = "a full-bleed top-down Minecraft block face: the top of a discarded box fan, grubby grey plastic with a recessed carry handle slot along one edge and a small round speed dial beside it, thick settled dust and grime, muted, flat, no perspective, fills the whole tile"
-
-# The Light Fixture (#171): where the Bulb comes from. A ceiling troffer rather than a lamp, because a
-# lamp reads as furniture and this is salvage torn out of a ceiling. The yellowed diffuser is the whole
-# identity - white sheet steel alone would be indistinguishable from any other panel at 16px.
-[surface.light_fixture]
-kind = "block_multiface"
-backend = "ai"
-size = 16
-faces = ["front", "side", "top"]
-[surface.light_fixture.prompt]
-front = "a full-bleed Minecraft block face: the underside of a discarded ceiling light fixture, a large sun-yellowed translucent plastic diffuser panel with a shallow prismatic ribbed texture, one corner cracked and a dark tube shadow showing through, dead insects and dust inside, dulled white metal frame around the edge, muted, flat, no perspective, fills the whole tile"
-side = "a full-bleed Minecraft block face: the narrow end of a discarded ceiling light fixture, painted white sheet steel gone cream with age, one folded lip along the edge and a small dark slot, chipped paint, dents and rust creeping from the corners, muted, flat, no perspective, fills the whole tile"
-top = "a full-bleed top-down Minecraft block face: the back of a discarded ceiling light fixture, bare galvanised sheet steel with two round knockout holes and a short stub of frayed grey conduit at one, mounting screw dimples, grime and rust streaks, much dirtier than the painted sides, muted, flat, no perspective, fills the whole tile"
 
 # The Idea Fragment (#95). It is deliberately NOT a piece of the blueprint, and that is a reversal.
 #
@@ -1587,3 +1561,35 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "a single incandescent light bulb, clear dusty glass with a visible filament and a dull brass screw base, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------
+# The Fridge: the appliance find that replaces the Broken Fan and the Light Fixture.
+#
+# It earns the swap on identity alone. A fridge is the one household appliance that genuinely
+# contains a compressor MOTOR, a refrigerant PUMP and an interior BULB, so "tear it down, get one of
+# the three" needs no justification - where a light fixture only ever plausibly held a bulb, which is
+# why it read as filler.
+#
+# TWO BLOCKS TALL, and it draws ONE door face on BOTH halves. That was tried the other way first -
+# a separate upper and lower door, generated from separate prompts - and the two came back as
+# different objects: different enamel tone, the handle at a different height, a seam that did not
+# meet. Two faces of the same appliance generated blind always drift, which is the same failure the
+# `reference` key exists to prevent elsewhere. One face stacked twice reads as a tall two-door
+# fridge, and the seam at each half's bottom lands where a real door gap does. (Owner call.)
+#
+# The Light Fixture died of exactly the mistake to avoid here: its prompts asked for prismatic
+# ribbing, a cracked corner, dead insects and dust, all of which are sub-pixel at 16 and averaged
+# into a flat yellow square. Identity at this size comes from STRUCTURE - a door seam, a long
+# handle, a hard edge - not from surface detail. So each face below leads with one big shape and the
+# grime is secondary.
+# ---------------------------------------------------------------------------
+
+[surface.fridge]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front", "side", "top"]
+[surface.fridge.prompt]
+front = "a full-bleed Minecraft block face: the door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a hard horizontal door seam across the very bottom, yellowed with age, a few rust spots and a peeling sticker, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+side = "a full-bleed Minecraft block face: the plain side panel of a dumped white kitchen fridge, flat off-white enamel gone cream with age, one hard vertical seam line near the front edge, dents, scuffs and rust streaks running down, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+top = "a full-bleed top-down Minecraft block face: the dusty top of a dumped white kitchen fridge, flat off-white enamel under a thick layer of grey dust and grime, a few dark ring stains and scattered debris, rust at the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"

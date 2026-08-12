@@ -80,10 +80,10 @@ final class ComponentBlueprintTests {
                 boolean salvaged = false;
                 for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                         .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                    for (TeardownRecipe.ItemResult result : holder.value().results()) {
-                        if (result.item() == component) {
-                            salvaged = true;
-                        }
+                    // everyPossibleOutput, not results: a component declared in a pool is still
+                    // salvaged. Reading one field made the invariant a fact about JSON layout.
+                    if (holder.value().everyPossibleOutput().anyMatch(i -> i == component)) {
+                        salvaged = true;
                     }
                 }
                 if (!salvaged) {
@@ -110,31 +110,114 @@ final class ComponentBlueprintTests {
         });
 
         /*
-         * The fact #160's motivation got wrong, pinned so it cannot be re-derived from a green suite.
-         * A teardown yields its `results` every time and rolls only its `extras`; the Pump is a result.
-         * So "the stream never rolls one" was never about the Pump - it is about finding a washing
-         * machine, which the blueprint needs four of and therefore cannot rescue.
+         * REWRITTEN 2026-08-12, owner ruling: "our new rules override the old rules".
+         *
+         * This used to demand that each gated component be a GUARANTEED result of some teardown -
+         * one object, one component, no roll. The Fridge is deliberately a lottery: it holds a
+         * compressor motor, a refrigerant pump and an interior bulb, and which one you recover is
+         * the draw. Under the old rule that is illegal, and the rule loses.
+         *
+         * What survives is the reason the rule existed. It was never "you must know in advance which
+         * component"; it was "you must not take an object apart and come away with none", because the
+         * blueprint route costs four of the same teardown and so cannot rescue an empty streak. A
+         * component pool with no filler entry keeps that promise exactly - one component, every time.
+         *
+         * So the assertion moves from the component to the TEARDOWN: any pool that can produce a
+         * gated component must be certain to produce one of them.
          */
-        RCGameTests.test("a_component_from_a_teardown_is_never_a_dice_roll", 20, helper -> {
+        RCGameTests.test("a_component_teardown_always_yields_a_component", 20, helper -> {
             List<String> rolled = new ArrayList<>();
-            for (Item component : gatedComponents()) {
-                boolean guaranteed = false;
-                for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
-                        .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                    for (TeardownRecipe.ItemResult result : holder.value().results()) {
-                        if (result.item() == component) {
-                            guaranteed = true;
-                        }
+            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                for (TeardownRecipe.Pool pool : holder.value().pools()) {
+                    boolean hasComponent = pool.entries().stream()
+                        .anyMatch(e -> e.item().isPresent() && gatedComponents().contains(e.item().get()));
+                    if (!hasComponent) {
+                        continue;
+                    }
+                    boolean everyEntryIsAComponent = pool.entries().stream()
+                        .allMatch(e -> e.item().isPresent() && gatedComponents().contains(e.item().get()));
+                    if (!everyEntryIsAComponent || pool.rolls() < 1) {
+                        rolled.add(holder.id() + " can draw a blank where a component should be");
                     }
                 }
-                if (!guaranteed) {
-                    rolled.add(String.valueOf(BuiltInRegistries.ITEM.getKey(component)));
+            }
+            // extras is the other door into the same failure. A gated component written as an
+            // extra rolls its own independent chance, so the object can come apart and give you
+            // none - which is exactly what this test forbids, and the pool loop above would never
+            // look at it. The old results-based test caught this by accident; say it out loud.
+            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                for (TeardownRecipe.ChanceResult extra : holder.value().extras()) {
+                    if (gatedComponents().contains(extra.item()) && extra.chance() < 1.0F) {
+                        rolled.add(holder.id() + " offers "
+                            + BuiltInRegistries.ITEM.getKey(extra.item())
+                            + " as a chance extra, not a certainty");
+                    }
                 }
             }
+
             helper.assertTrue(rolled.isEmpty(),
-                "these components are not a guaranteed teardown result, so taking the object apart "
-                    + "might give you nothing. The blueprint cannot rescue that - it costs four of the "
-                    + "same teardown: " + rolled);
+                "a teardown that offers a gated component must be certain to hand one over - a "
+                    + "filler slot beside a component, or a component written as a chance extra, "
+                    + "means tearing the object apart can give you nothing, and four of the same "
+                    + "teardown is what the blueprint costs: " + rolled);
+            helper.succeed();
+        });
+
+        // NOTHING A TEARDOWN GIVES YOU MAY BE A FREE WATER SOURCE.
+        //
+        // leachate_is_not_water states this rule for fluids in as many words: "anything that answers
+        // yes to being water is a free clean-water source and the P1.10 water economy stops meaning
+        // anything". An ITEM can walk straight through that door. minecraft:ice broken without silk
+        // touch on solid ground leaves a water SOURCE block - two of them are infinite water - so a
+        // fridge that hands out ice quietly retires the Rain Collector, the bucket gate, and the
+        // farmland-hydration half of encroachment immunity (#156) all at once.
+        //
+        // Keyed on IceBlock, which is exactly the family whose playerDestroy creates water (ice and
+        // frosted_ice). Packed and blue ice are plain blocks and stay legal, which is what lets a
+        // freezer still contain something icy.
+        RCGameTests.test("no_teardown_hands_out_a_free_water_source", 20, helper -> {
+            List<String> taps = new ArrayList<>();
+            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                holder.value().everyPossibleOutput().forEach(item -> {
+                    boolean melts = item instanceof net.minecraft.world.item.BlockItem block
+                        && block.getBlock() instanceof net.minecraft.world.level.block.IceBlock;
+                    if (melts || item == net.minecraft.world.item.Items.WATER_BUCKET) {
+                        taps.add(holder.id() + " -> " + BuiltInRegistries.ITEM.getKey(item));
+                    }
+                });
+            }
+            helper.assertTrue(taps.isEmpty(),
+                "these teardown outputs are a free water source - break the placed block without "
+                    + "silk touch and you have a water source block, two of which are infinite "
+                    + "water, with no Rain Collector and no bucket: " + taps);
+            helper.succeed();
+        });
+
+        /*
+         * The other half of that ruling: every gated component must still be REACHABLE by salvage.
+         * Losing the lottery on a given fridge is fine; having no object in the world that can ever
+         * produce a Bulb is not, and is what deleting the Light Fixture would have caused unnoticed.
+         */
+        RCGameTests.test("every_gated_component_is_drawable_from_something", 20, helper -> {
+            List<String> orphaned = new ArrayList<>();
+            for (Item component : gatedComponents()) {
+                boolean drawable = false;
+                for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                        .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                    if (holder.value().everyPossibleOutput().anyMatch(i -> i == component)) {
+                        drawable = true;
+                    }
+                }
+                if (!drawable) {
+                    orphaned.add(String.valueOf(BuiltInRegistries.ITEM.getKey(component)));
+                }
+            }
+            helper.assertTrue(orphaned.isEmpty(),
+                "no teardown in the world can produce these, so salvage cannot reach them at all "
+                    + "and the blueprint has nothing to be taught by: " + orphaned);
             helper.succeed();
         });
 
@@ -150,8 +233,8 @@ final class ComponentBlueprintTests {
                 TeardownRecipe.TeachEntry lesson = null;
                 for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                         .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                    boolean yields = holder.value().results().stream()
-                        .anyMatch(result -> result.item() == component);
+                    boolean yields = holder.value().everyPossibleOutput()
+                        .anyMatch(i -> i == component);
                     if (!yields) {
                         continue;
                     }

@@ -2,6 +2,7 @@ package com.flatts.recompile.content.recipe;
 
 import com.flatts.recompile.registry.RCRecipeTypes;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
@@ -13,6 +14,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -118,6 +120,70 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
             );
     }
 
+
+    /**
+     * One weighted entry in a {@link Pool}. An entry with no {@code item} is the empty slot that
+     * makes a pool sometimes give nothing - the same idiom the mod's pull streams use.
+     */
+    public record PoolEntry(Optional<Item> item, int weight, int count) {
+        public static final Codec<PoolEntry> CODEC = RecordCodecBuilder.create(i -> i.group(
+            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("item").forGetter(PoolEntry::item),
+            Codec.intRange(1, 100000).optionalFieldOf("weight", 1).forGetter(PoolEntry::weight),
+            Codec.intRange(1, 64).optionalFieldOf("count", 1).forGetter(PoolEntry::count)
+        ).apply(i, PoolEntry::new));
+    }
+
+    /**
+     * A weighted draw: {@code rolls} independent picks from {@code entries}.
+     *
+     * <p><b>Pick-one, not chance-each, and that is the whole reason this exists.</b> {@link
+     * ChanceResult} rolls every extra independently, so it cannot express "one of motor, pump or
+     * bulb" - it gives none of them a quarter of the time and two of them another quarter. A pool
+     * draws exactly {@code rolls} times from the weights, which is how every other random table in
+     * this mod already works.
+     *
+     * <p>{@code rolls} is also how quantity is expressed: six rolls over plastic, metal and e-scrap
+     * gives six scrap split by weight, differently each time, rather than a fixed pile.
+     *
+     * <p><b>{@code teaches} couples knowledge to the draw.</b> A teaching pool grants an Idea
+     * Fragment for the recipe whose id matches the item it just produced - so tearing a fridge down
+     * and getting a motor teaches the motor, and getting a bulb teaches the bulb. That identity is
+     * real rather than a convention worth checking: every component blueprint in this mod is
+     * registered at the same id as the component it makes.
+     */
+    public record Pool(int rolls, boolean teaches, int scrapsRequired, List<PoolEntry> entries) {
+        public static final Codec<Pool> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.intRange(0, 256).optionalFieldOf("rolls", 1).forGetter(Pool::rolls),
+            Codec.BOOL.optionalFieldOf("teaches", false).forGetter(Pool::teaches),
+            Codec.intRange(1, 99).optionalFieldOf("scraps_required", 4).forGetter(Pool::scrapsRequired),
+            ExtraCodecs.nonEmptyList(PoolEntry.CODEC.listOf()).fieldOf("entries").forGetter(Pool::entries)
+        ).apply(i, Pool::new));
+
+        public int totalWeight() {
+            int total = 0;
+            for (PoolEntry entry : entries) {
+                total += entry.weight();
+            }
+            return total;
+        }
+
+        /** One draw, or empty for the filler slot. */
+        public Optional<PoolEntry> draw(RandomSource random) {
+            int total = totalWeight();
+            if (total <= 0) {
+                return Optional.empty();
+            }
+            int pick = random.nextInt(total);
+            for (PoolEntry entry : entries) {
+                pick -= entry.weight();
+                if (pick < 0) {
+                    return entry.item().isPresent() ? Optional.of(entry) : Optional.empty();
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
     /**
      * A recipe this teardown can reveal. {@code scrapsRequired} is the deterministic
      * study threshold; {@code chance} is acceleration-only bonus progress.
@@ -138,15 +204,40 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
             );
     }
 
-    public static final MapCodec<TeardownRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    public static final MapCodec<TeardownRecipe> CODEC = RecordCodecBuilder.<TeardownRecipe>mapCodec(instance -> instance.group(
         Ingredient.CODEC.fieldOf("input").forGetter(TeardownRecipe::input),
         Codec.STRING.optionalFieldOf("station", DEFAULT_STATION).forGetter(TeardownRecipe::station),
-        ExtraCodecs.nonEmptyList(ItemResult.CODEC.listOf()).fieldOf("results").forGetter(TeardownRecipe::results),
+        ItemResult.CODEC.listOf().optionalFieldOf("results", List.of()).forGetter(TeardownRecipe::results),
         ChanceResult.CODEC.listOf().optionalFieldOf("extras", List.of()).forGetter(TeardownRecipe::extras),
-        TeachEntry.CODEC.listOf().optionalFieldOf("teaches", List.of()).forGetter(TeardownRecipe::teaches),
+        Pool.CODEC.listOf().optionalFieldOf("pools", List.of()).forGetter(TeardownRecipe::pools),
+        TeachEntry.CODEC.listOf().optionalFieldOf("teaches", List.of()).forGetter(TeardownRecipe::declaredTeaches),
         Ingredient.CODEC.optionalFieldOf("tool").forGetter(TeardownRecipe::tool),
         Codec.intRange(1, 72000).optionalFieldOf("ticks", DEFAULT_TICKS).forGetter(TeardownRecipe::ticks)
-    ).apply(instance, TeardownRecipe::new));
+    ).apply(instance, TeardownRecipe::new)).validate(TeardownRecipe::mustProduceSomething);
+
+    /**
+     * {@code results} was a nonEmptyList before {@code pools} existed, and that guard has to survive
+     * the field becoming optional: a teardown that yields nothing is a load error, not a quiet no-op.
+     * "Non-empty" now means EITHER form, so an old recipe and a pooled one are both valid while a
+     * recipe with neither still fails loudly at datapack load.
+     */
+    private static DataResult<TeardownRecipe> mustProduceSomething(TeardownRecipe recipe) {
+        if (!recipe.results().isEmpty()) {
+            return DataResult.success(recipe);
+        }
+        // A non-empty pools list is not the same as a pools list that can produce anything.
+        // "rolls": 0 is legal (a pack may want to disable a pool without deleting it) and an
+        // all-filler pool is legal too, so a recipe can satisfy the shallow check and still be the
+        // quiet no-op this guard exists to reject.
+        boolean canProduce = recipe.pools().stream().anyMatch(pool -> pool.rolls() > 0
+            && pool.entries().stream().anyMatch(entry -> entry.item().isPresent()));
+        if (!canProduce) {
+            return DataResult.error(() ->
+                "a teardown must produce something: give it \"results\", or \"pools\" with at "
+                    + "least one pool that rolls at least once and has an entry carrying an item");
+        }
+        return DataResult.success(recipe);
+    }
 
     // Bridged from the map codec rather than composed field-by-field: recipes sync once on
     // join, and this has no component-arity ceiling as the schema grows (the knowledge axis
@@ -158,20 +249,81 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
     private final String station;
     private final List<ItemResult> results;
     private final List<ChanceResult> extras;
+    private final List<Pool> pools;
+    private final List<TeachEntry> declaredTeaches;
     private final List<TeachEntry> teaches;
     private final Optional<Ingredient> tool;
     private final int ticks;
 
     public TeardownRecipe(Ingredient input, String station, List<ItemResult> results,
-                          List<ChanceResult> extras, List<TeachEntry> teaches,
+                          List<ChanceResult> extras, List<Pool> pools, List<TeachEntry> teaches,
                           Optional<Ingredient> tool, int ticks) {
         this.input = input;
         this.station = station;
         this.results = List.copyOf(results);
         this.extras = List.copyOf(extras);
-        this.teaches = List.copyOf(teaches);
+        this.pools = List.copyOf(pools);
+        this.declaredTeaches = List.copyOf(teaches);
+
+        // teaches() reports the declared entries PLUS one per teaching-pool entry, so everything
+        // downstream - fragment assembly, the guidebook checks, JEI - sees the full set of recipes
+        // this teardown can reveal without any of them learning about pools. Only the bench's
+        // GRANTING needs to know the difference, because a pool teaches whichever item it drew.
+        List<TeachEntry> all = new java.util.ArrayList<>(this.declaredTeaches);
+        for (Pool pool : this.pools) {
+            if (!pool.teaches()) {
+                continue;
+            }
+            for (PoolEntry entry : pool.entries()) {
+                entry.item().ifPresent(item -> {
+                    Identifier id = BuiltInRegistries.ITEM.getKey(item);
+                    if (all.stream().noneMatch(e -> e.recipe().equals(id))) {
+                        // Chance 1: drawing the component ALWAYS teaches it. Zero would read as
+                        // "might teach", and every teardown teaches (owner, 2026-08-02) - below one
+                        // the cost becomes a dice game on top of a dice game.
+                        all.add(new TeachEntry(id, 1.0F, pool.scrapsRequired()));
+                    }
+                });
+            }
+        }
+        this.teaches = List.copyOf(all);
         this.tool = tool;
         this.ticks = ticks;
+    }
+
+
+    /**
+     * Every item this teardown can possibly produce, by any route.
+     *
+     * <p><b>Exists because "what can this give you" was being asked of {@code results()} alone.</b>
+     * Seven call sites across the reachability tests did that, so the moment an output moved into a
+     * pool the mod would have believed lapis, ink and half the dye set had no source at all - and
+     * those tests are exactly the guarantees that stop a colour becoming unobtainable. Asking a
+     * recipe what it makes should not require knowing which field it was written in.
+     */
+    public java.util.stream.Stream<Item> everyPossibleOutput() {
+        return java.util.stream.Stream.concat(
+            java.util.stream.Stream.concat(
+                results.stream().map(ItemResult::item),
+                extras.stream().map(ChanceResult::item)),
+            pools.stream().flatMap(pool -> pool.entries().stream())
+                .flatMap(entry -> entry.item().stream()));
+    }
+
+    /** Every pool this teardown draws from. */
+    public List<Pool> pools() {
+        return pools;
+    }
+
+    /**
+     * Only the entries written in the {@code teaches} field.
+     *
+     * <p>The bench grants these unconditionally on their own {@code chance}; pool-taught recipes are
+     * granted by the draw instead, so iterating {@link #teaches()} to hand out fragments would teach
+     * every component at once - the exact opposite of "you learn the one you pulled out".
+     */
+    public List<TeachEntry> declaredTeaches() {
+        return declaredTeaches;
     }
 
     public Ingredient input() {

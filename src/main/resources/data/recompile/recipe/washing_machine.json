@@ -4,25 +4,22 @@
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 120,
-  "results": [
+  "pools": [
     {
-      "item": "recompile:pump",
-      "count": 1
+      "_comment": "The component, and the knowledge follows it. A single-entry teaching pool behaves exactly as the old results+teaches pair did - stated in the new form so every appliance reads the same way.",
+      "rolls": 1,
+      "teaches": true,
+      "scraps_required": 4,
+      "entries": [
+        { "item": "recompile:pump" }
+      ]
     },
     {
-      "item": "recompile:scrap_metal",
-      "count": 3
-    },
-    {
-      "item": "recompile:plastic_scrap",
-      "count": 2
-    }
-  ],
-  "teaches": [
-    {
-      "recipe": "recompile:pump",
-      "chance": 1.0,
-      "scraps_required": 4
+      "rolls": 5,
+      "entries": [
+        { "item": "recompile:scrap_metal", "weight": 3 },
+        { "item": "recompile:plastic_scrap", "weight": 2 }
+      ]
     }
   ]
 }

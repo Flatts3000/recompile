@@ -63,12 +63,11 @@ public final class RCCreativeTabs {
 
                     // --- 2. Bulky Waste finds: the furniture the dump hands you ---
                     output.accept(RCItems.BULKY_WASTE.get());
+                    output.accept(RCItems.FRIDGE.get());
                     output.accept(RCItems.MATTRESS.get());
                     output.accept(RCItems.WASHING_MACHINE.get());
                     output.accept(RCItems.FILING_CABINET.get());
                     output.accept(RCItems.PRINTER.get());
-                    output.accept(RCItems.BROKEN_FAN.get());
-                    output.accept(RCItems.LIGHT_FIXTURE.get());
                     output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
 
                     // --- 3. Tools ---

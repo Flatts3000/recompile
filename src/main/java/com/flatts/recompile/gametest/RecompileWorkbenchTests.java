@@ -4,6 +4,8 @@ import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
+import java.util.List;
+import net.minecraft.world.item.Item;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -77,7 +79,21 @@ final class RecompileWorkbenchTests {
                 helper.runAfterDelay(tick, () -> workbench.advanceBreakdown(level, player, mattress));
             }
             helper.runAfterDelay(112, () -> {
-                helper.assertItemEntityCountIs(Items.STRING, pos, 3.0, 4);
+                // COUNT THE PILE, NOT THE COLOURS. The mattress rolls seven times over string,
+                // fiber and scrap now (weights 4/2/1) instead of handing back a fixed 4/2/1 pile, so
+                // any exact per-item count is a coin flip - this asserted 4 string and got 2. Seven
+                // items total is still exact, because the pool has no filler entry, and that is the
+                // part worth pinning: a teardown that silently produced six would mean a lost roll.
+                int total = 0;
+                for (Item kind : List.of(Items.STRING, RCItems.FIBER_SCRAP.get(),
+                        RCItems.SCRAP_METAL.get())) {
+                    total += helper.getEntities(net.minecraft.world.entity.EntityType.ITEM).stream()
+                        .filter(e -> e.getItem().is(kind))
+                        .mapToInt(e -> e.getItem().getCount()).sum();
+                }
+                helper.assertTrue(total == 7,
+                    "a mattress is seven draws over string/fiber/scrap, so the pile is always seven "
+                        + "items however they land - got " + total);
                 helper.succeed();
             });
         });
@@ -103,9 +119,23 @@ final class RecompileWorkbenchTests {
                 "the breakdown must spend one durability on the racked knife");
 
             helper.succeedWhen(() -> {
-                helper.assertItemEntityCountIs(Items.STRING, pos, 3.0, 4);
-                helper.assertItemEntityCountIs(RCItems.FIBER_SCRAP.get(), pos, 3.0, 2);
-                helper.assertItemEntityCountIs(RCItems.SCRAP_METAL.get(), pos, 3.0, 1);
+                helper.assertTrue(!helper.getEntities(net.minecraft.world.entity.EntityType.ITEM)
+                        .isEmpty(),
+                    "the knife teardown should have dropped the mattress pile");
+                // Same reason as above: fiber is weight 2 of 7 now, not a fixed pair. Counted by
+                // KIND rather than by entity, because the mattress also teaches, so an Idea Fragment
+                // lands in the pile and a blanket count reads eight.
+                int pile = 0;
+                for (Item kind : List.of(Items.STRING, RCItems.FIBER_SCRAP.get(),
+                        RCItems.SCRAP_METAL.get())) {
+                    pile += helper.getEntities(net.minecraft.world.entity.EntityType.ITEM).stream()
+                        .filter(e -> e.getItem().is(kind))
+                        .mapToInt(e -> e.getItem().getCount()).sum();
+                }
+                helper.assertTrue(pile == 7,
+                    "the knife teardown draws seven materials however they land - got " + pile);
+                // Scrap metal is weight 1 of 7, so a run can legitimately produce none of it. The
+                // seven-item total above is the invariant; a per-colour count is not one any more.
             });
         });
 

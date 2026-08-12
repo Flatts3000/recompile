@@ -4,88 +4,135 @@
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 100,
-  "results": [
+  "pools": [
     {
-      "item": "minecraft:paper",
-      "count": 3
+      "_comment": [
+        "THE INK SAC IS GUARANTEED, in its own single-entry pool with no filler.",
+        "",
+        "It was a `results` entry before the pool conversion, so it came out every time. Folded into",
+        "the carcass pool as weight 1 of 7 it would have been missing from about a THIRD of printers",
+        "- and no test could see it, because PrinterTests only asserts reachability. Ink is the only",
+        "black dye, the only book-and-quill and a bait ingredient, and the JEI blurb promises it by",
+        "name. A guarantee that quietly became a two-in-three is the kind of regression that surfaces",
+        "as a player who thinks the recipe is broken."
+      ],
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "minecraft:ink_sac"
+        }
+      ]
     },
     {
-      "item": "minecraft:ink_sac",
-      "count": 1
+      "_comment": "The carcass: paper, plastic and the cartridge frame.",
+      "rolls": 6,
+      "entries": [
+        {
+          "item": "minecraft:paper",
+          "weight": 3
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 2
+        },
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 1
+        }
+      ]
     },
     {
-      "item": "recompile:plastic_scrap",
-      "count": 2
+      "_comment": "The logic board's lapis, half the time.",
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "minecraft:lapis_lazuli",
+          "weight": 1
+        },
+        {
+          "weight": 1
+        }
+      ]
     },
     {
-      "item": "recompile:scrap_metal",
-      "count": 1
-    }
-  ],
-  "extras": [
-    {
-      "item": "minecraft:lapis_lazuli",
-      "chance": 0.5
-    },
-    {
-      "item": "minecraft:glow_ink_sac",
-      "chance": 0.12
-    },
-    {
-      "item": "minecraft:cyan_dye",
-      "chance": 0.3
-    },
-    {
-      "item": "minecraft:magenta_dye",
-      "chance": 0.3
-    },
-    {
-      "item": "minecraft:yellow_dye",
-      "chance": 0.3
-    },
-    {
-      "item": "minecraft:white_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:light_gray_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:gray_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:red_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:orange_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:lime_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:green_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:light_blue_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:purple_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:pink_dye",
-      "chance": 0.08
-    },
-    {
-      "item": "minecraft:brown_dye",
-      "chance": 0.08
+      "_comment": [
+        "TONER. This replaces sixteen independently-rolled extras, which is what the schema could",
+        "say before and not what the printer meant. Independent chances gave no toner at all about",
+        "15% of the time and could hand over a dozen dyes at once; the guidebook meanwhile promised",
+        "'fourteen colours, cyan magenta and yellow most often'.",
+        "",
+        "Two weighted draws say that properly: CMY heaviest, the other ten present but rare, glow ink",
+        "rarer still, and a filler slot so a dry cartridge is possible. Expected 1.7 dyes, matching",
+        "what the old independent rolls averaged - the distribution changed, the economy did not.",
+        "",
+        "Blue and black are absent on purpose: the lapis and the ink sac above already grind into those."
+      ],
+      "rolls": 2,
+      "entries": [
+        {
+          "item": "minecraft:cyan_dye",
+          "weight": 30
+        },
+        {
+          "item": "minecraft:magenta_dye",
+          "weight": 30
+        },
+        {
+          "item": "minecraft:yellow_dye",
+          "weight": 30
+        },
+        {
+          "item": "minecraft:white_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:light_gray_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:gray_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:red_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:orange_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:lime_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:green_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:light_blue_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:purple_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:pink_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:brown_dye",
+          "weight": 8
+        },
+        {
+          "item": "minecraft:glow_ink_sac",
+          "weight": 12
+        },
+        {
+          "weight": 30
+        }
+      ]
     }
   ]
 }

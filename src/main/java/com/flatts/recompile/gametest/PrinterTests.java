@@ -99,7 +99,7 @@ final class PrinterTests {
             TeardownRecipe printer = teardownFor(helper, RCItems.PRINTER.get());
             helper.assertTrue(printer != null, "the printer must have a teardown recipe");
             boolean lapis = printer.extras().stream().anyMatch(e -> e.item() == Items.LAPIS_LAZULI)
-                || printer.results().stream().anyMatch(r -> r.item() == Items.LAPIS_LAZULI);
+                || printer.everyPossibleOutput().anyMatch(i -> i == Items.LAPIS_LAZULI);
             helper.assertTrue(lapis,
                 "the printer is this world's lapis (cyan toner is phthalocyanine blue). Without it "
                     + "lapis has no source at all - the gem tier spec claims to deliver it and no "
@@ -212,7 +212,8 @@ final class PrinterTests {
     }
 
     private static boolean yields(TeardownRecipe recipe, Item item) {
-        return recipe.results().stream().anyMatch(r -> r.item() == item)
+        return recipe.everyPossibleOutput().anyMatch(i -> i == item)
+            || recipe.results().stream().anyMatch(r -> r.item() == item)
             || recipe.extras().stream().anyMatch(e -> e.item() == item);
     }
 

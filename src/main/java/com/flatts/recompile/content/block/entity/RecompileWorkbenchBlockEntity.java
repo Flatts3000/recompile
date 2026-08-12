@@ -12,6 +12,8 @@ import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
@@ -236,6 +238,7 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
                 output(level, new ItemStack(extra.item()));
             }
         }
+        drawPools(level, recipe, random, player);
         teach(level, recipe, random, player);
         recipe.tool().ifPresent(required -> damageRackedTool(level, required));
         if (player == null || !player.getAbilities().instabuild) {
@@ -243,6 +246,48 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
         }
         SoundType sound = level.getBlockState(worldPosition).getSoundType();
         level.playSound(null, worldPosition, sound.getBreakSound(), SoundSource.BLOCKS, 0.8F, 0.9F);
+    }
+
+
+    /**
+     * Draw every pool, and let a teaching pool teach whatever it happened to produce.
+     *
+     * <p><b>This is what {@code extras} could not express.</b> An extra rolls its own chance
+     * independently, so "one of motor, pump or bulb" comes out as none of them a quarter of the time
+     * and two of them another quarter. A pool draws a fixed number of times from the weights, the
+     * way every other random table in this mod does.
+     *
+     * <p><b>Knowledge follows the draw.</b> A pool marked {@code teaches} grants an Idea Fragment for
+     * the recipe whose id matches the item it just produced - pull a motor out of a fridge and you
+     * learn the motor, pull a bulb and you learn the bulb. Iterating {@code teaches()} here instead
+     * would hand over all three at once, which is the opposite of the rule.
+     */
+    private void drawPools(ServerLevel level, TeardownRecipe recipe, RandomSource random,
+            @Nullable Player player) {
+        for (TeardownRecipe.Pool pool : recipe.pools()) {
+            for (int roll = 0; roll < pool.rolls(); roll++) {
+                var drawn = pool.draw(random);
+                if (drawn.isEmpty() || drawn.get().item().isEmpty()) {
+                    continue;   // the filler slot: a pool is allowed to give nothing
+                }
+                Item item = drawn.get().item().get();
+                output(level, new ItemStack(item, drawn.get().count()));
+                if (pool.teaches()) {
+                    grantFragment(level, BuiltInRegistries.ITEM.getKey(item), player);
+                }
+            }
+        }
+    }
+
+    /** One fragment for one recipe, subject to the same already-known check as {@link #teach}. */
+    private void grantFragment(ServerLevel level, Identifier recipe, @Nullable Player player) {
+        if (!RCConfig.BLUEPRINTS_ENABLED.get()) {
+            return;
+        }
+        if (BlueprintAccess.reachable(level, player, worldPosition, recipe)) {
+            return;
+        }
+        fileOrDrop(level, IdeaFragmentItem.of(RCItems.IDEA_FRAGMENT.get(), recipe, 1));
     }
 
     /**
@@ -266,7 +311,7 @@ public class RecompileWorkbenchBlockEntity extends BlockEntity {
         if (!RCConfig.BLUEPRINTS_ENABLED.get()) {
             return;
         }
-        for (TeardownRecipe.TeachEntry entry : recipe.teaches()) {
+        for (TeardownRecipe.TeachEntry entry : recipe.declaredTeaches()) {
             if (entry.chance() <= 0.0F || random.nextFloat() >= entry.chance()) {
                 continue;
             }

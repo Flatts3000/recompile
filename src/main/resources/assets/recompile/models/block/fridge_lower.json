@@ -1,0 +1,10 @@
+{
+  "__comment": "Lower half: the same door face again, so the two stack into one tall two-door fridge. Its up face is hidden by the upper half and its down face sits on the ground, so both borrow the plain side panel.",
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "recompile:block/fridge_front",
+    "side": "recompile:block/fridge_side",
+    "top": "recompile:block/fridge_side",
+    "particle": "recompile:block/fridge_front"
+  }
+}

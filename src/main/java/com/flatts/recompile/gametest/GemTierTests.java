@@ -96,6 +96,10 @@ final class GemTierTests {
                     .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
                 checked++;
                 List<TeardownRecipe.ItemResult> all = new ArrayList<>(holder.value().results());
+                // Pool entries count as outputs here too; see TeardownRecipe.everyPossibleOutput.
+                holder.value().pools().stream().flatMap(pool -> pool.entries().stream())
+                    .forEach(e -> e.item().ifPresent(i ->
+                        all.add(new TeardownRecipe.ItemResult(i, e.count()))));
                 for (var extra : holder.value().extras()) {
                     if (TEARDOWN_GATED.contains(extra.item())) {
                         leaks.add(holder.id() + " rolls " + extra.item());

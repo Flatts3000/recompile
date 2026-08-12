@@ -187,15 +187,17 @@ final class SortingDataTests {
             // Five spine finds (the fifth is the printer, #112), four windfall finds (the fourth is
             // the found spyglass, #113), six recovered paintings (#99). Counted rather than listed so a
             // new find has to come here and be acknowledged: a magic 14 that silently became 15 would
-            // mean nobody noticed. It has now caught two - the Broken Fan and the Light Fixture,
-            // added for #170/#171 - which is exactly the job.
+            // mean nobody noticed. It caught two when they were added (the Broken Fan and the Light
+            // Fixture) and caught the number again when the Fridge replaced both - which is the job.
             //
             // Reaching 13 at all is the point of this number now. The spine and windfall tiers are
             // NESTED loot tables, and a reader that skipped minecraft:loot_table entries would return
             // six - a Prying category containing nothing but paintings, with every real find gone and
             // no error anywhere.
-            helper.assertTrue(out.size() == 17,
-                "Bulky Waste should offer seven spine finds, four windfall finds and six paintings, "
+            // Six spine finds since 2026-08-12: the Broken Fan and the Broken Light Fixture were
+            // replaced by the single Dead Fridge, which yields all three components between them.
+            helper.assertTrue(out.size() == 16,
+                "Bulky Waste should offer six spine finds, four windfall finds and six paintings, "
                     + "got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show
@@ -323,6 +325,32 @@ final class SortingDataTests {
         // constant; when the Broken Hydroponics Bay teardown shipped, it was invisible to every viewer
         // - the block could be torn down in-world while JEI denied the recipe existed, and nothing
         // failed. This asserts the count matches the files on disk rather than a number written here.
+        // A POOL'S QUANTITY MUST REACH THE VIEWER, not just its existence.
+        //
+        // The fridge's scrap pool rolls EIGHT times over metal/plastic/e-scrap. Expressed as a bare
+        // per-item chance that saturates at 100%, a player reads "one metal, one plastic, maybe an
+        // e-scrap" for a teardown that actually hands over eight items - the viewer would be off by
+        // a factor of four on the mod's flagship recipe. Same family as #180: the mechanic works and
+        // the viewer quietly describes a different game. Chance alone cannot carry "how many", so
+        // the stack count has to.
+        RCGameTests.test("a_viewer_reads_how_many_a_pool_gives", 20, helper -> {
+            var fridge = com.flatts.recompile.compat.TeardownData.all().stream()
+                .filter(e -> e.input().getItem() == RCItems.FRIDGE.get())
+                .findFirst();
+            helper.assertTrue(fridge.isPresent(), "the fridge teardown must reach the viewers");
+
+            var metal = fridge.get().outputs().stream()
+                .filter(w -> w.stack().getItem() == RCItems.SCRAP_METAL.get())
+                .findFirst();
+            helper.assertTrue(metal.isPresent(), "scrap metal must be listed as a fridge output");
+
+            // 8 rolls, weight 5 of 10 -> four scrap metal per teardown on average.
+            int shown = metal.get().stack().getCount();
+            helper.assertTrue(shown == 4,
+                "a viewer must show the ~4 scrap metal a fridge actually gives, showed " + shown);
+            helper.succeed();
+        });
+
         RCGameTests.test("every_bundled_teardown_reaches_the_viewers", 20, helper -> {
             int onDisk = com.flatts.recompile.compat.RecipeFiles.ofType("recompile:teardown").size();
             int surfaced = com.flatts.recompile.compat.TeardownData.all().size();
