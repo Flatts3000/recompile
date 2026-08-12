@@ -64,6 +64,27 @@ final class FoundNotCraftedTests {
         "recompile:separating"
     );
 
+    /**
+     * Recipes that hand back the item you put in, so they are not a <b>source</b> of it.
+     *
+     * <p>Dyeing leather boots takes leather boots and gives you leather boots. Trimming a chestplate
+     * takes a chestplate. Neither can produce the armour from nothing, so neither undermines "found,
+     * not crafted" - a player still has to find the boots before they can dye them.
+     *
+     * <p><b>Keyed on the SERIALIZER, not the recipe type, and that distinction is load-bearing.</b>
+     * {@code crafting_dye}'s type is plain {@code minecraft:crafting}, shared with every ordinary
+     * shaped recipe in the game, so excluding it by type would blind this sweep to the entire
+     * crafting table - the same trap the {@code isSpecial()} note above already describes.
+     *
+     * <p>These used to be caught by {@code isSpecial()} returning no display at all. In 26.1 they
+     * declare a real result plus a {@code target} equal to it, so they read as ordinary recipes and
+     * arrived here as 105 false positives the moment leather armour was tagged.
+     */
+    private static final Set<String> RETURNS_ITS_OWN_INPUT = Set.of(
+        "minecraft:crafting_dye",
+        "minecraft:smithing_trim"
+    );
+
     static void register() {
         /*
          * Drive it red by leaving the bucket craftable - which is exactly how this was written. The
@@ -81,6 +102,10 @@ final class FoundNotCraftedTests {
 
             for (RecipeHolder<?> holder : level.getServer().getRecipeManager().recipeMap().values()) {
                 scanned++;
+                if (RETURNS_ITS_OWN_INPUT.contains(String.valueOf(
+                        BuiltInRegistries.RECIPE_SERIALIZER.getKey(holder.value().getSerializer())))) {
+                    continue;
+                }
                 List<RecipeDisplay> displays = holder.value().display();
                 if (displays.isEmpty()) {
                     // A special recipe computes its result from its input - dyeing armour, cloning a

@@ -1,6 +1,33 @@
 {
   "values": [
     "minecraft:bucket",
-    "minecraft:glass_bottle"
+    "minecraft:glass_bottle",
+    "minecraft:bowl",
+    "minecraft:shears",
+    "minecraft:flint_and_steel",
+    "minecraft:lead",
+    "minecraft:name_tag",
+    "minecraft:paper",
+    "minecraft:book",
+    "minecraft:bundle",
+    "minecraft:leather_helmet",
+    "minecraft:leather_chestplate",
+    "minecraft:leather_leggings",
+    "minecraft:leather_boots",
+    "minecraft:rotten_flesh",
+    "recompile:junk",
+    "recompile:scrap_metal",
+    "recompile:rebar",
+    "recompile:plastic_scrap",
+    "recompile:glass_shards",
+    "recompile:fiber_scrap",
+    "recompile:organic_muck",
+    "recompile:e_scrap",
+    "recompile:tin_can",
+    "recompile:puzzle_cube_piece",
+    "recompile:avocado",
+    "recompile:present",
+    "recompile:gold_coin",
+    "recompile:toy_car"
   ]
 }

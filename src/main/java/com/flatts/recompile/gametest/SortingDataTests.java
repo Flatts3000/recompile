@@ -128,13 +128,19 @@ final class SortingDataTests {
             helper.assertTrue(Math.abs(bottle.chance() - tin.chance() * 0.5f) < 0.001f,
                 "glass bottles should be half as likely as tin cans");
 
-            // Named discs, not #minecraft:music_discs. That tag's Java constant is gone in 26.1 - only
-            // CREEPER_DROP_MUSIC_DISCS survives, discs being identified by the jukebox_playable
-            // component now - and a tag entry that fails to resolve contributes nothing and says
-            // nothing. The pool would just sum to slightly under 1, well inside the tolerance above.
-            helper.assertTrue(out.stream().anyMatch(w -> w.stack().is(
-                    net.minecraft.world.item.Items.MUSIC_DISC_13)),
-                "a music disc should be a household pull");
+            // Music discs left the stream (owner, 2026-08-12) and the assertion that they were in it
+            // went with them. What replaces it is the durable-goods pool itself: the point of that
+            // pool is that a tool is rare without its weight having to be a fraction, so the check
+            // worth keeping is that a rare finished good is still reachable and still rare.
+            SortingData.Weighted bucket = out.stream()
+                .filter(w -> w.stack().is(net.minecraft.world.item.Items.BUCKET))
+                .findFirst().orElse(null);
+            helper.assertTrue(bucket != null,
+                "the bucket should be a household pull - it is the only way to move water in a "
+                    + "standalone install, so the whole green tier hangs off this entry");
+            helper.assertTrue(bucket.chance() < 0.001f,
+                "a found tool should be rare - the bucket reads as " + bucket.chance()
+                    + " per pull, and it shipped at one every two minutes once already");
             helper.succeed();
         });
 
