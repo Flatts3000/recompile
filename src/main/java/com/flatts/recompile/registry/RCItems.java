@@ -422,8 +422,12 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =
         ITEMS.registerSimpleBlockItem("rain_collector", RCBlocks.RAIN_COLLECTOR);
     /**
-     * The shared multiblock component. Note there is deliberately no item for
-     * {@code rain_collector_funnel}: a dummy cell is never crafted or held, only formed.
+     * The shared multiblock component.
+     *
+     * <p>This used to say the funnel below deliberately has no item because a dummy cell is never
+     * crafted or held. It is a dummy cell, but it is also a component you craft and place by hand,
+     * and its item is declared two lines down - {@code RegistryCompletenessTests.NO_ITEM_FORM}
+     * says so explicitly and lists the cells that really are formed-only.
      */
     public static final DeferredItem<BlockItem> MACHINE_FRAME =
         ITEMS.registerSimpleBlockItem("machine_frame", RCBlocks.MACHINE_FRAME);

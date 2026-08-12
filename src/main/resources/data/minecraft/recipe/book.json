@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:never"
+    }
+  ],
+  "category": "misc",
+  "ingredients": [
+    "minecraft:paper",
+    "minecraft:paper",
+    "minecraft:paper",
+    "minecraft:leather"
+  ],
+  "result": {
+    "id": "minecraft:book"
+  }
+}

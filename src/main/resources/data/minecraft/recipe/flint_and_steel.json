@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:never"
+    }
+  ],
+  "category": "equipment",
+  "ingredients": [
+    "minecraft:iron_ingot",
+    "minecraft:flint"
+  ],
+  "result": {
+    "id": "minecraft:flint_and_steel"
+  }
+}

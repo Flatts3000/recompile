@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:never"
+    }
+  ],
+  "category": "equipment",
+  "key": {
+    "#": "minecraft:paper",
+    "X": "#minecraft:metal_nuggets"
+  },
+  "pattern": [
+    " X",
+    "# "
+  ],
+  "result": {
+    "id": "minecraft:name_tag"
+  }
+}
