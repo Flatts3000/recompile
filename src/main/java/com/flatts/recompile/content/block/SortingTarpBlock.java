@@ -42,13 +42,9 @@ public class SortingTarpBlock extends Block {
     // flooding the world with item entities (a bale is 12 rolls per sift).
     private static final int SIFT_COOLDOWN_TICKS = 8;
 
-    // A waist-height tarp-draped table: a draped mass from y3 up, on four leg feet.
-    private static final VoxelShape SHAPE = Shapes.or(
-        Block.box(1, 3, 1, 15, 13, 15),    // tarp-draped table mass
-        Block.box(2, 0, 2, 5, 3, 5),       // leg feet
-        Block.box(11, 0, 2, 14, 3, 5),
-        Block.box(2, 0, 11, 5, 3, 14),
-        Block.box(11, 0, 11, 14, 3, 14));
+    // Shared with the Scrap Crafting Table and the Teardown Workbench - they are one workstation
+    // vocabulary now, and this used to be its own 1..15 copy of nearly the same numbers.
+    private static final VoxelShape SHAPE = WorkstationTable.SHAPE;
 
     public SortingTarpBlock(Properties properties) {
         super(properties);

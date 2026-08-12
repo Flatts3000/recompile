@@ -1,16 +1,42 @@
 {
-  "comment": "The racked scrap knife, lying flat on the left of the table top (driven by has_knife).",
+  "comment": "The racked scrap knife, lying flat on the left of the table top (driven by has_knife). Y is 13 because the shared workstation worktop ends there.",
   "textures": {
     "knife": "recompile:block/scrap_knife",
     "particle": "recompile:block/scrap_knife"
   },
   "elements": [
     {
-      "from": [2, 16, 2],
-      "to": [7, 16.4, 14],
+      "from": [
+        2,
+        13.0,
+        2
+      ],
+      "to": [
+        7,
+        13.4,
+        14
+      ],
       "faces": {
-        "up":   { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#knife" },
-        "down": { "uv": [0, 0, 16, 16], "rotation": 180, "texture": "#knife" }
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "rotation": 180,
+          "texture": "#knife"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "rotation": 180,
+          "texture": "#knife"
+        }
       }
     }
   ]
