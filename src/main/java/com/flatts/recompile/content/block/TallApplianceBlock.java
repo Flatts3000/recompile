@@ -27,13 +27,17 @@ import org.jetbrains.annotations.Nullable;
  * a fridge crammed into one cube reads as a filing cabinet. The Dirty Mattress already proved a find
  * may occupy two blocks; this is the same idea stood on end.
  *
- * <p><b>The halves are kept together by state validation, not by breaking each other.</b> This is the
- * trap {@code MultiblockCoreBlock.disband} paid for: in 26.1 the removal hook fires on a plain
- * {@code setBlock}-to-AIR as well as on a real break, so a half that destroys its partner re-enters
- * the partner's hook and they ping-pong - and any drop in that path multiplies. So neither half ever
- * touches the other. Each simply declares itself unable to survive without its partner and returns
- * AIR from the neighbour-update hook, which is how vanilla doors and tall flowers do it: the game
- * removes the orphan itself, with no recursion and no second drop.
+ * <p><b>Neither half ever breaks the other.</b> This is the trap {@code MultiblockCoreBlock.disband}
+ * paid for: in 26.1 the removal hook fires on a plain {@code setBlock}-to-AIR as well as on a real
+ * break, so a half that destroys its partner re-enters the partner's hook and they ping-pong - and
+ * any drop in that path multiplies. Instead an orphaned half returns AIR from the neighbour-update
+ * hook and the game removes it, with no recursion and no second drop. Vanilla doors and tall flowers
+ * work the same way.
+ *
+ * <p><b>The orphan check lives in {@code updateShape} and NOT in {@code canSurvive}</b>, and that is
+ * load-bearing rather than stylistic - putting it in {@code canSurvive} made the block impossible to
+ * place at all. See the note on that method; it is the one thing to know before writing a second
+ * tall block.
  *
  * <p><b>Only the lower half drops.</b> The loot table is gated on {@code half=lower}, so breaking
  * either block yields exactly one appliance rather than two.
@@ -86,12 +90,30 @@ public class TallApplianceBlock extends HorizontalDirectionalBlock {
         level.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER), Block.UPDATE_ALL);
     }
 
-    /** A half survives only while its partner is there. */
+    /**
+     * Only the UPPER half answers for its partner, and that asymmetry is the whole bug fix.
+     *
+     * <p>The first version asked BOTH halves to prove their partner existed. That reads as the
+     * honest rule and it made the block <b>impossible to place</b>: {@code BlockItem.canPlace}
+     * consults {@code canSurvive} on the lower half <i>before</i> {@link #setPlacedBy} has built the
+     * upper one, so the check could never pass and every placement was refused. Nothing logged, the
+     * item simply never left the hand.
+     *
+     * <p>It hid well. {@link #getStateForPlacement} returned a perfectly good state throughout, so
+     * the obvious test - the one the washing machine uses, calling that method directly - would have
+     * passed. Only going through the item catches it, which is why
+     * {@code a_fridge_places_both_halves_from_the_hand} holds a real {@code ItemStack}.
+     *
+     * <p>So the lower half survives on its own and is removed as an orphan by {@link #updateShape}
+     * instead. Vanilla's tall flowers and doors are built exactly this way, for exactly this reason.
+     */
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        BlockPos partner = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
-        BlockState other = level.getBlockState(partner);
-        return other.getBlock() == this && other.getValue(HALF) != state.getValue(HALF);
+        if (state.getValue(HALF) == DoubleBlockHalf.LOWER) {
+            return true;
+        }
+        BlockState below = level.getBlockState(pos.below());
+        return below.is(this) && below.getValue(HALF) == DoubleBlockHalf.LOWER;
     }
 
     /**
@@ -99,11 +121,23 @@ public class TallApplianceBlock extends HorizontalDirectionalBlock {
      *
      * <p>The whole no-recursion argument lives here: this returns a state, it does not modify the
      * world, so there is no hook to re-enter.
+     *
+     * <p>It deliberately does <b>not</b> delegate to {@link #canSurvive}. That would re-introduce
+     * the placement bug from the other side - the lower half must be allowed to exist alone for the
+     * one tick between the item placing it and {@link #setPlacedBy} adding the head - so the orphan
+     * test is written out here against the specific neighbour that changed.
      */
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks,
             BlockPos pos, Direction direction, BlockPos neighbourPos, BlockState neighbourState,
             RandomSource random) {
-        return canSurvive(state, level, pos) ? state : Blocks.AIR.defaultBlockState();
+        DoubleBlockHalf half = state.getValue(HALF);
+        boolean towardPartner = direction.getAxis() == Direction.Axis.Y
+            && (half == DoubleBlockHalf.LOWER) == (direction == Direction.UP);
+        if (towardPartner
+                && (!neighbourState.is(this) || neighbourState.getValue(HALF) == half)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return state;
     }
 }

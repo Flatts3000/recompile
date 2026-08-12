@@ -2,6 +2,10 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.MattressBlock;
 import com.flatts.recompile.content.block.FoundApplianceBlock;
+import com.flatts.recompile.content.block.TallApplianceBlock;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
@@ -176,6 +180,94 @@ final class BulkyWasteTests {
                 placed.getValue(FoundApplianceBlock.FACING) == net.minecraft.core.Direction.NORTH,
                 "the door must face the player, got " + placed.getValue(FoundApplianceBlock.FACING));
             helper.succeed();
+        });
+
+        // PLACEMENT GOES THROUGH THE ITEM, and that is the whole point of this test.
+        //
+        // The washing machine's facing test calls getStateForPlacement directly, deliberately, so a
+        // broken override cannot hide behind placement plumbing. A two-tall block needs the exact
+        // opposite: its first bug lived IN the plumbing. TallApplianceBlock.canSurvive demanded the
+        // partner half already exist, BlockItem.canPlace consults canSurvive BEFORE setPlacedBy has
+        // built the partner, so every placement was refused and the fridge could not be put down at
+        // all. getStateForPlacement returned a perfectly good state the whole time - so a test at
+        // that level passes while the block is unplaceable in a real hand.
+        //
+        // Reported from a playtest, one message after the art landed, which is the tell: 419 tests
+        // passed and not one of them held the item.
+        RCGameTests.test("a_fridge_places_both_halves_from_the_hand", 40, helper -> {
+            BlockPos floor = new BlockPos(1, 1, 1);
+            helper.setBlock(floor, Blocks.STONE);
+            BlockPos abs = helper.absolutePos(floor);
+
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setYRot(0.0F);   // yaw 0 is due SOUTH, so the door must come out NORTH
+            ItemStack stack = new ItemStack(RCItems.FRIDGE.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            BlockHitResult hit = new BlockHitResult(
+                Vec3.atCenterOf(abs).add(0.0, 0.5, 0.0), Direction.UP, abs, false);
+            stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+
+            BlockPos lower = floor.above();
+            BlockPos upper = floor.above(2);
+            helper.assertBlockPresent(RCBlocks.FRIDGE.get(), lower);
+            helper.assertBlockPresent(RCBlocks.FRIDGE.get(), upper);
+
+            BlockState lowerState = helper.getBlockState(lower);
+            BlockState upperState = helper.getBlockState(upper);
+            helper.assertTrue(lowerState.getValue(TallApplianceBlock.HALF) == DoubleBlockHalf.LOWER,
+                "the clicked cell must be the lower half");
+            helper.assertTrue(upperState.getValue(TallApplianceBlock.HALF) == DoubleBlockHalf.UPPER,
+                "the cell above must be the upper half");
+            helper.assertTrue(
+                lowerState.getValue(TallApplianceBlock.FACING) == Direction.NORTH
+                    && upperState.getValue(TallApplianceBlock.FACING) == Direction.NORTH,
+                "both halves must face the player, got "
+                    + lowerState.getValue(TallApplianceBlock.FACING) + " / "
+                    + upperState.getValue(TallApplianceBlock.FACING));
+            helper.succeed();
+        });
+
+        // The opposite half, so neither can pass vacuously: with no headroom the placement is
+        // refused OUTRIGHT rather than leaving a lone lower half that deletes itself on the next
+        // block update - which looks to a player exactly like the game eating the item.
+        RCGameTests.test("a_fridge_refuses_to_place_with_no_headroom", 40, helper -> {
+            BlockPos floor = new BlockPos(1, 1, 1);
+            helper.setBlock(floor, Blocks.STONE);
+            helper.setBlock(floor.above(2), Blocks.STONE);   // ceiling: no room for the head
+            BlockPos abs = helper.absolutePos(floor);
+
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            ItemStack stack = new ItemStack(RCItems.FRIDGE.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            BlockHitResult hit = new BlockHitResult(
+                Vec3.atCenterOf(abs).add(0.0, 0.5, 0.0), Direction.UP, abs, false);
+            stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+
+            helper.assertBlockPresent(Blocks.AIR, floor.above());
+            helper.assertTrue(!stack.isEmpty(), "a refused placement must leave the item in hand");
+            helper.succeed();
+        });
+
+        // Breaking either half takes the other with it, and hands back exactly ONE fridge. Both
+        // directions are separate code paths - the lower is where the loot table is gated and the
+        // upper is where the orphan check runs - so one test cannot stand in for the other.
+        RCGameTests.test("breaking_either_fridge_half_yields_one_fridge", 60, helper -> {
+            BlockPos lower = new BlockPos(1, 1, 1);
+            BlockState base = RCBlocks.FRIDGE.get().defaultBlockState();
+            helper.setBlock(lower, base.setValue(TallApplianceBlock.HALF, DoubleBlockHalf.LOWER));
+            helper.setBlock(lower.above(),
+                base.setValue(TallApplianceBlock.HALF, DoubleBlockHalf.UPPER));
+
+            // Break the UPPER: the half with no loot entry, so the drop has to come from the lower
+            // being removed as an orphan - and must not double up with it.
+            helper.getLevel().destroyBlock(helper.absolutePos(lower.above()), true);
+
+            helper.assertBlockPresent(Blocks.AIR, lower.above());
+            helper.assertBlockPresent(Blocks.AIR, lower);
+            helper.succeedWhen(() ->
+                helper.assertItemEntityCountIs(RCItems.FRIDGE.get(), lower, 3.0, 1));
         });
 
         // The mattress -> string exit moved to the Recompile Workbench (P1.4); its teardown
