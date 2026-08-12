@@ -1570,20 +1570,26 @@ prompt = "a single incandescent light bulb, clear dusty glass with a visible fil
 # the three" needs no justification - where a light fixture only ever plausibly held a bulb, which is
 # why it read as filler.
 #
-# TWO BLOCKS TALL, so it needs a split front. The Light Fixture died of exactly the mistake to avoid
-# here: its prompts asked for prismatic ribbing, a cracked corner, dead insects and dust, all of which
-# are sub-pixel at 16 and averaged into a flat yellow square. Identity at this size comes from
-# STRUCTURE - a door seam, a long handle, a hard edge - not from surface detail. So each face below
-# leads with one big shape and the grime is secondary.
+# TWO BLOCKS TALL, and it draws ONE door face on BOTH halves. That was tried the other way first -
+# a separate upper and lower door, generated from separate prompts - and the two came back as
+# different objects: different enamel tone, the handle at a different height, a seam that did not
+# meet. Two faces of the same appliance generated blind always drift, which is the same failure the
+# `reference` key exists to prevent elsewhere. One face stacked twice reads as a tall two-door
+# fridge, and the seam at each half's bottom lands where a real door gap does. (Owner call.)
+#
+# The Light Fixture died of exactly the mistake to avoid here: its prompts asked for prismatic
+# ribbing, a cracked corner, dead insects and dust, all of which are sub-pixel at 16 and averaged
+# into a flat yellow square. Identity at this size comes from STRUCTURE - a door seam, a long
+# handle, a hard edge - not from surface detail. So each face below leads with one big shape and the
+# grime is secondary.
 # ---------------------------------------------------------------------------
 
 [surface.fridge]
 kind = "block_multiface"
 backend = "ai"
 size = 16
-faces = ["front_upper", "front_lower", "side", "top"]
+faces = ["front", "side", "top"]
 [surface.fridge.prompt]
-front_upper = "a full-bleed Minecraft block face: the upper door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a hard horizontal door seam across the very bottom, yellowed with age, a few rust spots and a peeling sticker, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
-front_lower = "a full-bleed Minecraft block face: the lower door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a dark recessed kick plate along the very bottom, yellowed and grubby with scuffs and rust creeping from the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+front = "a full-bleed Minecraft block face: the door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a hard horizontal door seam across the very bottom, yellowed with age, a few rust spots and a peeling sticker, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 side = "a full-bleed Minecraft block face: the plain side panel of a dumped white kitchen fridge, flat off-white enamel gone cream with age, one hard vertical seam line near the front edge, dents, scuffs and rust streaks running down, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 top = "a full-bleed top-down Minecraft block face: the dusty top of a dumped white kitchen fridge, flat off-white enamel under a thick layer of grey dust and grime, a few dark ring stains and scattered debris, rust at the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"

@@ -1,10 +1,10 @@
 {
-  "__comment": "Upper half: the freezer door, with the dusty top the player actually sees from standing height.",
+  "__comment": "Upper half: the same door face the lower half draws, plus the dusty top the player actually sees from standing height.",
   "parent": "minecraft:block/orientable",
   "textures": {
-    "front": "recompile:block/fridge_front_upper",
+    "front": "recompile:block/fridge_front",
     "side": "recompile:block/fridge_side",
     "top": "recompile:block/fridge_top",
-    "particle": "recompile:block/fridge_front_upper"
+    "particle": "recompile:block/fridge_front"
   }
 }
