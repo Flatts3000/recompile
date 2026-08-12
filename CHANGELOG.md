@@ -1,23 +1,57 @@
 # Changelog
 
-## Unreleased
+## v0.9.0
 
-**Drop rates were being reasoned about in the wrong unit, and it showed.** Fifteen minutes of play was handing over nine buckets, three pairs of shears, nine leads and three collectibles. Every rate was written as "one pull in N", which reads as rare and never got converted into anything a person experiences.
+**If you played 0.8.0, the game was lying to you about salvage.** Jade said "No salvage value" for a Dirty Mattress, and for everything else, while JEI's Teardown panel sat empty. Teardown worked the whole time - the bench did its job, the fragments arrived - but nothing in the game would admit it existed. That is fixed, and it is the reason to update.
 
-The numbers below are derived rather than guessed. A held right-click sorts at five pulls a second; sorting was about a quarter of playtime, so roughly 4,500 pulls an hour. As a sanity check on the model: a junk shovel takes 4.5 ticks a block, so a 322-block mound flattens in about a minute - and sorting that same mound is 712 pulls, or nearly two and a half minutes. Flattening a mound is the cheap half, which is exactly why "mounds an hour" was the wrong yardstick.
+**And the fridge is the first thing in the dump that gives you a choice you do not get to make.** It holds a motor, a pump and a bulb, the way a real one does. Tear it down and you recover exactly one of the three, and whichever it is, that is the one you come away knowing.
+
+### Fixed: the viewers could not read a single recipe
+- **Jade and JEI could not see any teardown at all in a packaged install.** They read the mod's own recipe files, and the code that found those files only worked when the mod was an unpacked folder, which is a development layout and not one you have ever had.
+- The symptom was the worst kind: nothing looked broken enough to report. Salvage worked, so the only tell was every viewer quietly insisting your mattress was worthless.
+- This never affected a development run, which is why it survived a release.
+
+### The Dead Fridge
+- **A two-block-tall fridge now turns up in Bulky Waste**, and it replaces the Broken Fan and the Light Fixture. Pry it open with a Prybar the way you would any bulky find.
+- Tearing one down gives you **eight pieces of scrap** split between metal, plastic and electronics, **something out of the freezer**, and **one of a motor, a pump or a bulb**.
+- **Knowledge follows the draw.** Pull a motor out and you learn about motors. Pull a bulb out and you learn about bulbs. Four of the same lesson still makes the Blueprint.
+- **The freezer is the only ice or snow in this world.** Nothing here snows and nothing freezes, so if you want either, you go looking for fridges.
+- Appliance finds arrive exactly as often as they did before. The fridge carries the weight the two removed finds had between them.
+
+### Teardowns roll their materials now
+- **What a teardown gives you varies.** A fridge does not hand over a fixed pile of scrap; it rolls eight times across metal, plastic and electronics, so no two come apart the same way.
+- The Printer, the Washing Machine, the Dirty Mattress and the Broken Hydroponics Bay all work this way now. What you get on average is unchanged, but any single teardown is its own draw.
+- **What was guaranteed stays guaranteed.** A Washing Machine still always gives a Pump, and a Printer still always gives its ink sac.
+- Packs can write their own teardowns in this form. It is the same weighted-list shape the sorting tables already use.
+
+### One workstation, not three objects in a row
+- **The Scrap Crafting Table, the Sorting Tarp and the Teardown Workbench now share a bench.** Lined up they read as one continuous work surface instead of three unrelated blocks, which is what a Scrap Network cluster is meant to look like.
+- Their tops run the full width of the block, so neighbouring stations actually touch. There used to be a two-pixel gap.
+- The Sorting Tarp is tarp blue, and the Teardown Workbench has proper bench art rather than a cube's.
+
+### Found, not crafted
+- **Everything that comes out of a pull stream is now something you find rather than make.** Bowls, shears, flint and steel, leads, name tags, paper, books, bundles and all four pieces of leather armour lost their recipes.
+- The rule is enforced rather than remembered: anything tagged this way is checked against every recipe in the game at load.
+- **Music discs are gone from the streams.** A disc every couple of hours was not worth the slot.
 
 ### Rarer
 - **Buckets, shears, flint and steel, and leads** now turn up about **once every half hour each**. A bucket was arriving roughly every two minutes.
-- **Name tags** about hourly, **music discs** about every two hours.
+- **Name tags** about hourly.
 - **Collectibles are 480 times rarer than they were.** They are meant to be the thing you remember finding, not something the barrel fills up with. A whole one now runs to hundreds of hours, and a Puzzle Cube longer still.
 - **Roaches** were interrupting a pull two and a half times per mound sorted. Now about once a mound, or one every ten minutes or so.
 - Bulk material is untouched. Junk, scrap, plastic, glass shards and the rest come out just as fast as before.
+- These are derived from playtime rather than guessed. A held right-click sorts at five pulls a second and sorting is about a quarter of play, so roughly 4,500 pulls an hour. Every rate above was converted into minutes before it was chosen.
 
 ### Carpets
 - **Wool carpets no longer turn up in trash bags, and are craftable again.** A rug you find every few minutes is not worth finding. Wool is still a bag pull, so you make them the ordinary way.
 
-### Fixes
-- **The Scrap Crafting Table could not see everything in a connected barrel.** What the network reported was capped at eighteen distinct materials - fewer than a single barrel holds - so a well-stocked cluster had items the shelf could not show and that JEI's recipe transfer called missing. A barrel holding nineteen Rebar would report "Not in your inventory or any connected storage". The cap is gone, and connecting several barrels aggregates all of them.
+### Other fixes
+- **The Scrap Crafting Table could not see everything in a connected barrel.** What the network reported was capped at eighteen distinct materials, fewer than a single barrel holds, so a well-stocked cluster had items the shelf could not show and that JEI's recipe transfer called missing. A barrel holding nineteen Rebar would report "Not in your inventory or any connected storage". The cap is gone, and connecting several barrels aggregates all of them.
+- **The Rain Collector Funnel is built like a hopper**, with the Machine Frame in the middle and plastic around it.
+
+### Updating an existing world
+- **The Broken Fan and the Light Fixture no longer exist.** Any you have placed in a world, or holding in a chest, are gone after the update, and the game will log an unknown-block warning for each one it clears. Tear them down for their Motor and Bulb before you update if you want to keep the value.
+- Everything else carries over. The fridge only appears in Bulky Waste you have not opened yet.
 
 ## v0.8.0
 
