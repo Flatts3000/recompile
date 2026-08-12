@@ -145,9 +145,9 @@ def main() -> int:
     crumbles = [r for r in rows if r[1] == "CRUMBLE"]
     breaks = [r for r in rows if r[1] == "BREAK"]
 
-    # Wall clock from the events themselves. A session that was left idle overnight would
-    # otherwise drag the rate to nothing, so gaps longer than five minutes are dropped -
-    # the question is pulls per hour of PLAYING, not per hour of the world being open.
+    # Wall clock from the events themselves. A session left idle would otherwise drag the rate
+    # to nothing, so gaps longer than five minutes are dropped - the question is pulls per hour
+    # of PLAYING, not per hour of the world being open.
     stamps = sorted(r[0] for r in rows)
     active_ms = 0
     for a, b in zip(stamps, stamps[1:]):
@@ -163,16 +163,68 @@ def main() -> int:
 
     by_method = Counter(r[1] for r in sifted)
     print(f"log: {path}")
+    print(f"wall clock  : {(stamps[-1] - stamps[0]) / 60000:.0f} min "
+          f"({sum(1 for r in rows if r[1] == 'SESSION' and r[3] == 'start')} session(s))")
     print(f"active play : {hours * 60:.1f} min")
     print(f"rolls       : {clicks:,}   (hand {len(hand):,}"
           + "".join(f", {k.replace('SIFT_','').lower()} {v:,}" for k, v in sorted(by_method.items()))
           + ")")
-    if hours > 0:
-        print(f"rolls/hour  : {clicks / hours:,.0f}")
     if forage:
         print(f"pigeon finds: {len(forage):,}")
     print(f"roaches     : {len(roaches)}"
           + (f"  (one per {clicks / len(roaches):,.0f} pulls)" if roaches else ""))
+    print()
+
+    # THE RATE THE WHOLE BALANCE MODEL RESTS ON, AND IT IS TWO NUMBERS, NOT ONE.
+    #
+    # "Rolls per hour" over active play answers a different question depending on what the player
+    # was doing, and a short log makes it meaningless: a two-minute poke at a mound reported 7,041
+    # rolls/hour, which is neither the rate while working nor the rate over a session. So the rate
+    # while WORKING is reported separately, with idle stripped at a 5-second gap rather than a
+    # 5-minute one, and the session rate is only printed when there is enough of a session to
+    # divide by.
+    #
+    # Both matter and they are not interchangeable: the working rate is a property of tools and
+    # blocks and can be measured in seconds, while what fraction of an hour a person spends
+    # working is a property of PEOPLE and needs a real session. Printing one number invites
+    # reading it as the other, which is how 4,500 got into the balance model.
+    def burst_rate(events, gap_ms=5000):
+        """Events per second with idle stripped - the rate while actually doing the thing."""
+        ts = sorted(e[0] for e in events)
+        if len(ts) < 2:
+            return None, 0.0
+        span = sum(b - a for a, b in zip(ts, ts[1:]) if b - a <= gap_ms) / 1000
+        return (len(ts) / span if span else None), span
+
+    sift_rate, sift_span = burst_rate(sifted)
+    hand_rate, hand_span = burst_rate(hand)
+    mine_rate, mine_span = burst_rate(breaks)
+
+    print("rate while actually doing it (idle stripped at 5s):")
+    if sift_rate:
+        print(f"  sifting   : {sift_rate:>6.1f} rolls/sec   over {sift_span:.0f}s"
+              f"   -> {sift_rate * 3600:,.0f} rolls/hour of solid sifting")
+    if hand_rate:
+        print(f"  hand      : {hand_rate:>6.1f} pulls/sec   over {hand_span:.0f}s"
+              f"   -> {hand_rate * 3600:,.0f} pulls/hour of solid sorting")
+    if mine_rate:
+        print(f"  mining    : {mine_rate * 60:>6.0f} blocks/min  over {mine_span:.0f}s")
+    if mine_rate and sift_rate:
+        # Mining feeds sifting, so the loop runs at whichever is slower per block. This is the
+        # number a rate target should be set against, NOT the sift speed on its own.
+        rolls_per_block = 6.0
+        loop = min(mine_rate * rolls_per_block, sift_rate)
+        limiter = "mining" if mine_rate * rolls_per_block < sift_rate else "sifting"
+        print(f"  -> the mine-and-sift loop is {limiter}-limited at {loop * 3600:,.0f} rolls/hour "
+              "of solid work")
+        print("     (a rate target is that, times the fraction of a session spent doing it)")
+    if hours > 0:
+        if active_ms >= 10 * 60 * 1000:
+            print(f"\nover the session : {clicks / hours:,.0f} rolls/hour")
+        else:
+            print(f"\nover the session : NOT REPORTED - only {hours * 60:.1f} min of activity. "
+                  "A session\n                   rate needs 10+ minutes or it is measuring one "
+                  "burst, not play.")
     print()
 
     sorted_blocks = Counter(r[2] for r in crumbles)
