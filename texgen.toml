@@ -314,19 +314,30 @@ backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face of a salvaged plastic sheeting panel, flat off-white and pale grey plastic with grime and faint mould, subtle seams and scuffs, matte synthetic"
 
-# The Recompile Workbench (P1.4). cube_bottom_top: a distinct worktop on a metal frame.
-# Interim: the block model reuses scrap_plating until both are generated and approved.
-[surface.recompile_workbench_top]
-kind = "block"
-backend = "ai"
-size = 16
-prompt = "a full-bleed top-down Minecraft block face of a battered steel workbench worktop, scratched heavy-gauge grey steel with scattered bolt holes, oil stains, scuff marks and shallow tool grooves, well-used industrial work surface"
+# ---------------------------------------------------------------------------
+# The Teardown Workbench (P1.4). Shares block/workstation_table.json with the Sorting
+# Tarp and the Scrap Crafting Table: a worktop on four short legs, so it needs the same
+# three faces the tarp does rather than a cube's top-and-side.
+#
+# WAS TWO SINGLE-FACE SURFACES AND A CUBE. Its side carried a bench vice and a drawer,
+# which is right for a 16px cube face and wrong twice over on a bench: the side is now a
+# 10px apron band, and the LEG sampled that same texture at 3x3, so each foot was a
+# three-pixel crop of a vice. Art authored for one silhouette does not survive being
+# hung on another.
+#
+# The side prompt therefore describes a horizontal apron rather than a whole workbench
+# front - the face is a band, so the art has to be a band.
+# ---------------------------------------------------------------------------
 
-[surface.recompile_workbench_side]
-kind = "block"
+[surface.recompile_workbench]
+kind = "block_multiface"
 backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face of the front of a salvaged metal workbench, a riveted grey steel frame panel with a small mounted bench vice and a shallow drawer, weathered scratched industrial metal, reads as a workbench body not a wall"
+faces = ["top", "side", "leg"]
+[surface.recompile_workbench.prompt]
+top = "a full-bleed top-down Minecraft block face of a battered steel workbench worktop, scratched heavy-gauge grey steel with scattered bolt holes, oil stains, scuff marks and shallow tool grooves, well-used industrial work surface"
+side = "a full-bleed Minecraft block face: the apron rail of a salvaged steel workbench seen edge on, a horizontal riveted grey steel band with a shallow drawer front and bolt heads, weathered and scratched, a horizontal band of frame rather than a whole wall"
+leg = "a full-bleed Minecraft block face: a single square steel workbench leg, weathered grey box-section metal with rust streaks and a bolt plate, strong vertical emphasis, no other objects"
 
 # The Burn Barrel side: the Scrap Barrel's metal drum, retinted rusty so the body matches the
 # rusty top (retint sources the mod's own promoted scrap_barrel_side, not a vanilla texture).
