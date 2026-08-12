@@ -108,12 +108,21 @@ public final class RecipeFiles {
                 FileSystem opened = null;
                 FileSystem fs;
                 try {
+                    // The branch that runs in the real game: NeoForge already holds the mod jar open,
+                    // so this succeeds and `opened` stays null, and we must NOT close what we did not
+                    // open. Covered by reusesAnAlreadyOpenFilesystem, because the untested half of a
+                    // two-branch fix is the half that ships broken.
                     fs = FileSystems.getFileSystem(uri);
                 } catch (FileSystemNotFoundException notOpenYet) {
                     fs = opened = FileSystems.newFileSystem(uri, Map.of());
                 }
                 try {
-                    collect(fs.getPath(ANCHOR).getParent(), recipes);
+                    // The entry comes from the URL, not from ANCHOR. Using the constant here made the
+                    // jar branch ignore its own argument while the folder branch honoured it, so the
+                    // method quietly meant two different things depending on packaging - and the
+                    // jar test only passed because its fixture happened to use the same layout.
+                    String entry = uri.toString().substring(uri.toString().indexOf('!') + 1);
+                    collect(fs.getPath(entry).getParent(), recipes);
                 } finally {
                     if (opened != null) {
                         opened.close();
