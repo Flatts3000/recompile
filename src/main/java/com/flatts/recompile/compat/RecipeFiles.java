@@ -6,11 +6,16 @@ import com.flatts.recompile.Recompile;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -67,27 +72,78 @@ public final class RecipeFiles {
         if (cached != null) {
             return cached;
         }
-        List<JsonObject> recipes = new ArrayList<>();
         URL anchor = RecipeFiles.class.getResource(ANCHOR);
-        if (anchor != null) {
-            try (Stream<Path> walk = Files.walk(Path.of(anchor.toURI()).getParent())) {
-                for (Path path : walk.filter(Files::isRegularFile).toList()) {
-                    if (!path.toString().endsWith(".json")) {
-                        continue;
-                    }
-                    try {
-                        recipes.add(JsonParser
-                            .parseString(Files.readString(path, StandardCharsets.UTF_8))
-                            .getAsJsonObject());
-                    } catch (RuntimeException | IOException ignored) {
-                        // One malformed file must not take the whole viewer down with it.
+        cached = anchor == null ? List.of() : List.copyOf(scan(anchor));
+        return cached;
+    }
+
+    /**
+     * Read every recipe beside {@code anchor}, whether it lives in a folder or inside a jar.
+     *
+     * <p><b>The jar half is why this method exists, and its absence shipped.</b> The original walked
+     * {@code Path.of(anchor.toURI())} and caught everything into an empty list. That is fine in a dev
+     * run, where mod resources are an exploded directory and the URL is {@code file:} - and it is
+     * broken in every packaged install, where the URL is {@code jar:...!/data/...} and
+     * {@code Path.of} throws {@code FileSystemNotFoundException} because no filesystem is open for
+     * the jar yet.
+     *
+     * <p>So {@code TeardownData} came back empty for real players: <b>Jade reported "No salvage
+     * value" for every item</b>, the Broken Hydroponics Bay included, and JEI's Teardown category was
+     * empty. The teardown itself worked the whole time - the server runs the real recipe manager - so
+     * the only symptom was the viewers flatly denying a mechanic that was working. Reported from a
+     * playtest holding a Dirty Mattress, the item the entire blueprint loop runs on.
+     *
+     * <p><b>No test layer could have caught it.</b> GameTests and the JUnit suite both run against
+     * exploded resources, so both take the working path. {@code RecipeFilesJarTest} builds an actual
+     * jar and reads from it, which is the only way this failure is visible from inside the repo.
+     */
+    static List<JsonObject> scan(URL anchor) {
+        List<JsonObject> recipes = new ArrayList<>();
+        try {
+            URI uri = anchor.toURI();
+            if ("jar".equals(uri.getScheme())) {
+                // Reuse an already-open filesystem where there is one - NeoForge may hold the mod jar
+                // open - and only close the one we opened ourselves. Closing someone else's would
+                // break every later read from that jar.
+                FileSystem opened = null;
+                FileSystem fs;
+                try {
+                    fs = FileSystems.getFileSystem(uri);
+                } catch (FileSystemNotFoundException notOpenYet) {
+                    fs = opened = FileSystems.newFileSystem(uri, Map.of());
+                }
+                try {
+                    collect(fs.getPath(ANCHOR).getParent(), recipes);
+                } finally {
+                    if (opened != null) {
+                        opened.close();
                     }
                 }
-            } catch (IOException | URISyntaxException | RuntimeException ignored) {
-                // Left empty; callers already handle having nothing.
+            } else {
+                // file:, and NeoForge's own union: scheme - both resolve through an installed
+                // provider, so Path.of is the right call and the jar branch above is the exception.
+                collect(Path.of(uri).getParent(), recipes);
+            }
+        } catch (IOException | URISyntaxException | RuntimeException ignored) {
+            // Left empty; callers already handle having nothing.
+        }
+        return recipes;
+    }
+
+    private static void collect(Path dir, List<JsonObject> recipes) throws IOException {
+        try (Stream<Path> walk = Files.walk(dir)) {
+            for (Path path : walk.filter(Files::isRegularFile).toList()) {
+                if (!path.toString().endsWith(".json")) {
+                    continue;
+                }
+                try {
+                    recipes.add(JsonParser
+                        .parseString(Files.readString(path, StandardCharsets.UTF_8))
+                        .getAsJsonObject());
+                } catch (RuntimeException | IOException ignored) {
+                    // One malformed file must not take the whole viewer down with it.
+                }
             }
         }
-        cached = List.copyOf(recipes);
-        return cached;
     }
 }
