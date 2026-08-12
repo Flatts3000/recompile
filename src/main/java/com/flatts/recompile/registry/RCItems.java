@@ -382,6 +382,10 @@ public final class RCItems {
      * The mattress: place it and it is a bed, or tear it down at the Recompile Workbench
      * (P1.4) for string. Never craftable - the dump gives you the bed (P1.11).
      */
+    /** The Dead Fridge: two blocks tall, and the only source of a random component. */
+    public static final DeferredItem<BlockItem> FRIDGE =
+        ITEMS.registerSimpleBlockItem("fridge", RCBlocks.FRIDGE);
+
     public static final DeferredItem<BlockItem> MATTRESS =
         ITEMS.registerSimpleBlockItem("mattress", RCBlocks.MATTRESS);
     public static final DeferredItem<BlockItem> SCRAP_CRAFTING_TABLE =
@@ -487,13 +491,6 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> PRINTER =
         ITEMS.registerSimpleBlockItem("printer", RCBlocks.PRINTER);
 
-    /** The Broken Fan (#170): the Motor's find, torn down at the Workbench. */
-    public static final DeferredItem<net.minecraft.world.item.BlockItem> BROKEN_FAN =
-        ITEMS.registerSimpleBlockItem("broken_fan", RCBlocks.BROKEN_FAN);
-
-    /** The Light Fixture (#171): the Bulb's find, torn down at the Workbench. */
-    public static final DeferredItem<net.minecraft.world.item.BlockItem> LIGHT_FIXTURE =
-        ITEMS.registerSimpleBlockItem("light_fixture", RCBlocks.LIGHT_FIXTURE);
     /** One item places the standing torch on the floor and the wall torch on walls (vanilla torch). */
     public static final DeferredItem<StandingAndWallBlockItem> SCRAP_TORCH = ITEMS.registerItem(
         "scrap_torch",

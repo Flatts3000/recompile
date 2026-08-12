@@ -187,15 +187,17 @@ final class SortingDataTests {
             // Five spine finds (the fifth is the printer, #112), four windfall finds (the fourth is
             // the found spyglass, #113), six recovered paintings (#99). Counted rather than listed so a
             // new find has to come here and be acknowledged: a magic 14 that silently became 15 would
-            // mean nobody noticed. It has now caught two - the Broken Fan and the Light Fixture,
-            // added for #170/#171 - which is exactly the job.
+            // mean nobody noticed. It caught two when they were added (the Broken Fan and the Light
+            // Fixture) and caught the number again when the Fridge replaced both - which is the job.
             //
             // Reaching 13 at all is the point of this number now. The spine and windfall tiers are
             // NESTED loot tables, and a reader that skipped minecraft:loot_table entries would return
             // six - a Prying category containing nothing but paintings, with every real find gone and
             // no error anywhere.
-            helper.assertTrue(out.size() == 17,
-                "Bulky Waste should offer seven spine finds, four windfall finds and six paintings, "
+            // Six spine finds since 2026-08-12: the Broken Fan and the Broken Light Fixture were
+            // replaced by the single Dead Fridge, which yields all three components between them.
+            helper.assertTrue(out.size() == 16,
+                "Bulky Waste should offer six spine finds, four windfall finds and six paintings, "
                     + "got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show

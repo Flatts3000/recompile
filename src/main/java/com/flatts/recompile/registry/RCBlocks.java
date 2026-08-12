@@ -30,6 +30,7 @@ import com.flatts.recompile.content.block.GrassSpreaderCoreBlock;
 import com.flatts.recompile.content.block.GrassSpreaderFrameBlock;
 import com.flatts.recompile.content.block.GrassSpreaderSpigotBlock;
 import com.flatts.recompile.content.block.FoundApplianceBlock;
+import com.flatts.recompile.content.block.TallApplianceBlock;
 import com.flatts.recompile.content.block.WaterTankBlock;
 import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.RainCollectorCoreBlock;
@@ -546,42 +547,31 @@ public final class RCBlocks {
     );
 
     /**
-     * The Broken Fan (#170): where the <b>Motor</b> comes from.
+     * The Dead Fridge: the appliance find that replaced the Broken Fan and the Broken Light Fixture.
      *
-     * <p><b>It exists because the Motor had no teardown.</b> Issue #160 gave the Pump a blueprint
-     * learned from tearing down the Washing Machine it drops out of, and assumed the Motor could follow
-     * the same pattern. It could not: {@code teaches} lives on a teardown recipe, and the Motor came
-     * from <i>sorting</i> Mechanical Waste, so there was nothing to hang the lesson on. Owner ruling
-     * 2026-08-08 was to give it an object, which is this.
+     * <p><b>It earns the swap on identity alone.</b> A fridge is the one household appliance that
+     * genuinely holds a compressor motor, a refrigerant pump and an interior bulb, so "tear it down
+     * and get one of the three" needs no explaining. The fan and the fixture each existed to hang one
+     * component on, and a light fixture only ever plausibly held a bulb - which is why the owner read
+     * it as nothing at all in a junk pile (2026-08-12).
      *
-     * <p>A fan is the right object because the teardown needs no explaining - the thing visibly spun,
-     * so a motor is what is obviously inside it. Plastic rather than sheet metal, like the printer, so
-     * that four finds in one pile still read as four different things.
+     * <p><b>Which component you get is a lottery, and that reverses a written rule.</b>
+     * {@code a_component_from_a_teardown_is_never_a_dice_roll} demanded one object and one guaranteed
+     * component. The owner overrode it; what survives is that you never come away with NOTHING, which
+     * the component pool guarantees by carrying no filler entry. See ComponentBlueprintTests.
+     *
+     * <p>Two blocks tall, so it is a {@link TallApplianceBlock} rather than the usual cube - the
+     * halves keep each other alive by state validation and never break one another.
+     *
+     * <p>Takes the pair's combined weight in {@code bulky_spine}, so appliance finds arrive exactly as
+     * often as they did before.
      */
-    public static final DeferredBlock<FoundApplianceBlock> BROKEN_FAN = BLOCKS.registerBlock(
-        "broken_fan",
-        FoundApplianceBlock::new,
-        () -> BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_GRAY)
-            .strength(1.0F)
-            .sound(SoundType.WOOD)
-    );
-
-    /**
-     * The Light Fixture (#171): where the <b>Bulb</b> comes from, for the same reason as the fan.
-     *
-     * <p>A ceiling troffer rather than a lamp. A lamp reads as furniture you would keep; this is
-     * something torn out of a ceiling, which is what the rest of Bulky Waste is.
-     *
-     * <p>Two machines depend on the Bulb, not one - the Hydroponics Bay and, since 2026-08-08, the
-     * Tree Nursery. #160's table listed only the bay.
-     */
-    public static final DeferredBlock<FoundApplianceBlock> LIGHT_FIXTURE = BLOCKS.registerBlock(
-        "light_fixture",
-        FoundApplianceBlock::new,
+    public static final DeferredBlock<TallApplianceBlock> FRIDGE = BLOCKS.registerBlock(
+        "fridge",
+        TallApplianceBlock::new,
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.TERRACOTTA_WHITE)
-            .strength(1.0F)
+            .strength(1.2F)
             .sound(SoundType.METAL)
     );
 

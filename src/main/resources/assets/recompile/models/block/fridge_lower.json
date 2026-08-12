@@ -1,0 +1,10 @@
+{
+  "__comment": "Lower half: the main door. cube_bottom_top gives it a distinct floor face; the sides and back share the plain panel.",
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "recompile:block/fridge_front_lower",
+    "side": "recompile:block/fridge_side",
+    "top": "recompile:block/fridge_side",
+    "particle": "recompile:block/fridge_front_lower"
+  }
+}

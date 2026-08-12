@@ -1,0 +1,17 @@
+{
+  "_comment": "Only the LOWER half drops. A two-block object that dropped from each half would hand back two fridges for one break, which is the same duplication the multiblock disband trap produced.",
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "recompile:fridge",
+          "properties": { "half": "lower" }
+        }
+      ],
+      "entries": [ { "type": "minecraft:item", "name": "recompile:fridge" } ]
+    }
+  ]
+}

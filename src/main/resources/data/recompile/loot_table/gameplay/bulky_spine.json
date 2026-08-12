@@ -31,13 +31,8 @@
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:broken_fan",
-          "weight": 2
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:light_fixture",
-          "weight": 2
+          "name": "recompile:fridge",
+          "weight": 4
         }
       ]
     }

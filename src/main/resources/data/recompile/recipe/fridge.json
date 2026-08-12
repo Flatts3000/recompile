@@ -1,0 +1,45 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:fridge",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 160,
+  "pools": [
+    {
+      "_comment": "Scrap roll. A fridge is mostly sheet steel and moulded plastic, with the control board's electronics rarer.",
+      "rolls": 8,
+      "entries": [
+        { "item": "recompile:scrap_metal", "weight": 5 },
+        { "item": "recompile:plastic_scrap", "weight": 4 },
+        { "item": "recompile:e_scrap", "weight": 1 }
+      ]
+    },
+    {
+      "_comment": "Secondary roll: what was left in the freezer. The only ice or snow in this world - the garbage biome has no weather that makes either.",
+      "rolls": 1,
+      "entries": [
+        { "item": "minecraft:snowball", "weight": 3 },
+        { "item": "minecraft:ice", "weight": 1 }
+      ]
+    },
+    {
+      "_comment": [
+        "Component roll, and the knowledge follows it. A fridge holds a compressor motor, a",
+        "refrigerant pump and an interior bulb, so which one you recover is a lottery - and whichever",
+        "comes out is the one you learn.",
+        "",
+        "NO FILLER ENTRY, deliberately. You always get exactly one component; what you never get is to",
+        "choose which. That is what keeps a_component_teardown_always_yields_a_component true after the",
+        "owner's 2026-08-12 ruling that the lottery overrides the old one-object-one-component rule."
+      ],
+      "rolls": 1,
+      "teaches": true,
+      "scraps_required": 4,
+      "entries": [
+        { "item": "recompile:motor", "weight": 1 },
+        { "item": "recompile:pump", "weight": 1 },
+        { "item": "recompile:bulb", "weight": 1 }
+      ]
+    }
+  ]
+}
