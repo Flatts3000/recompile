@@ -1,10 +1,10 @@
 {
-  "__comment": "The shared workstation shape. The racked knife and prybar sit on the worktop at y=13 via the multipart pieces.",
+  "__comment": "The shared workstation shape. The racked knife and prybar sit on the worktop at y=13 via the multipart pieces. The leg has its own texture now - it used to sample the side, so each foot was a three-pixel crop of a bench vice.",
   "parent": "recompile:block/workstation_table",
   "textures": {
     "top": "recompile:block/recompile_workbench_top",
     "side": "recompile:block/recompile_workbench_side",
     "bottom": "recompile:block/recompile_workbench_side",
-    "leg": "recompile:block/recompile_workbench_side"
+    "leg": "recompile:block/recompile_workbench_leg"
   }
 }
