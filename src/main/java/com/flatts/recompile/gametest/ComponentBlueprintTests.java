@@ -7,10 +7,14 @@ import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.IceBlock;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
 /**
@@ -165,34 +169,66 @@ final class ComponentBlueprintTests {
             helper.succeed();
         });
 
-        // NOTHING A TEARDOWN GIVES YOU MAY BE A FREE WATER SOURCE.
+        // A TEARDOWN MAY NOT HAND OUT A FREE WATER SOURCE UNLESS SOMEONE ARGUED FOR IT.
         //
-        // leachate_is_not_water states this rule for fluids in as many words: "anything that answers
-        // yes to being water is a free clean-water source and the P1.10 water economy stops meaning
-        // anything". An ITEM can walk straight through that door. minecraft:ice broken without silk
-        // touch on solid ground leaves a water SOURCE block - two of them are infinite water - so a
-        // fridge that hands out ice quietly retires the Rain Collector, the bucket gate, and the
-        // farmland-hydration half of encroachment immunity (#156) all at once.
+        // minecraft:ice broken without silk touch on solid ground leaves a water SOURCE block, and
+        // two sources are infinite water - a route to water that needs no Rain Collector and no
+        // bucket. That is a real hole in the P1.10 economy and it must never be opened by accident.
         //
-        // Keyed on IceBlock, which is exactly the family whose playerDestroy creates water (ice and
-        // frosted_ice). Packed and blue ice are plain blocks and stay legal, which is what lets a
-        // freezer still contain something icy.
-        RCGameTests.test("no_teardown_hands_out_a_free_water_source", 20, helper -> {
+        // The Dead Fridge opens it DELIBERATELY. It shipped as packed ice for one commit on exactly
+        // the reasoning above and the owner overruled it (2026-08-12): "I know it creates a water
+        // source. Its fine gameplay." So the rule is not "never" - it is "never without a decision",
+        // and the decision is recorded as an allowlist entry rather than by deleting the check.
+        // Same shape as RegistryCompletenessTests' NO_LOOT_TABLE / NO_ITEM_FORM lists: add a
+        // justified entry, never loosen the check.
+        //
+        // What the allowlist does NOT cover is scale, which is why leachate_is_not_water is
+        // untouched. Water off a fridge costs a find, a prybar and a 1-in-4 draw; leachate answering
+        // yes to being water would make every pool on the map a tap.
+        //
+        // Keyed on IceBlock, exactly the family whose playerDestroy creates water (ice and
+        // frosted_ice); packed and blue ice are plain blocks and were never the problem.
+        RCGameTests.test("no_teardown_hands_out_an_unsanctioned_water_source", 20, helper -> {
+            // id -> the item it is allowed to give. Both halves are checked: a recipe on this list
+            // that stops producing water, or produces a DIFFERENT water source, is a stale
+            // exemption and must be re-argued rather than inherited.
+            Map<String, Item> sanctioned = Map.of(
+                "recompile:fridge", Items.ICE);
+
             List<String> taps = new ArrayList<>();
             for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                     .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                String id = holder.id().identifier().toString();
                 holder.value().everyPossibleOutput().forEach(item -> {
-                    boolean melts = item instanceof net.minecraft.world.item.BlockItem block
-                        && block.getBlock() instanceof net.minecraft.world.level.block.IceBlock;
-                    if (melts || item == net.minecraft.world.item.Items.WATER_BUCKET) {
-                        taps.add(holder.id() + " -> " + BuiltInRegistries.ITEM.getKey(item));
+                    boolean isTap = (item instanceof BlockItem block
+                            && block.getBlock() instanceof IceBlock)
+                        || item == Items.WATER_BUCKET;
+                    if (isTap && sanctioned.get(id) != item) {
+                        taps.add(id + " -> " + BuiltInRegistries.ITEM.getKey(item));
                     }
                 });
             }
             helper.assertTrue(taps.isEmpty(),
-                "these teardown outputs are a free water source - break the placed block without "
-                    + "silk touch and you have a water source block, two of which are infinite "
-                    + "water, with no Rain Collector and no bucket: " + taps);
+                "these teardown outputs are a free water source and are not on the sanctioned list "
+                    + "- break the placed block without silk touch and you have a water source "
+                    + "block, two of which are infinite water, with no Rain Collector and no "
+                    + "bucket. Add a justified entry if that is intended: " + taps);
+
+            // The list must not outlive what it exempts. A sanctioned recipe that no longer
+            // produces its water source is an exemption nobody is checking any more.
+            for (var entry : sanctioned.entrySet()) {
+                boolean stillProduces = false;
+                for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                        .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                    if (holder.id().identifier().toString().equals(entry.getKey())
+                            && holder.value().everyPossibleOutput().anyMatch(i -> i == entry.getValue())) {
+                        stillProduces = true;
+                    }
+                }
+                helper.assertTrue(stillProduces, entry.getKey() + " is allowlisted to give "
+                    + BuiltInRegistries.ITEM.getKey(entry.getValue())
+                    + " and no longer does - drop the stale exemption");
+            }
             helper.succeed();
         });
 

@@ -19,18 +19,24 @@
         "Secondary roll: what was left in the freezer. The only ice or snow in this world - the",
         "garbage biome has no weather that makes either.",
         "",
-        "PACKED ice, not minecraft:ice, and the distinction is the water economy. Plain ice broken",
-        "without silk touch on solid ground leaves a water SOURCE block, and two sources are",
-        "infinite water - so it would retire the Rain Collector, the bucket gate and the",
-        "farmland-hydration half of encroachment immunity (#156) in one drop. leachate_is_not_water",
-        "already states that rule for fluids; an item walks through the same door.",
-        "Packed ice never melts and yields no water, so the freezer still contains something icy.",
-        "Locked by no_teardown_hands_out_a_free_water_source."
+        "REAL ice, and it IS a water source - owner ruling 2026-08-12, made with that consequence",
+        "stated. Broken without silk touch on solid ground it leaves a water source block, and two",
+        "sources are infinite water, so this is a route to water that needs no Rain Collector and no",
+        "bucket. It shipped as packed ice for one commit on exactly that reasoning and was overruled:",
+        "\"I know it creates a water source. Its fine gameplay.\"",
+        "",
+        "What still holds is SCALE, which is why leachate_is_not_water is untouched. Water off a",
+        "fridge costs a Bulky Waste find, a prybar and a 1-in-4 draw; leachate answering yes to being",
+        "water would turn every pool on the map into a tap. A bounded route is a reward, an ambient",
+        "one is the end of the economy.",
+        "",
+        "no_teardown_hands_out_a_free_water_source still guards every OTHER teardown, with this one",
+        "entry allowlisted by id - so the next water source has to be argued for, not absorbed."
       ],
       "rolls": 1,
       "entries": [
         { "item": "minecraft:snowball", "weight": 3 },
-        { "item": "minecraft:packed_ice", "weight": 1 }
+        { "item": "minecraft:ice", "weight": 1 }
       ]
     },
     {
