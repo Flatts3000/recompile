@@ -31,6 +31,23 @@ public abstract class MultiblockDummyBlock extends Block {
     /** How far below to look for the master. Generous enough for any stack we plan to build. */
     private static final int SEARCH_DEPTH = 4;
 
+    /**
+     * How far HORIZONTALLY a cell will look for its master.
+     *
+     * <p>This was 1, which quietly capped every machine at three blocks wide. A cell further out
+     * simply never found its core, so breaking it did not disband the machine - it left a formed
+     * machine with a hole in it, and the only symptom was a build that kept working while missing a
+     * part. The Separator's far column is already inside that blind spot; the Trommel is four long
+     * and was entirely outside it.
+     *
+     * <p>Widening is cheap because this runs on a break, not on a tick, and a wrong match is not a
+     * risk: the loop below only accepts a candidate whose own blueprint claims this exact position.
+     *
+     * <p>{@code no_blueprint_reaches_past_the_core_search} fails the build if a machine ever grows
+     * past this, so the next one to outgrow it finds out at build time rather than in a playtest.
+     */
+    public static final int SEARCH_RADIUS = 4;
+
     protected MultiblockDummyBlock(Properties properties) {
         super(properties);
     }
@@ -47,8 +64,8 @@ public abstract class MultiblockDummyBlock extends Block {
      */
     public static @Nullable BlockPos findCore(Level level, BlockPos pos) {
         for (int dy = 0; dy <= SEARCH_DEPTH; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
+            for (int dx = -SEARCH_RADIUS; dx <= SEARCH_RADIUS; dx++) {
+                for (int dz = -SEARCH_RADIUS; dz <= SEARCH_RADIUS; dz++) {
                     if (dx == 0 && dz == 0 && dy == 0) {
                         continue;   // the cell itself is never the core
                     }

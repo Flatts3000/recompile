@@ -102,6 +102,7 @@ public final class RCGameTests {
         RegionBiomeSourceTests.register();
         DemolitionYardTests.register();
         GemTierTests.register();
+        TrommelTests.register();
         ComponentTests.register();
         LeachateTests.register();
         FoundNotCraftedTests.register();

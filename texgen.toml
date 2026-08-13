@@ -1615,3 +1615,29 @@ frametime = 3
 [surface.trommel_drum.procedural]
 style = "drum"
 palette = ["#6e7076", "#3a3c42", "#96989e", "#7a4e2e"]
+
+# ---------------------------------------------------------------------------
+# The Trommel's remaining faces (#188). The drum above is the machine's identity; these are the
+# structure it turns in, and they follow the Separator's rule that a formed cell wears bespoke art
+# rather than the component's model restacked.
+#
+# Steel throughout, because the yard's own material ties the machine to the region it stands in.
+# ---------------------------------------------------------------------------
+
+[surface.trommel_housing]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the welded steel frame of a scrapyard sorting machine, flat grey plate with a bold riveted edge band along two sides and one horizontal weld seam, greasy and scuffed with rust creeping from the rivets, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+[surface.trommel_chute]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the discharge opening of a scrapyard sorting machine, a dark rectangular mouth cut into a grey riveted steel plate with a worn lip along its lower edge, grime streaking down from the opening, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+[surface.trommel_drum_cap]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the circular end plate of a heavy steel rotating drum seen head on, a bold dark ring with a small central hub and four radial spokes, grey steel gone dull with rust at the rim, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"

@@ -7,6 +7,7 @@ import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
 import com.flatts.recompile.content.block.entity.DisplayPedestalBlockEntity;
 import com.flatts.recompile.content.block.entity.SeparatorBlockEntity;
+import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
@@ -136,6 +137,11 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "separator",
             () -> new BlockEntityType<>(SeparatorBlockEntity::new, RCBlocks.SEPARATOR.get()));
+
+    public static final Supplier<BlockEntityType<TrommelBlockEntity>> TROMMEL =
+        BLOCK_ENTITIES.register("trommel",
+            () -> new BlockEntityType<>(TrommelBlockEntity::new, RCBlocks.TROMMEL.get()));
+
 
     private RCBlockEntities() {
         // utility class

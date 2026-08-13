@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/trommel_chute",
+    "north": "recompile:block/trommel_chute",
+    "south": "recompile:block/trommel_housing",
+    "east": "recompile:block/trommel_housing",
+    "west": "recompile:block/trommel_housing",
+    "up": "recompile:block/trommel_housing",
+    "down": "recompile:block/trommel_housing"
+  }
+}

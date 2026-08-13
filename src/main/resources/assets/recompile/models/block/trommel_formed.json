@@ -1,0 +1,13 @@
+{
+  "__comment": "Formed: the feed end, with the drum's cap showing where material goes in.",
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/trommel_housing",
+    "north": "recompile:block/trommel_housing",
+    "south": "recompile:block/trommel_housing",
+    "east": "recompile:block/trommel_housing",
+    "west": "recompile:block/trommel_housing",
+    "up": "recompile:block/trommel_drum_cap",
+    "down": "recompile:block/trommel_housing"
+  }
+}

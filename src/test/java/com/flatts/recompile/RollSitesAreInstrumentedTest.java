@@ -43,6 +43,7 @@ class RollSitesAreInstrumentedTest {
         "SortableBlock.java", "hand sorting - records PULL",
         "SortingTarpBlock.java", "the tarp - records SIFT_TARP",
         "SeparatorBlockEntity.java", "automated sorting - records SIFT_SEPARATOR",
+        "TrommelBlockEntity.java", "automated sorting, the machine that takes it over from the Separator (#187/#188) - records SIFT_TROMMEL",
         "PigeonForageGoal.java", "pigeons pecking a pile - records FORAGE",
         // Not sorting and not a pull stream: the bay rolls its own seedling table, which is a
         // machine output rather than something a player's time converts into materials.

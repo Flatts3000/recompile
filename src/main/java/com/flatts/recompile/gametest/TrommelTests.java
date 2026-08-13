@@ -1,0 +1,210 @@
+package com.flatts.recompile.gametest;
+
+import com.flatts.recompile.content.block.SortableBlock;
+import com.flatts.recompile.content.block.TrommelCoreBlock;
+import com.flatts.recompile.content.block.TrommelDrumBlock;
+import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
+import com.flatts.recompile.content.block.multiblock.Multiblock;
+import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
+import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCItems;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+
+/** GameTests for the Trommel (#188): the machine that takes automated sorting off the Separator. */
+final class TrommelTests {
+
+    private TrommelTests() {
+    }
+
+    /** Place every component the blueprint asks for, in world space, around a placed core. */
+    private static void buildAround(GameTestHelper helper, BlockPos core) {
+        Multiblock blueprint = ((MultiblockCoreBlock) RCBlocks.TROMMEL.get()).blueprint();
+        for (Multiblock.Cell cell : blueprint.cells()) {
+            helper.setBlock(core.offset(cell.offset()), cell.component());
+        }
+    }
+
+    private static TrommelBlockEntity formAndPower(GameTestHelper helper, BlockPos core) {
+        helper.setBlock(core, RCBlocks.TROMMEL.get());
+        buildAround(helper, core);
+        helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+            "the Trommel did not form from its components");
+        var be = (TrommelBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(core));
+        helper.assertTrue(be != null, "no Trommel BlockEntity");
+        try (Transaction tx = Transaction.openRoot()) {
+            be.battery().insert(1_000_000, tx);
+            tx.commit();
+        }
+        return be;
+    }
+
+    static void register() {
+        // It assembles, and every drum cell knows its place in the run. Without the stamp the four
+        // cells wear the same picture and read as four blocks rather than one barrel - and the ACTIVE
+        // mirror has nowhere to land, which is how the Separator once shipped running models that
+        // nothing referenced.
+        RCGameTests.test("a_trommel_forms_and_stamps_its_drum", 40, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            formAndPower(helper, core);
+
+            var drum = TrommelCoreBlock.drumCells(helper.getLevel(), helper.absolutePos(core));
+            helper.assertTrue(drum.size() == TrommelCoreBlock.LENGTH,
+                "expected " + TrommelCoreBlock.LENGTH + " drum cells, got " + drum.size());
+            for (int i = 0; i < drum.size(); i++) {
+                var state = helper.getLevel().getBlockState(drum.get(i));
+                helper.assertTrue(state.is(RCBlocks.TROMMEL_DRUM.get()),
+                    "drum cell " + i + " did not form into a drum");
+                helper.assertTrue(state.getValue(TrommelDrumBlock.CELL) == i,
+                    "drum cell " + i + " is stamped " + state.getValue(TrommelDrumBlock.CELL));
+            }
+            helper.succeed();
+        });
+
+        // THE WHOLE POINT: it sorts, and it yields exactly what the Sorting Tarp yields per block.
+        //
+        // Asserted as a COUNT rather than as "both call the same function", because the second is
+        // tautological - they do call the same function, which is the design, and a test that says so
+        // proves nothing. Counting what actually lands proves the machine uses the rolls it declares.
+        RCGameTests.test("a_trommel_sorts_a_block_at_the_tarps_rate", 200, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            TrommelBlockEntity be = formAndPower(helper, core);
+
+            int rolls = SortableBlock.sortRolls(RCItems.GARBAGE_BLOCK.get());
+            helper.assertTrue(rolls > 0, "a garbage block is not sortable - the test is measuring air");
+
+            BlockPos feed = TrommelCoreBlock.drumCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
+            helper.getLevel().addFreshEntity(new ItemEntity(helper.getLevel(),
+                feed.getX() + 0.5, feed.getY() + 0.5, feed.getZ() + 0.5,
+                new ItemStack(RCItems.GARBAGE_BLOCK.get(), 1)));
+
+            helper.succeedWhen(() -> {
+                helper.assertTrue(be.queuedCount() == 0,
+                    "the Trommel still holds " + be.queuedCount() + " - it has not finished");
+                long dropped = helper.getLevel()
+                    .getEntitiesOfClass(ItemEntity.class, helper.getBounds())
+                    .stream()
+                    .filter(e -> !e.getItem().is(RCItems.GARBAGE_BLOCK.get()))
+                    .mapToLong(e -> e.getItem().getCount())
+                    .sum();
+                helper.assertTrue(dropped >= rolls,
+                    "one garbage block should yield " + rolls + " pulls, the tarp's rate; got "
+                        + dropped);
+            });
+        });
+
+        // A machine that eats what it was holding is worse than one that never accepted it.
+        RCGameTests.test("breaking_a_trommel_hands_back_its_queue", 60, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            TrommelBlockEntity be = formAndPower(helper, core);
+            BlockPos feed = TrommelCoreBlock.drumCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
+            helper.getLevel().addFreshEntity(new ItemEntity(helper.getLevel(),
+                feed.getX() + 0.5, feed.getY() + 0.5, feed.getZ() + 0.5,
+                new ItemStack(RCItems.TRASH_BAG.get(), 3)));
+
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(be.queuedCount() > 0, "the Trommel swallowed nothing to hand back");
+                helper.getLevel().destroyBlock(helper.absolutePos(core), true);
+                helper.succeedWhen(() ->
+                    helper.assertItemEntityCountIs(RCItems.TRASH_BAG.get(), core, 4.0, 3));
+            });
+        });
+
+        // THE DISBAND DUPLICATION TRAP, which a two-cell machine cannot catch. In 26.1 the removal
+        // hook fires on a plain setBlock-to-AIR as well as on a real break, so clearing one cell
+        // re-enters its siblings' hooks - and while the core is still FORMED each of those re-drops
+        // the core. A machine with N dummies hands back N cores from one break. The Trommel has SEVEN
+        // dummy cells, so it is exactly the shape that exposes it.
+        //
+        // WHAT THIS CANNOT SEE, stated rather than glossed: the core ITEM. MultiblockDummyBlock drops
+        // the core with Block.dropResources and no tool, so a core declaring
+        // requiresCorrectToolForDrops - the Trommel and the Separator, both of them - drops nothing
+        // through that path at all. That is a real framework defect (#191) and it is pre-existing;
+        // it also means a duplicated core would duplicate ZERO items, so the count is unobservable
+        // here until it is fixed. What is observable is that the machine comes apart exactly once and
+        // returns its components exactly once, which is the same cascade seen from the other side.
+        RCGameTests.test("breaking_a_trommel_cell_disbands_it_exactly_once", 80, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            formAndPower(helper, core);
+
+            BlockPos cell = TrommelCoreBlock.drumCells(
+                helper.getLevel(), helper.absolutePos(core)).get(2);
+            helper.getLevel().destroyBlock(cell, true);
+
+            helper.succeedWhen(() -> {
+                helper.assertBlockPresent(Blocks.AIR, helper.relativePos(cell));
+                var state = helper.getLevel().getBlockState(helper.absolutePos(core));
+                helper.assertTrue(!MultiblockCoreBlock.isFormed(state),
+                    "the core is still FORMED after a cell was broken");
+                // THREE beams, not four, and the missing one is the point rather than an error: the
+                // broken cell dropped its own loot through the normal break BEFORE disband ran, so it
+                // came back as a Trommel Drum. disband then returns the component the blueprint names
+                // for every cell it still recognises. A cascade through the siblings' hooks would
+                // return more of all of these.
+                helper.assertItemEntityCountIs(RCItems.STEEL_I_BEAM.get(), core, 6.0, 3);
+                helper.assertItemEntityCountIs(RCItems.TROMMEL_DRUM.get(), core, 6.0, 1);
+                helper.assertItemEntityCountIs(RCItems.MOTOR.get(), core, 6.0, 1);
+            });
+        });
+
+        // NO BLUEPRINT MAY REACH PAST THE CORE SEARCH.
+        //
+        // A dummy finds its master by looking around itself, and a cell further out than
+        // SEARCH_RADIUS simply never finds one - so breaking it does not disband the machine and you
+        // are left with a formed machine with a hole in it, still running, missing a part. There is
+        // no error and nothing to see; the build just keeps working.
+        //
+        // The radius was 1 until the Trommel, which capped every machine at three blocks wide and had
+        // already swallowed the Separator's far column. This is the guard that stops the next machine
+        // rediscovering it in a playtest instead of at build time.
+        RCGameTests.test("no_blueprint_reaches_past_the_core_search", 20, helper -> {
+            java.util.List<String> tooBig = new java.util.ArrayList<>();
+            int checked = 0;
+            for (var block : net.minecraft.core.registries.BuiltInRegistries.BLOCK) {
+                if (!(block instanceof MultiblockCoreBlock core)) {
+                    continue;
+                }
+                checked++;
+                for (Multiblock.Cell cell : core.blueprint().cells()) {
+                    int dx = Math.abs(cell.offset().getX());
+                    int dz = Math.abs(cell.offset().getZ());
+                    if (Math.max(dx, dz) > com.flatts.recompile.content.block.multiblock
+                            .MultiblockDummyBlock.SEARCH_RADIUS) {
+                        tooBig.add(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block)
+                            + " cell " + cell.offset());
+                    }
+                }
+            }
+            helper.assertTrue(checked >= 4,
+                "only " + checked + " multiblock cores found - discovery is broken, so this would "
+                    + "pass by checking nothing");
+            helper.assertTrue(tooBig.isEmpty(),
+                "these cells sit outside MultiblockDummyBlock.SEARCH_RADIUS, so breaking one would "
+                    + "leave the machine formed with a hole in it: " + tooBig);
+            helper.succeed();
+        });
+
+        // The closed door, inherited from the Separator's design: no Container, no item capability, so
+        // nothing can push into it and no pipe can connect. It automates by reaching out instead.
+        RCGameTests.test("the_trommel_is_unreachable_by_pipe_and_hopper", 40, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            formAndPower(helper, core);
+            BlockPos abs = helper.absolutePos(core);
+
+            helper.assertTrue(
+                helper.getLevel().getCapability(
+                    net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK, abs, null) == null,
+                "the Trommel exposes an item capability - a pipe could fill it");
+            helper.assertTrue(
+                !(helper.getLevel().getBlockEntity(abs) instanceof net.minecraft.world.Container),
+                "the Trommel is a Container - a hopper could push into it");
+            helper.succeed();
+        });
+    }
+}

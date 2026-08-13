@@ -1,0 +1,13 @@
+{
+  "__comment": "The animated texture is the same file either way - the sheet IS the animation. The running variant exists so an idle machine can show a still frame instead, which is what the ACTIVE state is for.",
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/trommel_drum",
+    "north": "recompile:block/trommel_drum",
+    "south": "recompile:block/trommel_drum",
+    "up": "recompile:block/trommel_drum",
+    "down": "recompile:block/trommel_drum",
+    "east": "recompile:block/trommel_drum",
+    "west": "recompile:block/trommel_drum"
+  }
+}

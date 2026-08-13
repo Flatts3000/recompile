@@ -1,0 +1,124 @@
+{
+  "variants": {
+    "active=false,cell=0,facing=north": {
+      "model": "recompile:block/trommel_drum_end"
+    },
+    "active=false,cell=0,facing=east": {
+      "model": "recompile:block/trommel_drum_end",
+      "y": 90
+    },
+    "active=false,cell=0,facing=south": {
+      "model": "recompile:block/trommel_drum_end",
+      "y": 180
+    },
+    "active=false,cell=0,facing=west": {
+      "model": "recompile:block/trommel_drum_end",
+      "y": 270
+    },
+    "active=true,cell=0,facing=north": {
+      "model": "recompile:block/trommel_drum_end_running"
+    },
+    "active=true,cell=0,facing=east": {
+      "model": "recompile:block/trommel_drum_end_running",
+      "y": 90
+    },
+    "active=true,cell=0,facing=south": {
+      "model": "recompile:block/trommel_drum_end_running",
+      "y": 180
+    },
+    "active=true,cell=0,facing=west": {
+      "model": "recompile:block/trommel_drum_end_running",
+      "y": 270
+    },
+    "active=false,cell=1,facing=north": {
+      "model": "recompile:block/trommel_drum_mid"
+    },
+    "active=false,cell=1,facing=east": {
+      "model": "recompile:block/trommel_drum_mid",
+      "y": 90
+    },
+    "active=false,cell=1,facing=south": {
+      "model": "recompile:block/trommel_drum_mid",
+      "y": 180
+    },
+    "active=false,cell=1,facing=west": {
+      "model": "recompile:block/trommel_drum_mid",
+      "y": 270
+    },
+    "active=true,cell=1,facing=north": {
+      "model": "recompile:block/trommel_drum_mid_running"
+    },
+    "active=true,cell=1,facing=east": {
+      "model": "recompile:block/trommel_drum_mid_running",
+      "y": 90
+    },
+    "active=true,cell=1,facing=south": {
+      "model": "recompile:block/trommel_drum_mid_running",
+      "y": 180
+    },
+    "active=true,cell=1,facing=west": {
+      "model": "recompile:block/trommel_drum_mid_running",
+      "y": 270
+    },
+    "active=false,cell=2,facing=north": {
+      "model": "recompile:block/trommel_drum_mid"
+    },
+    "active=false,cell=2,facing=east": {
+      "model": "recompile:block/trommel_drum_mid",
+      "y": 90
+    },
+    "active=false,cell=2,facing=south": {
+      "model": "recompile:block/trommel_drum_mid",
+      "y": 180
+    },
+    "active=false,cell=2,facing=west": {
+      "model": "recompile:block/trommel_drum_mid",
+      "y": 270
+    },
+    "active=true,cell=2,facing=north": {
+      "model": "recompile:block/trommel_drum_mid_running"
+    },
+    "active=true,cell=2,facing=east": {
+      "model": "recompile:block/trommel_drum_mid_running",
+      "y": 90
+    },
+    "active=true,cell=2,facing=south": {
+      "model": "recompile:block/trommel_drum_mid_running",
+      "y": 180
+    },
+    "active=true,cell=2,facing=west": {
+      "model": "recompile:block/trommel_drum_mid_running",
+      "y": 270
+    },
+    "active=false,cell=3,facing=north": {
+      "model": "recompile:block/trommel_drum_end"
+    },
+    "active=false,cell=3,facing=east": {
+      "model": "recompile:block/trommel_drum_end",
+      "y": 90
+    },
+    "active=false,cell=3,facing=south": {
+      "model": "recompile:block/trommel_drum_end",
+      "y": 180
+    },
+    "active=false,cell=3,facing=west": {
+      "model": "recompile:block/trommel_drum_end",
+      "y": 270
+    },
+    "active=true,cell=3,facing=north": {
+      "model": "recompile:block/trommel_drum_end_running"
+    },
+    "active=true,cell=3,facing=east": {
+      "model": "recompile:block/trommel_drum_end_running",
+      "y": 90
+    },
+    "active=true,cell=3,facing=south": {
+      "model": "recompile:block/trommel_drum_end_running",
+      "y": 180
+    },
+    "active=true,cell=3,facing=west": {
+      "model": "recompile:block/trommel_drum_end_running",
+      "y": 270
+    }
+  }
+}
