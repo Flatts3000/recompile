@@ -116,7 +116,7 @@ final class GuidebookTests {
         // player who is not told either will tear one down expecting the part they wanted.
         RCGameTests.test("every_bulky_waste_find_has_a_guidebook_entry", 20, helper -> {
             Set<String> icons = new LinkedHashSet<>();
-            for (String json : categoryFiles(helper, "bulky_waste")) {
+            for (String json : categoryEntries(helper, "bulky_waste")) {
                 Matcher m = ICON_ID.matcher(json);
                 while (m.find()) {
                     if (!m.group(1).contains("/")) {
@@ -138,8 +138,15 @@ final class GuidebookTests {
                     unwritten.add(id);
                 }
             }
-            helper.assertTrue(finds >= 5,
-                "only " + finds + " finds read from the spine - discovery is broken");
+            // The floor is the real count, not one below it, and the reason is a second failure it
+            // catches. SortingData silently drops an entry whose item id does not resolve, so a find
+            // renamed in RCItems without updating the spine would vanish from `finds`, sail past a
+            // floor of 5, and never be checked for an entry - while its weight in the table now
+            // yields nothing at all. Add a find and this number goes up on purpose.
+            helper.assertTrue(finds >= 6,
+                "only " + finds + " finds read from the spine, expected at least 6 - either "
+                    + "discovery is broken or a spine entry names an item that no longer exists, "
+                    + "in which case that weight now drops nothing");
             helper.assertTrue(unwritten.isEmpty(),
                 "these Bulky Waste finds have no guidebook entry, so the book quietly says they do "
                     + "not exist: " + unwritten);
@@ -302,32 +309,6 @@ final class GuidebookTests {
      * directory does not reliably return a URL, and it did not here. A file always does, and its parent
      * is the folder we want.
      */
-    /** The Bulky Waste find table, read as the source of truth for what a player can pry open. */
-    private static final String SPINE = "/data/recompile/loot_table/gameplay/bulky_spine.json";
-
-    /** Every JSON under one category's entry directory, contents only. */
-    static List<String> categoryFiles(GameTestHelper helper, String category) {
-        List<String> out = new ArrayList<>();
-        URL anchor = GuidebookTests.class.getResource(BOOK_ROOT + "/book.json");
-        if (anchor == null) {
-            helper.fail("the guidebook is not on the classpath at " + BOOK_ROOT + "/book.json");
-            return out;
-        }
-        try {
-            Path dir = Path.of(anchor.toURI()).getParent().resolve("entries").resolve(category);
-            try (Stream<Path> walk = Files.walk(dir)) {
-                for (Path path : walk.filter(Files::isRegularFile).toList()) {
-                    if (path.toString().endsWith(".json")) {
-                        out.add(Files.readString(path, StandardCharsets.UTF_8));
-                    }
-                }
-            }
-        } catch (IOException | java.net.URISyntaxException e) {
-            helper.fail("could not walk the " + category + " category: " + e);
-        }
-        return out;
-    }
-
     static List<String> bookFiles(GameTestHelper helper) {
         List<String> out = new ArrayList<>();
         URL anchor = GuidebookTests.class.getResource(BOOK_ROOT + "/book.json");
@@ -343,6 +324,37 @@ final class GuidebookTests {
             }
         } catch (IOException | java.net.URISyntaxException e) {
             helper.fail("could not walk the guidebook: " + e);
+        }
+        return out;
+    }
+
+    /** The Bulky Waste find table, read as the source of truth for what a player can pry open. */
+    private static final String SPINE = "/data/recompile/loot_table/gameplay/bulky_spine.json";
+
+    /**
+     * The ENTRY files of one category, top level only.
+     *
+     * <p>{@code Files.list}, deliberately not {@code Files.walk}: an entry's {@code pages/} directory
+     * is not part of the answer to "does this find have an entry", and reading it would make the check
+     * pass for the wrong reason. {@link #ICON_ID} matches any {@code "id"} pair, and Modonomicon's page
+     * item field also accepts the object form {@code {"id": ..., "count": n}} - so one page written
+     * that way would put the item's id into the icon set on its own, and the test would still pass with
+     * the entry file deleted. That is precisely the silent gap it exists to close.
+     */
+    static List<String> categoryEntries(GameTestHelper helper, String category) {
+        List<String> out = new ArrayList<>();
+        Path root = bookRoot(helper);
+        if (root == null) {
+            return out;
+        }
+        try (Stream<Path> files = Files.list(root.resolve("entries").resolve(category))) {
+            for (Path path : files.filter(Files::isRegularFile).toList()) {
+                if (path.toString().endsWith(".json")) {
+                    out.add(Files.readString(path, StandardCharsets.UTF_8));
+                }
+            }
+        } catch (IOException e) {
+            helper.fail("could not read the " + category + " category: " + e);
         }
         return out;
     }
