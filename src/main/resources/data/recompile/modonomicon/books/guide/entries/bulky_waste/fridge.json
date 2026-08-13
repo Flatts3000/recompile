@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:bulky_waste/fridge",
+  "category": "recompile:bulky_waste",
+  "name": "book.recompile.guide.bulky_waste.fridge.name",
+  "icon": {
+    "id": "recompile:fridge"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 2,
+  "y": 3,
+  "parents": [
+    {
+      "entry": "recompile:bulky_waste/prying"
+    }
+  ]
+}

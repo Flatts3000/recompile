@@ -104,6 +104,55 @@ final class GuidebookTests {
             report(helper, problems, "guidebook lists missing a member the code defines");
         });
 
+        // EVERY FIND A PLAYER CAN PRY OPEN MUST HAVE AN ENTRY.
+        //
+        // The Dead Fridge shipped in v0.9.0 with no page at all. The Broken Fan and the Light Fixture
+        // entries were deleted alongside those blocks and nothing replaced them, so the category
+        // simply had one fewer page - which renders perfectly. That is why nothing caught it: a
+        // missing entry is not a broken reference, and every other check here is a reference check.
+        //
+        // It matters most for exactly the find that went missing. The fridge is the only teardown in
+        // the mod where WHICH component you get is a draw, and the only source of ice or snow, and a
+        // player who is not told either will tear one down expecting the part they wanted.
+        RCGameTests.test("every_bulky_waste_find_has_a_guidebook_entry", 20, helper -> {
+            Set<String> icons = new LinkedHashSet<>();
+            for (String json : categoryEntries(helper, "bulky_waste")) {
+                Matcher m = ICON_ID.matcher(json);
+                while (m.find()) {
+                    if (!m.group(1).contains("/")) {
+                        icons.add(m.group(1));
+                    }
+                }
+            }
+            helper.assertTrue(icons.size() >= 5,
+                "only " + icons.size() + " icons found in the bulky_waste category - discovery is "
+                    + "broken, so this test would pass by checking nothing");
+
+            List<String> unwritten = new ArrayList<>();
+            int finds = 0;
+            for (var drop : com.flatts.recompile.compat.SortingData.outputs(SPINE)) {
+                finds++;
+                String id = String.valueOf(
+                    BuiltInRegistries.ITEM.getKey(drop.stack().getItem()));
+                if (!icons.contains(id)) {
+                    unwritten.add(id);
+                }
+            }
+            // The floor is the real count, not one below it, and the reason is a second failure it
+            // catches. SortingData silently drops an entry whose item id does not resolve, so a find
+            // renamed in RCItems without updating the spine would vanish from `finds`, sail past a
+            // floor of 5, and never be checked for an entry - while its weight in the table now
+            // yields nothing at all. Add a find and this number goes up on purpose.
+            helper.assertTrue(finds >= 6,
+                "only " + finds + " finds read from the spine, expected at least 6 - either "
+                    + "discovery is broken or a spine entry names an item that no longer exists, "
+                    + "in which case that weight now drops nothing");
+            helper.assertTrue(unwritten.isEmpty(),
+                "these Bulky Waste finds have no guidebook entry, so the book quietly says they do "
+                    + "not exist: " + unwritten);
+            helper.succeed();
+        });
+
         // A key that does not resolve renders as itself. It is the most visible possible bug and the
         // least visible possible failure: the book still opens, the page still turns.
         RCGameTests.test("every_guidebook_lang_key_resolves", 20, helper -> {
@@ -275,6 +324,37 @@ final class GuidebookTests {
             }
         } catch (IOException | java.net.URISyntaxException e) {
             helper.fail("could not walk the guidebook: " + e);
+        }
+        return out;
+    }
+
+    /** The Bulky Waste find table, read as the source of truth for what a player can pry open. */
+    private static final String SPINE = "/data/recompile/loot_table/gameplay/bulky_spine.json";
+
+    /**
+     * The ENTRY files of one category, top level only.
+     *
+     * <p>{@code Files.list}, deliberately not {@code Files.walk}: an entry's {@code pages/} directory
+     * is not part of the answer to "does this find have an entry", and reading it would make the check
+     * pass for the wrong reason. {@link #ICON_ID} matches any {@code "id"} pair, and Modonomicon's page
+     * item field also accepts the object form {@code {"id": ..., "count": n}} - so one page written
+     * that way would put the item's id into the icon set on its own, and the test would still pass with
+     * the entry file deleted. That is precisely the silent gap it exists to close.
+     */
+    static List<String> categoryEntries(GameTestHelper helper, String category) {
+        List<String> out = new ArrayList<>();
+        Path root = bookRoot(helper);
+        if (root == null) {
+            return out;
+        }
+        try (Stream<Path> files = Files.list(root.resolve("entries").resolve(category))) {
+            for (Path path : files.filter(Files::isRegularFile).toList()) {
+                if (path.toString().endsWith(".json")) {
+                    out.add(Files.readString(path, StandardCharsets.UTF_8));
+                }
+            }
+        } catch (IOException e) {
+            helper.fail("could not read the " + category + " category: " + e);
         }
         return out;
     }
