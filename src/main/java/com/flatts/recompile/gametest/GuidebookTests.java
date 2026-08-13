@@ -104,6 +104,48 @@ final class GuidebookTests {
             report(helper, problems, "guidebook lists missing a member the code defines");
         });
 
+        // EVERY FIND A PLAYER CAN PRY OPEN MUST HAVE AN ENTRY.
+        //
+        // The Dead Fridge shipped in v0.9.0 with no page at all. The Broken Fan and the Light Fixture
+        // entries were deleted alongside those blocks and nothing replaced them, so the category
+        // simply had one fewer page - which renders perfectly. That is why nothing caught it: a
+        // missing entry is not a broken reference, and every other check here is a reference check.
+        //
+        // It matters most for exactly the find that went missing. The fridge is the only teardown in
+        // the mod where WHICH component you get is a draw, and the only source of ice or snow, and a
+        // player who is not told either will tear one down expecting the part they wanted.
+        RCGameTests.test("every_bulky_waste_find_has_a_guidebook_entry", 20, helper -> {
+            Set<String> icons = new LinkedHashSet<>();
+            for (String json : categoryFiles(helper, "bulky_waste")) {
+                Matcher m = ICON_ID.matcher(json);
+                while (m.find()) {
+                    if (!m.group(1).contains("/")) {
+                        icons.add(m.group(1));
+                    }
+                }
+            }
+            helper.assertTrue(icons.size() >= 5,
+                "only " + icons.size() + " icons found in the bulky_waste category - discovery is "
+                    + "broken, so this test would pass by checking nothing");
+
+            List<String> unwritten = new ArrayList<>();
+            int finds = 0;
+            for (var drop : com.flatts.recompile.compat.SortingData.outputs(SPINE)) {
+                finds++;
+                String id = String.valueOf(
+                    BuiltInRegistries.ITEM.getKey(drop.stack().getItem()));
+                if (!icons.contains(id)) {
+                    unwritten.add(id);
+                }
+            }
+            helper.assertTrue(finds >= 5,
+                "only " + finds + " finds read from the spine - discovery is broken");
+            helper.assertTrue(unwritten.isEmpty(),
+                "these Bulky Waste finds have no guidebook entry, so the book quietly says they do "
+                    + "not exist: " + unwritten);
+            helper.succeed();
+        });
+
         // A key that does not resolve renders as itself. It is the most visible possible bug and the
         // least visible possible failure: the book still opens, the page still turns.
         RCGameTests.test("every_guidebook_lang_key_resolves", 20, helper -> {
@@ -260,6 +302,32 @@ final class GuidebookTests {
      * directory does not reliably return a URL, and it did not here. A file always does, and its parent
      * is the folder we want.
      */
+    /** The Bulky Waste find table, read as the source of truth for what a player can pry open. */
+    private static final String SPINE = "/data/recompile/loot_table/gameplay/bulky_spine.json";
+
+    /** Every JSON under one category's entry directory, contents only. */
+    static List<String> categoryFiles(GameTestHelper helper, String category) {
+        List<String> out = new ArrayList<>();
+        URL anchor = GuidebookTests.class.getResource(BOOK_ROOT + "/book.json");
+        if (anchor == null) {
+            helper.fail("the guidebook is not on the classpath at " + BOOK_ROOT + "/book.json");
+            return out;
+        }
+        try {
+            Path dir = Path.of(anchor.toURI()).getParent().resolve("entries").resolve(category);
+            try (Stream<Path> walk = Files.walk(dir)) {
+                for (Path path : walk.filter(Files::isRegularFile).toList()) {
+                    if (path.toString().endsWith(".json")) {
+                        out.add(Files.readString(path, StandardCharsets.UTF_8));
+                    }
+                }
+            }
+        } catch (IOException | java.net.URISyntaxException e) {
+            helper.fail("could not walk the " + category + " category: " + e);
+        }
+        return out;
+    }
+
     static List<String> bookFiles(GameTestHelper helper) {
         List<String> out = new ArrayList<>();
         URL anchor = GuidebookTests.class.getResource(BOOK_ROOT + "/book.json");
