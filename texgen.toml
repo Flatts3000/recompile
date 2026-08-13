@@ -1593,3 +1593,25 @@ faces = ["front", "side", "top"]
 front = "a full-bleed Minecraft block face: the door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a hard horizontal door seam across the very bottom, yellowed with age, a few rust spots and a peeling sticker, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 side = "a full-bleed Minecraft block face: the plain side panel of a dumped white kitchen fridge, flat off-white enamel gone cream with age, one hard vertical seam line near the front edge, dents, scuffs and rust streaks running down, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 top = "a full-bleed top-down Minecraft block face: the dusty top of a dumped white kitchen fridge, flat off-white enamel under a thick layer of grey dust and grime, a few dark ring stains and scattered debris, rust at the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+# ---------------------------------------------------------------------------
+# The Trommel drum: the mod's first generated ANIMATED surface (#188).
+#
+# PROCEDURAL, and this is the strongest case for it in the repo. An animation has to CLOSE - the last
+# frame must hand back to the first without a jump - and that is a property of the whole sequence, not
+# of any one picture, so it is not a thing an image model can be asked for. In code the loop is exact
+# by construction: the hole grid shifts by exactly one pitch across the frames.
+#
+# 8 frames at frametime 3 is a slow turn, which is what a trommel does. A fast drum reads as a washing
+# machine.
+# ---------------------------------------------------------------------------
+
+[surface.trommel_drum]
+kind = "block"
+backend = "procedural"
+size = 16
+frames = 8
+frametime = 3
+[surface.trommel_drum.procedural]
+style = "drum"
+palette = ["#6e7076", "#3a3c42", "#96989e", "#7a4e2e"]
