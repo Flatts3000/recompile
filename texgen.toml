@@ -1641,7 +1641,13 @@ palette = ["#6e7076", "#3a3c42", "#96989e", "#7a4e2e"]
 kind = "block"
 backend = "ai"
 size = 16
-prompt = "a full-bleed Minecraft block face: the welded steel frame of a scrapyard sorting machine, flat grey plate with a bold riveted edge band along two sides and one horizontal weld seam, greasy and scuffed with rust creeping from the rivets, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+# NO DIRECTIONAL BORDER. The first prompt asked for "a riveted edge band along two sides", which
+# is an L, and every candidate duly had one - fine on a panel meant to repeat into a wall,
+# wrong on what this surface actually is now. Since the flanks became skins, housing survives
+# only on the two END CAPS and four undersides, and the undersides are on the ground: this is
+# effectively the bolted plate that closes off the end of the stand. An end plate is symmetric,
+# so the rivets go all the way round or not at all.
+prompt = "a full-bleed Minecraft block face: the bolted steel end plate that closes off a scrapyard machine stand, one flat grey plate seen straight on with a row of rivets running around all four edges evenly, a single small weld scar near the middle, greasy and scuffed with rust creeping from the rivets, symmetric, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 
 # trommel_chute WAS HERE and is gone: the discharge mouth is painted into cell 0 of
 # trommel_skin_north now, so a separate mouth tile is the old repeating-panel approach asking to be
@@ -1677,6 +1683,10 @@ width = 64
 height = 16
 
 [surface.trommel_drum_cap]
+# match_hue, because a cap is an END OF THE DRUM and has to be the same metal as it. Generated on
+# its own it came back on a rust-orange ground at 24% saturation against the drum's 3% - four of
+# the five candidates did. This keeps the chosen plate and its luminance and recasts the colour.
+match_hue = "trommel_drum"
 kind = "block"
 backend = "ai"
 size = 16
