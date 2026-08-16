@@ -1634,31 +1634,19 @@ palette = ["#6e7076", "#3a3c42", "#96989e", "#7a4e2e"]
 # Steel throughout, because the yard's own material ties the machine to the region it stands in.
 # ---------------------------------------------------------------------------
 
+# Down from 22 of the machine's 48 faces to SIX, and not one of them is a flank. The flanks are
+# skins now; this is only the two end caps and four undersides - the faces a single cell has, where
+# there is nothing to span and so nothing to skin. It cannot be deleted without leaving those bare.
 [surface.trommel_housing]
 kind = "block"
 backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face: the welded steel frame of a scrapyard sorting machine, flat grey plate with a bold riveted edge band along two sides and one horizontal weld seam, greasy and scuffed with rust creeping from the rivets, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 
-[surface.trommel_chute]
-kind = "block"
-backend = "ai"
-size = 16
-prompt = "a full-bleed Minecraft block face: the discharge opening of a scrapyard sorting machine, a dark rectangular mouth cut into a grey riveted steel plate with a worn lip along its lower edge, grime streaking down from the opening, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
-
-# ---------------------------------------------------------------------------
-# The Trommel's FLANKS, as whole-machine skins (#188).
-#
-# Four repeats of one 16px panel across a stand is the wall MultiblockSkinnedBlock exists to stop, and
-# the Trommel had exactly that: trommel_housing on 22 of its 48 faces. These are one continuous image
-# per flank, cut into per-cell tiles by tools/skin_machine.py.
-#
-# ONE ROW ONLY, 4x1. The top row is the drum and the drum animates, so it must not be cut from a
-# static sheet - the same split the Separator makes between its shell and its bay. The ends are a
-# single cell each, which is not a span, so they keep the plain panel.
-#
-# North carries the discharge, because that is the face the outlet actually sits on.
-# ---------------------------------------------------------------------------
+# trommel_chute WAS HERE and is gone: the discharge mouth is painted into cell 0 of
+# trommel_skin_north now, so a separate mouth tile is the old repeating-panel approach asking to be
+# picked a second time. The BLOCK recompile:trommel_chute stays - it is a real cell of the machine -
+# it just wears skin tiles like every other skinned cell.
 
 [surface.trommel_skin_north]
 kind = "block_skin"
