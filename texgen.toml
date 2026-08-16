@@ -1646,6 +1646,43 @@ backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face: the discharge opening of a scrapyard sorting machine, a dark rectangular mouth cut into a grey riveted steel plate with a worn lip along its lower edge, grime streaking down from the opening, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 
+# ---------------------------------------------------------------------------
+# The Trommel's FLANKS, as whole-machine skins (#188).
+#
+# Four repeats of one 16px panel across a stand is the wall MultiblockSkinnedBlock exists to stop, and
+# the Trommel had exactly that: trommel_housing on 22 of its 48 faces. These are one continuous image
+# per flank, cut into per-cell tiles by tools/skin_machine.py.
+#
+# ONE ROW ONLY, 4x1. The top row is the drum and the drum animates, so it must not be cut from a
+# static sheet - the same split the Separator makes between its shell and its bay. The ends are a
+# single cell each, which is not a span, so they keep the plain panel.
+#
+# North carries the discharge, because that is the face the outlet actually sits on.
+# ---------------------------------------------------------------------------
+
+[surface.trommel_skin_north]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 64
+height = 16
+# LEFT IS THE DISCHARGE END, and it is not arbitrary. The north face has flip = True in
+# skin_machine.FACE_AXES, so sheet column 0 is cell x = 3 - which is the chute. The sheet
+# therefore reads exactly as a player standing in front of the machine sees it, left to right,
+# and the first draft of this prompt put the mouth on the right, which would have painted it
+# over the CORE at the opposite end of the machine.
+prompt = "the front of a single long low industrial sorting machine stand, one continuous machine face spanning the whole image, four times wider than it is tall, welded grey steel plate with riveted seams, a dark rectangular discharge opening cut into the plate at the far LEFT end with grime streaking down below it, a squat motor housing bulging out of the plate right of centre, greasy and rust stained, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.trommel_skin_south]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 64
+height = 16
+prompt = "the back of a single long low industrial sorting machine stand, one continuous machine face spanning the whole image, four times wider than it is tall, welded grey steel plate with riveted seams, a bolted access panel toward one end and a run of conduit clipped along the plate, greasy and rust stained, no openings, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
 [surface.trommel_drum_cap]
 kind = "block"
 backend = "ai"

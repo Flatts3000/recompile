@@ -434,7 +434,31 @@ TREE_NURSERY = Machine(
 )
 TREE_NURSERY.fallbacks = {'tree_nursery_tank': 'tree_nursery_tank'}
 
-MACHINES = {'separator': SEPARATOR, 'tree_nursery': TREE_NURSERY}
+# The Trommel: 4 wide x 2 tall x 1 deep, and only its BOTTOM ROW wears a skin.
+#
+# The top row is the drum, and the drum ANIMATES - it is the machine's whole identity and the one
+# thing that must not be cut from a static sheet. So the same split the Separator makes between its
+# skinned shell and its animated bay, except here the animated part is a whole row, which is exactly
+# what skin_height is for (the Tree Nursery uses it to leave its shared Solar Panels alone).
+#
+# That leaves a 4x1 flank: the core, the motor cell, one frame, and the discharge at the far end. A
+# stand is a low wide thing and four repeats of one panel across it is the wall this whole system
+# exists to stop.
+TROMMEL = Machine(
+    'trommel', 4, 2, 1,
+    positions=[(x, y, 0) for x in range(4) for y in range(2)],
+    cells={
+        (1, 0, 0): 'trommel_stand',
+        (2, 0, 0): 'trommel_stand',
+        (3, 0, 0): 'trommel_chute',
+    },
+    fallback='trommel_housing',
+    core='trommel_formed',
+    skin_height=1,
+)
+
+MACHINES = {'separator': SEPARATOR, 'tree_nursery': TREE_NURSERY,
+            'trommel': TROMMEL}
 
 if __name__ == '__main__':
     if len(sys.argv) != 2 or sys.argv[1] not in MACHINES:
