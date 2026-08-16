@@ -13,6 +13,8 @@ import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
+import com.flatts.recompile.content.block.TrommelCoreBlock;
+import com.flatts.recompile.content.block.TrommelDrumBlock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
@@ -73,6 +75,8 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(SortProgressProvider.INSTANCE, SortableBlock.class);
         registration.registerBlockComponent(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);
         registration.registerBlockComponent(MachineStatusProvider.INSTANCE, MultiblockCoreBlock.class);
+        registration.registerBlockComponent(TrommelFeedProvider.INSTANCE, TrommelCoreBlock.class);
+        registration.registerBlockComponent(TrommelFeedProvider.INSTANCE, TrommelDrumBlock.class);
         registration.registerBlockComponent(ScrapBinProvider.INSTANCE, ScrapBinBlock.class);
         registration.registerItemStorageClient(SeparatorStorageClientProvider.INSTANCE);
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostHeapCoreBlock.class);

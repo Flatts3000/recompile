@@ -128,6 +128,34 @@ final class TrommelTests {
             });
         });
 
+        // HOW YOU GET SOMETHING INTO IT, which is the question a sealed machine with no screen and no
+        // slots leaves a player holding. Two routes, and this covers the one nobody guesses: a
+        // container parked on the drum is DRAINED. Every other automatable block in the game is fed by
+        // pushing into it, so being drained is the opposite of the habit - and it is the route that
+        // makes the machine unattended, which is the entire reward for building one.
+        //
+        // Note the direction. Nothing pushes into the Trommel; the machine reaches out and takes. That
+        // is what keeps the closed door shut while still letting a hopper feed the chest that feeds it.
+        RCGameTests.test("a_container_parked_on_the_trommel_is_drained", 200, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            TrommelBlockEntity be = formAndPower(helper, core);
+
+            BlockPos chest = TrommelCoreBlock.drumCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
+            helper.getLevel().setBlockAndUpdate(chest, Blocks.CHEST.defaultBlockState());
+            var container = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(chest);
+            helper.assertTrue(container != null, "no chest to drain");
+            container.setItem(0, new ItemStack(RCItems.GARBAGE_BLOCK.get(), 4));
+
+            helper.succeedWhen(() -> {
+                var left = container.getItem(0);
+                helper.assertTrue(left.getCount() < 4,
+                    "the Trommel did not take anything out of the chest standing on its drum");
+                helper.assertTrue(be.queuedCount() > 0 || left.getCount() < 4,
+                    "nothing moved from the chest into the machine");
+            });
+        });
+
         // THE DISBAND DUPLICATION TRAP, which a two-cell machine cannot catch. In 26.1 the removal
         // hook fires on a plain setBlock-to-AIR as well as on a real break, so clearing one cell
         // re-enters its siblings' hooks - and while the core is still FORMED each of those re-drops

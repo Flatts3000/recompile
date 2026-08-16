@@ -200,6 +200,38 @@ public class TrommelBlockEntity extends BlockEntity {
                 entity.setItem(left);
             }
         }
+
+        // A CONTAINER PARKED ON THE DRUM IS DRAINED, exactly as the Separator drains one parked on its
+        // chamber. This is the route a player will actually try, and until it existed the machine's
+        // only way in was throwing loose items at it - which nothing announces, so the honest reading
+        // of a Trommel you had just built was that it did not work.
+        //
+        // It is also what makes the machine automatable without opening a door in it: a hopper fills
+        // the chest, the machine sips from the chest. Nothing can push INTO the Trommel, which is the
+        // property the closed-door test defends; reaching out and being reached into stay different
+        // doors, and only the second is shut.
+        for (BlockPos cell : TrommelCoreBlock.drumCells(level, pos)) {
+            Container container = HopperBlockEntity.getContainerAt(level, cell.above());
+            if (container == null) {
+                continue;
+            }
+            for (int slot = 0; slot < container.getContainerSize(); slot++) {
+                ItemStack stack = container.getItem(slot);
+                if (stack.isEmpty() || !accepts(stack)) {
+                    continue;
+                }
+                // One slot's worth per tick, so the machine sips from a chest rather than vacuuming it
+                // in a single frame.
+                ItemStack left = insert(stack);
+                if (left.getCount() != stack.getCount()) {
+                    container.setItem(slot, left.isEmpty() ? ItemStack.EMPTY : left);
+                    container.setChanged();
+                }
+                // Whether or not anything moved: a full queue must not spin through the rest of the
+                // container's slots, and setChanged on a chest every tick is chunk-save churn.
+                break;
+            }
+        }
     }
 
     private ItemStack insert(ItemStack incoming) {
