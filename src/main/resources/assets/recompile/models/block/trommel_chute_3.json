@@ -4,8 +4,8 @@
     "particle": "recompile:block/trommel_housing",
     "down": "recompile:block/trommel_housing",
     "up": "recompile:block/trommel_housing",
-    "north": "recompile:block/trommel_skin_north_0",
-    "south": "recompile:block/trommel_skin_south_0",
+    "north": "recompile:block/trommel_skin_north_3",
+    "south": "recompile:block/trommel_skin_south_3",
     "west": "recompile:block/trommel_housing",
     "east": "recompile:block/trommel_housing"
   },

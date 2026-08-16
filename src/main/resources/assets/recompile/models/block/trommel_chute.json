@@ -1,12 +1,13 @@
 {
+  "__comment": "The item wears the chute cell's OWN front face, cut from the machine skin, rather than a separate mouth tile. Two pictures of one block is how they drift, and the separate tile only existed because the machine used to be built from repeating panels.",
   "parent": "minecraft:block/cube",
   "textures": {
-    "particle": "recompile:block/trommel_chute",
-    "north": "recompile:block/trommel_chute",
-    "south": "recompile:block/trommel_housing",
-    "east": "recompile:block/trommel_housing",
-    "west": "recompile:block/trommel_housing",
+    "particle": "recompile:block/trommel_housing",
+    "down": "recompile:block/trommel_housing",
     "up": "recompile:block/trommel_housing",
-    "down": "recompile:block/trommel_housing"
+    "north": "recompile:block/trommel_skin_north_3",
+    "south": "recompile:block/trommel_skin_south_3",
+    "west": "recompile:block/trommel_housing",
+    "east": "recompile:block/trommel_housing"
   }
 }

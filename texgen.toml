@@ -1663,13 +1663,18 @@ prompt = "the front of a single long low industrial sorting machine stand, one c
 vanilla_ref = "block/iron_block"
 
 [surface.trommel_skin_south]
+# THE SAME ART AS THE NORTH FLANK, MIRRORED (owner, 2026-08-16).
+#
+# Mirrored rather than copied, and that is not a stylistic call. north has flip = True in
+# skin_machine.FACE_AXES and south has flip = False, so sheet column 0 is cell x = 3 on one face and
+# cell x = 0 on the other - opposite ENDS of the machine. Copy the sheet verbatim and the discharge
+# that sits over the chute on the north side sits over the CORE on the south side. The mirror is what
+# makes "the same texture" actually the same texture once it is on the built machine.
 kind = "block_skin"
-backend = "ai"
+mirror_of = "trommel_skin_north"
 size = 16
 width = 64
 height = 16
-prompt = "the back of a single long low industrial sorting machine stand, one continuous machine face spanning the whole image, four times wider than it is tall, welded grey steel plate with riveted seams, a bolted access panel toward one end and a run of conduit clipped along the plate, greasy and rust stained, no openings, viewed straight on, filling the frame edge to edge"
-vanilla_ref = "block/iron_block"
 
 [surface.trommel_drum_cap]
 kind = "block"
