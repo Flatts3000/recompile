@@ -13,6 +13,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /** GameTests for the Trommel (#188): the machine that takes automated sorting off the Separator. */
@@ -36,8 +37,19 @@ final class TrommelTests {
             "the Trommel did not form from its components");
         var be = (TrommelBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(core));
         helper.assertTrue(be != null, "no Trommel BlockEntity");
+
+        // POWERED THROUGH THE CAPABILITY, never by writing to be.battery() directly. That shortcut is
+        // how the machine shipped its first pass with no Capabilities.Energy.BLOCK registration at all:
+        // every test passed, and no generator or pipe in the game could reach the block. A machine that
+        // runs in the harness and is dead in the world is the exact failure this indirection prevents,
+        // so every Trommel test now takes its power the way a Solar Panel would deliver it.
+        var energy = helper.getLevel().getCapability(
+            Capabilities.Energy.BLOCK, helper.absolutePos(core), null);
+        helper.assertTrue(energy != null,
+            "the Trommel exposes no Capabilities.Energy.BLOCK, so no generator can reach it");
         try (Transaction tx = Transaction.openRoot()) {
-            be.battery().insert(1_000_000, tx);
+            helper.assertTrue(energy.insert(1_000_000, tx) > 0,
+                "the Trommel refused energy through its capability");
             tx.commit();
         }
         return be;
@@ -199,11 +211,22 @@ final class TrommelTests {
 
             helper.assertTrue(
                 helper.getLevel().getCapability(
-                    net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK, abs, null) == null,
+                    Capabilities.Item.BLOCK, abs, null) == null,
                 "the Trommel exposes an item capability - a pipe could fill it");
             helper.assertTrue(
                 !(helper.getLevel().getBlockEntity(abs) instanceof net.minecraft.world.Container),
                 "the Trommel is a Container - a hopper could push into it");
+
+            // Power is the ONE door that is open, and it opens one way. A consumer that also hands
+            // energy back is not a harmless extra: every generator pushes to its neighbours each tick,
+            // so a machine that gives energy back trades the same charge with its own supply forever.
+            var energy = helper.getLevel().getCapability(
+                Capabilities.Energy.BLOCK, abs, null);
+            helper.assertTrue(energy != null, "the Trommel takes no energy - it cannot be powered");
+            try (Transaction tx = Transaction.openRoot()) {
+                helper.assertTrue(energy.extract(1000, tx) == 0,
+                    "the Trommel gives energy back - it would trade charge with its own generator");
+            }
             helper.succeed();
         });
     }

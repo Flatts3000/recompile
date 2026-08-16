@@ -1,13 +1,13 @@
 {
-  "__comment": "The animated texture is the same file either way - the sheet IS the animation. The running variant exists so an idle machine can show a still frame instead, which is what the ACTIVE state is for.",
+  "__comment": "The IDLE model wears trommel_drum_still, a one-frame crop of the sheet; the _running model wears the sheet itself. Both files existed before and were BYTE-IDENTICAL, so the drum turned whether or not the machine had power or material - and the ACTIVE blockstate, the mirror that writes it onto every cell, and the CELL stamping were all driving a distinction the art did not make. Neither GameTest nor JUnit can see a block face, which is why this survived a green suite and died in one screenshot.",
   "parent": "minecraft:block/cube",
   "textures": {
-    "particle": "recompile:block/trommel_drum",
-    "north": "recompile:block/trommel_drum",
-    "south": "recompile:block/trommel_drum",
-    "up": "recompile:block/trommel_drum",
-    "down": "recompile:block/trommel_drum",
-    "east": "recompile:block/trommel_drum",
-    "west": "recompile:block/trommel_drum"
+    "particle": "recompile:block/trommel_drum_still",
+    "north": "recompile:block/trommel_drum_still",
+    "south": "recompile:block/trommel_drum_still",
+    "up": "recompile:block/trommel_drum_still",
+    "down": "recompile:block/trommel_drum_still",
+    "east": "recompile:block/trommel_drum_still",
+    "west": "recompile:block/trommel_drum_still"
   }
 }

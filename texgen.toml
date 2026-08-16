@@ -1612,6 +1612,10 @@ backend = "procedural"
 size = 16
 frames = 8
 frametime = 3
+# ...and a one-frame still beside it, so an IDLE drum can stop turning. A machine that animates
+# whether or not it has power is telling the player something false, and the ACTIVE blockstate that
+# already exists to say so had nothing to point at.
+still = true
 [surface.trommel_drum.procedural]
 style = "drum"
 palette = ["#6e7076", "#3a3c42", "#96989e", "#7a4e2e"]

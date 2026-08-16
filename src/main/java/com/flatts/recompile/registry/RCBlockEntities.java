@@ -185,6 +185,19 @@ public final class RCBlockEntities {
             SEPARATOR.get(),
             (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
 
+        // The Trommel, on exactly the Separator's terms: power in, nothing else. INSERT-only, because
+        // it is a consumer.
+        //
+        // This was MISSED on the machine's first pass, and how it was missed is the point. The
+        // BlockEntity has a battery and its tests power it by writing to that battery directly, so
+        // every test passed while no generator in the game could reach the block - a machine that
+        // works in the harness and is dead in the world. What catches it is asserting the CAPABILITY
+        // is there, not that the machine runs once something has handed it energy.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            TROMMEL.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
         event.registerBlockEntity(
             Capabilities.Fluid.BLOCK,
             RAIN_COLLECTOR.get(),
