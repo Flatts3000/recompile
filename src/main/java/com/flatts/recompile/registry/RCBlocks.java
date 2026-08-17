@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.ManholeBlock;
 import com.flatts.recompile.content.block.FilingCabinetBlock;
 import com.flatts.recompile.content.block.PulverizerCoreBlock;
 import com.flatts.recompile.content.block.PulverizerPartBlock;
@@ -193,6 +194,29 @@ public final class RCBlocks {
             .noLootTable()
             .liquid()
             .sound(SoundType.EMPTY)
+    );
+
+    /**
+     * The manhole cover: the way into a sewer (#90). The prybar is the only thing that opens it.
+     *
+     * <p><b>Unbreakable, because {@code requiresCorrectToolForDrops} does not gate this block.</b> That
+     * flag gates the DROP, and the reward here is not a drop - it is the shaft underneath. The first
+     * version wore the flag and copied Bulky Waste's javadoc along with it, which was wrong in a way
+     * that reads right: for Bulky Waste, mining destroys the find, so refusing to drop it IS the gate.
+     * For a cover, mining achieves exactly what prying achieves, so hardness 3 with no correct tool was
+     * a fifteen-second bare-handed bypass of the tool the whole entrance is built around.
+     *
+     * <p>{@code -1.0F} destroy time is vanilla's own "you cannot mine this" (bedrock, portal frame). It
+     * is not a hardship: the cover is structure-only, and prying it is a right-click.
+     */
+    public static final DeferredBlock<ManholeBlock> MANHOLE = BLOCKS.registerBlock(
+        "manhole",
+        ManholeBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(-1.0F, 3600000.0F)
+            .noLootTable()
+            .sound(SoundType.METAL)
     );
 
     public static final DeferredBlock<Block> REINFORCED_CONCRETE = BLOCKS.registerBlock(

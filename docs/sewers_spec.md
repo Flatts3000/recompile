@@ -141,19 +141,70 @@ silently become phase 5's problem.
 
 ## Phase 1 - the manhole
 
-**Ships:** you can find a manhole in the yard and open it. It leads to a stub shaft, not a sewer yet.
+**Ships:** you can find a manhole in the yard and open it. **Shipped 2026-08-17, and built after phase
+2 rather than before it, which changed the design for the better.**
+
+**The sewer brings its own entrance.** This phase originally described scattering covers at mineshaft
+density over a stub shaft, with the density measured and tuned. Once the structure existed, that was
+clearly the wrong shape: a separately-placed cover can open onto nothing, and the density question is
+really "how often is there a sewer", which the structure set already answers. `SewerEntrance` is a piece
+of the structure, so **every cover a player finds opens onto a real sewer, and every sewer has exactly
+one way in**. No second rarity dial to keep in sync.
+
+**The cover is scrap steel, not cast iron.** Nothing in this world is municipal, so the plate is rusted
+and pitted rather than foundry-cast.
+
+**It has its own art, generated and approved** (owner picked candidate 0, 2026-08-17). Two rulings came
+out of getting there and both are worth keeping, because the reasoning that lost sounded good:
+
+- **AI, not procedural.** The procedural case was the Puzzle Cube's - concentric circles and a repeating
+  tread land on whole pixels when drawn as code - and the owner's answer was that procedural does not
+  best AI. Fixed geometry is a reason procedural *can* work, not a reason it wins. The procedural
+  `manhole_cover` style stays in the engine as the keyless fallback.
+- **Square and full-bleed.** The first pass drew a round cover, which left the tile's corners showing a
+  surround. A block face is a square, and anything that does not fill it reads as a sticker laid on the
+  ground rather than as the ground. The prompt now says square three different ways, because "manhole"
+  pulls an image model toward a circle hard enough that asking once does not hold.
+
+**Ladders the whole way up.** Nothing else in the palette is climbable, and a shaft you can fall down
+but not walk out of is a trap rather than a door.
 
 - A `manhole` block, plus the 3x3 Reinforced Concrete surface pad that marks it.
 - Prying it: the Bulky Waste pattern (`BulkyWasteBlock`), right-click with the prybar, one action.
-  Without a prybar, the same "you need a Prybar" nudge.
-- Placement at vanilla mineshaft frequency, restricted to the `demolition_yard` biome.
+  Without a prybar, the same "you need a Prybar" nudge. Prying leaves **air** - the shaft below is
+  already built, so a second "open" state would be another thing to model, light and test for nothing.
+- Placement comes from the structure, so it is the sewer's own rarity and needs no separate dial.
+
+**One trap found building it, and it will recur.** `StructurePiece.placeBlock` mirrors the state it is
+given, and `mirror` is **null** on any piece that never calls `setOrientation`. Almost every block
+ignores mirroring - a brick returns itself untouched - so the root chamber never noticed. A **ladder**
+rotates by `mirror.getRotation(facing)` and throws on the null. The shaft is the first piece here to
+place a directional block, so it is the first to find out. Calling `setOrientation` would fix the null
+and break the coordinates, since this piece works in absolute positions and an orientation switches
+`getWorldX/Z` into transforming them; it writes directly instead, as the chamber already does for its
+spawner.
 
 **Acceptance:**
-- Walking a fresh yard finds manholes at roughly vanilla mineshaft density. Measured over a sampled
-  area, in the manner of the region distribution measurement in #88, not eyeballed.
-- The pad is visible from the ground, not only from the air.
-- Prying without a prybar does nothing and says why. Prying with one opens the way down.
-- A GameTest covers the tool gate. Density is a worldgen measurement, not a GameTest.
+- ~~Manholes at roughly vanilla mineshaft density, measured over a sampled area.~~ **Retired**: the
+  entrance is a piece of the structure, so its density IS the sewer's density and there is no second
+  dial to measure. Measuring it would be measuring the structure set twice.
+- The pad is visible from the ground, not only from the air. **This is the one that nearly shipped
+  broken:** the shaft was capped at the *footprint minimum* surface - a `Math.min` over nine samples
+  spanning up to 80 blocks - so wherever the ground above the chamber was higher than the lowest ground
+  anywhere under the sewer, the pad and cover generated **buried**. The cap now reads the shaft's own
+  column.
+- Prying without a prybar does nothing and says why. Prying with one opens the way down. **And nothing
+  else opens it:** the cover is unbreakable, because `requiresCorrectToolForDrops` gates a *drop* and
+  the reward here is the shaft - with hardness alone, fifteen seconds of bare-handed mining achieved
+  exactly what prying achieves.
+- A GameTest covers the tool gate, driving `useItemOn` rather than the static entry point, so the
+  branch that decides prybar-against-not-prybar is the one under test.
+
+**Known and accepted:** the yard's own features (`rubble_pile`, `steel_stack`, `building_husk`) run at
+`vegetal_decoration`, after `underground_structures`, and they write into air - so a pile can settle on
+top of a cover. It obscures rather than seals: rubble is breakable and the concrete pad still reads
+through it. Worth revisiting if playtest says a buried-in-rubble cover is missable, since there is
+exactly one per sewer.
 
 **Risk:** a 1x1 hole in a large biome is either exciting or miserable. The 3x3 pad exists to make it
 findable; if playtest says it still is not, the pad grows before the rarity changes.

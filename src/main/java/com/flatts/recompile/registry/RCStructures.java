@@ -47,6 +47,10 @@ public final class RCStructures {
         PIECE_TYPES.register("sewer_stairs",
             () -> (StructurePieceType.ContextlessType) SewerPieces.SewerStairs::new);
 
+    public static final Supplier<StructurePieceType> SEWER_ENTRANCE =
+        PIECE_TYPES.register("sewer_entrance",
+            () -> (StructurePieceType.ContextlessType) SewerPieces.SewerEntrance::new);
+
     public static final Supplier<StructurePieceType> SEWER_ROOM =
         PIECE_TYPES.register("sewer_room",
             () -> (StructurePieceType.ContextlessType) SewerPieces.SewerRoom::new);

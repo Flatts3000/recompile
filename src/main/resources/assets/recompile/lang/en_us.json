@@ -513,6 +513,7 @@
   "jade.recompile.dig_with": "Dig out with a %s",
   "book.recompile.guide.getting_started.pick_through.digging.title": "Digging it out",
   "book.recompile.guide.getting_started.pick_through.digging.text": "Sorting a pile is bare-hand work and always will be. Carrying one home is a different job and wants a tool: a shovel for garbage and rubble, a pickaxe for mechanical waste, a scrap knife for a bale. Swing without one and the pile stays where it is and tells you what it wants, so nothing is lost while you learn it. Trash bags come up by hand.",
+  "block.recompile.manhole": "Manhole",
   "block.recompile.mound_ground": "Mound Ground",
   "block.recompile.pulverizer": "Pulverizer",
   "block.recompile.pulverizer_housing": "Pulverizer Housing",

@@ -1846,3 +1846,28 @@ kind = "block"
 backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face: the circular end plate of a heavy steel rotating drum seen head on, a bold dark ring with a small central hub and four radial spokes, grey steel gone dull with rust at the rim, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+# The manhole cover (#90): the way into the sewers, seen from above.
+#
+# AI (owner, 2026-08-17), overruling the procedural draft. The argument FOR procedural was the Puzzle
+# Cube's - concentric circles and a repeating tread land on whole pixels when drawn as code - and the
+# owner's answer is that procedural does not best AI. Recorded because the reasoning reads convincing
+# and was still the wrong call: fixed geometry is a reason procedural CAN work, not a reason it wins.
+#
+# SQUARE AND FULL-BLEED (owner, 2026-08-17). The first pass drew a round cover, which left the tile's
+# corners showing a surround - a block face is a square and anything that does not fill it reads as a
+# sticker on the ground rather than as the ground. The prompt now says square, edge to edge, corner to
+# corner, and says it several ways, because "manhole" pulls an image model toward a circle hard enough
+# that asking once is not enough.
+#
+# A SCRAP cover, not a municipal one. This world has no city to cast iron for it, so the prompt asks for
+# a rusted, pitted, welded plate rather than a foundry casting. The procedural style is kept below as
+# the fallback the pipeline uses when no key is present.
+[surface.manhole]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed top-down Minecraft block face of a SQUARE rusted steel access plate that fills the entire square tile edge to edge, corner to corner, no circular shape, no round cover, no background visible, heavy orange-brown oxidation, raised waffle tread pattern, bolt heads near the four corners, a pry slot on one edge, grimy industrial salvage, muted browns and greys"
+vanilla_ref = "block/iron_block"
+[surface.manhole.procedural]
+style = "manhole_cover"
