@@ -28,6 +28,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /**
  * JEI integration: surfaces the mechanics that are not vanilla recipes and so are
@@ -109,6 +110,18 @@ public class RecompileJeiPlugin implements IModPlugin {
     static final RecipeType<SalvageRecipe> PULVERIZING =
         RecipeType.create(Recompile.MOD_ID, "pulverizing", SalvageRecipe.class);
 
+    /**
+     * Hydrating a Dry Clay Body in a water cauldron - the last step of the clay chain (#115).
+     *
+     * <p><b>This exists because the step is not a recipe.</b> It is a {@code CauldronInteraction}
+     * registered in Java, so JEI cannot find it from either side: a Dry Clay Body showed no uses and a
+     * clay ball showed no recipe, and the chain looked like it stopped one step short of the thing it
+     * exists to make. That is the "a mechanic nobody can see does not exist" case the categories at the
+     * top of this file are for - the same reason Prying and Sorting have one.
+     */
+    static final RecipeType<SalvageRecipe> HYDRATING =
+        RecipeType.create(Recompile.MOD_ID, "hydrating", SalvageRecipe.class);
+
     static final RecipeType<AssemblyRecipe> ASSEMBLY =
         RecipeType.create(Recompile.MOD_ID, "assembly", AssemblyRecipe.class);
     static final RecipeType<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe>
@@ -151,6 +164,8 @@ public class RecompileJeiPlugin implements IModPlugin {
                 gui.createDrawableItemStack(new ItemStack(RCItems.SEPARATOR.get())), false,
                 com.flatts.recompile.compat.SeparatingData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new SalvageCategory(HYDRATING, Component.translatable("jei.recompile.hydrating"),
+                gui.createDrawableItemStack(new ItemStack(Items.WATER_BUCKET)), false, 1),
             new SalvageCategory(PULVERIZING, Component.translatable("jei.recompile.pulverizing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
                 com.flatts.recompile.compat.PulverizingData.all().stream()
@@ -222,6 +237,14 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipes(TORCH_CUTTING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.STEEL_I_BEAM.get()),
                 SortingData.visibleOutputs(SortingData.STEEL_BEAM))));
+
+        // One row, and it is the whole mechanic: the blend goes in, clay comes out, and the cauldron
+        // is the catalyst rather than an ingredient because it is not consumed - only a level of its
+        // water is.
+        registration.addRecipes(HYDRATING, List.of(
+            new SalvageRecipe(new ItemStack(RCItems.DRY_CLAY_BODY.get()),
+                List.of(new com.flatts.recompile.compat.SortingData.Weighted(
+                    new ItemStack(Items.CLAY_BALL), 1.0F)))));
 
         registration.addRecipes(PRYING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),
@@ -442,6 +465,16 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_KNIFE.get()), CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUTTING_TORCH.get()), TORCH_CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
+        // THE CAULDRON ONLY. A water bucket was listed here too, on the reasoning that a player looks
+        // up whatever they are holding - but a catalyst says "this is the tool for this job", and a
+        // bucket cannot hydrate anything. It fills the cauldron, which is a different step. Advertising
+        // it would send someone to right-click the blend with a bucket and watch nothing happen, which
+        // is the mistake the TORCH_CUTTING note above already records: a catalyst attaches to a
+        // CATEGORY, and must not advertise a job its item cannot do.
+        //
+        // One entry, because there is one cauldron ITEM - filled is a block state, not a
+        // separate item, so the title carries "must already hold water" instead.
+        registration.addRecipeCatalyst(new ItemStack(Items.CAULDRON), HYDRATING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SEPARATOR.get()), SEPARATING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PULVERIZER.get()), PULVERIZING);
