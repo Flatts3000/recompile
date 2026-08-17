@@ -83,15 +83,24 @@ public record Multiblock(List<Cell> cells) {
     }
 
     /**
-     * The exact inverse: a block that some machine uses as a cell <b>without transforming it</b>, which
-     * is what a craftable, hand-placed component looks like from the blueprint's side. The Water Tank,
-     * the Solar Panel and the Rain Collector Funnel.
+     * A block that some machine uses as a cell <b>without transforming it</b>, which is what a
+     * craftable, hand-placed component looks like from the blueprint's side. The Water Tank, the Solar
+     * Panel and the Rain Collector Funnel.
      *
      * <p><b>The two predicates live together on purpose.</b> They are one question asked from both
      * ends, and they were separated - the formed-only half in the JEI package, and nothing at all
      * asking the other half. That is how a block ended up visible in JEI as a craftable part while
      * {@link MultiblockDummyBlock#getDrops} deleted it on break: two answers to one question, with only
      * one of them written down.
+     *
+     * <p><b>They are complements, not inverses, and the difference can bite.</b> Each is a union over
+     * every blueprint in the game, so a block is in this set if <em>any</em> cell leaves it alone and in
+     * {@link #formedOnly()} if <em>any</em> cell transforms into it. Nothing stops both being true of one
+     * block - a future {@code Cell(offset, MACHINE_FRAME, WATER_TANK)} would do it - and the two
+     * consequences are both silent: breaking that formed cell would return a Water Tank instead of the
+     * Machine Frame the player put in, which is verbatim the 2026-08-07 regression, and JEI would hide
+     * a block that is craftable. They are disjoint across all seven machines today and
+     * {@code hand_placed_and_formed_only_stay_disjoint} fails the build on the day they are not.
      */
     public static boolean isHandPlaced(Block block) {
         Set<Block> known = handPlaced;

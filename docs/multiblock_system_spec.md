@@ -149,8 +149,8 @@ machine need a new formed model.
 
 **What we keep from IE unchanged:** the **master/dummy semantics.** The core is the master; on
 formation the cells above become **dummy blocks** that store their offset to the core, redirect
-breaking and `useItemOn` to it, and drop nothing on their own, and swap to the machine's bespoke
-formed slices. That is the piece that makes a formed machine "one machine" rather than a stack of
+breaking and `useItemOn` to it, drop nothing on their own (unless the cell is a hand-placed component,
+which keeps its own loot table - see below), and swap to the machine's bespoke formed slices. That is the piece that makes a formed machine "one machine" rather than a stack of
 loose blocks, and it is worth copying exactly.
 
 ---
@@ -183,8 +183,8 @@ them can drift.
   column-cell neighbour changes, the auto-assemble-from-inventory step, disband-on-break, and
   abstract `blueprint()` + `onFormed()/onDisbanded()`. Each machine's core extends it.
 - **`MultiblockDummyBlock`**: the formed component cell. Holds a link back to its master core
-  (relative offset), redirects break + `useItemOn` to the master, drops nothing on its own. This is
-  the IE dummy/slave, trimmed to a stack.
+  (relative offset), redirects break + `useItemOn` to the master, drops nothing on its own *except*
+  where the block is also a hand-placed component. This is the IE dummy/slave, trimmed to a stack.
 - **Component item-blocks** (Frame, Motor, Solar Panel): plain palette blocks in their *loose*
   state; they become dummies only inside a formed machine. No BE.
 - **The machine's work** hangs off the master core's formed tick - the multiblock layer decides
@@ -400,6 +400,23 @@ frame cells all become `separator_housing`. So breaking the motor cell returned 
 silently converting the rarest part into the commonest, which is the exact regression `disband` was
 fixed for in 2026-08-07 on the *other* path. `MultiblockDummyBlock.getDrops` returns nothing and the
 removal hook pops the broken cell's own component.
+
+**Except for a hand-placed component, which keeps its loot table** (2026-08-17, #204). Three dummy
+subclasses are ordinary craftable blocks - `water_tank`, `solar_panel`, `rain_collector_funnel` -
+because a cell that does not transform is deliberately the *same block* as the component you place.
+Returning nothing for those made a placed one **vanish** when broken, while JEI went on listing them
+as craftable parts. `Multiblock.isHandPlaced` decides, and the removal hook gives up its half at the
+same time or the machine hands back two. So those three loot tables are load-bearing and deleting one
+re-breaks this; every *other* formed cell's table is still only what a stray `setBlock` would drop.
+
+**One deliberate asymmetry falls out of that, and it is recorded rather than fixed.** A hand-placed
+cell now obeys `survives_explosion` like every other block in the game, while `disband` returns its
+sibling components with an unconditional `popResource`. So a creeper on a formed machine can cost you
+that one part and never the others. The alternative - stripping `survives_explosion` from the three
+tables - would make a placed Solar Panel explosion-proof while a Machine Frame beside it is not, which
+is the same inconsistency pointed the other way. The odd one out is `disband` ignoring explosion
+radius, which predates this and is out of scope; a block behaving like a block is the half that is
+right.
 
 **`findCore` searches four blocks, not one, and only finds FORMED cores.** The radius was 1, which
 capped every machine at three wide - a cell further out never found its master, so breaking it left the

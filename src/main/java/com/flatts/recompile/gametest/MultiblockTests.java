@@ -231,6 +231,30 @@ final class MultiblockTests {
             helper.succeed();
         });
 
+        // THE TWO DERIVED SETS MUST NOT OVERLAP.
+        //
+        // "Hand-placed" and "formed-only" read as opposites and are not: each is a union over every
+        // blueprint, so one block is in both the moment any machine transforms something INTO a block
+        // another machine merely places. Both consequences are silent - breaking that formed cell hands
+        // back the wrong part (the 2026-08-07 regression, exactly) and JEI hides a craftable block - so
+        // the overlap is asserted rather than assumed.
+        RCGameTests.test("hand_placed_and_formed_only_stay_disjoint", 20, helper -> {
+            List<String> both = new ArrayList<>();
+            for (Block block : Multiblock.formedOnly()) {
+                if (Multiblock.isHandPlaced(block)) {
+                    both.add(BuiltInRegistries.BLOCK.getKey(block).toString());
+                }
+            }
+            helper.assertTrue(!Multiblock.formedOnly().isEmpty(),
+                "no formed-only blocks found at all - discovery is broken, so this would pass by "
+                    + "comparing two empty sets");
+            helper.assertTrue(both.isEmpty(),
+                "these blocks are both a cell's formed appearance in one machine and a hand-placed "
+                    + "component in another, so the two derivations disagree about them: breaking that "
+                    + "formed cell returns the wrong part and JEI hides a craftable block: " + both);
+            helper.succeed();
+        });
+
         RCGameTests.test("multiblock_form_still_replaces_differing_cells", 20, helper -> {
             BlockPos coreRel = new BlockPos(1, 1, 1);
             BlockPos cellRel = coreRel.above();
