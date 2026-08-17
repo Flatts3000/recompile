@@ -10,6 +10,7 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
@@ -365,9 +366,75 @@ final class SewerTests {
             // origin and save the wrong home on the way. The placement calls setHomePos explicitly for
             // that reason, rather than relying on a side effect of finalizeSpawn that nothing here can
             // check.
+            var frogs = level.getEntitiesOfClass(
+                net.minecraft.world.entity.animal.frog.Frog.class, bounds);
+            helper.assertTrue(frogs.size() == 2,
+                "found " + frogs.size() + " frogs rather than 2 - a frog wants "
+                    + "#minecraft:animals_spawnable_on, which is grass block and nothing else, so a "
+                    + "brick sewer gives it nowhere to stand and it never arrives on its own");
+            frogs.forEach(net.minecraft.world.entity.Entity::discard);
             // They are persistent and mostly land outside the plot, which GameTest cleanup does not
             // reach - so they are removed here rather than left to wander through neighbouring tests.
             turtles.forEach(net.minecraft.world.entity.Entity::discard);
+            helper.succeed();
+        });
+
+        // THE SEWER OFFERS WHAT IT SAYS IT DOES, and only inside its own pieces.
+        //
+        // spawn_overrides is the half that decides which mobs are on the menu; the placement predicates
+        // in RCSewerSpawns are the half that decides whether they can actually stand there. Both have to
+        // agree or the mob silently never appears, which is how this whole phase started.
+        RCGameTests.test("the_sewer_offers_slime_and_roach_in_its_own_pieces", 20, helper -> {
+            String json = LootSearch.class.getResourceAsStream(
+                    "/data/recompile/worldgen/structure/sewer.json") == null ? "" : "";
+            try (var in = SewerTests.class.getResourceAsStream(
+                    "/data/recompile/worldgen/structure/sewer.json")) {
+                helper.assertTrue(in != null, "the sewer structure JSON is not on the classpath");
+                json = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                helper.fail("could not read the sewer structure JSON: " + e);
+            }
+            helper.assertTrue(json.contains("minecraft:slime"),
+                "the sewer does not offer slime, so the placement relaxation in RCSewerSpawns has "
+                    + "nothing to act on and no slime will ever appear");
+            helper.assertTrue(json.contains("recompile:roach"),
+                "the sewer does not offer roaches");
+            helper.assertTrue(json.contains("\"bounding_box\": \"piece\""),
+                "the spawn overrides are not scoped to the structure's pieces, so mobs would spawn in "
+                    + "the solid rock inside the sewer's bounding box as well as in its corridors");
+            helper.succeed();
+        });
+
+        // AND THE RELAXATION CANNOT LEAK. RCSewerSpawns adds an OR route for slime and declares the
+        // roach's whole rule; both are gated on actually being inside a sewer, so they cannot fire
+        // elsewhere. This asserts the second line of defence: nothing else offers either mob, so even a
+        // mistake in the predicate has nowhere to express itself. If a biome ever lists one, that is a
+        // deliberate decision and this test is where it gets made rather than discovered.
+        RCGameTests.test("no_biome_offers_the_sewer_only_mobs", 20, helper -> {
+            List<String> leaks = new ArrayList<>();
+            // Read from the shipped biome files rather than the registry: this is a question about what
+            // this mod declares, and a datapack that adds slime to a biome is a deliberate act by
+            // whoever wrote it. The invariant being defended is that RECOMPILE does not.
+            for (String biome : List.of("household_sprawl", "demolition_yard")) {
+                try (var in = SewerTests.class.getResourceAsStream(
+                        "/data/recompile/worldgen/biome/" + biome + ".json")) {
+                    helper.assertTrue(in != null, biome + " is not on the classpath");
+                    String json = new String(in.readAllBytes(),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                    if (json.contains("minecraft:slime")) {
+                        leaks.add(biome + " offers slime");
+                    }
+                    if (json.contains("recompile:roach")) {
+                        leaks.add(biome + " offers roaches");
+                    }
+                } catch (Exception e) {
+                    helper.fail("could not read " + biome + ": " + e);
+                }
+            }
+            helper.assertTrue(leaks.isEmpty(),
+                "these biomes offer a mob the sewer is supposed to own, so the sewer-gated spawn rules "
+                    + "in RCSewerSpawns are no longer the only thing deciding where it appears - which "
+                    + "is the containment the OR relaxation depends on: " + leaks);
             helper.succeed();
         });
 

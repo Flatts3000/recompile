@@ -320,8 +320,23 @@ mechanisms, and the difference is in vanilla's own code:
 `the_room_is_occupied_by_a_spawner_and_turtles` asserts both, because both are the kind of thing that
 silently ships empty.
 
-**Still open:** frogs (same predicate problem, unexamined), slime (the chunk route works below y=40, the
-surface route needs a biome tag), and roaches.
+**Extended 2026-08-17 (owner): slimes spawn naturally; frogs and turtles are limited.** Three
+mechanisms for four mobs, and each one is the cheapest thing that actually works:
+
+| Mob | How | Why not the others |
+|---|---|---|
+| **Drowned** | spawner | `IN_WATER` can never be satisfied by leachate; `checkDrownedSpawnRules` has an `isSpawner` branch |
+| **Slime** | natural, via an `OR` predicate gated on being inside a sewer | Vanilla's two routes are both closed here: the surface route needs a swamp biome tag, and the slime-chunk route is y<40 in one chunk in ten - slimes in a tenth of the lower corridors is a coincidence, not a population |
+| **Roach** | natural, its own `REPLACE` rule | Ours, in no biome's list, and previously reachable only by being disturbed out of a garbage block |
+| **Turtle, Frog** | placed, finite | A turtle wants `y < seaLevel + 4` against sea level **-64**; a frog wants `#minecraft:animals_spawnable_on`, which is grass block and nothing else. Owner call: limited populations, so placing them is the design as well as the mechanism |
+
+**The slime relaxation is contained by the predicate, not by an argument.** It tests
+`getStructureWithPieceAt`, so it cannot fire outside a sewer even if some future biome or structure
+lists slimes - relying on "nothing else offers them" would be true today and silently false later.
+`no_biome_offers_the_sewer_only_mobs` guards the second line of defence anyway.
+
+The spawner stays **drowned-only**: slimes and roaches now have natural routes, so putting them in the
+spawner as well would be a second mechanism for a solved problem.
 
 Worth knowing before tuning: **most of these cannot renew here, which suits a finite sewer.** Turtles
 need sand to lay eggs and this world has none. Frogs need magma cubes for froglights and the Nether is
