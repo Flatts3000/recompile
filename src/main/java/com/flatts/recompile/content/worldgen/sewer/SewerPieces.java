@@ -490,7 +490,8 @@ public final class SewerPieces {
      *
      * <p><b>Owner call, 2026-08-17: turtles and frogs are LIMITED populations</b>, and placing them is
      * the mechanism as well as the design. Neither can arrive any other way. A frog wants
-     * {@code #minecraft:animals_spawnable_on}, which is <b>grass block and nothing else</b>, so a brick
+     * {@code #minecraft:frogs_spawnable_on} - grass block, mud and the two mangrove roots - plus a
+     * brightness check, so a brick
      * sewer offers it nowhere to stand; and a turtle -
      * {@code Turtle.checkTurtleSpawnRules} demands {@code y < seaLevel + 4}, and this world's sea level
      * is <b>-64</b>, so the height test alone requires y &lt; -60; it also wants sand, which this world

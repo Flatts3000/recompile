@@ -29,7 +29,7 @@ import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
  *       because {@code Drowned.checkDrownedSpawnRules} has an explicit {@code isSpawner} branch.
  *   <li><b>Turtles and frogs</b> are <b>placed</b> by the structure and never spawn: a turtle wants
  *       {@code y < seaLevel + 4} against a sea level of <b>-64</b>, and a frog wants
- *       {@code #minecraft:animals_spawnable_on}, which is grass block and nothing else. Owner call: both
+ *       {@code #minecraft:frogs_spawnable_on} - grass block, mud and the two mangrove roots - plus a brightness check. Owner call: both
  *       are limited populations, so placing them is the mechanism AND the design.
  *   <li><b>Slime</b> spawns naturally, and this class is why. Owner call, 2026-08-17.
  *   <li><b>The Roach</b> is ours and has no vanilla rule at all, so it declares one.
@@ -64,8 +64,16 @@ public final class RCSewerSpawns {
         // a sewer, which makes the containment a property of the predicate rather than an argument
         // about who lists slimes where. That matters: relying on "nothing else offers slimes" would be
         // true today and silently false the first time a biome or another structure adds them.
+        // AND A ROLL, because every vanilla slime route has one and this did not. The surface route
+        // gates on the biome's own spawn chance and the slime-chunk route on nextInt(10) == 0; a bare
+        // "dark and inside a sewer" is an unconditional success on every dark air block, and since the
+        // structure override REPLACES the biome's monster list inside the pieces, slime and roach are
+        // the only candidates there. The sewer would fill straight to the MONSTER cap rather than
+        // trickling. One in eight is a first pass and belongs to the balance pass (#36); having a
+        // divisor at all is the part that is not a tuning question.
         event.register(EntityType.SLIME,
-            (type, level, reason, pos, random) -> inSewer(level, pos) && dark(level, reason, pos),
+            (type, level, reason, pos, random) ->
+                inSewer(level, pos) && dark(level, reason, pos) && random.nextInt(8) == 0,
             RegisterSpawnPlacementsEvent.Operation.OR);
 
         // THE ROACH declares its whole rule, the way the Pigeon does - it is our entity, it is in no

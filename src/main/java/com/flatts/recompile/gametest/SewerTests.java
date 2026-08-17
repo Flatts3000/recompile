@@ -10,7 +10,10 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import com.flatts.recompile.Recompile;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
@@ -370,7 +373,7 @@ final class SewerTests {
                 net.minecraft.world.entity.animal.frog.Frog.class, bounds);
             helper.assertTrue(frogs.size() == 2,
                 "found " + frogs.size() + " frogs rather than 2 - a frog wants "
-                    + "#minecraft:animals_spawnable_on, which is grass block and nothing else, so a "
+                    + "#minecraft:frogs_spawnable_on (grass block, mud, mangrove roots) plus a brightness check, so a "
                     + "brick sewer gives it nowhere to stand and it never arrives on its own");
             frogs.forEach(net.minecraft.world.entity.Entity::discard);
             // They are persistent and mostly land outside the plot, which GameTest cleanup does not
@@ -385,57 +388,89 @@ final class SewerTests {
         // in RCSewerSpawns are the half that decides whether they can actually stand there. Both have to
         // agree or the mob silently never appears, which is how this whole phase started.
         RCGameTests.test("the_sewer_offers_slime_and_roach_in_its_own_pieces", 20, helper -> {
-            String json = LootSearch.class.getResourceAsStream(
-                    "/data/recompile/worldgen/structure/sewer.json") == null ? "" : "";
-            try (var in = SewerTests.class.getResourceAsStream(
-                    "/data/recompile/worldgen/structure/sewer.json")) {
-                helper.assertTrue(in != null, "the sewer structure JSON is not on the classpath");
-                json = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                helper.fail("could not read the sewer structure JSON: " + e);
-            }
-            helper.assertTrue(json.contains("minecraft:slime"),
-                "the sewer does not offer slime, so the placement relaxation in RCSewerSpawns has "
-                    + "nothing to act on and no slime will ever appear");
-            helper.assertTrue(json.contains("recompile:roach"),
-                "the sewer does not offer roaches");
-            helper.assertTrue(json.contains("\"bounding_box\": \"piece\""),
-                "the spawn overrides are not scoped to the structure's pieces, so mobs would spawn in "
-                    + "the solid rock inside the sewer's bounding box as well as in its corridors");
+            // READ THE LOADED STRUCTURE, not the raw JSON. A string match passes no matter which
+            // MobCategory the entry sits under - move the roach to "creature" and the file still
+            // contains the id, while getMobsAt(..., MONSTER, ...) stops returning the override, the
+            // biome list is used instead, and NEITHER mob ever spawns in a sewer. That is exactly the
+            // silent-empty failure this test is named for, and the version that grepped the file could
+            // not see it.
+            var structure = helper.getLevel().registryAccess()
+                .lookupOrThrow(Registries.STRUCTURE)
+                .getOrThrow(ResourceKey.create(Registries.STRUCTURE,
+                    Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "sewer")))
+                .value();
+            var override = structure.spawnOverrides()
+                .get(net.minecraft.world.entity.MobCategory.MONSTER);
+            helper.assertTrue(override != null,
+                "the sewer has no MONSTER spawn override, so the biome list applies inside it and "
+                    + "nothing the sewer is supposed to own will appear");
+            helper.assertTrue(override.boundingBox()
+                    == net.minecraft.world.level.levelgen.structure.StructureSpawnOverride
+                        .BoundingBoxType.PIECE,
+                "the override is not scoped to the structure pieces, so mobs would spawn in the solid "
+                    + "rock inside its bounding box as well as in its corridors");
+            List<String> offered = new ArrayList<>();
+            override.spawns().unwrap().forEach(e -> offered.add(e.value().type().toString()));
+            helper.assertTrue(offered.toString().contains("slime"),
+                "the sewer does not offer slime under MONSTER, so the relaxation in RCSewerSpawns has "
+                    + "nothing to act on: " + offered);
+            helper.assertTrue(offered.toString().contains("roach"),
+                "the sewer does not offer roaches under MONSTER: " + offered);
             helper.succeed();
         });
 
-        // AND THE RELAXATION CANNOT LEAK. RCSewerSpawns adds an OR route for slime and declares the
-        // roach's whole rule; both are gated on actually being inside a sewer, so they cannot fire
-        // elsewhere. This asserts the second line of defence: nothing else offers either mob, so even a
-        // mistake in the predicate has nowhere to express itself. If a biome ever lists one, that is a
-        // deliberate decision and this test is where it gets made rather than discovered.
-        RCGameTests.test("no_biome_offers_the_sewer_only_mobs", 20, helper -> {
-            List<String> leaks = new ArrayList<>();
-            // Read from the shipped biome files rather than the registry: this is a question about what
-            // this mod declares, and a datapack that adds slime to a biome is a deliberate act by
-            // whoever wrote it. The invariant being defended is that RECOMPILE does not.
-            for (String biome : List.of("household_sprawl", "demolition_yard")) {
-                try (var in = SewerTests.class.getResourceAsStream(
-                        "/data/recompile/worldgen/biome/" + biome + ".json")) {
-                    helper.assertTrue(in != null, biome + " is not on the classpath");
-                    String json = new String(in.readAllBytes(),
-                        java.nio.charset.StandardCharsets.UTF_8);
-                    if (json.contains("minecraft:slime")) {
-                        leaks.add(biome + " offers slime");
+        // AND THE PREDICATES THEMSELVES SAY NO OUTSIDE A SEWER.
+        //
+        // This is the claim the whole design rests on - the containment is a property of the predicate
+        // rather than an argument about who lists what - and nothing asserted it. Both other tests read
+        // data; neither exercises SpawnPlacements at all, so deleting the inSewer gate left everything
+        // green while slimes spawned on every dark block in the world. The gametest plot contains no
+        // sewer, which makes the negative case free. Follows StrayTests, which does this for the cat.
+        //
+        // NATURAL, not a test or command reason: those bypass rules on purpose, and asserting against
+        // one is how a test like this quietly stops checking anything.
+        RCGameTests.test("sewer_mobs_do_not_spawn_outside_a_sewer", 80, helper -> {
+            // A SEALED, DARK POCKET. The slime gate is "inside a sewer AND dark AND a roll", so in a
+            // lit plot it returns false on the lighting alone - it would keep returning false with the
+            // sewer check deleted, and assert nothing. Driving the gate red proved exactly that: the
+            // broken version was caught for the roach and missed for the slime.
+            for (int dx = 0; dx <= 2; dx++) {
+                for (int dy = 1; dy <= 3; dy++) {
+                    for (int dz = 0; dz <= 2; dz++) {
+                        boolean shell = dx == 0 || dx == 2 || dy == 1 || dy == 3 || dz == 0 || dz == 2;
+                        helper.setBlock(new BlockPos(dx, dy, dz), shell
+                            ? net.minecraft.world.level.block.Blocks.BRICKS
+                            : net.minecraft.world.level.block.Blocks.AIR);
                     }
-                    if (json.contains("recompile:roach")) {
-                        leaks.add(biome + " offers roaches");
-                    }
-                } catch (Exception e) {
-                    helper.fail("could not read " + biome + ": " + e);
                 }
             }
-            helper.assertTrue(leaks.isEmpty(),
-                "these biomes offer a mob the sewer is supposed to own, so the sewer-gated spawn rules "
-                    + "in RCSewerSpawns are no longer the only thing deciding where it appears - which "
-                    + "is the containment the OR relaxation depends on: " + leaks);
-            helper.succeed();
+            BlockPos abs = helper.absolutePos(new BlockPos(1, 2, 1));
+            // succeedWhen, not a fixed delay: sky light belongs to ThreadedLevelLightEngine on its own
+            // thread, so no delay is ever sound - the repo already learned this from a solar panel test
+            // that passed locally for months and went red on CI.
+            helper.succeedWhen(() -> {
+                helper.assertTrue(helper.getLevel().getMaxLocalRawBrightness(abs) <= 7,
+                    "the probe is still lit (brightness "
+                        + helper.getLevel().getMaxLocalRawBrightness(abs) + "), so the slime rule would "
+                        + "fail on light alone and this test would pass without the sewer gate doing "
+                        + "anything");
+                List<String> leaked = new ArrayList<>();
+                if (net.minecraft.world.entity.SpawnPlacements.checkSpawnRules(
+                        net.minecraft.world.entity.EntityType.SLIME, helper.getLevel(),
+                        net.minecraft.world.entity.EntitySpawnReason.NATURAL, abs,
+                        helper.getLevel().getRandom())) {
+                    leaked.add("slime");
+                }
+                if (net.minecraft.world.entity.SpawnPlacements.checkSpawnRules(
+                        com.flatts.recompile.registry.RCEntities.ROACH.get(), helper.getLevel(),
+                        net.minecraft.world.entity.EntitySpawnReason.NATURAL, abs,
+                        helper.getLevel().getRandom())) {
+                    leaked.add("roach");
+                }
+                helper.assertTrue(leaked.isEmpty(),
+                    "these spawn in a dark pocket with no sewer anywhere near, so the structure gate in "
+                        + "RCSewerSpawns is not holding and the relaxation has escaped: " + leaked);
+            });
         });
 
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the

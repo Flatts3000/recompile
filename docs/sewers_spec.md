@@ -328,7 +328,7 @@ mechanisms for four mobs, and each one is the cheapest thing that actually works
 | **Drowned** | spawner | `IN_WATER` can never be satisfied by leachate; `checkDrownedSpawnRules` has an `isSpawner` branch |
 | **Slime** | natural, via an `OR` predicate gated on being inside a sewer | Vanilla's two routes are both closed here: the surface route needs a swamp biome tag, and the slime-chunk route is y<40 in one chunk in ten - slimes in a tenth of the lower corridors is a coincidence, not a population |
 | **Roach** | natural, its own `REPLACE` rule | Ours, in no biome's list, and previously reachable only by being disturbed out of a garbage block |
-| **Turtle, Frog** | placed, finite | A turtle wants `y < seaLevel + 4` against sea level **-64**; a frog wants `#minecraft:animals_spawnable_on`, which is grass block and nothing else. Owner call: limited populations, so placing them is the design as well as the mechanism |
+| **Turtle, Frog** | placed, finite | A turtle wants `y < seaLevel + 4` against sea level **-64**; a frog wants `#minecraft:frogs_spawnable_on` - grass block, mud and the two mangrove roots - plus a brightness check. Owner call: limited populations, so placing them is the design as well as the mechanism |
 
 **The slime relaxation is contained by the predicate, not by an argument.** It tests
 `getStructureWithPieceAt`, so it cannot fire outside a sewer even if some future biome or structure
