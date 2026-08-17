@@ -189,6 +189,21 @@ Accepted deliberately here (the mod is alpha, per the #87 close), but the releas
 This is **the mod's first real structure either way.** There is exactly one `.nbt` in the repo today
 and it is the gametest plot, so structure sets, template pools and processors are all new surface.
 
+**Shipped 2026-08-17.** `SewerStructure` + `SewerPieces` + `SewerPalette`, with the placement data at
+`worldgen/structure/sewer.json`, `worldgen/structure_set/sewers.json` and the
+`#recompile:has_structure/sewer` biome tag. Verified in a freshly generated world: `/locate structure
+recompile:sewer` finds one 690 blocks out in the demolition yard, its brick sits at y=53-56 with
+deepslate at y=62 above and y=10-15 below, and a screenshot shows corridors with cobwebs, iron grates
+and leachate in the channels.
+
+**One bug worth recording, because it was invisible from inside the game.** The first version clamped
+only the FLOOR when sinking the piece tree, so a tree deeper than the available rock was pushed bodily
+upward until it broke daylight - a tree spanning 0..57 under a surface at 65 came out at 12..69, ten
+blocks of corridor in the open air. `SewerStructure.sink` now clamps both ends and returns empty when
+they conflict, because a tree taller than the rock has no correct placement and no sewer is a better
+answer than a broken one. It is pure arithmetic on purpose: both failures look like broken code from
+in-world and neither throws.
+
 **Acceptance:**
 - A sewer generates with more than one level and branching corridors.
 - The slab is deep enough that a sewer never punches into the void or through the surface.

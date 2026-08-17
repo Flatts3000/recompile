@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.worldgen.sewer.SewerPalette;
 import com.flatts.recompile.content.worldgen.sewer.SewerPieces;
+import com.flatts.recompile.content.worldgen.sewer.SewerStructure;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +102,49 @@ final class SewerTests {
             helper.assertTrue(multiLevel > SEEDS / 2,
                 "only " + multiLevel + " of " + SEEDS + " sewers reached more than one level - without "
                     + "the vertical drift and the stairs a sewer is flat, and phase 2 asks for levels");
+            helper.succeed();
+        });
+
+        // IT NEVER OPENS INTO THE VOID OR THE SURFACE, which are the same bug seen from two sides and
+        // neither of which throws anything - one looks like a broken generator, the other like a broken
+        // structure. The arithmetic is pure, so it is asserted here rather than by going to look.
+        //
+        // The case that mattered: clamping only the floor pushed a too-deep tree bodily upward until it
+        // broke daylight. A tree spanning 0..57 under a surface at 65 came out at 12..69 - ten blocks of
+        // corridor in the open air, in a structure whose whole premise is that you go down to it.
+        RCGameTests.test("a_sewer_never_breaks_the_surface_or_the_void", 20, helper -> {
+            List<String> bad = new ArrayList<>();
+            // The real world: rock from about y=5 to a surface between 63 and 69, measured by
+            // the_world_has_rock_enough_to_hold_a_sewer.
+            for (int surface = 63; surface <= 69; surface++) {
+                for (int treeMin = -40; treeMin <= 50; treeMin += 2) {
+                    for (int height = 8; height <= 90; height += 2) {
+                        int treeMax = treeMin + height;
+                        var shift = SewerStructure.sink(surface, treeMin, treeMax);
+                        if (shift.isEmpty()) {
+                            continue;   // refusing to place is always a correct answer
+                        }
+                        int low = treeMin + shift.getAsInt();
+                        int high = treeMax + shift.getAsInt();
+                        if (high > surface - 6) {
+                            bad.add("surface " + surface + " tree " + treeMin + ".." + treeMax
+                                + " placed its roof at " + high + ", in the open air");
+                        }
+                        if (low < 12) {
+                            bad.add("surface " + surface + " tree " + treeMin + ".." + treeMax
+                                + " placed its floor at " + low + ", in the void");
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(bad.isEmpty(),
+                "these sewers would generate outside the rock: "
+                    + bad.subList(0, Math.min(4, bad.size())) + " (" + bad.size() + " total)");
+            // And it must still say yes to the ordinary case, or the check above passes by refusing
+            // everything - which would ship a structure that never generates at all.
+            helper.assertTrue(SewerStructure.sink(65, 10, 57).isPresent(),
+                "a sewer that fits comfortably in the rock was refused, so the guard above is passing "
+                    + "by placing nothing anywhere");
             helper.succeed();
         });
 

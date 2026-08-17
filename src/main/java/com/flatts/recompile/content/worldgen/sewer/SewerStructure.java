@@ -4,6 +4,7 @@ import com.flatts.recompile.registry.RCStructures;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.MapCodec;
 import java.util.Optional;
+import java.util.OptionalInt;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
@@ -52,25 +53,8 @@ public class SewerStructure extends Structure {
     @Override
     public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext context) {
         ChunkPos chunk = context.chunkPos();
-        StructurePiecesBuilder pieces = new StructurePiecesBuilder();
-        int shift = buildAndSink(pieces, context);
-        return Optional.of(new Structure.GenerationStub(
-            new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift, chunk.getMinBlockZ()),
-            Either.right(pieces)));
-    }
-
-    /**
-     * Build the tree at {@link #BUILD_Y}, then drop it under the surface and return how far it moved.
-     *
-     * <p>The sink is computed from the <b>assembled</b> tree rather than from the room alone, because
-     * corridors drift downward as they branch: a sewer whose room clears the floor can still have a
-     * stairwell hanging in the void 40 blocks below it. Measuring the finished bounding box and
-     * clamping on its lowest point is what makes "it never opens into the void" true of the whole
-     * structure rather than of its first piece.
-     */
-    private static int buildAndSink(StructurePiecesBuilder pieces, Structure.GenerationContext context) {
-        ChunkPos chunk = context.chunkPos();
         RandomSource random = context.random();
+        StructurePiecesBuilder pieces = new StructurePiecesBuilder();
         SewerPieces.SewerRoom room = new SewerPieces.SewerRoom(
             0, random, chunk.getBlockX(2), chunk.getBlockZ(2));
         pieces.addPiece(room);
@@ -82,17 +66,50 @@ public class SewerStructure extends Structure {
             net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG,
             context.heightAccessor(), context.randomState());
 
+        OptionalInt shift = sink(surface,
+            pieces.getBoundingBox().minY(), pieces.getBoundingBox().maxY());
+        if (shift.isEmpty()) {
+            return Optional.empty();
+        }
+        pieces.offsetPiecesVertically(shift.getAsInt());
+        return Optional.of(new Structure.GenerationStub(
+            new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMinBlockZ()),
+            Either.right(pieces)));
+    }
+
+    /**
+     * How far to drop an assembled piece tree, or empty if it does not fit in the rock at all.
+     *
+     * <p>Pure arithmetic, and separated out for exactly that reason: the two ways this goes wrong are
+     * invisible in a world. A sewer in the void looks like a broken generator and a sewer breaking the
+     * surface looks like a broken structure, and neither throws anything.
+     *
+     * <p>The sink is computed from the <b>assembled</b> tree rather than from the room, because
+     * corridors drift downward as they branch - a sewer whose room clears the floor can still have a
+     * stairwell hanging forty blocks below it.
+     *
+     * <p><b>Both ends are clamped, and when they conflict the sewer does not generate.</b> An earlier
+     * version clamped only the floor, so a tree too deep for the rock was pushed bodily upward until it
+     * broke daylight: {@code tree y=0..57} against a surface at 65 came out spanning 12..69, ten blocks
+     * of corridor in the open air. Raising the floor and lowering the roof cannot both be satisfied by
+     * a tree taller than the rock, and the honest answer there is no sewer here rather than a broken
+     * one - {@code findGenerationPoint} returning empty is a supported outcome that simply skips this
+     * attempt.
+     */
+    public static OptionalInt sink(int surface, int treeMinY, int treeMaxY) {
+        int roofLimit = surface - COVER;
         // Put the TOP of the structure COVER blocks under the surface...
-        int wanted = surface - COVER - pieces.getBoundingBox().maxY();
-        // ...unless that would push its lowest point through the floor, in which case sit on the floor
-        // and accept thinner cover. Both ends are clamped because a sewer that breaks the surface and a
-        // sewer that opens into the void are the same bug seen from opposite sides.
-        int lowest = pieces.getBoundingBox().minY() + wanted;
+        int wanted = roofLimit - treeMaxY;
+        // ...then raise it if that would leave its lowest point in the void.
+        int lowest = treeMinY + wanted;
         if (lowest < FLOOR_LIMIT) {
             wanted += FLOOR_LIMIT - lowest;
         }
-        pieces.offsetPiecesVertically(wanted);
-        return wanted;
+        // If raising it broke the roof, the tree is simply taller than the rock available.
+        if (treeMaxY + wanted > roofLimit) {
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(wanted);
     }
 
     @Override
