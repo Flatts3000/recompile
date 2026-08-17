@@ -107,6 +107,9 @@ public class RecompileJeiPlugin implements IModPlugin {
      * mill does not roll, everything that goes in comes out as the same powder, and a "100%" beside
      * every row would be noise.
      */
+    static final RecipeType<SalvageRecipe> PULVERIZING =
+        RecipeType.create(Recompile.MOD_ID, "pulverizing", SalvageRecipe.class);
+
     /**
      * Hydrating a Dry Clay Body in a water cauldron - the last step of the clay chain (#115).
      *
@@ -118,9 +121,6 @@ public class RecompileJeiPlugin implements IModPlugin {
      */
     static final RecipeType<SalvageRecipe> HYDRATING =
         RecipeType.create(Recompile.MOD_ID, "hydrating", SalvageRecipe.class);
-
-    static final RecipeType<SalvageRecipe> PULVERIZING =
-        RecipeType.create(Recompile.MOD_ID, "pulverizing", SalvageRecipe.class);
 
     static final RecipeType<AssemblyRecipe> ASSEMBLY =
         RecipeType.create(Recompile.MOD_ID, "assembly", AssemblyRecipe.class);
@@ -465,10 +465,16 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_KNIFE.get()), CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUTTING_TORCH.get()), TORCH_CUTTING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
-        // Both, because a player looks up whichever they are holding or looking at, and the cauldron
-        // item is the one they can actually pick up.
+        // THE CAULDRON ONLY. A water bucket was listed here too, on the reasoning that a player looks
+        // up whatever they are holding - but a catalyst says "this is the tool for this job", and a
+        // bucket cannot hydrate anything. It fills the cauldron, which is a different step. Advertising
+        // it would send someone to right-click the blend with a bucket and watch nothing happen, which
+        // is the mistake the TORCH_CUTTING note above already records: a catalyst attaches to a
+        // CATEGORY, and must not advertise a job its item cannot do.
+        //
+        // One entry, because there is one cauldron ITEM - filled is a block state, not a
+        // separate item, so the title carries "must already hold water" instead.
         registration.addRecipeCatalyst(new ItemStack(Items.CAULDRON), HYDRATING);
-        registration.addRecipeCatalyst(new ItemStack(Items.WATER_BUCKET), HYDRATING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SEPARATOR.get()), SEPARATING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PULVERIZER.get()), PULVERIZING);
