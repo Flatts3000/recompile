@@ -50,9 +50,14 @@ public final class SewerPieces {
     /**
      * How far from the root a piece may be placed, in blocks on each horizontal axis.
      *
-     * <p>What keeps one sewer finite. Keeping two of them from meeting is a different job and belongs
-     * to the structure set, which spaces starts further apart than twice this - {@code findCollisionPiece}
-     * only ever sees the pieces of the sewer being built, so it cannot help there.
+     * <p>What keeps ONE sewer finite, and only that. <b>It does not stop two sewers meeting</b>, and an
+     * earlier version of this javadoc claimed it did: {@code findCollisionPiece} only ever sees the
+     * pieces of the sewer currently being built, so nothing checks against a neighbour. Widening the
+     * structure set's spacing would enforce it, and was tried - at {@code spacing 20} it also made
+     * sewers roughly four hundred times rarer than the rate the spec pins ({@code frequency 0.004},
+     * {@code spacing 1}, copied from vanilla's mineshafts rather than guessed), which is a design
+     * change and not mine to make. The rarity stands as specified and the overlap is possible but
+     * unlikely; it is flagged in the spec as an owner call rather than quietly enforced.
      */
     public static final int RADIUS_CAP = 80;
 
@@ -144,15 +149,30 @@ public final class SewerPieces {
     public abstract static class SewerPiece extends StructurePiece {
 
         /**
-         * Vanilla's orientation-aware box builder, reachable.
+         * A box of {@code w} across by {@code h} tall by {@code l} long, extending <b>away</b> from the
+         * opening it is anchored at.
          *
-         * <p>{@code makeBoundingBox} is {@code protected static}, so only a subclass may call it - and
-         * the graph that needs it is not one. Exposing it here rather than reimplementing the axis swap
-         * is the whole point: reimplementing it is exactly the mistake that produced the transposed
-         * carve this class was rewritten for.
+         * <p><b>Not {@code StructurePiece.makeBoundingBox}, and that distinction is load-bearing.</b>
+         * Vanilla's helper always extends in +x/+z from the anchor - {@code direction} only swaps width
+         * against depth on the X axis - because it exists for <em>root</em> pieces, which choose their
+         * own corner. Chained pieces need the box to run backwards for NORTH and WEST, and using the
+         * vanilla helper for them is silently catastrophic: a NORTH branch anchored at
+         * {@code minZ - 1} produces a box extending back <em>into</em> its parent, so
+         * {@code findCollisionPiece} rejects it and the branch is dropped with no error. Every sewer
+         * then grew only south and east - confined to one quadrant, with half of every branch roll
+         * wasted - and no test could see it, because a quadrant is smaller than the bound, not larger.
+         * Vanilla's own mineshaft builds direction-aware boxes by hand for exactly this reason.
+         *
+         * <p>The local-to-world mapping lines up with it: {@code getWorldZ} for NORTH is
+         * {@code maxZ - localZ}, so local z=0 is the anchor end and the piece runs away from the parent.
          */
         public static BoundingBox box(int x, int y, int z, Direction facing, int w, int h, int l) {
-            return makeBoundingBox(x, y, z, facing, w, h, l);
+            return switch (facing) {
+                case SOUTH -> new BoundingBox(x, y, z, x + w - 1, y + h - 1, z + l - 1);
+                case WEST -> new BoundingBox(x - l + 1, y, z, x, y + h - 1, z + w - 1);
+                case EAST -> new BoundingBox(x, y, z, x + l - 1, y + h - 1, z + w - 1);
+                default -> new BoundingBox(x, y, z - l + 1, x + w - 1, y + h - 1, z);
+            };
         }
 
         protected SewerPiece(StructurePieceType type, int depth, BoundingBox box) {
@@ -196,6 +216,16 @@ public final class SewerPieces {
                 SewerPalette.WALL, SewerPalette.WALL, false);
             this.generateBox(level, limit, w - 1, 1, 0, w - 1, h - 2, l - 1,
                 SewerPalette.WALL, SewerPalette.WALL, false);
+            // AND CUT THE DOORWAY BACK THROUGH THE PARENT. A child is anchored one block past its
+            // parent, so a piece that turns left or right starts on the far side of the parent's side
+            // wall and every such branch was sealed behind a solid brick layer - only straight-ahead
+            // children connected, because both end planes are hollow. Hollowing the plane one step
+            // BEFORE this piece begins carves through whatever the parent put there.
+            //
+            // Order makes this safe: a parent is added before its children and postProcesses first, so
+            // the child always has the last word on the shared face.
+            this.generateBox(level, limit, 1, 1, -1, w - 2, h - 2, -1,
+                SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
         }
 
         /**
@@ -356,6 +386,13 @@ public final class SewerPieces {
             // and no stair in it at all, so there was nothing to climb back out on either.
             BlockState step = SewerPalette.STEP.setValue(
                 BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
+            // A LANDING FIRST. The box is shifted down by the drop, so local y=STAIR_DROP is the
+            // parent corridor's floor - and the entrance plane is hollow all the way down, which left a
+            // five-deep pit in the doorway. Walking out of the parent meant falling into the cavity
+            // under the staircase rather than onto the top step.
+            for (int x = 1; x < SHELL - 1; x++) {
+                this.placeBlock(level, SewerPalette.WALL, x, STAIR_DROP, 0, limit);
+            }
             for (int z = 1; z < STAIR_RUN - 1; z++) {
                 int y = STAIR_DROP - (z * STAIR_DROP) / (STAIR_RUN - 2);
                 for (int x = 1; x < SHELL - 1; x++) {
@@ -409,6 +446,20 @@ public final class SewerPieces {
                 box.maxX(), box.minY(), box.maxZ(), SewerPalette.WALL, SewerPalette.WALL, false);
             this.generateBox(level, limit, box.minX(), box.maxY(), box.minZ(),
                 box.maxX(), box.maxY(), box.maxZ(), SewerPalette.WALL, SewerPalette.WALL, false);
+            // Vertical walls too, so the chamber is brick rather than a brick floor and ceiling with
+            // raw deepslate sides - which is what it was, and it showed at every junction where the
+            // corridors' own brick met bare stone. Safe to wall now that a child cuts its own doorway
+            // back through whatever its parent placed.
+            for (int y = box.minY() + 1; y < box.maxY(); y++) {
+                this.generateBox(level, limit, box.minX(), y, box.minZ(), box.minX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.maxX(), y, box.minZ(), box.maxX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.minX(), y, box.minZ(), box.maxX(), y, box.minZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.minX(), y, box.maxZ(), box.maxX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+            }
             // A pool rather than a channel: the room is the one place the fluid is allowed to be wide.
             // Inset by two so it never reaches a wall a corridor might open through.
             for (int x = box.minX() + 2; x <= box.maxX() - 2; x++) {

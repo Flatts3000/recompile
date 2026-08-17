@@ -232,6 +232,72 @@ final class SewerTests {
             helper.succeed();
         });
 
+        // IT GROWS ALL FOUR WAYS, which sounds obvious and was not true.
+        //
+        // Boxes were briefly built with vanilla's makeBoundingBox, which always extends in +x/+z from
+        // the anchor because it exists for ROOT pieces. Chained north and west branches therefore
+        // produced boxes running back INTO their parent, findCollisionPiece rejected them, and they
+        // were dropped with no error - every sewer confined to one quadrant with half of every branch
+        // roll wasted. Nothing caught it: a quadrant is smaller than the bound, not larger, so the
+        // boundedness test was happy, and the branch count only asked for "more than three pieces".
+        RCGameTests.test("a_sewer_grows_in_all_four_directions", 20, helper -> {
+            boolean north = false;
+            boolean south = false;
+            boolean west = false;
+            boolean east = false;
+            for (long seed = 0; seed < SEEDS; seed++) {
+                List<StructurePiece> pieces = layout(seed);
+                BoundingBox root = pieces.get(0).getBoundingBox();
+                for (StructurePiece piece : pieces) {
+                    BoundingBox b = piece.getBoundingBox();
+                    north |= b.minZ() < root.minZ();
+                    south |= b.maxZ() > root.maxZ();
+                    west |= b.minX() < root.minX();
+                    east |= b.maxX() > root.maxX();
+                }
+            }
+            helper.assertTrue(north && south && west && east,
+                "over " + SEEDS + " sewers the branches only reached north=" + north + " south=" + south
+                    + " west=" + west + " east=" + east + " - a sewer that can only grow into one "
+                    + "quadrant is half a sewer, and every roll toward the missing side is discarded");
+            helper.succeed();
+        });
+
+        // AND A TURN IS ACTUALLY CONNECTED TO WHAT IT TURNED OFF.
+        //
+        // Each piece walls its own two sides for its full length, and a child is anchored one block
+        // past its parent - so a left or right branch began on the far side of a solid brick layer and
+        // was reachable only by mining. Straight-ahead children were fine, which is exactly why the
+        // corridor test missed it: that one probes a single piece end to end.
+        RCGameTests.test("a_turn_opens_into_its_parent", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos base = helper.absolutePos(new BlockPos(0, 56, 0));
+            var gen = level.getChunkSource().getGenerator();
+            var mgr = level.structureManager();
+            BoundingBox limit = new BoundingBox(base.getX() - 64, base.getY() - 32, base.getZ() - 64,
+                base.getX() + 64, base.getY() + 32, base.getZ() + 64);
+            var chunk = new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4);
+
+            // A parent running SOUTH, then a child turning EAST off its side - the case that was sealed.
+            BoundingBox parentBox = SewerPieces.SewerPiece.box(
+                base.getX(), base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 7);
+            var parent = new SewerPieces.SewerCorridor(1, parentBox, Direction.SOUTH);
+            BoundingBox childBox = SewerPieces.SewerPiece.box(
+                parentBox.maxX() + 1, parentBox.minY(), parentBox.minZ(), Direction.EAST, 5, 5, 7);
+            var child = new SewerPieces.SewerCorridor(2, childBox, Direction.EAST);
+
+            // Parent first, exactly as the builder orders them - the child has the last word.
+            parent.postProcess(level, mgr, gen, RandomSource.create(11L), limit, chunk, base);
+            child.postProcess(level, mgr, gen, RandomSource.create(12L), limit, chunk, base);
+
+            BlockPos doorway = new BlockPos(parentBox.maxX(), parentBox.minY() + 2, parentBox.minZ() + 2);
+            helper.assertTrue(level.getBlockState(doorway).isAir(),
+                "the wall between a corridor and the branch off its side is still solid at " + doorway
+                    + ", so the branch is only reachable by mining - which is not a sewer, it is two "
+                    + "tunnels that happen to touch");
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.

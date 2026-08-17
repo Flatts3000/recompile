@@ -221,6 +221,33 @@ is the one orientation where local and world axes agree, so it proves nothing - 
 **seven long against five wide** for the same reason: a square piece makes a transposed carve
 indistinguishable from a correct one.
 
+**A second review round found four more, two of them severe, and the pattern is the point.** Every one
+lived in `postProcess`, which the graph tests cannot see, and the fix for an earlier bug caused one of
+them:
+
+- **`StructurePiece.makeBoundingBox` is for ROOT pieces.** It always extends in +x/+z from the anchor;
+  `direction` only swaps width against depth. A chained NORTH branch anchored at `minZ - 1` therefore
+  gets a box running back *into* its parent, `findCollisionPiece` rejects it, and the branch is dropped
+  with no error. **Every sewer was confined to the +X/+Z quadrant** with half of every branch roll
+  discarded - and nothing caught it, because a quadrant is smaller than the bound, not larger. Boxes
+  are direction-aware again, which is what vanilla's mineshaft does by hand.
+- **Side walls sealed every turn.** Each piece walls its own two sides for its full length and a child
+  is anchored one block past its parent, so a left or right branch started on the far side of a solid
+  brick layer. Only straight-ahead children connected. A child now hollows the plane one step before it
+  begins, cutting its own doorway back through whatever the parent placed; parents postProcess first,
+  so the child always has the last word on the shared face.
+- The stairs had no landing, so the doorway was a five-deep pit into the cavity under the staircase.
+- The root chamber had no vertical walls - a brick floor and ceiling with raw deepslate sides, visible
+  wherever a corridor's own brick met bare stone.
+
+**Rarity is back to what section 1 pins** (`frequency 0.004`, `spacing 1`, `separation 0`). It was
+briefly `spacing 20 / separation 8` to guarantee two sewers cannot meet, which also made them about
+four hundred times rarer than specified - a design change, and not one to make silently.
+**Open, for the owner:** `RADIUS_CAP` bounds one sewer's reach but nothing checks against a neighbour,
+because `findCollisionPiece` only sees the sewer being built. So "two sewers do not merge" is not
+currently enforced; at this rarity an overlap is unlikely rather than impossible. Enforcing it costs
+rarity, which is why it is a question rather than a commit.
+
 **One bug worth recording, because it was invisible from inside the game.** The first version clamped
 only the FLOOR when sinking the piece tree, so a tree deeper than the available rock was pushed bodily
 upward until it broke daylight - a tree spanning 0..57 under a surface at 65 came out at 12..69, ten

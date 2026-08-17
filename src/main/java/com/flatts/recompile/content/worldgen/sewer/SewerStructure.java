@@ -60,11 +60,20 @@ public class SewerStructure extends Structure {
         pieces.addPiece(room);
         room.addChildren(room, pieces, random);
 
-        BlockPos centre = pieces.getBoundingBox().getCenter();
-        int surface = context.chunkGenerator().getBaseHeight(
-            centre.getX(), centre.getZ(),
-            net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG,
-            context.heightAccessor(), context.randomState());
+        // THE LOWEST SURFACE OVER THE WHOLE FOOTPRINT, not the height at the middle. Pieces reach 80
+        // blocks out on each axis and the surface ranges 63..69 across this world, so a tree sunk
+        // against a centre height of 69 puts its roof at 63 - exactly ground level anywhere the far end
+        // dips that low. Same failure the clamp was written to stop, driven by horizontal variance
+        // instead of by depth, and equally silent.
+        var footprint = pieces.getBoundingBox();
+        int surface = Integer.MAX_VALUE;
+        for (int px : new int[]{footprint.minX(), footprint.getCenter().getX(), footprint.maxX()}) {
+            for (int pz : new int[]{footprint.minZ(), footprint.getCenter().getZ(), footprint.maxZ()}) {
+                surface = Math.min(surface, context.chunkGenerator().getBaseHeight(px, pz,
+                    net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG,
+                    context.heightAccessor(), context.randomState()));
+            }
+        }
 
         OptionalInt shift = sink(surface,
             pieces.getBoundingBox().minY(), pieces.getBoundingBox().maxY());
