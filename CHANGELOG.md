@@ -1,20 +1,73 @@
 # Changelog
 
-## Unreleased
+## v0.10.0
 
-**Your Separator has stopped taking garbage, and that is deliberate.** Sorting moved to a new machine.
+**Two new machines, and the two chains they unblock.** The Separator used to do three jobs; it now
+does one, and the jobs it gave up went to machines that can actually do them. Out of that come gold
+and clay - the last big gaps in what this world can make.
 
-### The Trommel
-- **A four-block-long rotating screen that sorts unattended.** Build it in the demolition yard: a core, four Steel I-Beams for the drum, a Motor to turn it, and two Machine Frames for the stand.
-- **It yields exactly what a Sorting Tarp yields per block.** It is not more generous, and at one block every two seconds it is slower than you are at a tarp. What you get is that it does it while you are somewhere else. Build a second one rather than waiting on the first.
-- **Two ways to feed it.** Drop scrap anywhere along the drum, or stand a chest, barrel or hopper on it and the machine will empty it a little at a time. Nothing can push into it; it reaches out and takes.
-- **What comes out leaves by the open end of the drum**, into whatever you park there, or thrown clear if there is nothing. Any Scrap Bins wired to the machine get first claim.
-- It runs on power and does nothing at all without it. Hover it for what it is holding and why it has stopped.
+### The Trommel: sorting, unattended
+- **A four-block-long rotating drum that sorts while you are elsewhere.** Built in the demolition
+  yard from a core, four Steel I-Beams, a Motor and two Machine Frames.
+- **It yields exactly what a Sorting Tarp yields per block.** Not more. At one block every two
+  seconds a determined player at a tarp is faster - what you get is that it does not need you. Build
+  a second one rather than waiting on the first.
+- **Two ways in.** Drop scrap anywhere along the drum, or stand a chest, barrel or hopper on it and
+  the machine empties it a little at a time. Nothing can push into it; it reaches out and takes.
+- Output leaves by the open end of the drum, into any wired Scrap Bins first, then whatever you park
+  there, then thrown clear.
+
+### The Pulverizer: a hammer mill
+- **A sealed two-by-two-by-two box that grinds things finer.** A core, a Motor, two Machine Frames
+  and four Steel I-Beams.
+- **You cannot see inside it, and that is the machine.** The Separator shows you its bay and the
+  Trommel shows you its screen because both are open. This one is a closed steel box with a rotor in
+  it, so the roof carries a hatch to show you where the material goes in.
+- Feed it from the top - drop material on the hatch, or park a container up there. Powder leaves by
+  the front.
+- Bone grinds to bone meal, four from a bone and nine from a block.
+
+### Gold, out of the boards
+- **Grind four E-Scrap into Circuit Powder, then blast it in a Cupola Furnace for a gold nugget.**
+- A tonne of circuit boards carries far more gold than a tonne of ore. It is why anyone takes
+  electronics apart, and why this world has no gold in the ground and plenty in the rubbish.
+- Burning a board whole gets you nothing - the metal is locked in resin and glass, and grinding is
+  what frees it.
+
+### Clay, out of broken pots
+- **Crush a pottery sherd for Grog, mix three Grog with a Kitty Litter, then right-click the result
+  on a water cauldron.** That is clay, and it costs a level of water.
+- **Pottery sherds and kitty litter now turn up in the dump.** Keep the litter - it is the only
+  thing here that will make a clay body hold together.
+- Clay unlocks 43 vanilla items: every brick, all sixteen terracotta, all sixteen glazed terracotta,
+  the flower pot and the decorated pot.
+- You cannot un-fire a pot. Crushed pottery is grog, which controls cracking and does the opposite of
+  sticking - the stickiness has to come from the bentonite in the cat litter.
 
 ### The Separator sorts no longer
-- **Feeding it a Block of Garbage, Trash Bag, Compacted Bale, Stone Rubble or Mechanical Waste no longer does anything.** Those go to a Trommel now.
-- **Everything else about it is unchanged.** The machine, the build, the chute and all three separating recipes work exactly as they did. A Separator you have already built keeps running.
-- Why: a shear shredder tears things apart, which is the opposite of telling them apart. Sorting needs a machine that can make a distinction, and now it has one.
+- **Feeding it a Block of Garbage, Trash Bag, Compacted Bale, Stone Rubble or Mechanical Waste no
+  longer does anything.** Those go to a Trommel now.
+- **Everything else is unchanged.** The machine, the build, the chute and all three separating
+  recipes work as they did, and a Separator you have already built keeps running.
+- Why: a shear shredder tears things apart, which is the opposite of telling them apart.
+
+### Fixed
+- **Breaking a machine now gives back every part, including the machine itself.** Breaking a
+  Separator or Trommel core with the wrong tool used to destroy it outright, while breaking any of
+  its other blocks handed it back - so the rule was opt-out and you could lose an expensive build to
+  a wrong swing.
+- **Breaking one cell of a machine returns the part you put in that cell.** A Separator's Motor came
+  back as a Machine Frame, and a Trommel's cells came back as pieces with no recipe at all.
+- **Machines wider than three blocks now come apart properly.** A cell far enough from the core
+  never found it, so the machine stayed assembled with a hole in it and kept running.
+- Trommel and Pulverizer can be powered at all - neither accepted energy from a generator when first
+  built.
+- The Trommel's drum no longer turns when the machine is stopped.
+
+### For pack authors
+- **`recompile:pulverizing`** is a new recipe type: one input, one finer output, with `count` as the
+  ratio dial. `recompile:separating` is unchanged.
+- The Pulverizer and Trommel join `#recompile:scrap_connectable`.
 
 ## v0.9.0
 
