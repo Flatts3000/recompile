@@ -10,6 +10,7 @@ import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCMenus;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCFeatures;
+import com.flatts.recompile.registry.RCStructures;
 import com.flatts.recompile.registry.RCFluids;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCLootModifiers;
@@ -54,6 +55,7 @@ public final class Recompile {
         RCMenus.register(modEventBus);
         RCCreativeTabs.register(modEventBus);
         RCFeatures.register(modEventBus);
+        RCStructures.register(modEventBus);
         RCBiomeSources.register(modEventBus);
 
         // The public data spine (P0.5). Registered from day one so the knowledge
