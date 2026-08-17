@@ -173,8 +173,8 @@ final class MultiblockTests {
             // EXACT, not "more than zero". A greater-than guard catches total discovery failure and
             // misses the likelier one: a machine moved off MultiblockCoreBlock, so the sweep quietly
             // covers less and still passes. Bump this when a machine is added - that is the point.
-            helper.assertTrue(cores == 6,
-                "expected 6 multiblock cores, found " + cores + " - if a machine was added, raise this "
+            helper.assertTrue(cores == 7,
+                "expected 7 multiblock cores, found " + cores + " - if a machine was added, raise this "
                     + "number; if one vanished, the sweep is covering less than it claims");
             helper.assertTrue(gated.isEmpty(),
                 "these machine cores are destroyed rather than returned when broken without the right "

@@ -1671,6 +1671,64 @@ size = 16
 prompt = "a full-bleed Minecraft block face: the open discharge end of a heavy steel rotating drum seen head on, a wide dark circular opening taking up most of the tile with the drum's worn steel rim around it, the inside shadowed and empty, grime and rust streaking down from the lower lip, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 vanilla_ref = "block/iron_block"
 
+# ---------------------------------------------------------------------------
+# The PULVERIZER (#189): a hammer mill, and the machine you cannot see into.
+#
+# Its whole identity is a sealed heavy box. The Separator shows you its bay, the Trommel shows you its
+# screen; this one shows you nothing, which is why every face is plate and the only feature is the
+# discharge. Three silhouettes that cannot collide at 16px: open well, long drum, closed cube.
+#
+# 2x2 cells per face, so each sheet is 32x32.
+# ---------------------------------------------------------------------------
+
+[surface.pulverizer_housing]
+kind = "block"
+backend = "ai"
+size = 16
+match_hue = "trommel_drum"
+prompt = "a full-bleed Minecraft block face: the thick bolted steel plate of a heavy industrial hammer mill, flat grey armour plate with a dense row of bolt heads around the edge and a single diagonal scuff, greasy and rust stained, no openings, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/iron_block"
+
+[surface.pulverizer_skin_north]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 32
+match_hue = "trommel_drum"
+prompt = "the front of a single heavy industrial hammer mill, one continuous machine face spanning the whole image, square and squat, thick bolted steel armour plate with a heavy access hatch across the upper half and a dark rectangular discharge opening along the bottom edge with grey dust spilling from it, greasy and rust stained, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.pulverizer_skin_south]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 32
+match_hue = "trommel_drum"
+prompt = "the back of a single heavy industrial hammer mill, one continuous machine face spanning the whole image, square and squat, thick bolted steel armour plate with a large round drive cover low on one side and a run of conduit clipped across the plate, greasy and rust stained, no openings, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.pulverizer_skin_east]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 32
+match_hue = "trommel_drum"
+prompt = "the side of a single heavy industrial hammer mill, one continuous machine face spanning the whole image, square and squat, thick bolted steel armour plate with a bolted inspection panel and heavy corner ribs, greasy and rust stained, no openings, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.pulverizer_skin_west]
+# The far side is the near side mirrored, for the reason the Trommel's flanks are: east and west index
+# in opposite directions, so the same sheet copied verbatim puts a feature at opposite ends of the
+# machine. Mirroring shares one source, so the two sides cannot drift into two different machines.
+kind = "block_skin"
+mirror_of = "pulverizer_skin_east"
+size = 16
+width = 32
+height = 32
+
 [surface.trommel_drum_back]
 # THE SAME DRUM, TURNING THE OTHER WAY.
 #

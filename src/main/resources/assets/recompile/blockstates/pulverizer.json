@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "active=false,facing=north,formed=false": {
+      "model": "recompile:block/pulverizer"
+    },
+    "active=false,facing=east,formed=false": {
+      "model": "recompile:block/pulverizer",
+      "y": 90
+    },
+    "active=false,facing=south,formed=false": {
+      "model": "recompile:block/pulverizer",
+      "y": 180
+    },
+    "active=false,facing=west,formed=false": {
+      "model": "recompile:block/pulverizer",
+      "y": 270
+    },
+    "active=true,facing=north,formed=false": {
+      "model": "recompile:block/pulverizer"
+    },
+    "active=true,facing=east,formed=false": {
+      "model": "recompile:block/pulverizer",
+      "y": 90
+    },
+    "active=true,facing=south,formed=false": {
+      "model": "recompile:block/pulverizer",
+      "y": 180
+    },
+    "active=true,facing=west,formed=false": {
+      "model": "recompile:block/pulverizer",
+      "y": 270
+    },
+    "active=false,facing=north,formed=true": {
+      "model": "recompile:block/pulverizer_formed"
+    },
+    "active=false,facing=east,formed=true": {
+      "model": "recompile:block/pulverizer_formed",
+      "y": 90
+    },
+    "active=false,facing=south,formed=true": {
+      "model": "recompile:block/pulverizer_formed",
+      "y": 180
+    },
+    "active=false,facing=west,formed=true": {
+      "model": "recompile:block/pulverizer_formed",
+      "y": 270
+    },
+    "active=true,facing=north,formed=true": {
+      "model": "recompile:block/pulverizer_formed"
+    },
+    "active=true,facing=east,formed=true": {
+      "model": "recompile:block/pulverizer_formed",
+      "y": 90
+    },
+    "active=true,facing=south,formed=true": {
+      "model": "recompile:block/pulverizer_formed",
+      "y": 180
+    },
+    "active=true,facing=west,formed=true": {
+      "model": "recompile:block/pulverizer_formed",
+      "y": 270
+    }
+  }
+}

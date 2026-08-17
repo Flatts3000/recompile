@@ -1,0 +1,31 @@
+{
+  "type": "modonomicon:dense",
+  "pattern": [
+    [
+      "BB",
+      "BB"
+    ],
+    [
+      "0F",
+      "MF"
+    ]
+  ],
+  "mapping": {
+    "0": {
+      "type": "modonomicon:block",
+      "block": "recompile:pulverizer"
+    },
+    "B": {
+      "type": "modonomicon:block",
+      "block": "recompile:steel_i_beam"
+    },
+    "M": {
+      "type": "modonomicon:block",
+      "block": "recompile:motor"
+    },
+    "F": {
+      "type": "modonomicon:block",
+      "block": "recompile:machine_frame"
+    }
+  }
+}
