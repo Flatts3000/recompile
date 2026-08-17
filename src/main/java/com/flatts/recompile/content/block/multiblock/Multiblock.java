@@ -2,8 +2,11 @@ package com.flatts.recompile.content.block.multiblock;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.BlockGetter;
@@ -55,6 +58,65 @@ public record Multiblock(List<Cell> cells) {
             }
         }
     }
+
+    /**
+     * Every block that is only ever a formed appearance - the machine turns something into it, and a
+     * player can never craft, hold or place one.
+     *
+     * <p>Derived, never listed. A cell whose formed block DIFFERS from the component you place is a
+     * transformation, so the formed half is unobtainable; a cell where the two are the SAME block is a
+     * part you craft and place by hand. Nothing here names a block, so a new machine is covered the day
+     * it is written.
+     */
+    public static Set<Block> formedOnly() {
+        Set<Block> out = new LinkedHashSet<>();
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (block instanceof MultiblockCoreBlock core) {
+                for (Cell cell : core.blueprint().cells()) {
+                    if (cell.formed() != cell.component()) {
+                        out.add(cell.formed());
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The exact inverse: a block that some machine uses as a cell <b>without transforming it</b>, which
+     * is what a craftable, hand-placed component looks like from the blueprint's side. The Water Tank,
+     * the Solar Panel and the Rain Collector Funnel.
+     *
+     * <p><b>The two predicates live together on purpose.</b> They are one question asked from both
+     * ends, and they were separated - the formed-only half in the JEI package, and nothing at all
+     * asking the other half. That is how a block ended up visible in JEI as a craftable part while
+     * {@link MultiblockDummyBlock#getDrops} deleted it on break: two answers to one question, with only
+     * one of them written down.
+     */
+    public static boolean isHandPlaced(Block block) {
+        Set<Block> known = handPlaced;
+        if (known == null) {
+            Set<Block> built = new LinkedHashSet<>();
+            for (Block candidate : BuiltInRegistries.BLOCK) {
+                if (candidate instanceof MultiblockCoreBlock core) {
+                    for (Cell cell : core.blueprint().cells()) {
+                        if (cell.formed() == cell.component()) {
+                            built.add(cell.formed());
+                        }
+                    }
+                }
+            }
+            handPlaced = known = Set.copyOf(built);
+        }
+        return known.contains(block);
+    }
+
+    /**
+     * Built once from the frozen block registry. Lazily, never in a static initialiser - a static that
+     * transitively touches a registry-backed class explodes during mod construction, which the GUI
+     * framework already learned the expensive way.
+     */
+    private static volatile Set<Block> handPlaced;
 
     /**
      * One cell of the blueprint.

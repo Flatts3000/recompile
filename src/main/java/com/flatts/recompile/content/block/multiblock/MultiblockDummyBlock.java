@@ -123,10 +123,23 @@ public abstract class MultiblockDummyBlock extends Block {
      * <p>So the blueprint is the single source of truth for what disassembly returns, on every path.
      * {@link #affectNeighborsAfterRemoval} pops the broken cell's own component and
      * {@code Multiblock.disband} handles the rest.
+     *
+     * <p><b>Unless the block is a hand-placed component, in which case it keeps its loot table.</b>
+     * Three of these subclasses are craftable blocks a player places on their own - the Water Tank, the
+     * Solar Panel and the Rain Collector Funnel - and returning nothing for them made a placed one
+     * <em>vanish</em> when broken. JEI listed them as real craftable parts the whole time, which is the
+     * worst version of the bug: the game told the player the block was theirs and then ate it.
+     *
+     * <p>Asking the blueprint rather than the world is the load-bearing choice. A player break removes
+     * the block first, so the disband hook has already run and the core is gone by the time this is
+     * called - a "am I part of a formed machine right now" test answers no on exactly the path that
+     * matters, and the wrong answer here is a duplicated part rather than a lost one. {@link
+     * Multiblock#isHandPlaced} is a property of the machine's shape, so it reads the same before and
+     * after the break.
      */
     @Override
     protected java.util.List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        return java.util.List.of();
+        return Multiblock.isHandPlaced(this) ? super.getDrops(state, params) : java.util.List.of();
     }
 
     /** Right-clicking any part of the machine is right-clicking the machine. */
@@ -172,7 +185,13 @@ public abstract class MultiblockDummyBlock extends Block {
         // THIS CELL'S COMPONENT, which nothing else will return. disband skips cells that are already
         // air, and this one is - the break took it out before the hook ran - so without this the part
         // the player broke is the one part they do not get back.
-        if (level.getBlockState(core).getBlock() instanceof MultiblockCoreBlock owner) {
+        //
+        // EXCEPT for a hand-placed component, which returns itself through its own loot table on every
+        // break path. Popping it here as well would hand back two Solar Panels for one broken cell -
+        // the same duplication, from the other direction, that flipping the core to unformed before
+        // clearing its cells was written to stop.
+        if (!Multiblock.isHandPlaced(this)
+                && level.getBlockState(core).getBlock() instanceof MultiblockCoreBlock owner) {
             Rotation rotation = owner.rotationFor(coreState);
             for (Multiblock.Cell cell : owner.blueprint().cells()) {
                 if (cell.at(core, rotation).equals(pos)
