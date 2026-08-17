@@ -139,6 +139,41 @@ Minecraft has no dynamic lighting. The two candidate approaches:
 **Risk:** this is the only item in the spec that might be impossible. It is phase 0 so it cannot
 silently become phase 5's problem.
 
+---
+
+### Answer (2026-08-17): **cut it.** Held light is not worth having here, and the strongest reason is not cost
+
+The spec authorises this outcome explicitly, and the phase-3 work turned up an argument the spec could
+not have known when it was written.
+
+**Held light would fight the sewer's own mob design.** Everything that lives down there is gated on
+darkness: the drowned spawner needs it (`ignoresLightRequirements` is `TRIAL_SPAWNER`-only in 26.1, so a
+normal spawner still checks light), and the slime rule in `RCSewerSpawns` tests it directly. A torch
+that lit the corridor as the player walked would suppress the spawns immediately around them - the
+player would carry a bubble of emptiness through the one structure built to be inhabited. That is not a
+tuning problem; it is the feature working against itself.
+
+**The two candidate approaches, assessed:**
+
+- **Depend on a dynamic-lights mod.** Not adopted, and availability is not the deciding factor - I did
+  not check whether one has published for 26.1, because it does not change the answer. This mod ships
+  **standalone with no hard dependencies**; every viewer it integrates with (JEI, Jade, Modonomicon) is
+  `runtimeOnly` and absent-safe. A lighting feature that only exists when another mod is installed is a
+  feature most players do not have, and one the guidebook cannot describe.
+- **Place and remove `light` blocks as the player moves.** Technically viable with no mixin, and it
+  fails on the cleanup story rather than on frame time. A crash or a hard kill leaves light blocks
+  behind, and an orphaned `minecraft:light` is an *invisible* block a player cannot find or remove
+  without a command. That is a save-corruption class of bug - mild, permanent, and invisible - traded
+  for an ambience improvement in one structure.
+
+**What ships instead:** torches, placed. A dark sewer you light as you clear it is a worse experience
+than a lit one and a better experience than a buggy one, and it keeps the spawns the structure exists
+for. The guidebook says "bring a light" for exactly this reason.
+
+**Reopen this if** a dynamic-lights mod becomes something the pack depends on for other reasons, in
+which case the cost of the dependency is already paid - but the spawn-suppression argument stands even
+then and would need answering on its own.
+
 ## Phase 1 - the manhole
 
 **Ships:** you can find a manhole in the yard and open it. **Shipped 2026-08-17, and built after phase
@@ -410,8 +445,22 @@ confirms neither has any other route in this world.
 
 **Ships:** a reason to have come.
 
-Barrels, per the design call. The loot table is the whole design here and it is a balance question, so
-it lands with #36 rather than being invented now.
+**Shipped 2026-08-17.** Two barrels in the root chamber, at fixed positions for the reason everything
+else in that room is: `postProcess` runs once per chunk the piece overlaps, so anything *rolled* there
+is rolled several times over.
+
+**The table is set, not rolled.** `setLootTable` defers the roll to the first time a player opens the
+barrel, so generation decides nothing, two players on the same seed do not see each other's rolls, and
+the contents stay a datapack question - which is where the balance of this belongs.
+
+**It is deliberately dull, and that is the acceptance criterion working.** "Nothing in it skips a tier"
+rules out everything exciting: no iron, no gems, no blueprints, no bucket. What is left is bulk salvage
+(scrap metal, plastic scrap, e-scrap, rebar, cullet glass), string and bone, and three uncommon lines -
+a glass bottle, a nautilus shell, a name tag. The *value* question is #36's and is not answered here.
+
+**One thing flagged rather than decided:** the glass bottle is `found_only` and its scarcity is what the
+P1.10 water economy leans on. A sewer barrel is a second route to one, bounded by travel and a finite
+structure. Recorded in `progression_gates.md` for the balance pass.
 
 **Acceptance:**
 - The reward is worth a cleared sewer. Stated as a comparison against what the same time spent picking
@@ -421,11 +470,14 @@ it lands with #36 rather than being invented now.
 
 ## Phase 5 - the surrounding work
 
-- **Guidebook:** what a manhole looks like, and that a prybar opens it. A player who finds the pad and
-  cannot act on it will read it as scenery.
-- **Jade:** the manhole gets the existing tool-hint provider. Nothing new.
+- **Guidebook:** *shipped.* `demolition/sewers`, two pages - what the pad looks like from above and that
+  a Prybar is the only thing that lifts it, then what is down there. A player who finds the pad and
+  cannot act on it reads the whole structure as scenery.
+- **Jade:** *shipped.* The manhole is registered against the existing `ToolHintProvider`, which already
+  answers "Prybar" for Bulky Waste - the same gate, so the same hint. Nothing new was written.
 - **JEI:** nothing. There is no recipe here.
-- `progression_gates.md`: add the sewer and everything it yields.
+- `progression_gates.md`: *shipped.* A section under the yard's tier listing every yield and its gate,
+  plus the glass-bottle note for #36.
 - **#44** gets a comment explaining that sewers answer its want a different way, and a decision on
   whether renewable water life is still wanted on top.
 
