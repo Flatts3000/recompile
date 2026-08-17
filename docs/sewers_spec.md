@@ -307,7 +307,7 @@ no global change, and an authored encounter suits a finite structure that is cle
 mechanisms, and the difference is in vanilla's own code:
 
 - **Drowned: a spawner, and nothing else is needed.** `Drowned.checkDrownedSpawnRules` has an explicit
-  `MobSpawnType.isSpawner` branch that skips the water test entirely, so a plain spawner with no custom
+  `EntitySpawnReason.isSpawner` branch that skips the water test entirely, so a plain spawner with no custom
   rules works underground in leachate. One per sewer, in the root chamber rather than at a corridor
   mouth, so meeting it is something you walk into. This is the mineshaft parallel exactly - vanilla puts
   a cave spider spawner in its corridors.

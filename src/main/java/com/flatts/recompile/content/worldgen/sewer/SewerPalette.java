@@ -63,7 +63,7 @@ public final class SewerPalette {
      * mobs a structure offers but does not bypass {@code SpawnPlacements}, and drowned are registered
      * {@code IN_WATER}, which tests {@code FluidTags.WATER} - leachate is deliberately outside that tag,
      * so natural spawning yields none, ever. {@code Drowned.checkDrownedSpawnRules} has an explicit
-     * {@code MobSpawnType.isSpawner} branch that skips the water test, so a plain spawner works with no
+     * {@code EntitySpawnReason.isSpawner} branch that skips the water test, so a plain spawner works with no
      * custom rules at all. Vanilla puts a cave spider spawner in its mineshafts for the same reason.
      */
     public static final BlockState SPAWNER = Blocks.SPAWNER.defaultBlockState();

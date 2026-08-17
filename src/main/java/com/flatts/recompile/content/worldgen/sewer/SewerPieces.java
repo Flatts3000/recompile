@@ -242,25 +242,6 @@ public final class SewerPieces {
             }
         }
 
-        /**
-         * Put a drowned spawner on the floor at a local position.
-         *
-         * <p>The block alone is inert - a spawner with no entity id spawns nothing - so the BlockEntity
-         * has to be reached and told what it holds. {@code placeBlock} has already mapped local to
-         * world, so the BlockEntity is fetched from the same mapping rather than from a second guess at
-         * the coordinates.
-         */
-        protected void spawner(WorldGenLevel level, BoundingBox limit, RandomSource random,
-                int x, int y, int z) {
-            this.placeBlock(level, SewerPalette.SPAWNER, x, y, z, limit);
-            BlockPos at = new BlockPos(this.getWorldX(x, z), this.getWorldY(y), this.getWorldZ(x, z));
-            if (limit.isInside(at)
-                    && level.getBlockEntity(at) instanceof net.minecraft.world.level.block.entity
-                        .SpawnerBlockEntity spawner) {
-                spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
-            }
-        }
-
         /** Sparse cobwebs under the ceiling: the mineshaft parallel, and the only source in the game. */
         protected void cobwebs(WorldGenLevel level, BoundingBox limit, RandomSource random,
                 int w, int h, int l) {
@@ -489,15 +470,18 @@ public final class SewerPieces {
             // The chamber is where the sewer is occupied from. One spawner per sewer, in the room
             // rather than at a corridor mouth, so meeting it is a thing you walk into rather than
             // something that meets you at the entrance.
-            BlockPos centre = new BlockPos(box.getCenter().getX(), box.minY() + 1, box.getCenter().getZ());
-            if (limit.isInside(centre)) {
-                level.setBlock(centre, SewerPalette.SPAWNER, 2);
-                if (level.getBlockEntity(centre) instanceof net.minecraft.world.level.block.entity
+            // ON BRICK, NOT IN THE POOL. The pool fills minX+2..maxX-2, and the box centre is inside
+            // that inset by construction, so a spawner at the centre stood in the leachate - you had to
+            // wade into the Hunger fluid to reach or break it. One block in from the wall is dry.
+            BlockPos seat = new BlockPos(box.minX() + 1, box.minY() + 1, box.getCenter().getZ());
+            if (limit.isInside(seat)) {
+                level.setBlock(seat, SewerPalette.SPAWNER, 2);
+                if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
                         .SpawnerBlockEntity spawner) {
                     spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
                 }
             }
-            placeTurtles(level, limit, random, box);
+            placeTurtles(level, limit, box);
         }
     }
 
@@ -507,32 +491,57 @@ public final class SewerPieces {
      * <p>Owner call: turtles stay in the sewer. They cannot arrive any other way -
      * {@code Turtle.checkTurtleSpawnRules} demands {@code y < seaLevel + 4}, and this world's sea level
      * is <b>-64</b>, so the height test alone requires y &lt; -60; it also wants sand, which this world
-     * has none of. Unlike the drowned there is no {@code isSpawner} branch to lean on, so a spawner
-     * would need {@code custom_spawn_rules} to bypass the predicate entirely - and a spawner endlessly
-     * producing a passive animal reads wrong anyway.
+     * has none of. Unlike the drowned there is no spawner branch to lean on, so a spawner would need
+     * {@code custom_spawn_rules} to bypass the predicate entirely - and a spawner endlessly producing a
+     * passive animal reads wrong anyway. Placing them directly also makes the population <b>finite</b>,
+     * which is what the spec wanted: they cannot breed here (no seagrass) or lay eggs (no sand).
      *
-     * <p>Placing them directly sidesteps every spawn rule and gives a <b>finite</b> population, which is
-     * what the spec already wanted: they cannot breed here either (no seagrass) and cannot lay eggs
-     * (no sand), so the sewer's turtles are the turtles it was built with.
+     * <p><b>Fixed positions, not rolled ones.</b> {@code postProcess} runs <em>once per chunk</em> the
+     * piece overlaps, each time with a different {@code limit} and a different {@code RandomSource} - and
+     * a room is 10 to 14 blocks across, so it straddles two to four chunks in most placements. Rolling
+     * {@code 2 + rand(3)} positions per call meant each chunk rolled its own fresh set over the whole
+     * room and kept whichever happened to fall inside itself: the total was a random sum from 0 to 12
+     * rather than 2-4, and a room split four ways could quite easily produce a sewer with <b>no turtles
+     * at all</b> - exactly the ships-empty-in-silence failure this was written to prevent. Deriving the
+     * spots from the room's own box makes every chunk pass agree on them, and the {@code isInside} guard
+     * then places each one exactly once. It is the same shape as the spawner beside it, which was
+     * already correct.
+     *
+     * <p><b>And {@code finalizeSpawn} rather than a bare {@code addFreshEntity}.</b> A turtle's
+     * {@code homePos} defaults to {@code BlockPos.ZERO} and is only ever set there, so a turtle added
+     * without it believes home is world origin - {@code TurtleGoHomeGoal} then fires on any position
+     * more than 64 blocks away, which for a sewer hundreds of blocks out is always, and the turtles
+     * walk out of the chamber toward spawn. It survives a reload too, because the wrong home is what
+     * gets saved. Vanilla's {@code SwampHutPiece} calls {@code finalizeSpawn} on its witch and cat for
+     * exactly this reason.
      */
-    private static void placeTurtles(WorldGenLevel level, BoundingBox limit, RandomSource random,
-            BoundingBox room) {
-        int wanted = 2 + random.nextInt(3);
-        for (int i = 0; i < wanted; i++) {
-            BlockPos at = new BlockPos(
-                room.minX() + 2 + random.nextInt(Math.max(1, room.maxX() - room.minX() - 3)),
-                room.minY() + 1,
-                room.minZ() + 2 + random.nextInt(Math.max(1, room.maxZ() - room.minZ() - 3)));
+    private static void placeTurtles(WorldGenLevel level, BoundingBox limit, BoundingBox room) {
+        int midZ = room.getCenter().getZ();
+        int midX = room.getCenter().getX();
+        BlockPos[] spots = {
+            new BlockPos(midX - 2, room.minY() + 1, midZ - 2),
+            new BlockPos(midX + 2, room.minY() + 1, midZ - 2),
+            new BlockPos(midX - 2, room.minY() + 1, midZ + 2),
+            new BlockPos(midX + 2, room.minY() + 1, midZ + 2),
+        };
+        for (BlockPos at : spots) {
             if (!limit.isInside(at)) {
-                continue;   // another chunk owns this cell and will place its own share
+                continue;   // a different chunk pass owns this one and will place it
             }
             var turtle = net.minecraft.world.entity.EntityType.TURTLE.create(
                 level.getLevel(), net.minecraft.world.entity.EntitySpawnReason.STRUCTURE);
-            if (turtle != null) {
-                turtle.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, random.nextFloat() * 360F, 0F);
-                turtle.setPersistenceRequired();
-                level.addFreshEntity(turtle);
+            if (turtle == null) {
+                continue;
             }
+            turtle.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, 0F, 0F);
+            turtle.finalizeSpawn(level, level.getCurrentDifficultyAt(at),
+                net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, null);
+            // Explicitly, not just as a side effect of finalizeSpawn. homePos is private with no
+            // getter, so no test can prove it was set - and the failure it causes is silent and
+            // permanent, since the wrong home is what gets saved. Saying it outright costs one line.
+            turtle.setHomePos(at);
+            turtle.setPersistenceRequired();
+            level.addFreshEntity(turtle);
         }
     }
 }
