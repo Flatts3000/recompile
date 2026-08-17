@@ -821,7 +821,6 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(3.0F)
             .sound(SoundType.METAL)
-            .requiresCorrectToolForDrops()
     );
 
     /** A drum cell: perforated screen, and the only animated block in the mod. */
@@ -860,7 +859,6 @@ public final class RCBlocks {
             .mapColor(MapColor.COLOR_BLUE)
             .strength(3.0F)
             .sound(SoundType.METAL)
-            .requiresCorrectToolForDrops()
     );
 
     public static final DeferredBlock<SeparatorChamberBlock> SEPARATOR_CHAMBER = BLOCKS.registerBlock(

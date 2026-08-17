@@ -10,6 +10,9 @@ import com.flatts.recompile.content.block.multiblock.MultiblockDummyBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
+import java.util.ArrayList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -80,6 +83,54 @@ final class MultiblockTests {
         // The Tree Nursery is the only directional multiblock in the mod (it is the only core that
         // overrides rotationFor), and its Water Tank cell is at offset (1,0,0) - a pure X offset, so it
         // lands somewhere different under every rotation. That is what makes it the case that catches this.
+        // A MACHINE COMES BACK HOWEVER YOU BREAK IT (owner, 2026-08-16, #195).
+        //
+        // Breaking a multiblock - core, cell, any tool or none - returns every part including the
+        // core. A machine is assembled and disassembled, not quarried, and Multiblock.disband already
+        // hands components back with popResource and no tool check at all.
+        //
+        // WHAT WAS WRONG. The Separator and the Trommel declared requiresCorrectToolForDrops, which
+        // is enforced in the PLAYER's break path. So breaking the core bare-handed destroyed it, while
+        // breaking any CELL bare-handed returned it - the removal hook calls dropResources with no
+        // tool context and the loot table has no tool condition to fail. The most expensive machines
+        // in the mod had an opt-out gate: hit the drum instead of the core.
+        //
+        // The precedent was already written down for the Cupola: "a machine you cannot pick up is a
+        // machine you lose forever by placing it in the wrong spot", and requiresCorrectToolForDrops
+        // "reads as the obvious call for a stone machine and is exactly the trap here". Same trap,
+        // now closed for the whole framework rather than one block at a time.
+        //
+        // Asserted on the PROPERTY rather than through a break, deliberately: destroyBlock drops
+        // through the loot table and never consults the harvest layer, so a break-based test returns
+        // the core either way and proves the opposite of what it looks like it proves. That is the
+        // same reasoning DemolitionYardTests records for the beam, in the other direction.
+        RCGameTests.test("every_multiblock_core_comes_back_however_it_is_broken", 20, helper -> {
+            List<String> gated = new ArrayList<>();
+            int cores = 0;
+            for (Block block : BuiltInRegistries.BLOCK) {
+                if (!(block instanceof MultiblockCoreBlock)) {
+                    continue;
+                }
+                cores++;
+                BlockState state = block.defaultBlockState();
+                // requiresCorrectToolForDrops ALONE. Pairing it with
+                // ItemStack.EMPTY.isCorrectToolForDrops was wrong and failed all six cores at once:
+                // vanilla's harvest check is "does not require a correct tool OR this is one", so a
+                // bare hand reports false for plenty of blocks that drop perfectly well. The flag is
+                // the whole question.
+                if (state.requiresCorrectToolForDrops()) {
+                    gated.add(BuiltInRegistries.BLOCK.getKey(block).toString());
+                }
+            }
+            helper.assertTrue(cores > 0,
+                "no multiblock cores found at all - discovery is broken, so this would pass vacuously");
+            helper.assertTrue(gated.isEmpty(),
+                "these machine cores are destroyed rather than returned when broken without the right "
+                    + "tool, while breaking any of their cells hands the core back - so the gate is "
+                    + "opt-out and the machine is lost to a wrong swing: " + gated);
+            helper.succeed();
+        });
+
         RCGameTests.test("dummy_cell_finds_its_core_on_a_rotated_machine", 20, helper -> {
             for (Direction facing : new Direction[] {
                     Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
