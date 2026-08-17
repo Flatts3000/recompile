@@ -274,13 +274,15 @@ final class TrommelTests {
         // the core. A machine with N dummies hands back N cores from one break. The Trommel has SEVEN
         // dummy cells, so it is exactly the shape that exposes it.
         //
-        // WHAT THIS CANNOT SEE, stated rather than glossed: the core ITEM. MultiblockDummyBlock drops
-        // the core with Block.dropResources and no tool, so a core declaring
-        // requiresCorrectToolForDrops - the Trommel and the Separator, both of them - drops nothing
-        // through that path at all. That is a real framework defect (#191) and it is pre-existing;
-        // it also means a duplicated core would duplicate ZERO items, so the count is unobservable
-        // here until it is fixed. What is observable is that the machine comes apart exactly once and
-        // returns its components exactly once, which is the same cascade seen from the other side.
+        // IT COUNTS THE CORE, because that is the assertion that actually guards the cascade: N
+        // dummy cells re-entering the hook would hand back N cores.
+        //
+        // This used to count only components, on my claim that a tool-gated core drops nothing
+        // through dropResources-with-no-tool and so could not be counted. THAT CLAIM WAS FALSE and
+        // was never measured - #191 was filed on it. requiresCorrectToolForDrops is enforced in the
+        // PLAYER's break path, not in the loot table, and neither core's table carries a tool
+        // condition at all, so dropResources called directly runs the table and the core drops
+        // normally. Probed before this was written: exactly one core, every time.
         RCGameTests.test("breaking_a_trommel_cell_disbands_it_exactly_once", 80, helper -> {
             BlockPos core = new BlockPos(1, 1, 1);
             formAndPower(helper, core);
@@ -299,6 +301,7 @@ final class TrommelTests {
                 // came back as a Trommel Drum. disband then returns the component the blueprint names
                 // for every cell it still recognises. A cascade through the siblings' hooks would
                 // return more of all of these.
+                helper.assertItemEntityCountIs(RCItems.TROMMEL.get(), core, 6.0, 1);
                 helper.assertItemEntityCountIs(RCItems.STEEL_I_BEAM.get(), core, 6.0, 3);
                 helper.assertItemEntityCountIs(RCItems.TROMMEL_DRUM.get(), core, 6.0, 1);
                 helper.assertItemEntityCountIs(RCItems.MOTOR.get(), core, 6.0, 1);

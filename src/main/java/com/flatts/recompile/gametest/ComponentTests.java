@@ -3,6 +3,7 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import net.minecraft.world.item.Item;
@@ -71,6 +72,62 @@ final class ComponentTests {
                 "the Separator must be built around a Motor - it is the machine that physically "
                     + "moves, and a motor is the thing no amount of scrap replaces");
             helper.succeed();
+        });
+
+        // THE CASCADE, ON THE MACHINE MOST EXPOSED TO IT.
+        //
+        // The Separator has ELEVEN dummy cells - more than anything else in the mod - and in 26.1 the
+        // removal hook fires on a plain setBlock-to-AIR as well as on a real break. So clearing one
+        // cell re-enters its siblings' hooks, and while the core is still FORMED each re-entry
+        // re-drops the core: eleven cores from one break. disband flips FORMED off BEFORE clearing
+        // cells so every re-entry bails, and this is what says so.
+        //
+        // It goes through destroyBlock on a CELL, not through disband() directly. Its sibling below
+        // calls disband and therefore never touches the removal hook at all - which is the whole path
+        // the cascade lives in, and why that test could pass with this broken.
+        //
+        // Written because #191 claimed a tool-gated core cannot be counted here. It can; that issue
+        // was wrong, and this machine had no core assertion on the break path because of it.
+        RCGameTests.test("breaking_a_separator_cell_returns_exactly_one_core", 80, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            for (var cell : RCBlocks.SEPARATOR.get().blueprint().cells()) {
+                helper.setBlock(cell.at(core, net.minecraft.world.level.block.Rotation.NONE),
+                    cell.component());
+            }
+            helper.assertTrue(
+                com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock.tryForm(
+                    helper.getLevel(), helper.absolutePos(core)),
+                "precondition: the Separator must form from its components");
+
+            // A GENUINE DUMMY, chosen by what it is rather than by where it sits in the list.
+            // Declaration order is explicitly unstable here - Multiblock.skinOrder() sorts precisely
+            // because reordering createBlueprint would otherwise renumber every cell - and a cell
+            // whose formed block equals its component is not a dummy at all, so no removal hook would
+            // run and this would fail by timeout reporting "0 cores" instead of "wrong cell".
+            var victimCell = RCBlocks.SEPARATOR.get().blueprint().cells().stream()
+                .filter(c -> c.formed() != c.component())
+                .reduce((first, second) -> second)
+                .orElse(null);
+            helper.assertTrue(victimCell != null,
+                "the Separator has no transforming cell, so there is no dummy to break");
+            BlockPos victim = victimCell.at(core, net.minecraft.world.level.block.Rotation.NONE);
+            helper.assertTrue(
+                helper.getBlockState(victim).getBlock()
+                    instanceof com.flatts.recompile.content.block.multiblock.MultiblockDummyBlock,
+                "the cell picked to break is not a dummy: " + helper.getBlockState(victim));
+            helper.assertTrue(helper.getLevel().destroyBlock(helper.absolutePos(victim), true),
+                "the cell was not destroyed, so nothing exercised the removal hook");
+
+            helper.succeedWhen(() -> {
+                helper.assertItemEntityCountIs(RCItems.SEPARATOR.get(), core, 8.0, 1);
+                // AIR, not "not FORMED". The removal hook ends with removeBlock(core), so the core
+                // position is air and isFormed(air) is false whatever happened - including in the
+                // broken-guard case this test exists to catch. That assertion could not fail, which
+                // is precisely the defect this PR is about; shipping a second one would have been
+                // funny in the wrong way.
+                helper.assertBlockPresent(Blocks.AIR, core);
+            });
         });
 
         // DISBAND GIVES THE MOTOR BACK, which it did not when this was first written.
