@@ -296,15 +296,42 @@ final class TrommelTests {
                 var state = helper.getLevel().getBlockState(helper.absolutePos(core));
                 helper.assertTrue(!MultiblockCoreBlock.isFormed(state),
                     "the core is still FORMED after a cell was broken");
-                // THREE beams, not four, and the missing one is the point rather than an error: the
-                // broken cell dropped its own loot through the normal break BEFORE disband ran, so it
-                // came back as a Trommel Drum. disband then returns the component the blueprint names
-                // for every cell it still recognises. A cascade through the siblings' hooks would
-                // return more of all of these.
+                // FOUR beams, one per drum cell, and that number is itself the fix. It was three,
+                // and the comment here explained the missing one as correct: the broken cell dropped
+                // its own loot before disband ran, so it came back as a Trommel Drum - an item with
+                // no recipe, hidden from JEI, useless for rebuilding the machine. A formed cell now
+                // drops nothing of its own and the blueprint decides on every path, so the cell you
+                // broke returns the component you put in.
+                //
+                // A cascade through the siblings' hooks would return more of all of these.
                 helper.assertItemEntityCountIs(RCItems.TROMMEL.get(), core, 6.0, 1);
-                helper.assertItemEntityCountIs(RCItems.STEEL_I_BEAM.get(), core, 6.0, 3);
-                helper.assertItemEntityCountIs(RCItems.TROMMEL_DRUM.get(), core, 6.0, 1);
+                helper.assertItemEntityCountIs(RCItems.STEEL_I_BEAM.get(), core, 6.0, 4);
+                helper.assertItemEntityCountIs(RCItems.TROMMEL_DRUM.get(), core, 6.0, 0);
                 helper.assertItemEntityCountIs(RCItems.MOTOR.get(), core, 6.0, 1);
+            });
+        });
+
+        // ...and the same on the Trommel, which failed it differently: its formed cells dropped
+        // THEMSELVES. Breaking the motor cell handed back a trommel_stand - no recipe, hidden from JEI
+        // as unobtainable, and useless for rebuilding the machine it came out of - while the Motor,
+        // the part this machine is deliberately gated on, was destroyed.
+        RCGameTests.test("breaking_the_trommel_motor_cell_returns_the_motor", 80, helper -> {
+            BlockPos core = new BlockPos(0, 1, 1);
+            formAndPower(helper, core);
+            var blueprint = ((MultiblockCoreBlock) RCBlocks.TROMMEL.get()).blueprint();
+            var motorCell = blueprint.cells().stream()
+                .filter(c -> c.component() == RCBlocks.MOTOR.get())
+                .findFirst().orElse(null);
+            helper.assertTrue(motorCell != null, "the Trommel blueprint has no Motor cell");
+            BlockPos motor = helper.absolutePos(core).offset(
+                Multiblock.rotate(motorCell.offset(),
+                    ((MultiblockCoreBlock) RCBlocks.TROMMEL.get())
+                        .rotationFor(helper.getLevel().getBlockState(helper.absolutePos(core)))));
+            helper.getLevel().destroyBlock(motor, true);
+
+            helper.succeedWhen(() -> {
+                helper.assertItemEntityCountIs(RCItems.MOTOR.get(), core, 8.0, 1);
+                helper.assertItemEntityCountIs(RCItems.TROMMEL.get(), core, 8.0, 1);
             });
         });
 
