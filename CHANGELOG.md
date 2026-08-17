@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### The ground got deep
+- **The world now has real rock under it.** It was a coarse-dirt slab 7 to 11 blocks thick sitting on
+  about 120 blocks of empty space; it is now 59 to 63 blocks thick, with bedrock still on the
+  underside and the void still below that.
+- **Nothing on the surface changed** - same height, same shape, same everything you can see or stand
+  on. The change is entirely underneath.
+- **This is groundwork for the sewers**, which need somewhere to be. There was not enough room down
+  there for a structure of any size.
+- **It only affects newly generated land.** Chunks an existing save has already visited keep the thin
+  slab and will never hold a sewer, and the boundary between old and new terrain will be visible
+  where you walk into fresh chunks. A new world avoids both.
+
 ## v0.10.0
 
 **Two new machines, and the two chains they unblock.** The Separator used to do three jobs; it now

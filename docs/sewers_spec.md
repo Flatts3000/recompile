@@ -125,10 +125,19 @@ hardcoded in Java - so it cannot be reskinned to brick from a datapack. Jigsaw w
 the cheaper alternative and was rejected: it assembles authored rooms rather than generating corridor
 runs, so it reads like a bastion rather than a mineshaft, and the sprawl is the point.
 
-**The slab has to grow first.** Today the terrain is roughly 13 blocks thick with about 120 blocks of
-void beneath it, because the density function forces air below y=55. The layering is already correct
-(coarse dirt for the top two, deepslate between, bedrock on the underside), there is simply not enough
-deepslate to hold a sewer. Lowering that bottom gradient gives real rock to tunnel through.
+**The slab had to grow first, and it has (2026-08-17).** The floor gradient in
+`noise_settings/garbage.json` moved from `55 -> 58` to `3 -> 6`, so the terrain went from **7-11 blocks
+thick** to **59-63**, measured over 81 columns across a 4000x4000 span by
+`the_world_has_rock_enough_to_hold_a_sewer`. (This spec said "roughly 13" - that was optimistic, and
+nobody had measured it.) The layering needed no work: the surface rule writes bedrock at
+`stone_depth ceiling` and coarse dirt at the top three, so both followed the floor down on their own.
+
+**45 blocks is the requirement, and it is derived from the machine this mirrors.** `MineshaftPieces`
+caps recursion at `MAX_DEPTH = 8` and `MineShaftStairs.findStairs` builds a box spanning y `-5` to `+2`,
+so a stairs piece drops **5** and a worst-case chain descends about **40**. Add the root room, which is
+5 to 10 tall, and round up. The test asserts that number rather than the gradient, so retuning the
+terrain cannot quietly take the room back, and it asserts the surface has **not** moved in the same
+pass - a slab that grew upward would break every mound, spreader and farm plot in every existing save.
 
 **This is a worldgen change, so every existing world keeps its thin slab and will never have sewers.**
 That is the same trap that cost a playtester 90 minutes looking for a demolition yard in a v0.2.0 save.
