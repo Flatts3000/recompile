@@ -120,6 +120,10 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.TREE_NURSERY.get());
                     output.accept(RCItems.HYDROPONICS_BAY.get());
                     output.accept(RCItems.SEPARATOR.get());
+                    output.accept(RCItems.TROMMEL.get());
+                    output.accept(RCItems.TROMMEL_DRUM.get());
+                    output.accept(RCItems.TROMMEL_STAND.get());
+                    output.accept(RCItems.TROMMEL_CHUTE.get());
                     output.accept(RCItems.SEPARATOR_CHAMBER.get());
                     output.accept(RCItems.SEPARATOR_HOUSING.get());
                     output.accept(RCItems.SEPARATOR_CHUTE.get());

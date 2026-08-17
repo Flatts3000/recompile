@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:multiblock",
+  "id": "structure",
+  "sort_number": 1,
+  "multiblock_id": "recompile:trommel",
+  "multiblock_name": "block.recompile.trommel",
+  "show_visualize_button": true,
+  "text": "book.recompile.guide.demolition.trommel.structure.text"
+}

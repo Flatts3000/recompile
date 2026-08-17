@@ -5,6 +5,7 @@ import com.flatts.recompile.content.block.ScrapBinContent;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.multiblock.Multiblock;
+import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import com.flatts.recompile.content.block.multiblock.MultiblockDummyBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
@@ -92,6 +93,11 @@ final class MultiblockTests {
                         }
                     }
                 }
+                // FORMED, because a machine with dummy cells standing in the world always is - the
+                // cells only exist once tryForm ran. Placing the core unformed and calling form()
+                // straight on the blueprint builds a state the game never produces, and findCore now
+                // ignores unformed cores so that an unformed one dropped nearby cannot shadow the real
+                // master of a built machine.
                 BlockState coreState = RCBlocks.TREE_NURSERY.get().defaultBlockState()
                     .setValue(HorizontalDirectionalBlock.FACING, facing);
                 helper.setBlock(core, coreState);
@@ -99,6 +105,13 @@ final class MultiblockTests {
                 TreeNurseryCoreBlock block = (TreeNurseryCoreBlock) coreState.getBlock();
                 Rotation rotation = block.rotationFor(coreState);
                 block.blueprint().form(helper.getLevel(), helper.absolutePos(core), rotation);
+                // FORMED, and it has to be set AFTER the cells exist. A machine with dummy cells
+                // standing in the world always carries it - they only exist once tryForm ran - and
+                // findCore now ignores unformed cores, so that an unformed one dropped nearby cannot
+                // shadow the real master. Setting it before form() does not stick: placing the core
+                // fires neighborChanged, the blueprint does not match yet, and the core clears its own
+                // flag again.
+                helper.setBlock(core, coreState.setValue(MultiblockCoreBlock.FORMED, true));
 
                 BlockPos tank = block.blueprint().cells().get(0).at(core, rotation);
                 helper.assertTrue(

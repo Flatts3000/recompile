@@ -32,7 +32,7 @@ Its pass count includes a vanilla built-in test: the mod's own tests run in the 
 
 CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent jobs. The `build` job name is load-bearing: main's branch protection requires that status check.
 
-`unitTest` is enabled in `build.gradle` (moddev's JUnit integration, which runs `src/test/java` against a loaded mod context) and **`./gradlew test` runs 32 tests across 5 classes**. `build` depends on `test`, so CI gates them. *(This line previously said no JUnit tests existed. That was wrong from PR #22 onward and went unnoticed until someone counted - a doc claiming a layer is empty is how it stays empty.)* **Use a unit test when the logic is pure** - `GeneratorState` (which reason a generator is idle), `ScrapBinContent` (item to bin appearance), the crumble curve's expected yield. No world, no rendering, no server means a GameTest is the wrong instrument and a slower one. GameTests remain where in-world behaviour is proven.
+`unitTest` is enabled in `build.gradle` (moddev's JUnit integration, which runs `src/test/java` against a loaded mod context) and **`./gradlew test` runs 69 tests across 15 classes**. `build` depends on `test`, so CI gates them. *(This line previously said no JUnit tests existed. That was wrong from PR #22 onward and went unnoticed until someone counted - a doc claiming a layer is empty is how it stays empty.)* **Use a unit test when the logic is pure** - `GeneratorState` (which reason a generator is idle), `ScrapBinContent` (item to bin appearance), the crumble curve's expected yield. No world, no rendering, no server means a GameTest is the wrong instrument and a slower one. GameTests remain where in-world behaviour is proven.
 
 ## Architecture
 

@@ -13,6 +13,8 @@ import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
+import com.flatts.recompile.content.block.TrommelCoreBlock;
+import com.flatts.recompile.content.block.TrommelDrumBlock;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
@@ -50,11 +52,14 @@ public class RecompileJadePlugin implements IWailaPlugin {
         // The power tier (#72): a generator's buffer is server-only, and the Solar Panel's current rate
         // depends on sky exposure the client can lag on - so both cross with the hover.
         registration.registerBlockDataProvider(SeparatorDataProvider.INSTANCE, SeparatorCoreBlock.class);
+        registration.registerBlockDataProvider(TrommelDataProvider.INSTANCE, TrommelCoreBlock.class);
         // The queue as an item grid. A view, not a container: the machine still exposes no
         // handler, so nothing can insert or extract - showing what is inside and letting
         // something reach inside are different doors.
         registration.registerItemStorage(SeparatorStorageProvider.INSTANCE,
             com.flatts.recompile.content.block.entity.SeparatorBlockEntity.class);
+        registration.registerItemStorage(TrommelStorageProvider.INSTANCE,
+            com.flatts.recompile.content.block.entity.TrommelBlockEntity.class);
         registration.registerBlockDataProvider(GeneratorDataProvider.INSTANCE, SolarPanelBlock.class);
         registration.registerBlockDataProvider(GeneratorDataProvider.INSTANCE, BurnerGeneratorBlock.class);
     }
@@ -73,11 +78,15 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(SortProgressProvider.INSTANCE, SortableBlock.class);
         registration.registerBlockComponent(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);
         registration.registerBlockComponent(MachineStatusProvider.INSTANCE, MultiblockCoreBlock.class);
+        registration.registerBlockComponent(TrommelFeedProvider.INSTANCE, TrommelCoreBlock.class);
+        registration.registerBlockComponent(TrommelFeedProvider.INSTANCE, TrommelDrumBlock.class);
         registration.registerBlockComponent(ScrapBinProvider.INSTANCE, ScrapBinBlock.class);
         registration.registerItemStorageClient(SeparatorStorageClientProvider.INSTANCE);
+        registration.registerItemStorageClient(TrommelStorageClientProvider.INSTANCE);
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostHeapCoreBlock.class);
         registration.registerBlockComponent(CompostHeapProvider.INSTANCE, CompostCageBlock.class);
         registration.registerBlockComponent(SeparatorProvider.INSTANCE, SeparatorCoreBlock.class);
+        registration.registerBlockComponent(TrommelProvider.INSTANCE, TrommelCoreBlock.class);
         registration.registerBlockComponent(GeneratorProvider.INSTANCE, SolarPanelBlock.class);
         registration.registerBlockComponent(GeneratorProvider.INSTANCE, BurnerGeneratorBlock.class);
         registration.registerBlockComponent(TreeNurseryProvider.INSTANCE, TreeNurseryCoreBlock.class);

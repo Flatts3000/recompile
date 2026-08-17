@@ -76,13 +76,15 @@ final class GuidebookMultiblockTests {
         new Machine("grass_spreader", com.flatts.recompile.registry.RCBlocks.GRASS_SPREADER),
         new Machine("compost_heap", com.flatts.recompile.registry.RCBlocks.COMPOST_HEAP),
         new Machine("tree_nursery", com.flatts.recompile.registry.RCBlocks.TREE_NURSERY),
-        new Machine("separator", com.flatts.recompile.registry.RCBlocks.SEPARATOR));
+        new Machine("separator", com.flatts.recompile.registry.RCBlocks.SEPARATOR),
+        new Machine("trommel", com.flatts.recompile.registry.RCBlocks.TROMMEL));
 
     private GuidebookMultiblockTests() {
     }
 
     static void register() {
         registerJeiPartRule();
+        registerEveryMachineIsDocumented();
         registerSkinIndexRule();
         RCGameTests.test("every_guidebook_multiblock_matches_its_blueprint", 20, helper -> {
             List<String> problems = new ArrayList<>();
@@ -163,6 +165,44 @@ final class GuidebookMultiblockTests {
      * machine, an orphaned pattern, or a page pointed at a file that was never written all fail
      * here rather than passing quietly.
      */
+    /**
+     * Every multiblock machine has a page.
+     *
+     * <p>The three checks above compare patterns, pages and {@link #MACHINES} against each other, so
+     * they catch a pattern nobody draws and a page pointing at nothing. What all three share is that
+     * they start from something that EXISTS. A machine with no pattern, no page and no entry in the
+     * list is absent from all three inventories at once and every one of them passes.
+     *
+     * <p>That is not hypothetical: the Trommel shipped its whole build - blocks, tests, art - with no
+     * guidebook page, and nothing said a word. The guide is how a player learns a machine exists, so a
+     * machine it never mentions is, for most people, a machine that is not in the game.
+     */
+    private static void registerEveryMachineIsDocumented() {
+        RCGameTests.test("every_multiblock_machine_has_a_guidebook_page", 20, helper -> {
+            Set<String> drawn = new LinkedHashSet<>();
+            for (Machine machine : MACHINES) {
+                drawn.add(idOf(machine.core().get()));
+            }
+            List<String> undocumented = new ArrayList<>();
+            int cores = 0;
+            for (Block block : BuiltInRegistries.BLOCK) {
+                if (!(block instanceof MultiblockCoreBlock)) {
+                    continue;
+                }
+                cores++;
+                if (!drawn.contains(idOf(block))) {
+                    undocumented.add(idOf(block));
+                }
+            }
+            helper.assertTrue(cores > 0,
+                "no multiblock cores found at all - discovery is broken, so this would pass vacuously");
+            helper.assertTrue(undocumented.isEmpty(),
+                "these machines have no guidebook multiblock page, so nothing in the game teaches "
+                    + "anyone how to build them: " + undocumented);
+            helper.succeed();
+        });
+    }
+
     private static void registerCoverage() {
         RCGameTests.test("every_guidebook_multiblock_is_covered_by_this_test", 20, helper -> {
             Set<String> checked = new LinkedHashSet<>();

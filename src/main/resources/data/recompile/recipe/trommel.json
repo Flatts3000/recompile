@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "The Trommel core. Demolition yard tier (owner, 2026-08-12), and the recipe says so: steel",
+    "is the yard's material and the Motor cannot be forged out of any quantity of scrap.",
+    "",
+    "The drum cells are Steel I-Beam and the stand is Machine Frame, supplied at assembly rather",
+    "than in this recipe - the multiblock is what the machine costs, this is just its brain."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SMS",
+    "PPP"
+  ],
+  "key": {
+    "S": "recompile:steel_offcut",
+    "M": "recompile:motor",
+    "P": "recompile:scrap_plating"
+  },
+  "result": {
+    "id": "recompile:trommel",
+    "count": 1
+  }
+}

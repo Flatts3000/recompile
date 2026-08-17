@@ -7,6 +7,7 @@ import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
 import com.flatts.recompile.content.block.entity.DisplayPedestalBlockEntity;
 import com.flatts.recompile.content.block.entity.SeparatorBlockEntity;
+import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
@@ -137,6 +138,11 @@ public final class RCBlockEntities {
             "separator",
             () -> new BlockEntityType<>(SeparatorBlockEntity::new, RCBlocks.SEPARATOR.get()));
 
+    public static final Supplier<BlockEntityType<TrommelBlockEntity>> TROMMEL =
+        BLOCK_ENTITIES.register("trommel",
+            () -> new BlockEntityType<>(TrommelBlockEntity::new, RCBlocks.TROMMEL.get()));
+
+
     private RCBlockEntities() {
         // utility class
     }
@@ -177,6 +183,19 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Energy.BLOCK,
             SEPARATOR.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
+        // The Trommel, on exactly the Separator's terms: power in, nothing else. INSERT-only, because
+        // it is a consumer.
+        //
+        // This was MISSED on the machine's first pass, and how it was missed is the point. The
+        // BlockEntity has a battery and its tests power it by writing to that battery directly, so
+        // every test passed while no generator in the game could reach the block - a machine that
+        // works in the harness and is dead in the world. What catches it is asserting the CAPABILITY
+        // is there, not that the machine runs once something has handed it energy.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            TROMMEL.get(),
             (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
 
         event.registerBlockEntity(

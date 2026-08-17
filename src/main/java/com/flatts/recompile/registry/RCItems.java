@@ -328,6 +328,14 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
     /** Rubble: the demolition yard's pick-through stone-shard source. */
+    public static final DeferredItem<BlockItem> TROMMEL =
+        ITEMS.registerSimpleBlockItem("trommel", RCBlocks.TROMMEL);
+    public static final DeferredItem<BlockItem> TROMMEL_DRUM =
+        ITEMS.registerSimpleBlockItem("trommel_drum", RCBlocks.TROMMEL_DRUM);
+    public static final DeferredItem<BlockItem> TROMMEL_STAND =
+        ITEMS.registerSimpleBlockItem("trommel_stand", RCBlocks.TROMMEL_STAND);
+    public static final DeferredItem<BlockItem> TROMMEL_CHUTE =
+        ITEMS.registerSimpleBlockItem("trommel_chute", RCBlocks.TROMMEL_CHUTE);
     public static final DeferredItem<BlockItem> SEPARATOR =
         ITEMS.registerSimpleBlockItem("separator", RCBlocks.SEPARATOR);
     public static final DeferredItem<BlockItem> SEPARATOR_CHAMBER =

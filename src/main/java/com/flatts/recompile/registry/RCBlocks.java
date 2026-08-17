@@ -2,6 +2,9 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.FilingCabinetBlock;
+import com.flatts.recompile.content.block.TrommelCoreBlock;
+import com.flatts.recompile.content.block.TrommelDrumBlock;
+import com.flatts.recompile.content.block.TrommelPartBlock;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
@@ -804,6 +807,52 @@ public final class RCBlocks {
      * docs/separator_model_spec.md). The chamber is where material goes in, the chute is where it
      * comes out, the housing is everything else.
      */
+    /**
+     * The Trommel: the automated rung of the sorting ladder (#188).
+     *
+     * <p>Sorting moved here off the Separator, because a shear shredder destroys distinctions and
+     * cannot sort - a real facility uses a different machine for each cut it makes, and a trommel makes
+     * the size cut. See #187 for the removal.
+     */
+    public static final DeferredBlock<TrommelCoreBlock> TROMMEL = BLOCKS.registerBlock(
+        "trommel",
+        TrommelCoreBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
+    );
+
+    /** A drum cell: perforated screen, and the only animated block in the mod. */
+    public static final DeferredBlock<TrommelDrumBlock> TROMMEL_DRUM = BLOCKS.registerBlock(
+        "trommel_drum",
+        TrommelDrumBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+    );
+
+    public static final DeferredBlock<TrommelPartBlock> TROMMEL_STAND = BLOCKS.registerBlock(
+        "trommel_stand",
+        TrommelPartBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+    );
+
+    public static final DeferredBlock<TrommelPartBlock> TROMMEL_CHUTE = BLOCKS.registerBlock(
+        "trommel_chute",
+        TrommelPartBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.0F)
+            .sound(SoundType.METAL)
+            .noOcclusion()
+    );
+
     public static final DeferredBlock<SeparatorCoreBlock> SEPARATOR = BLOCKS.registerBlock(
         "separator",
         SeparatorCoreBlock::new,

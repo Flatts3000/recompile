@@ -1,0 +1,13 @@
+{
+  "__comment": "A TURNING CYLINDER, so opposite faces travel in OPPOSITE directions. Axis runs left to right: the near face goes down, the far face comes up, the top carries toward the near side. In texture space that is forward on north and down, reversed on south and up. Every face used to wear the one sheet scrolling the one way, which is two conveyor belts facing each other rather than a drum. The idle models need no such split - a stopped drum looks the same from either side.",
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/trommel_drum_still",
+    "north": "recompile:block/trommel_drum_still",
+    "down": "recompile:block/trommel_drum_still",
+    "south": "recompile:block/trommel_drum_still",
+    "up": "recompile:block/trommel_drum_still",
+    "east": "recompile:block/trommel_drum_cap",
+    "west": "recompile:block/trommel_drum_cap"
+  }
+}

@@ -1593,3 +1593,135 @@ faces = ["front", "side", "top"]
 front = "a full-bleed Minecraft block face: the door of a dumped white kitchen fridge, a flat off-white enamel panel with ONE BOLD VERTICAL CHROME HANDLE running down the right edge and a hard horizontal door seam across the very bottom, yellowed with age, a few rust spots and a peeling sticker, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 side = "a full-bleed Minecraft block face: the plain side panel of a dumped white kitchen fridge, flat off-white enamel gone cream with age, one hard vertical seam line near the front edge, dents, scuffs and rust streaks running down, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 top = "a full-bleed top-down Minecraft block face: the dusty top of a dumped white kitchen fridge, flat off-white enamel under a thick layer of grey dust and grime, a few dark ring stains and scattered debris, rust at the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+# ---------------------------------------------------------------------------
+# The Trommel drum: the mod's first generated ANIMATED surface (#188).
+#
+# PROCEDURAL, and this is the strongest case for it in the repo. An animation has to CLOSE - the last
+# frame must hand back to the first without a jump - and that is a property of the whole sequence, not
+# of any one picture, so it is not a thing an image model can be asked for. In code the loop is exact
+# by construction: the hole grid shifts by exactly one pitch across the frames.
+#
+# 8 frames at frametime 3 is a slow turn, which is what a trommel does. A fast drum reads as a washing
+# machine.
+# ---------------------------------------------------------------------------
+
+[surface.trommel_drum]
+kind = "block"
+backend = "procedural"
+size = 16
+frames = 8
+frametime = 3
+# ...and a one-frame still beside it, so an IDLE drum can stop turning. A machine that animates
+# whether or not it has power is telling the player something false, and the ACTIVE blockstate that
+# already exists to say so had nothing to point at.
+still = true
+# Let the game tween the steps. The drum moves its holes by exactly ONE PIXEL per frame and cannot
+# move them by less: the loop only closes if the whole cycle shifts by exactly one hole period, so
+# step = 2 * pitch / frames must be a whole pixel, which caps frames at 2 * pitch. Asking for more
+# frames forces a coarser hole grid. Position is quantised and that is the floor - interpolation is
+# the only thing that can put anything between two steps.
+interpolate = true
+[surface.trommel_drum.procedural]
+style = "drum"
+palette = ["#6e7076", "#3a3c42", "#96989e", "#7a4e2e"]
+
+# ---------------------------------------------------------------------------
+# The Trommel's remaining faces (#188). The drum above is the machine's identity; these are the
+# structure it turns in, and they follow the Separator's rule that a formed cell wears bespoke art
+# rather than the component's model restacked.
+#
+# Steel throughout, because the yard's own material ties the machine to the region it stands in.
+# ---------------------------------------------------------------------------
+
+# Down from 22 of the machine's 48 faces to SIX, and not one of them is a flank. The flanks are
+# skins now; this is only the two end caps and four undersides - the faces a single cell has, where
+# there is nothing to span and so nothing to skin. It cannot be deleted without leaving those bare.
+[surface.trommel_housing]
+kind = "block"
+backend = "ai"
+size = 16
+# NO DIRECTIONAL BORDER. The first prompt asked for "a riveted edge band along two sides", which
+# is an L, and every candidate duly had one - fine on a panel meant to repeat into a wall,
+# wrong on what this surface actually is now. Since the flanks became skins, housing survives
+# only on the two END CAPS and four undersides, and the undersides are on the ground: this is
+# effectively the bolted plate that closes off the end of the stand. An end plate is symmetric,
+# so the rivets go all the way round or not at all.
+prompt = "a full-bleed Minecraft block face: the bolted steel end plate that closes off a scrapyard machine stand, one flat grey plate seen straight on with a row of rivets running around all four edges evenly, a single small weld scar near the middle, greasy and scuffed with rust creeping from the rivets, symmetric, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+# trommel_chute WAS HERE and is gone: the discharge mouth is painted into cell 0 of
+# trommel_skin_north now, so a separate mouth tile is the old repeating-panel approach asking to be
+# picked a second time. The BLOCK recompile:trommel_chute stays - it is a real cell of the machine -
+# it just wears skin tiles like every other skinned cell.
+
+[surface.trommel_drum_mouth]
+# THE DISCHARGE END, which must not look like the other end.
+#
+# Both ends of the drum wore trommel_drum_cap, so the machine had two identical closed plates and
+# nothing said which way material travels. A trommel is directional - it is fed at one end and
+# discharges at the other - and the block the player has to park a chest against was the one thing the
+# art did not identify. The outlet is off the far end (TrommelCoreBlock.outlet), so this is cell 3.
+#
+# match_hue against the drum for the same reason the cap needs it: an end generated on its own has no
+# idea what metal it is an end OF, and four of the cap's five candidates came back rust-orange.
+match_hue = "trommel_drum"
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the open discharge end of a heavy steel rotating drum seen head on, a wide dark circular opening taking up most of the tile with the drum's worn steel rim around it, the inside shadowed and empty, grime and rust streaking down from the lower lip, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/iron_block"
+
+[surface.trommel_drum_back]
+# THE SAME DRUM, TURNING THE OTHER WAY.
+#
+# A cylinder's near face and far face travel in OPPOSITE directions - that is the whole of what makes
+# it read as turning rather than as a conveyor belt. Every face wore this one sheet scrolling one way,
+# so both flanks scrolled together, which is a shape that cannot exist.
+#
+# Reversing the frame order reverses the motion exactly, and reverse_of shares the source art, so the
+# two halves of one drum cannot drift into two different drums. Frame count and timing must match the
+# surface it reverses or the two sides fall out of step.
+reverse_of = "trommel_drum"
+kind = "block"
+size = 16
+frames = 8
+frametime = 3
+interpolate = true
+
+[surface.trommel_skin_north]
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 64
+height = 16
+# LEFT IS THE DISCHARGE END, and it is not arbitrary. The north face has flip = True in
+# skin_machine.FACE_AXES, so sheet column 0 is cell x = 3 - which is the chute. The sheet
+# therefore reads exactly as a player standing in front of the machine sees it, left to right,
+# and the first draft of this prompt put the mouth on the right, which would have painted it
+# over the CORE at the opposite end of the machine.
+prompt = "the front of a single long low industrial sorting machine stand, one continuous machine face spanning the whole image, four times wider than it is tall, welded grey steel plate with riveted seams, a dark rectangular discharge opening cut into the plate at the far LEFT end with grime streaking down below it, a squat motor housing bulging out of the plate right of centre, greasy and rust stained, viewed straight on, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
+[surface.trommel_skin_south]
+# THE SAME ART AS THE NORTH FLANK, MIRRORED (owner, 2026-08-16).
+#
+# Mirrored rather than copied, and that is not a stylistic call. north has flip = True in
+# skin_machine.FACE_AXES and south has flip = False, so sheet column 0 is cell x = 3 on one face and
+# cell x = 0 on the other - opposite ENDS of the machine. Copy the sheet verbatim and the discharge
+# that sits over the chute on the north side sits over the CORE on the south side. The mirror is what
+# makes "the same texture" actually the same texture once it is on the built machine.
+kind = "block_skin"
+mirror_of = "trommel_skin_north"
+size = 16
+width = 64
+height = 16
+
+[surface.trommel_drum_cap]
+# match_hue, because a cap is an END OF THE DRUM and has to be the same metal as it. Generated on
+# its own it came back on a rust-orange ground at 24% saturation against the drum's 3% - four of
+# the five candidates did. This keeps the chosen plate and its luminance and recasts the colour.
+match_hue = "trommel_drum"
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the circular end plate of a heavy steel rotating drum seen head on, a bold dark ring with a small central hub and four radial spokes, grey steel gone dull with rust at the rim, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"

@@ -31,6 +31,23 @@ public abstract class MultiblockDummyBlock extends Block {
     /** How far below to look for the master. Generous enough for any stack we plan to build. */
     private static final int SEARCH_DEPTH = 4;
 
+    /**
+     * How far HORIZONTALLY a cell will look for its master.
+     *
+     * <p>This was 1, which quietly capped every machine at three blocks wide. A cell further out
+     * simply never found its core, so breaking it did not disband the machine - it left a formed
+     * machine with a hole in it, and the only symptom was a build that kept working while missing a
+     * part. The Separator's far column is already inside that blind spot; the Trommel is four long
+     * and was entirely outside it.
+     *
+     * <p>Widening is cheap because this runs on a break, not on a tick, and a wrong match is not a
+     * risk: the loop below only accepts a candidate whose own blueprint claims this exact position.
+     *
+     * <p>{@code no_blueprint_reaches_past_the_core_search} fails the build if a machine ever grows
+     * past this, so the next one to outgrow it finds out at build time rather than in a playtest.
+     */
+    public static final int SEARCH_RADIUS = 4;
+
     protected MultiblockDummyBlock(Properties properties) {
         super(properties);
     }
@@ -40,27 +57,44 @@ public abstract class MultiblockDummyBlock extends Block {
      * claims this position for this block. Checking the blueprint (not just "a core is near") means an
      * unrelated core cannot adopt us.
      *
-     * <p>A core sits at or below its cells (cell offsets have {@code y >= 0}) and within one block
-     * horizontally, so this small box covers every shape we build - the vertical towers (Grass Spreader,
+     * <p>A core sits at or below its cells (cell offsets have {@code y >= 0}) and within
+     * {@link #SEARCH_RADIUS} blocks horizontally, so this box covers every shape we build - the vertical towers (Grass Spreader,
      * Rain Collector) and the Compost Heap's 2x2x2 alike, where cells sit <em>beside</em> the core, not
      * only above it.
      */
     public static @Nullable BlockPos findCore(Level level, BlockPos pos) {
-        for (int dy = 0; dy <= SEARCH_DEPTH; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    if (dx == 0 && dz == 0 && dy == 0) {
-                        continue;   // the cell itself is never the core
-                    }
-                    BlockPos candidate = pos.offset(dx, -dy, dz);
-                    BlockState candidateState = level.getBlockState(candidate);
-                    if (!(candidateState.getBlock() instanceof MultiblockCoreBlock core)) {
-                        continue;
-                    }
-                    Rotation rotation = core.rotationFor(candidateState);
-                    for (Multiblock.Cell cell : core.blueprint().cells()) {
-                        if (cell.at(candidate, rotation).equals(pos)) {
-                            return candidate;
+        // NEAREST FIRST, and only a FORMED core whose cell actually matches this block.
+        //
+        // The search box was one block wide and is now four, which is 81 positions per layer instead
+        // of 9 - and it returned the FIRST core that merely claimed this position. So an unformed core
+        // dropped anywhere in that box could shadow the real one: its blueprint claims the same cells,
+        // isFormed is false, and the break hook returns without disbanding, leaving exactly the
+        // "formed machine with a hole in it" the widening was meant to prevent. Three guards close it:
+        // scan outward so the true master is reached first, and ignore cores that are not formed.
+        //
+        // NOT a check that the block here matches the cell's formed block, which was tried and is
+        // wrong: this runs from the removal hook, by which point the block is already AIR, so the
+        // check can never pass and every machine stops disbanding. Eight tests said so at once.
+        for (int ring = 1; ring <= Math.max(SEARCH_RADIUS, SEARCH_DEPTH); ring++) {
+            for (int dy = 0; dy <= Math.min(ring, SEARCH_DEPTH); dy++) {
+                int span = Math.min(ring, SEARCH_RADIUS);
+                for (int dx = -span; dx <= span; dx++) {
+                    for (int dz = -span; dz <= span; dz++) {
+                        // only the shell of this ring, so closer candidates are never skipped past
+                        if (Math.max(Math.max(Math.abs(dx), Math.abs(dz)), dy) != ring) {
+                            continue;
+                        }
+                        BlockPos candidate = pos.offset(dx, -dy, dz);
+                        BlockState candidateState = level.getBlockState(candidate);
+                        if (!(candidateState.getBlock() instanceof MultiblockCoreBlock core)
+                                || !MultiblockCoreBlock.isFormed(candidateState)) {
+                            continue;
+                        }
+                        Rotation rotation = core.rotationFor(candidateState);
+                        for (Multiblock.Cell cell : core.blueprint().cells()) {
+                            if (cell.at(candidate, rotation).equals(pos)) {
+                                return candidate;
+                            }
                         }
                     }
                 }
