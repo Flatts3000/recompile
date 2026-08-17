@@ -8,6 +8,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -83,6 +84,18 @@ public final class SewerPieces {
      * wide makes {@code a_corridor_is_carved_along_its_own_length} able to tell them apart.
      */
     private static final int SEGMENT = 7;
+
+    /** What you climb out on. Nothing else in the palette is climbable. */
+    private static final BlockState LADDER = net.minecraft.world.level.block.Blocks.LADDER
+        .defaultBlockState();
+
+    /** The surface marker: a 3x3 of Reinforced Concrete, so a one-block hole is findable. */
+    private static final BlockState PAD =
+        com.flatts.recompile.registry.RCBlocks.REINFORCED_CONCRETE.get().defaultBlockState();
+
+    /** The cover itself - prybar-only, and the reason a sewer is not simply open. */
+    private static final BlockState COVER =
+        com.flatts.recompile.registry.RCBlocks.MANHOLE.get().defaultBlockState();
 
     /** How far a stairs piece descends, and how long it is. Vanilla drops 5 over 8; so do we. */
     private static final int STAIR_DROP = 5;
@@ -482,6 +495,88 @@ public final class SewerPieces {
                 }
             }
             placeResidents(level, limit, box);
+        }
+    }
+
+    /**
+     * The way in (#90 phase 1): a shaft from the chamber up to daylight, capped by a manhole.
+     *
+     * <p><b>Built by the structure rather than placed separately</b>, which is the difference between a
+     * manhole and a manhole that leads somewhere. The spec's phase 1 described scattering covers at
+     * mineshaft density over a stub shaft; once the sewer itself existed, the honest version is that the
+     * sewer brings its own entrance, so a cover a player finds is always a cover that opens onto
+     * something. It also means the density question answers itself: one entrance per sewer.
+     *
+     * <p><b>Ladders, because the drop is the whole height of the rock.</b> Nothing else in the palette
+     * is climbable, and a shaft you can fall down but not walk out of is a trap rather than a door.
+     *
+     * <p>The 3x3 of Reinforced Concrete is the surface marker the spec asks for - the pad is what makes
+     * a one-block hole findable in a large biome without making the hole itself bigger.
+     */
+    public static class SewerEntrance extends SewerPiece {
+
+        public SewerEntrance(int depth, BoundingBox box) {
+            super(RCStructures.SEWER_ENTRANCE.get(), depth, box);
+        }
+
+        public SewerEntrance(CompoundTag tag) {
+            super(RCStructures.SEWER_ENTRANCE.get(), tag);
+        }
+
+        /**
+         * Absolute coordinates throughout, for the reason the root chamber uses them: this piece has no
+         * orientation, and with {@code getOrientation()} null {@code getWorldX/Y/Z} hand back whatever
+         * they are given. A shaft is the same in every direction, so there is nothing to orient.
+         */
+        @Override
+        public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
+                RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
+            BoundingBox box = this.boundingBox;
+            int x = box.minX() + 1;
+            int z = box.minZ() + 1;
+            for (int y = box.minY(); y <= box.maxY(); y++) {
+                // Line the shaft so it reads as built rather than dug, and so it survives the rock
+                // around it being anything at all.
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (dx != 0 || dz != 0) {
+                            put(level, limit, x + dx, y, z + dz, SewerPalette.WALL);
+                        }
+                    }
+                }
+                put(level, limit, x, y, z, LADDER);
+            }
+            // The pad at the surface, and the cover in the middle of it.
+            int top = box.maxY();
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    put(level, limit, x + dx, top, z + dz, PAD);
+                }
+            }
+            put(level, limit, x, top, z, COVER);
+        }
+
+        /**
+         * Write one block at an absolute position, bypassing {@code placeBlock}.
+         *
+         * <p><b>Because {@code placeBlock} mirrors the state, and {@code mirror} is null on a piece that
+         * never called {@code setOrientation}.</b> Most blocks ignore mirroring entirely - a brick's
+         * {@code mirror} returns itself and never touches the argument - so the root chamber has always
+         * got away with it. A <b>ladder</b> does not: it rotates by {@code mirror.getRotation(facing)}
+         * and throws on the null. The shaft is the first piece here to place a directional block, which
+         * is why it is the first to find out.
+         *
+         * <p>Calling {@code setOrientation} would fix the null and break the coordinates - this piece
+         * works in absolute positions, and an orientation switches {@code getWorldX/Z} into
+         * transforming them. Writing directly keeps both correct, and matches how the chamber already
+         * places its spawner.
+         */
+        private static void put(WorldGenLevel level, BoundingBox limit, int x, int y, int z,
+                BlockState state) {
+            BlockPos at = new BlockPos(x, y, z);
+            if (limit.isInside(at)) {
+                level.setBlock(at, state, Block.UPDATE_CLIENTS);
+            }
         }
     }
 

@@ -141,12 +141,39 @@ silently become phase 5's problem.
 
 ## Phase 1 - the manhole
 
-**Ships:** you can find a manhole in the yard and open it. It leads to a stub shaft, not a sewer yet.
+**Ships:** you can find a manhole in the yard and open it. **Shipped 2026-08-17, and built after phase
+2 rather than before it, which changed the design for the better.**
+
+**The sewer brings its own entrance.** This phase originally described scattering covers at mineshaft
+density over a stub shaft, with the density measured and tuned. Once the structure existed, that was
+clearly the wrong shape: a separately-placed cover can open onto nothing, and the density question is
+really "how often is there a sewer", which the structure set already answers. `SewerEntrance` is a piece
+of the structure, so **every cover a player finds opens onto a real sewer, and every sewer has exactly
+one way in**. No second rarity dial to keep in sync.
+
+**The cover is corrugated scrap, not cast iron.** Nothing in this world is municipal. It also means the
+block needed no new texture, which is worth stating rather than glossing: art here is generated and then
+**approved by the owner**, and shipping an unapproved surface is how `mound_ground` reached a release
+with no approval record. Reusing the compost floor's `corrugated_metal` answers the question honestly
+instead of pretending it was asked.
+
+**Ladders the whole way up.** Nothing else in the palette is climbable, and a shaft you can fall down
+but not walk out of is a trap rather than a door.
 
 - A `manhole` block, plus the 3x3 Reinforced Concrete surface pad that marks it.
 - Prying it: the Bulky Waste pattern (`BulkyWasteBlock`), right-click with the prybar, one action.
-  Without a prybar, the same "you need a Prybar" nudge.
-- Placement at vanilla mineshaft frequency, restricted to the `demolition_yard` biome.
+  Without a prybar, the same "you need a Prybar" nudge. Prying leaves **air** - the shaft below is
+  already built, so a second "open" state would be another thing to model, light and test for nothing.
+- Placement comes from the structure, so it is the sewer's own rarity and needs no separate dial.
+
+**One trap found building it, and it will recur.** `StructurePiece.placeBlock` mirrors the state it is
+given, and `mirror` is **null** on any piece that never calls `setOrientation`. Almost every block
+ignores mirroring - a brick returns itself untouched - so the root chamber never noticed. A **ladder**
+rotates by `mirror.getRotation(facing)` and throws on the null. The shaft is the first piece here to
+place a directional block, so it is the first to find out. Calling `setOrientation` would fix the null
+and break the coordinates, since this piece works in absolute positions and an orientation switches
+`getWorldX/Z` into transforming them; it writes directly instead, as the chamber already does for its
+spawner.
 
 **Acceptance:**
 - Walking a fresh yard finds manholes at roughly vanilla mineshaft density. Measured over a sampled

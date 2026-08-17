@@ -8,6 +8,7 @@ import java.util.OptionalInt;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
@@ -81,6 +82,13 @@ public class SewerStructure extends Structure {
             return Optional.empty();
         }
         pieces.offsetPiecesVertically(shift.getAsInt());
+        // THE WAY IN, added last because it is the only piece that needs to know where the surface is.
+        // Everything else is built at a fixed height and moved; the shaft has to span from the chamber
+        // it was moved to up to daylight, so it cannot exist until the sink is decided.
+        BoundingBox chamber = room.getBoundingBox();
+        pieces.addPiece(new SewerPieces.SewerEntrance(1, new BoundingBox(
+            chamber.minX() + 1, chamber.maxY(), chamber.minZ() + 1,
+            chamber.minX() + 3, surface, chamber.minZ() + 3)));
         return Optional.of(new Structure.GenerationStub(
             new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMiddleBlockZ()),
             Either.right(pieces)));

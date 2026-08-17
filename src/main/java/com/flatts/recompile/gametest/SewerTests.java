@@ -473,6 +473,74 @@ final class SewerTests {
             });
         });
 
+        // THE COVER IS PRYBAR-ONLY, which is the Bulky Waste gate reused rather than a new verb.
+        //
+        // Both halves matter and they fail differently: a cover that opens bare-handed makes the prybar
+        // pointless, and a cover that never opens makes the sewer unreachable. The second is the worse
+        // one and leaves no trace - the structure generates perfectly and simply cannot be entered.
+        RCGameTests.test("a_manhole_opens_only_for_a_prybar", 40, helper -> {
+            BlockPos at = new BlockPos(1, 1, 1);
+            helper.setBlock(at, com.flatts.recompile.registry.RCBlocks.MANHOLE.get());
+            var player = helper.makeMockServerPlayerInLevel();
+            // SURVIVAL: a mock player has instabuild set, and a creative exemption anywhere in the tool
+            // gate would let this pass for the wrong reason.
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+
+            // Bare hands first - it must still be there afterwards.
+            BlockPos abs = helper.absolutePos(at);
+            helper.getLevel().getBlockState(abs).useWithoutItem(helper.getLevel(), player,
+                new net.minecraft.world.phys.BlockHitResult(
+                    net.minecraft.world.phys.Vec3.atCenterOf(abs),
+                    net.minecraft.core.Direction.UP, abs, false));
+            helper.assertBlockPresent(com.flatts.recompile.registry.RCBlocks.MANHOLE.get(), at);
+
+            // Now the prybar, through the same static entry point the interaction uses.
+            com.flatts.recompile.content.block.ManholeBlock.pryOpen(helper.getLevel(), abs);
+            helper.assertBlockNotPresent(com.flatts.recompile.registry.RCBlocks.MANHOLE.get(), at);
+            helper.succeed();
+        });
+
+        // AND THE SHAFT REACHES BOTH ENDS.
+        //
+        // A manhole that opens onto solid rock, or a chamber with no shaft above it, are both silent:
+        // the structure generates, /locate finds it, and the player has no way in. This builds the
+        // entrance the structure builds and walks the whole column.
+        RCGameTests.test("the_entrance_shaft_runs_from_the_chamber_to_the_surface", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos base = helper.absolutePos(new BlockPos(0, 30, 0));
+            int top = base.getY() + 20;
+            BoundingBox box = new BoundingBox(base.getX(), base.getY(), base.getZ(),
+                base.getX() + 2, top, base.getZ() + 2);
+            var shaft = new SewerPieces.SewerEntrance(1, box);
+            BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+            shaft.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(1L), limit,
+                new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4), base);
+
+            List<String> broken = new ArrayList<>();
+            int x = box.minX() + 1;
+            int z = box.minZ() + 1;
+            for (int y = box.minY(); y < top; y++) {
+                if (!level.getBlockState(new BlockPos(x, y, z))
+                        .is(net.minecraft.world.level.block.Blocks.LADDER)) {
+                    broken.add("no ladder at y=" + y);
+                }
+            }
+            helper.assertTrue(broken.isEmpty(),
+                "the shaft is not climbable for its whole height, so it is a hole you fall down rather "
+                    + "than a way in and out: " + broken.subList(0, Math.min(3, broken.size())));
+            helper.assertTrue(level.getBlockState(new BlockPos(x, top, z))
+                    .is(com.flatts.recompile.registry.RCBlocks.MANHOLE.get()),
+                "no manhole cover at the top of the shaft, so the sewer is either sealed or standing "
+                    + "open - and which one it is depends on what the terrain happened to put there");
+            helper.assertTrue(level.getBlockState(new BlockPos(x + 1, top, z))
+                    .is(com.flatts.recompile.registry.RCBlocks.REINFORCED_CONCRETE.get()),
+                "no concrete pad around the cover, which is the only thing that makes a one-block hole "
+                    + "findable in a biome this size");
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.

@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.ManholeBlock;
 import com.flatts.recompile.content.block.FilingCabinetBlock;
 import com.flatts.recompile.content.block.PulverizerCoreBlock;
 import com.flatts.recompile.content.block.PulverizerPartBlock;
@@ -193,6 +194,23 @@ public final class RCBlocks {
             .noLootTable()
             .liquid()
             .sound(SoundType.EMPTY)
+    );
+
+    /**
+     * The manhole cover: the way into a sewer (#90). Prybar-only, and it drops nothing - the reward for
+     * opening one is the shaft underneath, not a plate to carry home.
+     *
+     * <p>{@code requiresCorrectToolForDrops} with no tool that satisfies it, which is the same shape as
+     * Bulky Waste: mining it by hand gets you nothing, and the prybar interaction is the only route.
+     */
+    public static final DeferredBlock<ManholeBlock> MANHOLE = BLOCKS.registerBlock(
+        "manhole",
+        ManholeBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.0F, 6.0F)
+            .requiresCorrectToolForDrops()
+            .sound(SoundType.METAL)
     );
 
     public static final DeferredBlock<Block> REINFORCED_CONCRETE = BLOCKS.registerBlock(
