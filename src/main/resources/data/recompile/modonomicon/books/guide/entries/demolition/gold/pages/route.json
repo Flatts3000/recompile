@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "route",
+  "sort_number": 1,
+  "show_title_separator": true,
+  "title": "book.recompile.guide.demolition.gold.route.title",
+  "text": "book.recompile.guide.demolition.gold.route.text"
+}

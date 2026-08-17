@@ -158,8 +158,9 @@ public class PulverizerBlockEntity extends BlockEntity {
         be.feedHave = stack.getCount();
         be.feedNeed = match.value().count();
         if (stack.getCount() < be.feedNeed) {
-            // Not enough to mill yet. Hold, do not consume - a machine that ate a partial stack and
-            // gave nothing back would be indistinguishable from one that lost it.
+            // Defence in depth: headSlot already refuses an under-count slot, so reaching here means
+            // the queue changed under us within a tick. Hold rather than consume - a machine that ate
+            // a partial stack and gave nothing back is indistinguishable from one that lost it.
             be.stall(level, pos, state);
             return;
         }
@@ -204,8 +205,23 @@ public class PulverizerBlockEntity extends BlockEntity {
             if (stack.isEmpty()) {
                 continue;
             }
-            if (recipeFor(level, stack) != null) {
-                return slot;
+            var recipe = recipeFor(level, stack);
+            if (recipe != null) {
+                // ENOUGH OF IT, not merely something millable. A recipe wanting four of its input
+                // leaves a remainder whenever the feed is not a multiple of four - which is the normal
+                // case, because the pull stream hands out E-Scrap one at a time. Returning that slot
+                // anyway stalled the machine ON it, and everything behind it starved: park a chest of
+                // bones on the roof of a mill holding two spare E-Scrap and the bones are drained in
+                // and never milled. Nothing can extract from this machine, so the only ways out were
+                // finding more E-Scrap or breaking the block.
+                //
+                // Skipping it is not dropping it. insert() merges into a matching slot before taking
+                // an empty one, so the remainder is topped up by the next E-Scrap that arrives and
+                // mills then. It waits its turn instead of holding the queue.
+                if (stack.getCount() >= recipe.value().count()) {
+                    return slot;
+                }
+                continue;
             }
             deliverToChute(level, PulverizerCoreBlock.outlet(level, worldPosition),
                 PulverizerCoreBlock.dischargeFacing(level, worldPosition).getOpposite(), stack.copy());

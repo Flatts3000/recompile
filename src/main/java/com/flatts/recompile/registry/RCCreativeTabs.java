@@ -81,6 +81,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.STEEL_OFFCUT.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
                     RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
+                    output.accept(RCItems.CIRCUIT_POWDER.get());
 
                     // --- 5. Machine parts: what every multiblock is assembled from ---
                     output.accept(RCItems.MACHINE_FRAME.get());

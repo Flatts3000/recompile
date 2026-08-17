@@ -148,6 +148,44 @@ final class CupolaFurnaceTests {
             helper.succeed();
         });
 
+        // THE SAME GATE, FOR GOLD (#120), and it is a separate test rather than a widened one because
+        // the two gates fail for different reasons and a shared failure message would name the wrong
+        // one.
+        //
+        // Gold is blast-only by design: a vanilla furnace cannot run a blasting recipe at all, and a
+        // vanilla blast furnace costs five iron ingots, so gold sits behind iron. That is a property of
+        // the RECIPE TYPE, and the chain test asserts the opposite direction - it checks the two stages
+        // connect, and would still pass if someone added circuit_powder -> gold_nugget as
+        // minecraft:smelting, which would open gold in a furnace made of stone with nothing failing.
+        // That is exactly the #91 failure mode the iron sweep above was written for.
+        RCGameTests.test("no_smelting_recipe_turns_a_mod_item_into_gold", 20, helper -> {
+            List<String> leaks = new ArrayList<>();
+            int checked = 0;
+            var recipeMap = helper.getLevel().getServer().getRecipeManager().recipeMap();
+            for (Item item : BuiltInRegistries.ITEM) {
+                Identifier id = BuiltInRegistries.ITEM.getKey(item);
+                if (!Recompile.MOD_ID.equals(id.getNamespace())) {
+                    continue;
+                }
+                checked++;
+                for (RecipeHolder<SmeltingRecipe> holder : recipeMap.getRecipesFor(
+                        RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(item)),
+                        helper.getLevel()).toList()) {
+                    ItemStack out = holder.value().assemble(new SingleRecipeInput(new ItemStack(item)));
+                    if (out.is(Items.GOLD_INGOT) || out.is(Items.GOLD_NUGGET)) {
+                        leaks.add(id + " -> " + out + " via " + holder.id());
+                    }
+                }
+            }
+            helper.assertTrue(checked > 50,
+                "only " + checked + " mod items were swept - discovery is broken, so this would pass "
+                    + "against any leak");
+            helper.assertTrue(leaks.isEmpty(),
+                "these smelt into gold in ANY vanilla furnace, which skips the Cupola and the iron "
+                    + "gate behind it: " + leaks);
+            helper.succeed();
+        });
+
         // THE CUPOLA IS A SCRAP NETWORK MEMBER AND MUST ACT LIKE ONE. It has carried
         // #recompile:scrap_connectable since it shipped and did nothing with it: being in the tag made
         // it a stepping stone for everything else routing through, while its own iron sat in the result

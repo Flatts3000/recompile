@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:demolition/gold",
+  "category": "recompile:demolition",
+  "name": "book.recompile.guide.demolition.gold.name",
+  "icon": {
+    "id": "minecraft:gold_nugget"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "parents": [
+    {
+      "entry": "recompile:demolition/pulverizer"
+    }
+  ],
+  "x": 7,
+  "y": 1
+}

@@ -361,6 +361,15 @@ public final class RCItems {
     public static final DeferredItem<Item> MAGNET_SCRAP = ITEMS.registerItem("magnet_scrap", Item::new);
     public static final DeferredItem<Item> QUARTZ_GRIT = ITEMS.registerItem("quartz_grit", Item::new);
 
+    /**
+     * Ground circuit board, the middle of the gold chain (#120).
+     *
+     * <p>Not a member of {@link #INDUSTRIAL_SCRAP}: those are things you FIND in Mechanical Waste and feed
+     * to the Separator. This is something the player MAKES, one stage into a two-stage refine, and
+     * grouping it with the found materials would say the opposite of what it is.
+     */
+    public static final DeferredItem<Item> CIRCUIT_POWDER = ITEMS.registerItem("circuit_powder", Item::new);
+
     /** Sorted in the order the Separator will consume them. */
     public static final List<DeferredItem<Item>> INDUSTRIAL_SCRAP =
         List.of(SPENT_ABRASIVE, MAGNET_SCRAP, QUARTZ_GRIT);
