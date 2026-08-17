@@ -1,6 +1,7 @@
 package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -45,13 +46,21 @@ public enum TrommelProvider implements IBlockComponentProvider {
             tooltip.add(Component.translatable("jade.recompile.trommel_queued", queued));
         }
 
-        if (goal > 0 && progress > 0) {
-            tooltip.add(Component.translatable("jade.recompile.trommel_sorting",
-                Math.min(99, progress * 100 / goal)));
-        } else if (stored <= 0) {
+        // POWER FIRST, and the order is the fix. Asking "is it making progress" first meant a machine
+        // that started a block and then lost its generator reported "Sorting 40%" forever: serverTick
+        // sets goal and keeps progress BEFORE the energy check, so a stalled machine looks mid-run.
+        // The tooltip claimed it was working while it had nothing to work with.
+        //
+        // Against SORT_ENERGY rather than zero, because a buffer holding less than one tick's worth
+        // cannot turn the drum either - and that case previously matched no branch at all and printed
+        // no status line.
+        if (stored < TrommelBlockEntity.SORT_ENERGY) {
             tooltip.add(Component.translatable("jade.recompile.trommel_no_power"));
         } else if (queued == 0) {
             tooltip.add(Component.translatable("jade.recompile.trommel_empty"));
+        } else {
+            tooltip.add(Component.translatable("jade.recompile.trommel_sorting",
+                goal > 0 ? Math.min(99, progress * 100 / goal) : 0));
         }
     }
 

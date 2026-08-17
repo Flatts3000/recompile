@@ -73,6 +73,16 @@ final class ScrapNetworkTests {
             roles.put(RCBlocks.SEPARATOR_CHUTE.get(), "RELAY");
             roles.put(RCBlocks.SEPARATOR_HOUSING.get(), "RELAY");
 
+            // The Trommel is a SOURCE on exactly the Separator's terms: it pushes what it sorts into
+            // the network and can never be routed INTO, having no Container and no item handler.
+            roles.put(RCBlocks.TROMMEL.get(), "SOURCE");
+            // ...and its formed cells are RELAYs, so a bin parked against any face of the assembled
+            // machine is in the same cluster as the core. A formed machine behaves as one object here
+            // as everywhere else.
+            roles.put(RCBlocks.TROMMEL_DRUM.get(), "RELAY");
+            roles.put(RCBlocks.TROMMEL_STAND.get(), "RELAY");
+            roles.put(RCBlocks.TROMMEL_CHUTE.get(), "RELAY");
+
             List<String> undeclared = new ArrayList<>();
             int members = 0;
             for (var holder : BuiltInRegistries.BLOCK.getTagOrEmpty(RCTags.SCRAP_CONNECTABLE)) {

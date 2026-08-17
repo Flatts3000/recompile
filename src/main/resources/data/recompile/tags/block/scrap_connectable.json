@@ -11,6 +11,10 @@
     "recompile:separator",
     "recompile:separator_chamber",
     "recompile:separator_chute",
-    "recompile:separator_housing"
+    "recompile:separator_housing",
+    "recompile:trommel",
+    "recompile:trommel_drum",
+    "recompile:trommel_stand",
+    "recompile:trommel_chute"
   ]
 }

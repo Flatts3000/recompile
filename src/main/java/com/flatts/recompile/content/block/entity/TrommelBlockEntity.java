@@ -17,6 +17,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -169,7 +170,7 @@ public class TrommelBlockEntity extends BlockEntity {
                 return slot;
             }
             deliverToChute(level, TrommelCoreBlock.outlet(level, worldPosition),
-                Direction.UP, stack.copy());
+                TrommelCoreBlock.dischargeFacing(level, worldPosition).getOpposite(), stack.copy());
             queue.set(slot, ItemStack.EMPTY);
             setChanged();
         }
@@ -274,6 +275,11 @@ public class TrommelBlockEntity extends BlockEntity {
         if (key == null) {
             return;
         }
+        // CAPTURED BEFORE THE SHRINK. Taking it after means the last item in a slot has already
+        // become an empty stack, whose getItem() is AIR - so every roll for that block was recorded
+        // as sifted "from minecraft:air". A slot usually drains to one before emptying, so this
+        // corrupted a real fraction of the rows the instrumentation test exists to require.
+        Item sifted = stack.getItem();
         stack.shrink(1);
         if (stack.isEmpty()) {
             queue.set(slot, ItemStack.EMPTY);
@@ -285,12 +291,17 @@ public class TrommelBlockEntity extends BlockEntity {
             .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
             .create(LootContextParamSets.CHEST);
         BlockPos outlet = TrommelCoreBlock.outlet(level, pos);
-        Direction entry = level.getBlockState(pos).hasProperty(TrommelCoreBlock.FACING)
-            ? level.getBlockState(pos).getValue(TrommelCoreBlock.FACING).getOpposite()
-            : Direction.NORTH;
+        // ALONG THE RUN, not along FACING. The two are ninety degrees apart: outlet() is
+        // core + rotate((LENGTH,1,0)), so the drum runs EAST for a NORTH-facing machine, while a
+        // FACING-derived direction threw every item sideways off the machine - past the container the
+        // player parked at the end, and telling a WorldlyContainer it was entered through the wrong
+        // face. dischargeFacing exists for exactly this and nothing was calling it.
+        //
+        // `entry` is the face material ENTERS a container through, so it is the run reversed.
+        Direction entry = TrommelCoreBlock.dischargeFacing(level, pos).getOpposite();
         for (int i = 0; i < rolls; i++) {
             List<ItemStack> pulled = table.getRandomItems(params);
-            RCAnalytics.sifted("TROMMEL", stack.getItem(), pulled);
+            RCAnalytics.sifted("TROMMEL", sifted, pulled);
             for (ItemStack drop : pulled) {
                 if (!drop.isEmpty()) {
                     deliver(level, pos, outlet, entry, drop);
@@ -421,5 +432,16 @@ public class TrommelBlockEntity extends BlockEntity {
             queue.set(slot, ItemStack.EMPTY);
         }
         ContainerHelper.loadAllItems(input, queue);
+        // RESTORE `sorting` FROM THE QUEUE. It is not serialized, so after a reload it was empty and
+        // serverTick's "different item at the head means a different run" check fired immediately and
+        // reset progress to 0 - which made the progress and goal written just above dead weight, and
+        // silently restarted a part-sorted block on every server restart.
+        sorting = ItemStack.EMPTY;
+        for (ItemStack stack : queue) {
+            if (!stack.isEmpty() && SortableBlock.sortRolls(stack.getItem()) > 0) {
+                sorting = stack.copy();
+                break;
+            }
+        }
     }
 }

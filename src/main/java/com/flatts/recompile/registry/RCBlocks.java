@@ -832,7 +832,6 @@ public final class RCBlocks {
             .mapColor(MapColor.METAL)
             .strength(3.0F)
             .sound(SoundType.METAL)
-            .noOcclusion()
     );
 
     public static final DeferredBlock<TrommelPartBlock> TROMMEL_STAND = BLOCKS.registerBlock(
