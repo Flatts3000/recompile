@@ -521,5 +521,16 @@
   "book.recompile.guide.demolition.pulverizer.intro.text": "A mill, not a shredder. The Separator tears a thing into its parts; this one only makes it finer. If what comes out is the same material in smaller pieces, it belongs here.\n\nInside is a rotor swinging hammers in a sealed steel box. You cannot see in, and you would not want to.\n\nFeed it bone and you get bone meal, four from a bone and nine from a block. That is worth the power because you are not standing at a crafting grid to do it.\n\nIt runs on power and does nothing at all without it.",
   "book.recompile.guide.demolition.pulverizer.structure.text": "A cube, two blocks on every side. The core sits in a bottom corner with the Motor beside it, two Machine Frames finish the base, and four Steel I-Beams make the top half where the rotor lives.\n\nThe Motor is the drive. No amount of scrap makes one; you find it in Mechanical Waste. Take the machine apart and you get it back.",
   "book.recompile.guide.demolition.pulverizer.feeding.title": "Getting material in and out",
-  "book.recompile.guide.demolition.pulverizer.feeding.text": "Nothing can push into a Pulverizer. It reaches out and takes instead.\n\nDrop material on the roof and it swallows it, or stand a chest, barrel or hopper up there and the machine empties it a little at a time. That is the way that runs without you.\n\nPowder leaves by the front, into any Scrap Bins wired to the machine first, then into whatever you park there, then on the floor.\n\nIt only swallows what it has a recipe for. Anything else stays lying on top."
+  "book.recompile.guide.demolition.pulverizer.feeding.text": "Nothing can push into a Pulverizer. It reaches out and takes instead.\n\nDrop material on the roof and it swallows it, or stand a chest, barrel or hopper up there and the machine empties it a little at a time. That is the way that runs without you.\n\nPowder leaves by the front, into any Scrap Bins wired to the machine first, then into whatever you park there, then on the floor.\n\nIt only swallows what it has a recipe for. Anything else stays lying on top.",
+  "jade.recompile.pulverizer_queued": "Holding: %s",
+  "jade.recompile.pulverizer_no_power": "No power",
+  "jade.recompile.pulverizer_empty": "Nothing to mill",
+  "jade.recompile.pulverizer_short": "Needs %s of %s to run",
+  "jade.recompile.pulverizer_feed": "Feed: drop material on the hatch, or set a container on it",
+  "config.jade.plugin_recompile.pulverizer": "Pulverizer status",
+  "config.jade.plugin_recompile.pulverizer_feed": "Pulverizer feed hint",
+  "jade.recompile.pulverizer_milling": "Milling: %s%%",
+  "jei.recompile.pulverizing": "Pulverizing",
+  "jade.recompile.separator_feed": "Feed: drop scrap in the bay, or set a container on it",
+  "config.jade.plugin_recompile.separator_feed": "Separator feed hint"
 }
