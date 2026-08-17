@@ -298,6 +298,79 @@ final class SewerTests {
             helper.succeed();
         });
 
+        // THE SEWER IS OCCUPIED, and both halves of that needed a mechanism rather than a wish.
+        //
+        // spawn_overrides picks WHICH mobs a structure offers; it does not bypass SpawnPlacements, whose
+        // per-type predicate still runs. Measured against 26.1: drowned are registered IN_WATER, which
+        // tests FluidTags.WATER, and leachate is deliberately outside it - so natural spawning yields
+        // none, ever. Turtles are worse: they want y < seaLevel + 4, and sea level here is -64.
+        //
+        // Drowned get a spawner, because checkDrownedSpawnRules has an explicit isSpawner branch that
+        // skips the water test. Turtles get placed as entities, because their predicate has no such
+        // branch - and that also makes them finite, which is what the sewer wants.
+        RCGameTests.test("the_room_is_occupied_by_a_spawner_and_turtles", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos base = helper.absolutePos(new BlockPos(0, 44, 0));
+            var room = new SewerPieces.SewerRoom(0, RandomSource.create(5L), base.getX(), base.getZ());
+            room.move(0, base.getY() - room.getBoundingBox().minY(), 0);
+            BoundingBox box = room.getBoundingBox();
+            var chunk = new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4);
+
+            // ONE postProcess PER CHUNK, which is what the real caller does. A single limit covering the
+            // whole room is the one shape that cannot reproduce the bug this test exists for: the room
+            // is 10-14 blocks across, so it straddles several chunks, and each pass gets its own limit
+            // and its own RandomSource. Rolling positions per pass made the turtle count a random sum
+            // that could be zero; a test with one big limit would never have noticed.
+            for (int cx = (box.minX() >> 4); cx <= (box.maxX() >> 4); cx++) {
+                for (int cz = (box.minZ() >> 4); cz <= (box.maxZ() >> 4); cz++) {
+                    BoundingBox slice = new BoundingBox(cx << 4, level.getMinY(), cz << 4,
+                        (cx << 4) + 15, level.getMaxY(), (cz << 4) + 15);
+                    // A DIFFERENT RandomSource PER PASS, as the real caller gives. Reusing one seed
+                    // makes every pass roll identically, which hides a per-chunk re-roll completely -
+                    // the version of this test that did that could not see the bug it was written for.
+                    room.postProcess(level, level.structureManager(),
+                        level.getChunkSource().getGenerator(),
+                        RandomSource.create(cx * 7919L + cz), slice, chunk, base);
+                }
+            }
+
+            BlockPos seat = new BlockPos(box.minX() + 1, box.minY() + 1, box.getCenter().getZ());
+            helper.assertTrue(level.getBlockState(seat).is(net.minecraft.world.level.block.Blocks.SPAWNER),
+                "no spawner in the root chamber at " + seat + " - without one the sewer has no drowned "
+                    + "at all, because IN_WATER can never be satisfied by leachate");
+            // AND IT HOLDS A DROWNED. Asserting the BlockEntity exists is a tautology - SpawnerBlock is
+            // an EntityBlock, so it always has one - and a spawner with no entity id spawns nothing at
+            // all, which is the failure actually worth catching. Deleting setEntityId used to leave this
+            // test green.
+            helper.assertTrue(
+                level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
+                    .SpawnerBlockEntity be
+                    && be.saveWithoutMetadata(level.registryAccess()).toString().contains("drowned"),
+                "the spawner at " + seat + " holds no drowned - an empty spawner is a block that looks "
+                    + "right and spawns nothing");
+
+            var bounds = new net.minecraft.world.phys.AABB(
+                box.minX() - 1, box.minY() - 2, box.minZ() - 1,
+                box.maxX() + 2, box.maxY() + 2, box.maxZ() + 2);
+            var turtles = level.getEntitiesOfClass(
+                net.minecraft.world.entity.animal.turtle.Turtle.class, bounds);
+            helper.assertTrue(turtles.size() == 4,
+                "found " + turtles.size() + " turtles rather than 4 - they cannot spawn in this world "
+                    + "at all (sea level is -64 and there is no sand), and the count must not depend on "
+                    + "how many chunks the room happens to straddle");
+            // NOT ASSERTED, and stated rather than skipped: a turtle's homePos is private with a setter
+            // and no getter, so the test cannot read it back. A turtle added without finalizeSpawn keeps
+            // homePos = (0,0,0), and TurtleGoHomeGoal then fires on anything further than 64 blocks -
+            // always true for a sewer hundreds of blocks out - so the turtles walk off toward world
+            // origin and save the wrong home on the way. The placement calls setHomePos explicitly for
+            // that reason, rather than relying on a side effect of finalizeSpawn that nothing here can
+            // check.
+            // They are persistent and mostly land outside the plot, which GameTest cleanup does not
+            // reach - so they are removed here rather than left to wander through neighbouring tests.
+            turtles.forEach(net.minecraft.world.entity.Entity::discard);
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.

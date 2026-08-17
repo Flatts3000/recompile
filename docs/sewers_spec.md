@@ -303,6 +303,26 @@ Three ways out, none free:
 Option 3 is the one that fits this mod: it is what the structure being mirrored already does, it needs
 no global change, and an authored encounter suits a finite structure that is cleared rather than farmed.
 
+**Decided 2026-08-17 (owner): spawners for the drowned, and turtles stay.** They need different
+mechanisms, and the difference is in vanilla's own code:
+
+- **Drowned: a spawner, and nothing else is needed.** `Drowned.checkDrownedSpawnRules` has an explicit
+  `EntitySpawnReason.isSpawner` branch that skips the water test entirely, so a plain spawner with no custom
+  rules works underground in leachate. One per sewer, in the root chamber rather than at a corridor
+  mouth, so meeting it is something you walk into. This is the mineshaft parallel exactly - vanilla puts
+  a cave spider spawner in its corridors.
+- **Turtles: placed as entities at generation.** Their predicate has no spawner branch, so a spawner
+  would need `custom_spawn_rules` to bypass it - and a spawner endlessly producing a passive animal
+  reads wrong. Placing them directly sidesteps every rule and makes the population **finite**, which is
+  what this spec already wanted: they cannot breed here (no seagrass) or lay eggs (no sand), so a
+  sewer's turtles are the turtles it was built with. Two to four per chamber.
+
+`the_room_is_occupied_by_a_spawner_and_turtles` asserts both, because both are the kind of thing that
+silently ships empty.
+
+**Still open:** frogs (same predicate problem, unexamined), slime (the chunk route works below y=40, the
+surface route needs a biome tag), and roaches.
+
 Worth knowing before tuning: **most of these cannot renew here, which suits a finite sewer.** Turtles
 need sand to lay eggs and this world has none. Frogs need magma cubes for froglights and the Nether is
 locked. So they are finds, not farms.
