@@ -481,14 +481,18 @@ public final class SewerPieces {
                     spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
                 }
             }
-            placeTurtles(level, limit, box);
+            placeResidents(level, limit, box);
         }
     }
 
     /**
-     * Turtles, placed as <b>entities at generation</b> rather than spawned.
+     * Turtles and frogs, placed as <b>entities at generation</b> rather than spawned.
      *
-     * <p>Owner call: turtles stay in the sewer. They cannot arrive any other way -
+     * <p><b>Owner call, 2026-08-17: turtles and frogs are LIMITED populations</b>, and placing them is
+     * the mechanism as well as the design. Neither can arrive any other way. A frog wants
+     * {@code #minecraft:frogs_spawnable_on} - grass block, mud and the two mangrove roots - plus a
+     * brightness check, so a brick
+     * sewer offers it nowhere to stand; and a turtle -
      * {@code Turtle.checkTurtleSpawnRules} demands {@code y < seaLevel + 4}, and this world's sea level
      * is <b>-64</b>, so the height test alone requires y &lt; -60; it also wants sand, which this world
      * has none of. Unlike the drowned there is no spawner branch to lean on, so a spawner would need
@@ -515,7 +519,7 @@ public final class SewerPieces {
      * gets saved. Vanilla's {@code SwampHutPiece} calls {@code finalizeSpawn} on its witch and cat for
      * exactly this reason.
      */
-    private static void placeTurtles(WorldGenLevel level, BoundingBox limit, BoundingBox room) {
+    private static void placeResidents(WorldGenLevel level, BoundingBox limit, BoundingBox room) {
         int midZ = room.getCenter().getZ();
         int midX = room.getCenter().getX();
         BlockPos[] spots = {
@@ -524,24 +528,46 @@ public final class SewerPieces {
             new BlockPos(midX - 2, room.minY() + 1, midZ + 2),
             new BlockPos(midX + 2, room.minY() + 1, midZ + 2),
         };
+        BlockPos[] ponds = {
+            new BlockPos(midX, room.minY() + 1, midZ - 3),
+            new BlockPos(midX, room.minY() + 1, midZ + 3),
+        };
         for (BlockPos at : spots) {
-            if (!limit.isInside(at)) {
-                continue;   // a different chunk pass owns this one and will place it
+            var turtle = (net.minecraft.world.entity.animal.turtle.Turtle) place(
+                level, limit, at, net.minecraft.world.entity.EntityType.TURTLE);
+            if (turtle != null) {
+                // Explicitly, not just as a side effect of finalizeSpawn. homePos is private with no
+                // getter, so no test can prove it was set - and the failure it causes is silent and
+                // permanent, since the wrong home is what gets saved. One line is cheap insurance.
+                turtle.setHomePos(at);
             }
-            var turtle = net.minecraft.world.entity.EntityType.TURTLE.create(
-                level.getLevel(), net.minecraft.world.entity.EntitySpawnReason.STRUCTURE);
-            if (turtle == null) {
-                continue;
-            }
-            turtle.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, 0F, 0F);
-            turtle.finalizeSpawn(level, level.getCurrentDifficultyAt(at),
-                net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, null);
-            // Explicitly, not just as a side effect of finalizeSpawn. homePos is private with no
-            // getter, so no test can prove it was set - and the failure it causes is silent and
-            // permanent, since the wrong home is what gets saved. Saying it outright costs one line.
-            turtle.setHomePos(at);
-            turtle.setPersistenceRequired();
-            level.addFreshEntity(turtle);
         }
+        for (BlockPos at : ponds) {
+            place(level, limit, at, net.minecraft.world.entity.EntityType.FROG);
+        }
+    }
+
+    /**
+     * Put one entity down, once, at a fixed spot - or skip it because another chunk pass owns it.
+     *
+     * <p>Shared by the turtles and the frogs because the trap is shared: {@code postProcess} runs once
+     * per chunk the piece overlaps, so anything rolled here is rolled several times over. Fixed spots
+     * plus this {@code isInside} guard is what makes "four turtles" mean four rather than a random sum.
+     */
+    private static <T extends net.minecraft.world.entity.Mob> @Nullable T place(WorldGenLevel level,
+            BoundingBox limit, BlockPos at, net.minecraft.world.entity.EntityType<T> type) {
+        if (!limit.isInside(at)) {
+            return null;
+        }
+        T mob = type.create(level.getLevel(), net.minecraft.world.entity.EntitySpawnReason.STRUCTURE);
+        if (mob == null) {
+            return null;
+        }
+        mob.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, 0F, 0F);
+        mob.finalizeSpawn(level, level.getCurrentDifficultyAt(at),
+            net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, null);
+        mob.setPersistenceRequired();
+        level.addFreshEntity(mob);
+        return mob;
     }
 }
