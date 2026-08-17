@@ -27,7 +27,7 @@ superseded rather than closed by this** - see the progression note below.
 | Surface marker | **A 3x3 of Reinforced Concrete with the manhole at its centre** | Reads as deliberate rather than as terrain noise, and it is built from a block the yard already has |
 | Rarity | **Vanilla mineshaft frequency** | `frequency: 0.004`, `spacing: 1`, `separation: 0`, `legacy_type_3`. Copied from `structure_set/mineshafts.json` rather than guessed |
 | Shape | **Vanilla mineshaft sprawl and levels** | Corridors that branch and descend, not a single floor |
-| Look | **Brick corridors, large brick rooms, scattered pipe, flowing water** | |
+| Look | **Brick corridors, large brick rooms, scattered pipe, flowing leachate** | Said "flowing water" until 2026-08-17, six rows above the decision that there is no water down here - the row a phase 2 implementer reads first |
 | Extent | **Finite per sewer** | One is cleared and done. The world holds more |
 | Inhabitants | **Roaches, frogs, turtles, drowned, slime** | Slime added 2026-08-02; **both a mob and a material**, decided 2026-08-17 |
 | Cobwebs | **Generated in the corridors** | Decided 2026-08-02. The mineshaft parallel, and the only source in the game |
@@ -75,16 +75,24 @@ design". **Leachate is better on every axis and it already ships** (#156):
 - **No filter machine.** The mod keeps machines to a minimum; the original plan added one to solve a
   problem this fluid does not have.
 - **Its spread numbers already suit a corridor.** `levelDecreasePerBlock` 2 halves water's reach and
-  `tickRate` 15 makes it crawl - tuned so "a broken pond edge weeps rather than floods", which is
-  verbatim the phase 2 acceptance criterion about not flooding corridors on generation.
+  `tickRate` 15 makes it crawl - tuned, in `RCFluids`' own words, so "a broken pond edge weeps rather
+  than floods". Phase 2's acceptance criterion asks that the fluid "does not flood the corridors on
+  generation": different wording, same requirement, already met.
 - **It is what a sewer under a landfill would actually carry.** Rain falls through refuse and comes out
   the bottom as this. The fiction needed no invention.
 
-**Depth is one block, matching the pools** (owner, 2026-08-17). That is the answer to the first
-consequence below and it settles it in the safe direction: `canDrown` stays inert, `RCLeachateContact`'s
-feet check keeps firing, and `DEPTH = 1` remains the only depth in the mod. Leachate in the sewer is
-atmosphere plus a Hunger tax, not a drowning hazard. Corridors stay walkable, which also means the
-generator never has to reason about a fluid body deep enough to trap a player.
+**Depth is one block, matching the pools** (owner, 2026-08-17): leachate is atmosphere plus a Hunger
+tax, not a drowning hazard. Corridors stay walkable and the generator never has to reason about a body
+deep enough to trap a player.
+
+**Depth alone does not deliver that, which is why `canDrown` is now false.** An earlier version of this
+paragraph said one block keeps `canDrown` inert. That does not follow: drowning is evaluated at the
+**eye**, not from the depth of the pool. `canSwim(true)` is set, a crawling or swimming player has eyes
+inside a one-block body, and the Shape row above commits to corridors that branch and descend - so a
+source on an upper level weeps down a stair and puts a falling column at head height on the level below.
+The guarantee the owner asked for is a property of the fluid, so it is set on the fluid:
+`canDrown(false)` in `RCFluids`, with `leachate_never_drowns_anyone` holding it there. This changes
+nothing about the pools, where it was already unreachable.
 
 **Two consequences, because leachate was built for puddles and a sewer is not one.**
 
@@ -152,7 +160,7 @@ findable; if playtest says it still is not, the pad grows before the rarity chan
 
 ## Phase 2 - the sewer itself
 
-**Ships:** the structure. Corridors, rooms, levels, pipes, water.
+**Ships:** the structure. Corridors, rooms, levels, pipes, leachate.
 
 **A custom `StructureType` in Java, mirroring vanilla's `MineshaftPieces`.** Decided rather than open.
 `minecraft:mineshaft` is code-backed, not data-driven - its `mineshaft_type` picks block palettes
@@ -196,6 +204,37 @@ and it is the gametest plot, so structure sets, template pools and processors ar
 
 Spawns are `spawn_overrides` on the structure rather than biome spawners, so the yard's surface stays
 as it is.
+
+**`spawn_overrides` is not enough, and phase 3 cannot start until this is answered** (found
+2026-08-17, while reviewing the leachate decision). It replaces the *list* of mobs a structure offers;
+it does **not** bypass `SpawnPlacements`, whose per-type predicate still runs. Measured against 26.1's
+source, most of the inhabitant list cannot spawn in this world at all:
+
+| Mob | Placement | Verdict here |
+|---|---|---|
+| **Drowned** | `IN_WATER`, which tests `getFluidState(pos).is(FluidTags.WATER)` | **Impossible.** Leachate is deliberately outside that tag - the property `leachate_is_not_water` exists to assert. The sewer's headline threat, and the source of the trident, would ship empty |
+| **Turtle** | `ON_GROUND` + `y < seaLevel + 4` + `onSand` + bright | **Impossible three ways.** Sea level here is **-64**, so the y test alone demands y < -60, and this world has no sand |
+| **Slime** | `ON_GROUND`, two routes | **Partly.** The slime-chunk route works (1 chunk in 10, `y < 40`); the surface route needs the biome in `#minecraft:allows_surface_slime_spawns` and y 50-70 |
+| **Frog** | `ON_GROUND` + `#frog_spawnable_on` | Needs checking, same shape |
+
+**This invalidates the premise of two decisions taken on 2026-08-17** - "the trident stays" and "slime
+is both a mob and a material" - because both assumed the mobs can appear. Neither is wrong as a
+*preference*; they are simply not yet deliverable.
+
+Three ways out, none free:
+
+1. **Pockets of real water.** Cheapest, and it walks straight back into the Rain Collector monopoly that
+   choosing leachate was meant to protect. Would need the water to be unreachable or unbucketable, which
+   is a gate built from geometry.
+2. **Custom spawn placements**, via NeoForge's `RegisterSpawnPlacementsEvent` with `REPLACE`. Honest and
+   small, but it changes those mobs' rules **globally** rather than inside the structure. Contained here
+   only because the world has no other water.
+3. **Structure-placed spawners**, the actual mineshaft parallel - vanilla puts a cave spider spawner in
+   its corridors, and `SPAWNER` is already one of the six blocks the corridor hardcodes. Sidesteps
+   `SpawnPlacements` and makes the encounter authored rather than ambient.
+
+Option 3 is the one that fits this mod: it is what the structure being mirrored already does, it needs
+no global change, and an authored encounter suits a finite structure that is cleared rather than farmed.
 
 Worth knowing before tuning: **most of these cannot renew here, which suits a finite sewer.** Turtles
 need sand to lay eggs and this world has none. Frogs need magma cubes for froglights and the Nether is
