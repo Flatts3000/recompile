@@ -1654,6 +1654,23 @@ prompt = "a full-bleed Minecraft block face: the bolted steel end plate that clo
 # picked a second time. The BLOCK recompile:trommel_chute stays - it is a real cell of the machine -
 # it just wears skin tiles like every other skinned cell.
 
+[surface.trommel_drum_mouth]
+# THE DISCHARGE END, which must not look like the other end.
+#
+# Both ends of the drum wore trommel_drum_cap, so the machine had two identical closed plates and
+# nothing said which way material travels. A trommel is directional - it is fed at one end and
+# discharges at the other - and the block the player has to park a chest against was the one thing the
+# art did not identify. The outlet is off the far end (TrommelCoreBlock.outlet), so this is cell 3.
+#
+# match_hue against the drum for the same reason the cap needs it: an end generated on its own has no
+# idea what metal it is an end OF, and four of the cap's five candidates came back rust-orange.
+match_hue = "trommel_drum"
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the open discharge end of a heavy steel rotating drum seen head on, a wide dark circular opening taking up most of the tile with the drum's worn steel rim around it, the inside shadowed and empty, grime and rust streaking down from the lower lip, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/iron_block"
+
 [surface.trommel_drum_back]
 # THE SAME DRUM, TURNING THE OTHER WAY.
 #

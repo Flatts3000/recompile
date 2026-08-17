@@ -91,33 +91,33 @@
       "y": 270
     },
     "active=false,cell=3,facing=north": {
-      "model": "recompile:block/trommel_drum_end"
+      "model": "recompile:block/trommel_drum_mouth"
     },
     "active=false,cell=3,facing=east": {
-      "model": "recompile:block/trommel_drum_end",
+      "model": "recompile:block/trommel_drum_mouth",
       "y": 90
     },
     "active=false,cell=3,facing=south": {
-      "model": "recompile:block/trommel_drum_end",
+      "model": "recompile:block/trommel_drum_mouth",
       "y": 180
     },
     "active=false,cell=3,facing=west": {
-      "model": "recompile:block/trommel_drum_end",
+      "model": "recompile:block/trommel_drum_mouth",
       "y": 270
     },
     "active=true,cell=3,facing=north": {
-      "model": "recompile:block/trommel_drum_end_running"
+      "model": "recompile:block/trommel_drum_mouth_running"
     },
     "active=true,cell=3,facing=east": {
-      "model": "recompile:block/trommel_drum_end_running",
+      "model": "recompile:block/trommel_drum_mouth_running",
       "y": 90
     },
     "active=true,cell=3,facing=south": {
-      "model": "recompile:block/trommel_drum_end_running",
+      "model": "recompile:block/trommel_drum_mouth_running",
       "y": 180
     },
     "active=true,cell=3,facing=west": {
-      "model": "recompile:block/trommel_drum_end_running",
+      "model": "recompile:block/trommel_drum_mouth_running",
       "y": 270
     }
   }

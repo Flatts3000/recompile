@@ -1,0 +1,13 @@
+{
+  "__comment": "THE DISCHARGE END, so it wears the open mouth where the closed end wears a cap. A trommel is directional - fed at one end, discharging at the other - and with both ends identical nothing in the world told a player which block to park a chest against. Cell 3 is the outlet end (TrommelCoreBlock.outlet). The side texture sits on east AND west; only east is ever visible on this cell, west is against its neighbour.",
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recompile:block/trommel_drum_still",
+    "north": "recompile:block/trommel_drum",
+    "down": "recompile:block/trommel_drum",
+    "south": "recompile:block/trommel_drum_back",
+    "up": "recompile:block/trommel_drum_back",
+    "east": "recompile:block/trommel_drum_mouth",
+    "west": "recompile:block/trommel_drum_mouth"
+  }
+}
