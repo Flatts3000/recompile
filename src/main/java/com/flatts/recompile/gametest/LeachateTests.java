@@ -129,6 +129,22 @@ final class LeachateTests {
         // costs a find, a prybar and a 1-in-4 draw. Leachate is AMBIENT: it is scattered across the
         // map in pools, so it answering yes would make every pool a tap, which is a different thing
         // entirely. Do not read the fridge exception as permission here.
+        // IT DOES NOT DROWN YOU, and this is a property of the fluid rather than of how deep anyone
+        // pours it. canDrown was true and was documented as unreachable "because pools are one block
+        // deep" - wrong twice, because drowning is evaluated at the EYE rather than from pool depth and
+        // canSwim(true) is set, so a crawling or swimming player already had eyes inside a one-block
+        // body. The sewers (#90) would have made it common: a source weeping down a stair puts a
+        // falling column at head height on the level below. Asserted on the FluidType so no generator
+        // has to remember it.
+        RCGameTests.test("leachate_never_drowns_anyone", 20, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            helper.assertTrue(!RCFluids.LEACHATE_TYPE.get().canDrownIn(player),
+                "leachate must not drown anyone - the owner's call is that it is a Hunger tax and not a "
+                    + "drowning hazard, and depth cannot deliver that because the check is at eye level");
+            helper.succeed();
+        });
+
         RCGameTests.test("leachate_is_not_water", 20, helper -> {
             helper.setBlock(GROUND, RCBlocks.LEACHATE.get());
             BlockPos abs = helper.absolutePos(GROUND);
