@@ -29,11 +29,11 @@ superseded rather than closed by this** - see the progression note below.
 | Shape | **Vanilla mineshaft sprawl and levels** | Corridors that branch and descend, not a single floor |
 | Look | **Brick corridors, large brick rooms, scattered pipe, flowing water** | |
 | Extent | **Finite per sewer** | One is cleared and done. The world holds more |
-| Inhabitants | **Roaches, frogs, turtles, drowned, slime** | Slime added 2026-08-02; see phase 3 for the mob-or-substance question |
+| Inhabitants | **Roaches, frogs, turtles, drowned, slime** | Slime added 2026-08-02; **both a mob and a material**, decided 2026-08-17 |
 | Cobwebs | **Generated in the corridors** | Decided 2026-08-02. The mineshaft parallel, and the only source in the game |
 | Reward | **Barrels with real loot** | Finite content needs a reason to clear it |
 | Generation | **A custom Java `StructureType`** | Vanilla mineshaft sprawl is code-backed; jigsaw would read like a bastion |
-| Water | **Leachate** (owner, 2026-08-17) | The fluid the dump already drains. Not water, asserted; no route to water at all; no new fluid and no filter machine |
+| Water | **Leachate, one block deep** (owner, 2026-08-17) | The fluid the dump already drains. Not water, asserted; no route to water at all; no new fluid and no filter machine |
 | Drowned loot | **Vanilla, trident included** | By sewer depth the player has iron and sticks, so armour and tools exist. A trident is a prize, not a spike |
 | Held light | **Torches light while carried** | See phase 0; this is the one item that may not be buildable |
 
@@ -80,10 +80,16 @@ design". **Leachate is better on every axis and it already ships** (#156):
 - **It is what a sewer under a landfill would actually carry.** Rain falls through refuse and comes out
   the bottom as this. The fiction needed no invention.
 
+**Depth is one block, matching the pools** (owner, 2026-08-17). That is the answer to the first
+consequence below and it settles it in the safe direction: `canDrown` stays inert, `RCLeachateContact`'s
+feet check keeps firing, and `DEPTH = 1` remains the only depth in the mod. Leachate in the sewer is
+atmosphere plus a Hunger tax, not a drowning hazard. Corridors stay walkable, which also means the
+generator never has to reason about a fluid body deep enough to trap a player.
+
 **Two consequences, because leachate was built for puddles and a sewer is not one.**
 
-1. **The sewer would be leachate's first deep body, which makes `canDrown` reachable for the first
-   time.** The flag is set in `RCFluids` and has been inert since the fluid shipped - its own javadoc
+1. **A deeper body would make `canDrown` reachable for the first time** - which is why it is not being
+   built. The flag is set in `RCFluids` and has been inert since the fluid shipped - its own javadoc
    says so: "`canDrown` is set but unreachable because pools are one block deep". `LeachatePoolFeature`
    has `DEPTH = 1`, and `RCLeachateContact` checks the entity's **feet** with a comment explaining that
    an eye check would never fire on anything taller than a chicken. Two blocks of leachate in a corridor
@@ -213,9 +219,11 @@ confirms neither has any other route in this world.
 - **Slime** is the reverse: near-worthless now, real later. A slimeball unlocks almost nothing on its
   own, because its payoff is the **sticky piston** and a piston needs redstone, which does not exist
   yet. Slime is a deposit against the redstone tier.
-- **Undecided: slime as a mob or as a found substance.** A spawning slime adds a combat encounter to an
-  inhabitant list that is otherwise passive apart from drowned, which changes what the sewer feels
-  like. That is a design call, not a loot-table entry.
+- **Both, decided 2026-08-17 (owner).** Slimes spawn via `spawn_overrides` **and** slimeballs appear as
+  sewer material. The consequence is deliberate and worth stating: the inhabitant list stops being
+  passive-apart-from-drowned, so the sewer becomes somewhere you fight through rather than somewhere you
+  pick through. Paired with the trident staying in, this is the mod's first genuinely combat-shaped
+  content, and phase 3 should be judged as such rather than as a loot pass.
 
 **Acceptance:**
 - The yard's surface spawn list is unchanged.
@@ -261,8 +269,7 @@ material economy may need retuning with them rather than around them.
 - **~~How much deeper the slab goes.~~** Answered 2026-08-17 and shipped: 55-61 blocks of tunnelable
   rock against a requirement of 45. See phase 2.
 - **~~What sewage is, mechanically.~~** Answered 2026-08-17: it is leachate, and there is no filter.
-- **How deep leachate lies in a corridor**, which decides whether drowning enters the sewer at all -
-  see the two consequences in section 2.
+- **~~How deep leachate lies in a corridor.~~** Answered 2026-08-17: one block, so drowning stays out.
 - **Whether Hunger-on-contact is right for a structure you spend minutes in**, or wants its own number.
 - **Phase 0's answer.** Held torch light may not survive contact.
-- **Slime as a mob or as a found substance.**
+- **~~Slime as a mob or as a found substance.~~** Answered 2026-08-17: both.
