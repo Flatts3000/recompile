@@ -1,12 +1,9 @@
 package com.flatts.recompile.compat;
 
 import com.flatts.recompile.content.block.multiblock.Multiblock;
-import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -34,20 +31,16 @@ public final class MultiblockParts {
     private MultiblockParts() {
     }
 
-    /** Every formed-only cell block across every multiblock in the game. */
+    /**
+     * Every formed-only cell block across every multiblock in the game.
+     *
+     * <p>The derivation moved to {@link Multiblock#formedOnly()} so it sits beside its inverse,
+     * {@link Multiblock#isHandPlaced}. They are one question asked from both ends, and keeping them
+     * apart is how the game came to show these blocks' craftable siblings in JEI while deleting them
+     * on break. This stays as the viewer-facing name because that is what the rule is written about.
+     */
     public static Set<Block> formedOnly() {
-        Set<Block> out = new LinkedHashSet<>();
-        for (Block block : BuiltInRegistries.BLOCK) {
-            if (!(block instanceof MultiblockCoreBlock core)) {
-                continue;
-            }
-            for (Multiblock.Cell cell : core.blueprint().cells()) {
-                if (cell.formed() != cell.component()) {
-                    out.add(cell.formed());
-                }
-            }
-        }
-        return out;
+        return Multiblock.formedOnly();
     }
 
     /** The same set as item stacks, skipping any formed block with no item form at all. */

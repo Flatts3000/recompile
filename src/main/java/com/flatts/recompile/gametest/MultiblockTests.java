@@ -184,6 +184,77 @@ final class MultiblockTests {
         });
 
 
+        // A CRAFTABLE COMPONENT PLACED ON ITS OWN MUST COME BACK WHEN BROKEN.
+        //
+        // Three of the dummy subclasses are ordinary craftable blocks - the Water Tank, the Solar Panel
+        // and the Rain Collector Funnel - because a cell that does not transform costs one block rather
+        // than two. Making every dummy drop nothing (so a formed cell could not hand back the wrong
+        // part) took those three with it, and a placed one VANISHED on break. JEI listed them as real
+        // craftable parts throughout, which is the worst version: the game says the block is yours and
+        // then eats it.
+        //
+        // Derived from the blueprints, so a machine that adds a self-forming cell tomorrow is covered.
+        //
+        // Only the STANDALONE case is new. The other direction - that a formed machine returns exactly
+        // one of a hand-placed cell rather than two, now that the cell's own loot table returns it and
+        // the removal hook must not pop a second - is already measured by
+        // rain_collector_breaking_funnel_disbands_once, which was driven red at "found 2" to check.
+        RCGameTests.test("a_hand_placed_component_comes_back_when_broken_alone", 40, helper -> {
+            List<Block> handPlaced = new ArrayList<>();
+            for (Block block : BuiltInRegistries.BLOCK) {
+                if (block instanceof MultiblockDummyBlock && Multiblock.isHandPlaced(block)) {
+                    handPlaced.add(block);
+                }
+            }
+            helper.assertTrue(handPlaced.size() >= 3,
+                "found only " + handPlaced.size() + " hand-placed components - discovery is broken, so "
+                    + "this would pass by checking nothing");
+
+            BlockPos spot = new BlockPos(1, 1, 1);
+            for (Block block : handPlaced) {
+                helper.setBlock(spot, block);
+                // destroyBlock on the LEVEL with dropBlock=true: the helper's own destroyBlock passes
+                // false and runs no loot table at all, so a drop test through it asserts nothing.
+                helper.getLevel().destroyBlock(helper.absolutePos(spot), true);
+            }
+
+            List<String> lost = new ArrayList<>();
+            for (Block block : handPlaced) {
+                if (dropped(helper, spot, block.asItem()) != 1) {
+                    lost.add(BuiltInRegistries.BLOCK.getKey(block)
+                        + " x" + dropped(helper, spot, block.asItem()));
+                }
+            }
+            helper.assertTrue(lost.isEmpty(),
+                "breaking these craftable components destroyed them instead of returning them - a "
+                    + "player loses the block they crafted, with nothing to say why: " + lost);
+            helper.succeed();
+        });
+
+        // THE TWO DERIVED SETS MUST NOT OVERLAP.
+        //
+        // "Hand-placed" and "formed-only" read as opposites and are not: each is a union over every
+        // blueprint, so one block is in both the moment any machine transforms something INTO a block
+        // another machine merely places. Both consequences are silent - breaking that formed cell hands
+        // back the wrong part (the 2026-08-07 regression, exactly) and JEI hides a craftable block - so
+        // the overlap is asserted rather than assumed.
+        RCGameTests.test("hand_placed_and_formed_only_stay_disjoint", 20, helper -> {
+            List<String> both = new ArrayList<>();
+            for (Block block : Multiblock.formedOnly()) {
+                if (Multiblock.isHandPlaced(block)) {
+                    both.add(BuiltInRegistries.BLOCK.getKey(block).toString());
+                }
+            }
+            helper.assertTrue(!Multiblock.formedOnly().isEmpty(),
+                "no formed-only blocks found at all - discovery is broken, so this would pass by "
+                    + "comparing two empty sets");
+            helper.assertTrue(both.isEmpty(),
+                "these blocks are both a cell's formed appearance in one machine and a hand-placed "
+                    + "component in another, so the two derivations disagree about them: breaking that "
+                    + "formed cell returns the wrong part and JEI hides a craftable block: " + both);
+            helper.succeed();
+        });
+
         RCGameTests.test("multiblock_form_still_replaces_differing_cells", 20, helper -> {
             BlockPos coreRel = new BlockPos(1, 1, 1);
             BlockPos cellRel = coreRel.above();
@@ -197,5 +268,20 @@ final class MultiblockTests {
             helper.assertBlockPresent(RCBlocks.GRASS_SPREADER_SPIGOT.get(), cellRel);
             helper.succeed();
         });
+    }
+
+    /** How many of an item are lying within 8 blocks of a relative position. */
+    private static int dropped(net.minecraft.gametest.framework.GameTestHelper helper,
+                               BlockPos relative, net.minecraft.world.item.Item item) {
+        int n = 0;
+        BlockPos abs = helper.absolutePos(relative);
+        for (net.minecraft.world.entity.item.ItemEntity e : helper.getLevel().getEntitiesOfClass(
+                net.minecraft.world.entity.item.ItemEntity.class,
+                new net.minecraft.world.phys.AABB(abs).inflate(8))) {
+            if (e.getItem().is(item)) {
+                n += e.getItem().getCount();
+            }
+        }
+        return n;
     }
 }
