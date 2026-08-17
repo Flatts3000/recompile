@@ -71,6 +71,7 @@ public class TrommelBlockEntity extends BlockEntity {
     /** What the head slot held when this run started, so a swap cannot bank one item's progress. */
     private ItemStack sorting = ItemStack.EMPTY;
 
+
     public TrommelBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.TROMMEL.get(), pos, state);
     }
@@ -312,6 +313,14 @@ public class TrommelBlockEntity extends BlockEntity {
         deliverToChute(level, outlet, entry, remainder);
     }
 
+    /**
+     * Discharge off the end of the drum: into a container if one is parked there, otherwise thrown
+     * clear like a dispenser.
+     *
+     * <p>Container first is the whole point - a machine that spits items onto the floor while a chest
+     * sits in the discharge is not automatable, and picking them up by hand is worse than not having
+     * built it. Throwing is the fallback, not the design.
+     */
     private static void deliverToChute(ServerLevel level, BlockPos outlet, Direction entry,
                                        ItemStack stack) {
         var handler = level.getCapability(Capabilities.Item.BLOCK, outlet, null);
@@ -335,7 +344,18 @@ public class TrommelBlockEntity extends BlockEntity {
             }
         }
         if (!stack.isEmpty()) {
-            Block.popResource(level, outlet, stack);
+            // THROWN, not dropped. popResource scatters with random velocity, which from a block at
+            // drum height rains material down the outside of the machine. A trommel delivers along its
+            // own axis, so this leaves the same way: out the open end, with the run's direction.
+            Direction out = entry.getOpposite();
+            ItemEntity thrown = new ItemEntity(level,
+                outlet.getX() + 0.5 + out.getStepX() * 0.3,
+                outlet.getY() + 0.3,
+                outlet.getZ() + 0.5 + out.getStepZ() * 0.3,
+                stack);
+            thrown.setDeltaMovement(out.getStepX() * 0.16, 0.02, out.getStepZ() * 0.16);
+            thrown.setDefaultPickUpDelay();
+            level.addFreshEntity(thrown);
         }
     }
 

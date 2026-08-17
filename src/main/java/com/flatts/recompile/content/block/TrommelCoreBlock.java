@@ -181,13 +181,30 @@ public class TrommelCoreBlock extends MultiblockCoreBlock implements EntityBlock
         return box;
     }
 
-    /** Where sorted material leaves: in front of the chute, at the low end of the run. */
+    /**
+     * Where sorted material leaves: <b>off the far END of the drum</b>, at drum height.
+     *
+     * <p>Which is what a trommel does. Material travels the length of the turning screen and falls out
+     * the open end; it does not appear beside the machine. This used to be the block in front of the
+     * chute at stand level, which put the output on the wrong axis entirely - beside the machine rather
+     * than at the end of the run - and meant a hopper had to be parked somewhere the drum does not
+     * point.
+     */
     public static BlockPos outlet(Level level, BlockPos core) {
         if (!(level.getBlockState(core).getBlock() instanceof TrommelCoreBlock block)) {
             return core;
         }
         Rotation rotation = block.rotationFor(level.getBlockState(core));
-        return core.offset(Multiblock.rotate(new Vec3i(LENGTH - 1, 0, -1), rotation));
+        return core.offset(Multiblock.rotate(new Vec3i(LENGTH, 1, 0), rotation));
+    }
+
+    /** The direction material travels down the drum, so the discharge throws the way the run points. */
+    public static Direction dischargeFacing(Level level, BlockPos core) {
+        if (!(level.getBlockState(core).getBlock() instanceof TrommelCoreBlock block)) {
+            return Direction.EAST;
+        }
+        Rotation rotation = block.rotationFor(level.getBlockState(core));
+        return rotation.rotate(Direction.EAST);
     }
 
     // ---------------- the BlockEntity ----------------

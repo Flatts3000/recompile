@@ -83,7 +83,12 @@ final class TrommelTests {
         // tautological - they do call the same function, which is the design, and a test that says so
         // proves nothing. Counting what actually lands proves the machine uses the rolls it declares.
         RCGameTests.test("a_trommel_sorts_a_block_at_the_tarps_rate", 200, helper -> {
-            BlockPos core = new BlockPos(1, 1, 1);
+            // AT x = 0, not x = 1. The machine discharges off the END of the drum, one block past its
+            // own footprint, and a four-long machine started at x = 1 puts that outside a 5x5x5 plot -
+            // where the output lands off the test's own bounds and is counted as nothing. The failure
+            // reads as "the machine produced nothing", which is a much more alarming sentence than
+            // "the test cannot see where it went".
+            BlockPos core = new BlockPos(0, 1, 1);
             TrommelBlockEntity be = formAndPower(helper, core);
 
             int rolls = SortableBlock.sortRolls(RCItems.GARBAGE_BLOCK.get());
@@ -153,6 +158,45 @@ final class TrommelTests {
                     "the Trommel did not take anything out of the chest standing on its drum");
                 helper.assertTrue(be.queuedCount() > 0 || left.getCount() < 4,
                     "nothing moved from the chest into the machine");
+            });
+        });
+
+        // IT DISCHARGES OFF THE END OF THE DRUM, INTO WHATEVER IS PARKED THERE.
+        //
+        // A trommel delivers along its own axis: material travels the length of the screen and leaves
+        // by the open end. The output used to appear beside the machine, in front of the chute, which
+        // is the wrong axis entirely - a hopper had to be put somewhere the drum does not point.
+        //
+        // Container FIRST, thrown only as a fallback. A machine that spits onto the floor while a chest
+        // sits in its discharge is not automatable, and gathering the floor by hand is worse than not
+        // having built it.
+        RCGameTests.test("the_trommel_discharges_into_a_container_at_the_drum_end", 200, helper -> {
+            BlockPos core = new BlockPos(0, 1, 1);
+            TrommelBlockEntity be = formAndPower(helper, core);
+
+            // ABSOLUTE, not relative. A GameTest plot is placed rotated, so the machine's +x run maps
+            // to -x in plot space and relativePos put the discharge four blocks OUTSIDE the structure.
+            // The chest went somewhere else entirely and the test reported "the machine produced
+            // nothing" while 32 items were lying on the ground next to it.
+            BlockPos outlet = TrommelCoreBlock.outlet(helper.getLevel(), helper.absolutePos(core));
+            helper.getLevel().setBlockAndUpdate(outlet, Blocks.CHEST.defaultBlockState());
+            var chest = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(outlet);
+            helper.assertTrue(chest != null, "no chest at the discharge");
+
+            BlockPos feed = TrommelCoreBlock.drumCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
+            helper.getLevel().addFreshEntity(new ItemEntity(helper.getLevel(),
+                feed.getX() + 0.5, feed.getY() + 0.5, feed.getZ() + 0.5,
+                new ItemStack(RCItems.GARBAGE_BLOCK.get(), 1)));
+
+            helper.succeedWhen(() -> {
+                helper.assertTrue(be.queuedCount() == 0, "the Trommel has not finished sorting");
+                int inChest = 0;
+                for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+                    inChest += chest.getItem(slot).getCount();
+                }
+                helper.assertTrue(inChest > 0,
+                    "the chest at the drum's end got nothing - the discharge missed it");
             });
         });
 
