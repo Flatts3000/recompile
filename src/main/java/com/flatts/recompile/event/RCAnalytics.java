@@ -136,7 +136,7 @@ public final class RCAnalytics {
     }
 
     /**
-     * One roll of a pull table by a machine - the Sorting Tarp or the Separator.
+     * One roll of a pull table by a machine - the Sorting Tarp or the Trommel.
      *
      * <p><b>A separate event from PULL, and the distinction is the whole point.</b> The tables are
      * the same, so per-item RATES combine across both; throughput does not. The first version of this
@@ -145,7 +145,7 @@ public final class RCAnalytics {
      * real playtest came back with 136 blocks broken and <b>zero</b> pulls, because the player mined
      * the mound and sifted it at a tarp - which is how anyone processing garbage in bulk plays.
      *
-     * @param method {@code TARP} or {@code SEPARATOR}, so machine throughput can be told from hand
+     * @param method {@code TARP} or {@code TROMMEL}, so machine throughput can be told from hand
      */
     public static void sifted(String method, Item input, List<ItemStack> yielded) {
         rolled("SIFT_" + method, String.valueOf(BuiltInRegistries.ITEM.getKey(input)), yielded);

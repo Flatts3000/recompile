@@ -42,8 +42,7 @@ class RollSitesAreInstrumentedTest {
     private static final Map<String, String> KNOWN_SITES = Map.of(
         "SortableBlock.java", "hand sorting - records PULL",
         "SortingTarpBlock.java", "the tarp - records SIFT_TARP",
-        "SeparatorBlockEntity.java", "automated sorting - records SIFT_SEPARATOR",
-        "TrommelBlockEntity.java", "automated sorting, the machine that takes it over from the Separator (#187/#188) - records SIFT_TROMMEL",
+        "TrommelBlockEntity.java", "automated sorting - records SIFT_TROMMEL; took it over from the Separator in #187",
         "PigeonForageGoal.java", "pigeons pecking a pile - records FORAGE",
         // Not sorting and not a pull stream: the bay rolls its own seedling table, which is a
         // machine output rather than something a player's time converts into materials.
@@ -105,8 +104,11 @@ class RollSitesAreInstrumentedTest {
         List<String> silent = new ArrayList<>();
         // The four that convert a player's time into materials. The seedling table is excluded
         // above and stays excluded here.
+        //
+        // The Trommel replaced the Separator on this list in #187. The Separator is not a sorting site
+        // any more - it has one verb and that verb is deterministic, so there is no roll to record.
         for (String name : List.of("SortableBlock.java", "SortingTarpBlock.java",
-                "SeparatorBlockEntity.java", "PigeonForageGoal.java")) {
+                "TrommelBlockEntity.java", "PigeonForageGoal.java")) {
             Path file;
             try (Stream<Path> files = Files.walk(root)) {
                 file = files.filter(f -> f.getFileName().toString().equals(name))

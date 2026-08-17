@@ -177,28 +177,33 @@ matter more than detail**: pale grey grit, dark iron-blue magnets, translucent g
 **Acceptance:** the pile generates at the stated density in the yard and nowhere else, no entry in
 `mechanical_pulls` is a vanilla gem, and each variant is obtainable by hand.
 
-## The Separator also sorts (added 2026-08-03)
+## The Separator sorted, and no longer does (added 2026-08-03, removed 2026-08-16, #187)
 
-The machine has a **second mode**: feed it a sortable block - Garbage Block, Trash Bag, Compacted Bale,
-Stone Rubble, Mechanical Waste - and it rolls that block's pull stream instead of running a recipe.
-This is the automation rung of the recovery ladder `../trashlands/docs/design_decisions.md` has
-described since P1 and nothing had built.
+For four releases the machine had a **second mode**: feed it a sortable block and it rolled that
+block's pull stream instead of running a recipe. **That is gone. One machine, one verb.**
 
-**A mode, not a recipe type.** Sorting is a weighted loot roll and `separating` is deliberately
-deterministic, so a `recompile:sorting` type would have had to restate what the pull tables already
-say. The queue's gate widens from "has a separating recipe" to "has a separating recipe **or** is a
-sortable", as one predicate used by both the intake and the head scan - which is what keeps the two
-guarantees the queue rests on intact: it cannot jam on something it will never process, and it cannot
-swallow something the player has no way to get back.
+**Why it was wrong.** A shear shredder destroys distinctions, and sorting requires one - screening,
+density, magnetism, conductivity, reflectance. A real facility uses a different machine for each cut
+because each exploits a different property, and interleaved teeth exploit none of them. The one thing
+this machine provably cannot do is tell things apart.
 
-**Rates are the tarp's, exactly**, because both call `SortableBlock.sortRolls`. See the reversal
-recorded in `design_decisions.md`: the reward is unattended operation, not more material. Output goes
-to the **Scrap Network first**, then the chute, then the floor - a machine that made you empty its
-chute by hand would be a worse tarp, not a better one.
+The design had already argued against itself in its own comment: *sorting is a weighted loot roll and
+separating is deterministic, so sorting is a second MODE rather than a second recipe type* - stating
+the principle and taking the exemption in the same breath. The complexity was the tell: two tick
+rates, two energy rates, two code paths, a precedence rule for anything that could be both, and a test
+that existed only because one machine had two jobs.
 
-**40 ticks and 16 FE/tick per block**, the same as a grind. That is slower per block than a determined
-player at a tarp, which is the honest consequence of equal yields. If it reads as too weak in playtest
-(#36) **the dial is ticks, never rolls.**
+**Where it went:** the Trommel (#188), which makes the SIZE cut and is the first sorting stage in a
+real plant. Rates are unchanged, because both still call `SortableBlock.sortRolls`.
+
+**What a player notices.** A placed Separator keeps working - the block, the multiblock, the chute and
+the separating recipes are untouched. What stops is feeding it garbage blocks.
+
+**Do not re-thicken it with a second verb.** Sorting was added because the Separator looked thin at
+three recipes, and it is back to three. Thin is a content problem; a second verb is an identity
+problem, and trading the first for the second is what produced #187. The fix is more work of its own
+kind - "liberate the valuable thing from the matrix holding it" has room in it, and every new
+Mechanical Waste material is a candidate.
 
 ## Phase 2 - the Separator, proven on amethyst
 

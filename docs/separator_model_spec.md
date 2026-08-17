@@ -95,7 +95,7 @@ proposal, to be confirmed in-world:
 | Core | 1 | The block the player places. Carries `FORMED` and the running state |
 
 **The bay is 2x2 and reads as one opening**, which is the part that took work. Each cell is stamped at
-assembly with which quarter of the grinder it shows, and the four textures are quarters of a single
+assembly with which quarter of the shredder it shows, and the four textures are quarters of a single
 32px image, so the teeth run continuously across the seams instead of the comb restarting at every
 block edge. Four cells all showing the same tile would read as four small grinders in a square, which
 is precisely the thing it must not look like; `the_grinding_bay_stamps_four_distinct_quadrants` is

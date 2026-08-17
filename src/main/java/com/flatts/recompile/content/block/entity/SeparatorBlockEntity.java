@@ -3,10 +3,8 @@ package com.flatts.recompile.content.block.entity;
 import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.block.SeparatorChamberBlock;
 import com.flatts.recompile.content.block.SeparatorCoreBlock;
-import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
-import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import java.util.List;
@@ -30,12 +28,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
@@ -72,18 +65,6 @@ public class SeparatorBlockEntity extends BlockEntity {
     private static final int BUFFER = 4000;
 
     /**
-     * One sortable block per {@value #SORT_TICKS} ticks at {@value #SORT_ENERGY} FE/tick - the same as
-     * a grind.
-     *
-     * <p>Two seconds a block is <b>slower than a determined player at a tarp</b>, and that is the honest
-     * consequence of equal yields: the machine wins by running unattended and in parallel, not by being
-     * quick. If it reads as too weak in playtest (#36) <b>the dial is ticks, never rolls</b> - rolls is
-     * the number that has been declared equal to the tarp's.
-     */
-    private static final int SORT_TICKS = 40;
-    private static final int SORT_ENERGY = 16;
-
-    /**
      * Insert and extract are both open <b>on the handler</b>; it is the capability wrapper in
      * {@code RCBlockEntities} that makes the machine insert-only to the outside world. Building the
      * handler extract-disabled instead looks like the same thing and is not: the machine could no
@@ -94,7 +75,7 @@ public class SeparatorBlockEntity extends BlockEntity {
 
     /**
      * How many kinds of scrap the machine can hold at once. Bounded on purpose: a machine that swallows
-     * an unbounded amount is a storage block, and this one is a grinder with a hopper on it.
+     * an unbounded amount is a storage block, and this one is a shredder with a hopper on it.
      */
     public static final int QUEUE_SLOTS = 9;
 
@@ -189,19 +170,14 @@ public class SeparatorBlockEntity extends BlockEntity {
             return;
         }
         ItemStack stack = be.queue.get(head);
-        // Sorting wins if an item were somehow both. Nothing is today and a test keeps it that way -
-        // an ambiguous input would pick a mode by accident of this line rather than by decision.
-        int rolls = SortableBlock.sortRolls(stack.getItem());
-        RecipeHolder<SeparatingRecipe> match = rolls > 0 ? null : be.recipeFor(server, stack);
-        if (match == null && rolls <= 0) {
+        // ONE VERB. There is no mode to pick any more: a separating recipe or nothing.
+        RecipeHolder<SeparatingRecipe> match = be.recipeFor(server, stack);
+        if (match == null) {
             be.stall(level, pos, state);
             return;
         }
-        // Sorting is a WEIGHTED loot roll and separating is deterministic ("a separator splits a feed;
-        // it does not roll for a bonus"), so sorting is a second MODE rather than a second recipe type.
-        // A recipe type would have had to restate what the pull tables already say.
-        int ticks = match != null ? match.value().ticks() : SORT_TICKS;
-        int energy = match != null ? match.value().energy() : SORT_ENERGY;
+        int ticks = match.value().ticks();
+        int energy = match.value().energy();
 
         // A different item at the head means a different run. Banking one item's progress against
         // another would let a player start a slow grind and finish it with something cheap.
@@ -211,7 +187,7 @@ public class SeparatorBlockEntity extends BlockEntity {
         }
         be.goal = ticks;
         be.feedHave = stack.getCount();
-        be.feedNeed = match != null ? match.value().count() : 1;
+        be.feedNeed = match.value().count();
         if (stack.getCount() < be.feedNeed) {
             // Queued, but not enough of it yet for a recipe a pack has set above 1. Wait, do not stall
             // the whole machine - a later slot may well be ready.
@@ -235,11 +211,7 @@ public class SeparatorBlockEntity extends BlockEntity {
         be.progress++;
         if (be.progress >= ticks) {
             be.progress = 0;
-            if (match != null) {
-                be.grind(server, pos, match.value(), head);
-            } else {
-                be.sort(server, pos, head, rolls);
-            }
+            be.grind(server, pos, match.value(), head);
         }
         be.setChanged();
     }
@@ -275,14 +247,12 @@ public class SeparatorBlockEntity extends BlockEntity {
      *
      * <p><b>One predicate, used everywhere</b> - by the intake that decides what to swallow and by the
      * head scan that decides what to run. That is what keeps the two guarantees the queue is built on
-     * true now that there are two modes: it cannot jam on something it will never process, and it can
+     * true with one mode as it was with two: it cannot jam on something it will never process, and it can
      * never swallow something a player would then have no way to get back, because nothing can extract
      * from this block.
      */
     private boolean accepts(ServerLevel level, ItemStack stack) {
-        // sortRolls first: it is a handful of reference compares, where recipeFor walks every
-        // separating recipe. This runs per loose item and per container slot, every tick.
-        return SortableBlock.sortRolls(stack.getItem()) > 0 || recipeFor(level, stack) != null;
+        return recipeFor(level, stack) != null;
     }
 
     private @Nullable RecipeHolder<SeparatingRecipe> recipeFor(ServerLevel level, ItemStack stack) {
@@ -496,45 +466,6 @@ public class SeparatorBlockEntity extends BlockEntity {
             queue.set(slot, ItemStack.EMPTY);
         }
         setChanged();
-    }
-
-    /**
-     * Consume one sortable block and roll its pull stream, exactly as the Sorting Tarp does.
-     *
-     * <p><b>Rolls and table both come from {@link SortableBlock}</b>, which is the whole reason "the
-     * Separator yields what the tarp yields" is a fact about the code rather than a promise. The
-     * machine's reward is that it runs unattended; it does not out-yield the station it replaces.
-     */
-    private void sort(ServerLevel level, BlockPos pos, int slot, int rolls) {
-        ItemStack stack = queue.get(slot);
-        var key = SortableBlock.pullTableFor(stack.getItem());
-        if (key == null) {
-            return;
-        }
-        stack.shrink(1);
-        if (stack.isEmpty()) {
-            queue.set(slot, ItemStack.EMPTY);
-            grinding = ItemStack.EMPTY;
-        }
-
-        LootTable table = level.getServer().reloadableRegistries().getLootTable(key);
-        LootParams params = new LootParams.Builder(level)
-            .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
-            .create(LootContextParamSets.CHEST);
-        BlockPos outlet = SeparatorCoreBlock.outlet(level, pos);
-        Direction entry = level.getBlockState(pos).hasProperty(SeparatorCoreBlock.FACING)
-            ? level.getBlockState(pos).getValue(SeparatorCoreBlock.FACING).getOpposite()
-            : Direction.NORTH;
-        for (int i = 0; i < rolls; i++) {
-            List<ItemStack> pulled = table.getRandomItems(params);
-            RCAnalytics.sifted("SEPARATOR", stack.getItem(), pulled);
-            for (ItemStack drop : pulled) {
-                if (!drop.isEmpty()) {
-                    deliver(level, pos, outlet, entry, drop);
-                }
-            }
-        }
-        level.playSound(null, pos, SoundEvents.GRAVEL_BREAK, SoundSource.BLOCKS, 0.5F, 0.9F);
     }
 
     private void stall(Level level, BlockPos pos, BlockState state) {

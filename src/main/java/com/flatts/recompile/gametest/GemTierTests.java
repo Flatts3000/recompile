@@ -15,7 +15,6 @@ import java.util.List;
 import net.minecraft.core.Vec3i;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -552,73 +551,6 @@ final class GemTierTests {
             });
         });
 
-        // THE SEPARATOR SORTS GARBAGE, at the tarp's rate (owner, 2026-08-03). This is the top rung of
-        // the recovery ladder that design_decisions.md has described since P1 and nothing had built.
-        RCGameTests.test("the_separator_sorts_a_garbage_block", 200, helper -> {
-            BlockPos core = new BlockPos(1, 2, 1);
-            helper.setBlock(core, RCBlocks.SEPARATOR.get());
-            buildAround(helper, core);
-            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
-                "the Separator did not form");
-            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
-                helper.getLevel().getBlockEntity(helper.absolutePos(core));
-            try (Transaction tx = Transaction.openRoot()) {
-                be.battery().insert(1_000_000, tx);
-                tx.commit();
-            }
-            drop(helper, core, new ItemStack(RCItems.GARBAGE_BLOCK.get(), 1));
-
-            helper.runAfterDelay(120, () -> {
-                int drops = 0;
-                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
-                        AABB.ofSize(helper.absolutePos(core).getCenter(), 14, 14, 14))) {
-                    if (!entity.getItem().is(RCItems.GARBAGE_BLOCK.get())) {
-                        drops += entity.getItem().getCount();
-                    }
-                }
-                helper.assertTrue(drops > 0,
-                    "a Garbage Block went into the Separator and nothing came out of it");
-                helper.succeed();
-            });
-        });
-
-        // Sorted output goes into the SCRAP NETWORK first, the way the tarp's does. A machine that
-        // made you empty its chute by hand would be a worse tarp, not a better one.
-        RCGameTests.test("sorted_output_files_itself_into_a_connected_bin", 200, helper -> {
-            BlockPos core = new BlockPos(1, 2, 1);
-            helper.setBlock(core, RCBlocks.SEPARATOR.get());
-            buildAround(helper, core);
-            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
-                "the Separator did not form");
-            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
-                helper.getLevel().getBlockEntity(helper.absolutePos(core));
-            try (Transaction tx = Transaction.openRoot()) {
-                be.battery().insert(1_000_000, tx);
-                tx.commit();
-            }
-            // Against a formed cell, not the core: the parts are RELAYs precisely so any face of the
-            // machine joins the cluster.
-            // z=3, NOT z=2: the machine occupies x1-3 / y2-3 / z1-2, so a block at z=2 lands inside it
-            // and tears it down. Adjacent to the housing row is what makes it a cluster member.
-            BlockPos barrelPos = new BlockPos(2, 2, 3);
-            helper.setBlock(barrelPos, RCBlocks.SCRAP_BARREL.get());
-            var barrel = (net.minecraft.world.Container)
-                helper.getLevel().getBlockEntity(helper.absolutePos(barrelPos));
-            helper.assertTrue(barrel != null, "no Scrap Barrel beside the machine");
-            drop(helper, core, new ItemStack(RCItems.GARBAGE_BLOCK.get(), 1));
-
-            helper.runAfterDelay(120, () -> {
-                int stored = 0;
-                for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
-                    stored += barrel.getItem(slot).getCount();
-                }
-                helper.assertTrue(stored > 0,
-                    "the Separator sorted a Garbage Block and filed none of it into the connected "
-                        + "barrel - being in the tag is not the same as pushing into it");
-                helper.succeed();
-            });
-        });
-
         // JOINING THE NETWORK MUST NOT OPEN THE DOOR. The Separator is a SOURCE, and the routing code
         // only ever lands in a Scrap Bin or the Scrap Barrel by block id - but that is a property worth
         // asserting rather than trusting, because "it is in the tag now" is exactly the reasoning that
@@ -831,66 +763,6 @@ final class GemTierTests {
                     "something drained " + pulled + " FE out of the Separator. It is a consumer; a "
                         + "generator that can pull its own energy back hands it back and forth forever");
             }
-            helper.succeed();
-        });
-
-        // Mechanical Waste sorts too (owner, 2026-08-03) - the loop the yard closes on itself: the
-        // machine sorts its own region's piles into scrap, then grinds that scrap into gems.
-        RCGameTests.test("the_separator_sorts_mechanical_waste", 200, helper -> {
-            BlockPos core = new BlockPos(1, 2, 1);
-            helper.setBlock(core, RCBlocks.SEPARATOR.get());
-            buildAround(helper, core);
-            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
-                "the Separator did not form");
-            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
-                helper.getLevel().getBlockEntity(helper.absolutePos(core));
-            try (Transaction tx = Transaction.openRoot()) {
-                be.battery().insert(1_000_000, tx);
-                tx.commit();
-            }
-            drop(helper, core, new ItemStack(RCItems.MECHANICAL_WASTE.get(), 1));
-
-            helper.runAfterDelay(120, () -> {
-                int drops = 0;
-                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
-                        AABB.ofSize(helper.absolutePos(core).getCenter(), 14, 14, 14))) {
-                    if (!entity.getItem().is(RCItems.MECHANICAL_WASTE.get())) {
-                        drops += entity.getItem().getCount();
-                    }
-                }
-                helper.assertTrue(drops > 0,
-                    "Mechanical Waste went into the Separator and nothing came out");
-                helper.succeed();
-            });
-        });
-
-        // The machine has two modes and one input queue, so an item that is BOTH sortable and
-        // separable would pick its mode by accident of which branch is written first. Nothing is both
-        // today; this is what keeps it that way, because the failure would be silent - a pack adding a
-        // separating recipe for a garbage block would find it quietly sorted instead.
-        RCGameTests.test("no_input_is_both_sortable_and_separable", 20, helper -> {
-            List<String> ambiguous = new ArrayList<>();
-            int checked = 0;
-            for (RecipeHolder<SeparatingRecipe> holder : helper.getLevel().recipeAccess()
-                    .recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
-                checked++;
-                for (Block block : BuiltInRegistries.BLOCK) {
-                    Item item = block.asItem();
-                    if (com.flatts.recompile.content.block.SortableBlock.sortRolls(item) > 0
-                            && holder.value().matches(
-                                new net.minecraft.world.item.crafting.SingleRecipeInput(
-                                    new ItemStack(item)), helper.getLevel())) {
-                        ambiguous.add(BuiltInRegistries.BLOCK.getKey(block) + " via " + holder.id());
-                    }
-                }
-            }
-            helper.assertTrue(checked > 0,
-                "no separating recipes found - discovery is broken, so this would pass against a "
-                    + "genuinely ambiguous input");
-            helper.assertTrue(ambiguous.isEmpty(),
-                "inputs that are both sortable and separable (" + ambiguous.size() + "): " + ambiguous
-                    + ". Sorting would win silently; decide which it should be rather than letting the "
-                    + "order of two branches decide");
             helper.succeed();
         });
 

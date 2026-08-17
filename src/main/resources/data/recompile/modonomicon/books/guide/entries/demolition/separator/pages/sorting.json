@@ -1,8 +1,0 @@
-{
-  "type": "modonomicon:text",
-  "id": "sorting",
-  "sort_number": 2,
-  "show_title_separator": true,
-  "title": "book.recompile.guide.demolition.separator.sorting.title",
-  "text": "book.recompile.guide.demolition.separator.sorting.text"
-}
