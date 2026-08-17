@@ -105,6 +105,7 @@ public final class RCGameTests {
         TrommelTests.register();
         PulverizerTests.register();
         MachineParityTests.register();
+        ClayChainTests.register();
         ComponentTests.register();
         LeachateTests.register();
         FoundNotCraftedTests.register();

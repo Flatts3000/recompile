@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "intro",
+  "sort_number": 0,
+  "show_title_separator": true,
+  "title": "book.recompile.guide.demolition.clay.intro.title",
+  "text": "book.recompile.guide.demolition.clay.intro.text"
+}

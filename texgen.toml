@@ -1387,6 +1387,36 @@ prompt = "a worn segment of a diamond masonry saw blade, a chipped grey steel ar
 style = "lump"
 palette = ["#8e8e92", "#a0a0a4", "#6e6e74", "#c0c0c4", "#5a5a60"]
 
+[surface.grog]
+# The clay chain (#115). Grog is crushed fired ceramic - it has to read as GRIT, coarse and angular,
+# not as a smooth powder, because its whole job is being the non-plastic part of the mix.
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small heap of coarse angular terracotta grit, crushed reddish-brown pottery fragments of uneven size with dusty pale edges, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.grog.procedural]
+style = "lump"
+
+[surface.kitty_litter]
+# Bentonite, and it must read as a HOUSEHOLD find rather than a mineral - the joke and the chemistry
+# are the same fact, so it should look like something out of a cupboard.
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small torn paper sack of pale grey clumping cat litter spilling coarse white-grey granules, faded printed label, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.kitty_litter.procedural]
+style = "lump"
+
+[surface.dry_clay_body]
+# The blend before water: grog plus bentonite, dry. Between the two visually - the terracotta of the
+# grog muted by the pale grey of the litter - so the player can see it is the two things mixed.
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a compact block of dry unfired clay mix, dusty pinkish-grey pressed powder flecked with darker terracotta grit, crumbling at one corner, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.dry_clay_body.procedural]
+style = "lump"
+
 [surface.circuit_powder]
 # The middle of the gold chain (#120): ground circuit board, one stage before the smelter.
 #

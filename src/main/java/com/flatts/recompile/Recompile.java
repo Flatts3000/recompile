@@ -17,6 +17,7 @@ import com.flatts.recompile.registry.RCRecipeTypes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import com.flatts.recompile.event.RCCauldronInteractions;
 import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,12 @@ public final class Recompile {
 
         // In-world GameTests (CI gameTest job runs these).
         RCGameTests.register(modEventBus);
+
+        // Hydrating a Dry Clay Body in a water cauldron (#115). Deferred to FMLCommonSetup
+        // because it touches RCItems.DRY_CLAY_BODY.get(), and a DeferredItem is not resolved
+        // while the constructor is still running - calling it here throws.
+        modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) ->
+            event.enqueueWork(RCCauldronInteractions::register));
 
         modContainer.registerConfig(ModConfig.Type.COMMON, RCConfig.SPEC);
     }

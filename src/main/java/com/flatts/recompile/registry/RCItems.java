@@ -369,6 +369,25 @@ public final class RCItems {
      * grouping it with the found materials would say the opposite of what it is.
      */
     public static final DeferredItem<Item> CIRCUIT_POWDER = ITEMS.registerItem("circuit_powder", Item::new);
+    /**
+     * The clay chain (#115), which is a recycling line rather than a dig.
+     *
+     * <p><b>Grog</b> is crushed potsherds, and the word means exactly that. It is a NON-PLASTIC
+     * temper: its real job is controlling shrinkage and thermal shock, and it actively reduces
+     * plasticity - so it cannot become clay on its own, which is the whole reason the chain has a
+     * second ingredient.
+     *
+     * <p><b>Kitty Litter</b> is bentonite, the standard fix for a body that comes out short. The two
+     * are useless apart and correct together.
+     *
+     * <p><b>Dry Clay Body</b> is the blend before water. Dry-blending first is real practice, not a
+     * concession to the interface - which is what lets the last step be a cauldron instead of a
+     * machine nobody needed.
+     */
+    public static final DeferredItem<Item> GROG = ITEMS.registerItem("grog", Item::new);
+    public static final DeferredItem<Item> KITTY_LITTER = ITEMS.registerItem("kitty_litter", Item::new);
+    public static final DeferredItem<Item> DRY_CLAY_BODY = ITEMS.registerItem("dry_clay_body", Item::new);
+
 
     /** Sorted in the order the Separator will consume them. */
     public static final List<DeferredItem<Item>> INDUSTRIAL_SCRAP =
