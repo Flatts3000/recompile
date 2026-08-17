@@ -124,6 +124,55 @@ final class ClayChainTests {
             helper.succeed();
         });
 
+        // THE CHAIN HAS FEEDSTOCK, which is the finding this test exists because of.
+        //
+        // Everything else here asserts the stages CONNECT. All of it passed while the first stage had
+        // no input at all: this world has no archaeology, no suspicious sand or gravel and no structure
+        // that generates them, so a pottery sherd was unobtainable and the whole feature - Grog, the
+        // dry body, clay, and the 43 vanilla items behind it - was locked, with Kitty Litter piling up
+        // as permanent dead weight at one pull in 35.
+        //
+        // #115 SAID SO and framed it as upside: "the vanilla sherd set is currently unobtainable and
+        // does nothing at all". Reading that as an opportunity rather than as a prerequisite is how a
+        // chain ships with no way in. It is the same failure FoundNotCraftedTests' twin was written
+        // for - disabling a route without adding a source does not make an item found, it makes it
+        // unobtainable, and the symptom is a player who simply never sees one.
+        //
+        // Asserted against the LOOT rather than against a named table, so moving sherds to a different
+        // stream keeps this passing and deleting them from every stream does not.
+        RCGameTests.test("the_clay_chain_has_a_source_of_sherds", 20, helper -> {
+            List<String> streams = new ArrayList<>();
+            // Built inline the way GarbageBlock builds its own - the pull tables have no shared
+            // constant, and naming the two streams here is what makes "moving sherds to the other one
+            // keeps this passing" true.
+            for (String path : List.of("gameplay/household_pulls", "gameplay/bag_pulls")) {
+                var key = net.minecraft.resources.ResourceKey.create(
+                    net.minecraft.core.registries.Registries.LOOT_TABLE,
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                        com.flatts.recompile.Recompile.MOD_ID, path));
+                var table = helper.getLevel().getServer().reloadableRegistries().getLootTable(key);
+                var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(
+                        helper.getLevel())
+                    .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams
+                        .ORIGIN, net.minecraft.world.phys.Vec3.atCenterOf(helper.absolutePos(
+                            new BlockPos(1, 1, 1))))
+                    .create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets
+                        .CHEST);
+                for (int i = 0; i < 4000; i++) {
+                    for (ItemStack drop : table.getRandomItems(params)) {
+                        if (drop.is(ItemTags.DECORATED_POT_SHERDS)) {
+                            streams.add(BuiltInRegistries.ITEM.getKey(drop.getItem()).toString());
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(!streams.isEmpty(),
+                "nothing in this world yields a pottery sherd, so the clay chain has no way in and "
+                    + "every item behind it is unreachable - the guidebook tells the player to crush a "
+                    + "sherd they can never obtain");
+            helper.succeed();
+        });
+
         // NO FREE LOOP. Sherds make clay; clay makes pots; pots are crafted FROM sherds. If a pot could
         // be ground back into more clay than it cost, the chain would print material.
         //

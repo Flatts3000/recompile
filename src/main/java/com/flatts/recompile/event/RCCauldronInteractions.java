@@ -35,7 +35,9 @@ public final class RCCauldronInteractions {
     }
 
     /**
-     * Registered from the mod constructor, not from a data file.
+     * Registered during {@code FMLCommonSetupEvent}, not from a data file and NOT from the mod
+     * constructor - this resolves {@code RCItems.DRY_CLAY_BODY.get()}, and a DeferredItem is not
+     * resolved while the constructor is still running, so calling it there throws.
      *
      * <p>{@code CauldronInteractions.WATER} is a plain map keyed by item, so this is a put rather than
      * anything reloadable - which also means a pack cannot add a hydration recipe without Java. That is

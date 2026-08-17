@@ -26,8 +26,20 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class PulverizingData {
 
-    /** One row: the feed with its real count, the powder it becomes, and what it costs. */
-    public record Entry(ItemStack input, List<SortingData.Weighted> outputs, int ticks, int energy) {
+    /**
+     * One row: the feed with its real count, the powder it becomes, and what it costs.
+     *
+     * <p>{@code inputs} is a LIST because an ingredient may be a tag - the sherd recipe takes all 23 at
+     * once. JEI cycles a multi-item input natively, so the row shows what it really accepts rather than
+     * one arbitrary member.
+     */
+    public record Entry(List<ItemStack> inputs, List<SortingData.Weighted> outputs, int ticks,
+                        int energy) {
+
+        /** The first accepted item, for callers that can only draw one. */
+        public ItemStack input() {
+            return inputs.isEmpty() ? ItemStack.EMPTY : inputs.get(0);
+        }
     }
 
     private static List<Entry> cached;
@@ -41,9 +53,9 @@ public final class PulverizingData {
         }
         List<Entry> out = new ArrayList<>();
         for (JsonObject recipe : RecipeFiles.ofType("recompile:pulverizing")) {
-            ItemStack input = stack(recipe.get("input"), recipe.has("count")
-                ? recipe.get("count").getAsInt() : 1);
-            if (input.isEmpty()) {
+            int count = recipe.has("count") ? recipe.get("count").getAsInt() : 1;
+            List<ItemStack> inputs = stacks(recipe.get("input"), count);
+            if (inputs.isEmpty()) {
                 continue;
             }
             ItemStack result = ItemStack.EMPTY;
@@ -57,12 +69,43 @@ public final class PulverizingData {
             }
             // Chance 1: a mill does not roll. Everything that goes in comes out as the same powder,
             // which is why an odds column beside every row would be noise.
-            out.add(new Entry(input, List.of(new SortingData.Weighted(result, 1.0F)),
+            out.add(new Entry(inputs, List.of(new SortingData.Weighted(result, 1.0F)),
                 recipe.has("ticks") ? recipe.get("ticks").getAsInt() : 60,
                 recipe.has("energy") ? recipe.get("energy").getAsInt() : 24));
         }
         cached = List.copyOf(out);
         return cached;
+    }
+
+    /**
+     * Every item an ingredient accepts, as stacks of the given size.
+     *
+     * <p><b>A TAG EXPANDS TO ITS MEMBERS</b> rather than being dropped. Returning nothing for a tag is
+     * what {@code SeparatingData} does and it was fine there, because no separating recipe uses one -
+     * the moment the sherd recipe shipped, the first tag-input pulverizing recipe silently vanished
+     * from JEI. A player holding a sherd was told nothing crushes it while bone and E-Scrap both
+     * showed, which is the "a mechanic nobody can see does not exist" failure the plugin warns about.
+     */
+    private static List<ItemStack> stacks(JsonElement element, int count) {
+        if (element != null && element.isJsonPrimitive()
+                && element.getAsString().startsWith("#")) {
+            String path = element.getAsString().substring(1);
+            Identifier parsed = Identifier.tryParse(path);
+            if (parsed == null) {
+                return List.of();
+            }
+            var key = net.minecraft.tags.TagKey.create(
+                net.minecraft.core.registries.Registries.ITEM, parsed);
+            List<ItemStack> out = new ArrayList<>();
+            for (Item item : BuiltInRegistries.ITEM) {
+                if (new ItemStack(item).is(key)) {
+                    out.add(new ItemStack(item, count));
+                }
+            }
+            return List.copyOf(out);
+        }
+        ItemStack single = stack(element, count);
+        return single.isEmpty() ? List.of() : List.of(single);
     }
 
     /** An item id (possibly wrapped in an ingredient object) as a stack of the given size. */
@@ -77,7 +120,7 @@ public final class PulverizingData {
             id = element.getAsJsonObject().get("item").getAsString();
         }
         if (id == null || id.startsWith("#")) {
-            return ItemStack.EMPTY;   // a tag input has no single icon; none ship today
+            return ItemStack.EMPTY;   // tags are handled by stacks(), which expands them
         }
         Identifier parsed = Identifier.tryParse(id);
         if (parsed == null) {

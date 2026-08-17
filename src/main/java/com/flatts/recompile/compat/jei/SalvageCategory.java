@@ -77,7 +77,9 @@ public class SalvageCategory implements IRecipeCategory<SalvageRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, SalvageRecipe recipe, IFocusGroup focuses) {
         int inputY = (getHeight() - SLOT) / 2;
-        builder.addInputSlot(PAD, inputY).addItemStack(recipe.input());
+        // addItemStacks, not addItemStack: a tag input has several accepted items and JEI cycles
+        // them in place. A single-item recipe is a one-element list and draws exactly as before.
+        builder.addInputSlot(PAD, inputY).addItemStacks(recipe.inputs());
 
         int startX = PAD + SLOT + GAP;
         List<SortingData.Weighted> outputs = recipe.outputs();
