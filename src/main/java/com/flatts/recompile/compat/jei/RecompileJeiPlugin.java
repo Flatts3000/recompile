@@ -343,7 +343,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         List<SalvageRecipe> pulverizing = new ArrayList<>();
         for (com.flatts.recompile.compat.PulverizingData.Entry entry
                 : com.flatts.recompile.compat.PulverizingData.all()) {
-            pulverizing.add(new SalvageRecipe(entry.input(), entry.outputs()));
+            pulverizing.add(new SalvageRecipe(entry.inputs(), entry.outputs()));
         }
         if (!pulverizing.isEmpty()) {
             registration.addRecipes(PULVERIZING, pulverizing);

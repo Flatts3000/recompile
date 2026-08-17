@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:demolition/clay",
+  "category": "recompile:demolition",
+  "name": "book.recompile.guide.demolition.clay.name",
+  "icon": {
+    "id": "minecraft:clay_ball"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "parents": [
+    {
+      "entry": "recompile:demolition/pulverizer"
+    }
+  ],
+  "x": 7,
+  "y": 2
+}

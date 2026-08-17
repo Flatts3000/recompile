@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "CLAY, STAGE TWO (#115). Grog is a NON-PLASTIC TEMPER - it controls shrinkage and thermal shock",
+    "and actively reduces plasticity, which is the opposite of what a clay body needs. The plasticity",
+    "has to come from an actual clay mineral, and the standard fix for a body that comes out 'short'",
+    "is bentonite. Which is what clumping cat litter is.",
+    "",
+    "So the two halves are useless apart and correct together, and that is why both are in the chain.",
+    "",
+    "Dry-blending before adding water is real practice rather than a concession to the interface,",
+    "which is what makes this step honest instead of a workaround."
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:grog",
+    "recompile:grog",
+    "recompile:grog",
+    "recompile:kitty_litter"
+  ],
+  "result": {
+    "id": "recompile:dry_clay_body",
+    "count": 1
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "_comment": [
+    "CLAY, STAGE ONE (#115). Grog IS crushed potsherds - the vanilla item and the real material are",
+    "the same noun, so the recipe needs no explaining.",
+    "",
+    "The issue says Separator; it predates the machine split and #189's table lists 'pottery sherd to",
+    "grog' under the Pulverizer. Crushing changes only how fine the material is, which is the mill's",
+    "verb, not the shredder's.",
+    "",
+    "THE TAG, not twenty-three recipes. #minecraft:decorated_pot_sherds carries all of them, so a",
+    "sherd added by a future version or a pack is covered without a mod release - and every sherd",
+    "crushes the same, because the picture does not survive being ground.",
+    "",
+    "COUNT IS 1, AND WITH A TAG INPUT IT HAS TO BE. The machine matches per SLOT, and the 23 sherds do",
+    "not stack with each other - so count 2 would mean two of the SAME sherd, not two sherds. Fed nine",
+    "different ones a mill would fill every slot, mill none of them, and refuse new material until the",
+    "player happened to find a duplicate. The stall comment in PulverizerBlockEntity assumes a",
+    "single-item input topping itself up, which a multi-item tag never does.",
+    "",
+    "THE RECIPE TAKES THE WHOLE TAG while the dump supplies only four decorative sherds. That is",
+    "deliberate: the 23 are archaeological designs from trail and ocean ruins, and a household dump",
+    "holding the complete set would read as a museum. A sherd obtained any other way still crushes."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "#minecraft:decorated_pot_sherds",
+  "count": 1,
+  "result": {
+    "item": "recompile:grog",
+    "count": 1
+  },
+  "ticks": 80,
+  "energy": 24
+}
