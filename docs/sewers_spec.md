@@ -189,6 +189,73 @@ Accepted deliberately here (the mod is alpha, per the #87 close), but the releas
 This is **the mod's first real structure either way.** There is exactly one `.nbt` in the repo today
 and it is the gametest plot, so structure sets, template pools and processors are all new surface.
 
+**Shipped 2026-08-17.** `SewerStructure` + `SewerPieces` + `SewerPalette`, with the placement data at
+`worldgen/structure/sewer.json`, `worldgen/structure_set/sewers.json` and the
+`#recompile:has_structure/sewer` biome tag. Verified in a freshly generated world: `/locate structure
+recompile:sewer` finds one 690 blocks out in the demolition yard, its brick sits at y=53-56 with
+deepslate at y=62 above and y=10-15 below, and a screenshot shows corridors with cobwebs, iron grates
+and leachate in the channels.
+
+**Four more bugs, all in the placement layer, none of which any test could see.** The geometry tests
+run over `StructurePiecesBuilder` - bounding boxes and nothing else - so every one of them passed while
+`postProcess` put blocks in the wrong places. Recorded because the shape of the mistake will recur:
+
+- **Local coordinates are not world coordinates.** `getWorldX(x, z)` returns `minX + z` for an EAST
+  piece and `maxX - z` for WEST, so local X and local Z **swap** on that axis. Deriving extents from
+  the world-space bounding box and feeding them back as local bounds carved every east-west piece
+  across its own width. Invisible in a north-south sewer.
+- **A null orientation makes local coordinates absolute.** `getWorldX` hands back what it is given when
+  `getOrientation()` is null, so the un-oriented room built itself at world **origin** regardless of
+  where its box was - a sewer 690 blocks out simply had no root chamber, and its corridors dead-ended
+  into rock. Vanilla's own `MineShaftRoom` passes absolute coordinates for exactly this reason.
+- **`generateBox`'s two-state form walls all six faces**, and every child is anchored one block past its
+  parent, so the sewer was a chain of sealed brick boxes with two solid layers between them. You could
+  stand in one segment and never walk to the next.
+- **The bore was the outer size**, so after shelling, the interior was one wide and two tall - and the
+  channel then filled its entire floor, making every corridor a crawlspace that applied Hunger for its
+  full length. The bore is now the *interior* (three across, three tall) with the shell added around it.
+
+`a_corridor_is_carved_along_its_own_length` and `the_root_room_is_built_at_its_own_bounding_box` call
+`postProcess` for real and read the blocks back. The corridor test faces **EAST** on purpose - north-south
+is the one orientation where local and world axes agree, so it proves nothing - and corridors are
+**seven long against five wide** for the same reason: a square piece makes a transposed carve
+indistinguishable from a correct one.
+
+**A second review round found four more, two of them severe, and the pattern is the point.** Every one
+lived in `postProcess`, which the graph tests cannot see, and the fix for an earlier bug caused one of
+them:
+
+- **`StructurePiece.makeBoundingBox` is for ROOT pieces.** It always extends in +x/+z from the anchor;
+  `direction` only swaps width against depth. A chained NORTH branch anchored at `minZ - 1` therefore
+  gets a box running back *into* its parent, `findCollisionPiece` rejects it, and the branch is dropped
+  with no error. **Every sewer was confined to the +X/+Z quadrant** with half of every branch roll
+  discarded - and nothing caught it, because a quadrant is smaller than the bound, not larger. Boxes
+  are direction-aware again, which is what vanilla's mineshaft does by hand.
+- **Side walls sealed every turn.** Each piece walls its own two sides for its full length and a child
+  is anchored one block past its parent, so a left or right branch started on the far side of a solid
+  brick layer. Only straight-ahead children connected. A child now hollows the plane one step before it
+  begins, cutting its own doorway back through whatever the parent placed; parents postProcess first,
+  so the child always has the last word on the shared face.
+- The stairs had no landing, so the doorway was a five-deep pit into the cavity under the staircase.
+- The root chamber had no vertical walls - a brick floor and ceiling with raw deepslate sides, visible
+  wherever a corridor's own brick met bare stone.
+
+**Rarity is back to what section 1 pins** (`frequency 0.004`, `spacing 1`, `separation 0`). It was
+briefly `spacing 20 / separation 8` to guarantee two sewers cannot meet, which also made them about
+four hundred times rarer than specified - a design change, and not one to make silently.
+**Open, for the owner:** `RADIUS_CAP` bounds one sewer's reach but nothing checks against a neighbour,
+because `findCollisionPiece` only sees the sewer being built. So "two sewers do not merge" is not
+currently enforced; at this rarity an overlap is unlikely rather than impossible. Enforcing it costs
+rarity, which is why it is a question rather than a commit.
+
+**One bug worth recording, because it was invisible from inside the game.** The first version clamped
+only the FLOOR when sinking the piece tree, so a tree deeper than the available rock was pushed bodily
+upward until it broke daylight - a tree spanning 0..57 under a surface at 65 came out at 12..69, ten
+blocks of corridor in the open air. `SewerStructure.sink` now clamps both ends and returns empty when
+they conflict, because a tree taller than the rock has no correct placement and no sewer is a better
+answer than a broken one. It is pure arithmetic on purpose: both failures look like broken code from
+in-world and neither throws.
+
 **Acceptance:**
 - A sewer generates with more than one level and branching corridors.
 - The slab is deep enough that a sewer never punches into the void or through the surface.

@@ -1,0 +1,6 @@
+{
+  "type": "recompile:sewer",
+  "biomes": "#recompile:has_structure/sewer",
+  "spawn_overrides": {},
+  "step": "underground_structures"
+}
