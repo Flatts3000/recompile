@@ -41,10 +41,15 @@ public record Multiblock(List<Cell> cells) {
      * tries to assemble <em>itself</em>, placing its own components into cells the outer machine has
      * already claimed. Two machines then fight over the same blocks.
      *
-     * <p>The fix is to use an inert component and put the other machine in its <em>recipe</em>, which
-     * keeps the progression ("you need a collector first") without putting a second brain inside the
-     * structure. Checked here so the rule fails loudly at the first blueprint build rather than as a
-     * baffling in-world tug of war.
+     * <p>The fix is to use an <b>inert component</b> - a part with no brain of its own - so the outer
+     * machine is the only thing watching those blocks. Checked here so the rule fails loudly at the
+     * first blueprint build rather than as a baffling in-world tug of war.
+     *
+     * <p>This used to add "and put the other machine in its recipe, which keeps the progression". That
+     * was the Grass Spreader's P2.4-R3 draft and it is not what shipped: the Water Tank is the
+     * primitive and the Rain Collector is built <em>from</em> it, so the two machines are siblings
+     * sharing a part rather than an ordered chain. Progression is kept, but by the Pump and by copper,
+     * not by one machine eating another (#202).
      */
     public Multiblock {
         for (Cell cell : cells) {
