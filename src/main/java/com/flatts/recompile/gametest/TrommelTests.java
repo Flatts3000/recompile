@@ -214,6 +214,7 @@ final class TrommelTests {
             BlockPos outlet = TrommelCoreBlock.outlet(helper.getLevel(), helper.absolutePos(core));
             helper.getLevel().setBlockAndUpdate(outlet, Blocks.CHEST.defaultBlockState());
             var chest = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(outlet);
+            helper.assertTrue(chest != null, "no chest at the discharge");
 
             BlockPos feed = TrommelCoreBlock.drumCells(
                 helper.getLevel(), helper.absolutePos(core)).get(0).above();

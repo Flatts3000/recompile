@@ -28,12 +28,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
@@ -80,7 +75,7 @@ public class SeparatorBlockEntity extends BlockEntity {
 
     /**
      * How many kinds of scrap the machine can hold at once. Bounded on purpose: a machine that swallows
-     * an unbounded amount is a storage block, and this one is a grinder with a hopper on it.
+     * an unbounded amount is a storage block, and this one is a shredder with a hopper on it.
      */
     public static final int QUEUE_SLOTS = 9;
 
@@ -252,7 +247,7 @@ public class SeparatorBlockEntity extends BlockEntity {
      *
      * <p><b>One predicate, used everywhere</b> - by the intake that decides what to swallow and by the
      * head scan that decides what to run. That is what keeps the two guarantees the queue is built on
-     * true now that there are two modes: it cannot jam on something it will never process, and it can
+     * true with one mode as it was with two: it cannot jam on something it will never process, and it can
      * never swallow something a player would then have no way to get back, because nothing can extract
      * from this block.
      */

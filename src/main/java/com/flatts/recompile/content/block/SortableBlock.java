@@ -65,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
  * visibly worse: it is the always-available option and needs no station and no hauling.
  *
  * <p><b>The ladder is two rungs of YIELD, not three</b> (owner, 2026-08-03, reversing
- * "automation must clear the tarp by a similar margin"). The Separator sorts at exactly
+ * "automation must clear the tarp by a similar margin"). The Trommel sorts at exactly
  * the tarp's rate - both read {@link #sortRolls} - and its reward is that it runs
  * unattended. A third 2.4x step would have flooded the late game with scrap at the point
  * the player has least use for more of it, and would have made the tarp's tuning
@@ -172,9 +172,9 @@ public abstract class SortableBlock extends FallingBlock {
     /**
      * How many material rolls one of this item yields to a <b>machine</b>. 0 = not a sorting input.
      *
-     * <p><b>One function, every machine.</b> The Sorting Tarp and the Separator both call this, which
-     * is what makes "the Separator yields exactly what the tarp yields" a structural fact rather than
-     * two numbers somebody has to keep in sync. The Separator's reward for existing is that it runs
+     * <p><b>One function, every machine.</b> The Sorting Tarp and the Trommel both call this, which
+     * is what makes "the Trommel yields exactly what the tarp yields" a structural fact rather than
+     * two numbers somebody has to keep in sync. The Trommel's reward for existing is that it runs
      * unattended, not that it produces more (owner, 2026-08-03) - which reverses the earlier plan for
      * automation to clear the tarp by another 2.0-2.4x. A third multiplying step would have flooded the
      * late game with scrap at exactly the point the player has least use for it.
@@ -320,7 +320,7 @@ public abstract class SortableBlock extends FallingBlock {
         // claimed the latter and the claim went straight into the analytics' own commit message, so
         // the first real playtest recorded 136 blocks broken and zero pulls: the player mined the
         // mound and sifted it at a Sorting Tarp, which rolls the same table from its own code. The
-        // Tarp and the Separator log their own (RCAnalytics.sifted) and
+        // Tarp and the Trommel log their own (RCAnalytics.sifted) and
         // RollSitesAreInstrumentedTest fails the build if a new roll site records nothing.
         RCAnalytics.pull(level, state.getBlock(), pulled);
         level.playSound(null, pos, sound.getHitSound(), SoundSource.BLOCKS, 0.6F, 0.9F);

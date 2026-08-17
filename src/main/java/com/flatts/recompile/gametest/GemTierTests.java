@@ -15,7 +15,6 @@ import java.util.List;
 import net.minecraft.core.Vec3i;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -552,8 +551,6 @@ final class GemTierTests {
             });
         });
 
-
-
         // JOINING THE NETWORK MUST NOT OPEN THE DOOR. The Separator is a SOURCE, and the routing code
         // only ever lands in a Scrap Bin or the Scrap Barrel by block id - but that is a property worth
         // asserting rather than trusting, because "it is in the tag now" is exactly the reasoning that
@@ -768,8 +765,6 @@ final class GemTierTests {
             }
             helper.succeed();
         });
-
-
 
         // ONE chute, and everything leaves through it (owner, 2026-08-03). A recipe that produces a
         // result plus several byproducts is exactly the moment someone would reach for a second

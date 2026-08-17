@@ -29,9 +29,13 @@ import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
- * ONE MACHINE, ONE VERB (#187). It separates. The word "grinder" is deliberately absent - that is
- * the Pulverizer's job (#189), and a tree where one word names two machines is one where the
- * confusion recurs.
+ * ONE MACHINE, ONE VERB (#187). It separates.
+ *
+ * <p>The word "grinder" no longer NAMES this machine, which is what #187 asked for: it is about to
+ * name the Pulverizer (#189), and a tree where one word names two machines is one where the
+ * confusion recurs. Tearing the matrix open is still called grinding in the parts that describe the
+ * ACTION - the grinding bay, {@code grind()} - because that is what the teeth do, and renaming a
+ * player-facing bay is a bigger change than this one. #189 decides whether it goes further.
  *
  * The Separator's core: it takes a mixed feed in the top and hands back distinct materials out the
  * bottom ({@code docs/gem_tier_spec.md}, art {@code docs/separator_model_spec.md}).
