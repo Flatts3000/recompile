@@ -1387,6 +1387,19 @@ prompt = "a worn segment of a diamond masonry saw blade, a chipped grey steel ar
 style = "lump"
 palette = ["#8e8e92", "#a0a0a4", "#6e6e74", "#c0c0c4", "#5a5a60"]
 
+[surface.circuit_powder]
+# The middle of the gold chain (#120): ground circuit board, one stage before the smelter.
+#
+# It has to read as POWDER rather than as another lump of scrap, because the whole point of the stage
+# is that the boards were reduced - and it has to keep the green-and-gold of a circuit board, or the
+# player cannot tell what it was ground from. Spent Abrasive and Magnet Scrap are the register to match.
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small conical heap of fine dark powder flecked with tiny green circuit-board fragments and glints of gold, dull olive-black dust with sparse bright specks, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.circuit_powder.procedural]
+style = "lump"
+
 [surface.magnet_scrap]
 kind = "item"
 backend = "ai"

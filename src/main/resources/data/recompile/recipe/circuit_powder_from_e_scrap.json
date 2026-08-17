@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "GOLD, STAGE ONE (#120). Grinding boards to powder is what liberates the metal from the resin",
+    "and glass holding it, which is why a smelter can recover it afterwards and could not before.",
+    "",
+    "Pulverizing, not separating: this changes only how fine the material is. The E-Scrap does not",
+    "become two things here - a mill does not sort - so there is no scrap-metal byproduct at this",
+    "stage. That was in the original plan when the Separator was going to do this job.",
+    "",
+    "Four E-Scrap per powder is the ratio dial (#36 owns the final number). It is deliberately not",
+    "one-for-one: gold is trace, and the fiction the whole tier rests on is that e-waste is rich",
+    "compared to ore, not that it is free."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "recompile:e_scrap",
+  "count": 4,
+  "result": {
+    "item": "recompile:circuit_powder",
+    "count": 1
+  },
+  "ticks": 100,
+  "energy": 24
+}

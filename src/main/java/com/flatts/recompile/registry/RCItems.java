@@ -357,6 +357,14 @@ public final class RCItems {
      * ({@code docs/gem_tier_spec.md} Phase 1). Distinct items rather than variants of one, because each
      * feeds a different {@code recompile:separating} recipe and a recipe keys on an item.
      */
+    /**
+     * Ground circuit board, the middle of the gold chain (#120).
+     *
+     * <p>Not a member of {@code GEM_TIER_SCRAP}: those are things you FIND in Mechanical Waste and feed
+     * to the Separator. This is something the player MAKES, one stage into a two-stage refine, and
+     * grouping it with the found materials would say the opposite of what it is.
+     */
+    public static final DeferredItem<Item> CIRCUIT_POWDER = ITEMS.registerItem("circuit_powder", Item::new);
     public static final DeferredItem<Item> SPENT_ABRASIVE = ITEMS.registerItem("spent_abrasive", Item::new);
     public static final DeferredItem<Item> MAGNET_SCRAP = ITEMS.registerItem("magnet_scrap", Item::new);
     public static final DeferredItem<Item> QUARTZ_GRIT = ITEMS.registerItem("quartz_grit", Item::new);

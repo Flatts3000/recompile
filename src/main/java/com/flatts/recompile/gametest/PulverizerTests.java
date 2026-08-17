@@ -162,6 +162,59 @@ final class PulverizerTests {
             helper.succeed();
         });
 
+        // THE GOLD CHAIN, END TO END (#120).
+        //
+        // Two stages, and the test asserts they CONNECT rather than that each exists: grinding boards
+        // is what liberates the metal from the resin and glass holding it, and the smelter is what
+        // recovers it. A chain whose halves are both present and do not meet is the failure mode a
+        // per-recipe test cannot see - one stage's output has to be the next stage's input, by id.
+        //
+        // Stage two is minecraft:blasting on purpose, which is also the gate: a vanilla furnace cannot
+        // run a blasting recipe at all and a vanilla blast furnace costs five iron ingots, so gold
+        // cannot be short-circuited with a furnace made of stone.
+        RCGameTests.test("the_gold_chain_runs_from_e_scrap_to_a_nugget", 300, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            PulverizerBlockEntity be = formAndPower(helper, core);
+
+            BlockPos outlet = PulverizerCoreBlock.outlet(helper.getLevel(), helper.absolutePos(core));
+            helper.getLevel().setBlockAndUpdate(outlet, Blocks.CHEST.defaultBlockState());
+            var chest = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(outlet);
+            helper.assertTrue(chest != null, "no chest at the discharge");
+
+            // STAGE ONE: enough E-Scrap for exactly one operation, so the count is exercised too.
+            int need = 4;
+            BlockPos feed = feedPoint(helper, core);
+            helper.getLevel().addFreshEntity(new ItemEntity(helper.getLevel(),
+                feed.getX() + 0.5, feed.getY() + 0.5, feed.getZ() + 0.5,
+                new ItemStack(RCItems.E_SCRAP.get(), need)));
+
+            helper.succeedWhen(() -> {
+                helper.assertTrue(be.queuedCount() == 0, "the mill has not finished");
+                ItemStack powder = ItemStack.EMPTY;
+                for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+                    if (chest.getItem(slot).is(RCItems.CIRCUIT_POWDER.get())) {
+                        powder = chest.getItem(slot);
+                    }
+                }
+                helper.assertTrue(!powder.isEmpty(),
+                    "grinding " + need + " E-Scrap must yield Circuit Powder - stage one of the gold "
+                        + "chain produced nothing");
+
+                // STAGE TWO: the smelter must actually accept what stage one made.
+                var blasting = helper.getLevel().recipeAccess().getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.BLASTING,
+                    new net.minecraft.world.item.crafting.SingleRecipeInput(powder),
+                    helper.getLevel());
+                helper.assertTrue(blasting.isPresent(),
+                    "nothing blasts Circuit Powder, so the chain stops halfway and the powder is a "
+                        + "dead end the player cannot use");
+                ItemStack out = blasting.get().value().assemble(
+                    new net.minecraft.world.item.crafting.SingleRecipeInput(powder));
+                helper.assertTrue(out.is(net.minecraft.world.item.Items.GOLD_NUGGET),
+                    "the chain must end in a gold nugget, got " + out);
+            });
+        });
+
         // THE DISBAND CASCADE. Seven dummy cells, so seven chances to re-enter the removal hook and
         // re-drop the core. It also proves the blueprint is what decides what a cell gives back: the
         // Motor cell forms into ordinary housing, so a per-block loot table would hand back the wrong
