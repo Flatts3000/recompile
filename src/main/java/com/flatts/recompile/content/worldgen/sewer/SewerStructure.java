@@ -85,14 +85,19 @@ public class SewerStructure extends Structure {
         // THE WAY IN, added last because it is the only piece that needs to know where the surface is.
         // Everything else is built at a fixed height and moved; the shaft has to span from the chamber
         // it was moved to up to daylight, so it cannot exist until the sink is decided.
-        // surface - 1, not surface: getBaseHeight returns the first AIR block (the heightmap stores
-        // y + 1), so the topmost solid block is one below it. Capping the shaft at surface would leave
-        // the pad and its cover sitting a block proud of the ground like a plinth; at surface - 1 they
-        // replace the top layer and sit flush, which is what a manhole in a road looks like.
+        // THE SHAFT'S OWN COLUMN, not the footprint minimum. `surface` above is a Math.min over nine
+        // samples spanning up to 80 blocks on each axis, which exists for the roof clamp - reusing it
+        // here capped the shaft at the LOWEST ground anywhere under the sewer, so wherever the terrain
+        // over the chamber was higher (the common case, since a minimum over widely spread samples is
+        // rarely the local value) the pad and cover generated buried under coarse dirt. A one-block
+        // burial makes a 1x1 cover invisible, and there is exactly one per sewer.
         BoundingBox chamber = room.getBoundingBox();
-        pieces.addPiece(new SewerPieces.SewerEntrance(1, new BoundingBox(
-            chamber.minX() + 1, chamber.maxY(), chamber.minZ() + 1,
-            chamber.minX() + 3, surface - 1, chamber.minZ() + 3)));
+        int aboveShaft = context.chunkGenerator().getBaseHeight(
+            chamber.minX() + 1, chamber.minZ() + 1,
+            net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG,
+            context.heightAccessor(), context.randomState());
+        BoundingBox shaft = entranceBox(chamber, aboveShaft);
+        pieces.addPiece(new SewerPieces.SewerEntrance(1, shaft));
         return Optional.of(new Structure.GenerationStub(
             new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMiddleBlockZ()),
             Either.right(pieces)));
@@ -131,6 +136,31 @@ public class SewerStructure extends Structure {
             return OptionalInt.empty();
         }
         return OptionalInt.of(wanted);
+    }
+
+    /**
+     * Where the entrance shaft goes, given the chamber it rises from and the ground above it.
+     *
+     * <p>Pure arithmetic and separated out for the reason {@link #sink} is: both numbers in this box
+     * were wrong at once and no test could see it, because the test that was supposed to cover the
+     * shaft hand-built its own box and then asserted against that. It proved {@code postProcess} fills
+     * the box it is handed - which is true of any box, including a wrong one.
+     *
+     * <p><b>The column is the chamber's interior corner, deliberately.</b> {@code minX + 2} sits inside
+     * the leachate pool ({@code minX + 2 .. maxX - 2}), so a shaft centred there dropped the player into
+     * the Hunger fluid. {@code minX + 1} is the dry ring between the wall and the pool.
+     *
+     * <p><b>It stops at the ceiling, and the chamber carries the ladder the rest of the way.</b> The
+     * shaft lines itself in brick, and lining it below the ceiling would seal the ladder inside a 1x1
+     * brick tube standing in the middle of the room - climbable, and impossible to step off.
+     *
+     * <p>{@code ground - 1} because {@code getBaseHeight} returns the first AIR block, so the topmost
+     * solid one is below it; the pad replaces that layer and sits flush rather than proud.
+     */
+    public static BoundingBox entranceBox(BoundingBox chamber, int ground) {
+        return new BoundingBox(
+            chamber.minX(), chamber.maxY(), chamber.minZ(),
+            chamber.minX() + 2, ground - 1, chamber.minZ() + 2);
     }
 
     @Override

@@ -494,6 +494,19 @@ public final class SewerPieces {
                     spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
                 }
             }
+            // THE LADDER THE SHAFT CANNOT PLACE. The entrance stops at the ceiling, because lining it
+            // any lower would seal the ladder inside a brick tube standing in the middle of the room. So
+            // the chamber runs the ladder from its floor up through its own ceiling to meet the shaft -
+            // without this the shaft's lowest rung sat six blocks above the player's feet, directly over
+            // the leachate pool, and the only way in was a one-way drop into the fluid.
+            int shaftX = box.minX() + 1;
+            int shaftZ = box.minZ() + 1;
+            for (int y = box.minY() + 1; y <= box.maxY(); y++) {
+                BlockPos rung = new BlockPos(shaftX, y, shaftZ);
+                if (limit.isInside(rung)) {
+                    level.setBlock(rung, LADDER, Block.UPDATE_CLIENTS);
+                }
+            }
             placeResidents(level, limit, box);
         }
     }

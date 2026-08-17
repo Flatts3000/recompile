@@ -21,7 +21,10 @@ import net.minecraft.world.phys.BlockHitResult;
  * <p><b>It is the Bulky Waste loop exactly</b> - right-click with a prybar and it comes off, right-click
  * without one and it tells you what you need. That reuse is the point rather than a shortcut: a player
  * who has reached the yard already knows what a prybar is for, so the sewer needs no new verb to teach.
- * The prybar is the only tool that opens it, and mining it by hand gets nothing.
+ * The prybar is the only thing that opens it - the block is <b>unbreakable</b>, because
+ * {@code requiresCorrectToolForDrops} gates a drop and the reward here is the shaft rather than a
+ * drop. With hardness alone, fifteen seconds of bare-handed mining achieved exactly what prying
+ * achieves and the tool gate was decorative.
  *
  * <p><b>Why it is scrap steel and not a cast-iron cover.</b> A municipal manhole cover would be the
  * obvious art and the wrong object for this world - nothing here is municipal. It is a rusted, pitted,

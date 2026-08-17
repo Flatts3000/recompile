@@ -185,11 +185,26 @@ and break the coordinates, since this piece works in absolute positions and an o
 spawner.
 
 **Acceptance:**
-- Walking a fresh yard finds manholes at roughly vanilla mineshaft density. Measured over a sampled
-  area, in the manner of the region distribution measurement in #88, not eyeballed.
-- The pad is visible from the ground, not only from the air.
-- Prying without a prybar does nothing and says why. Prying with one opens the way down.
-- A GameTest covers the tool gate. Density is a worldgen measurement, not a GameTest.
+- ~~Manholes at roughly vanilla mineshaft density, measured over a sampled area.~~ **Retired**: the
+  entrance is a piece of the structure, so its density IS the sewer's density and there is no second
+  dial to measure. Measuring it would be measuring the structure set twice.
+- The pad is visible from the ground, not only from the air. **This is the one that nearly shipped
+  broken:** the shaft was capped at the *footprint minimum* surface - a `Math.min` over nine samples
+  spanning up to 80 blocks - so wherever the ground above the chamber was higher than the lowest ground
+  anywhere under the sewer, the pad and cover generated **buried**. The cap now reads the shaft's own
+  column.
+- Prying without a prybar does nothing and says why. Prying with one opens the way down. **And nothing
+  else opens it:** the cover is unbreakable, because `requiresCorrectToolForDrops` gates a *drop* and
+  the reward here is the shaft - with hardness alone, fifteen seconds of bare-handed mining achieved
+  exactly what prying achieves.
+- A GameTest covers the tool gate, driving `useItemOn` rather than the static entry point, so the
+  branch that decides prybar-against-not-prybar is the one under test.
+
+**Known and accepted:** the yard's own features (`rubble_pile`, `steel_stack`, `building_husk`) run at
+`vegetal_decoration`, after `underground_structures`, and they write into air - so a pile can settle on
+top of a cover. It obscures rather than seals: rubble is breakable and the concrete pad still reads
+through it. Worth revisiting if playtest says a buried-in-rubble cover is missable, since there is
+exactly one per sewer.
 
 **Risk:** a 1x1 hole in a large biome is either exciting or miserable. The 3x3 pad exists to make it
 findable; if playtest says it still is not, the pad grows before the rarity changes.

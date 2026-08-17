@@ -473,71 +473,99 @@ final class SewerTests {
             });
         });
 
-        // THE COVER IS PRYBAR-ONLY, which is the Bulky Waste gate reused rather than a new verb.
+        // THE COVER IS PRYBAR-ONLY, and "only" is the half that was decorative.
         //
-        // Both halves matter and they fail differently: a cover that opens bare-handed makes the prybar
-        // pointless, and a cover that never opens makes the sewer unreachable. The second is the worse
-        // one and leaves no trace - the structure generates perfectly and simply cannot be entered.
+        // This drives ManholeBlock.useItemOn, which is the branch that actually decides prybar against
+        // not-prybar. The first version called useWithoutItem and the static pryOpen directly, so it
+        // never touched that branch at all - a regression letting ANY held item open the cover would
+        // have passed it unchanged.
         RCGameTests.test("a_manhole_opens_only_for_a_prybar", 40, helper -> {
             BlockPos at = new BlockPos(1, 1, 1);
-            helper.setBlock(at, com.flatts.recompile.registry.RCBlocks.MANHOLE.get());
-            var player = helper.makeMockServerPlayerInLevel();
-            // SURVIVAL: a mock player has instabuild set, and a creative exemption anywhere in the tool
-            // gate would let this pass for the wrong reason.
-            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
-
-            // Bare hands first - it must still be there afterwards.
             BlockPos abs = helper.absolutePos(at);
-            helper.getLevel().getBlockState(abs).useWithoutItem(helper.getLevel(), player,
-                new net.minecraft.world.phys.BlockHitResult(
-                    net.minecraft.world.phys.Vec3.atCenterOf(abs),
-                    net.minecraft.core.Direction.UP, abs, false));
+            var player = helper.makeMockServerPlayerInLevel();
+            // SURVIVAL: a mock player has instabuild set, and a creative exemption in the gate would
+            // let this pass for the wrong reason.
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            var hit = new net.minecraft.world.phys.BlockHitResult(
+                net.minecraft.world.phys.Vec3.atCenterOf(abs),
+                net.minecraft.core.Direction.UP, abs, false);
+
+            // A wrong item must not open it. A stick, not an empty hand - the empty hand takes a
+            // different path and proves less.
+            helper.setBlock(at, com.flatts.recompile.registry.RCBlocks.MANHOLE.get());
+            helper.getLevel().getBlockState(abs).useItemOn(
+                new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STICK),
+                helper.getLevel(), player, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
             helper.assertBlockPresent(com.flatts.recompile.registry.RCBlocks.MANHOLE.get(), at);
 
-            // Now the prybar, through the same static entry point the interaction uses.
-            com.flatts.recompile.content.block.ManholeBlock.pryOpen(helper.getLevel(), abs);
+            // And it must not be minable, which is what actually gates it: the flag it used to carry
+            // gated a DROP, and the reward here is the shaft rather than a drop, so hardness alone was
+            // a bare-handed bypass of the whole tool gate.
+            helper.assertTrue(helper.getLevel().getBlockState(abs)
+                    .getDestroySpeed(helper.getLevel(), abs) < 0,
+                "the cover is minable, so a player can open the sewer without ever finding a prybar and "
+                    + "the tool gate is decoration");
+
+            // The prybar opens it.
+            helper.getLevel().getBlockState(abs).useItemOn(
+                new net.minecraft.world.item.ItemStack(com.flatts.recompile.registry.RCItems.PRYBAR.get()),
+                helper.getLevel(), player, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
             helper.assertBlockNotPresent(com.flatts.recompile.registry.RCBlocks.MANHOLE.get(), at);
             helper.succeed();
         });
 
-        // AND THE SHAFT REACHES BOTH ENDS.
+        // AND THE SHAFT'S BOX IS DERIVED CORRECTLY, which is the test the last one could not be.
         //
-        // A manhole that opens onto solid rock, or a chamber with no shaft above it, are both silent:
-        // the structure generates, /locate finds it, and the player has no way in. This builds the
-        // entrance the structure builds and walks the whole column.
-        RCGameTests.test("the_entrance_shaft_runs_from_the_chamber_to_the_surface", 40, helper -> {
+        // The previous version hand-built a BoundingBox and asserted postProcess filled it - true of any
+        // box, including a wrong one. Both numbers in the real box were wrong at once and it saw
+        // neither: the cap came from a Math.min over nine samples spanning the whole footprint, so the
+        // cover generated BURIED wherever the ground above the chamber was higher than the lowest
+        // ground anywhere under the sewer; and the floor sat at the chamber's CEILING, six blocks above
+        // the player, directly over the leachate pool. Pure arithmetic, so it is asserted as arithmetic.
+        RCGameTests.test("the_entrance_shaft_is_derived_from_the_chamber_and_its_own_ground", 20, helper -> {
+            BoundingBox chamber = new BoundingBox(100, 20, 200, 111, 27, 211);
+            BoundingBox shaft = SewerStructure.entranceBox(chamber, 64);
+
+            helper.assertTrue(shaft.minY() == chamber.maxY(),
+                "the shaft starts at y=" + shaft.minY() + " rather than the chamber ceiling at "
+                    + chamber.maxY() + "; below the ceiling it would line itself in brick and seal the "
+                    + "ladder inside a tube standing in the room");
+            helper.assertTrue(shaft.maxY() == 63,
+                "the pad is at y=" + shaft.maxY() + " rather than 63 - getBaseHeight returns the first "
+                    + "AIR block, so the top solid layer is one below and anything else is buried or "
+                    + "proud");
+            // The column must be the dry interior ring, not the pool.
+            int cx = shaft.minX() + 1;
+            int cz = shaft.minZ() + 1;
+            helper.assertTrue(cx == chamber.minX() + 1 && cz == chamber.minZ() + 1,
+                "the shaft column is (" + cx + "," + cz + "); the pool fills minX+2..maxX-2, so any "
+                    + "column at +2 or beyond drops the player into the Hunger fluid");
+            helper.succeed();
+        });
+
+        // AND THE CHAMBER CARRIES THE LADDER UP TO MEET IT, so the entrance is not one-way.
+        RCGameTests.test("the_chamber_ladder_reaches_the_shaft", 40, helper -> {
             var level = helper.getLevel();
-            BlockPos base = helper.absolutePos(new BlockPos(0, 30, 0));
-            int top = base.getY() + 20;
-            BoundingBox box = new BoundingBox(base.getX(), base.getY(), base.getZ(),
-                base.getX() + 2, top, base.getZ() + 2);
-            var shaft = new SewerPieces.SewerEntrance(1, box);
+            BlockPos base = helper.absolutePos(new BlockPos(0, 40, 0));
+            var room = new SewerPieces.SewerRoom(0, RandomSource.create(9L), base.getX(), base.getZ());
+            room.move(0, base.getY() - room.getBoundingBox().minY(), 0);
+            BoundingBox box = room.getBoundingBox();
             BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
                 box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
-            shaft.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
-                RandomSource.create(1L), limit,
+            room.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(9L), limit,
                 new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4), base);
 
-            List<String> broken = new ArrayList<>();
-            int x = box.minX() + 1;
-            int z = box.minZ() + 1;
-            for (int y = box.minY(); y < top; y++) {
-                if (!level.getBlockState(new BlockPos(x, y, z))
+            List<String> gaps = new ArrayList<>();
+            for (int y = box.minY() + 1; y <= box.maxY(); y++) {
+                if (!level.getBlockState(new BlockPos(box.minX() + 1, y, box.minZ() + 1))
                         .is(net.minecraft.world.level.block.Blocks.LADDER)) {
-                    broken.add("no ladder at y=" + y);
+                    gaps.add("y=" + y);
                 }
             }
-            helper.assertTrue(broken.isEmpty(),
-                "the shaft is not climbable for its whole height, so it is a hole you fall down rather "
-                    + "than a way in and out: " + broken.subList(0, Math.min(3, broken.size())));
-            helper.assertTrue(level.getBlockState(new BlockPos(x, top, z))
-                    .is(com.flatts.recompile.registry.RCBlocks.MANHOLE.get()),
-                "no manhole cover at the top of the shaft, so the sewer is either sealed or standing "
-                    + "open - and which one it is depends on what the terrain happened to put there");
-            helper.assertTrue(level.getBlockState(new BlockPos(x + 1, top, z))
-                    .is(com.flatts.recompile.registry.RCBlocks.REINFORCED_CONCRETE.get()),
-                "no concrete pad around the cover, which is the only thing that makes a one-block hole "
-                    + "findable in a biome this size");
+            helper.assertTrue(gaps.isEmpty(),
+                "the chamber's ladder does not run from its floor to its ceiling, so the shaft's lowest "
+                    + "rung is unreachable and the only way in is a drop: " + gaps);
             helper.succeed();
         });
 
