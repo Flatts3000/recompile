@@ -242,6 +242,25 @@ public final class SewerPieces {
             }
         }
 
+        /**
+         * Put a drowned spawner on the floor at a local position.
+         *
+         * <p>The block alone is inert - a spawner with no entity id spawns nothing - so the BlockEntity
+         * has to be reached and told what it holds. {@code placeBlock} has already mapped local to
+         * world, so the BlockEntity is fetched from the same mapping rather than from a second guess at
+         * the coordinates.
+         */
+        protected void spawner(WorldGenLevel level, BoundingBox limit, RandomSource random,
+                int x, int y, int z) {
+            this.placeBlock(level, SewerPalette.SPAWNER, x, y, z, limit);
+            BlockPos at = new BlockPos(this.getWorldX(x, z), this.getWorldY(y), this.getWorldZ(x, z));
+            if (limit.isInside(at)
+                    && level.getBlockEntity(at) instanceof net.minecraft.world.level.block.entity
+                        .SpawnerBlockEntity spawner) {
+                spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
+            }
+        }
+
         /** Sparse cobwebs under the ceiling: the mineshaft parallel, and the only source in the game. */
         protected void cobwebs(WorldGenLevel level, BoundingBox limit, RandomSource random,
                 int w, int h, int l) {
@@ -466,6 +485,53 @@ public final class SewerPieces {
                 for (int z = box.minZ() + 2; z <= box.maxZ() - 2; z++) {
                     this.placeBlock(level, SewerPalette.FLUID, x, box.minY(), z, limit);
                 }
+            }
+            // The chamber is where the sewer is occupied from. One spawner per sewer, in the room
+            // rather than at a corridor mouth, so meeting it is a thing you walk into rather than
+            // something that meets you at the entrance.
+            BlockPos centre = new BlockPos(box.getCenter().getX(), box.minY() + 1, box.getCenter().getZ());
+            if (limit.isInside(centre)) {
+                level.setBlock(centre, SewerPalette.SPAWNER, 2);
+                if (level.getBlockEntity(centre) instanceof net.minecraft.world.level.block.entity
+                        .SpawnerBlockEntity spawner) {
+                    spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
+                }
+            }
+            placeTurtles(level, limit, random, box);
+        }
+    }
+
+    /**
+     * Turtles, placed as <b>entities at generation</b> rather than spawned.
+     *
+     * <p>Owner call: turtles stay in the sewer. They cannot arrive any other way -
+     * {@code Turtle.checkTurtleSpawnRules} demands {@code y < seaLevel + 4}, and this world's sea level
+     * is <b>-64</b>, so the height test alone requires y &lt; -60; it also wants sand, which this world
+     * has none of. Unlike the drowned there is no {@code isSpawner} branch to lean on, so a spawner
+     * would need {@code custom_spawn_rules} to bypass the predicate entirely - and a spawner endlessly
+     * producing a passive animal reads wrong anyway.
+     *
+     * <p>Placing them directly sidesteps every spawn rule and gives a <b>finite</b> population, which is
+     * what the spec already wanted: they cannot breed here either (no seagrass) and cannot lay eggs
+     * (no sand), so the sewer's turtles are the turtles it was built with.
+     */
+    private static void placeTurtles(WorldGenLevel level, BoundingBox limit, RandomSource random,
+            BoundingBox room) {
+        int wanted = 2 + random.nextInt(3);
+        for (int i = 0; i < wanted; i++) {
+            BlockPos at = new BlockPos(
+                room.minX() + 2 + random.nextInt(Math.max(1, room.maxX() - room.minX() - 3)),
+                room.minY() + 1,
+                room.minZ() + 2 + random.nextInt(Math.max(1, room.maxZ() - room.minZ() - 3)));
+            if (!limit.isInside(at)) {
+                continue;   // another chunk owns this cell and will place its own share
+            }
+            var turtle = net.minecraft.world.entity.EntityType.TURTLE.create(
+                level.getLevel(), net.minecraft.world.entity.EntitySpawnReason.STRUCTURE);
+            if (turtle != null) {
+                turtle.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, random.nextFloat() * 360F, 0F);
+                turtle.setPersistenceRequired();
+                level.addFreshEntity(turtle);
             }
         }
     }

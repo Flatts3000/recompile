@@ -56,11 +56,23 @@ public final class SewerPalette {
      */
     public static final BlockState STEP = Blocks.BRICK_STAIRS.defaultBlockState();
 
+    /**
+     * The drowned spawner - the sewer's threat, and the mineshaft parallel again.
+     *
+     * <p><b>A spawner is the only way drowned can exist here.</b> {@code spawn_overrides} sets which
+     * mobs a structure offers but does not bypass {@code SpawnPlacements}, and drowned are registered
+     * {@code IN_WATER}, which tests {@code FluidTags.WATER} - leachate is deliberately outside that tag,
+     * so natural spawning yields none, ever. {@code Drowned.checkDrownedSpawnRules} has an explicit
+     * {@code MobSpawnType.isSpawner} branch that skips the water test, so a plain spawner works with no
+     * custom rules at all. Vanilla puts a cave spider spawner in its mineshafts for the same reason.
+     */
+    public static final BlockState SPAWNER = Blocks.SPAWNER.defaultBlockState();
+
     /** Air inside the tunnels. {@code CAVE_AIR} rather than air, as every vanilla structure uses. */
     public static final BlockState HOLLOW = Blocks.CAVE_AIR.defaultBlockState();
 
     /** Everything above, for the test that has to walk it. */
-    public static final List<BlockState> ALL = List.of(WALL, GRATE, FLUID, WEB, STEP, HOLLOW);
+    public static final List<BlockState> ALL = List.of(WALL, GRATE, FLUID, WEB, STEP, SPAWNER, HOLLOW);
 
     private SewerPalette() {
     }

@@ -298,6 +298,47 @@ final class SewerTests {
             helper.succeed();
         });
 
+        // THE SEWER IS OCCUPIED, and both halves of that needed a mechanism rather than a wish.
+        //
+        // spawn_overrides picks WHICH mobs a structure offers; it does not bypass SpawnPlacements, whose
+        // per-type predicate still runs. Measured against 26.1: drowned are registered IN_WATER, which
+        // tests FluidTags.WATER, and leachate is deliberately outside it - so natural spawning yields
+        // none, ever. Turtles are worse: they want y < seaLevel + 4, and sea level here is -64.
+        //
+        // Drowned get a spawner, because checkDrownedSpawnRules has an explicit isSpawner branch that
+        // skips the water test. Turtles get placed as entities, because their predicate has no such
+        // branch - and that also makes them finite, which is what the sewer wants.
+        RCGameTests.test("the_room_is_occupied_by_a_spawner_and_turtles", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos base = helper.absolutePos(new BlockPos(0, 44, 0));
+            var room = new SewerPieces.SewerRoom(0, RandomSource.create(5L), base.getX(), base.getZ());
+            room.move(0, base.getY() - room.getBoundingBox().minY(), 0);
+            BoundingBox box = room.getBoundingBox();
+            BoundingBox limit = new BoundingBox(box.minX() - 32, box.minY() - 16, box.minZ() - 32,
+                box.maxX() + 32, box.maxY() + 32, box.maxZ() + 32);
+            room.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(5L), limit,
+                new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4), base);
+
+            BlockPos centre = new BlockPos(box.getCenter().getX(), box.minY() + 1, box.getCenter().getZ());
+            helper.assertTrue(level.getBlockState(centre).is(net.minecraft.world.level.block.Blocks.SPAWNER),
+                "no spawner in the root chamber at " + centre + " - without one the sewer has no "
+                    + "drowned at all, because IN_WATER can never be satisfied by leachate");
+            var be = level.getBlockEntity(centre);
+            helper.assertTrue(be instanceof net.minecraft.world.level.block.entity.SpawnerBlockEntity,
+                "the spawner block has no BlockEntity, so it holds nothing and spawns nothing");
+
+            long turtles = level.getEntitiesOfClass(net.minecraft.world.entity.animal.turtle.Turtle.class,
+                new net.minecraft.world.phys.AABB(
+                    box.minX(), box.minY() - 2, box.minZ(),
+                    box.maxX() + 1, box.maxY() + 2, box.maxZ() + 1)).size();
+            helper.assertTrue(turtles >= 2,
+                "found " + turtles + " turtles in the chamber - they cannot spawn in this world at all "
+                    + "(sea level is -64 and there is no sand), so if the structure does not place them "
+                    + "there are none anywhere");
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.
