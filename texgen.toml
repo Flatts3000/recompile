@@ -1719,6 +1719,26 @@ match_hue = "trommel_drum"
 prompt = "the side of a single heavy industrial hammer mill, one continuous machine face spanning the whole image, square and squat, thick bolted steel armour plate with a bolted inspection panel and heavy corner ribs, greasy and rust stained, no openings, viewed straight on, filling the frame edge to edge"
 vanilla_ref = "block/iron_block"
 
+[surface.pulverizer_skin_up]
+# THE FEED HATCH, and the reason this face needed art at all (owner, 2026-08-17).
+#
+# A hammer mill is fed from above by gravity, and the roof was plain bolted plate - so the machine had
+# an opening the player could not see. It is the one thing a sealed box has to say out loud: everything
+# else about this machine is deliberately opaque, and an input you cannot find is not mystery, it is a
+# bug you have to read a wiki to work around.
+#
+# CENTRED, so the hatch spans all four roof cells. That is the strongest possible use of a
+# whole-machine skin - a feature no single 16px tile could contain, and one that repeating a panel
+# could never produce.
+kind = "block_skin"
+backend = "ai"
+size = 16
+width = 32
+height = 32
+match_hue = "trommel_drum"
+prompt = "the top of a heavy industrial hammer mill seen from directly above, one continuous surface spanning the whole image, thick bolted steel deck plate with a large square hinged feed hatch dead in the centre taking up about a third of the image, the hatch standing open onto a dark opening with a heavy grab handle on its lid, grey dust spilled around the rim of the opening, greasy and rust stained, viewed straight down, filling the frame edge to edge"
+vanilla_ref = "block/iron_block"
+
 [surface.pulverizer_skin_west]
 # The far side is the near side mirrored, for the reason the Trommel's flanks are: east and west index
 # in opposite directions, so the same sheet copied verbatim puts a feature at opposite ends of the

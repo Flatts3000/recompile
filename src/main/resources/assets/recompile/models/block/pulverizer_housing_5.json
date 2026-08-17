@@ -3,7 +3,7 @@
   "textures": {
     "particle": "recompile:block/pulverizer_housing",
     "down": "recompile:block/pulverizer_housing",
-    "up": "recompile:block/pulverizer_housing",
+    "up": "recompile:block/pulverizer_skin_up_5",
     "north": "recompile:block/pulverizer_skin_north_5",
     "south": "recompile:block/pulverizer_housing",
     "west": "recompile:block/pulverizer_housing",
