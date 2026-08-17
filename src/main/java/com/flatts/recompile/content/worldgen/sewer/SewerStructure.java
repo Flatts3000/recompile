@@ -73,7 +73,7 @@ public class SewerStructure extends Structure {
         }
         pieces.offsetPiecesVertically(shift.getAsInt());
         return Optional.of(new Structure.GenerationStub(
-            new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMinBlockZ()),
+            new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMiddleBlockZ()),
             Either.right(pieces)));
     }
 

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
@@ -145,6 +147,88 @@ final class SewerTests {
             helper.assertTrue(SewerStructure.sink(65, 10, 57).isPresent(),
                 "a sewer that fits comfortably in the rock was refused, so the guard above is passing "
                     + "by placing nothing anywhere");
+            helper.succeed();
+        });
+
+        // THE GEOMETRY IS ACTUALLY BUILT, and this is the test the graph tests could not be.
+        //
+        // Every shape assertion above runs over StructurePiecesBuilder, which is bounding boxes and
+        // nothing else - so all of them passed while postProcess was placing blocks in the wrong place.
+        // Three bugs lived there at once and none of them threw: an east-west piece was carved
+        // transposed (local X is world Z on that axis), the un-oriented room built itself at world
+        // origin (a null orientation makes getWorldX return the LOCAL value as an absolute), and every
+        // piece was shelled on all six faces so the sewer was a chain of sealed boxes you could not
+        // walk between. An in-world look does not catch them either: it found brick at a plausible
+        // depth and that was taken for a working sewer.
+        //
+        // EAST on purpose. North-south is the case where local and world axes agree, so it is the one
+        // orientation that proves nothing.
+        RCGameTests.test("a_corridor_is_carved_along_its_own_length", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos base = helper.absolutePos(new BlockPos(0, 24, 0));
+            Direction facing = Direction.EAST;
+            BoundingBox box = SewerPieces.SewerPiece.box(
+                base.getX(), base.getY(), base.getZ(), facing, 5, 5, 7);
+            var corridor = new SewerPieces.SewerCorridor(1, box, facing);
+            BoundingBox limit = new BoundingBox(base.getX() - 32, base.getY() - 16, base.getZ() - 32,
+                base.getX() + 48, base.getY() + 32, base.getZ() + 48);
+            corridor.postProcess(level, level.structureManager(),
+                level.getChunkSource().getGenerator(), RandomSource.create(7L),
+                limit, new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4), base);
+
+            // Seven long on X and five wide on Z is what makeBoundingBox produced; the carve must agree.
+            helper.assertTrue(box.maxX() - box.minX() == 6 && box.maxZ() - box.minZ() == 4,
+                "the corridor box is not 7 by 5, so this test cannot tell a transposed carve from a "
+                    + "correct one: " + box);
+            List<String> wrong = new ArrayList<>();
+            // The interior must be open along the WHOLE seven-block run, at head height.
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                BlockPos at = new BlockPos(x, box.minY() + 2, box.minZ() + 2);
+                if (!level.getBlockState(at).isAir()) {
+                    wrong.add("solid at " + at + ", so the tunnel does not run its own length");
+                }
+            }
+            // BOTH ENDS OPEN. This is what lets one piece connect to the next.
+            for (int x : new int[]{box.minX(), box.maxX()}) {
+                BlockPos at = new BlockPos(x, box.minY() + 2, box.minZ() + 2);
+                if (!level.getBlockState(at).isAir()) {
+                    wrong.add("end face sealed at " + at);
+                }
+            }
+            // And it must NOT have spilled outside its own box, which a transposed carve does.
+            for (int z = box.maxZ() + 1; z <= box.maxZ() + 3; z++) {
+                BlockPos at = new BlockPos(box.minX() + 2, box.minY() + 2, z);
+                if (level.getBlockState(at).is(net.minecraft.world.level.block.Blocks.BRICKS)) {
+                    wrong.add("brick outside the box at " + at + ", so the carve is transposed");
+                }
+            }
+            helper.assertTrue(wrong.isEmpty(), String.join("; ", wrong));
+            helper.succeed();
+        });
+
+        // AND THE ROOM LANDS WHERE ITS BOX IS, not at world origin.
+        RCGameTests.test("the_root_room_is_built_at_its_own_bounding_box", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos base = helper.absolutePos(new BlockPos(0, 40, 0));
+            var room = new SewerPieces.SewerRoom(0, RandomSource.create(3L), base.getX(), base.getZ());
+            BoundingBox box = room.getBoundingBox();
+            // The room builds at a fixed y=50 and is moved by the structure; shift it here the same way.
+            int shift = base.getY() - box.minY();
+            room.move(0, shift, 0);
+            box = room.getBoundingBox();
+            BoundingBox limit = new BoundingBox(box.minX() - 32, box.minY() - 16, box.minZ() - 32,
+                box.maxX() + 32, box.maxY() + 32, box.maxZ() + 32);
+            room.postProcess(level, level.structureManager(),
+                level.getChunkSource().getGenerator(), RandomSource.create(3L),
+                limit, new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4), base);
+
+            BlockPos floor = new BlockPos(box.minX() + 1, box.minY(), box.minZ() + 1);
+            helper.assertTrue(!level.getBlockState(floor).isAir(),
+                "the room floor at " + floor + " is air - the chamber was not built inside its own box, "
+                    + "which is what a null orientation does when it is handed local coordinates");
+            BlockPos inside = new BlockPos(box.minX() + 2, box.minY() + 2, box.minZ() + 2);
+            helper.assertTrue(level.getBlockState(inside).isAir(),
+                "the room interior at " + inside + " is solid, so nothing was hollowed out");
             helper.succeed();
         });
 

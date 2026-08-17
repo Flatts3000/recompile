@@ -196,6 +196,31 @@ recompile:sewer` finds one 690 blocks out in the demolition yard, its brick sits
 deepslate at y=62 above and y=10-15 below, and a screenshot shows corridors with cobwebs, iron grates
 and leachate in the channels.
 
+**Four more bugs, all in the placement layer, none of which any test could see.** The geometry tests
+run over `StructurePiecesBuilder` - bounding boxes and nothing else - so every one of them passed while
+`postProcess` put blocks in the wrong places. Recorded because the shape of the mistake will recur:
+
+- **Local coordinates are not world coordinates.** `getWorldX(x, z)` returns `minX + z` for an EAST
+  piece and `maxX - z` for WEST, so local X and local Z **swap** on that axis. Deriving extents from
+  the world-space bounding box and feeding them back as local bounds carved every east-west piece
+  across its own width. Invisible in a north-south sewer.
+- **A null orientation makes local coordinates absolute.** `getWorldX` hands back what it is given when
+  `getOrientation()` is null, so the un-oriented room built itself at world **origin** regardless of
+  where its box was - a sewer 690 blocks out simply had no root chamber, and its corridors dead-ended
+  into rock. Vanilla's own `MineShaftRoom` passes absolute coordinates for exactly this reason.
+- **`generateBox`'s two-state form walls all six faces**, and every child is anchored one block past its
+  parent, so the sewer was a chain of sealed brick boxes with two solid layers between them. You could
+  stand in one segment and never walk to the next.
+- **The bore was the outer size**, so after shelling, the interior was one wide and two tall - and the
+  channel then filled its entire floor, making every corridor a crawlspace that applied Hunger for its
+  full length. The bore is now the *interior* (three across, three tall) with the shell added around it.
+
+`a_corridor_is_carved_along_its_own_length` and `the_root_room_is_built_at_its_own_bounding_box` call
+`postProcess` for real and read the blocks back. The corridor test faces **EAST** on purpose - north-south
+is the one orientation where local and world axes agree, so it proves nothing - and corridors are
+**seven long against five wide** for the same reason: a square piece makes a transposed carve
+indistinguishable from a correct one.
+
 **One bug worth recording, because it was invisible from inside the game.** The first version clamped
 only the FLOOR when sinking the piece tree, so a tree deeper than the available rock was pushed bodily
 upward until it broke daylight - a tree spanning 0..57 under a surface at 65 came out at 12..69, ten

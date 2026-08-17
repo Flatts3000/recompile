@@ -47,11 +47,20 @@ public final class SewerPalette {
     /** The mineshaft parallel, and the only source of cobwebs in the game. */
     public static final BlockState WEB = Blocks.COBWEB.defaultBlockState();
 
+    /**
+     * What you actually walk down in a stairs piece.
+     *
+     * <p>The first version of the stairs placed none: it hollowed a nine-tall shaft and called it a
+     * descent, so entering one was a five-block fall into a room with no way back up - the palette had
+     * no ladder, no slab and no stair in it at all.
+     */
+    public static final BlockState STEP = Blocks.BRICK_STAIRS.defaultBlockState();
+
     /** Air inside the tunnels. {@code CAVE_AIR} rather than air, as every vanilla structure uses. */
     public static final BlockState HOLLOW = Blocks.CAVE_AIR.defaultBlockState();
 
     /** Everything above, for the test that has to walk it. */
-    public static final List<BlockState> ALL = List.of(WALL, GRATE, FLUID, WEB, HOLLOW);
+    public static final List<BlockState> ALL = List.of(WALL, GRATE, FLUID, WEB, STEP, HOLLOW);
 
     private SewerPalette() {
     }

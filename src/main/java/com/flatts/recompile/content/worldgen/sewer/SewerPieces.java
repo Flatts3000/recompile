@@ -6,10 +6,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
@@ -21,8 +23,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <p><b>This mirrors vanilla's mineshaft and shares no code with it, on purpose.</b> The reuse boundary
  * was measured rather than guessed: {@link StructurePiece} is public API and supplies the whole toolbox
- * this file leans on - {@code generateBox}, {@code placeBlock}, {@code getWorldPos}, the bounding-box
- * math, mirror and rotation, NBT round-trip - but the mineshaft's own pieces cannot be extended.
+ * this file leans on - {@code generateBox}, {@code placeBlock}, {@code makeBoundingBox}, the
+ * bounding-box math, NBT round-trip - but the mineshaft's own pieces cannot be extended.
  * {@code MineshaftPieces.MineShaftPiece} is package-private, so the shared base is unreachable, and
  * {@code createRandomShaftPiece} is private and hardcodes {@code new MineShaftCorridor(...)}, so the
  * recursion is closed: a subclassed corridor's {@code addChildren} would still build vanilla oak pieces.
@@ -30,11 +32,15 @@ import org.jspecify.annotations.Nullable;
  * separate and independent reason not to copy it is that decompiled Mojang code is not licensed for
  * redistribution - the same split already recorded for Create (MIT code, all-rights-reserved assets).
  *
- * <p><b>The graph is the part worth mirroring</b>, and it is small: a corridor continues straight half
- * the time and turns left or right otherwise, drifting up to a block vertically at each link, with
- * crossings at 20% and stairs at 10%. Recursion stops at {@link #MAX_DEPTH}, and nothing generates
- * further than {@link #RADIUS_CAP} from the root, which is what keeps a sewer finite and stops two of
- * them merging.
+ * <p><b>Local coordinates are not world coordinates, and that cost this file a rewrite.</b>
+ * {@code StructurePiece.getWorldX(x, z)} returns {@code minX + z} for an EAST piece and {@code maxX - z}
+ * for WEST - local X and local Z <em>swap</em> on the X axis - and when {@code getOrientation()} is null
+ * it hands back the local value untouched, as an absolute coordinate. The first version derived its
+ * extents from the world-space bounding box and fed them back in as local bounds, so every east-west
+ * piece was carved across its own width, and the un-oriented room tried to build itself at world origin
+ * no matter where it belonged. Both are invisible in a north-south sewer and neither throws. Every piece
+ * here is built with {@link StructurePiece#makeBoundingBox}, which does the axis swap, and carves from
+ * its <b>declared</b> local dimensions rather than from the box that came out.
  */
 public final class SewerPieces {
 
@@ -44,18 +50,34 @@ public final class SewerPieces {
     /**
      * How far from the root a piece may be placed, in blocks on each horizontal axis.
      *
-     * <p>This is what "it is bounded - two sewers do not merge, and one does not run for a thousand
-     * blocks" means in code. With {@link #MAX_DEPTH} links of at most 8 blocks each the reach is already
-     * limited, but the cap is what makes it a guarantee rather than an emergent property of two other
-     * numbers that somebody may later retune.
+     * <p>What keeps one sewer finite. Keeping two of them from meeting is a different job and belongs
+     * to the structure set, which spaces starts further apart than twice this - {@code findCollisionPiece}
+     * only ever sees the pieces of the sewer being built, so it cannot help there.
      */
     public static final int RADIUS_CAP = 80;
 
-    /** Interior width and height of a corridor: three across, three tall, plus a floor. */
-    private static final int BORE = 3;
+    /**
+     * Walkable space inside a tunnel: three across and three tall.
+     *
+     * <p>The outer box is this plus a block of shell on each side, which is the correction that
+     * matters. This used to be the OUTER size, so after the shell went on, the interior was one wide
+     * and two tall - a crawlspace whose entire floor was then filled with leachate, so every corridor
+     * sickened the player for its full length with nowhere to stand aside.
+     */
+    private static final int INNER = 3;
 
-    /** How long one corridor segment runs before the next piece decides what happens. */
-    private static final int SEGMENT = 5;
+    /** Outer width and height of a tunnel: the walkable bore plus a block of brick either side. */
+    private static final int SHELL = INNER + 2;
+
+    /**
+     * How long one corridor segment runs before the next piece decides what happens.
+     *
+     * <p><b>Deliberately not equal to {@link #SHELL}.</b> A square corridor hides an axis bug: local X
+     * and local Z swap on an east-west piece, and if the piece is the same size both ways the transposed
+     * carve is indistinguishable from the correct one, in-world and in any test. Seven long against five
+     * wide makes {@code a_corridor_is_carved_along_its_own_length} able to tell them apart.
+     */
+    private static final int SEGMENT = 7;
 
     /** How far a stairs piece descends, and how long it is. Vanilla drops 5 over 8; so do we. */
     private static final int STAIR_DROP = 5;
@@ -70,23 +92,25 @@ public final class SewerPieces {
      * Pick a piece for the given opening, or null if nothing fits there.
      *
      * <p>Vanilla's split, kept: 20% crossing, 10% stairs, 70% corridor. Those proportions are what make
-     * a mineshaft read as a mineshaft - mostly tunnel, occasional junction, the rare descent - and there
-     * is no reason a sewer should read differently.
+     * a mineshaft read as a mineshaft - mostly tunnel, occasional junction, the rare descent.
      */
     private static @Nullable SewerPiece choose(StructurePieceAccessor pieces, RandomSource random,
-            int x, int y, int z, @Nullable Direction facing, int depth) {
+            int x, int y, int z, Direction facing, int depth) {
         int roll = random.nextInt(100);
         if (roll >= 80) {
-            BoundingBox box = boxFor(x, y, z, facing, BORE, BORE + 1, BORE);
+            BoundingBox box = SewerPiece.box(x, y, z, facing, SHELL, SHELL, SHELL);
             return pieces.findCollisionPiece(box) == null
                 ? new SewerCrossing(depth, box, facing) : null;
         }
         if (roll >= 70) {
-            BoundingBox box = stairBox(x, y, z, facing);
+            BoundingBox flat = SewerPiece.box(
+                x, y, z, facing, SHELL, SHELL + STAIR_DROP, STAIR_RUN);
+            BoundingBox box = new BoundingBox(flat.minX(), flat.minY() - STAIR_DROP, flat.minZ(),
+                flat.maxX(), flat.maxY() - STAIR_DROP, flat.maxZ());
             return pieces.findCollisionPiece(box) == null
                 ? new SewerStairs(depth, box, facing) : null;
         }
-        BoundingBox box = boxFor(x, y, z, facing, BORE, BORE + 1, SEGMENT);
+        BoundingBox box = SewerPiece.box(x, y, z, facing, SHELL, SHELL, SEGMENT);
         return pieces.findCollisionPiece(box) == null
             ? new SewerCorridor(depth, box, facing) : null;
     }
@@ -114,31 +138,22 @@ public final class SewerPieces {
         return piece;
     }
 
-    /** A box of the given bore and length, laid out along {@code facing} from the opening. */
-    private static BoundingBox boxFor(int x, int y, int z, @Nullable Direction facing,
-            int width, int height, int length) {
-        int w = width - 1;
-        int h = height - 1;
-        int l = length - 1;
-        return switch (facing == null ? Direction.NORTH : facing) {
-            case SOUTH -> new BoundingBox(x, y, z, x + w, y + h, z + l);
-            case WEST -> new BoundingBox(x - l, y, z, x, y + h, z + w);
-            case EAST -> new BoundingBox(x, y, z, x + l, y + h, z + w);
-            default -> new BoundingBox(x, y, z - l, x + w, y + h, z);
-        };
-    }
-
-    /** A stairs box: same bore, but it reaches {@link #STAIR_DROP} blocks below the opening. */
-    private static BoundingBox stairBox(int x, int y, int z, @Nullable Direction facing) {
-        BoundingBox flat = boxFor(x, y, z, facing, BORE, BORE + 1, STAIR_RUN);
-        return new BoundingBox(flat.minX(), flat.minY() - STAIR_DROP, flat.minZ(),
-            flat.maxX(), flat.maxY(), flat.maxZ());
-    }
-
     // ---------------------------------------------------------------- the pieces
 
-    /** What every sewer piece shares: its type and its box, and nothing else. Deliberately thin. */
+    /** What every sewer piece shares: its type, its box, and how to hollow itself out. */
     public abstract static class SewerPiece extends StructurePiece {
+
+        /**
+         * Vanilla's orientation-aware box builder, reachable.
+         *
+         * <p>{@code makeBoundingBox} is {@code protected static}, so only a subclass may call it - and
+         * the graph that needs it is not one. Exposing it here rather than reimplementing the axis swap
+         * is the whole point: reimplementing it is exactly the mistake that produced the transposed
+         * carve this class was rewritten for.
+         */
+        public static BoundingBox box(int x, int y, int z, Direction facing, int w, int h, int l) {
+            return makeBoundingBox(x, y, z, facing, w, h, l);
+        }
 
         protected SewerPiece(StructurePieceType type, int depth, BoundingBox box) {
             super(type, depth, box);
@@ -150,57 +165,60 @@ public final class SewerPieces {
 
         /**
          * Nothing to save. The box, the depth and the orientation are written by {@link StructurePiece}
-         * itself, and a sewer piece has no state of its own - the same instinct as the multiblock
-         * framework's "no BlockEntity for the structure".
+         * itself, and a sewer piece has no state of its own.
          */
         @Override
         protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
         }
 
         /**
-         * Hollow the box out, shell it in brick, and optionally run a channel down the middle.
+         * Line a tunnel: floor, ceiling and two side walls, with <b>both ends left open</b>.
          *
-         * <p>One method for every piece, because a crossing is a wider corridor and a room is a wider
-         * crossing - the differences are dimensions, not construction. Shared so the fluid cannot end
-         * up one block deep in a corridor and two in a room by accident, which is the whole content of
-         * the depth decision.
+         * <p>The open ends are the whole point, and their absence was the worst of the three geometry
+         * bugs here. {@code generateBox}'s two-state form paints all six faces with the boundary state,
+         * and every child is anchored one block past its parent, so pieces came out as sealed brick
+         * boxes separated by two solid layers - a structure you could stand inside exactly one segment
+         * of and never walk through. Vanilla's corridors are open end to end for the same reason.
+         *
+         * <p>Coordinates are <b>local and declared</b>, never derived from {@code boundingBox}: for an
+         * east-west piece local X is world Z, so measuring the box and feeding the result back in
+         * carves the tunnel across its own width.
          */
-        protected void carve(WorldGenLevel level, BoundingBox limit, boolean channel) {
-            BoundingBox box = this.boundingBox;
-            int x1 = box.maxX() - box.minX();
-            int y1 = box.maxY() - box.minY();
-            int z1 = box.maxZ() - box.minZ();
-            // Shell then hollow in one call: generateBox's two-state form paints the outer layer with
-            // the first state and the interior with the second, which is exactly a lined tunnel.
-            this.generateBox(level, limit, 0, 0, 0, x1, y1, z1,
-                SewerPalette.WALL, SewerPalette.HOLLOW, false);
-            if (!channel) {
-                return;
-            }
-            // The channel is recessed into the floor, so the fluid sits below the walkway rather than
-            // on it. That keeps a corridor walkable while still reading as a sewer, and it is why the
-            // fluid cannot spill: it has a brick lip on both sides.
-            int midX = x1 / 2;
-            int midZ = z1 / 2;
-            boolean alongZ = z1 >= x1;
-            int span = alongZ ? z1 : x1;
-            for (int i = 1; i < span; i++) {
-                int cx = alongZ ? midX : i;
-                int cz = alongZ ? i : midZ;
-                this.placeBlock(level, SewerPalette.FLUID, cx, 1, cz, limit);
+        protected void line(WorldGenLevel level, BoundingBox limit, int w, int h, int l) {
+            // Hollow everything first, ends included - that is what connects one piece to the next.
+            this.generateBox(level, limit, 0, 0, 0, w - 1, h - 1, l - 1,
+                SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
+            this.generateBox(level, limit, 0, 0, 0, w - 1, 0, l - 1,
+                SewerPalette.WALL, SewerPalette.WALL, false);
+            this.generateBox(level, limit, 0, h - 1, 0, w - 1, h - 1, l - 1,
+                SewerPalette.WALL, SewerPalette.WALL, false);
+            this.generateBox(level, limit, 0, 1, 0, 0, h - 2, l - 1,
+                SewerPalette.WALL, SewerPalette.WALL, false);
+            this.generateBox(level, limit, w - 1, 1, 0, w - 1, h - 2, l - 1,
+                SewerPalette.WALL, SewerPalette.WALL, false);
+        }
+
+        /**
+         * Sink the channel into the floor down the middle of the run, leaving a walkway either side.
+         *
+         * <p>The fluid replaces floor blocks rather than sitting on them, so a player walks the brick
+         * strips at the sides with the leachate ankle-deep beside them. With a three-wide bore that is
+         * one channel and two walkways; the earlier one-wide bore had room for neither, so the channel
+         * covered the whole floor and the corridor was a Hunger tax end to end.
+         */
+        protected void channel(WorldGenLevel level, BoundingBox limit, int w, int l) {
+            for (int z = 1; z < l - 1; z++) {
+                this.placeBlock(level, SewerPalette.FLUID, w / 2, 0, z, limit);
             }
         }
 
-        /** Sparse cobwebs on the ceiling: the mineshaft parallel, and the game's only source of them. */
-        protected void cobwebs(WorldGenLevel level, BoundingBox limit, RandomSource random) {
-            BoundingBox box = this.boundingBox;
-            int x1 = box.maxX() - box.minX();
-            int y1 = box.maxY() - box.minY();
-            int z1 = box.maxZ() - box.minZ();
-            for (int x = 1; x < x1; x++) {
-                for (int z = 1; z < z1; z++) {
-                    if (random.nextInt(60) == 0) {
-                        this.placeBlock(level, SewerPalette.WEB, x, y1 - 1, z, limit);
+        /** Sparse cobwebs under the ceiling: the mineshaft parallel, and the only source in the game. */
+        protected void cobwebs(WorldGenLevel level, BoundingBox limit, RandomSource random,
+                int w, int h, int l) {
+            for (int x = 1; x < w - 1; x++) {
+                for (int z = 1; z < l - 1; z++) {
+                    if (random.nextInt(24) == 0) {
+                        this.placeBlock(level, SewerPalette.WEB, x, h - 2, z, limit);
                     }
                 }
             }
@@ -210,7 +228,7 @@ public final class SewerPieces {
     /** A straight run of tunnel, and the piece that does the branching. */
     public static class SewerCorridor extends SewerPiece {
 
-        public SewerCorridor(int depth, BoundingBox box, @Nullable Direction facing) {
+        public SewerCorridor(int depth, BoundingBox box, Direction facing) {
             super(RCStructures.SEWER_CORRIDOR.get(), depth, box);
             this.setOrientation(facing);
         }
@@ -223,8 +241,7 @@ public final class SewerPieces {
          * Straight half the time, left a quarter, right a quarter, drifting up to a block vertically.
          *
          * <p>The vertical drift is what gives a sewer levels without every descent needing a stairs
-         * piece, and it is the cheapest way to get one: an offset on the next opening, no extra piece
-         * type and no extra geometry.
+         * piece: an offset on the next opening, no extra piece type and no extra geometry.
          */
         @Override
         public void addChildren(StructurePiece root, StructurePieceAccessor pieces, RandomSource random) {
@@ -249,15 +266,16 @@ public final class SewerPieces {
         @Override
         public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
                 RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
-            this.carve(level, limit, true);
-            this.cobwebs(level, limit, random);
+            this.line(level, limit, SHELL, SHELL, SEGMENT);
+            this.channel(level, limit, SHELL, SEGMENT);
+            this.cobwebs(level, limit, random, SHELL, SHELL, SEGMENT);
         }
     }
 
     /** A junction: same bore, square, and it opens every way except back. */
     public static class SewerCrossing extends SewerPiece {
 
-        public SewerCrossing(int depth, BoundingBox box, @Nullable Direction facing) {
+        public SewerCrossing(int depth, BoundingBox box, Direction facing) {
             super(RCStructures.SEWER_CROSSING.get(), depth, box);
             this.setOrientation(facing);
         }
@@ -274,7 +292,6 @@ public final class SewerPieces {
             }
             int depth = this.getGenDepth();
             BoundingBox box = this.boundingBox;
-            // Every direction except back the way we came, which is where the parent already is.
             for (Direction out : Direction.Plane.HORIZONTAL) {
                 if (out == facing.getOpposite()) {
                     continue;
@@ -291,20 +308,18 @@ public final class SewerPieces {
         @Override
         public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
                 RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
-            this.carve(level, limit, true);
+            this.line(level, limit, SHELL, SHELL, SHELL);
+            this.channel(level, limit, SHELL, SHELL);
             // A grate in the ceiling, which is what a sewer junction has and what stops a crossing
             // reading as nothing more than a wide bit of corridor.
-            BoundingBox box = this.boundingBox;
-            this.placeBlock(level, SewerPalette.GRATE,
-                (box.maxX() - box.minX()) / 2, box.maxY() - box.minY(),
-                (box.maxZ() - box.minZ()) / 2, limit);
+            this.placeBlock(level, SewerPalette.GRATE, SHELL / 2, SHELL - 1, SHELL / 2, limit);
         }
     }
 
-    /** The descent: down five over eight, which is what turns drift into genuine levels. */
+    /** The descent: down five over eight, on steps you can actually walk. */
     public static class SewerStairs extends SewerPiece {
 
-        public SewerStairs(int depth, BoundingBox box, @Nullable Direction facing) {
+        public SewerStairs(int depth, BoundingBox box, Direction facing) {
             super(RCStructures.SEWER_STAIRS.get(), depth, box);
             this.setOrientation(facing);
         }
@@ -332,10 +347,21 @@ public final class SewerPieces {
         @Override
         public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
                 RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
-            // NO CHANNEL, deliberately. A slope is the one place the fluid would actually run, and a
-            // stairwell filling with leachate is both a flood risk during generation and exactly the
-            // head-height column that made canDrown a problem in the first place.
-            this.carve(level, limit, false);
+            // No channel: a slope is the one place the fluid would actually run, and a flooded
+            // stairwell is both a generation-time flood risk and the head-height column that made
+            // canDrown a problem in the first place.
+            this.line(level, limit, SHELL, SHELL + STAIR_DROP, STAIR_RUN);
+            // AND ACTUAL STEPS. The first version hollowed the shaft and placed nothing in it, so
+            // entering one was a five-block fall into a dead end - the palette had no ladder, no slab
+            // and no stair in it at all, so there was nothing to climb back out on either.
+            BlockState step = SewerPalette.STEP.setValue(
+                BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
+            for (int z = 1; z < STAIR_RUN - 1; z++) {
+                int y = STAIR_DROP - (z * STAIR_DROP) / (STAIR_RUN - 2);
+                for (int x = 1; x < SHELL - 1; x++) {
+                    this.placeBlock(level, step, x, y, z, limit);
+                }
+            }
         }
     }
 
@@ -344,12 +370,11 @@ public final class SewerPieces {
 
         /**
          * Rooted at y=50 the way vanilla's mineshaft room is, then moved as a whole by
-         * {@code SewerStructure} once the piece tree is built. Building at a fixed height and shifting
-         * afterwards is vanilla's own trick and it is why no piece needs to know the terrain.
+         * {@code SewerStructure} once the tree is built.
          */
         public SewerRoom(int depth, RandomSource random, int x, int z) {
             super(RCStructures.SEWER_ROOM.get(), depth, new BoundingBox(
-                x, 50, z, x + 7 + random.nextInt(6), 54 + random.nextInt(4), z + 7 + random.nextInt(6)));
+                x, 50, z, x + 9 + random.nextInt(5), 57, z + 9 + random.nextInt(5)));
         }
 
         public SewerRoom(CompoundTag tag) {
@@ -366,22 +391,31 @@ public final class SewerPieces {
             grow(root, pieces, random, box.maxX() + 1, box.minY(), box.minZ(), Direction.EAST, depth);
         }
 
+        /**
+         * <b>Absolute coordinates, because the room has no orientation.</b> With {@code getOrientation()}
+         * null, {@code getWorldX/Y/Z} hand back whatever they are given, so local coordinates ARE world
+         * coordinates - passing {@code 0..width} built the room at world origin no matter where its box
+         * was, which for a sewer several hundred blocks out meant the root chamber never appeared at all
+         * and its corridors dead-ended into solid rock. Vanilla's own un-oriented {@code MineShaftRoom}
+         * passes its bounding box straight through for exactly this reason.
+         */
         @Override
         public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
                 RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
-            this.carve(level, limit, false);
-            // A pool rather than a channel: the room is the one place the fluid is allowed to be wide.
-            // Still exactly one block deep, and inset by two so it never touches the wall a corridor
-            // might open through.
             BoundingBox box = this.boundingBox;
-            int x1 = box.maxX() - box.minX();
-            int z1 = box.maxZ() - box.minZ();
-            for (int x = 2; x < x1 - 1; x++) {
-                for (int z = 2; z < z1 - 1; z++) {
-                    this.placeBlock(level, SewerPalette.FLUID, x, 1, z, limit);
+            this.generateBox(level, limit, box.minX(), box.minY(), box.minZ(),
+                box.maxX(), box.maxY(), box.maxZ(), SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
+            this.generateBox(level, limit, box.minX(), box.minY(), box.minZ(),
+                box.maxX(), box.minY(), box.maxZ(), SewerPalette.WALL, SewerPalette.WALL, false);
+            this.generateBox(level, limit, box.minX(), box.maxY(), box.minZ(),
+                box.maxX(), box.maxY(), box.maxZ(), SewerPalette.WALL, SewerPalette.WALL, false);
+            // A pool rather than a channel: the room is the one place the fluid is allowed to be wide.
+            // Inset by two so it never reaches a wall a corridor might open through.
+            for (int x = box.minX() + 2; x <= box.maxX() - 2; x++) {
+                for (int z = box.minZ() + 2; z <= box.maxZ() - 2; z++) {
+                    this.placeBlock(level, SewerPalette.FLUID, x, box.minY(), z, limit);
                 }
             }
-            this.cobwebs(level, limit, random);
         }
     }
 }

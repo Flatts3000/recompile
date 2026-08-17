@@ -4,10 +4,13 @@
     "frequency": 0.004,
     "frequency_reduction_method": "legacy_type_3",
     "salt": 90210,
-    "separation": 0,
-    "spacing": 1
+    "separation": 8,
+    "spacing": 20
   },
   "structures": [
-    { "structure": "recompile:sewer", "weight": 1 }
+    {
+      "structure": "recompile:sewer",
+      "weight": 1
+    }
   ]
 }
