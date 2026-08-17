@@ -816,31 +816,6 @@ public final class RCBlocks {
      * cannot sort - a real facility uses a different machine for each cut it makes, and a trommel makes
      * the size cut. See #187 for the removal.
      */
-    /**
-     * The Pulverizer core (#189): a hammer mill, the machine that reduces rather than divides.
-     *
-     * <p>No requiresCorrectToolForDrops. A machine comes back however you break it (#195) - it is
-     * assembled and disassembled, not quarried.
-     */
-    public static final DeferredBlock<PulverizerCoreBlock> PULVERIZER = BLOCKS.registerBlock(
-        "pulverizer",
-        PulverizerCoreBlock::new,
-        () -> BlockBehaviour.Properties.of()
-            .mapColor(MapColor.METAL)
-            .strength(3.5F)
-            .sound(SoundType.METAL)
-    );
-
-    /** A formed cell: sealed housing, all seven the same, because you cannot see into a mill. */
-    public static final DeferredBlock<PulverizerPartBlock> PULVERIZER_HOUSING = BLOCKS.registerBlock(
-        "pulverizer_housing",
-        PulverizerPartBlock::new,
-        () -> BlockBehaviour.Properties.of()
-            .mapColor(MapColor.METAL)
-            .strength(3.5F)
-            .sound(SoundType.METAL)
-    );
-
     public static final DeferredBlock<TrommelCoreBlock> TROMMEL = BLOCKS.registerBlock(
         "trommel",
         TrommelCoreBlock::new,
@@ -878,6 +853,32 @@ public final class RCBlocks {
             .sound(SoundType.METAL)
             .noOcclusion()
     );
+
+    /**
+     * The Pulverizer core (#189): a hammer mill, the machine that reduces rather than divides.
+     *
+     * <p>No requiresCorrectToolForDrops. A machine comes back however you break it (#195) - it is
+     * assembled and disassembled, not quarried.
+     */
+    public static final DeferredBlock<PulverizerCoreBlock> PULVERIZER = BLOCKS.registerBlock(
+        "pulverizer",
+        PulverizerCoreBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.5F)
+            .sound(SoundType.METAL)
+    );
+
+    /** A formed cell: sealed housing, all seven the same, because you cannot see into a mill. */
+    public static final DeferredBlock<PulverizerPartBlock> PULVERIZER_HOUSING = BLOCKS.registerBlock(
+        "pulverizer_housing",
+        PulverizerPartBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.5F)
+            .sound(SoundType.METAL)
+    );
+
 
     public static final DeferredBlock<SeparatorCoreBlock> SEPARATOR = BLOCKS.registerBlock(
         "separator",

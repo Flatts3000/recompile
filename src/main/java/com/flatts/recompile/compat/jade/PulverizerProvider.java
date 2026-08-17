@@ -61,11 +61,16 @@ public enum PulverizerProvider implements IBlockComponentProvider {
         // sets goal and keeps progress BEFORE the energy check, so a stalled machine looks mid-run.
         // The tooltip claimed it was working while it had nothing to work with.
         //
-        // AGAINST ZERO, not against a constant. The Trommel tests `stored < SORT_ENERGY` because its
-        // draw is fixed; a pulverizing recipe declares its own energy, so there is no single number
-        // this could compare to without reading the recipe the machine happens to be running. Zero is
-        // the honest floor: an empty buffer cannot turn a rotor whatever the recipe wants.
-        if (stored <= 0) {
+        // AGAINST WHAT THE RUNNING RECIPE COSTS, which the machine now sends.
+        //
+        // Zero was too weak and reintroduced the defect the Trommel's comment records fixing: a buffer
+        // holding 20 FE against a recipe wanting 24 is as stopped as an empty one, but `stored` is not
+        // zero, so the progress branch won and the tooltip read "Milling: 40%" forever on a machine
+        // that would never advance again. The Trommel can compare to a constant because its draw is
+        // fixed; here the recipe declares it, so the recipe's number is the only correct threshold.
+        // Falling back to 1 keeps "no power" meaning an empty buffer when nothing is running.
+        int draw = Math.max(1, data.getIntOr("draw", 1));
+        if (stored < draw) {
             tooltip.add(Component.translatable("jade.recompile.pulverizer_no_power"));
         } else if (queued == 0) {
             tooltip.add(Component.translatable("jade.recompile.pulverizer_empty"));

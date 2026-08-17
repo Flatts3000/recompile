@@ -35,6 +35,7 @@ public enum PulverizerDataProvider implements IServerDataProvider<BlockAccessor>
             // to "why is it not running".
             data.putInt("have", pulverizer.feedHave());
             data.putInt("need", pulverizer.feedNeed());
+            data.putInt("draw", pulverizer.drawPerTick());
         }
     }
 

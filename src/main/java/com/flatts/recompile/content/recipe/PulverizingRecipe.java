@@ -52,7 +52,7 @@ public class PulverizingRecipe implements Recipe<SingleRecipeInput> {
 
     public static final MapCodec<PulverizingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         Ingredient.CODEC.fieldOf("input").forGetter(PulverizingRecipe::input),
-        Codec.intRange(1, 999).optionalFieldOf("count", 1).forGetter(PulverizingRecipe::count),
+        Codec.intRange(1, 64).optionalFieldOf("count", 1).forGetter(PulverizingRecipe::count),
         TeardownRecipe.ItemResult.CODEC.fieldOf("result").forGetter(PulverizingRecipe::result),
         Codec.intRange(1, 72000).optionalFieldOf("ticks", DEFAULT_TICKS).forGetter(PulverizingRecipe::ticks),
         Codec.intRange(0, 100000).optionalFieldOf("energy", DEFAULT_ENERGY).forGetter(PulverizingRecipe::energy)

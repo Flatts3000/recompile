@@ -190,6 +190,46 @@ final class MachineParityTests {
                     + "these do not say: " + silent);
             helper.succeed();
         });
+
+        registerGuidebookParity();
+    }
+
+    /**
+     * AND THE GUIDEBOOK MUST TEACH ALL OF IT, in the same shape for each machine.
+     *
+     * <p>{@code every_multiblock_machine_has_a_guidebook_page} already requires an ENTRY with a render
+     * page, so a machine cannot ship undocumented. It does not require the entry to say the same things
+     * as its siblings', and it did not: the Separator carried its feeding contract as a paragraph
+     * inside the intro while the Trommel and the Pulverizer each had a page for it. The information was
+     * there and a player looking for "how do I feed this" scans page titles, so it was findable on two
+     * machines out of three.
+     *
+     * <p>Checks the page's TEXT KEY rather than the file, because a page whose lang key is missing
+     * renders the raw key to the player - {@code GuidebookTests} records that as one of the three
+     * things this book fails silently at - so the file existing proves less than the string existing.
+     */
+    private static void registerGuidebookParity() {
+        RCGameTests.test("every_powered_machine_teaches_how_to_feed_it", 60, helper -> {
+            List<Block> machines = poweredMachines(helper);
+            helper.assertTrue(machines.size() >= 3,
+                "only " + machines.size() + " powered machine cores found - discovery is broken");
+
+            List<String> gaps = new ArrayList<>();
+            for (Block machine : machines) {
+                String name = idOf(machine);
+                for (String key : List.of(
+                        "book." + Recompile.MOD_ID + ".guide.demolition." + name + ".feeding.title",
+                        "book." + Recompile.MOD_ID + ".guide.demolition." + name + ".feeding.text")) {
+                    if (!net.minecraft.locale.Language.getInstance().has(key)) {
+                        gaps.add(name + " has no " + key);
+                    }
+                }
+            }
+            helper.assertTrue(gaps.isEmpty(),
+                "these machines cannot be pushed into, which is unlike every other automatable block "
+                    + "in the game, and their guidebook entry never explains how to feed them: " + gaps);
+            helper.succeed();
+        });
     }
 
     /** {@code trommel_core} style ids are not used here; every machine id is one or two words. */

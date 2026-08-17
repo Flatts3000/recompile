@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.RandomSource;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -164,6 +166,37 @@ public class PulverizerCoreBlock extends MultiblockCoreBlock implements EntityBl
             return Direction.NORTH;
         }
         return block.rotationFor(level.getBlockState(core)).rotate(Direction.NORTH);
+    }
+
+    /**
+     * Dust at the discharge while the rotor is turning.
+     *
+     * <p><b>This is what {@link #ACTIVE} is for, and without it the property was inert.</b> Every
+     * {@code active=true} variant mapped to the same model as its {@code active=false} twin, so
+     * {@code setActive} was issuing a real client block update on every start and stop for no visible
+     * change at all - and the machine had no running cue beyond a once-per-operation sound.
+     *
+     * <p>Particles rather than a lit texture, deliberately. The Separator animates its bay and the
+     * Trommel its drum because both are open and you can see the working part; this machine's whole
+     * identity is that you cannot see in. Dust escaping the discharge is the cue a sealed mill actually
+     * gives, and it costs no new art - so the running state is visible without contradicting what the
+     * machine is.
+     */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        super.animateTick(state, level, pos, random);
+        if (!state.getValue(ACTIVE) || !isFormed(state)) {
+            return;
+        }
+        BlockPos outlet = outlet(level, pos);
+        Direction out = dischargeFacing(level, pos);
+        for (int i = 0; i < 2; i++) {
+            level.addParticle(ParticleTypes.SMOKE,
+                outlet.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.6 + out.getStepX() * 0.2,
+                outlet.getY() + 0.15 + random.nextDouble() * 0.25,
+                outlet.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.6 + out.getStepZ() * 0.2,
+                out.getStepX() * 0.01, 0.008, out.getStepZ() * 0.01);
+        }
     }
 
     // ---------------- the BlockEntity ----------------

@@ -68,6 +68,17 @@ public class PulverizerBlockEntity extends BlockEntity {
     /** What the head slot held when this run started, so a swap cannot bank one item's progress. */
     private ItemStack milling = ItemStack.EMPTY;
 
+    /**
+     * What the running recipe costs per tick, so a readout can say "no power" honestly.
+     *
+     * <p>Zero is not the threshold. A buffer holding 20 FE against a recipe wanting 24 is as stopped as
+     * an empty one, and testing {@code stored <= 0} reported "Milling: 40%" forever on a machine that
+     * would never advance again. Unlike the Trommel's fixed draw there is no constant to compare
+     * against - a pulverizing recipe declares its own - so the machine sends the number it is actually
+     * trying to spend.
+     */
+    private int drawPerTick;
+
     public PulverizerBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.PULVERIZER.get(), pos, state);
     }
@@ -90,6 +101,11 @@ public class PulverizerBlockEntity extends BlockEntity {
 
     public int feedNeed() {
         return feedNeed;
+    }
+
+    /** FE per tick the running recipe wants, or 0 when nothing is running. */
+    public int drawPerTick() {
+        return drawPerTick;
     }
 
     public List<ItemStack> queued() {
@@ -119,6 +135,7 @@ public class PulverizerBlockEntity extends BlockEntity {
             be.goal = 0;
             be.feedHave = 0;
             be.feedNeed = 0;
+            be.drawPerTick = 0;
             be.milling = ItemStack.EMPTY;
             be.stall(level, pos, state);
             return;
@@ -137,6 +154,7 @@ public class PulverizerBlockEntity extends BlockEntity {
             be.progress = 0;
         }
         be.goal = match.value().ticks();
+        be.drawPerTick = match.value().energy();
         be.feedHave = stack.getCount();
         be.feedNeed = match.value().count();
         if (stack.getCount() < be.feedNeed) {
