@@ -1,12 +1,12 @@
 {
-  "__comment": "The IDLE model wears trommel_drum_still, a one-frame crop of the sheet; the _running model wears the sheet itself. Both files existed before and were BYTE-IDENTICAL, so the drum turned whether or not the machine had power or material - and the ACTIVE blockstate, the mirror that writes it onto every cell, and the CELL stamping were all driving a distinction the art did not make. Neither GameTest nor JUnit can see a block face, which is why this survived a green suite and died in one screenshot.",
+  "__comment": "A TURNING CYLINDER, so opposite faces travel in OPPOSITE directions. Axis runs left to right: the near face goes down, the far face comes up, the top carries toward the near side. In texture space that is forward on north and down, reversed on south and up. Every face used to wear the one sheet scrolling the one way, which is two conveyor belts facing each other rather than a drum. The idle models need no such split - a stopped drum looks the same from either side.",
   "parent": "minecraft:block/cube",
   "textures": {
     "particle": "recompile:block/trommel_drum_still",
     "north": "recompile:block/trommel_drum_still",
+    "down": "recompile:block/trommel_drum_still",
     "south": "recompile:block/trommel_drum_still",
     "up": "recompile:block/trommel_drum_still",
-    "down": "recompile:block/trommel_drum_still",
     "east": "recompile:block/trommel_drum_still",
     "west": "recompile:block/trommel_drum_still"
   }

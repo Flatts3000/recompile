@@ -1654,6 +1654,23 @@ prompt = "a full-bleed Minecraft block face: the bolted steel end plate that clo
 # picked a second time. The BLOCK recompile:trommel_chute stays - it is a real cell of the machine -
 # it just wears skin tiles like every other skinned cell.
 
+[surface.trommel_drum_back]
+# THE SAME DRUM, TURNING THE OTHER WAY.
+#
+# A cylinder's near face and far face travel in OPPOSITE directions - that is the whole of what makes
+# it read as turning rather than as a conveyor belt. Every face wore this one sheet scrolling one way,
+# so both flanks scrolled together, which is a shape that cannot exist.
+#
+# Reversing the frame order reverses the motion exactly, and reverse_of shares the source art, so the
+# two halves of one drum cannot drift into two different drums. Frame count and timing must match the
+# surface it reverses or the two sides fall out of step.
+reverse_of = "trommel_drum"
+kind = "block"
+size = 16
+frames = 8
+frametime = 3
+interpolate = true
+
 [surface.trommel_skin_north]
 kind = "block_skin"
 backend = "ai"
