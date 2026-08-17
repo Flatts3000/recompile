@@ -8,6 +8,11 @@
           "type": "minecraft:item",
           "name": "recompile:trommel_drum"
         }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
       ]
     }
   ]

@@ -74,6 +74,44 @@ final class ComponentTests {
             helper.succeed();
         });
 
+        // BREAKING THE MOTOR CELL BY HAND RETURNS THE MOTOR.
+        //
+        // The cell you break is the one cell disband cannot give back - it is already air by the time
+        // the hook runs - so it fell through to the formed block's own loot table, and that table
+        // cannot be right. One formed block serves several components: the Separator's Motor cell and
+        // its seven Machine Frame cells all become separator_housing, whose table says machine_frame.
+        // So breaking the motor cell converted the rarest part in the machine into the commonest, in
+        // silence. That is verbatim the regression Multiblock.disband was fixed for on 2026-08-07;
+        // only the disband path was fixed, and this one stayed reachable by hitting the block.
+        //
+        // Asserted on BOTH machines because they fail it differently: the Separator hands back the
+        // wrong component, the Trommel hands back trommel_stand - an item with no recipe, hidden from
+        // JEI as unobtainable, and useless for rebuilding the machine it came out of.
+        RCGameTests.test("breaking_a_motor_cell_by_hand_returns_the_motor", 80, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            for (var cell : RCBlocks.SEPARATOR.get().blueprint().cells()) {
+                helper.setBlock(cell.at(core, net.minecraft.world.level.block.Rotation.NONE),
+                    cell.component());
+            }
+            helper.assertTrue(
+                com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock.tryForm(
+                    helper.getLevel(), helper.absolutePos(core)),
+                "precondition: the Separator must form");
+
+            var motorCell = RCBlocks.SEPARATOR.get().blueprint().cells().stream()
+                .filter(c -> c.component() == RCBlocks.MOTOR.get())
+                .findFirst().orElse(null);
+            helper.assertTrue(motorCell != null, "the Separator blueprint has no Motor cell");
+            BlockPos motor = motorCell.at(core, net.minecraft.world.level.block.Rotation.NONE);
+            helper.getLevel().destroyBlock(helper.absolutePos(motor), true);
+
+            helper.succeedWhen(() -> {
+                helper.assertItemEntityCountIs(RCItems.MOTOR.get(), core, 8.0, 1);
+                helper.assertItemEntityCountIs(RCItems.SEPARATOR.get(), core, 8.0, 1);
+            });
+        });
+
         // THE CASCADE, ON THE MACHINE MOST EXPOSED TO IT.
         //
         // The Separator has ELEVEN dummy cells - more than anything else in the mod - and in 26.1 the

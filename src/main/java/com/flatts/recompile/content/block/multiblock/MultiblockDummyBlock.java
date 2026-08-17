@@ -7,6 +7,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -103,6 +105,30 @@ public abstract class MultiblockDummyBlock extends Block {
         return null;
     }
 
+    /**
+     * A formed cell gives back <b>nothing of its own</b>. The machine decides what a cell returns.
+     *
+     * <p><b>Why this cannot be a loot table.</b> A formed block is not one component: the Separator's
+     * Motor cell and its seven Machine Frame cells all form into {@code separator_housing}, and the
+     * Trommel's Motor cell and its frame cell both form into {@code trommel_stand}. A per-block table
+     * has no way to tell them apart, so whatever it names is wrong for one of them - and it was.
+     * Breaking the Separator's motor cell by hand handed back a Machine Frame, silently converting the
+     * rarest part in the machine into the commonest, which is verbatim the regression {@code
+     * Multiblock.disband} was fixed for on 2026-08-07. Only the disband path was fixed; this one was
+     * not, so the bug stayed reachable by simply hitting the block.
+     *
+     * <p>The Trommel's three cells were worse: they dropped <em>themselves</em> - items with no recipe,
+     * hidden from JEI as unobtainable parts - while the Motor was destroyed.
+     *
+     * <p>So the blueprint is the single source of truth for what disassembly returns, on every path.
+     * {@link #affectNeighborsAfterRemoval} pops the broken cell's own component and
+     * {@code Multiblock.disband} handles the rest.
+     */
+    @Override
+    protected java.util.List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        return java.util.List.of();
+    }
+
     /** Right-clicking any part of the machine is right-clicking the machine. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
@@ -142,6 +168,19 @@ public abstract class MultiblockDummyBlock extends Block {
         BlockState coreState = level.getBlockState(core);
         if (!MultiblockCoreBlock.isFormed(coreState)) {
             return;
+        }
+        // THIS CELL'S COMPONENT, which nothing else will return. disband skips cells that are already
+        // air, and this one is - the break took it out before the hook ran - so without this the part
+        // the player broke is the one part they do not get back.
+        if (level.getBlockState(core).getBlock() instanceof MultiblockCoreBlock owner) {
+            Rotation rotation = owner.rotationFor(coreState);
+            for (Multiblock.Cell cell : owner.blueprint().cells()) {
+                if (cell.at(core, rotation).equals(pos)
+                        && level.getGameRules().get(GameRules.BLOCK_DROPS)) {
+                    Block.popResource(level, pos, new ItemStack(cell.component()));
+                    break;
+                }
+            }
         }
         // Drop the core's own contents, then clear it. dropResources + setBlock rather than
         // destroyBlock, so the core's removal handler cannot bounce back into this one.
