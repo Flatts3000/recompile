@@ -33,7 +33,7 @@ superseded rather than closed by this** - see the progression note below.
 | Cobwebs | **Generated in the corridors** | Decided 2026-08-02. The mineshaft parallel, and the only source in the game |
 | Reward | **Barrels with real loot** | Finite content needs a reason to clear it |
 | Generation | **A custom Java `StructureType`** | Vanilla mineshaft sprawl is code-backed; jigsaw would read like a bastion |
-| Water | **Sewage, filtered before use** | Keeps the Rain Collector's scarcity and earns a machine instead of undercutting one |
+| Water | **Leachate** (owner, 2026-08-17) | The fluid the dump already drains. Not water, asserted; no route to water at all; no new fluid and no filter machine |
 | Drowned loot | **Vanilla, trident included** | By sewer depth the player has iron and sticks, so armour and tools exist. A trident is a prize, not a spike |
 | Held light | **Torches light while carried** | See phase 0; this is the one item that may not be buildable |
 
@@ -58,11 +58,40 @@ the end of this section.)
 **This mod has no mixins.** That is a standing architectural rule, and it is what makes the held-light
 requirement a research task rather than a feature.
 
-**Sewer water is sewage, and that is why.** A bucket is three iron, iron comes from the yard, and the
-sewer is *in* the yard, so a plain water source down there would end the Rain Collector's monopoly (a
-locked P1.10 decision) the moment sewers become reachable. Sewage that must be filtered before it is
-usable keeps the scarcity and earns a machine instead of retiring one. It costs a custom fluid; the
-Rain Collector's tank is the pattern to follow (`ResourceHandler<FluidResource>`, transactional).
+**Sewer water is leachate** (owner, 2026-08-17). A bucket is three iron, iron comes from the yard, and
+the sewer is *in* the yard, so a plain water source down there would end the Rain Collector's monopoly
+(a locked P1.10 decision) the moment sewers become reachable.
+
+This spec's answer was a bespoke sewage fluid plus a filter machine that "this spec creates and does not
+design". **Leachate is better on every axis and it already ships** (#156):
+
+- **It is not water, and that is asserted, not assumed.** `leachate_is_not_water` proves the fluid is
+  neither `WATER` nor `FLOWING_WATER`, and the Rain Collector's tank takes water only.
+- **It cannot become water.** Nothing in the mod converts it - no recipe, no machine, no cauldron
+  interaction. The monopoly is protected by the *absence of a route*, not by a cost, which is the
+  stronger form: there is nothing to rebalance later.
+- **It cannot irrigate.** `FluidType.canHydrate` defaults false and `RCFluids` deliberately never sets
+  it, so a flooded corridor is not a free farm and `RCEncroachment`'s wet-farmland rule is untouched.
+- **No filter machine.** The mod keeps machines to a minimum; the original plan added one to solve a
+  problem this fluid does not have.
+- **Its spread numbers already suit a corridor.** `levelDecreasePerBlock` 2 halves water's reach and
+  `tickRate` 15 makes it crawl - tuned so "a broken pond edge weeps rather than floods", which is
+  verbatim the phase 2 acceptance criterion about not flooding corridors on generation.
+- **It is what a sewer under a landfill would actually carry.** Rain falls through refuse and comes out
+  the bottom as this. The fiction needed no invention.
+
+**Two consequences, because leachate was built for puddles and a sewer is not one.**
+
+1. **The sewer would be leachate's first deep body, which makes `canDrown` reachable for the first
+   time.** The flag is set in `RCFluids` and has been inert since the fluid shipped - its own javadoc
+   says so: "`canDrown` is set but unreachable because pools are one block deep". `LeachatePoolFeature`
+   has `DEPTH = 1`, and `RCLeachateContact` checks the entity's **feet** with a comment explaining that
+   an eye check would never fire on anything taller than a chicken. Two blocks of leachate in a corridor
+   turns all three of those statements false at once and adds drowning to a structure whose hazard
+   budget nobody has set. **Corridor depth is therefore a decision, not a detail.**
+2. **Hunger was tuned for a puddle you cross, not a corridor you wade.** `LeachateBlock.sicken` applies
+   Hunger, refreshed rather than stacked, so it holds steady instead of banking - correct for a pool you
+   step through in a second, and an open question for a structure you spend minutes inside.
 
 **A gate hole found while writing this, filed separately.** Plain `minecraft:deepslate` sits in
 `mineable/pickaxe` and in no `needs_*_tool` tag, so a **wooden** pickaxe drops cobbled deepslate - which
@@ -229,9 +258,11 @@ material economy may need retuning with them rather than around them.
 
 ## Open
 
-- **How much deeper the slab goes.** Enough for multi-level sewers with rock left over, without turning
-  the world into a mining game. A number, then a look at it in-world.
-- **What sewage is, mechanically.** A custom fluid, and what filters it. The filter is a machine this
-  spec creates and does not design.
+- **~~How much deeper the slab goes.~~** Answered 2026-08-17 and shipped: 55-61 blocks of tunnelable
+  rock against a requirement of 45. See phase 2.
+- **~~What sewage is, mechanically.~~** Answered 2026-08-17: it is leachate, and there is no filter.
+- **How deep leachate lies in a corridor**, which decides whether drowning enters the sewer at all -
+  see the two consequences in section 2.
+- **Whether Hunger-on-contact is right for a structure you spend minutes in**, or wants its own number.
 - **Phase 0's answer.** Held torch light may not survive contact.
 - **Slime as a mob or as a found substance.**
