@@ -83,6 +83,46 @@ final class ComponentTests {
         // Fixed by having disband read the component off the blueprint instead. This test is the
         // guard: it is the only thing standing between a scarce found component and a machine that
         // quietly eats it.
+        // THE CASCADE, ON THE MACHINE MOST EXPOSED TO IT.
+        //
+        // The Separator has ELEVEN dummy cells - more than anything else in the mod - and in 26.1 the
+        // removal hook fires on a plain setBlock-to-AIR as well as on a real break. So clearing one
+        // cell re-enters its siblings' hooks, and while the core is still FORMED each re-entry
+        // re-drops the core: eleven cores from one break. disband flips FORMED off BEFORE clearing
+        // cells so every re-entry bails, and this is what says so.
+        //
+        // It goes through destroyBlock on a CELL, not through disband() directly. Its sibling below
+        // calls disband and therefore never touches the removal hook at all - which is the whole path
+        // the cascade lives in, and why that test could pass with this broken.
+        //
+        // Written because #191 claimed a tool-gated core cannot be counted here. It can; that issue
+        // was wrong, and this machine had no core assertion on the break path because of it.
+        RCGameTests.test("breaking_a_separator_cell_returns_exactly_one_core", 80, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            for (var cell : RCBlocks.SEPARATOR.get().blueprint().cells()) {
+                helper.setBlock(cell.at(core, net.minecraft.world.level.block.Rotation.NONE),
+                    cell.component());
+            }
+            helper.assertTrue(
+                com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock.tryForm(
+                    helper.getLevel(), helper.absolutePos(core)),
+                "precondition: the Separator must form from its components");
+
+            var cells = RCBlocks.SEPARATOR.get().blueprint().cells();
+            BlockPos victim = cells.get(cells.size() - 1)
+                .at(core, net.minecraft.world.level.block.Rotation.NONE);
+            helper.getLevel().destroyBlock(helper.absolutePos(victim), true);
+
+            helper.succeedWhen(() -> {
+                helper.assertItemEntityCountIs(RCItems.SEPARATOR.get(), core, 8.0, 1);
+                var state = helper.getLevel().getBlockState(helper.absolutePos(core));
+                helper.assertTrue(
+                    !com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock.isFormed(state),
+                    "the core is still FORMED after one of its cells was broken");
+            });
+        });
+
         RCGameTests.test("disbanding_a_separator_returns_the_motor", 80, helper -> {
             BlockPos core = new BlockPos(1, 2, 1);
             helper.setBlock(core, RCBlocks.SEPARATOR.get());
