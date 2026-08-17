@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
+import com.flatts.recompile.content.recipe.PulverizingRecipe;
 import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import java.util.function.Supplier;
@@ -72,6 +73,22 @@ public final class RCRecipeTypes {
     public static final Supplier<RecipeSerializer<SeparatingRecipe>> SEPARATING_SERIALIZER =
         RECIPE_SERIALIZERS.register("separating",
             () -> new RecipeSerializer<>(SeparatingRecipe.CODEC, SeparatingRecipe.STREAM_CODEC));
+
+    /**
+     * {@code recompile:pulverizing} (#189) - one input, one finer output.
+     *
+     * <p>Its own type rather than a {@code separating} recipe with a single result, because the
+     * Separator divides and the Pulverizer reduces. Overloading separating - which is public API packs
+     * extend - with a shape it was not designed for would redefine every recipe already written
+     * against it.
+     */
+    public static final Supplier<RecipeType<PulverizingRecipe>> PULVERIZING =
+        RECIPE_TYPES.register("pulverizing", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "pulverizing")));
+
+    public static final Supplier<RecipeSerializer<PulverizingRecipe>> PULVERIZING_SERIALIZER =
+        RECIPE_SERIALIZERS.register("pulverizing",
+            () -> new RecipeSerializer<>(PulverizingRecipe.CODEC, PulverizingRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

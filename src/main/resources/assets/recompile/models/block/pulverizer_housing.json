@@ -1,0 +1,7 @@
+{
+  "__comment": "The item form and any stray placement. Formed cells wear cut skin tiles instead.",
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "recompile:block/pulverizer_housing"
+  }
+}

@@ -457,8 +457,27 @@ TROMMEL = Machine(
     skin_height=1,
 )
 
+# The Pulverizer: a 2x2x2 cube, and the only machine here where EVERY cell wears the same formed
+# block. It is a sealed box - the Separator shows you its bay and the Trommel its screen, this one
+# shows you nothing - so there is no bespoke cell to carve out, only the skin across four faces.
+PULVERIZER = Machine(
+    'pulverizer', 2, 2, 2,
+    positions=[(x, y, z) for x in range(2) for y in range(2) for z in range(2)],
+    cells={
+        (0, 0, 1): 'pulverizer_housing',
+        (0, 1, 0): 'pulverizer_housing',
+        (0, 1, 1): 'pulverizer_housing',
+        (1, 0, 0): 'pulverizer_housing',
+        (1, 0, 1): 'pulverizer_housing',
+        (1, 1, 0): 'pulverizer_housing',
+        (1, 1, 1): 'pulverizer_housing',
+    },
+    fallback='pulverizer_housing',
+    core='pulverizer_formed',
+)
+
 MACHINES = {'separator': SEPARATOR, 'tree_nursery': TREE_NURSERY,
-            'trommel': TROMMEL}
+            'trommel': TROMMEL, 'pulverizer': PULVERIZER}
 
 if __name__ == '__main__':
     if len(sys.argv) != 2 or sys.argv[1] not in MACHINES:

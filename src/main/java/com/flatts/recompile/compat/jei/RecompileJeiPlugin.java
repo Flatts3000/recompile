@@ -101,6 +101,14 @@ public class RecompileJeiPlugin implements IModPlugin {
     static final RecipeType<SalvageRecipe> SEPARATING =
         RecipeType.create(Recompile.MOD_ID, "separating", SalvageRecipe.class);
 
+    /**
+     * The mill (#189). Deterministic, so the odds column is off for the same reason separating's is: a
+     * mill does not roll, everything that goes in comes out as the same powder, and a "100%" beside
+     * every row would be noise.
+     */
+    static final RecipeType<SalvageRecipe> PULVERIZING =
+        RecipeType.create(Recompile.MOD_ID, "pulverizing", SalvageRecipe.class);
+
     static final RecipeType<AssemblyRecipe> ASSEMBLY =
         RecipeType.create(Recompile.MOD_ID, "assembly", AssemblyRecipe.class);
     static final RecipeType<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe>
@@ -142,6 +150,10 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageCategory(SEPARATING, Component.translatable("jei.recompile.separating"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SEPARATOR.get())), false,
                 com.flatts.recompile.compat.SeparatingData.all().stream()
+                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new SalvageCategory(PULVERIZING, Component.translatable("jei.recompile.pulverizing"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
+                com.flatts.recompile.compat.PulverizingData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
@@ -324,6 +336,19 @@ public class RecompileJeiPlugin implements IModPlugin {
             registration.addRecipes(SEPARATING, separating);
         }
 
+        // Pulverizing, read the same way and for the same reason. Without this the whole recipe type is
+        // invisible: a player holding a bone has nothing telling them a mill turns it into four meal,
+        // and a new type nobody can see is a mechanic that does not exist as far as the game is
+        // concerned.
+        List<SalvageRecipe> pulverizing = new ArrayList<>();
+        for (com.flatts.recompile.compat.PulverizingData.Entry entry
+                : com.flatts.recompile.compat.PulverizingData.all()) {
+            pulverizing.add(new SalvageRecipe(entry.input(), entry.outputs()));
+        }
+        if (!pulverizing.isEmpty()) {
+            registration.addRecipes(PULVERIZING, pulverizing);
+        }
+
         // Machines only, not their parts. A crafted core says nothing about the tower it needs, and
         // JEI is where a player goes looking. The parts already have recipes here, and the appliance
         // already has a teardown entry, so a panel on those would only restate what JEI shows.
@@ -419,6 +444,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.PRYBAR.get()), PRYING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SEPARATOR.get()), SEPARATING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.PULVERIZER.get()), PULVERIZING);
         // The Burn Barrel is NOT a general smelting station - it burns refuse only, so it is the catalyst
         // for its own category, which lists exactly what it takes.
         registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), BURNING);

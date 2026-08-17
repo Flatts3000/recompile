@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "The bulk case, and the ratio dial doing its job: one block in, nine meal out, which is exactly",
+    "what vanilla's crafting grid gives. The mill charges time and power instead of being generous."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "minecraft:bone_block",
+  "count": 1,
+  "result": {
+    "item": "minecraft:bone_meal",
+    "count": 9
+  },
+  "ticks": 120,
+  "energy": 24
+}

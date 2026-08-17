@@ -84,6 +84,11 @@ final class ScrapNetworkTests {
             roles.put(RCBlocks.TROMMEL_STAND.get(), "RELAY");
             roles.put(RCBlocks.TROMMEL_CHUTE.get(), "RELAY");
 
+            // The Pulverizer is a SOURCE for the same reason as the other two: it pushes what it makes
+            // into the cluster and can never be routed into, having no Container and no item handler.
+            roles.put(RCBlocks.PULVERIZER.get(), "SOURCE");
+            roles.put(RCBlocks.PULVERIZER_HOUSING.get(), "RELAY");
+
             List<String> undeclared = new ArrayList<>();
             int members = 0;
             for (var holder : BuiltInRegistries.BLOCK.getTagOrEmpty(RCTags.SCRAP_CONNECTABLE)) {

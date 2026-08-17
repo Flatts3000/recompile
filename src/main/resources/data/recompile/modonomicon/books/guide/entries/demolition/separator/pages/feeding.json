@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "feeding",
+  "sort_number": 2,
+  "show_title_separator": true,
+  "title": "book.recompile.guide.demolition.separator.feeding.title",
+  "text": "book.recompile.guide.demolition.separator.feeding.text"
+}

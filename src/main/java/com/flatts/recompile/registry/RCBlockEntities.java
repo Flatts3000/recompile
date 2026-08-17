@@ -7,6 +7,7 @@ import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.CompostHeapBlockEntity;
 import com.flatts.recompile.content.block.entity.DisplayPedestalBlockEntity;
 import com.flatts.recompile.content.block.entity.SeparatorBlockEntity;
+import com.flatts.recompile.content.block.entity.PulverizerBlockEntity;
 import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
@@ -138,6 +139,10 @@ public final class RCBlockEntities {
             "separator",
             () -> new BlockEntityType<>(SeparatorBlockEntity::new, RCBlocks.SEPARATOR.get()));
 
+    public static final Supplier<BlockEntityType<PulverizerBlockEntity>> PULVERIZER =
+        BLOCK_ENTITIES.register("pulverizer",
+            () -> new BlockEntityType<>(PulverizerBlockEntity::new, RCBlocks.PULVERIZER.get()));
+
     public static final Supplier<BlockEntityType<TrommelBlockEntity>> TROMMEL =
         BLOCK_ENTITIES.register("trommel",
             () -> new BlockEntityType<>(TrommelBlockEntity::new, RCBlocks.TROMMEL.get()));
@@ -196,6 +201,12 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Energy.BLOCK,
             TROMMEL.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
+        // The Pulverizer, on the same terms: power in, nothing else. INSERT-only, it is a consumer.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            PULVERIZER.get(),
             (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
 
         event.registerBlockEntity(

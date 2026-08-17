@@ -1,0 +1,7 @@
+{
+  "__comment": "The core as PLACED - unassembled, so it reads as a part rather than a machine.",
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "recompile:block/pulverizer_housing"
+  }
+}

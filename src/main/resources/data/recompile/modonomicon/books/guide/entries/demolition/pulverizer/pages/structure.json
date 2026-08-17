@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:multiblock",
+  "id": "structure",
+  "sort_number": 1,
+  "multiblock_id": "recompile:pulverizer",
+  "multiblock_name": "block.recompile.pulverizer",
+  "show_visualize_button": true,
+  "text": "book.recompile.guide.demolition.pulverizer.structure.text"
+}

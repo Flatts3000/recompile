@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "The Pulverizer core (#189). Demolition yard tier: steel is the yard's material and the Motor",
+    "cannot be forged out of any quantity of scrap.",
+    "",
+    "The cube itself - four Steel I-Beams, two Machine Frames and a second Motor - is supplied at",
+    "assembly rather than here. The multiblock is what the machine costs; this is its brain."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SMS",
+    "PPP"
+  ],
+  "key": {
+    "S": "recompile:steel_offcut",
+    "M": "recompile:motor",
+    "P": "recompile:scrap_plating"
+  },
+  "result": {
+    "id": "recompile:pulverizer",
+    "count": 1
+  }
+}

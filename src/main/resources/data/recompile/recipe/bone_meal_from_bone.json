@@ -1,0 +1,18 @@
+{
+  "_comment": [
+    "A mill's most obvious job, and deliberately a neutral one: it needs no new item and belongs to",
+    "no blocked chain. #120 (gold) and #115 (clay) add their own inputs when they land.",
+    "",
+    "Four bone meal, against vanilla's three from a crafting grid. The machine costs steel, a Motor",
+    "and power; if it matched the grid exactly there would be no reason to build it."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "minecraft:bone",
+  "count": 1,
+  "result": {
+    "item": "minecraft:bone_meal",
+    "count": 4
+  },
+  "ticks": 60,
+  "energy": 24
+}
