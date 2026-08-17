@@ -722,7 +722,7 @@ public final class RCBlocks {
             .noOcclusion()  // see-through wire shell + inset compost bands - not a full cube
     );
 
-    /** The spreader's tank cell: the Rain Collector, incorporated. A dummy - no item. */
+    /** A shared, inert component: a caged tote that holds nothing. Crafted and placed by hand. */
     public static final DeferredBlock<WaterTankBlock> WATER_TANK = BLOCKS.registerBlock(
         "water_tank",
         WaterTankBlock::new,

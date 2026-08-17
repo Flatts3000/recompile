@@ -27,10 +27,18 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  * ({@link #irrigateOnce}), so the spreader doubles as a farm irrigator and, since encroachment spares
  * moist farmland, its radius defends a plot the way it defends the grass.
  *
- * <p>It consumes nothing because the machine carries its own supply: an actual Rain Collector is
- * built into the structure. The cost is one steep build, and the ongoing pressure comes from P1.7-R
+ * <p><b>It consumes nothing, and there is nothing to fill.</b> No water, no power, no fuel: the tank
+ * cell is an inert Water Tank that holds nothing, and this class has no fluid check anywhere - a formed
+ * tower simply runs. The cost is the one steep build, and the ongoing pressure comes from P1.7-R
  * instead - the junkyard takes healed ground back, so a spreader has to out-pace erosion. That makes
  * <b>its radius exactly the land you can hold at rung 1</b>; beyond it, the frontier wins.
+ *
+ * <p><b>The "built-in Rain Collector" is retired text, not a mechanic</b> (#202). The P2.4-R3 draft had
+ * the tank cell be a real collector you supplied and forming consume it; the shipped machine takes a
+ * plain crafted Water Tank, and the collector is built <em>from</em> a tank rather than into one. The
+ * old wording outlived the design in four places and produced wrong guidebook and pack copy twice
+ * before anyone read the code. The behaviour was never wrong - {@code GrassSpreaderTests} forms this
+ * tower with a bare Water Tank and no water in the plot at all, and has always passed.
  *
  * <p><b>Nearest-first is the one rule that matters</b>, and it buys two behaviours at once: green
  * reads as growing outward from the machine, and ground the frontier just took back is <em>closer</em>
@@ -78,9 +86,10 @@ public class GrassSpreaderCoreBlock extends MultiblockCoreBlock {
     protected Multiblock createBlueprint() {
         List<Multiblock.Cell> cells = new ArrayList<>();
         // An inert Water Tank, NOT the Rain Collector itself: a machine may never take another
-        // machine's core as a component (see Multiblock's constructor). The collector is consumed
-        // in the tank's recipe instead, so the progression survives without a second live core
-        // inside this structure.
+        // machine's core as a component (see Multiblock's constructor). The tank is the primitive and
+        // is crafted on its own (plastic scrap, rebar, scrap metal); the collector is a tank with a
+        // Copper Pipe on top. So this structure holds no second live core and consumes no collector -
+        // the two machines are siblings sharing a part, not an ordered chain.
         cells.add(new Multiblock.Cell(new Vec3i(0, 1, 0),
             RCBlocks.WATER_TANK.get(), RCBlocks.WATER_TANK.get()));
         cells.add(new Multiblock.Cell(new Vec3i(0, 2, 0),
@@ -223,7 +232,8 @@ public class GrassSpreaderCoreBlock extends MultiblockCoreBlock {
      * <p>Keyed on the {@code MOISTURE} property, not on {@code minecraft:farmland}, so modded farmland is
      * covered without being named - the same block-agnostic test encroachment uses to decide what holds.
      * Sets the moisture directly rather than placing a water source: the machine <em>is</em> the water
-     * supply (its built-in Rain Collector), so it waters the soil the way rain does, and re-setting each
+     * supply - the fiction is the drip ring, not a tank it draws down - so it waters the soil the way
+     * rain does, and re-setting each
      * pulse keeps a plot wet against vanilla's slow dry-out even with no water block anywhere near.
      */
     public static int irrigateOnce(ServerLevel level, BlockPos corePos) {

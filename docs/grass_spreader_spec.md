@@ -1,11 +1,20 @@
 # Grass Spreader - implementation spec
 
-**Written 2026-07-23.** Rung 1 of the reclamation chain (design P2.4-R). Spec only - not built.
+**Written 2026-07-23. Shipped; corrected 2026-08-17 (#202).**  Rung 1 of the reclamation chain
+(design P2.4-R).
+
+> **The tank is a plain crafted Water Tank, not a Rain Collector.** This spec was drafted around
+> "your first machine becomes part of your second" - the spreader eating a collector you had already
+> built - and that was superseded during the build, in the recipe appendix at the bottom of this file.
+> The body was never updated to match, so for three weeks the authoritative-sounding half of the
+> document described a machine that does not exist. It produced wrong Trashlands quest copy twice and
+> a wrong guidebook line that shipped to players. The body below is now corrected; **the appendix has
+> been right all along**.
 
 > **Renamed from `soil_spreader_spec.md`, because the machine changed identity.** It is not a soil
 > hopper that spreads dirt; it is a **drip irrigator** that constantly waters the ground from four
-> copper spigots, fed by a tank built from a rain collector. How it converts ground is unchanged; what it *is* changed, and with it
-> the whole silhouette and structure.
+> copper spigots, fed by a tank cell it never draws down. How it converts ground is unchanged; what it
+> *is* changed, and with it the whole silhouette and structure.
 
 Design source of truth is the pack repo: `../trashlands/docs/design_decisions.md` (**P2.4** the
 original chain, **P2.4-R** the economy revision, **P1.7-R** encroachment). The decisions here are
@@ -15,8 +24,8 @@ original chain, **P2.4-R** the economy revision, **P1.7-R** encroachment). The d
 
 ## What it is
 
-A four-block drip-irrigation tower, ringed by four copper spigots. It draws water from a Rain Collector built into its own structure and
-throws it over the surrounding ground, turning dead earth to grass within a radius, forever,
+A four-block drip-irrigation tower, ringed by four copper spigots. It draws water from an inert Water
+Tank built into its own structure and throws it over the surrounding ground, turning dead earth to grass within a radius, forever,
 **consuming nothing**.
 
 **Why it consumes nothing, and why that is now honest.** An earlier draft had it eat compost and
@@ -26,10 +35,10 @@ The cost is one steep build, not a drip. The ongoing pressure comes from P1.7-R 
 junkyard takes healed ground back, so a spreader has to out-pace erosion, and permanence still needs
 trees.
 
-**A consequence worth stating:** because the incorporated collector is fiction rather than a running
-rain-collection tick, **nothing in this machine needs sky access.** That is what frees the stack to
-be four tall with parts on top. If the collector is ever made to genuinely collect, the constraint
-returns and the shape must change - `RainCollectorBlockEntity` checks `canSeeSky(pos.above(2))`.
+**A consequence worth stating:** because the tank is scenery rather than a running rain-collection
+tick, **nothing in this machine needs sky access.** That is what frees the stack to be four tall with
+parts on top. If the tank cell is ever made to genuinely hold and spend water, the constraint returns
+and the shape must change - `RainCollectorBlockEntity` checks `canSeeSky(pos.above(2))`.
 
 ---
 
@@ -43,14 +52,15 @@ shared vocabulary keeps its user; here the moving part is a **Motor**.
 | 3 (top) | **Solar Panel** | *unchanged* | Unshaded, caps the tower. Shared component. |
 | 2 sides x4 | **Copper Pipe** | **drip spigot** | The drip ring. Turned to face the manifold on forming, so all four plumb inward. |
 | 2 | **Pump** | **manifold** | Lifts water to the spigots. |
-| 1 | **Water Tank** | *unchanged* | Crafted **from a Rain Collector**. |
+| 1 | **Water Tank** | *unchanged* | Crafted on its own: plastic scrap, rebar, scrap metal. Inert - it holds nothing and there is nothing to fill. |
 | 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master. **Its own texture** - never the collector's palette. |
 
 **The tank must not be the Rain Collector block itself.** A machine may never take another machine's
 core as a component: the inner core is live, watches its own neighbours, and will try to assemble
 *itself* into cells the outer machine has claimed. `Multiblock`'s constructor now rejects that
-outright. The collector moves into the tank's **recipe**, which keeps the progression without a
-second brain inside the structure.
+outright. **The tank is the primitive and the collector is built from it** - a Copper Pipe over a tank -
+so the two machines are siblings sharing a part rather than an ordered chain, and neither consumes the
+other. See the recipe appendix.
 
 **The pump is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
 of a found washing machine (`washing_machine`, a Bulky Waste line) at the Recompile Workbench,
@@ -71,10 +81,12 @@ Built with the shipped framework (`multiblock_system_spec.md`): place the core, 
 from your inventory if you are carrying the parts, or waits while you stack them by hand.
 Sneak-place gives a bare core. Breaking any cell disbands the whole and returns every part.
 
-**The rain collector is a literal component**, not a borrowed model - you craft a Rain Collector and
-build the spreader around it. That is the progression beat: your first machine becomes part of your
-second. It also means the spreader cannot be reached before the collector, which is the right order
-for the water thread.
+**The spreader consumes no Rain Collector, and never did in shipped code.** This paragraph used to
+claim the opposite - that you craft a collector and build the spreader around it, "your first machine
+becomes part of your second". It is a good beat and it is not this machine; the dependency runs the
+other way, since a collector is a tank with a pipe on it. Rung 1 is still gated, by the **Pump**
+(a teardown of a Washing Machine find) and by **copper** (the Burn Barrel), so nothing went soft when
+the ordering was retired.
 
 ---
 

@@ -258,7 +258,7 @@
   "book.recompile.guide.reclamation.encroachment.farmland.title": "Wet holds, dry is taken",
   "book.recompile.guide.reclamation.grass_spreader.name": "Grass Spreader (Rung 1)",
   "book.recompile.guide.reclamation.grass_spreader.intro.title": "Watering the ground green",
-  "book.recompile.guide.reclamation.grass_spreader.intro.text": "Rung one of reclamation. The Grass Spreader waters the ground around it and turns coarse dirt straight to grass, one block at a time. It also keeps nearby farmland wet, like a water source.\n\nIt sits idle until the whole tower is up, and needs water in the tank to run.",
+  "book.recompile.guide.reclamation.grass_spreader.intro.text": "Rung one of reclamation. The Grass Spreader waters the ground around it and turns coarse dirt straight to grass, one block at a time. It also keeps nearby farmland wet, like a water source.\n\nIt sits idle until the whole tower is up. After that it runs forever on its own - there is nothing to fill and nothing to feed it.",
   "book.recompile.guide.reclamation.vegetation.name": "Vegetation (Rung 2)",
   "book.recompile.guide.reclamation.vegetation.intro.title": "Scattering plants",
   "book.recompile.guide.reclamation.vegetation.intro.text": "Rung two. Right-click reclaimed grass with Fertilizer to scatter weeds and wildflowers across it - the pioneer plants that come back to disturbed ground.\n\nFertilizer does nothing on the raw dump, so heal the ground with a Grass Spreader first. The plants it grows are the first thing the dump strips at a contested edge, so a fertilized border holds a little longer while you push out.",
