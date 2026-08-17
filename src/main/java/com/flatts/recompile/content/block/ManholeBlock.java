@@ -23,13 +23,11 @@ import net.minecraft.world.phys.BlockHitResult;
  * who has reached the yard already knows what a prybar is for, so the sewer needs no new verb to teach.
  * The prybar is the only tool that opens it, and mining it by hand gets nothing.
  *
- * <p><b>Why it is corrugated scrap and not a cast-iron cover.</b> A municipal manhole cover would be the
- * obvious art, and it would be the wrong object for this world - nothing here is municipal. The cover is
- * a sheet of the same corrugated metal the compost floor is made of, laid over a shaft and weighted
- * down. It also means the block needed no new texture, which is worth stating plainly: art in this repo
- * is generated and then <b>approved by the owner</b>, and shipping a surface that has not been through
- * that is how {@code mound_ground} reached a release with no approval record. Reusing a shipped texture
- * sidesteps the question honestly instead of pretending it was answered.
+ * <p><b>Why it is scrap steel and not a cast-iron cover.</b> A municipal manhole cover would be the
+ * obvious art and the wrong object for this world - nothing here is municipal. It is a rusted, pitted,
+ * bolted plate laid over a shaft, and it has its own generated texture, approved by the owner rather
+ * than assumed: shipping an unapproved surface is how {@code mound_ground} reached a release with no
+ * approval record.
  *
  * <p>Prying leaves <b>air</b>, not an "open manhole" block. The shaft below is already built by the
  * structure, so the cover's whole job is to be in the way until it is not; a second block state would be

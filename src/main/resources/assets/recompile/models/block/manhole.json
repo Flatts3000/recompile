@@ -1,9 +1,9 @@
 {
   "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "top": "recompile:block/corrugated_metal",
-    "bottom": "recompile:block/corrugated_metal",
+    "top": "recompile:block/manhole",
+    "bottom": "recompile:block/manhole",
     "side": "recompile:block/rusted_frame",
-    "particle": "recompile:block/corrugated_metal"
+    "particle": "recompile:block/manhole"
   }
 }

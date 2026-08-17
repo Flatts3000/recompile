@@ -85,10 +85,14 @@ public class SewerStructure extends Structure {
         // THE WAY IN, added last because it is the only piece that needs to know where the surface is.
         // Everything else is built at a fixed height and moved; the shaft has to span from the chamber
         // it was moved to up to daylight, so it cannot exist until the sink is decided.
+        // surface - 1, not surface: getBaseHeight returns the first AIR block (the heightmap stores
+        // y + 1), so the topmost solid block is one below it. Capping the shaft at surface would leave
+        // the pad and its cover sitting a block proud of the ground like a plinth; at surface - 1 they
+        // replace the top layer and sit flush, which is what a manhole in a road looks like.
         BoundingBox chamber = room.getBoundingBox();
         pieces.addPiece(new SewerPieces.SewerEntrance(1, new BoundingBox(
             chamber.minX() + 1, chamber.maxY(), chamber.minZ() + 1,
-            chamber.minX() + 3, surface, chamber.minZ() + 3)));
+            chamber.minX() + 3, surface - 1, chamber.minZ() + 3)));
         return Optional.of(new Structure.GenerationStub(
             new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMiddleBlockZ()),
             Either.right(pieces)));

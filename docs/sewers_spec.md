@@ -151,11 +151,20 @@ really "how often is there a sewer", which the structure set already answers. `S
 of the structure, so **every cover a player finds opens onto a real sewer, and every sewer has exactly
 one way in**. No second rarity dial to keep in sync.
 
-**The cover is corrugated scrap, not cast iron.** Nothing in this world is municipal. It also means the
-block needed no new texture, which is worth stating rather than glossing: art here is generated and then
-**approved by the owner**, and shipping an unapproved surface is how `mound_ground` reached a release
-with no approval record. Reusing the compost floor's `corrugated_metal` answers the question honestly
-instead of pretending it was asked.
+**The cover is scrap steel, not cast iron.** Nothing in this world is municipal, so the plate is rusted
+and pitted rather than foundry-cast.
+
+**It has its own art, generated and approved** (owner picked candidate 0, 2026-08-17). Two rulings came
+out of getting there and both are worth keeping, because the reasoning that lost sounded good:
+
+- **AI, not procedural.** The procedural case was the Puzzle Cube's - concentric circles and a repeating
+  tread land on whole pixels when drawn as code - and the owner's answer was that procedural does not
+  best AI. Fixed geometry is a reason procedural *can* work, not a reason it wins. The procedural
+  `manhole_cover` style stays in the engine as the keyless fallback.
+- **Square and full-bleed.** The first pass drew a round cover, which left the tile's corners showing a
+  surround. A block face is a square, and anything that does not fill it reads as a sticker laid on the
+  ground rather than as the ground. The prompt now says square three different ways, because "manhole"
+  pulls an image model toward a circle hard enough that asking once does not hold.
 
 **Ladders the whole way up.** Nothing else in the palette is climbable, and a shaft you can fall down
 but not walk out of is a trap rather than a door.
