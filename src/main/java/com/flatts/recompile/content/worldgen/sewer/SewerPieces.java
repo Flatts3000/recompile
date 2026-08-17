@@ -97,6 +97,20 @@ public final class SewerPieces {
     private static final BlockState COVER =
         com.flatts.recompile.registry.RCBlocks.MANHOLE.get().defaultBlockState();
 
+    /**
+     * What a sewer barrel holds (#90 phase 4).
+     *
+     * <p>Set on the BlockEntity rather than rolled here: a loot table attached to a container is rolled
+     * the first time a player opens it, so nothing is decided at generation and two players exploring
+     * the same seed do not see each other's rolls. It also means the table is datapack-tunable, which is
+     * where the balance question belongs.
+     */
+    private static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot
+        .LootTable> BARREL_LOOT = net.minecraft.resources.ResourceKey.create(
+            net.minecraft.core.registries.Registries.LOOT_TABLE,
+            net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                com.flatts.recompile.Recompile.MOD_ID, "chests/sewer"));
+
     /** How far a stairs piece descends, and how long it is. Vanilla drops 5 over 8; so do we. */
     private static final int STAIR_DROP = 5;
     private static final int STAIR_RUN = 8;
@@ -507,6 +521,7 @@ public final class SewerPieces {
                     level.setBlock(rung, LADDER, Block.UPDATE_CLIENTS);
                 }
             }
+            placeBarrels(level, limit, box);
             placeResidents(level, limit, box);
         }
     }
@@ -589,6 +604,40 @@ public final class SewerPieces {
             BlockPos at = new BlockPos(x, y, z);
             if (limit.isInside(at)) {
                 level.setBlock(at, state, Block.UPDATE_CLIENTS);
+            }
+        }
+    }
+
+    /**
+     * The reason to have come (#90 phase 4): two barrels in the chamber.
+     *
+     * <p><b>Fixed positions, for the reason everything else in this room is.</b> {@code postProcess}
+     * runs once per chunk the piece overlaps, so anything rolled here is rolled several times over -
+     * the turtles learned that the expensive way. Two known corners plus the {@code isInside} guard
+     * means two barrels, however the room happens to straddle the chunk grid.
+     *
+     * <p><b>The table is set, not rolled.</b> {@code setLootTable} defers the roll to the first time a
+     * player opens the barrel, so generation decides nothing and the contents stay a datapack question -
+     * which is where the balance of this belongs. It is also why a barrel that is never opened costs
+     * nothing to have placed.
+     */
+    private static void placeBarrels(WorldGenLevel level, BoundingBox limit, BoundingBox room) {
+        // NOT the interior corner at (minX + 1, minZ + 1). That is the entrance shaft's column, and the
+        // two features were written on separate branches - a barrel there would stand inside the ladder,
+        // which is the kind of collision that only shows up when the branches meet.
+        BlockPos[] spots = {
+            new BlockPos(room.maxX() - 1, room.minY() + 1, room.minZ() + 1),
+            new BlockPos(room.minX() + 1, room.minY() + 1, room.maxZ() - 1),
+        };
+        for (BlockPos at : spots) {
+            if (!limit.isInside(at)) {
+                continue;
+            }
+            level.setBlock(at, net.minecraft.world.level.block.Blocks.BARREL.defaultBlockState(),
+                Block.UPDATE_CLIENTS);
+            if (level.getBlockEntity(at) instanceof net.minecraft.world.level.block.entity
+                    .RandomizableContainerBlockEntity container) {
+                container.setLootTable(BARREL_LOOT, level.getRandom().nextLong());
             }
         }
     }

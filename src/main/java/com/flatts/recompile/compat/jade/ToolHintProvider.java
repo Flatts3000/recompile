@@ -2,6 +2,7 @@ package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.ManholeBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.block.SteelBeamBlock;
 import com.flatts.recompile.event.RCHarvestGate;
@@ -50,7 +51,7 @@ public enum ToolHintProvider implements IBlockComponentProvider {
         if (block instanceof SortableBlock sortable) {
             return sortable.sortTool();
         }
-        if (block instanceof BulkyWasteBlock) {
+        if (block instanceof BulkyWasteBlock || block instanceof ManholeBlock) {
             return RCItems.PRYBAR.get();
         }
         if (block instanceof SteelBeamBlock) {
