@@ -38,12 +38,24 @@ survival placement lands with #49.
   returned to ore. It also handed the gated metal straight to a basic furnace, since `raw_iron` smelts the
   vanilla way. The offcut is what a torch actually leaves behind.
 - **It remelts to iron only in the Cupola Furnace (#50)** (`recipe/iron_from_steel_offcut.json`). The
-  recipe is ordinary `minecraft:smelting`; what gates it is that the **Burn Barrel refuses it** (refuse-only
-  allowlist) and **no other furnace exists in this world**. A vanilla furnace needs
-  `#minecraft:stone_crafting_materials` - cobblestone, cobbled deepslate or blackstone - none of which this
-  world produces: there is no cobblestone anywhere, and no pickaxe with which to turn shard-built deepslate
-  into cobbled deepslate. **That is load-bearing and fragile.** Adding any cobblestone source, or any
-  pickaxe before iron, opens the gate silently.
+  recipe is **`minecraft:blasting`**, and the Cupola is a `RecipeType.BLASTING` machine: a vanilla furnace
+  cannot run a blasting recipe at all, and a vanilla blast furnace costs 5 iron ingots, so the route is
+  circular and unreachable before iron. **The gate is a property of the machine, and no fact about this
+  world's materials has to hold for it to work.**
+
+  **This bullet described the first design, which failed** (#91), and it stayed here after the fix. It
+  said the recipe was ordinary `minecraft:smelting`, gated because the Burn Barrel refuses it and no
+  other furnace is craftable - and it called that "load-bearing and fragile", correctly. It broke exactly
+  as predicted: wood makes a wooden pickaxe, a wooden pickaxe drops cobbled deepslate (plain `deepslate`
+  is in `mineable/pickaxe` and in no `needs_*` tag), and `recipe/deepslate_from_shards.json` is a third
+  route that needs no pickaxe at all. A gate built from the absence of a material dies the moment
+  anything adds the material. `no_smelting_recipe_turns_a_mod_item_into_iron` asserts the current one.
+
+  **Consequence for terrain work (2026-08-17):** the world's rock went from 7-11 blocks per column to
+  59-63 for the sewers (#90), roughly ten times the world deepslate. That touches nothing here - the gate
+  has not depended on deepslate scarcity since #91, and `deepslate_from_shards` was already an unbounded
+  crafted route - but it is written down so the next person to read this bullet is not measuring against
+  the retired design.
 - The texture derives from the beam's own steel via texgen `match_hue`, so the offcut reads as cut from the
   block it drops out of (measured hue gap: 5.7).
 - **No dedicated steel output - the yield is iron** (owner call, 2026-07-28). A "steel ingot" tier is a

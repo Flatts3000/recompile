@@ -22,7 +22,7 @@ superseded rather than closed by this** - see the progression note below.
 | Decision | Answer | Why |
 |---|---|---|
 | Where | **In the demolition yard** | Travel already gates the yard, so the sewer needs no gate of its own |
-| Depth | **Thicken the deepslate to hold them** | The slab is only ~13 blocks today with void beneath. The layering (coarse dirt, deepslate, bedrock) is already right; there is just not enough of it |
+| Depth | **Thicken the deepslate to hold them** | Shipped 2026-08-17. The slab measured 7-11 blocks with void beneath (this row said ~13, which nobody had checked); it is now 59-63, of which 55-61 is tunnelable rock. The layering needed no work |
 | Entry | **Prybar on a manhole** | Reuses the Bulky Waste loop exactly: a surface find, tool-gated, one action. No new verb, no new tool |
 | Surface marker | **A 3x3 of Reinforced Concrete with the manhole at its centre** | Reads as deliberate rather than as terrain noise, and it is built from a block the yard already has |
 | Rarity | **Vanilla mineshaft frequency** | `frequency: 0.004`, `spacing: 1`, `separation: 0`, `legacy_type_3`. Copied from `structure_set/mineshafts.json` rather than guessed |

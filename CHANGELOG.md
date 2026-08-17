@@ -10,6 +10,10 @@
   on. The change is entirely underneath.
 - **This is groundwork for the sewers**, which need somewhere to be. There was not enough room down
   there for a structure of any size.
+- **There is roughly ten times as much deepslate underground.** It changes no recipe and opens no gate -
+  deepslate was already craftable from stone shards without limit, and the iron gate has been a
+  blasting-recipe gate rather than a scarcity one since v0.6.0 - but the material is there now where it
+  was not.
 - **It only affects newly generated land.** Chunks an existing save has already visited keep the thin
   slab and will never hold a sewer, and the boundary between old and new terrain will be visible
   where you walk into fresh chunks. A new world avoids both.
