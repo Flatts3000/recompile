@@ -237,11 +237,13 @@ as component *and* formed (the Solar Panel does not change appearance, so it cos
 two), and a **craftable block may itself extend `MultiblockDummyBlock`** - standalone it behaves
 normally because `findCore` returns null, and inside a machine it redirects to the master.
 
-- **The Rain Collector is a literal component**, not just an ingredient - you build the spreader
-  around the machine you already made. That is the progression beat, and it is the first blueprint to
-  name one of our own machines as a part.
-- **Nothing here needs sky**, because the incorporated collector is fiction rather than a running
-  rain tick. If that ever changes, `canSeeSky(pos.above(2))` comes back and the shape must change.
+- **The tank cell is a plain crafted Water Tank, and no machine is consumed.** This bullet used to
+  say the Rain Collector is a literal component you build the spreader around. That was the P2.4-R3
+  draft, superseded before the machine shipped: the tank is the primitive and the collector is built
+  *from* it, so the two are siblings sharing a part rather than an ordered chain. A blueprint may not
+  name one of our own cores as a part at all - the constructor rejects it (#202).
+- **Nothing here needs sky**, because the tank is scenery rather than a running rain tick. If that
+  ever changes, `canSeeSky(pos.above(2))` comes back and the shape must change.
 - **The core runs only while `FORMED`** - break a cell and healing stops; the frontier begins to win.
   That intact-structure requirement is the ongoing "cost", with still no consumable.
 - **The solar panel is a recoloured no-op daylight detector** - vanilla already ships a block that
