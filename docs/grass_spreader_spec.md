@@ -8,8 +8,10 @@
 > built - and that was superseded during the build, in the recipe appendix at the bottom of this file.
 > The body was never updated to match, so for three weeks the authoritative-sounding half of the
 > document described a machine that does not exist. It produced wrong Trashlands quest copy twice and
-> a wrong guidebook line that shipped to players. The body below is now corrected; **the appendix has
-> been right all along**.
+> a wrong guidebook line that shipped to players. The body below is now corrected, and so is the
+> appendix's own stale row for the Pump, which went from teardown-only to blueprint-crafted after
+> this was written. Anything here that names a recipe is worth checking against
+> `data/recompile/recipe/` before it is quoted.
 
 > **Renamed from `soil_spreader_spec.md`, because the machine changed identity.** It is not a soil
 > hopper that spreads dirt; it is a **drip irrigator** that constantly waters the ground from four
@@ -62,15 +64,17 @@ outright. **The tank is the primitive and the collector is built from it** - a C
 so the two machines are siblings sharing a part rather than an ordered chain, and neither consumes the
 other. See the recipe appendix.
 
-**The pump is the machine's gate.** Per the component vocabulary it is **teardown-only** - torn out
-of a found washing machine (`washing_machine`, a Bulky Waste line) at the Recompile Workbench,
-never crafted. So rung 1 sits behind the teardown spine and a find, which orders progression well:
+**The pump is the machine's gate**, though not in the way this said. It was **teardown-only**, torn
+out of a found appliance and never crafted; since blueprints shipped it is crafted from a blueprint
+that *teardown teaches*, and two appliances teach it - the Washing Machine and the Dead Fridge. The
+gate is the same shape (you salvage before you can water anything) and one step longer. So rung 1 sits behind the teardown spine and a find, which orders progression well:
 you salvage a pump before you can water anything. It also means the spreader cannot be rushed.
 
 **The Solar Panel keeps its own appearance** - the framework supports a `Multiblock.Cell` naming the
-same block as component *and* formed, so a cell that does not change costs one block, not two. The
-collector and motor cells both transform: a collector is a core with a tank and must not stay one
-inside another machine, and a motor visibly becomes the head.
+same block as component *and* formed, so a cell that does not change costs one block, not two. The Pump
+and Copper Pipe cells transform - they become the manifold and the four spigots - and the Water Tank
+and Solar Panel cells do not, so those two are craftable blocks that are also their own formed
+appearance.
 
 **The Solar Panel is a craftable block that also extends `MultiblockDummyBlock`.** Standalone it
 behaves like an ordinary block (`findCore` returns null and every override falls through); inside a
@@ -238,7 +242,7 @@ Leaning on vanilla and what exists, per the strategy that carried the rain colle
 | **Grass Spreader** | `PCP / RMR / PPP` - plating, copper pipe, rebar, scrap metal. |
 | **Solar Panel** | `GGG / EEE / PPP` - cullet glass, e-scrap, scrap plating. |
 | **Copper Pipe** | `NNN / ... / NNN` - six copper nuggets, yields 3. |
-| **Pump** | No recipe. Teardown of a Washing Machine with the prybar. |
+| **Pump** | *(stale as written: it is `recompile:blueprint_crafting` now - copper ingots, scrap metal, plastic scrap, gated on the `recompile:pump` blueprint, which teardown teaches.)* |
 
 **The tank is the primitive, not the collector.** Building a tank *out of* a collector had the
 dependency backwards - a collector already contains one. Both machines now share the tank part.

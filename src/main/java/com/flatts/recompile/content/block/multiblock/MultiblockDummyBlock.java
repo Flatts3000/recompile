@@ -25,12 +25,13 @@ import org.jspecify.annotations.Nullable;
  * happen to touch.
  *
  * <p><b>Most</b> dummies are never crafted or given: a formed cell exists only inside an assembled
- * machine, which is why it has no item and why {@code MultiblockParts} hides it from JEI. Two
- * subclasses are deliberately both - the Water Tank and the Solar Panel are craftable blocks you place
- * by hand, and standalone they behave like ordinary blocks, since {@link #findCore} returns null and
- * every override here falls through. Their <em>appearance</em> is the machine's bespoke formed look and
- * belongs to the subclass, while the behaviour here is shared - the split the spec's rendering
- * correction insists on.
+ * machine, which is why it has no item and why {@code MultiblockParts} hides it from JEI. <b>Three</b>
+ * subclasses are deliberately both - the Water Tank, the Solar Panel and the Rain Collector Funnel are
+ * craftable blocks you place by hand, and standalone they behave like ordinary blocks: {@link
+ * #findCore} returns null, the overrides here fall through, and {@link #getDrops} defers to their own
+ * loot table. That last clause is load-bearing and was not always true; see #204. Their
+ * <em>appearance</em> is the machine's bespoke formed look and belongs to the subclass, while the
+ * behaviour here is shared - the split the spec's rendering correction insists on.
  */
 public abstract class MultiblockDummyBlock extends Block {
 

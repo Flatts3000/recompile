@@ -56,7 +56,7 @@ public record Multiblock(List<Cell> cells) {
             if (cell.component() instanceof MultiblockCoreBlock) {
                 throw new IllegalArgumentException(
                     "a multiblock component may not be another machine's core: " + cell.component()
-                        + " - make it an inert block and consume the machine in its recipe instead");
+                        + " - make it an inert block with no brain of its own");
             }
         }
     }

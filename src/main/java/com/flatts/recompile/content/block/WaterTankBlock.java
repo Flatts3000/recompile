@@ -18,9 +18,10 @@ import com.mojang.serialization.MapCodec;
  * long enough to produce wrong guidebook and pack copy twice (#202). The beat it promised - your first
  * machine becomes part of your second - is a good one and is not what this block does.
  *
- * <p>It extends {@link MultiblockDummyBlock} for the reason the Solar Panel does: standalone it
- * behaves like an ordinary block ({@code findCore} returns null and every override falls through),
- * and inside a formed machine it redirects break and use to the core so the machine is one object.
+ * <p>It extends {@link MultiblockDummyBlock} for the reason the Solar Panel and the Rain Collector
+ * Funnel do: standalone it behaves like an ordinary block - {@code findCore} returns null, the
+ * overrides fall through, and it drops itself from its own loot table - and inside a formed machine it
+ * redirects break and use to the core so the machine is one object.
  */
 public class WaterTankBlock extends MultiblockDummyBlock {
 
