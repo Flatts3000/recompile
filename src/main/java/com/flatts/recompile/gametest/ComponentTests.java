@@ -3,6 +3,7 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import net.minecraft.world.item.Item;
@@ -73,16 +74,6 @@ final class ComponentTests {
             helper.succeed();
         });
 
-        // DISBAND GIVES THE MOTOR BACK, which it did not when this was first written.
-        //
-        // The Motor cell forms into ordinary Separator Housing, and disband used to run the FORMED
-        // block's loot table - which drops a Machine Frame. So the machine silently converted the
-        // rarest part in it into the commonest one every time it was taken apart, and no existing
-        // test noticed, because every other formed block happened to map from exactly one component.
-        //
-        // Fixed by having disband read the component off the blueprint instead. This test is the
-        // guard: it is the only thing standing between a scarce found component and a machine that
-        // quietly eats it.
         // THE CASCADE, ON THE MACHINE MOST EXPOSED TO IT.
         //
         // The Separator has ELEVEN dummy cells - more than anything else in the mod - and in 26.1 the
@@ -109,20 +100,46 @@ final class ComponentTests {
                     helper.getLevel(), helper.absolutePos(core)),
                 "precondition: the Separator must form from its components");
 
-            var cells = RCBlocks.SEPARATOR.get().blueprint().cells();
-            BlockPos victim = cells.get(cells.size() - 1)
-                .at(core, net.minecraft.world.level.block.Rotation.NONE);
-            helper.getLevel().destroyBlock(helper.absolutePos(victim), true);
+            // A GENUINE DUMMY, chosen by what it is rather than by where it sits in the list.
+            // Declaration order is explicitly unstable here - Multiblock.skinOrder() sorts precisely
+            // because reordering createBlueprint would otherwise renumber every cell - and a cell
+            // whose formed block equals its component is not a dummy at all, so no removal hook would
+            // run and this would fail by timeout reporting "0 cores" instead of "wrong cell".
+            var victimCell = RCBlocks.SEPARATOR.get().blueprint().cells().stream()
+                .filter(c -> c.formed() != c.component())
+                .reduce((first, second) -> second)
+                .orElse(null);
+            helper.assertTrue(victimCell != null,
+                "the Separator has no transforming cell, so there is no dummy to break");
+            BlockPos victim = victimCell.at(core, net.minecraft.world.level.block.Rotation.NONE);
+            helper.assertTrue(
+                helper.getBlockState(victim).getBlock()
+                    instanceof com.flatts.recompile.content.block.multiblock.MultiblockDummyBlock,
+                "the cell picked to break is not a dummy: " + helper.getBlockState(victim));
+            helper.assertTrue(helper.getLevel().destroyBlock(helper.absolutePos(victim), true),
+                "the cell was not destroyed, so nothing exercised the removal hook");
 
             helper.succeedWhen(() -> {
                 helper.assertItemEntityCountIs(RCItems.SEPARATOR.get(), core, 8.0, 1);
-                var state = helper.getLevel().getBlockState(helper.absolutePos(core));
-                helper.assertTrue(
-                    !com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock.isFormed(state),
-                    "the core is still FORMED after one of its cells was broken");
+                // AIR, not "not FORMED". The removal hook ends with removeBlock(core), so the core
+                // position is air and isFormed(air) is false whatever happened - including in the
+                // broken-guard case this test exists to catch. That assertion could not fail, which
+                // is precisely the defect this PR is about; shipping a second one would have been
+                // funny in the wrong way.
+                helper.assertBlockPresent(Blocks.AIR, core);
             });
         });
 
+        // DISBAND GIVES THE MOTOR BACK, which it did not when this was first written.
+        //
+        // The Motor cell forms into ordinary Separator Housing, and disband used to run the FORMED
+        // block's loot table - which drops a Machine Frame. So the machine silently converted the
+        // rarest part in it into the commonest one every time it was taken apart, and no existing
+        // test noticed, because every other formed block happened to map from exactly one component.
+        //
+        // Fixed by having disband read the component off the blueprint instead. This test is the
+        // guard: it is the only thing standing between a scarce found component and a machine that
+        // quietly eats it.
         RCGameTests.test("disbanding_a_separator_returns_the_motor", 80, helper -> {
             BlockPos core = new BlockPos(1, 2, 1);
             helper.setBlock(core, RCBlocks.SEPARATOR.get());
