@@ -52,6 +52,16 @@ face and the suite passes while asserting nothing.
 
 ## The table
 
+**The three reach-out machines are one contract, and a test enforces it.** The Separator, the Trommel
+and the Pulverizer are all powered, GUI-less, expose no `Container` and no item capability, are fed by
+reaching out, and route output to the Scrap Network first. `MachineParityTests` derives that list from
+the REGISTRY - every multiblock core answering `Capabilities.Energy.BLOCK` - rather than from a list of
+names, and asserts Jade coverage, network membership, the closed door on all of them at once, and that
+each tells the player how to feed it. They were built by copying each other, which is how they came to
+agree and also how they came apart: the Pulverizer shipped with zero Jade providers against the
+Separator's four, and only an audit found it.
+
+
 | Block | Backing type | Hoppers | Pipes | Policy |
 |---|---|---|---|---|
 | **Scrap Barrel** | `RandomizableContainerBlockEntity` | in + out | in + out | **Parity with `minecraft:barrel`.** Bulk overflow storage - the thing the network dumps into - so it is the member that should be freely automatable. |
@@ -63,6 +73,8 @@ face and the suite passes while asserting nothing.
 | **Display Pedestal** | plain `BlockEntity` | **none** | **none** | Holds one item and is **never hopper-fed** by design - placing and taking is the interaction. |
 | **Compost Heap**, **Recompile Workbench**, **Scrap Crafting Table** | plain `BlockEntity` | n/a | n/a | Not `Container`s. Nothing to expose. |
 | **Separator** | *no container at all* | **none** | **none** | Closed on both doors, and it **joined `#scrap_connectable` anyway** (2026-08-03) without opening either. It is a SOURCE: it pushes separated material into the cluster and can never receive, because routing only ever lands in a Scrap Bin or the Scrap Barrel by block id and this machine has no `Container` to land in. Its formed cells are RELAYs, in the tag only so a bin against any face of the machine joins the cluster. **Being reachable and being writable are different questions** - the machine reaches out at both ends (it swallows what lands in its bay, drains a container on it, and pushes into the network or its chute) and is still reachable-into by nothing. |
+| **Trommel** | *no container at all* | **none** | **none** | Same terms as the Separator, and for the same reason. It swallows loose items along the drum, drains a container parked on it, and discharges off the END of the drum at drum height - into a container if one is there, thrown clear if not. A SOURCE in the network; its formed cells are RELAYs. Took automated sorting off the Separator in #187. |
+| **Pulverizer** | *no container at all* | **none** | **none** | Same terms again. Fed from the ROOF by gravity, which is what a hammer mill does, so the roof carries a painted hatch - it is the only machine of the three whose opening is not visible from its shape, and a sealed box has to say where the input is. Powder leaves by the front. A SOURCE; its cells are RELAYs. |
 | **Sorting Tarp** | *no block entity* | n/a | n/a | Stateless by identity - no input slot, no output buffer. |
 | **Solar Panel** | plain `BlockEntity` | n/a | **energy out** | Holds no items, so no item capability. Exposes `Capabilities.Energy.BLOCK` and pushes to neighbours each tick, so a generator against a machine works with no pipe mod installed at all. |
 | **Burner Generator** | `WorldlyContainer` (5 fuel slots) | **fuel in, nothing out** | **fuel in, nothing out**, plus **energy out** | Has a bespoke screen for its power meter (see CLAUDE.md on the three exceptions); the automation rules below are unaffected by that. `canPlaceItem` is "is this fuel", so neither a player nor a pipe can park something unburnable in the buffer, and `canTakeItemThroughFace` refuses every face - a pipe pulling fuel back out of the generator it just filled is nobody's intent. **Null side returns no handler**, the Burn Barrel's lesson: `WorldlyContainerWrapper` skips `getSlotsForFace` entirely on a non-sided query. |

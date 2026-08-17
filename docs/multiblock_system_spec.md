@@ -383,3 +383,32 @@ seams - and this generalises it to every face of every machine.
   leaving them out shifts every index above them by one. `every_multiblock_fits_the_whole_machine_skin`
   pins the Separator's exact ordering against the Python side, because the failure mode is every cell
   wearing some other cell's tile - which looks like bad art, not an off-by-one.
+
+## Disassembly, settled 2026-08-16/17 (#191, #194, #195, #196)
+
+**A machine comes back however you break it** (owner ruling). No multiblock core declares
+`requiresCorrectToolForDrops`. The gate had been opt-out rather than absent: breaking the CORE with the
+wrong tool destroyed it, while breaking any CELL handed it straight back, because the removal hook
+calls `dropResources` with no tool context. A machine is assembled and disassembled, not quarried, and
+`Multiblock.disband` already returned components with no tool check - the core now matches.
+`every_multiblock_core_comes_back_however_it_is_broken` sweeps the registry so the next machine cannot
+reintroduce it.
+
+**A formed cell drops nothing of its own; the blueprint decides.** A per-block loot table cannot be
+right, because one formed block serves several components - the Separator's Motor cell and its seven
+frame cells all become `separator_housing`. So breaking the motor cell returned a Machine Frame,
+silently converting the rarest part into the commonest, which is the exact regression `disband` was
+fixed for in 2026-08-07 on the *other* path. `MultiblockDummyBlock.getDrops` returns nothing and the
+removal hook pops the broken cell's own component.
+
+**`findCore` searches four blocks, not one, and only finds FORMED cores.** The radius was 1, which
+capped every machine at three wide - a cell further out never found its master, so breaking it left the
+machine formed with a hole in it, still running. Widening to 4 took the search box from 9 positions per
+layer to 81, so it now scans outward (nearest master first) and ignores unformed cores, which could
+otherwise shadow the real one. `no_blueprint_reaches_past_the_core_search` fails the build if a
+blueprint ever outgrows the radius.
+
+**Testing the cascade needs a machine with several dummy cells AND a core count.** In 26.1 the removal
+hook fires on a plain `setBlock`-to-AIR as well as a real break, so clearing one cell re-enters its
+siblings' hooks and each re-entry re-drops the core while it is still `FORMED`. Breaking the core is
+the safe path and proves nothing; the assertion has to be a CELL break with the core counted.

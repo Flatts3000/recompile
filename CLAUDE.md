@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **What this is:** a standalone **NeoForge** mod (MC 26.1.2). Core mechanic: **teardown-as-knowledge** - disassemble items to recover their recipes, not just their materials. Also ships the garbage-world systems (worldgen, Blocks of Garbage, sorting, mound regrowth) that the **Trashlands** modpack is built on. Mod id / package: `recompile` / `com.flatts.recompile`.
 
-**Status:** Phases 0 through 2.17 are shipped (through the full reclamation ladder - Grass, Vegetation, Farming, Trees, Animals), **Phase 3 (teardown-as-knowledge) shipped 2026-08-02**, **Phase 4's region system and its first frontier region (the demolition yard) are shipped**, and **Phase 5 (mound regrowth) shipped 2026-08-05**. **v0.9.0 is released** (2026-08-12; v0.8.0 on 2026-08-11, v0.7.0 on 2026-08-05, v0.6.0 on 2026-08-04, v0.5.0 on 2026-08-02, v0.4.0 on 2026-08-01, v0.3.0 on 2026-07-30, v0.1.0 and v0.2.0 on 2026-07-27). The grey-to-living arc the ModJam entry is built around now plays end to end, and mounds are renewable quarries rather than a finite stock. `docs/roadmap.md` is the engineering build order and tracks per-phase status; **Phase 6 (the full loop) is what remains**. Phase 3's long-open **knowledge-vs-function question was decided on 2026-08-01: knowledge**, as Immersive-Engineering-style **Blueprint items** (spec `docs/blueprints_spec.md`, issue #95). Tear something down at the Workbench and you may come away with an **Idea Fragment**; enough fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files them and joins the Scrap Network by placement; and the **Scrap Crafting Table** will run a `recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a cabinet in the same cluster. A vanilla crafting table needs no code to be excluded - blueprint recipes are not of type `minecraft:crafting`, so it cannot see them at all.
+**Status:** Phases 0 through 2.17 are shipped (through the full reclamation ladder - Grass, Vegetation, Farming, Trees, Animals), **Phase 3 (teardown-as-knowledge) shipped 2026-08-02**, **Phase 4's region system and its first frontier region (the demolition yard) are shipped**, and **Phase 5 (mound regrowth) shipped 2026-08-05**. **v0.10.0 is released** (2026-08-17; v0.9.0 on 2026-08-12, v0.8.0 on 2026-08-11, v0.7.0 on 2026-08-05, v0.6.0 on 2026-08-04, v0.5.0 on 2026-08-02, v0.4.0 on 2026-08-01, v0.3.0 on 2026-07-30, v0.1.0 and v0.2.0 on 2026-07-27). The grey-to-living arc the ModJam entry is built around now plays end to end, and mounds are renewable quarries rather than a finite stock. `docs/roadmap.md` is the engineering build order and tracks per-phase status; **Phase 6 (the full loop) is what remains**. Phase 3's long-open **knowledge-vs-function question was decided on 2026-08-01: knowledge**, as Immersive-Engineering-style **Blueprint items** (spec `docs/blueprints_spec.md`, issue #95). Tear something down at the Workbench and you may come away with an **Idea Fragment**; enough fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files them and joins the Scrap Network by placement; and the **Scrap Crafting Table** will run a `recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a cabinet in the same cluster. A vanilla crafting table needs no code to be excluded - blueprint recipes are not of type `minecraft:crafting`, so it cannot see them at all.
 
 **The proof of concept is the bed, and it is now the only bed in the game.** All sixteen wool-to-bed recipes are deleted; a Clean Mattress (blueprint-only, three wool and three string) plus three planks is the sole route, and dyeing the mattress at an ordinary table picks the colour. **The teardown schema's `teaches` field, parsed and ignored since Phase 0, is finally read** - which immediately turned the schema's own example recipe into live content, because it carried a `teaches` pointing at a blueprint that does not exist.
 
@@ -133,7 +133,48 @@ Two traps in that area:
 
 **Steel I-Beams draw their run, not their connections** (`SteelBeamBlock`, ported from Create's Metal Girder - MIT code, its assets are All Rights Reserved and none are reproduced). `AXIS` is fixed at placement from the clicked face; `X`/`Z` mean "part of a horizontal run on that axis"; neither set means a vertical column, which is why a lone beam is a full member rather than a stub. **Worldgen must decide whether to resolve connections.** Blocks placed with flag 2 skip neighbour updates, so each keeps the state it was given: correct for the steel stack (wreckage must not fuse into a lattice) and wrong for the Building Husk (a frame must), which resolves its joints in a second pass through `SteelBeamBlock.updateState`.
 
-**The data spine.** `TeardownRecipe` registers the public `recompile:teardown` recipe type - JSON in `data/<ns>/recipe/`, with `results` (deterministic core), `extras` (weighted bonus), and `teaches` (recipes to study). It was registered from day one so the Phase 3 knowledge system is never retrofitted into a live schema. **Packs and addons extend the teardown tree through this schema without a mod release - treat it as public API** (reference: `docs/teardown_schema_spec.md`). `pools` (v0.9.0) is the weighted-draw form: N draws from a weighted list, an entry with no `item` is the filler, and a pool marked `teaches` grants the fragment for whichever item it drew.
+**Three machines, three verbs, and the split is the design** (#187, #188, #189, all shipped
+2026-08-16/17). The test is what an operation does to the material:
+
+| Operation | Changes | Machine |
+|---|---|---|
+| a garbage block into its drops | what it is | **Trommel** (a size cut) |
+| Spent Abrasive into a diamond | what it is | **Separator** (it divides) |
+| E-Scrap into circuit powder | only fineness | **Pulverizer** (it reduces) |
+
+**The Separator used to do all three and now does one.** Sorting was a second MODE on it for four
+releases and moved to the Trommel; a shear shredder destroys distinctions and sorting requires one, so
+the machine that sorts is the one that makes a size cut. The word "grinder" is deliberately gone from
+the Separator's javadoc - it names the Pulverizer now, and a tree where one word names two machines is
+one where the confusion recurs.
+
+All three share one contract - powered, GUI-less, no `Container` and no item capability, fed by
+reaching out (loose items in the mouth, a container parked on them drained), output routed to the
+Scrap Network then a chute then the floor. `MachineParityTests` derives that list from the REGISTRY
+(every multiblock core answering `Capabilities.Energy.BLOCK`) rather than from a hand-list, and
+asserts Jade coverage, network membership, the closed door, and that each says how to feed it. They
+were built by copying each other, which is how they agreed and also how they came apart: the
+Pulverizer shipped with zero Jade providers against the Separator's four.
+
+**The two chains they unblocked**, both of which had been parked with nowhere correct to run:
+
+- **Gold** (#120): E-Scrap -> Circuit Powder (pulverizing, 4:1) -> gold nugget (Cupola, blasting).
+  Grinding is what liberates metal from the resin and glass holding it; blasting is also the gate,
+  since a vanilla furnace cannot run a blasting recipe.
+- **Clay** (#115): a pottery sherd -> Grog (pulverizing) -> + Kitty Litter -> Dry Clay Body (grid) ->
+  clay (right-click a filled water cauldron). **Firing is irreversible** - kaolinite dehydroxylates
+  above ~550C and cannot be rehydrated - so crushed ceramic is grog, a NON-plastic temper, and the
+  plasticity has to come from the bentonite in cat litter. The two halves are useless apart. It
+  unlocks 43 vanilla items, and it needed a source added for sherds: this world has no archaeology, so
+  they were unobtainable and the whole chain was a dead end until one entered `household_pulls`.
+
+**A machine comes back however you break it** (owner, 2026-08-16, #195). No multiblock core declares
+`requiresCorrectToolForDrops`: the gate was opt-out, because breaking the CORE with the wrong tool
+destroyed it while breaking any CELL handed it back. A formed cell drops nothing of its own and the
+blueprint decides what disassembly returns on every path, so a cell break returns the component you
+put in that cell rather than whatever that shared formed block's loot table happened to name.
+
+**The data spine.** `TeardownRecipe` registers the public `recompile:teardown` recipe type - JSON in `data/<ns>/recipe/`, with `results` (deterministic core), `extras` (weighted bonus), and `teaches` (recipes to study). It was registered from day one so the Phase 3 knowledge system is never retrofitted into a live schema. **Three public recipe types now, not one**: `recompile:teardown`, `recompile:separating` (one feed into several distinct outputs plus byproducts) and `recompile:pulverizing` (one input, one finer output, with `count` as the ratio dial, capped at 64 because the machine matches per queue SLOT). They are separate types rather than one flexible one because a schema expressing all three expresses none, and separating is already extended by packs - overloading it would redefine what their existing recipes mean. **Packs and addons extend the teardown tree through this schema without a mod release - treat it as public API** (reference: `docs/teardown_schema_spec.md`). `pools` (v0.9.0) is the weighted-draw form: N draws from a weighted list, an entry with no `item` is the filler, and a pool marked `teaches` grants the fragment for whichever item it drew.
 
 **Config.** `RCConfig` (COMMON). The governing principle is "everything ships config-gated, but defaults are the design" - config is for tuning, not for dodging a decision. `RCDimensionLockout` blocks Nether/End travel (and portal formation) until each themed dimension ships, keeping vanilla dimensions from leaking free resources into the closed trash economy.
 
