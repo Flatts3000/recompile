@@ -10,7 +10,7 @@
     "",
     "Blasting rather than smelting, which is also the gate: a vanilla furnace cannot run a blasting",
     "recipe at all, and a vanilla blast furnace costs five iron ingots, so it is unreachable before",
-    "iron. Gold cannot be short-circuited with a furnace made of stone."
+    "iron. Gold cannot be short-circuited with a furnace made of stone. A vanilla blast furnace CAN run it, which is fine: that costs five iron ingots, so it sits behind the same iron gate the Cupola does."
   ],
   "type": "minecraft:blasting",
   "category": "misc",
