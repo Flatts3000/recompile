@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+**Your Separator has stopped taking garbage, and that is deliberate.** Sorting moved to a new machine.
+
+### The Trommel
+- **A four-block-long rotating screen that sorts unattended.** Build it in the demolition yard: a core, four Steel I-Beams for the drum, a Motor to turn it, and two Machine Frames for the stand.
+- **It yields exactly what a Sorting Tarp yields per block.** It is not more generous, and at one block every two seconds it is slower than you are at a tarp. What you get is that it does it while you are somewhere else. Build a second one rather than waiting on the first.
+- **Two ways to feed it.** Drop scrap anywhere along the drum, or stand a chest, barrel or hopper on it and the machine will empty it a little at a time. Nothing can push into it; it reaches out and takes.
+- **What comes out leaves by the open end of the drum**, into whatever you park there, or thrown clear if there is nothing. Any Scrap Bins wired to the machine get first claim.
+- It runs on power and does nothing at all without it. Hover it for what it is holding and why it has stopped.
+
+### The Separator sorts no longer
+- **Feeding it a Block of Garbage, Trash Bag, Compacted Bale, Stone Rubble or Mechanical Waste no longer does anything.** Those go to a Trommel now.
+- **Everything else about it is unchanged.** The machine, the build, the chute and all three separating recipes work exactly as they did. A Separator you have already built keeps running.
+- Why: a shear shredder tears things apart, which is the opposite of telling them apart. Sorting needs a machine that can make a distinction, and now it has one.
+
 ## v0.9.0
 
 **If you played 0.8.0, the game was lying to you about salvage.** Jade said "No salvage value" for a Dirty Mattress, and for everything else, while JEI's Teardown panel sat empty. Teardown worked the whole time - the bench did its job, the fragments arrived - but nothing in the game would admit it existed. That is fixed, and it is the reason to update.

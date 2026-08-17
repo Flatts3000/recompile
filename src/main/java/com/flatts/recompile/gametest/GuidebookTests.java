@@ -80,9 +80,12 @@ final class GuidebookTests {
             helper.assertTrue(sortables.size() >= 5,
                 "only " + sortables.size() + " sortable blocks found - discovery is broken, so this "
                     + "test would pass by checking nothing");
+            // The Trommel's page, not the Separator's. #187 gave the Separator one verb and the
+            // sorting page went with the behaviour - a page that still listed every sortable would be
+            // teaching players to feed a machine that now refuses them.
             for (String key : List.of(
                     "book.recompile.guide.workstations.sorting_tarp.intro.text",
-                    "book.recompile.guide.demolition.separator.sorting.text")) {
+                    "book.recompile.guide.demolition.trommel.intro.text")) {
                 checkNames(problems, key, sortables);
             }
 

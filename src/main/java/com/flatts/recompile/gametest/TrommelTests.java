@@ -200,6 +200,73 @@ final class TrommelTests {
             });
         });
 
+        // MECHANICAL WASTE SORTS HERE NOW. Moved from the Separator with #187, not deleted: the
+        // yard's own pile is a sortable, and losing the assertion along with the machine that used to
+        // hold it would quietly drop the coverage rather than relocate it.
+        RCGameTests.test("a_trommel_sorts_mechanical_waste", 200, helper -> {
+            BlockPos core = new BlockPos(0, 1, 1);
+            TrommelBlockEntity be = formAndPower(helper, core);
+
+            int rolls = SortableBlock.sortRolls(RCItems.MECHANICAL_WASTE.get());
+            helper.assertTrue(rolls > 0,
+                "Mechanical Waste is not sortable - this test would be measuring air");
+
+            BlockPos outlet = TrommelCoreBlock.outlet(helper.getLevel(), helper.absolutePos(core));
+            helper.getLevel().setBlockAndUpdate(outlet, Blocks.CHEST.defaultBlockState());
+            var chest = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(outlet);
+
+            BlockPos feed = TrommelCoreBlock.drumCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
+            helper.getLevel().addFreshEntity(new ItemEntity(helper.getLevel(),
+                feed.getX() + 0.5, feed.getY() + 0.5, feed.getZ() + 0.5,
+                new ItemStack(RCItems.MECHANICAL_WASTE.get(), 1)));
+
+            helper.succeedWhen(() -> {
+                helper.assertTrue(be.queuedCount() == 0, "the Trommel has not finished");
+                int out = 0;
+                for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+                    out += chest.getItem(slot).getCount();
+                }
+                helper.assertTrue(out > 0, "sorting Mechanical Waste produced nothing");
+            });
+        });
+
+        // ITS OUTPUT FILES ITSELF INTO A CONNECTED BIN, which is the assertion that makes the SOURCE
+        // role in ScrapNetworkTests a fact rather than a promise. That table lists this machine as a
+        // SOURCE; the push test beside it hand-lists its subjects and does not reach here.
+        //
+        // Moved from the Separator with #187. It also guards the defect review found on #188: the
+        // Trommel was calling into the network while absent from #recompile:scrap_connectable, so
+        // every routed item silently fell through to the chute instead - with the guidebook promising
+        // the opposite.
+        RCGameTests.test("trommel_output_files_itself_into_a_connected_bin", 200, helper -> {
+            BlockPos core = new BlockPos(0, 1, 1);
+            TrommelBlockEntity be = formAndPower(helper, core);
+
+            // Against the core, so the cluster is reached from the acting block itself.
+            BlockPos binPos = helper.absolutePos(core).below();
+            helper.getLevel().setBlockAndUpdate(binPos, RCBlocks.SCRAP_BARREL.get().defaultBlockState());
+            var barrel = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(binPos);
+            helper.assertTrue(barrel != null, "no barrel to file into");
+
+            BlockPos feed = TrommelCoreBlock.drumCells(
+                helper.getLevel(), helper.absolutePos(core)).get(0).above();
+            helper.getLevel().addFreshEntity(new ItemEntity(helper.getLevel(),
+                feed.getX() + 0.5, feed.getY() + 0.5, feed.getZ() + 0.5,
+                new ItemStack(RCItems.GARBAGE_BLOCK.get(), 1)));
+
+            helper.succeedWhen(() -> {
+                helper.assertTrue(be.queuedCount() == 0, "the Trommel has not finished sorting");
+                int filed = 0;
+                for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
+                    filed += barrel.getItem(slot).getCount();
+                }
+                helper.assertTrue(filed > 0,
+                    "nothing reached the connected barrel - the machine is in the tag but its output "
+                        + "is not routing, so the Scrap Network membership is decoration");
+            });
+        });
+
         // THE DISBAND DUPLICATION TRAP, which a two-cell machine cannot catch. In 26.1 the removal
         // hook fires on a plain setBlock-to-AIR as well as on a real break, so clearing one cell
         // re-enters its siblings' hooks - and while the core is still FORMED each of those re-drops

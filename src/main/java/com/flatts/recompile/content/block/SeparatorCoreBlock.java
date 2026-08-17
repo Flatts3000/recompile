@@ -29,7 +29,11 @@ import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Separator's core: an industrial grinder that drops material in the top and raw materials out the
+ * ONE MACHINE, ONE VERB (#187). It separates. The word "grinder" is deliberately absent - that is
+ * the Pulverizer's job (#189), and a tree where one word names two machines is one where the
+ * confusion recurs.
+ *
+ * The Separator's core: it takes a mixed feed in the top and hands back distinct materials out the
  * bottom ({@code docs/gem_tier_spec.md}, art {@code docs/separator_model_spec.md}).
  *
  * <p><b>It has no inventory, and that is the design rather than an omission.</b> The machine is not a
@@ -42,11 +46,11 @@ import org.jspecify.annotations.Nullable;
  * container instead costs none of the properties above and removes the dead end.
  *
  * <p><b>3 wide x 2 deep x 2 tall</b>, twelve cells. The grinding bay is a <b>2x2</b> square on top and
- * the third column is solid housing, which is what gives the machine its bulk: a grinder that is all
+ * the third column is solid housing, which is what gives the machine its bulk: a machine that is all
  * mouth reads as a hole in the ground rather than a machine with a hopper in it.
  *
  * <p>The four bay cells read as <b>one</b> opening rather than four blocks. Each is stamped at assembly
- * with which quarter of the grinder it shows; the quadrant models draw a rim only on their outer edges
+ * with which quarter of the shredder it shows; the quadrant models draw a rim only on their outer edges
  * and the floor textures are quarters of a single image, so both the border and the teeth run
  * continuously across the seams.
  *
