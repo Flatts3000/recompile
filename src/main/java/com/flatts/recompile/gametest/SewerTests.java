@@ -842,6 +842,135 @@ final class SewerTests {
             helper.succeed();
         });
 
+        // NO LIGHT WHERE THINGS MUST SPAWN. This is phase 1's real acceptance criterion, and the one
+        // failure in it that nothing else would report.
+        //
+        // A hostile spawn needs block light 0, so ANY source suppresses spawning in its radius - the
+        // level does not soften that, only the radius changes. A lantern in a junction therefore
+        // switches off that junction's drowned spawner silently: the spawner is still there, still
+        // holds a drowned, and never fires. The lit rooms are deliberately the unspawnable ones (the
+        // chamber, the shaft, the dens); corridors and junctions must stay dark.
+        RCGameTests.test("no_light_where_the_sewer_must_spawn", 60, helper -> {
+            var level = helper.getLevel();
+            var gen = level.getChunkSource().getGenerator();
+            var mgr = level.structureManager();
+            List<String> lit = new ArrayList<>();
+
+            BlockPos base = helper.absolutePos(new BlockPos(0, 28, 0));
+            BoundingBox corridor = SewerPieces.SewerPiece.box(
+                base.getX(), base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 7);
+            BoundingBox junction = SewerPieces.SewerPiece.box(
+                base.getX() + 16, base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 5);
+            // DEPTH 1 on the junction, deliberately: at depth 2 or more it carries a drowned spawner,
+            // and this test writes outside its own plot - so the old version left a live spawner in the
+            // shared gametest world for the rest of the run. The light rule does not need the spawner.
+            var pieces = List.<StructurePiece>of(
+                new SewerPieces.SewerCorridor(1, corridor, Direction.SOUTH),
+                new SewerPieces.SewerCrossing(1, junction, Direction.SOUTH));
+
+            for (var piece : pieces) {
+                BoundingBox box = piece.getBoundingBox();
+                BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                    box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+                piece.postProcess(level, mgr, gen, RandomSource.create(21L), limit,
+                    new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), base);
+                for (int x = box.minX(); x <= box.maxX(); x++) {
+                    for (int y = box.minY(); y <= box.maxY(); y++) {
+                        for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                            var at = new BlockPos(x, y, z);
+                            if (level.getBlockState(at).getLightEmission() > 0) {
+                                lit.add(level.getBlockState(at).getBlock() + " at " + at);
+                            }
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(lit.isEmpty(),
+                "these light sources are in a corridor or a junction, which silently switches off the "
+                    + "spawns that piece exists to host - the spawner stays, holds a drowned, and never "
+                    + "fires: " + lit);
+
+            // AND THE ROOMS THAT SHOULD BE LIT ARE. Without this the test passes if LIGHT is deleted
+            // outright, which is exactly how the chamber came to be unlit while three separate comments
+            // said it was lit.
+            BlockPos roomAt = helper.absolutePos(new BlockPos(0, 46, 0));
+            var room = new SewerPieces.SewerRoom(0, RandomSource.create(31L), roomAt.getX(), roomAt.getZ());
+            room.move(0, roomAt.getY() - room.getBoundingBox().minY(), 0);
+            BoundingBox rbox = room.getBoundingBox();
+            BoundingBox rlimit = new BoundingBox(rbox.minX() - 16, rbox.minY() - 16, rbox.minZ() - 16,
+                rbox.maxX() + 16, rbox.maxY() + 16, rbox.maxZ() + 16);
+            room.postProcess(level, mgr, gen, RandomSource.create(31L), rlimit,
+                new net.minecraft.world.level.ChunkPos(rbox.minX() >> 4, rbox.minZ() >> 4), roomAt);
+            int lamps = 0;
+            for (int x = rbox.minX(); x <= rbox.maxX(); x++) {
+                for (int z = rbox.minZ(); z <= rbox.maxZ(); z++) {
+                    if (level.getBlockState(new BlockPos(x, rbox.maxY() - 1, z))
+                            .getLightEmission() > 0) {
+                        lamps++;
+                    }
+                }
+            }
+            helper.assertTrue(lamps > 0,
+                "the root chamber has no light in it - it holds the ladder, the pool and the barrels, "
+                    + "and unlit it is also spawnable, which is the opposite of what it is for");
+            level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                new net.minecraft.world.phys.AABB(rbox.minX() - 2, rbox.minY() - 2, rbox.minZ() - 2,
+                    rbox.maxX() + 2, rbox.maxY() + 2, rbox.maxZ() + 2))
+                .forEach(net.minecraft.world.entity.Entity::discard);
+            helper.succeed();
+        });
+
+        // EVERY DRESSING BLOCK ACTUALLY GETS PLACED, which is the guard whose absence shipped two dead
+        // features in one commit.
+        //
+        // The fine silt and the growth were declared, documented, added to SewerPalette.ALL and never
+        // reachable: their arithmetic could not fire for the only dimensions any caller passes. Nothing
+        // saw it, because the palette walk asks what a block IS - is it in the furnace tag - and never
+        // whether anything places it. A palette entry that cannot be reached is indistinguishable from
+        // one that is fine, right up until someone goes looking for a mushroom.
+        RCGameTests.test("the_dressing_blocks_are_all_reachable", 60, helper -> {
+            var level = helper.getLevel();
+            var gen = level.getChunkSource().getGenerator();
+            var mgr = level.structureManager();
+            var seen = new HashSet<net.minecraft.world.level.block.Block>();
+
+            // A GRID, not a line. The dressing is seeded from minX * 31 + minZ * 17, so walking the
+            // samples diagonally keeps that sum marching in a fixed stride - the seed never varies mod 2
+            // or mod 4 and half the palette can never come up. This is the same correlation mistake the
+            // dressing arithmetic itself had, made a second time in the test written to catch it: the
+            // first version offset x and z in lockstep and reported gravel and mushrooms as dead.
+            for (int step = 0; step < 16; step++) {
+                BlockPos base = helper.absolutePos(new BlockPos(0, 20, 0))
+                    .offset((step % 4) * 9, 0, (step / 4) * 11);
+                BoundingBox box = SewerPieces.SewerPiece.box(
+                    base.getX(), base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 7);
+                BoundingBox limit = new BoundingBox(box.minX() - 8, box.minY() - 8, box.minZ() - 8,
+                    box.maxX() + 8, box.maxY() + 8, box.maxZ() + 8);
+                new SewerPieces.SewerCorridor(1, box, Direction.SOUTH).postProcess(
+                    level, mgr, gen, RandomSource.create(step), limit,
+                    new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), base);
+                for (int x = box.minX(); x <= box.maxX(); x++) {
+                    for (int y = box.minY(); y <= box.maxY(); y++) {
+                        for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                            seen.add(level.getBlockState(new BlockPos(x, y, z)).getBlock());
+                        }
+                    }
+                }
+            }
+
+            List<String> unreachable = new ArrayList<>();
+            for (var state : List.of(SewerPalette.WET_COURSE, SewerPalette.CRACKED_COURSE,
+                    SewerPalette.SILT, SewerPalette.FINE_SILT, SewerPalette.GROWTH)) {
+                if (!seen.contains(state.getBlock())) {
+                    unreachable.add(state.getBlock().toString());
+                }
+            }
+            helper.assertTrue(unreachable.isEmpty(),
+                "these are in the palette and no corridor ever places them, so they are dead content "
+                    + "that every existing check reports as fine: " + unreachable);
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.
