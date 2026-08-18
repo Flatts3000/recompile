@@ -131,119 +131,174 @@ Two consequences to carry:
 
 ## Build order
 
-Four phases, then a stop. Each says what it **ships**, what it **takes**, how it is **accepted**, and how
-it is **verified** - the same shape as `sewers_spec.md`, because that shape is what kept phases 0-5
-honest.
+Four phases, then a stop.
 
-**The order is by uncertainty, not by cost.** Phases 1 and 2 are cheap and low-risk, which makes them
-good warm-ups and poor information. Phase 4 is the one that answers whether a sewer should be a
-destination rather than a resource stop, and if that answer is no, phases 1-3 were polish on something
-that did not need it. There is a real argument for doing 4 first; it is not taken here only because 1-3
-de-risk the machinery 4 would be built on.
+**The rule that governs all of them: a feature has to follow from what a sewer is.** Not "we need a new
+piece, put a room somewhere" - a sewer *has* access chambers because somebody had to maintain it, it
+*has* a low point because water runs downhill, and it is *lit where people worked and dark where they
+stopped coming*. When the fiction and the mechanics want the same thing, the feature stops reading as
+content and starts reading as a place. Where they disagree, the fiction is usually telling you the
+mechanic is in the wrong room.
+
+Each phase therefore states **how it fits** before what it takes, and says plainly whether it changes
+generation that already exists or adds new generation - those are different risks and the appendix sizes
+them differently.
+
+**The phases are also meant to leave the next one somewhere to attach.** Phase 3 builds the low point;
+phase 4 puts the thing worth finding at the bottom of it, because that is where things wash to. If a
+phase can only be reached by inventing a reason, it is in the wrong order.
+
+**Ordered by uncertainty, not cost.** Phases 1-3 are cheap and low-risk, which makes them good warm-ups
+and poor information. Phase 4 answers whether a sewer is a destination or a resource stop, and if that
+answer is no, 1-3 were polish. There is a real argument for doing 4 first; it is declined here only
+because 3 gives 4 a natural home.
 
 ---
 
-### Phase 1 - dressing and light
+### Phase 1 - decay and light
 
-**Ships:** a sewer that reads as old and wet rather than as clean brick, and that you can see by in the
-places you are meant to survive.
+**Ships:** a sewer that reads as old, wet and abandoned by degrees.
 
-**Takes:** S. Four to six palette entries, a weighted pick in `line()`, one placement rule for light.
-No new piece, no new registration.
+**How it fits.** Decay is not random, it follows water and air. Moss and cracks belong **where the
+channel runs and where the ceiling drips**, so masonry variation should be a function of distance from
+the fluid rather than a scatter - a dry upper wall stays clean brick, and the course beside the channel
+is the one that goes green. Silt collects **where flow slows**: the insides of bends, the corners of
+junctions, the dead ends. Growth needs damp and dark, so it thins out near the entrance and thickens
+away from it.
 
-- Aged masonry: `mossy_stone_bricks` and `cracked_stone_bricks` mixed into corridor walls.
-- Silt: `gravel` and `clay` along the channel edges.
-- Damp growth: `vine` on walls, `brown_mushroom` on floors.
-- Light, sparse: lanterns in the chamber, the shaft, the dens and nowhere else.
+Light is the same idea pointed at people rather than water. **A sewer is lit where somebody worked**,
+and this system was abandoned - so light clusters at the shaft foot and the chamber, persists in the
+maintenance room when phase 2 adds one, and stops. Deeper in, there is nothing, because nobody went
+there. That fiction and the spawn rule want exactly the same thing, which is the tell that it is the
+right design: **the lit rooms are the ones that must not spawn, and they are the ones a person would
+have lit.**
+
+**Generation:** changes existing gen only. `SewerCorridor.postProcess` and `SewerCrossing.postProcess`
+pick their wall block from proximity to the channel; the entrance and chamber gain light. No new piece,
+no new registration.
+
+**Takes:** S.
 
 **Acceptance:**
-- No block placed is in `#minecraft:stone_crafting_materials`, asserted by the palette walk - so the
-  masonry reads mossy without a single cobblestone-family block.
-- **No light source exists in any corridor or junction piece.** This is the phase's real acceptance
-  criterion: a lantern in a junction silently switches off that junction's spawner, and nothing else in
-  the build would report it.
+- Wall variation correlates with the channel, not with a die roll - a dry wall reads differently from a
+  wet one.
+- **No light source in any corridor or junction.** The phase's real criterion: a lantern in a junction
+  silently switches off that junction's spawner, and nothing else would report it.
 - Silt never fills the channel or blocks a walkway.
-- Every new block is in `SewerPalette.ALL`, or the first criterion is not actually being enforced.
+- Nothing placed is in `#minecraft:stone_crafting_materials`, and everything placed is in
+  `SewerPalette.ALL`, or that check is not enforcing anything.
 
-**Verification:** the palette walk covers the gate; a new test asserts the light rule per piece type;
-in-world in a fresh world for the look, which is the only thing here a test cannot judge.
+**Verification:** palette walk; a per-piece-type test for the light rule; in-world for the look, which is
+the only part a test cannot judge.
 
 ---
 
-### Phase 2 - the maintenance room
+### Phase 2 - access chambers
 
-**Ships:** the first new piece since phase 2 of the original build, and a room whose job is to explain
-why the loot is where it is.
+**Ships:** rooms off the main run that explain why anything is down here.
 
-**Takes:** M. A `StructurePiece` subclass, a `StructurePieceType` registration, geometry, a test. Dry,
-flat, no fluid, no vertical work - **chosen precisely because it cannot hide a geometry bug**, so the
-"add a piece" path is proven on something safe before phase 3 spends it on something that can.
+**How it fits.** Every real sewer has access: valve chambers, inspection points, a place the crew left
+their things. That is also the honest answer to a question the loot currently dodges - **the barrels are
+in the entrance chamber because that is where the code could put them**, not because anyone would have
+stored anything there. An access chamber gives them a reason, and gives the sewer somewhere that is not
+tunnel.
+
+They belong **off a corridor, through a door**, not attached to the entrance chamber - a store room at
+the bottom of the ladder is the first thing you see, and the point is to reward looking. One or two per
+sewer, at a corridor that is already past the first branch.
+
+**Generation:** new gen (a room piece) **plus a small change to existing gen** - a corridor gains a
+chance to open a side door, which is the same doorway-carving the dens already do and the first time a
+corridor decides anything about its own neighbours. That is the risky half, not the room.
+
+**Takes:** M. Dry, flat, no fluid, no vertical work - chosen so the add-a-piece path is proven on
+something that cannot hide a geometry bug before phase 3 spends it on something that can.
 
 **Acceptance:**
-- It generates, it connects, and you can walk in and out of it.
-- It lands on no corridor, no den and no other room - asserted as geometry over every chamber size, not
-  by looking.
-- It is dry and lit, per phase 1's rule.
-- It holds a barrel, and that barrel carries the loot table.
+- Generates, connects, and can be walked into and out of.
+- Lands on no corridor, den, sump or other chamber - asserted as geometry across every chamber size.
+- Dry and lit, per phase 1.
+- The barrels move here from the entrance chamber, so the loot is somewhere a person would have put it.
 
-**Verification:** the geometry assertions from `the_dens_land_on_no_corridor_and_not_on_each_other`,
-extended. Driven red against a deliberately overlapping box before it is believed.
+**Verification:** the geometry assertions extended, driven red against a deliberately overlapping box.
 
 ---
 
 ### Phase 3 - the sump
 
-**Ships:** somewhere that reads as the bottom of the system, and the guaranteed home for a drowned
-spawner.
+**Ships:** the bottom of the system.
 
-**Takes:** M, plus two decisions that are already made. `canDrown` is `true`, so deep leachate is
-permitted; deep sections are allowed **where they serve the improvement**, and "you cannot simply walk
-through the bottom of a sewer" is a job.
+**How it fits.** This is the most natural piece on the whole list, because a sewer **must** have one:
+everything the channels carry has to go somewhere, and it goes to the lowest point. That makes the sump
+the one room whose position is not a design choice at all - **it belongs at the deepest end of the piece
+tree**, wherever the stairs happened to descend furthest, and attaching it anywhere else would be the
+ham-fisted version of exactly this feature.
+
+Three things fall out of that placement rather than being added to it:
+
+- **The deep leachate is not a hazard we chose to install**, it is what a low point in a drainage system
+  contains. That is the difference between a hazard and a trap.
+- **The drowned belong here.** They are what accumulates in standing water, and this is where the
+  standing water is - which is a better reason for the guaranteed spawner than "somewhere deterministic
+  was needed".
+- **It is dark.** Nobody maintained the bottom.
+
+**Generation:** new gen (the sump piece) **plus a change to how the structure assembles** - it has to
+inspect the finished piece tree, find the lowest reachable end, and attach there. That is a genuine
+change to placement, which is the category where every silent bug in this feature has lived.
+
+**Takes:** M, and the placement change is the L-shaped part of it.
 
 **This phase closes an open guarantee.** A sewer can currently generate with no drowned at all, because
-junctions only carry a spawner past depth 2 and only when their box hashes even. A sump is a piece the
-structure attaches deterministically, so it can hold the one spawner that is always there. Two problems,
-one piece.
+junctions carry a spawner only past depth 2 and only when their box hashes even. The sump is attached
+deterministically, so it can hold the one that is always there.
 
 **Acceptance:**
-- Every sewer contains exactly one sump, and therefore at least one spawner - replacing a measured
-  coverage figure with a guarantee.
-- The deep section is **telegraphed**: visible before it is entered. Leachate is opaque and the sewer is
-  dark, so a drop you cannot see is a death with no decision in front of it.
-- It is **not on the only path** to anything. If it ever is, that is a deliberate gate and belongs in
+- Exactly one sump per sewer, at the deepest end, and therefore at least one spawner - a guarantee
+  replacing today's measured 80% coverage.
+- The channels visibly run **toward** it, so the room is arrived at rather than discovered.
+- The drop is **telegraphed** - visible before it is entered. Leachate is opaque and this room is dark;
+  a drop you cannot see is a death with no decision in front of it.
+- It is **not on the only path** to anything. If it becomes one, that is a gate and belongs in
   `progression_gates.md`.
-- It does not stack every hazard at once. Deep, guarded, dark and draining is four things; a sump should
-  be for two of them at most.
+- It does not stack every hazard at once. Deep, guarded, dark and draining is four things; pick two.
 
-**Verification:** a geometry test for placement; an every-seed assertion that the spawner guarantee
-holds, replacing the current 80% coverage measurement; in-world for whether the drop reads as
-telegraphed, which no test can answer.
+**Verification:** a placement test that the sump is at the tree's lowest end for every seed; an
+every-seed spawner guarantee; in-world for whether the drop reads as telegraphed, which no test answers.
 
 ---
 
-### Phase 4 - a unique find
+### Phase 4 - what washed down
 
-**Ships:** a reason a sewer is a destination rather than a resource stop.
+**Ships:** the reason to go to the bottom.
 
-**Takes:** M if it is an existing item given a sewer-only route, XL if it is a new one - a new item is
-art, lang, model, recipe or loot, a gate-doc entry and a guidebook line.
+**How it fits.** Phase 3 built the place everything drains to, so phase 4 is not a new idea, it is the
+consequence of the last one: **things wash to the low point and stay there.** A find recovered from the
+sump's silt needs no justification invented for it - the room's whole function is accumulation, and the
+player has already been told that by walking down channels that all lead the same way.
 
-**This is the phase the others exist to de-risk, and the only one that answers the question worth
-asking.** The barrels currently pay in materials the player already has routes to, plus components that
-are a head start rather than a novelty. One thing that exists nowhere else changes what the structure
-*is*.
+That also settles what kind of thing it should be. Not a crafted component - those wash away like
+anything else. Something that **only makes sense as sediment**: lost, deposited, or grown in the dark.
+The sewer currently pays in materials the player already has routes to; one thing that exists nowhere
+else is what turns a resource stop into a destination.
+
+**Generation:** no new gen. It attaches to phase 3's sump - a silt layer that yields it, or a container
+the room already justifies. This is the phase with the least generation risk and the most design risk,
+which is the opposite of every phase before it.
+
+**Takes:** M if it is an existing item given a sewer-only route, XL if it is a new one - art, lang,
+model, loot, a gate-doc entry and a guidebook line.
 
 **Acceptance:**
-- Exactly one thing, and it comes only from sewers.
-- It does not skip a tier - checked against `progression_gates.md` **before** it lands, and with what
-  vanilla does with it measured rather than assumed. The mud mistake was made three times; this is the
-  most likely place to make it a fourth.
-- It is reachable: a player who clears a sewer gets one, rather than one existing in a table nobody
-  rolls.
-- It is recorded in `progression_gates.md` as a new obtainable.
+- Exactly one thing, and only sewers produce it.
+- It does not skip a tier, checked against `progression_gates.md` **before** it lands, with what vanilla
+  does with it measured rather than assumed. **This is the most likely place to make the mud mistake a
+  fourth time.**
+- It is reachable: clearing a sewer yields one, rather than it existing in a table nobody rolls.
+- Recorded in `progression_gates.md` as a new obtainable.
 
-**Verification:** a test that the item has a sewer source and no other; the `found_only` twin-check
-shape, which already exists for exactly this class of mistake.
+**Verification:** a test that it has a sewer source and no other, in the shape of the `found_only`
+twin-check that already exists for this class of mistake.
 
 ---
 
@@ -251,13 +306,13 @@ shape, which already exists for exactly this class of mistake.
 
 **Ships:** nothing.
 
-Everything else on the option list - more entrances, hazards, the junction hall, depth-scaled loot,
-more den types - waits for playtest to say which of them a player actually misses. The first playtest of
-this structure found a zoo in one screenshot, which is more information than any of the reasoning that
-preceded it produced.
+Everything else - more entrances, hazards, the junction hall, depth-scaled loot, more den types - waits
+until playtest says which a player actually misses. The first playtest of this structure found a zoo in
+one screenshot, which is more information than all the reasoning that preceded it.
 
-**Explicitly not recommended without that evidence:** the hazard category. Every entry in it is M to XL
-for a structure that already has a working threat.
+**Explicitly not recommended without that evidence:** the hazard category. Every entry is M to XL for a
+structure that already has a working threat, and none of them follow from what a sewer is in the way the
+sump does - which is the test this build order is built around.
 
 ---
 
