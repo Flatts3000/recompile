@@ -259,8 +259,15 @@ public final class SewerPieces {
          * time with a fresh {@code RandomSource}, so a rolled wall would come out different on either
          * side of a chunk boundary - a seam straight down the middle of a corridor.
          */
-        protected static BlockState weathered(int key) {
-            int pick = Math.floorMod(key, 5);
+        protected BlockState weathered(int key) {
+            // FOLD IN THE PIECE'S OWN POSITION. Deterministic is required - postProcess re-runs per
+            // overlapped chunk, so a rolled wall would seam down a chunk boundary - but deterministic is
+            // not the same as uniform, and the first version keyed on local coordinates alone. Local
+            // coordinates are identical for every corridor ever generated, so every corridor in every
+            // world came out with a byte-identical moss pattern: not weathering, tiling. The spawner a
+            // few methods away already had this right.
+            int seed = key + this.boundingBox.minX() * 31 + this.boundingBox.minZ() * 17;
+            int pick = Math.floorMod(seed, 5);
             if (pick == 0) {
                 return SewerPalette.CRACKED_COURSE;
             }
@@ -275,16 +282,27 @@ public final class SewerPieces {
          * silts up at its corners, not evenly.
          */
         protected void silt(WorldGenLevel level, BoundingBox limit, int w, int l) {
+            // ARITHMETIC THAT CAN ACTUALLY FIRE. The first version could not place two of its three
+            // blocks at all: with the only caller passing l=7 the loop saw z in {1, 5}, so key = z*17+dx
+            // was always even and the fine deposit never won its ternary, and the growth test wanted
+            // z divisible by 4, which neither value is. Both were declared, documented, added to the
+            // palette, and dead - and nothing could see it, because the palette walk only asks what a
+            // block IS, never whether it is reached.
+            //
+            // Seeded from the piece's own box for the same reason weathered() is: identical local
+            // coordinates in every corridor would put the gravel in the same two cells forever.
             int mid = w / 2;
+            int seed = this.boundingBox.minX() * 31 + this.boundingBox.minZ() * 17;
             for (int z : new int[]{1, l - 2}) {
                 for (int dx = -1; dx <= 1; dx += 2) {
-                    int key = z * 17 + dx;
-                    if (Math.floorMod(key, 3) == 0) {
-                        this.placeBlock(level, Math.floorMod(key, 2) == 0
-                            ? SewerPalette.SILT : SewerPalette.FINE_SILT, mid + dx, 0, z, limit);
+                    int key = seed + z * 7 + dx;
+                    if (Math.floorMod(key, 3) != 0) {
+                        continue;
                     }
+                    this.placeBlock(level, Math.floorMod(key, 2) == 0
+                        ? SewerPalette.SILT : SewerPalette.FINE_SILT, mid + dx, 0, z, limit);
                 }
-                if (Math.floorMod(z * 13, 4) == 0) {
+                if (Math.floorMod(seed + z, 4) == 0) {
                     this.placeBlock(level, SewerPalette.GROWTH, mid + 1, 1, z, limit);
                 }
             }
@@ -751,6 +769,17 @@ public final class SewerPieces {
                 BlockPos rung = new BlockPos(shaftX, y, shaftZ);
                 if (limit.isInside(rung)) {
                     level.setBlock(rung, SewerPalette.LADDER, Block.UPDATE_CLIENTS);
+                }
+            }
+            // LIGHT THE CHAMBER. Three places claimed this room was lit - the palette javadoc, the test
+            // comment and the spec - and none of it was true: the edit that placed it failed silently
+            // and only the shaft and the dens got lamps. The chamber holds the ladder, the pool and the
+            // barrels, and being unlit also left it spawnable, which is the opposite of what it is for.
+            for (int dz : new int[]{2, -2}) {
+                BlockPos hook = new BlockPos(box.getCenter().getX(), box.maxY() - 1,
+                    box.getCenter().getZ() + dz);
+                if (limit.isInside(hook)) {
+                    level.setBlock(hook, SewerPalette.LIGHT, Block.UPDATE_CLIENTS);
                 }
             }
             placeBarrels(level, limit, box, random);

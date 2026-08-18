@@ -91,8 +91,21 @@ public final class SewerPalette {
     /** Silt: what settles where the flow slows. */
     public static final BlockState SILT = Blocks.GRAVEL.defaultBlockState();
 
-    /** The finer half of the same deposit. */
-    public static final BlockState FINE_SILT = Blocks.CLAY.defaultBlockState();
+    /**
+     * The finer half of the same deposit.
+     *
+     * <p><b>Sand, not clay, and the first draft got this wrong.</b> Clay is the obvious silt and it is
+     * also the entire #115 chain: sherd, Grog, Kitty Litter, Dry Clay Body, water cauldron. Nothing else
+     * in this world drops a clay ball, so a clay block in worldgen would retire that chain outright -
+     * four balls from any tool. Sand is already obtainable from sledgehammered Reinforced Concrete, so
+     * it costs nothing to hand out.
+     *
+     * <p>The improvements spec flagged this in the same sentence that proposed it - "clay is the chain
+     * from #115, so a free source needs a glance at the gates doc" - and the glance was not taken. A
+     * warning you write and then walk past is worse than no warning, because the next reader assumes it
+     * was heeded.
+     */
+    public static final BlockState FINE_SILT = Blocks.SAND.defaultBlockState();
 
     /** Damp growth, which needs dark and gets it everywhere down here. */
     public static final BlockState GROWTH = Blocks.BROWN_MUSHROOM.defaultBlockState();
