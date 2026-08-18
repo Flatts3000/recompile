@@ -71,6 +71,44 @@ public final class SewerPalette {
     /** Air inside the tunnels. {@code CAVE_AIR} rather than air, as every vanilla structure uses. */
     public static final BlockState HOLLOW = Blocks.CAVE_AIR.defaultBlockState();
 
+    /**
+     * The wet course: the wall block that sits beside the channel.
+     *
+     * <p><b>Decay follows water.</b> Moss grows where it is damp and brick cracks where it is wetted and
+     * dried, so the course level with the channel is the one that goes green while the wall above it
+     * stays clean. Picking this by height rather than by a die roll is the difference between a sewer
+     * that looks old and one that looks speckled.
+     *
+     * <p>Mossy <em>stone</em> bricks, not mossy cobblestone: cobblestone is in
+     * {@code #minecraft:stone_crafting_materials}, which crafts a vanilla furnace and opens the iron
+     * gate. The classic mossy-cobble sewer is the one thing this structure cannot be built from.
+     */
+    public static final BlockState WET_COURSE = Blocks.MOSSY_STONE_BRICKS.defaultBlockState();
+
+    /** The same course where it has cracked rather than greened. */
+    public static final BlockState CRACKED_COURSE = Blocks.CRACKED_STONE_BRICKS.defaultBlockState();
+
+    /** Silt: what settles where the flow slows. */
+    public static final BlockState SILT = Blocks.GRAVEL.defaultBlockState();
+
+    /** The finer half of the same deposit. */
+    public static final BlockState FINE_SILT = Blocks.CLAY.defaultBlockState();
+
+    /** Damp growth, which needs dark and gets it everywhere down here. */
+    public static final BlockState GROWTH = Blocks.BROWN_MUSHROOM.defaultBlockState();
+
+    /**
+     * Maintenance lighting.
+     *
+     * <p><b>Light marks where people worked, and this system was abandoned.</b> It belongs at the shaft
+     * foot, in the chamber and in the dens, and nowhere else - which is also exactly where spawning must
+     * not happen, because a hostile spawn needs block light 0 and any source suppresses it. The fiction
+     * and the mob rule want the same rooms lit, which is the tell that the placement is right rather
+     * than a compromise.
+     */
+    public static final BlockState LIGHT = Blocks.LANTERN.defaultBlockState()
+        .setValue(net.minecraft.world.level.block.LanternBlock.HANGING, true);
+
     /** Ladders out of the entrance shaft. */
     public static final BlockState LADDER = Blocks.LADDER.defaultBlockState();
 
@@ -115,7 +153,8 @@ public final class SewerPalette {
      */
     public static final List<BlockState> ALL =
         List.of(WALL, GRATE, FLUID, WEB, STEP, SPAWNER, LADDER, PAD, COVER, BARREL,
-            TURTLE_BED, FROG_BED, HOLLOW);
+            TURTLE_BED, FROG_BED, WET_COURSE, CRACKED_COURSE, SILT, FINE_SILT, GROWTH,
+            LIGHT, HOLLOW);
 
     private SewerPalette() {
     }

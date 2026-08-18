@@ -231,6 +231,15 @@ public final class SewerPieces {
                 SewerPalette.WALL, SewerPalette.WALL, false);
             this.generateBox(level, limit, w - 1, 1, 0, w - 1, h - 2, l - 1,
                 SewerPalette.WALL, SewerPalette.WALL, false);
+            // THE WET COURSE. Decay follows water, so the one wall row level with the channel is the row
+            // that greens and cracks while everything above it stays clean brick. Keyed on height rather
+            // than on a roll: a scatter of mossy blocks up a dry wall reads as speckling, and a solid
+            // green course at floor level reads as a waterline.
+            for (int z = 0; z < l; z++) {
+                for (int x : new int[]{0, w - 1}) {
+                    this.placeBlock(level, weathered(z * 31 + x), x, 1, z, limit);
+                }
+            }
             // AND CUT THE DOORWAY BACK THROUGH THE PARENT. A child is anchored one block past its
             // parent, so a piece that turns left or right starts on the far side of the parent's side
             // wall and every such branch was sealed behind a solid brick layer - only straight-ahead
@@ -241,6 +250,44 @@ public final class SewerPieces {
             // the child always has the last word on the shared face.
             this.generateBox(level, limit, 1, 1, -1, w - 2, h - 2, -1,
                 SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
+        }
+
+        /**
+         * Which weathered block a wet-course cell gets, from its own position.
+         *
+         * <p>Deterministic on purpose. {@code postProcess} runs once per chunk a piece overlaps, each
+         * time with a fresh {@code RandomSource}, so a rolled wall would come out different on either
+         * side of a chunk boundary - a seam straight down the middle of a corridor.
+         */
+        protected static BlockState weathered(int key) {
+            int pick = Math.floorMod(key, 5);
+            if (pick == 0) {
+                return SewerPalette.CRACKED_COURSE;
+            }
+            return pick <= 2 ? SewerPalette.WET_COURSE : SewerPalette.WALL;
+        }
+
+        /**
+         * Silt along the channel, and the odd mushroom on it.
+         *
+         * <p><b>Where the flow slows.</b> Silt settles at the ends of a run rather than along it, which
+         * is why this works the first and last cells rather than scattering down the middle - a sewer
+         * silts up at its corners, not evenly.
+         */
+        protected void silt(WorldGenLevel level, BoundingBox limit, int w, int l) {
+            int mid = w / 2;
+            for (int z : new int[]{1, l - 2}) {
+                for (int dx = -1; dx <= 1; dx += 2) {
+                    int key = z * 17 + dx;
+                    if (Math.floorMod(key, 3) == 0) {
+                        this.placeBlock(level, Math.floorMod(key, 2) == 0
+                            ? SewerPalette.SILT : SewerPalette.FINE_SILT, mid + dx, 0, z, limit);
+                    }
+                }
+                if (Math.floorMod(z * 13, 4) == 0) {
+                    this.placeBlock(level, SewerPalette.GROWTH, mid + 1, 1, z, limit);
+                }
+            }
         }
 
         /**
@@ -313,6 +360,7 @@ public final class SewerPieces {
                 RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
             this.line(level, limit, SHELL, SHELL, SEGMENT);
             this.channel(level, limit, SHELL, SEGMENT);
+            this.silt(level, limit, SHELL, SEGMENT);
             this.cobwebs(level, limit, random, SHELL, SHELL, SEGMENT);
         }
     }
@@ -527,6 +575,12 @@ public final class SewerPieces {
                 if (limit.isInside(door)) {
                     level.setBlock(door, SewerPalette.HOLLOW, Block.UPDATE_CLIENTS);
                 }
+            }
+            // A den is a room a player looks into, and lighting it keeps its animals visible and its
+            // floor unspawnable - both of which are the point of having built it.
+            BlockPos lamp = new BlockPos(box.getCenter().getX(), box.maxY() - 1, box.getCenter().getZ());
+            if (limit.isInside(lamp)) {
+                level.setBlock(lamp, SewerPalette.LIGHT, Block.UPDATE_CLIENTS);
             }
             for (int i = 0; i < this.population(); i++) {
                 BlockPos at = new BlockPos(box.minX() + 1 + i, box.minY() + 1, box.minZ() + 1);
@@ -759,6 +813,9 @@ public final class SewerPieces {
                 }
             }
             put(level, limit, x, top, z, SewerPalette.COVER);
+            // One at the foot, so the climb ends somewhere you can see. Nothing further up the shaft: a
+            // lit column would read as maintained, and this system was abandoned.
+            put(level, limit, x + 1, box.minY() + 2, z, SewerPalette.LIGHT);
         }
 
         /**

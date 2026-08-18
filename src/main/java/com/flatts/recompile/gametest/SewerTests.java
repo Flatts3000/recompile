@@ -842,6 +842,53 @@ final class SewerTests {
             helper.succeed();
         });
 
+        // NO LIGHT WHERE THINGS MUST SPAWN. This is phase 1's real acceptance criterion, and the one
+        // failure in it that nothing else would report.
+        //
+        // A hostile spawn needs block light 0, so ANY source suppresses spawning in its radius - the
+        // level does not soften that, only the radius changes. A lantern in a junction therefore
+        // switches off that junction's drowned spawner silently: the spawner is still there, still
+        // holds a drowned, and never fires. The lit rooms are deliberately the unspawnable ones (the
+        // chamber, the shaft, the dens); corridors and junctions must stay dark.
+        RCGameTests.test("no_light_where_the_sewer_must_spawn", 60, helper -> {
+            var level = helper.getLevel();
+            var gen = level.getChunkSource().getGenerator();
+            var mgr = level.structureManager();
+            List<String> lit = new ArrayList<>();
+
+            BlockPos base = helper.absolutePos(new BlockPos(0, 28, 0));
+            BoundingBox corridor = SewerPieces.SewerPiece.box(
+                base.getX(), base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 7);
+            BoundingBox junction = SewerPieces.SewerPiece.box(
+                base.getX() + 16, base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 5);
+            var pieces = List.<StructurePiece>of(
+                new SewerPieces.SewerCorridor(1, corridor, Direction.SOUTH),
+                new SewerPieces.SewerCrossing(3, junction, Direction.SOUTH));
+
+            for (var piece : pieces) {
+                BoundingBox box = piece.getBoundingBox();
+                BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                    box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+                piece.postProcess(level, mgr, gen, RandomSource.create(21L), limit,
+                    new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), base);
+                for (int x = box.minX(); x <= box.maxX(); x++) {
+                    for (int y = box.minY(); y <= box.maxY(); y++) {
+                        for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                            var at = new BlockPos(x, y, z);
+                            if (level.getBlockState(at).getLightEmission() > 0) {
+                                lit.add(level.getBlockState(at).getBlock() + " at " + at);
+                            }
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(lit.isEmpty(),
+                "these light sources are in a corridor or a junction, which silently switches off the "
+                    + "spawns that piece exists to host - the spawner stays, holds a drowned, and never "
+                    + "fires: " + lit);
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.
