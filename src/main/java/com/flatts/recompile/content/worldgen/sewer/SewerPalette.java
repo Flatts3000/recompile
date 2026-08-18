@@ -111,7 +111,6 @@ public final class SewerPalette {
      * Damp growth, which needs dark and gets it everywhere down here.
      *
      * <p><b>RED, not brown, and the difference is not aesthetic.</b> {@code brown_mushroom} carries
-<<<<<<< HEAD
      * {@code .lightLevel(1)}. A hostile spawn needs block light <b>0</b>, so a scatter of brown mushrooms
      * down a corridor quietly switches off the spawns that corridor exists to host - the same failure as
      * hanging a lantern there, hidden in a block nobody thinks of as a light. Red emits nothing.
@@ -125,20 +124,6 @@ public final class SewerPalette {
      * <p>Not the mod's own Dump Mushroom, which would be the thematic pick: its {@code mayPlaceOn} is
      * restricted to mycelium and dirt, and widening that to accept brick would change where a player can
      * plant one everywhere in the world - a bigger change than this corridor deserves.
-=======
-     * {@code .lightLevel(1)}. A hostile spawn needs block light <b>0</b>, so a scatter of brown
-     * mushrooms down a corridor quietly switches off the spawns that corridor exists to host - the same
-     * failure as putting a lantern there, hidden in a block nobody thinks of as a light. Red emits
-     * nothing.
-     *
-     * <p>Phase 1 shipped the brown one, and the light-rule test only caught it a phase later: it probed
-     * a single position, and the growth is seeded from the piece's own box, so at that one position no
-     * mushroom was placed. The test walks a grid now.
-     *
-     * <p>Not the mod's own Dump Mushroom, which would be the thematic pick: its {@code mayPlaceOn} is
-     * restricted to mycelium and dirt, and widening that to accept brick would change where a player can
-     * plant one everywhere in the world - a bigger change than this room deserves.
->>>>>>> 406e41f (feat(sewers): the sump - the bottom of the system, and the guaranteed threat)
      */
     public static final BlockState GROWTH = Blocks.RED_MUSHROOM.defaultBlockState();
 

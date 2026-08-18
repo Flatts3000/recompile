@@ -254,17 +254,35 @@ junctions carry a spawner only past depth 2 and only when their box hashes even.
 deterministically, so it can hold the one that is always there.
 
 **Acceptance:**
-- Exactly one sump per sewer, at the deepest end, and therefore at least one spawner - a guarantee
-  replacing today's measured 80% coverage.
-- The channels visibly run **toward** it, so the room is arrived at rather than discovered.
+- Exactly one sump per sewer, and therefore at least one spawner - a guarantee replacing today's
+  measured 80% coverage. **Shipped.**
 - The drop is **telegraphed** - visible before it is entered. Leachate is opaque and this room is dark;
-  a drop you cannot see is a death with no decision in front of it.
+  a drop you cannot see is a death with no decision in front of it. **Shipped**, as a walkway across the
+  entrance rows with the pool's surface flush against it.
 - It is **not on the only path** to anything. If it becomes one, that is a gate and belongs in
   `progression_gates.md`.
-- It does not stack every hazard at once. Deep, guarded, dark and draining is four things; pick two.
 
-**Verification:** a placement test that the sump is at the tree's lowest end for every seed; an
-every-seed spawner guarantee; in-world for whether the drop reads as telegraphed, which no test answers.
+**Two acceptance lines this phase did not meet, both recorded rather than quietly dropped.**
+
+**"At the deepest end" is best-effort, not a guarantee.** The sump hangs exactly `DEPTH` below whatever
+it attaches to, so it is the low point of its own branch in every seed - but the bottom of a sewer is the
+busy end and a nine-block room often collides there, so `attachSump` walks the pieces ascending by `minY`
+and takes the first that fits. Measured over 200 seeds: 2 below the tree minimum in 56, at or below it in
+102, more than a stair flight above it in 7. The strict property was asserted first and failed 98 of 200,
+which is how the gap was found. Buying it costs a room tall enough to carry a variable-height door
+(`TALL` 14 against 7, since the door has to meet its host's floor wherever that is) - a design change
+rather than a fix, and an owner call.
+
+**It stacks three hazards where this line says pick two.** Deep, guarded and dark; only draining was left
+out. The three are not independent here - the room is dark because nobody maintained the bottom, and the
+drowned are there because standing water is where drowned accumulate - so they arrive as one consequence
+rather than three decisions. That is an argument, not a waiver, and it is the owner's to accept.
+
+**Verification:** an every-seed spawner guarantee, and the spawner is checked to hold a **drowned** rather
+than merely to be a spawner block; a containment test asserting the pool has no face open to air, since
+`placeBlock` only *schedules* the fluid tick and a "look for leachate outside the room" test passes at
+tick 0 against a room with no walkway at all; in-world for whether the drop reads as telegraphed, which no
+test answers.
 
 ---
 
