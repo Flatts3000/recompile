@@ -118,8 +118,10 @@ Two consequences to carry:
   pools from #156. Those are one block deep, which does not make drowning impossible - the check is at
   the **eye**, and `canSwim(true)` is set, so a crawling or swimming player already has eyes in the
   fluid.
-- It removes the argument that kept deep sections out of category D. A sump can now hold two-block
-  leachate as a genuine hazard rather than as a rules violation.
+- It removes the argument that kept deep sections out of category D. **Deep sections are permitted
+  where they serve the improvement** (owner, same day) - a conditional rather than a default, and the
+  conditions are in category D. With drowning live the fluid is lethal rather than atmospheric, so the
+  cost of getting a placement wrong went up at the same moment the permission arrived.
 
 ---
 
@@ -191,7 +193,31 @@ pre-emptively fix a problem nobody has hit.
 |---|---|---|
 | **Flowing leachate** - sources at corridor heads, flowing downhill | **M.** Placement change plus a real look at flood behaviour during generation. | **Medium-high.** `levelDecreasePerBlock 2` limits spread, but generation-time fluid is exactly the acceptance criterion phase 2 was written against. |
 | **A sluice or weir** - a visual break in the channel | **S.** Dressing, using existing blocks. | Low. |
-| **Deep sections** - two-block leachate in a sump | **M plus a decision.** | **Reopens `canDrown`,** which is currently `false` on the fluid *globally* because depth-1 could not deliver the owner's "no drowning" call. Changing it back affects surface pools too. |
+| **Deep sections** - two-block leachate in a sump | **M.** No longer blocked on a ruling. | **Permitted where it serves the improvement** (owner, 2026-08-17) - a conditional, not a default. See below. |
+
+**Deep leachate is allowed when it serves the need of the improvement, and not otherwise** (owner,
+2026-08-17). The rules ruling is settled - `canDrown` is `true` on the fluid - so this is now a design
+question rather than a permission question, and the bar it has to clear is that it is doing a job.
+
+**Doing a job** looks like: a sump that reads as the bottom of the system because you cannot simply walk
+through it; a flooded section that gates a reward behind a decision to swim; a drop that makes a
+stairwell feel like a descent. **Not doing a job** looks like deep fluid because a room seemed empty, or
+because a corridor wanted variety.
+
+Three things to hold when placing any of it, because with drowning live the fluid is now lethal rather
+than atmospheric:
+
+- **Telegraph it.** A player should see a deep section before entering it. Leachate is opaque and the
+  sewer is dark, so a drop that is invisible until you are in it is a death with no decision in front of
+  it - which is the difference between a hazard and a trick.
+- **Do not put it on the only path.** One entrance per sewer already means a single point of failure;
+  a mandatory swim through drowning fluid makes the whole structure gated on a hazard rather than
+  decorated by one. If it *is* the only path, that is a deliberate gate and belongs in
+  `progression_gates.md`.
+- **Watch what it stacks with.** Deep leachate compounds with the Hunger tax, with darkness, and with a
+  drowned spawner if a sump also carries one (which is the sump's other job, per H). Deep **and**
+  guarded **and** dark **and** draining is four things at once; pick which of them a given room is
+  actually for.
 
 ---
 
