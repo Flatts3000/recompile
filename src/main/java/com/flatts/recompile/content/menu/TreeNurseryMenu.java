@@ -52,7 +52,11 @@ public class TreeNurseryMenu extends AbstractContainerMenu {
         .slot("output", 116, 24)
         .arrow("cook", 84, 24)
         .region("countdown", 138, 30, 30, 9)
-        .cellGrid("species", 4, TreeNurseryBlockEntity.SPECIES.length, 52, 46)
+        // FIVE COLUMNS, NOT FOUR, so nine species still fit in two rows. Four columns held the eight
+        // this picker shipped with exactly; the ninth started a third row at y=82 and landed on the
+        // Inventory label at y=90. no_screen_element_overlaps_another is what said so - the geometry
+        // is declared here and drawn elsewhere, and before the GUI framework nothing connected the two.
+        .cellGrid("species", 5, TreeNurseryBlockEntity.SPECIES.length, 52, 46)
         .playerInventory(102)
         .build();
     private static final int INV_START = MACHINE_SLOTS;
