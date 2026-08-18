@@ -704,6 +704,29 @@ final class SewerTests {
             }
             helper.assertTrue(unset.isEmpty(),
                 "these barrels have no loot table attached, so they generate empty: " + unset);
+
+            // AND THE TABLE OFFERS A COMPONENT (owner, 2026-08-17). Bulk salvage alone is what a player
+            // already gets from sorting garbage, so it is not a reason to have cleared a sewer. The
+            // components here are all blueprint_crafting - a found one is a single unit that teaches
+            // nothing, so it cannot skip the tier the blueprint gates.
+            String table;
+            try (var in = SewerTests.class.getResourceAsStream(
+                    "/data/recompile/loot_table/chests/sewer.json")) {
+                helper.assertTrue(in != null, "the sewer loot table is not on the classpath");
+                table = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException e) {
+                helper.fail("could not read the sewer loot table: " + e);
+                return;
+            }
+            List<String> missing = new ArrayList<>();
+            for (String component : List.of("recompile:motor", "recompile:pump", "recompile:bulb")) {
+                if (!table.contains(component)) {
+                    missing.add(component);
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "the sewer table offers no " + missing + ", so a cleared sewer pays out only what "
+                    + "sorting garbage already pays");
             helper.succeed();
         });
 

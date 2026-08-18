@@ -498,7 +498,22 @@ is rolled several times over.
 barrel, so generation decides nothing, two players on the same seed do not see each other's rolls, and
 the contents stay a datapack question - which is where the balance of this belongs.
 
-**It is deliberately dull, and that is the acceptance criterion working.** "Nothing in it skips a tier"
+**A component pool, added 2026-08-17 (owner): "loot should include one or more components."** Its own
+roll rather than an entry competing with bulk salvage for a slot, offering Bulb, Pump, Motor and Machine
+Frame.
+
+**Why this does not skip a tier, which is the criterion it has to clear.** All three of the interesting
+ones are `blueprint_crafting` - gated on a blueprint that teardown teaches - so a found component is
+**one unit that teaches nothing**. The player still cannot make a second without doing the teardown, and
+the machines those parts go into need Steel I-Beams and the yard the sewer is already in. It is a
+head start, not a shortcut.
+
+**And it answers the acceptance line the rest of the table could not.** "The reward is worth a cleared
+sewer, stated as a comparison against what the same time spent picking garbage yields" - bulk salvage
+*is* what picking garbage yields, so a table made only of it could never clear that bar however the
+weights were set. A Motor is something sorting will never hand you.
+
+**It is otherwise deliberately dull, and that is the acceptance criterion working.** "Nothing in it skips a tier"
 rules out everything exciting: no iron, no gems, no blueprints, no bucket. What is left is bulk salvage
 (scrap metal, plastic scrap, e-scrap, rebar, cullet glass), string and bone, and three uncommon lines -
 a glass bottle, a nautilus shell, a name tag. The *value* question is #36's and is not answered here.
