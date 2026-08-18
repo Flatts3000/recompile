@@ -101,7 +101,9 @@ public final class RCGameTests {
         HydroponicsTests.register();
         RegionBiomeSourceTests.register();
         TerrainSlabTests.register();
-        SewerTests.register();
+        SewerShapeTests.register();
+        SewerLifeTests.register();
+        SewerLootTests.register();
         DemolitionYardTests.register();
         GemTierTests.register();
         TrommelTests.register();
