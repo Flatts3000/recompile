@@ -367,7 +367,6 @@ XS-S; the cost is not the code, it is constraint 4 on each block.
 | **Damp growth** - `vine` on walls, `brown_mushroom` on the floor | **S.** Two entries plus placement. Mushrooms are already the P1.9 forage vocabulary. | Low. `vine` needs a supporting face and will look wrong placed blind. |
 | **Pipe** - `copper_grate` at junctions, oxidised copper stubs | **S.** Palette plus placement. | **Medium: copper is this world's everyman metal**, gated behind the Burn Barrel. Free copper blocks is a gate question, not a dressing question. |
 | **Limescale** - `dripstone_block` and `pointed_dripstone` where the ceiling drips | **M.** Pointed dripstone needs a supporting block and an up/down state; placing it blind produces floating spikes. | Low on gates, medium on geometry. |
-
 | **Light, sparse** - lanterns or soul lanterns in the chamber, the shaft, the dens and any maintenance room | **S.** Palette plus placement, and a placement *rule* rather than a scatter. | **Medium, and it is a spawn question not a light question.** Any source suppresses hostile spawns in its radius, so this only works while it stays out of corridors and junctions. A lantern in a junction quietly turns off that junction's spawner. |
 
 **Recommended first:** aged masonry and silt beds. They change how the whole structure reads, cost two
@@ -377,6 +376,45 @@ palette entries each, and neither touches a gate.
 dark corridors - is easiest to get right while the room types are few. Adding light later, once there
 are maintenance rooms and sumps and junction halls, means auditing every one of them for whether it is
 meant to spawn.
+
+**Shipped, and the silt is suspicious** (owner, 2026-08-18). Clay lost to sand for the reason above (a
+free clay source retires the whole #115 chain), and then both deposits went one further: they are
+**`suspicious_gravel` and `suspicious_sand`**, so a sewer is the only place in this world with
+archaeology in it. Silt is a slow accumulation of everything that came down the pipe, which is what a
+brushable block already means - the fiction and the vanilla mechanic wanted the same thing.
+
+Three consequences, all of them worth knowing before tuning:
+
+- **A brushable drops nothing when mined.** `loot_table/blocks/suspicious_gravel.json` has no pools at
+  all. The silt is therefore no longer a free source of gravel and flint; you brush it into ordinary
+  gravel first, and *that* drops. Net: slightly stingier than before, not more generous.
+- **A brushable with no loot table on its block entity is a lie**, and a silent one - it brushes away
+  into plain sand or gravel, drops nothing, and logs nothing. Every deposit is therefore placed through
+  `SewerPiece.deposit`, which is the only thing allowed to write one, and
+  `the_silt_has_something_buried_in_it` walks the pieces and fails if any deposit is hollow.
+- **The payout is deliberately mostly nothing.** `recompile:archaeology/sewer_silt` is 30/77 empty. The
+  sump beds **fourteen** deposits (a 5x3 patch inset from the pool walls, less the cell the crate sits
+  in) and a corridor rolls **one or two**, so a cleared sewer is a few dozen brushes; a find in every one
+  of them would out-pay the crate that room is built around. Both numbers were overstated when this
+  paragraph was first written, and the corridor one is worth knowing: `silt()` tests four cells whose
+  keys differ by `{6, 8, 34, 36}`, which are `{0, 2, 1, 0}` mod 3 against a mod-3 gate - so a seed can
+  only ever satisfy the entries sharing one residue, and the loop cannot pay out the four it appears to
+  offer. Contents are small lost things: bone, string, junk, e-scrap, glass shards, cullet, a
+  bottle, and at the thin end a heart pottery sherd (the #115 chain's second source) and a nautilus
+  shell.
+
+**The brush is a soft gate, and it is worth knowing which side of it the sewer sits on.**
+`minecraft:brush` is a feather, a stick and a copper ingot. Copper and sticks are early; the feather is
+not, because this world has no mobs until the animals rung and a chicken arrives on omnivore bait. So a
+player who reaches the demolition yard before they reach chickens finds a sewer full of deposits they
+cannot open. That is a delay rather than a dead end - nothing about the silt is consumed by being seen -
+but it means the silt is **not** the sewer's introduction to itself, and the crate in the sump (which
+needs no tool) still is.
+
+**Open for playtest:** fourteen brushables on the sump floor is fourteen brushes underwater, in
+leachate, with the drowned spawner running. That is on-theme - the spec already says the room's hazard is
+what guards its reward - but it is a lot of brushing, and the dial if it reads as a chore is the *count*
+of deposits rather than the table.
 
 ---
 

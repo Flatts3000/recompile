@@ -202,11 +202,25 @@ public class SewerStructure extends Structure {
             chamber.minX() + 2, ground - 1, chamber.minZ() + 2);
     }
 
-    /** The turtle den's box: against the chamber's east wall, at the high-z end. */
+    /**
+     * The turtle den's box: against the chamber's east wall, at the high-z end.
+     *
+     * <p><b>Eight long, not six, and the two extra blocks are the difference between three turtles and
+     * three dead ones.</b> A turtle is 1.2 blocks wide, so an interior of four holds two of them with
+     * elbow room and three only by pressing all three into the brick - which is what shipped, and what
+     * playtest found. {@code SewerDen.residents} would silently place two here rather than kill three,
+     * so this is what buys back the third.
+     *
+     * <p>It grows along <b>X</b>, away from the chamber, and that is the only direction that is free.
+     * Deepening it in Z would push it into the east corridor's mouth ({@code z = minZ..minZ+4}) on the
+     * smallest chamber the room can roll, which is the exact bug the dens were moved to the high ends to
+     * avoid. Growing in X cannot reach it at any chamber size, because the two never share a Z band -
+     * and {@code the_dens_land_on_no_corridor_and_not_on_each_other} sweeps every size to say so.
+     */
     public static BoundingBox turtleDenBox(BoundingBox chamber) {
         return new BoundingBox(
             chamber.maxX(), chamber.minY(), chamber.maxZ() - 4,
-            chamber.maxX() + 5, chamber.minY() + 3, chamber.maxZ() - 1);
+            chamber.maxX() + 7, chamber.minY() + 3, chamber.maxZ() - 1);
     }
 
     /** The frog den's box: against the chamber's south wall, at the high-x end, staggered off the turtles. */

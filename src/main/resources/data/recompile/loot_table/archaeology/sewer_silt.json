@@ -1,0 +1,60 @@
+{
+  "type": "minecraft:archaeology",
+  "random_sequence": "recompile:archaeology/sewer_silt",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bone",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:string",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:junk",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:e_scrap",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:glass_shards",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:cullet_glass",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:glass_bottle",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:heart_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:nautilus_shell",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}
