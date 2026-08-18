@@ -724,15 +724,8 @@ final class BlueprintTests {
      * the safe direction for a gate test only in one sense: it could miss a leak rather than invent
      * one, so the sweep count assertion above is what stops it degrading into a test of nothing.
      */
+    /** Delegates to the shared walk, so the two sweeps cannot drift as SlotDisplay grows variants. */
     private static boolean produces(SlotDisplay display, Item item) {
-        return switch (display) {
-            case SlotDisplay.ItemSlotDisplay slot -> slot.item().value() == item;
-            case SlotDisplay.ItemStackSlotDisplay slot -> slot.stack().item().value() == item;
-            case SlotDisplay.Composite composite ->
-                composite.contents().stream().anyMatch(inner -> produces(inner, item));
-            case SlotDisplay.WithRemainder remainder -> produces(remainder.input(), item);
-            case SlotDisplay.OnlyWithComponent only -> produces(only.source(), item);
-            default -> false;
-        };
+        return RecipeResults.produces(display, item);
     }
 }

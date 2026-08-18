@@ -14,6 +14,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import java.util.HashMap;
+import java.util.TreeSet;
 
 /**
  * What this mod's loot tables are capable of dropping, read from the tables themselves.
@@ -41,7 +43,7 @@ final class LootSearch {
     private static Set<Item> droppable;
 
     /** Which tables can produce each item, for the times "is there a source" is not the question. */
-    private static java.util.Map<Item, Set<String>> sources;
+    private static Map<Item, Set<String>> sources;
 
     static boolean anyTableCanDrop(ServerLevel level, Item item) {
         if (droppable == null) {
@@ -59,6 +61,11 @@ final class LootSearch {
      * resources but hands back null for a directory URL, so the walk finds zero files and the emptiness
      * assertion built on it passes against anything. That was written, driven with a deliberate second
      * source, and quietly stayed green.
+     *
+     * <p><b>Pair it with {@link #tablesNotRead}.</b> This reads JSON off the classpath, so a table that is
+     * in the registry but not on the classpath - a datapack's, or a pack overriding one of ours - is
+     * skipped in silence. For "is there a source at all" that is harmless. For "is there a SECOND
+     * source" it is the whole question, because the second source is exactly what would be hiding there.
      */
     static Set<String> tablesThatCanDrop(ServerLevel level, Item item) {
         if (sources == null) {
@@ -67,9 +74,31 @@ final class LootSearch {
         return sources.getOrDefault(item, Set.of());
     }
 
+    /** Registry-listed tables whose JSON was not on the classpath, so nothing here has seen them. */
+    private static Set<String> skipped;
+
+    /**
+     * Which of this mod's loot tables were listed but could not be read.
+     *
+     * <p>An exclusivity claim has to assert this is empty. The alternative is a sweep that reports a
+     * clean result both when it found no second source and when it could not look.
+     */
+    static Set<String> tablesNotRead(ServerLevel level) {
+        if (skipped == null) {
+            collect(level);
+        }
+        return skipped;
+    }
+
     private static void collect(ServerLevel level) {
-        droppable = new HashSet<>();
-        sources = new java.util.HashMap<>();
+        // BUILD LOCALS, PUBLISH AT THE END. Assigning the statics up front and filling them in place
+        // looks equivalent and is not: anything thrown out of walk() or expandTag() part-way - a
+        // malformed name reaching Identifier.parse, say - would leave a non-null, half-filled cache that
+        // every later caller reads as complete. A loud failure becomes an exclusivity sweep that quietly
+        // under-reports, which is the exact failure this class is used to rule out.
+        Set<Item> foundAll = new HashSet<>();
+        Map<Item, Set<String>> bySource = new HashMap<>();
+        Set<String> unread = new TreeSet<>();
         for (var key : level.getServer().reloadableRegistries().lookup()
                 .lookupOrThrow(Registries.LOOT_TABLE).listElementIds().toList()) {
             Identifier id = key.identifier();
@@ -78,15 +107,19 @@ final class LootSearch {
             }
             JsonElement root = read("/data/" + id.getNamespace() + "/loot_table/" + id.getPath() + ".json");
             if (root == null) {
+                unread.add(id.toString());
                 continue;
             }
             Set<Item> here = new HashSet<>();
             walk(level, root, here);
-            droppable.addAll(here);
+            foundAll.addAll(here);
             for (Item item : here) {
-                sources.computeIfAbsent(item, ignored -> new HashSet<>()).add(id.toString());
+                bySource.computeIfAbsent(item, ignored -> new HashSet<>()).add(id.toString());
             }
         }
+        droppable = foundAll;
+        sources = bySource;
+        skipped = unread;
     }
 
     /**
