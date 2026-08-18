@@ -360,13 +360,16 @@ final class SewerTests {
 
             // And they are not standing in the fluid, which is the whole reason the dens exist.
             List<String> wet = new ArrayList<>();
-            for (var t : level.getEntitiesOfClass(
-                    net.minecraft.world.entity.animal.turtle.Turtle.class,
-                    new net.minecraft.world.phys.AABB(tBox.minX(), tBox.minY() - 1, tBox.minZ(),
-                        tBox.maxX() + 1, tBox.maxY() + 1, tBox.maxZ() + 1))) {
-                if (level.getFluidState(t.blockPosition()).getType()
-                        == com.flatts.recompile.registry.RCFluids.LEACHATE.get()) {
-                    wet.add("turtle at " + t.blockPosition());
+            // BOTH SPECIES. The first version iterated turtles only while its message claimed to cover
+            // both, so a change that moved the frog den's spawn row would have kept it green.
+            for (var box : List.of(tBox, fBox)) {
+                for (var mob : level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                        new net.minecraft.world.phys.AABB(box.minX(), box.minY() - 1, box.minZ(),
+                            box.maxX() + 1, box.maxY() + 1, box.maxZ() + 1))) {
+                    if (level.getFluidState(mob.blockPosition()).getType()
+                            == com.flatts.recompile.registry.RCFluids.LEACHATE.get()) {
+                        wet.add(mob.getType().toString() + " at " + mob.blockPosition());
+                    }
                 }
             }
             helper.assertTrue(wet.isEmpty(),
@@ -727,6 +730,107 @@ final class SewerTests {
             helper.assertTrue(missing.isEmpty(),
                 "the sewer table offers no " + missing + ", so a cleared sewer pays out only what "
                     + "sorting garbage already pays");
+            helper.succeed();
+        });
+
+        // A DEN HAS A DOOR, which is the assertion whose absence shipped the whole feature invisible.
+        //
+        // Every wall of a den was written and nothing was ever carved, so each one generated as an
+        // airtight box with three turtles sealed inside. No player could enter one, see one, or know it
+        // existed - and the test that was supposed to cover dens asserted floor material and head count,
+        // both of which are perfectly true inside a sealed box.
+        RCGameTests.test("a_den_opens_into_the_chamber", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos at = helper.absolutePos(new BlockPos(0, 24, 0));
+            var den = new SewerPieces.SewerTurtleDen(1, new BoundingBox(
+                at.getX(), at.getY(), at.getZ(),
+                at.getX() + 5, at.getY() + 3, at.getZ() + 4));
+            BoundingBox box = den.getBoundingBox();
+            BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+            den.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(8L), limit,
+                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
+
+            // The turtle den's door is on its WEST face, which is the wall it shares with the chamber.
+            int open = 0;
+            for (int dy = 1; dy <= 2; dy++) {
+                if (level.getBlockState(new BlockPos(box.minX(), box.minY() + dy,
+                        box.getCenter().getZ())).isAir()) {
+                    open++;
+                }
+            }
+            helper.assertTrue(open == 2,
+                "the den's shared wall has " + open + " open cells rather than 2 - a den with no door "
+                    + "is a sealed box with animals in it, which is a feature nobody can ever see");
+            level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                new net.minecraft.world.phys.AABB(box.minX() - 2, box.minY() - 2, box.minZ() - 2,
+                    box.maxX() + 2, box.maxY() + 2, box.maxZ() + 2))
+                .forEach(net.minecraft.world.entity.Entity::discard);
+            helper.succeed();
+        });
+
+        // AND THE DENS LAND ON NOTHING, which is pure geometry and was pure fiction.
+        //
+        // The dens are added after the graph is built, so findCollisionPiece never sees them, and they
+        // postProcess last - so wherever they overlap something they win, silently. A comment claimed
+        // the high-X wall was clear of every corridor mouth; it is clear of three. The EAST child
+        // anchors at maxX+1 over z = minZ..minZ+4, and the turtle den sat exactly there, walling that
+        // branch shut on every sewer that grew one. The two dens also overlapped each other whenever
+        // the chamber rolled its two smallest sizes.
+        //
+        // Swept over every chamber size the room can roll, because both bugs were size-dependent.
+        RCGameTests.test("the_dens_land_on_no_corridor_and_not_on_each_other", 20, helper -> {
+            List<String> clashes = new ArrayList<>();
+            for (int w = 9; w <= 13; w++) {
+                for (int d = 9; d <= 13; d++) {
+                    BoundingBox chamber = new BoundingBox(0, 50, 0, w, 57, d);
+                    BoundingBox turtle = SewerStructure.turtleDenBox(chamber);
+                    BoundingBox frog = SewerStructure.frogDenBox(chamber);
+                    if (turtle.intersects(frog)) {
+                        clashes.add(w + "x" + d + ": the dens overlap each other");
+                    }
+                    for (var child : SewerStructure.childBoxes(chamber)) {
+                        if (turtle.intersects(child)) {
+                            clashes.add(w + "x" + d + ": turtle den on a corridor");
+                        }
+                        if (frog.intersects(child)) {
+                            clashes.add(w + "x" + d + ": frog den on a corridor");
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(clashes.isEmpty(),
+                "the dens are written last and win every overlap silently, so these seal whatever they "
+                    + "land on: " + clashes.subList(0, Math.min(4, clashes.size()))
+                    + " (" + clashes.size() + " total)");
+            helper.succeed();
+        });
+
+        // AND A SEWER ACTUALLY GETS A SPAWNER. The old code put one in the chamber unconditionally; the
+        // new one waits for a junction past depth 2 whose box hashes even, which is a guarantee traded
+        // for placement. Measured rather than assumed, because "no drowned at all" is the failure and
+        // IN_WATER means there is no other route to one.
+        RCGameTests.test("most_sewers_get_a_drowned_spawner", 20, helper -> {
+            int withSpawner = 0;
+            for (long seed = 0; seed < SEEDS; seed++) {
+                boolean found = false;
+                for (StructurePiece piece : layout(seed)) {
+                    if (piece instanceof SewerPieces.SewerCrossing && piece.getGenDepth() >= 2
+                            && Math.floorMod(piece.getBoundingBox().minX() * 31
+                                + piece.getBoundingBox().minZ(), 2) == 0) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    withSpawner++;
+                }
+            }
+            helper.assertTrue(withSpawner * 100 / SEEDS >= 80,
+                "only " + withSpawner + " of " + SEEDS + " sewers contain a junction that carries a "
+                    + "spawner, so the rest generate with no drowned anywhere - the spawner is the only "
+                    + "route, because IN_WATER can never be satisfied by leachate");
             helper.succeed();
         });
 
