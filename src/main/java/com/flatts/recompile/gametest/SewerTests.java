@@ -456,13 +456,23 @@ final class SewerTests {
                 RandomSource.create(5L), limit,
                 new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
             boolean spawner = false;
+            String holds = "nothing";
             int deep = 0;
             for (int x = box.minX(); x <= box.maxX(); x++) {
                 for (int y = box.minY(); y <= box.maxY(); y++) {
                     for (int z = box.minZ(); z <= box.maxZ(); z++) {
                         var here = new BlockPos(x, y, z);
-                        spawner |= level.getBlockState(here)
-                            .is(net.minecraft.world.level.block.Blocks.SPAWNER);
+                        if (level.getBlockState(here)
+                                .is(net.minecraft.world.level.block.Blocks.SPAWNER)) {
+                            spawner = true;
+                            if (level.getBlockEntity(here) instanceof net.minecraft.world.level.block
+                                    .entity.SpawnerBlockEntity be) {
+                                // READ IT OFF THE SYNC TAG. BaseSpawner keeps its spawn data private
+                                // and exposes no accessor, but SpawnerBlockEntity has to tell the
+                                // client what to render in the cage, so the entity id is in there.
+                                holds = be.getUpdateTag(level.registryAccess()).toString();
+                            }
+                        }
                         if (y > box.minY() && level.getFluidState(here).getType()
                                 == com.flatts.recompile.registry.RCFluids.LEACHATE.get()) {
                             deep++;
@@ -473,6 +483,11 @@ final class SewerTests {
             helper.assertTrue(spawner,
                 "the sump has no spawner, so the guarantee it exists for is not kept and the sewer can "
                     + "hold no drowned at all");
+            helper.assertTrue(holds.contains("minecraft:drowned"),
+                "the sump's spawner names no drowned - it holds " + holds + ". An empty spawner is "
+                    + "a spawner as far as a block check is concerned, which is why that check alone was "
+                    + "not enough: deleting the setEntityId call left every sewer with a decorative "
+                    + "spawner cage and the suite green.");
             helper.assertTrue(deep > 0,
                 "the sump has no standing water above its floor - it is the low point of a drainage "
                     + "system, and a dry one is just a room");
