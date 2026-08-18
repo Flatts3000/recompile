@@ -27,9 +27,11 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  * ({@link #irrigateOnce}), so the spreader doubles as a farm irrigator and, since encroachment spares
  * moist farmland, its radius defends a plot the way it defends the grass.
  *
- * <p><b>It consumes nothing, and there is nothing to fill.</b> No water, no power, no fuel: the tank
- * cell is an inert Water Tank that holds nothing, and this class has no fluid check anywhere - a formed
- * tower simply runs. The cost is the one steep build, and the ongoing pressure comes from P1.7-R
+ * <p><b>It consumes nothing</b> (owner, re-confirmed 2026-08-18 against the playtest that asked for
+ * the opposite). No water, no power, no fuel: this class has no fluid check anywhere, and a formed
+ * tower simply runs. <b>The tank cell can now hold water and the machine still will not drink it</b>
+ * (#229) - the Water Tank became a real tank in the same ruling that left this half alone, so a
+ * spreader may contain water it has no use for. That is deliberate: a container is not a consumer. The cost is the one steep build, and the ongoing pressure comes from P1.7-R
  * instead - the junkyard takes healed ground back, so a spreader has to out-pace erosion. That makes
  * <b>its radius exactly the land you can hold at rung 1</b>; beyond it, the frontier wins.
  *

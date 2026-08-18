@@ -60,7 +60,7 @@ that a rung-1 grass edge could be anchored with a nursery tree without building 
 
 A **wall: 2 wide, 2 tall, 1 deep** (4 blocks). Bottom row is the core and the water tank; the top row
 is two solar panels. Reuses the shipped framework (`multiblock_system_spec.md`) and the Grass
-Spreader's exact parts - Water Tank and Solar Panel, both already inert no-op decorators - so **no new
+Spreader's exact parts - Water Tank and Solar Panel - so **no new
 component art and no Machine Frame** in this machine.
 
 ```

@@ -114,7 +114,7 @@ recipe, no new systems. It restores the appliance P1.11 dropped when Bulky Waste
 appliance "a vague abstraction sitting between the player and a specific thing." A washing machine
 visibly pumps water out, so the teardown needs no explanation.
 
-**Both shared components are inert, and their names invite exactly the opposite** - so state it
+**The Solar Panel is inert here and its name invites the opposite** - so state it
 plainly, because either would break locked design:
 
 - **Solar Panel** - a recoloured, **no-op** daylight detector: vanilla's `template_daylight_detector`
