@@ -33,7 +33,7 @@ final class SewerFixtures {
      * them further apart. Tests that want a den box ask this for a chamber and then ask
      * {@code SewerStructure} for the den, rather than retyping either shape.
      */
-    static BoundingBox smallestChamber(BlockPos corner) {
+    private static BoundingBox smallestChamber(BlockPos corner) {
         return new BoundingBox(corner.getX(), corner.getY(), corner.getZ(),
             corner.getX() + 9, corner.getY() + 7, corner.getZ() + 9);
     }
@@ -53,8 +53,6 @@ final class SewerFixtures {
             corner.getY() + shape.getYSpan() - 1,
             corner.getZ() + shape.getZSpan() - 1);
     }
-
-    
 
     /** Build one sewer's piece tree, exactly as {@code SewerStructure} does, and hand back the pieces. */
     static List<StructurePiece> layout(long seed) {
