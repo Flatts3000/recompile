@@ -433,7 +433,7 @@ final class SewerTests {
         // counts heads immediately after postProcess, and postProcess is the one moment the room is
         // correct: nothing has moved yet and nothing has been hurt yet. Suffocation is a tick-loop
         // fact, so a test that never ticks asserts the placement and calls it the habitat.
-        RCGameTests.test("the_dens_animals_can_live_in_them", 200, helper -> {
+        RCGameTests.test("the_dens_animals_can_live_in_them", 500, helper -> {
             var level = helper.getLevel();
             var gen = level.getChunkSource().getGenerator();
             var mgr = level.structureManager();
@@ -497,10 +497,11 @@ final class SewerTests {
             }
             helper.assertTrue(cramped.isEmpty(), String.join("; ", cramped));
 
-            // Long enough for collision resolution, the goal selectors and the suffocation timer to have
-            // all had their say. Suffocation is a hit every ten ticks, so 120 is a dozen of them - a
-            // margin rather than a coin flip.
-            helper.runAfterDelay(120, () -> {
+            // TWENTY SECONDS, not the two it takes to reproduce the original bug. Suffocation is a hit
+            // every ten ticks, so the broken layout went red inside 120 - but the clearance that matters
+            // most here is the 0.52 a turtle has from the den's short walls, and the only way to buy
+            // confidence in a margin that thin is to let the goal selectors push at it for a while.
+            helper.runAfterDelay(400, () -> {
                 List<String> hurt = new ArrayList<>();
                 for (var den : dens) {
                     BoundingBox box = den.getBoundingBox();
