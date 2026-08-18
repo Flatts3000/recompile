@@ -561,8 +561,17 @@ public final class SewerPieces {
                     if (Math.floorMod(key, 3) != 0) {
                         continue;
                     }
-                    this.deposit(level, limit, Math.floorMod(key, 2) == 0
-                        ? SewerPalette.SILT : SewerPalette.FINE_SILT, mid + dx, 0, z, random);
+                    // COARSE OR FINE, AND IT HAS TO SPLIT ON dx. This picked the type off the key's
+                    // parity, and every offset the key can take is EVEN ({6, 8, 34, 36}) - so every
+                    // firing cell in a corridor shared the seed's parity and therefore its block. Half
+                    // of all corridors were entirely gravel and half entirely sand, never a mix, while
+                    // the palette called the second one "the finer half of the same deposit" and the
+                    // spec described a bed of both. Splitting on which side of the channel the cell is
+                    // on guarantees the two cells that can co-fire disagree, and folding the seed in
+                    // keeps which side is which from being the same in every corridor in the world.
+                    boolean coarse = Math.floorMod(seed + (dx > 0 ? 1 : 0), 2) == 0;
+                    this.deposit(level, limit,
+                        coarse ? SewerPalette.SILT : SewerPalette.FINE_SILT, mid + dx, 0, z, random);
                 }
                 if (Math.floorMod(seed + z, 4) == 0) {
                     this.placeBlock(level, SewerPalette.GROWTH, mid + 1, 1, z, limit);

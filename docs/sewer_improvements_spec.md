@@ -364,6 +364,18 @@ XS-S; the cost is not the code, it is constraint 4 on each block.
 |---|---|---|
 | **Aged masonry** - mix `mossy_stone_bricks` and `cracked_stone_bricks` into corridor walls | **S.** Two palette entries, a weighted pick in `line()`. | Low. Neither is in the furnace tag. Gives age without cobblestone. |
 | **Silt beds** - `gravel` and `clay` along the channel edges | **S.** Two palette entries, a loop in `channel()`. | Low-medium. Both already exist in this economy; **clay is the chain from #115**, so a free source needs a glance at the gates doc. |
+| **Damp growth** - `vine` on walls, `brown_mushroom` on the floor | **S.** Two entries plus placement. Mushrooms are already the P1.9 forage vocabulary. | Low. `vine` needs a supporting face and will look wrong placed blind. |
+| **Pipe** - `copper_grate` at junctions, oxidised copper stubs | **S.** Palette plus placement. | **Medium: copper is this world's everyman metal**, gated behind the Burn Barrel. Free copper blocks is a gate question, not a dressing question. |
+| **Limescale** - `dripstone_block` and `pointed_dripstone` where the ceiling drips | **M.** Pointed dripstone needs a supporting block and an up/down state; placing it blind produces floating spikes. | Low on gates, medium on geometry. |
+| **Light, sparse** - lanterns or soul lanterns in the chamber, the shaft, the dens and any maintenance room | **S.** Palette plus placement, and a placement *rule* rather than a scatter. | **Medium, and it is a spawn question not a light question.** Any source suppresses hostile spawns in its radius, so this only works while it stays out of corridors and junctions. A lantern in a junction quietly turns off that junction's spawner. |
+
+**Recommended first:** aged masonry and silt beds. They change how the whole structure reads, cost two
+palette entries each, and neither touches a gate.
+
+**And the light pass alongside them**, because it is the same size and the rule it needs - lit rooms,
+dark corridors - is easiest to get right while the room types are few. Adding light later, once there
+are maintenance rooms and sumps and junction halls, means auditing every one of them for whether it is
+meant to spawn.
 
 **Shipped, and the silt is suspicious** (owner, 2026-08-18). Clay lost to sand for the reason above (a
 free clay source retires the whole #115 chain), and then both deposits went one further: they are
@@ -403,19 +415,6 @@ needs no tool) still is.
 leachate, with the drowned spawner running. That is on-theme - the spec already says the room's hazard is
 what guards its reward - but it is a lot of brushing, and the dial if it reads as a chore is the *count*
 of deposits rather than the table.
-| **Damp growth** - `vine` on walls, `brown_mushroom` on the floor | **S.** Two entries plus placement. Mushrooms are already the P1.9 forage vocabulary. | Low. `vine` needs a supporting face and will look wrong placed blind. |
-| **Pipe** - `copper_grate` at junctions, oxidised copper stubs | **S.** Palette plus placement. | **Medium: copper is this world's everyman metal**, gated behind the Burn Barrel. Free copper blocks is a gate question, not a dressing question. |
-| **Limescale** - `dripstone_block` and `pointed_dripstone` where the ceiling drips | **M.** Pointed dripstone needs a supporting block and an up/down state; placing it blind produces floating spikes. | Low on gates, medium on geometry. |
-
-| **Light, sparse** - lanterns or soul lanterns in the chamber, the shaft, the dens and any maintenance room | **S.** Palette plus placement, and a placement *rule* rather than a scatter. | **Medium, and it is a spawn question not a light question.** Any source suppresses hostile spawns in its radius, so this only works while it stays out of corridors and junctions. A lantern in a junction quietly turns off that junction's spawner. |
-
-**Recommended first:** aged masonry and silt beds. They change how the whole structure reads, cost two
-palette entries each, and neither touches a gate.
-
-**And the light pass alongside them**, because it is the same size and the rule it needs - lit rooms,
-dark corridors - is easiest to get right while the room types are few. Adding light later, once there
-are maintenance rooms and sumps and junction halls, means auditing every one of them for whether it is
-meant to spawn.
 
 ---
 

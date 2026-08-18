@@ -498,6 +498,35 @@ final class SewerTests {
                     new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
             }
 
+            // AND THE DOORWAY IS SEALED FOR THE SOAK. A frog is 0.5 wide and the door is a one-block
+            // hole, so it can walk out of a den a turtle cannot - and twenty seconds is long enough to
+            // cross the skirt of ground this test lays and step off the edge, a hundred blocks up. It
+            // would then either die on impact or leave the search box, and the assertion would report
+            // that the den killed what it was built to hold: a false accusation against the code under
+            // test, arrived at by way of a cliff the test built itself.
+            //
+            // Sealing every outward-facing cell rather than the door specifically, because which wall
+            // the door is in is the den's business and this test should not have to know. In a sewer the
+            // other side of that hole is the chamber, so a closed shell is the faithful stand-in;
+            // a_den_opens_into_the_chamber is what proves the door is there at all.
+            for (var den : dens) {
+                BoundingBox box = den.getBoundingBox();
+                for (int x = box.minX(); x <= box.maxX(); x++) {
+                    for (int y = box.minY(); y <= box.maxY(); y++) {
+                        for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                            boolean face = x == box.minX() || x == box.maxX()
+                                || y == box.minY() || y == box.maxY()
+                                || z == box.minZ() || z == box.maxZ();
+                            var cell = new BlockPos(x, y, z);
+                            if (face && level.getBlockState(cell).isAir()) {
+                                level.setBlock(cell, SewerPalette.WALL,
+                                    net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+                            }
+                        }
+                    }
+                }
+            }
+
             // THE ROOM HAS TO FIT THE POPULATION, checked before anything ticks. residents() places what
             // fits and no more, which stops a cramped den killing its animals - and would just as
             // happily generate a den two turtles short in silence. This is the half that notices.
@@ -1280,10 +1309,30 @@ final class SewerTests {
                     runAt.getX(), runAt.getY(), runAt.getZ(), Direction.SOUTH, 5, 5, 7), Direction.SOUTH));
             }
 
+            // A COURSE UNDER EVERY PIECE, for the reason the den test needs one: SILT IS GRAVEL AND SAND,
+            // AND BOTH FALL. Worldgen gets away with it because a WorldGenRegion writes into a
+            // ProtoChunk, so BrushableBlock.onPlace never runs and no fall is ever scheduled - but a
+            // GameTest runs against a live ServerLevel, where fourteen unsupported deposits become
+            // fourteen falling block entities dropping out of this test's airspace and into whatever is
+            // below. Which, at these heights, is the den test's open platform with live animals on it: a
+            // block landing on a frog puts it inside one, and the den test would report a suffocation
+            // that this test caused.
+            for (var piece : pieces) {
+                BoundingBox box = piece.getBoundingBox();
+                for (int x = box.minX() - 1; x <= box.maxX() + 1; x++) {
+                    for (int z = box.minZ() - 1; z <= box.maxZ() + 1; z++) {
+                        level.setBlock(new BlockPos(x, box.minY() - 1, z), SewerPalette.WALL,
+                            net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+                    }
+                }
+            }
+
             int sumpDeposits = 0;
             int runDeposits = 0;
             List<String> hollow = new ArrayList<>();
+            List<String> uniform = new ArrayList<>();
             for (var piece : pieces) {
+                var mine = new java.util.ArrayList<net.minecraft.world.level.block.Block>();
                 BoundingBox box = piece.getBoundingBox();
                 BoundingBox limit = new BoundingBox(box.minX() - 8, box.minY() - 8, box.minZ() - 8,
                     box.maxX() + 8, box.maxY() + 8, box.maxZ() + 8);
@@ -1301,6 +1350,7 @@ final class SewerTests {
                                 sumpDeposits++;
                             } else {
                                 runDeposits++;
+                                mine.add(level.getBlockState(here).getBlock());
                             }
                             var be = level.getBlockEntity(here);
                             String carried = be == null ? "no block entity at all"
@@ -1311,7 +1361,20 @@ final class SewerTests {
                         }
                     }
                 }
+                // AND A CORRIDOR THAT SILTS TWICE SILTS BOTH WAYS. The type used to come off the key's
+                // parity, and every offset a key can take is even, so every firing cell in one corridor
+                // shared the seed's parity: half the corridors in the world were all gravel and half all
+                // sand, never mixed, while the palette called one "the finer half of the same deposit".
+                // Both blocks stayed reachable across corridors, so the reachability sweep could not see
+                // it - only a per-corridor look can.
+                if (mine.size() > 1 && new HashSet<>(mine).size() == 1) {
+                    uniform.add(box.getCenter().toShortString() + " is all " + mine.getFirst());
+                }
             }
+            helper.assertTrue(uniform.isEmpty(),
+                "these corridors bedded more than one deposit and made them all the same block, so the "
+                    + "coarse and fine halves of a silt bed never appear together: " + uniform);
+
             // EXACTLY FOURTEEN AND AT LEAST ONE EACH, rather than a total with a round number under it.
             // The first version asserted 20 across the lot, which was precisely the achievable minimum -
             // fourteen from the sump plus one from each of six correlated corridors - so it had no
@@ -1324,10 +1387,35 @@ final class SewerTests {
             helper.assertTrue(sumpDeposits == 14,
                 "the sump bedded " + sumpDeposits + " deposits rather than 14 (a 5x3 patch, less the "
                     + "crate's own cell), so either the bed moved or the crate is eating one of them");
-            helper.assertTrue(runDeposits >= pieces.size() - 1,
-                "only " + runDeposits + " deposits across " + (pieces.size() - 1) + " corridors, and "
-                    + "silt() places at least one whatever its seed - so a corridor is silting up with "
-                    + "nothing at all");
+            // EIGHT ACROSS SIX CORRIDORS, and that is arithmetic rather than a seed. silt() offers four
+            // cells whose keys differ by {6, 8, 34, 36} - {0, 2, 1, 0} mod 3 - so a corridor places two
+            // when its seed is 0 mod 3 and one otherwise. The grid above steps X by 11, which moves the
+            // seed by 341 (2 mod 3), so the three columns cover all three residues whatever the plot
+            // lands on: one column of two corridors places two each, the other four place one.
+            helper.assertTrue(runDeposits == 8,
+                runDeposits + " deposits across " + (pieces.size() - 1) + " corridors rather than 8 - "
+                    + "recompute it from silt()'s gate before relaxing this, because the number is "
+                    + "derived and a change to it means the corner arithmetic moved");
+            // AND THE SUMP IS TAKEN BACK DOWN. It ships a drowned spawner and a stocked barrel, and this
+            // test builds one outside its own plot, where nothing clears it - so leaving it standing
+            // meant a live spawner running in shared world space for the rest of the suite.
+            for (var piece : pieces) {
+                BoundingBox box = piece.getBoundingBox();
+                for (int x = box.minX(); x <= box.maxX(); x++) {
+                    for (int y = box.minY(); y <= box.maxY(); y++) {
+                        for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                            level.setBlock(new BlockPos(x, y, z),
+                                net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
+                                net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+                        }
+                    }
+                }
+                level.getEntitiesOfClass(net.minecraft.world.entity.Entity.class,
+                        new net.minecraft.world.phys.AABB(box.minX() - 4, box.minY() - 4, box.minZ() - 4,
+                            box.maxX() + 5, box.maxY() + 5, box.maxZ() + 5),
+                        e -> !(e instanceof net.minecraft.world.entity.player.Player))
+                    .forEach(net.minecraft.world.entity.Entity::discard);
+            }
             helper.assertTrue(hollow.isEmpty(),
                 "these deposits have no loot table on them, so they brush away to nothing and the silt "
                     + "is scenery wearing an archaeology texture: " + hollow);

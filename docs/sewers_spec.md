@@ -482,8 +482,11 @@ Three things changed, and only one of them is the turtle den:
 **The old den test could not see any of it**, and that is the more useful half. It counted heads
 immediately after `postProcess` - the one moment the room is correct, because nothing has moved or been
 hurt yet. Suffocation is a tick-loop fact, so a test that never ticks asserts the placement and calls it
-the habitat. The new one runs 120 ticks and then asks whether the animals are alive, unhurt, and out of
-the walls.
+the habitat. The new one soaks for 400 ticks and then asks whether the animals are alive, unhurt, and
+out of the walls. 120 was enough to catch the original bug - suffocation is a hit every ten ticks - but
+the margin worth buying confidence in is the other one: a turtle has 0.52 of clearance from the den's
+short walls before `isInWall` reaches brick, and the only way to trust a number that thin is to let the
+goal selectors push at it for a while.
 
 **The threat moved deeper.** Junctions past the second link carry the spawner now, selected by a hash of
 the piece's own box rather than a roll - `postProcess` runs once per chunk a piece overlaps, so a random
