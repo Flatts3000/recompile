@@ -129,23 +129,33 @@ final class LeachateTests {
         // costs a find, a prybar and a 1-in-4 draw. Leachate is AMBIENT: it is scattered across the
         // map in pools, so it answering yes would make every pool a tap, which is a different thing
         // entirely. Do not read the fridge exception as permission here.
-        // IT DROWNS YOU, and that is a property of the fluid rather than of how deep anyone pours it.
+        // IT DROWNS YOU, and this asserts the BEHAVIOUR rather than the builder flag.
         //
-        // This value has now been set three times, which is worth recording rather than hiding. It
-        // shipped true, described as unreachable "because pools are one block deep" - wrong, because
-        // drowning is checked at the EYE and canSwim(true) is set, so a crawling or swimming player
-        // already had eyes in a one-block body. It was set false to deliver a no-drowning guarantee that
-        // depth could not. The owner then ruled the other way: the player should be able to drown in
-        // leachate.
+        // The previous version read RCFluids' canDrown value back and called that a guarantee. It was a
+        // tautology - the getter returns the stored field whatever the engine does with it - and it was
+        // green while a player in leachate breathed normally, because NeoForge's onLivingBreathe is
+        // COMMENTED OUT in 26.1.2.76 and the patched LivingEntity checks isEyeInFluid(FluidTags.WATER)
+        // directly. Leachate is deliberately in no tag, so nothing ever read the flag.
         //
-        // Asserted on the FluidType so no generator has to remember it, and so the reversal cannot be
-        // undone quietly by someone reading the old javadoc.
-        RCGameTests.test("leachate_can_drown_you", 20, helper -> {
+        // So: put a survival player's eyes in leachate, tick, and assert the air supply actually fell.
+        RCGameTests.test("leachate_drowns_what_is_under_it", 60, helper -> {
+            BlockPos pool = new BlockPos(1, 1, 1);
+            helper.setBlock(pool, RCBlocks.LEACHATE.get());
+            helper.setBlock(pool.above(), RCBlocks.LEACHATE.get());
             var player = helper.makeMockServerPlayerInLevel();
             player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
-            helper.assertTrue(RCFluids.LEACHATE_TYPE.get().canDrownIn(player),
-                "leachate does not drown anyone - the owner's ruling is that it should, and depth cannot "
-                    + "deliver that either way because the check is at eye level");
+            BlockPos abs = helper.absolutePos(pool);
+            player.snapTo(abs.getX() + 0.5, (double) abs.getY(), abs.getZ() + 0.5, 0F, 0F);
+
+            int before = player.getAirSupply();
+            for (int i = 0; i < 5; i++) {
+                com.flatts.recompile.event.RCLeachateContact.drownOnce(player);
+            }
+            helper.assertTrue(player.getAirSupply() < before,
+                "air did not fall with leachate over the player's head (" + before + " -> "
+                    + player.getAirSupply() + ") - the fluid's own canDrown flag cannot deliver this in "
+                    + "26.1, because its only consumer is commented out and vanilla's check is keyed on "
+                    + "#minecraft:water, which leachate must stay out of");
             helper.succeed();
         });
 

@@ -53,17 +53,18 @@ public final class RCFluids {
      *       {@code viscosity} states how slowly the fluid flows and is metadata other mods may read,
      *       and {@code motionScale} governs how hard the current pushes you - neither slows a player
      *       wading through it. An earlier version of this comment claimed it did.
-     *   <li><b>It drowns you</b> - {@code canDrown(true)}, owner ruling 2026-08-17, <b>reversing a call
-     *       made earlier the same day</b>. The original value was {@code true} and was documented as
-     *       unreachable "because pools are one block deep"; that was wrong twice over, since drowning is
-     *       evaluated at the <b>eye</b> rather than from pool depth and {@code canSwim(true)} is set, so
-     *       a crawling or swimming player already had eyes inside a one-block body. It was then set to
-     *       {@code false} to deliver a no-drowning guarantee that depth alone could not, and the owner
-     *       has since ruled the other way: <i>the player should be able to drown in leachate.</i>
-     *       <p>Being a property of the fluid, this applies <b>everywhere leachate exists</b>, the
-     *       surface pools of #156 included - and per the eye-level reasoning above, a one-block pool is
-     *       genuinely enough to drown a player who crawls or swims in it. That is the accepted cost of
-     *       the ruling rather than an oversight in it.
+     *   <li><b>{@code canDrown(true)}, and it is INERT - the drowning is ours.</b> Owner ruling
+     *       2026-08-17: the player should drown in leachate. The flag cannot deliver that in 26.1.
+     *       {@code CommonHooks.onLivingBreathe} is the only consumer of {@code canDrownIn} and it is
+     *       <b>commented out</b> in NeoForge 26.1.2.76; the patched {@code LivingEntity.baseTick} calls
+     *       vanilla {@code isEyeInFluid(FluidTags.WATER)} directly, and leachate is deliberately in no
+     *       fluid tag. So it has never been read, and every story this javadoc has told about it - that
+     *       it was "unreachable because pools are one block deep", then that it was reachable and had to
+     *       be turned off - was a guess at a mechanism nobody had opened. It is left {@code true}
+     *       because it states the intent and would start working if NeoForge reinstates the hook.
+     *       <p><b>{@code RCLeachateContact} does the actual drowning</b>, draining air when the eye is
+     *       in leachate. The same applies to {@code canSwim} on the line above: also unread, also
+     *       intent rather than behaviour.
      *   <li><b>It does not otherwise harm the player</b> (open question on #156, unresolved rather than
      *       decided). You swim in it and it puts out fire. The P2 pressure-loop rule constrains threats to builds
      *       and cleared land and says nothing about the player, so a penalty is available if wanted -

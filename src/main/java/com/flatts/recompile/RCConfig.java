@@ -17,6 +17,7 @@ public final class RCConfig {
      * exists from first boot; consumed once those blocks land.
      */
     public static final ModConfigSpec.BooleanValue LEACHATE_SICKENS;
+    public static final ModConfigSpec.BooleanValue LEACHATE_DROWNS;
     public static final ModConfigSpec.IntValue LEACHATE_SICKNESS_TICKS;
     public static final ModConfigSpec.BooleanValue GARBAGE_GRAVITY_ENABLED;
     public static final ModConfigSpec.BooleanValue ROACHES_ENABLED;
@@ -126,6 +127,13 @@ public final class RCConfig {
                 "water you cannot use, and this is only a nudge so a pond does not read as free",
                 "decoration to wade through.")
             .define("leachateSickens", true);
+        LEACHATE_DROWNS = builder
+            .comment("Whether leachate drowns you when it is over your head.",
+                "Owner ruling: it should. Note this CANNOT be delivered by the fluid's own",
+                "canDrown flag - NeoForge's onLivingBreathe is commented out in 26.1 and vanilla's",
+                "breathing check is keyed on the #minecraft:water tag, which leachate must stay out",
+                "of. So the mod drains air itself; this switch governs that, not the flag.")
+            .define("leachateDrowns", true);
         LEACHATE_SICKNESS_TICKS = builder
             .comment("How long the Hunger lasts, in ticks. Refreshed while you stay in the pool,",
                 "so this is the cost of leaving rather than a total.",

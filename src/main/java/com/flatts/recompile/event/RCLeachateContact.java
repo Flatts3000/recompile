@@ -1,10 +1,13 @@
 package com.flatts.recompile.event;
 
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.LeachateBlock;
 import com.flatts.recompile.registry.RCFluids;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -48,5 +51,51 @@ public final class RCLeachateContact {
         if (entity.level().getFluidState(entity.blockPosition()).getType() == RCFluids.LEACHATE.get()) {
             LeachateBlock.sicken(entity.level(), entity);
         }
+        drown(entity);
+    }
+
+    /**
+     * Drown anything with leachate over its head (owner ruling, 2026-08-17).
+     *
+     * <p><b>The fluid's own {@code canDrown} flag cannot do this, and setting it was wasted motion.</b>
+     * NeoForge's {@code CommonHooks.onLivingBreathe} - the only consumer of {@code canDrownIn} - is
+     * commented out in 26.1.2.76, and the patched {@code LivingEntity.baseTick} calls vanilla
+     * {@code isEyeInFluid(FluidTags.WATER)} directly. Leachate is deliberately in no fluid tag, so that
+     * check can never see it. The flag has therefore been inert since the fluid shipped, which is the
+     * real reason it never drowned anyone - not the "pools are one block deep" story it carried, and
+     * not the depth ruling that replaced it.
+     *
+     * <p>This class's own javadoc already said the fluid-type family is commented out in 26.1. The
+     * lesson is not the API, it is that the answer was written down in the file that owns the
+     * behaviour, and a flag was flipped in a different file without reading it.
+     *
+     * <p><b>Eyes, not feet</b>, which is the opposite of the Hunger check above and correct for the
+     * opposite reason: drowning is about what is over your head, and a one-block pool genuinely can be,
+     * for a player who crawls or swims. Vanilla's own numbers are mirrored - one air per tick down, two
+     * damage each time it runs out - so it behaves like drowning rather than like a bespoke hazard.
+     */
+    public static void drownOnce(Entity entity) {
+        drown(entity);
+    }
+
+    private static void drown(Entity entity) {
+        if (!RCConfig.LEACHATE_DROWNS.get() || !(entity instanceof LivingEntity living)) {
+            return;
+        }
+        // A creative player is not the subject of a hazard, the same exemption sicken() makes.
+        if (living instanceof Player player && player.getAbilities().invulnerable) {
+            return;
+        }
+        BlockPos eye = BlockPos.containing(living.getX(), living.getEyeY(), living.getZ());
+        if (living.level().getFluidState(eye).getType() != RCFluids.LEACHATE.get()) {
+            return;
+        }
+        int air = living.getAirSupply();
+        if (air > -20) {
+            living.setAirSupply(air - 1);
+            return;
+        }
+        living.setAirSupply(0);
+        living.hurt(living.damageSources().drown(), 2.0F);
     }
 }
