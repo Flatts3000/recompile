@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.worldgen.sewer;
 
 import com.flatts.recompile.registry.RCStructures;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -146,6 +147,64 @@ public final class SewerPieces {
      * <p>Both guards live here rather than inside the pieces, so there is exactly one place a sewer's
      * extent is decided and a new piece type cannot forget to check them.
      */
+    /**
+     * Put the sump at the lowest end of the finished tree.
+     *
+     * <p><b>The tree decides where it goes, not the structure.</b> A sewer drains downhill, so the low
+     * point is wherever the stairs happened to descend furthest - which is only knowable once the graph
+     * is built. Attaching it anywhere else would make the one room whose position is physically
+     * determined into an arbitrary one.
+     *
+     * <p>It goes through {@code findCollisionPiece} by hand here rather than through {@code grow},
+     * because {@code grow} chooses a piece type at random and this one is not up for a vote.
+     */
+    public static void attachSump(StructurePiece root, StructurePiecesBuilder pieces,
+            RandomSource random) {
+        // DEEPEST FIRST, then the next deepest. Trying only the single lowest piece left 46 sewers in
+        // 200 without a sump: it is a nine-block room and the low end of a sewer is usually the busy
+        // end, so all four of its sides collide. Walking down the list keeps the fiction - the sump is
+        // still at the bottom of the system - while giving it somewhere to actually fit.
+        List<StructurePiece> candidates = new java.util.ArrayList<>();
+        for (StructurePiece piece : collect(pieces)) {
+            if (!(piece instanceof SewerRoom) && !(piece instanceof SewerEntrance)) {
+                candidates.add(piece);
+            }
+        }
+        candidates.sort(java.util.Comparator.comparingInt(piece -> piece.getBoundingBox().minY()));
+        for (StructurePiece candidate : candidates) {
+            if (trySump(root, pieces, candidate)) {
+                return;
+            }
+        }
+    }
+
+    /** Attempt the sump against one piece, on each of its four sides. */
+    private static boolean trySump(StructurePiece root, StructurePiecesBuilder pieces,
+            StructurePiece against) {
+        BoundingBox from = against.getBoundingBox();
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            int x = switch (side) {
+                case WEST -> from.minX() - 1;
+                case EAST -> from.maxX() + 1;
+                default -> from.minX();
+            };
+            int z = switch (side) {
+                case NORTH -> from.minZ() - 1;
+                case SOUTH -> from.maxZ() + 1;
+                default -> from.minZ();
+            };
+            BoundingBox box = SewerPiece.box(x, from.minY(), z, side,
+                SewerSump.SIZE, SewerSump.TALL, SewerSump.SIZE);
+            if (Math.abs(x - root.getBoundingBox().minX()) <= RADIUS_CAP
+                    && Math.abs(z - root.getBoundingBox().minZ()) <= RADIUS_CAP
+                    && pieces.findCollisionPiece(box) == null) {
+                pieces.addPiece(new SewerSump(against.getGenDepth() + 1, box, side));
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Make sure the sewer has at least one access chamber, since all of its loot is in them.
      *
@@ -546,30 +605,11 @@ public final class SewerPieces {
             // A grate in the ceiling, which is what a sewer junction has and what stops a crossing
             // reading as nothing more than a wide bit of corridor.
             this.placeBlock(level, SewerPalette.GRATE, SHELL / 2, SHELL - 1, SHELL / 2, limit);
-            // THE THREAT LIVES DEEPER IN (owner, 2026-08-17). The spawner used to sit five blocks from
-            // the ladder in the root chamber, so a player climbed down into a crowd that had been
-            // accumulating since the chunk loaded - you landed in the payoff instead of walking to it.
-            // Junctions past the second link carry it now, so arriving is quiet and the fight is
-            // something you find.
-            //
-            // Keyed off the BOX rather than the random: postProcess runs once per chunk the piece
-            // overlaps, and a roll would give a different answer on each pass - a spawner that exists in
-            // one chunk's half of a junction and not the other.
-            if (this.getGenDepth() >= 2
-                    && Math.floorMod(this.boundingBox.minX() * 31 + this.boundingBox.minZ(), 2) == 0) {
-                // LOCAL X = 1, THE DRY WALKWAY. channel() fills local x = SHELL/2 for the run, so a
-                // seat at SHELL/2 stood directly over the leachate - putting back the wade-to-reach-it
-                // problem that the chamber's own comment was written about before the spawner moved.
-                BlockPos seat = new BlockPos(this.getWorldX(1, 1), this.getWorldY(1),
-                    this.getWorldZ(1, 1));
-                if (limit.isInside(seat)) {
-                    level.setBlock(seat, SewerPalette.SPAWNER, Block.UPDATE_CLIENTS);
-                    if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
-                            .SpawnerBlockEntity spawner) {
-                        spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
-                    }
-                }
-            }
+            // NO SPAWNER HERE ANY MORE. Junctions carried one past depth 2 on an even box-hash, which
+            // was a stand-in for a guarantee the graph could not give - measured, roughly one sewer in
+            // five had none at all. The sump provides it now, deterministically and for a reason that is
+            // not arithmetic: standing water is where drowned accumulate. Two mechanisms for one threat
+            // is one more than the fiction supports.
         }
     }
 
@@ -873,6 +913,79 @@ public final class SewerPieces {
                 level.setBlock(at, SewerPalette.BARREL, Block.UPDATE_CLIENTS);
                 net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(
                     level, random, at, BARREL_LOOT);
+            }
+        }
+    }
+
+    /**
+     * The sump: the bottom of the system (#90 improvements, phase 3).
+     *
+     * <p><b>Its position is not a design choice.</b> Everything the channels carry has to go somewhere,
+     * and it goes to the lowest point - so the sump belongs at the deepest end of the piece tree,
+     * wherever the stairs happened to descend furthest. Putting it anywhere else would be the
+     * ham-fisted version of exactly this feature: a room placed because a room was wanted.
+     *
+     * <p>Three things fall out of that placement rather than being added to it:
+     *
+     * <ul>
+     *   <li><b>The deep leachate is not a hazard we installed</b>, it is what a low point in a drainage
+     *       system contains. That is the difference between a hazard and a trap - and it is only lethal
+     *       at all because {@code RCLeachateContact} drains air when the eye is under, which the fluid's
+     *       own {@code canDrown} flag never did.
+     *   <li><b>The drowned belong here.</b> They are what accumulates in standing water, which is a
+     *       better reason for the guaranteed spawner than "somewhere deterministic was needed".
+     *   <li><b>It is dark.</b> Nobody maintained the bottom, so phase 1's lighting rule keeps out on its
+     *       own terms rather than as a spawn concession.
+     * </ul>
+     *
+     * <p><b>Telegraphed, and that is a requirement rather than a nicety.</b> Leachate is opaque and this
+     * room is unlit, so the drop is stepped rather than sheer: a ledge at the entrance, then the deep.
+     * A drop you cannot see is a death with no decision in front of it.
+     */
+    public static class SewerSump extends SewerPiece {
+
+        static final int SIZE = 9;
+        static final int TALL = 7;
+
+        /** How deep the standing water is. Two, so it is over a head - the point of the room. */
+        static final int DEPTH = 2;
+
+        public SewerSump(int depth, BoundingBox box, Direction facing) {
+            super(RCStructures.SEWER_SUMP.get(), depth, box);
+            this.setOrientation(facing);
+        }
+
+        public SewerSump(CompoundTag tag) {
+            super(RCStructures.SEWER_SUMP.get(), tag);
+        }
+
+        @Override
+        public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
+                RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
+            this.line(level, limit, SIZE, TALL, SIZE);
+            // A LEDGE FIRST. The entrance third stays at floor level so a player steps onto solid brick
+            // and sees the water before deciding to enter it. Everything past it is the pool.
+            for (int x = 1; x < SIZE - 1; x++) {
+                for (int z = 3; z < SIZE - 1; z++) {
+                    for (int d = 0; d < DEPTH; d++) {
+                        this.placeBlock(level, SewerPalette.HOLLOW, x, d + 1, z, limit);
+                    }
+                    this.placeBlock(level, SewerPalette.FLUID, x, 0, z, limit);
+                    this.placeBlock(level, SewerPalette.FLUID, x, 1, z, limit);
+                }
+            }
+            // THE SPAWNER, and this is the room's other job: a sewer can otherwise generate with no
+            // drowned at all, because junctions carry one only past depth 2 and only when their box
+            // hashes even. Standing water is where drowned accumulate, so the guarantee and the fiction
+            // are the same fact.
+            BlockPos seat = new BlockPos(this.getWorldX(SIZE / 2, 1), this.getWorldY(1),
+                this.getWorldZ(SIZE / 2, 1));
+            if (limit.isInside(seat)) {
+                level.setBlock(seat, SewerPalette.SPAWNER, Block.UPDATE_CLIENTS);
+                if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
+                        .SpawnerBlockEntity spawner) {
+                    spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
+                }
             }
         }
     }

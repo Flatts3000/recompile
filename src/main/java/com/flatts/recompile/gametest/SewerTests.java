@@ -50,8 +50,10 @@ final class SewerTests {
         SewerPieces.SewerRoom room = new SewerPieces.SewerRoom(0, random, 0, 0);
         builder.addPiece(room);
         room.addChildren(room, builder, random);
-        // The structure forces an access chamber when the rolls produced none, so a layout built
-        // without that step measures a sewer nobody will ever generate.
+        // MIRROR THE STRUCTURE EXACTLY, in its order. A layout built without these steps measures a
+        // sewer nobody will ever generate - which has now caught this helper out twice, once for the
+        // access chamber and once for the sump.
+        SewerPieces.attachSump(room, builder, random);
         SewerPieces.forceAccessChamber(room, builder, random);
         List<StructurePiece> pieces = new ArrayList<>();
         builder.build().pieces().forEach(pieces::add);
@@ -419,47 +421,61 @@ final class SewerTests {
             helper.succeed();
         });
 
-        // THE THREAT IS IN THE JUNCTIONS INSTEAD, and deterministically so.
+        // THE SUMP CARRIES THE THREAT, and every sewer has one.
         //
-        // Keyed off the box rather than a roll: postProcess runs once per chunk a piece overlaps, so a
-        // random draw would answer differently on each pass and a junction could get a spawner in one
-        // half of itself and not the other.
-        RCGameTests.test("a_deep_crossing_carries_the_spawner", 40, helper -> {
-            var level = helper.getLevel();
-            // DETERMINISTIC, and against the gate the code actually uses.
-            //
-            // This selected on mod 3 while the placement fires on mod 2 - a leftover from loosening the
-            // gate - so it proceeded on boxes the code rejects and asserted a spawner that was never
-            // going to be there. It also had a skip branch, which meant that on plots where the two
-            // agreed by luck it passed, and on plots where they did not it failed: green locally, green
-            // on one CI run and red on the next for the same commit.
-            //
-            // 31 is odd, so the parity of (x*31 + z) is the parity of (x + z): nudging x by one when
-            // that sum is odd selects the box on any plot, every time. No skip branch, so it always
-            // asserts rather than sometimes excusing itself.
-            BlockPos base = helper.absolutePos(new BlockPos(0, 34, 0));
-            int x = base.getX() + (Math.floorMod(base.getX() + base.getZ(), 2) == 0 ? 0 : 1);
-            BoundingBox box = SewerPieces.SewerPiece.box(
-                x, base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 5);
-            helper.assertTrue(Math.floorMod(box.minX() * 31 + box.minZ(), 2) == 0,
-                "the probe box does not satisfy the spawner gate, so this test proves nothing");
-            var crossing = new SewerPieces.SewerCrossing(3, box, Direction.SOUTH);
-            BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
-                box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
-            crossing.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
-                RandomSource.create(6L), limit,
-                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), base);
-
-            boolean found = false;
-            for (int px = box.minX(); px <= box.maxX() && !found; px++) {
-                for (int pz = box.minZ(); pz <= box.maxZ() && !found; pz++) {
-                    found = level.getBlockState(new BlockPos(px, box.minY() + 1, pz))
-                        .is(net.minecraft.world.level.block.Blocks.SPAWNER);
+        // Junctions used to, past depth 2 and on an even box-hash, which was a stand-in for a guarantee
+        // the graph could not give - roughly one sewer in five had no drowned at all. The sump replaces
+        // it with a guarantee and a reason: standing water is where drowned accumulate, so the fiction
+        // and the mechanism are the same fact rather than two arrangements of one.
+        RCGameTests.test("every_sewer_has_a_sump_and_it_holds_the_spawner", 40, helper -> {
+            int without = 0;
+            for (long seed = 0; seed < SEEDS; seed++) {
+                boolean found = false;
+                for (StructurePiece piece : layout(seed)) {
+                    if (piece instanceof SewerPieces.SewerSump) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    without++;
                 }
             }
-            helper.assertTrue(found,
-                "a selected junction past depth 2 has no spawner, so the sewer has no drowned anywhere - "
-                    + "IN_WATER can never be satisfied by leachate, and the spawner is the only route");
+            helper.assertTrue(without == 0,
+                without + " of " + SEEDS + " sewers have no sump, and the sump is the only guaranteed "
+                    + "drowned in the structure - IN_WATER can never be satisfied by leachate");
+
+            var level = helper.getLevel();
+            BlockPos at = helper.absolutePos(new BlockPos(0, 16, 0));
+            BoundingBox box = SewerPieces.SewerPiece.box(at.getX(), at.getY(), at.getZ(),
+                Direction.SOUTH, 9, 7, 9);
+            BoundingBox limit = new BoundingBox(box.minX() - 8, box.minY() - 8, box.minZ() - 8,
+                box.maxX() + 8, box.maxY() + 8, box.maxZ() + 8);
+            new SewerPieces.SewerSump(3, box, Direction.SOUTH).postProcess(
+                level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(5L), limit,
+                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
+            boolean spawner = false;
+            int deep = 0;
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int y = box.minY(); y <= box.maxY(); y++) {
+                    for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                        var here = new BlockPos(x, y, z);
+                        spawner |= level.getBlockState(here)
+                            .is(net.minecraft.world.level.block.Blocks.SPAWNER);
+                        if (y > box.minY() && level.getFluidState(here).getType()
+                                == com.flatts.recompile.registry.RCFluids.LEACHATE.get()) {
+                            deep++;
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(spawner,
+                "the sump has no spawner, so the guarantee it exists for is not kept and the sewer can "
+                    + "hold no drowned at all");
+            helper.assertTrue(deep > 0,
+                "the sump has no standing water above its floor - it is the low point of a drainage "
+                    + "system, and a dry one is just a room");
             helper.succeed();
         });
 

@@ -64,6 +64,13 @@ public class SewerStructure extends Structure {
         // under the surface, so a piece added afterwards is not measured - and an access chamber is six
         // tall against a corridor's five, so a forced one anchored to the topmost corridor pushed the
         // sewer's roof a block higher than the clamp allowed and quietly ate a sixth of the cover.
+        // THE SUMP FIRST, for the same reason and then one of its own. Same reason: it is seven tall
+        // against a corridor's five, so a sump added after sink() would push the roof past the clamp
+        // exactly as a late access chamber did. Its own reason: it anchors to the deepest piece in the
+        // tree, so it has to be placed before anything competes for that space, and the access chamber
+        // must then route around it rather than the other way round - the sump's position is physically
+        // determined and the chamber's is not.
+        SewerPieces.attachSump(room, pieces, random);
         SewerPieces.forceAccessChamber(room, pieces, random);
 
         // THE LOWEST SURFACE OVER THE WHOLE FOOTPRINT, not the height at the middle. Pieces reach 80
