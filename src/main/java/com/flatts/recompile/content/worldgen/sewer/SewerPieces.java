@@ -358,6 +358,27 @@ public final class SewerPieces {
             // A grate in the ceiling, which is what a sewer junction has and what stops a crossing
             // reading as nothing more than a wide bit of corridor.
             this.placeBlock(level, SewerPalette.GRATE, SHELL / 2, SHELL - 1, SHELL / 2, limit);
+            // THE THREAT LIVES DEEPER IN (owner, 2026-08-17). The spawner used to sit five blocks from
+            // the ladder in the root chamber, so a player climbed down into a crowd that had been
+            // accumulating since the chunk loaded - you landed in the payoff instead of walking to it.
+            // Junctions past the second link carry it now, so arriving is quiet and the fight is
+            // something you find.
+            //
+            // Keyed off the BOX rather than the random: postProcess runs once per chunk the piece
+            // overlaps, and a roll would give a different answer on each pass - a spawner that exists in
+            // one chunk's half of a junction and not the other.
+            if (this.getGenDepth() >= 2
+                    && Math.floorMod(this.boundingBox.minX() * 31 + this.boundingBox.minZ(), 3) == 0) {
+                BlockPos seat = new BlockPos(this.getWorldX(SHELL / 2, 1), this.getWorldY(1),
+                    this.getWorldZ(SHELL / 2, 1));
+                if (limit.isInside(seat)) {
+                    level.setBlock(seat, SewerPalette.SPAWNER, Block.UPDATE_CLIENTS);
+                    if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
+                            .SpawnerBlockEntity spawner) {
+                        spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
+                    }
+                }
+            }
         }
     }
 
@@ -414,6 +435,148 @@ public final class SewerPieces {
                     this.placeBlock(level, step, x, y, z, limit);
                 }
             }
+        }
+    }
+
+    /**
+     * A habitat pocket off the chamber: a small room floored in something an animal actually wants.
+     *
+     * <p><b>Owner call, 2026-08-17: a module each, sand for the turtles and mud for the frogs.</b> They
+     * used to be placed straight into the leachate pool in the middle of the chamber, which meant every
+     * sewer generated with its animals standing in the Hunger fluid, permanently - and it read like a
+     * zoo, because the drowned were in there with them.
+     *
+     * <p>The substrate is not decoration. {@code #minecraft:frogs_spawnable_on} is grass block, mud and
+     * the two mangrove roots, so mud is the one surface in that tag a sewer could hold; and
+     * {@code TurtleEggBlock.onSand} is half of vanilla's turtle rule. The animals are standing on the
+     * ground their own game logic names. Neither becomes renewable - a turtle also needs
+     * {@code y < seaLevel + 4} against a sea level of -64, and a frog needs light this place does not
+     * have.
+     */
+    public abstract static class SewerDen extends SewerPiece {
+
+        protected SewerDen(StructurePieceType type, int depth, BoundingBox box) {
+            super(type, depth, box);
+        }
+
+        protected SewerDen(StructurePieceType type, CompoundTag tag) {
+            super(type, tag);
+        }
+
+        /** What the floor is made of, and therefore which animal this is for. */
+        protected abstract BlockState bed();
+
+        /** How many to put in it. */
+        protected abstract int population();
+
+        /** The animal itself. */
+        protected abstract net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident();
+
+        /**
+         * Absolute coordinates, like the chamber and the entrance shaft: a den has no orientation, and
+         * with {@code getOrientation()} null {@code getWorldX/Y/Z} return what they are given.
+         */
+        @Override
+        public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
+                RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
+            BoundingBox box = this.boundingBox;
+            this.generateBox(level, limit, box.minX(), box.minY(), box.minZ(),
+                box.maxX(), box.maxY(), box.maxZ(), SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
+            // Shell it, then floor it in the substrate. The floor is the whole point of the room.
+            this.generateBox(level, limit, box.minX(), box.maxY(), box.minZ(),
+                box.maxX(), box.maxY(), box.maxZ(), SewerPalette.WALL, SewerPalette.WALL, false);
+            this.generateBox(level, limit, box.minX(), box.minY(), box.minZ(),
+                box.maxX(), box.minY(), box.maxZ(), this.bed(), this.bed(), false);
+            for (int y = box.minY() + 1; y < box.maxY(); y++) {
+                this.generateBox(level, limit, box.minX(), y, box.minZ(), box.minX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.maxX(), y, box.minZ(), box.maxX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.minX(), y, box.minZ(), box.maxX(), y, box.minZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.minX(), y, box.maxZ(), box.maxX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+            }
+            // A shallow pool along one edge, so the animals have water-shaped muck to sit beside rather
+            // than a dry box. Still one block deep, like everywhere else.
+            for (int x = box.minX() + 1; x < box.maxX(); x++) {
+                this.placeBlock(level, SewerPalette.FLUID, x, box.minY(), box.maxZ() - 1, limit);
+            }
+            for (int i = 0; i < this.population(); i++) {
+                BlockPos at = new BlockPos(box.minX() + 1 + i, box.minY() + 1, box.minZ() + 1);
+                if (!limit.isInside(at)) {
+                    continue;
+                }
+                var mob = this.resident().create(
+                    level.getLevel(), net.minecraft.world.entity.EntitySpawnReason.STRUCTURE);
+                if (mob == null) {
+                    continue;
+                }
+                mob.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, 0F, 0F);
+                mob.finalizeSpawn(level, level.getCurrentDifficultyAt(at),
+                    net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, null);
+                if (mob instanceof net.minecraft.world.entity.animal.turtle.Turtle turtle) {
+                    // Explicitly: homePos is private with no getter, so nothing can assert it, and a
+                    // turtle that believes home is world origin walks out of the den forever.
+                    turtle.setHomePos(at);
+                }
+                mob.setPersistenceRequired();
+                level.addFreshEntity(mob);
+            }
+        }
+    }
+
+    /** Sand, and the turtles that live on it. */
+    public static class SewerTurtleDen extends SewerDen {
+
+        public SewerTurtleDen(int depth, BoundingBox box) {
+            super(RCStructures.SEWER_TURTLE_DEN.get(), depth, box);
+        }
+
+        public SewerTurtleDen(CompoundTag tag) {
+            super(RCStructures.SEWER_TURTLE_DEN.get(), tag);
+        }
+
+        @Override
+        protected BlockState bed() {
+            return SewerPalette.TURTLE_BED;
+        }
+
+        @Override
+        protected int population() {
+            return 3;
+        }
+
+        @Override
+        protected net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
+            return net.minecraft.world.entity.EntityType.TURTLE;
+        }
+    }
+
+    /** Mud, and the frogs that live on it. */
+    public static class SewerFrogDen extends SewerDen {
+
+        public SewerFrogDen(int depth, BoundingBox box) {
+            super(RCStructures.SEWER_FROG_DEN.get(), depth, box);
+        }
+
+        public SewerFrogDen(CompoundTag tag) {
+            super(RCStructures.SEWER_FROG_DEN.get(), tag);
+        }
+
+        @Override
+        protected BlockState bed() {
+            return SewerPalette.FROG_BED;
+        }
+
+        @Override
+        protected int population() {
+            return 2;
+        }
+
+        @Override
+        protected net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
+            return net.minecraft.world.entity.EntityType.FROG;
         }
     }
 
@@ -485,17 +648,6 @@ public final class SewerPieces {
             // The chamber is where the sewer is occupied from. One spawner per sewer, in the room
             // rather than at a corridor mouth, so meeting it is a thing you walk into rather than
             // something that meets you at the entrance.
-            // ON BRICK, NOT IN THE POOL. The pool fills minX+2..maxX-2, and the box centre is inside
-            // that inset by construction, so a spawner at the centre stood in the leachate - you had to
-            // wade into the Hunger fluid to reach or break it. One block in from the wall is dry.
-            BlockPos seat = new BlockPos(box.minX() + 1, box.minY() + 1, box.getCenter().getZ());
-            if (limit.isInside(seat)) {
-                level.setBlock(seat, SewerPalette.SPAWNER, 2);
-                if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
-                        .SpawnerBlockEntity spawner) {
-                    spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
-                }
-            }
             // THE LADDER THE SHAFT CANNOT PLACE. The entrance stops at the ceiling, because lining it
             // any lower would seal the ladder inside a brick tube standing in the middle of the room. So
             // the chamber runs the ladder from its floor up through its own ceiling to meet the shaft -
@@ -510,7 +662,6 @@ public final class SewerPieces {
                 }
             }
             placeBarrels(level, limit, box, random);
-            placeResidents(level, limit, box);
         }
     }
 

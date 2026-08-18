@@ -403,8 +403,38 @@ mechanisms, and the difference is in vanilla's own code:
   what this spec already wanted: they cannot breed here (no seagrass) or lay eggs (no sand), so a
   sewer's turtles are the turtles it was built with. Two to four per chamber.
 
-`the_room_is_occupied_by_a_spawner_and_turtles` asserts both, because both are the kind of thing that
-silently ships empty.
+**Revised 2026-08-17 after the first playtest, which found a zoo.** The report: *"the first thing I see
+is a pool with lots of drowned, frog and turtle."* Three things were stacked in one room and each was
+wrong on its own:
+
+- **The animals stood in the leachate.** They were placed at the chamber centre, which is inside the
+  pool, so every sewer generated with its turtles and frogs permanently sickened by
+  `RCLeachateContact`.
+- **The spawner sat five blocks from the ladder**, so a player climbed down into a crowd that had been
+  accumulating since the chunk loaded. You arrived at the payoff instead of walking to it.
+- **The chamber was the entrance and all the content at once**, which is backwards for a structure whose
+  premise is exploring a sprawl.
+
+**A den each, sand and mud** (owner). The substrate is the mechanism as much as the look:
+`#minecraft:frogs_spawnable_on` is grass block, mud and the two mangrove roots, so **mud is the one
+member a sewer could plausibly hold**; and `TurtleEggBlock.onSand` is half of vanilla's turtle rule. The
+animals stand on ground their own game logic names. Neither becomes renewable - the other half of the
+turtle rule is `y < seaLevel + 4` against a sea level of **-64**, and a frog needs light this place does
+not have.
+
+The dens hang off the chamber's high-X wall, which every corridor mouth is far from (children all grow
+from the min corner), and they are attached **deterministically** rather than grown from the graph: "one
+module each" is a promise about the population, and a random walk cannot promise exactly one of
+anything.
+
+**The threat moved deeper.** Junctions past the second link carry the spawner now, selected by a hash of
+the piece's own box rather than a roll - `postProcess` runs once per chunk a piece overlaps, so a random
+draw would answer differently on each pass and a junction could get a spawner in one half of itself and
+not the other.
+
+`each_den_holds_its_animals_on_its_own_ground`, `the_root_chamber_is_quiet` and
+`a_deep_crossing_carries_the_spawner` assert the three halves of that, because each is the kind of thing
+that silently ships empty or silently ships wrong.
 
 **Extended 2026-08-17 (owner): slimes spawn naturally; frogs and turtles are limited.** Three
 mechanisms for four mobs, and each one is the cheapest thing that actually works:

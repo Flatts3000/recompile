@@ -98,6 +98,16 @@ public class SewerStructure extends Structure {
             context.heightAccessor(), context.randomState());
         BoundingBox shaft = entranceBox(chamber, aboveShaft);
         pieces.addPiece(new SewerPieces.SewerEntrance(1, shaft));
+        // A DEN EACH, attached to the chamber's far corners. Deterministic rather than grown from the
+        // graph: "one module for the turtles and one for the frogs" is a promise about the population,
+        // and a random walk cannot promise exactly one of anything. They hang off the high-X wall, which
+        // every corridor mouth is far from - children all grow from the chamber's min corner.
+        pieces.addPiece(new SewerPieces.SewerTurtleDen(1, new BoundingBox(
+            chamber.maxX(), chamber.minY(), chamber.minZ() + 1,
+            chamber.maxX() + 5, chamber.minY() + 3, chamber.minZ() + 5)));
+        pieces.addPiece(new SewerPieces.SewerFrogDen(1, new BoundingBox(
+            chamber.maxX(), chamber.minY(), chamber.maxZ() - 5,
+            chamber.maxX() + 5, chamber.minY() + 3, chamber.maxZ() - 1)));
         return Optional.of(new Structure.GenerationStub(
             new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMiddleBlockZ()),
             Either.right(pieces)));

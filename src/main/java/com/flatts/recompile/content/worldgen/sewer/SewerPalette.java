@@ -86,6 +86,25 @@ public final class SewerPalette {
     public static final BlockState BARREL = Blocks.BARREL.defaultBlockState();
 
     /**
+     * The turtle den's floor.
+     *
+     * <p>Sand because that is what a turtle wants - {@code TurtleEggBlock.onSand} is half of vanilla's
+     * own spawn rule, and a turtle standing on sand beside water is the animal in its habitat rather
+     * than an animal that happens to be here. It does <b>not</b> make them renewable: the other half of
+     * that rule is {@code y < seaLevel + 4}, and this world's sea level is -64.
+     */
+    public static final BlockState TURTLE_BED = Blocks.SAND.defaultBlockState();
+
+    /**
+     * The frog den's floor.
+     *
+     * <p>Mud, and this one is exact: {@code #minecraft:frogs_spawnable_on} is grass block, mud and the
+     * two mangrove roots. Mud is the only member of that tag a sewer could plausibly contain, so a frog
+     * on mud is standing on the one surface vanilla itself considers frog ground.
+     */
+    public static final BlockState FROG_BED = Blocks.MUD.defaultBlockState();
+
+    /**
      * Everything above, for the test that has to walk it.
      *
      * <p><b>It has to be everything, or it stops being a guard and becomes a list that reads as one.</b>
@@ -95,7 +114,8 @@ public final class SewerPalette {
      * entrance's own constants are gone: one home, so a new block cannot be added anywhere else.
      */
     public static final List<BlockState> ALL =
-        List.of(WALL, GRATE, FLUID, WEB, STEP, SPAWNER, LADDER, PAD, COVER, BARREL, HOLLOW);
+        List.of(WALL, GRATE, FLUID, WEB, STEP, SPAWNER, LADDER, PAD, COVER, BARREL,
+            TURTLE_BED, FROG_BED, HOLLOW);
 
     private SewerPalette() {
     }
