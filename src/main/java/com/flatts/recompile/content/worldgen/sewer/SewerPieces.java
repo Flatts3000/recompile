@@ -85,17 +85,19 @@ public final class SewerPieces {
      */
     private static final int SEGMENT = 7;
 
-    /** What you climb out on. Nothing else in the palette is climbable. */
-    private static final BlockState LADDER = net.minecraft.world.level.block.Blocks.LADDER
-        .defaultBlockState();
-
-    /** The surface marker: a 3x3 of Reinforced Concrete, so a one-block hole is findable. */
-    private static final BlockState PAD =
-        com.flatts.recompile.registry.RCBlocks.REINFORCED_CONCRETE.get().defaultBlockState();
-
-    /** The cover itself - prybar-only, and the reason a sewer is not simply open. */
-    private static final BlockState COVER =
-        com.flatts.recompile.registry.RCBlocks.MANHOLE.get().defaultBlockState();
+    /**
+     * What a sewer barrel holds (#90 phase 4).
+     *
+     * <p>Set on the BlockEntity rather than rolled here: a table attached to a container is rolled the
+     * first time a player opens it, so nothing is decided at generation, two players on one seed do not
+     * see each other's rolls, and the contents stay a datapack question - which is where the balance of
+     * this belongs.
+     */
+    private static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot
+        .LootTable> BARREL_LOOT = net.minecraft.resources.ResourceKey.create(
+            net.minecraft.core.registries.Registries.LOOT_TABLE,
+            net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                com.flatts.recompile.Recompile.MOD_ID, "chests/sewer"));
 
     /** How far a stairs piece descends, and how long it is. Vanilla drops 5 over 8; so do we. */
     private static final int STAIR_DROP = 5;
@@ -504,9 +506,10 @@ public final class SewerPieces {
             for (int y = box.minY() + 1; y <= box.maxY(); y++) {
                 BlockPos rung = new BlockPos(shaftX, y, shaftZ);
                 if (limit.isInside(rung)) {
-                    level.setBlock(rung, LADDER, Block.UPDATE_CLIENTS);
+                    level.setBlock(rung, SewerPalette.LADDER, Block.UPDATE_CLIENTS);
                 }
             }
+            placeBarrels(level, limit, box, random);
             placeResidents(level, limit, box);
         }
     }
@@ -557,16 +560,16 @@ public final class SewerPieces {
                         }
                     }
                 }
-                put(level, limit, x, y, z, LADDER);
+                put(level, limit, x, y, z, SewerPalette.LADDER);
             }
             // The pad at the surface, and the cover in the middle of it.
             int top = box.maxY();
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
-                    put(level, limit, x + dx, top, z + dz, PAD);
+                    put(level, limit, x + dx, top, z + dz, SewerPalette.PAD);
                 }
             }
-            put(level, limit, x, top, z, COVER);
+            put(level, limit, x, top, z, SewerPalette.COVER);
         }
 
         /**
@@ -590,6 +593,48 @@ public final class SewerPieces {
             if (limit.isInside(at)) {
                 level.setBlock(at, state, Block.UPDATE_CLIENTS);
             }
+        }
+    }
+
+    /**
+     * The reason to have come (#90 phase 4): two barrels in the chamber.
+     *
+     * <p><b>Fixed positions, for the reason everything else in this room is.</b> {@code postProcess}
+     * runs once per chunk the piece overlaps, so anything rolled here is rolled several times over -
+     * the turtles learned that the expensive way. Two known corners plus the {@code isInside} guard
+     * means two barrels, however the room happens to straddle the chunk grid.
+     *
+     * <p><b>The table is set, not rolled.</b> {@code setLootTable} defers the roll to the first time a
+     * player opens the barrel, so generation decides nothing and the contents stay a datapack question -
+     * which is where the balance of this belongs. It is also why a barrel that is never opened costs
+     * nothing to have placed.
+     */
+    private static void placeBarrels(WorldGenLevel level, BoundingBox limit, BoundingBox room,
+            RandomSource random) {
+        // CLEAR OF ALL FOUR CORRIDOR MOUTHS, not just of the ladder.
+        //
+        // The first position was the interior corner, which the entrance shaft had claimed for its
+        // column. Moving it to the two opposite corners then landed on the same class of cell from the
+        // other side: children grow from (minX, ., minZ) on every side, so the east mouth's dry walkways
+        // are z = minZ+1 and minZ+3 and the south mouth's are x = minX+1 and minX+3 - a barrel on one of
+        // those stands in a doorway, and a player leaving the chamber either squeezes past or wades the
+        // Hunger fluid. Both spots now sit on the east wall at high z, which every mouth is far from.
+        BlockPos[] spots = {
+            new BlockPos(room.maxX() - 1, room.minY() + 1, room.maxZ() - 1),
+            new BlockPos(room.maxX() - 1, room.minY() + 1, room.maxZ() - 3),
+        };
+        for (BlockPos at : spots) {
+            if (!limit.isInside(at)) {
+                continue;
+            }
+            level.setBlock(at, SewerPalette.BARREL, Block.UPDATE_CLIENTS);
+            // The STRUCTURE's random, via vanilla's own helper. level.getRandom() on a WorldGenRegion is
+            // a single shared source seeded per region centre chunk and drawn from by anything else
+            // generating in that region during the same step, so the stored seed shifted whenever an
+            // unrelated feature drew from it - the contents stopped being reproducible from the world
+            // seed alone. setBlockEntityLootTable folds in the null-BE check as well.
+            net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(
+                level, random, at, BARREL_LOOT);
         }
     }
 

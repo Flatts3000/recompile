@@ -1,6 +1,7 @@
 package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.ManholeBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
@@ -80,6 +81,9 @@ public class RecompileJadePlugin implements IWailaPlugin {
         registration.registerEntityComponent(PaintingNameProvider.INSTANCE,
             net.minecraft.world.entity.decoration.painting.Painting.class);
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, BulkyWasteBlock.class);
+        // The manhole reuses the Bulky Waste gate, so it reuses the hint that explains it. A player
+        // who finds the pad and cannot act on it reads the whole sewer as scenery.
+        registration.registerBlockComponent(ToolHintProvider.INSTANCE, ManholeBlock.class);
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, SteelBeamBlock.class);
         registration.registerBlockComponent(SortProgressProvider.INSTANCE, SortableBlock.class);
         registration.registerBlockComponent(WorkbenchHintProvider.INSTANCE, RecompileWorkbenchBlock.class);

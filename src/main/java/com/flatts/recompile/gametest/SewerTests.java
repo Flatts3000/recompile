@@ -569,6 +569,77 @@ final class SewerTests {
             helper.succeed();
         });
 
+        // THE BARRELS DO NOT STAND IN THE LADDER.
+        //
+        // The entrance and the loot were built on separate branches, and the barrel's first position was
+        // the chamber's interior corner - which the shaft had by then claimed for its column. Nothing
+        // caught it until the branches met, and the symptom would have been a barrel where the way out
+        // should be. Cheap to assert, and the kind of thing that comes back when two features share a
+        // small room.
+        RCGameTests.test("no_barrel_stands_in_the_entrance_shaft", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos base = helper.absolutePos(new BlockPos(0, 40, 0));
+            var room = new SewerPieces.SewerRoom(0, RandomSource.create(4L), base.getX(), base.getZ());
+            room.move(0, base.getY() - room.getBoundingBox().minY(), 0);
+            BoundingBox box = room.getBoundingBox();
+            BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+            room.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(4L), limit,
+                new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4), base);
+
+            BlockPos column = new BlockPos(box.minX() + 1, box.minY() + 1, box.minZ() + 1);
+            helper.assertTrue(level.getBlockState(column)
+                    .is(net.minecraft.world.level.block.Blocks.LADDER),
+                "the shaft column at " + column + " holds "
+                    + level.getBlockState(column).getBlock() + " rather than the ladder - something "
+                    + "else in the chamber has taken the way out");
+            int barrels = 0;
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                    if (level.getBlockState(new BlockPos(x, box.minY() + 1, z))
+                            .is(net.minecraft.world.level.block.Blocks.BARREL)) {
+                        barrels++;
+                    }
+                }
+            }
+            helper.assertTrue(barrels == 2,
+                "found " + barrels + " barrels rather than 2");
+
+            // AND THEY CARRY LOOT, which nothing asserted and which fails in silence.
+            // ReloadableServerRegistries returns LootTable.EMPTY for a key that resolves to nothing -
+            // no log, no throw - so a typo in the path, a renamed file, or a refactor that drops the
+            // BlockEntity match ships every sewer with two empty barrels and the whole suite stays
+            // green. That is the entire phase-4 deliverable failing invisibly.
+            var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "chests/sewer"));
+            helper.assertTrue(level.getServer().reloadableRegistries().getLootTable(key)
+                    != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
+                "recompile:chests/sewer resolves to nothing, so every barrel in every sewer is empty "
+                    + "and nothing anywhere says so");
+            List<String> unset = new ArrayList<>();
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                    BlockPos at = new BlockPos(x, box.minY() + 1, z);
+                    if (!level.getBlockState(at).is(net.minecraft.world.level.block.Blocks.BARREL)) {
+                        continue;
+                    }
+                    // The KEY, not merely that one is attached. "Has a table" passes for a barrel
+                    // pointed at a table that does not exist, which is exactly what a typo produces -
+                    // driving this red with a bad path proved the weaker version saw nothing.
+                    if (!(level.getBlockEntity(at) instanceof net.minecraft.world.RandomizableContainer
+                            container) || !key.equals(container.getLootTable())) {
+                        unset.add(at + " -> " + (level.getBlockEntity(at)
+                            instanceof net.minecraft.world.RandomizableContainer c
+                                ? String.valueOf(c.getLootTable()) : "no container"));
+                    }
+                }
+            }
+            helper.assertTrue(unset.isEmpty(),
+                "these barrels have no loot table attached, so they generate empty: " + unset);
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.
