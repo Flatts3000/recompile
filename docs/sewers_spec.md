@@ -415,11 +415,27 @@ wrong on its own:
 - **The chamber was the entrance and all the content at once**, which is backwards for a structure whose
   premise is exploring a sprawl.
 
-**A den each, sand and mud** (owner), **and mud is an accepted new material** (owner, 2026-08-17).
-Nothing else in this world produces mud, and it opens packed mud and mud bricks - a building-block
-family that had no route before. Bounded like everything else down there: travel, a prybar, and a
-structure that does not regenerate. Sand is not new; sledgehammering Reinforced Concrete already yields
-it. Recorded in `progression_gates.md` under the sewers.
+**A den each, sand and mud** (owner). **Neither is a new material, and the first version of this
+paragraph said mud was** - measured, and wrong:
+
+- `#minecraft:convertable_to_mud` is dirt, **coarse dirt** and rooted dirt, and coarse dirt is this
+  world's universal surface. The mod overrides no vanilla block tag except `mineable`.
+- `PotionItem.useOn` turns any of them into mud with a **water bottle**, no tool and no gate.
+- A water bottle needs no travel: `RainCollectorCoreBlock` hands one back for a glass bottle, and glass
+  bottles are a **household** find in the starting biome.
+
+So mud has been available on day one since the Rain Collector shipped, and packed mud and mud bricks
+with it. The frog den is **the first place mud appears as terrain, not the first place it exists** -
+which is a far weaker claim than the one that was nearly written into the record as a justification.
+
+This is the third time this exact mistake has been made here, and the first two are already written
+down: the glass-bottle gate that rested on the world having no `minecraft:glass`, and the iron gate
+(#91) that rested on there being no pickaxe. **Scarcity measured by reading the mod's own content is
+not scarcity** - what decides it is what vanilla does with the world's substrate. Sand is likewise not
+new; sledgehammering Reinforced Concrete already yields it.
+
+**Still worth an owner's eye:** if mud was meant to be sewer-gated rather than merely sewer-*flavoured*,
+that is a code change (an override of `convertable_to_mud`) and not a doc one.
 
 The substrate is the mechanism as much as the look:
 `#minecraft:frogs_spawnable_on` is grass block, mud and the two mangrove roots, so **mud is the one
