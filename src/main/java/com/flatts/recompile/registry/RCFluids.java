@@ -53,15 +53,17 @@ public final class RCFluids {
      *       {@code viscosity} states how slowly the fluid flows and is metadata other mods may read,
      *       and {@code motionScale} governs how hard the current pushes you - neither slows a player
      *       wading through it. An earlier version of this comment claimed it did.
-     *   <li><b>It does not drown you</b> - {@code canDrown(false)}, set 2026-08-17 for the sewers
-     *       (#90). It used to be {@code true} and was described here as unreachable "because pools are
-     *       one block deep", which was wrong twice over: drowning is evaluated at the <b>eye</b> rather
-     *       than from the depth of the pool, and {@code canSwim(true)} is set, so a crawling or swimming
-     *       player already had eyes inside a one-block body. The sewer would have made it common - a
-     *       source weeping down a stair puts a falling column at head height on the level below - and
-     *       the owner's call was that leachate is a Hunger tax and not a drowning hazard. Being a
-     *       property of the fluid, it belongs on the fluid rather than on every generator that places
-     *       it.
+     *   <li><b>It drowns you</b> - {@code canDrown(true)}, owner ruling 2026-08-17, <b>reversing a call
+     *       made earlier the same day</b>. The original value was {@code true} and was documented as
+     *       unreachable "because pools are one block deep"; that was wrong twice over, since drowning is
+     *       evaluated at the <b>eye</b> rather than from pool depth and {@code canSwim(true)} is set, so
+     *       a crawling or swimming player already had eyes inside a one-block body. It was then set to
+     *       {@code false} to deliver a no-drowning guarantee that depth alone could not, and the owner
+     *       has since ruled the other way: <i>the player should be able to drown in leachate.</i>
+     *       <p>Being a property of the fluid, this applies <b>everywhere leachate exists</b>, the
+     *       surface pools of #156 included - and per the eye-level reasoning above, a one-block pool is
+     *       genuinely enough to drown a player who crawls or swims in it. That is the accepted cost of
+     *       the ruling rather than an oversight in it.
      *   <li><b>It does not otherwise harm the player</b> (open question on #156, unresolved rather than
      *       decided). You swim in it and it puts out fire. The P2 pressure-loop rule constrains threats to builds
      *       and cleared land and says nothing about the player, so a penalty is available if wanted -
@@ -77,7 +79,7 @@ public final class RCFluids {
             .viscosity(6000)
             .temperature(300)
             .canSwim(true)
-            .canDrown(false)
+            .canDrown(true)
             .canPushEntity(true)
             .canExtinguish(true)
             .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)

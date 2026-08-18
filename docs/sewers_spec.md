@@ -85,14 +85,17 @@ design". **Leachate is better on every axis and it already ships** (#156):
 tax, not a drowning hazard. Corridors stay walkable and the generator never has to reason about a body
 deep enough to trap a player.
 
-**Depth alone does not deliver that, which is why `canDrown` is now false.** An earlier version of this
+**Depth alone never delivered that, and the ruling has since reversed: leachate drowns you**
+(owner, 2026-08-17). `canDrown` is `true` on the fluid again. An earlier version of this
 paragraph said one block keeps `canDrown` inert. That does not follow: drowning is evaluated at the
 **eye**, not from the depth of the pool. `canSwim(true)` is set, a crawling or swimming player has eyes
 inside a one-block body, and the Shape row above commits to corridors that branch and descend - so a
 source on an upper level weeps down a stair and puts a falling column at head height on the level below.
-The guarantee the owner asked for is a property of the fluid, so it is set on the fluid:
-`canDrown(false)` in `RCFluids`, with `leachate_never_drowns_anyone` holding it there. This changes
-nothing about the pools, where it was already unreachable.
+The reasoning stands and the conclusion flipped: because the check is at the **eye** and
+`canSwim(true)` is set, depth cannot decide this either way - so the value belongs on the fluid, and the
+owner has set it to drown. `leachate_can_drown_you` holds it there. It applies **everywhere leachate
+exists**, the surface pools included, and a one-block pool is genuinely enough for a player who crawls
+or swims: that is the accepted cost of the ruling, not an oversight in it.
 
 **Two consequences, because leachate was built for puddles and a sewer is not one.**
 
