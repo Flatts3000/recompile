@@ -97,6 +97,15 @@ public class SewerStructure extends Structure {
             net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG,
             context.heightAccessor(), context.randomState());
         BoundingBox shaft = entranceBox(chamber, aboveShaft);
+        // AND ONE ACCESS CHAMBER, GUARANTEED. Corridors open them on a roll, which measured 192 sewers
+        // in 200 - and the 8 that missed generated with no loot at all, because the barrels live in
+        // these rooms now. Trading the root chamber's certainty for a placement was right; trading it
+        // for a 4% chance of an empty sewer was not.
+        //
+        // Forced only if the roll produced none, so the common case stays organic and the fallback is
+        // invisible. It still goes through findCollisionPiece, so a forced room cannot land on anything
+        // either.
+        SewerPieces.forceAccessChamber(room, pieces, random);
         pieces.addPiece(new SewerPieces.SewerEntrance(1, shaft));
         // A DEN EACH, and WHERE is the whole difficulty. Deterministic rather than grown from the
         // graph, because "one module each" is a promise about the population and a random walk cannot

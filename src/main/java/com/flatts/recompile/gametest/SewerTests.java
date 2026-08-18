@@ -50,6 +50,9 @@ final class SewerTests {
         SewerPieces.SewerRoom room = new SewerPieces.SewerRoom(0, random, 0, 0);
         builder.addPiece(room);
         room.addChildren(room, builder, random);
+        // The structure forces an access chamber when the rolls produced none, so a layout built
+        // without that step measures a sewer nobody will ever generate.
+        SewerPieces.forceAccessChamber(room, builder, random);
         List<StructurePiece> pieces = new ArrayList<>();
         builder.build().pieces().forEach(pieces::add);
         return pieces;
@@ -672,6 +675,9 @@ final class SewerTests {
                 "the shaft column at " + column + " holds "
                     + level.getBlockState(column).getBlock() + " rather than the ladder - something "
                     + "else in the chamber has taken the way out");
+            // THE CHAMBER NO LONGER HOLDS THE LOOT. The barrels were here because this is where the
+            // code could put them, not because anyone would store anything at the foot of a ladder;
+            // they live in an access chamber now, which is a room that explains them.
             int barrels = 0;
             for (int x = box.minX(); x <= box.maxX(); x++) {
                 for (int z = box.minZ(); z <= box.maxZ(); z++) {
@@ -681,8 +687,9 @@ final class SewerTests {
                     }
                 }
             }
-            helper.assertTrue(barrels == 2,
-                "found " + barrels + " barrels rather than 2");
+            helper.assertTrue(barrels == 0,
+                "the root chamber still holds " + barrels + " barrels - the loot moved to the access "
+                    + "chambers, and leaving a copy here undoes the reason for moving it");
 
             // AND THEY CARRY LOOT, which nothing asserted and which fails in silence.
             // ReloadableServerRegistries returns LootTable.EMPTY for a key that resolves to nothing -
@@ -968,6 +975,71 @@ final class SewerTests {
             helper.assertTrue(unreachable.isEmpty(),
                 "these are in the palette and no corridor ever places them, so they are dead content "
                     + "that every existing check reports as fine: " + unreachable);
+            helper.succeed();
+        });
+
+        // A SEWER ACTUALLY GETS AN ACCESS CHAMBER, which is now where all of its loot lives.
+        //
+        // Moving the barrels out of the root chamber traded a guarantee for a placement: the room was
+        // always there, and an access chamber is a roll on a corridor past the first link. If that roll
+        // can miss, a sewer generates with no loot at all - the same shape as the spawner guarantee,
+        // and the same reason to measure it rather than assume it.
+        RCGameTests.test("sewers_get_their_access_chambers", 20, helper -> {
+            int withRoom = 0;
+            int rooms = 0;
+            for (long seed = 0; seed < SEEDS; seed++) {
+                int here = 0;
+                for (StructurePiece piece : layout(seed)) {
+                    if (piece instanceof SewerPieces.SewerAccessChamber) {
+                        here++;
+                    }
+                }
+                rooms += here;
+                if (here > 0) {
+                    withRoom++;
+                }
+            }
+            helper.assertTrue(withRoom * 100 / SEEDS >= 100,
+                "only " + withRoom + " of " + SEEDS + " sewers contain an access chamber, and the loot "
+                    + "lives in them now - the rest generate with nothing to find at all");
+            helper.assertTrue(rooms <= SEEDS * 4,
+                "averaging " + (rooms / (double) SEEDS) + " access chambers per sewer, which is a "
+                    + "warehouse rather than a maintenance point");
+
+            // AND ONE ACTUALLY HOLDS THE LOOT. Coverage without contents is the ships-empty failure
+            // wearing a different hat: every sewer having a room means nothing if the room is bare.
+            var level = helper.getLevel();
+            BlockPos at = helper.absolutePos(new BlockPos(0, 52, 0));
+            BoundingBox box = SewerPieces.SewerPiece.box(at.getX(), at.getY(), at.getZ(),
+                Direction.SOUTH, 7, 6, 7);
+            BoundingBox limit = new BoundingBox(box.minX() - 8, box.minY() - 8, box.minZ() - 8,
+                box.maxX() + 8, box.maxY() + 8, box.maxZ() + 8);
+            new SewerPieces.SewerAccessChamber(2, box, Direction.SOUTH).postProcess(
+                level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(77L), limit,
+                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
+            var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "chests/sewer"));
+            int stocked = 0;
+            boolean litRoom = false;
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int y = box.minY(); y <= box.maxY(); y++) {
+                    for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                        var here = new BlockPos(x, y, z);
+                        litRoom |= level.getBlockState(here).getLightEmission() > 0;
+                        if (level.getBlockEntity(here)
+                                instanceof net.minecraft.world.RandomizableContainer c
+                                && key.equals(c.getLootTable())) {
+                            stocked++;
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(stocked == 2,
+                "the access chamber holds " + stocked + " stocked barrels rather than 2 - the loot moved "
+                    + "here, so a bare room means the sewer pays out nothing");
+            helper.assertTrue(litRoom,
+                "the access chamber is unlit, which leaves the room holding the reward spawnable");
             helper.succeed();
         });
 
