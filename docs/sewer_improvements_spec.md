@@ -4,8 +4,12 @@
 generates, it is reachable, it is occupied, and it pays out. This is the list of what would make it
 *good*, sized honestly.
 
-Nothing here is committed to. Each item states what it changes, **what it actually takes**, and what it
-risks, so the decision to do it or drop it can be made on real numbers rather than on enthusiasm.
+**Phased 2026-08-17.** The build order is four phases and then a deliberate stop; the appendix keeps the
+full inventory it was drawn from, so nothing considered is lost and items outside the phases are
+understood as *later* rather than as *rejected*.
+
+Each item states what it changes, **what it actually takes**, and what it risks, so the decision to do
+it or drop it can be made on real numbers rather than on enthusiasm.
 
 ---
 
@@ -125,7 +129,144 @@ Two consequences to carry:
 
 ---
 
-## A. Dressing - the palette
+## Build order
+
+Four phases, then a stop. Each says what it **ships**, what it **takes**, how it is **accepted**, and how
+it is **verified** - the same shape as `sewers_spec.md`, because that shape is what kept phases 0-5
+honest.
+
+**The order is by uncertainty, not by cost.** Phases 1 and 2 are cheap and low-risk, which makes them
+good warm-ups and poor information. Phase 4 is the one that answers whether a sewer should be a
+destination rather than a resource stop, and if that answer is no, phases 1-3 were polish on something
+that did not need it. There is a real argument for doing 4 first; it is not taken here only because 1-3
+de-risk the machinery 4 would be built on.
+
+---
+
+### Phase 1 - dressing and light
+
+**Ships:** a sewer that reads as old and wet rather than as clean brick, and that you can see by in the
+places you are meant to survive.
+
+**Takes:** S. Four to six palette entries, a weighted pick in `line()`, one placement rule for light.
+No new piece, no new registration.
+
+- Aged masonry: `mossy_stone_bricks` and `cracked_stone_bricks` mixed into corridor walls.
+- Silt: `gravel` and `clay` along the channel edges.
+- Damp growth: `vine` on walls, `brown_mushroom` on floors.
+- Light, sparse: lanterns in the chamber, the shaft, the dens and nowhere else.
+
+**Acceptance:**
+- No block placed is in `#minecraft:stone_crafting_materials`, asserted by the palette walk - so the
+  masonry reads mossy without a single cobblestone-family block.
+- **No light source exists in any corridor or junction piece.** This is the phase's real acceptance
+  criterion: a lantern in a junction silently switches off that junction's spawner, and nothing else in
+  the build would report it.
+- Silt never fills the channel or blocks a walkway.
+- Every new block is in `SewerPalette.ALL`, or the first criterion is not actually being enforced.
+
+**Verification:** the palette walk covers the gate; a new test asserts the light rule per piece type;
+in-world in a fresh world for the look, which is the only thing here a test cannot judge.
+
+---
+
+### Phase 2 - the maintenance room
+
+**Ships:** the first new piece since phase 2 of the original build, and a room whose job is to explain
+why the loot is where it is.
+
+**Takes:** M. A `StructurePiece` subclass, a `StructurePieceType` registration, geometry, a test. Dry,
+flat, no fluid, no vertical work - **chosen precisely because it cannot hide a geometry bug**, so the
+"add a piece" path is proven on something safe before phase 3 spends it on something that can.
+
+**Acceptance:**
+- It generates, it connects, and you can walk in and out of it.
+- It lands on no corridor, no den and no other room - asserted as geometry over every chamber size, not
+  by looking.
+- It is dry and lit, per phase 1's rule.
+- It holds a barrel, and that barrel carries the loot table.
+
+**Verification:** the geometry assertions from `the_dens_land_on_no_corridor_and_not_on_each_other`,
+extended. Driven red against a deliberately overlapping box before it is believed.
+
+---
+
+### Phase 3 - the sump
+
+**Ships:** somewhere that reads as the bottom of the system, and the guaranteed home for a drowned
+spawner.
+
+**Takes:** M, plus two decisions that are already made. `canDrown` is `true`, so deep leachate is
+permitted; deep sections are allowed **where they serve the improvement**, and "you cannot simply walk
+through the bottom of a sewer" is a job.
+
+**This phase closes an open guarantee.** A sewer can currently generate with no drowned at all, because
+junctions only carry a spawner past depth 2 and only when their box hashes even. A sump is a piece the
+structure attaches deterministically, so it can hold the one spawner that is always there. Two problems,
+one piece.
+
+**Acceptance:**
+- Every sewer contains exactly one sump, and therefore at least one spawner - replacing a measured
+  coverage figure with a guarantee.
+- The deep section is **telegraphed**: visible before it is entered. Leachate is opaque and the sewer is
+  dark, so a drop you cannot see is a death with no decision in front of it.
+- It is **not on the only path** to anything. If it ever is, that is a deliberate gate and belongs in
+  `progression_gates.md`.
+- It does not stack every hazard at once. Deep, guarded, dark and draining is four things; a sump should
+  be for two of them at most.
+
+**Verification:** a geometry test for placement; an every-seed assertion that the spawner guarantee
+holds, replacing the current 80% coverage measurement; in-world for whether the drop reads as
+telegraphed, which no test can answer.
+
+---
+
+### Phase 4 - a unique find
+
+**Ships:** a reason a sewer is a destination rather than a resource stop.
+
+**Takes:** M if it is an existing item given a sewer-only route, XL if it is a new one - a new item is
+art, lang, model, recipe or loot, a gate-doc entry and a guidebook line.
+
+**This is the phase the others exist to de-risk, and the only one that answers the question worth
+asking.** The barrels currently pay in materials the player already has routes to, plus components that
+are a head start rather than a novelty. One thing that exists nowhere else changes what the structure
+*is*.
+
+**Acceptance:**
+- Exactly one thing, and it comes only from sewers.
+- It does not skip a tier - checked against `progression_gates.md` **before** it lands, and with what
+  vanilla does with it measured rather than assumed. The mud mistake was made three times; this is the
+  most likely place to make it a fourth.
+- It is reachable: a player who clears a sewer gets one, rather than one existing in a table nobody
+  rolls.
+- It is recorded in `progression_gates.md` as a new obtainable.
+
+**Verification:** a test that the item has a sewer source and no other; the `found_only` twin-check
+shape, which already exists for exactly this class of mistake.
+
+---
+
+### Phase 5 - stop, and wait for evidence
+
+**Ships:** nothing.
+
+Everything else on the option list - more entrances, hazards, the junction hall, depth-scaled loot,
+more den types - waits for playtest to say which of them a player actually misses. The first playtest of
+this structure found a zoo in one screenshot, which is more information than any of the reasoning that
+preceded it produced.
+
+**Explicitly not recommended without that evidence:** the hazard category. Every entry in it is M to XL
+for a structure that already has a working threat.
+
+---
+
+## Appendix - the full option list
+
+What follows is the unphased inventory the build order was drawn from: every idea considered, with its
+size and its risk. Items not in phases 1-4 are not rejected, they are phase 5.
+
+### A. Dressing - the palette
 
 The cheapest category by a wide margin, and the one with the best ratio of look to work. Every item is
 XS-S; the cost is not the code, it is constraint 4 on each block.
@@ -150,7 +291,7 @@ meant to spawn.
 
 ---
 
-## B. Piece vocabulary - new rooms
+### B. Piece vocabulary - new rooms
 
 The category that most changes what exploring feels like, and the most expensive per unit. Every entry
 here is **M minimum**, because a new piece is a class, a registration, geometry that must survive
@@ -171,7 +312,7 @@ spending an L on the junction hall.
 
 ---
 
-## C. Entrances
+### C. Entrances
 
 Currently exactly one per sewer, which is a deliberate simplification and also a single point of
 failure - the yard's own surface features can settle rubble on a cover (recorded, accepted).
@@ -187,7 +328,7 @@ pre-emptively fix a problem nobody has hit.
 
 ---
 
-## D. Water and the channel
+### D. Water and the channel
 
 | Item | Takes | Risk |
 |---|---|---|
@@ -221,7 +362,7 @@ than atmospheric:
 
 ---
 
-## E. Inhabitants
+### E. Inhabitants
 
 The category with the most surface already built, and therefore the cheapest additions.
 
@@ -233,7 +374,7 @@ The category with the most surface already built, and therefore the cheapest add
 
 ---
 
-## F. Reward
+### F. Reward
 
 | Item | Takes | Risk |
 |---|---|---|
@@ -243,7 +384,7 @@ The category with the most surface already built, and therefore the cheapest add
 
 ---
 
-## G. Hazard
+### G. Hazard
 
 Currently: drowned, slimes, and a Hunger tax. That is thin for a structure whose premise is that it is
 *cleared*.
@@ -259,7 +400,7 @@ and the sewer already has a threat that works. Spend here last, if at all.
 
 ---
 
-## H. The two guarantees that are currently not guaranteed
+### H. The two guarantees that are currently not guaranteed
 
 Both are recorded, both are open, and both are **L** because they touch placement.
 
@@ -274,23 +415,6 @@ now place one only past depth 2 and only when the box hashes even.
 `most_sewers_get_a_drowned_spawner` measures the coverage rather than assuming it. **Takes:** a
 guaranteed home for one spawner - which is exactly what a **sump** piece (category B) would provide, and
 the best argument for building that piece first.
-
----
-
-## Recommended order, and why
-
-1. **A: aged masonry and silt beds** (S). Biggest visible change per hour, no gate exposure. Proves the
-   palette-extension path with the completeness guard in place.
-2. **B: the maintenance room** (M). The cheapest new piece - dry, flat, no fluid - so the "add a piece"
-   path is proven on something that cannot hide a geometry bug.
-3. **B: the sump** (M), which closes **H's spawner guarantee** as a side effect. Two problems, one piece.
-4. **F: a unique find** (M-XL). The single change most likely to make a sewer a destination rather than
-   a resource stop.
-5. Everything else, on evidence from playtest rather than from this document.
-
-**What to do first is not what is cheapest, it is what is uncertain.** Items 1 and 2 are cheap *and*
-low-risk, which makes them good warm-ups but poor information. If the real question is "is this
-structure worth more investment", then item 4 answers it and the rest do not.
 
 ---
 
