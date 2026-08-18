@@ -401,10 +401,58 @@ mechanisms, and the difference is in vanilla's own code:
   would need `custom_spawn_rules` to bypass it - and a spawner endlessly producing a passive animal
   reads wrong. Placing them directly sidesteps every rule and makes the population **finite**, which is
   what this spec already wanted: they cannot breed here (no seagrass) or lay eggs (no sand), so a
-  sewer's turtles are the turtles it was built with. Two to four per chamber.
+  sewer's turtles are the turtles it was built with. **Three turtles and two frogs, one den each** - this said "two to four per chamber" until the dens landed, and they are not in the chamber at all now.
 
-`the_room_is_occupied_by_a_spawner_and_turtles` asserts both, because both are the kind of thing that
-silently ships empty.
+**Revised 2026-08-17 after the first playtest, which found a zoo.** The report: *"the first thing I see
+is a pool with lots of drowned, frog and turtle."* Three things were stacked in one room and each was
+wrong on its own:
+
+- **The animals stood in the leachate.** They were placed at the chamber centre, which is inside the
+  pool, so every sewer generated with its turtles and frogs permanently sickened by
+  `RCLeachateContact`.
+- **The spawner sat five blocks from the ladder**, so a player climbed down into a crowd that had been
+  accumulating since the chunk loaded. You arrived at the payoff instead of walking to it.
+- **The chamber was the entrance and all the content at once**, which is backwards for a structure whose
+  premise is exploring a sprawl.
+
+**A den each, sand and mud** (owner). The substrate is the mechanism as much as the look:
+`#minecraft:frogs_spawnable_on` is grass block, mud and the two mangrove roots, so **mud is the one
+member a sewer could plausibly hold**; and `TurtleEggBlock.onSand` is half of vanilla's turtle rule. The
+animals stand on ground their own game logic names. Neither becomes renewable - the other half of the
+turtle rule is `y < seaLevel + 4` against a sea level of **-64**, and a frog needs light this place does
+not have.
+
+The dens hang off the chamber's high-X wall, which every corridor mouth is far from (children all grow
+from the min corner), and they are attached **deterministically** rather than grown from the graph: "one
+module each" is a promise about the population, and a random walk cannot promise exactly one of
+anything.
+
+**The threat moved deeper.** Junctions past the second link carry the spawner now, selected by a hash of
+the piece's own box rather than a roll - `postProcess` runs once per chunk a piece overlaps, so a random
+draw would answer differently on each pass and a junction could get a spawner in one half of itself and
+not the other.
+
+`each_den_holds_its_animals_on_its_own_ground`, `the_root_chamber_is_quiet` and
+`a_deep_crossing_carries_the_spawner` assert the three halves of that.
+
+**Two more came out of review, and both were bugs the first three could not see:**
+
+- **A den needs a door.** Every wall was written and nothing was ever carved, so each den generated as
+  an airtight box with three turtles sealed inside - a feature no player could enter, see, or know
+  existed. Floor material and head count are both perfectly true inside a sealed box, which is exactly
+  why the original test passed it. `a_den_opens_into_the_chamber` asserts the opening.
+- **A den must land on nothing.** Dens are added after the graph is built, so `findCollisionPiece` never
+  sees them, and they `postProcess` last - wherever they overlap something, they win silently. The first
+  placement claimed the high-X wall was clear of every corridor mouth; it is clear of **three**. The
+  east child anchors at `maxX + 1` over `z = minZ..minZ+4`, exactly where the turtle den sat, and it
+  walled that branch shut on every sewer that grew one. The dens also overlapped each other whenever the
+  chamber rolled its two smallest sizes. `the_dens_land_on_no_corridor_and_not_on_each_other` sweeps
+  every chamber size, because both bugs were size-dependent.
+
+**And the spawner guarantee was traded away unnoticed.** The chamber placed one unconditionally;
+junctions place one only past depth 2 and only when the box hashes even, so a sewer could generate with
+**no drowned at all** - and `IN_WATER` means there is no other route to one. Loosened to one in two, and
+`most_sewers_get_a_drowned_spawner` measures the coverage across 200 layouts rather than assuming it.
 
 **Extended 2026-08-17 (owner): slimes spawn naturally; frogs and turtles are limited.** Three
 mechanisms for four mobs, and each one is the cheapest thing that actually works:
@@ -468,7 +516,22 @@ is rolled several times over.
 barrel, so generation decides nothing, two players on the same seed do not see each other's rolls, and
 the contents stay a datapack question - which is where the balance of this belongs.
 
-**It is deliberately dull, and that is the acceptance criterion working.** "Nothing in it skips a tier"
+**A component pool, added 2026-08-17 (owner): "loot should include one or more components."** Its own
+roll rather than an entry competing with bulk salvage for a slot, offering Bulb, Pump, Motor and Machine
+Frame.
+
+**Why this does not skip a tier, which is the criterion it has to clear.** All three of the interesting
+ones are `blueprint_crafting` - gated on a blueprint that teardown teaches - so a found component is
+**one unit that teaches nothing**. The player still cannot make a second without doing the teardown, and
+the machines those parts go into need Steel I-Beams and the yard the sewer is already in. It is a
+head start, not a shortcut.
+
+**And it answers the acceptance line the rest of the table could not.** "The reward is worth a cleared
+sewer, stated as a comparison against what the same time spent picking garbage yields" - bulk salvage
+*is* what picking garbage yields, so a table made only of it could never clear that bar however the
+weights were set. A Motor is something sorting will never hand you.
+
+**It is otherwise deliberately dull, and that is the acceptance criterion working.** "Nothing in it skips a tier"
 rules out everything exciting: no iron, no gems, no blueprints, no bucket. What is left is bulk salvage
 (scrap metal, plastic scrap, e-scrap, rebar, cullet glass), string and bone, and three uncommon lines -
 a glass bottle, a nautilus shell, a name tag. The *value* question is #36's and is not answered here.

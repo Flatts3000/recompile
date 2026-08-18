@@ -98,6 +98,25 @@ public class SewerStructure extends Structure {
             context.heightAccessor(), context.randomState());
         BoundingBox shaft = entranceBox(chamber, aboveShaft);
         pieces.addPiece(new SewerPieces.SewerEntrance(1, shaft));
+        // A DEN EACH, and WHERE is the whole difficulty. Deterministic rather than grown from the
+        // graph, because "one module each" is a promise about the population and a random walk cannot
+        // promise exactly one of anything - but that also means findCollisionPiece never sees them, so
+        // nothing rejects a den that lands on a corridor. The dens are added last and postProcess last,
+        // so where they overlap, they win silently.
+        //
+        // The corridors all anchor at the chamber's MIN corner, which is the fact that matters:
+        //   north/south children occupy x = minX..minX+4
+        //   east/west children occupy  z = minZ..minZ+4
+        // A previous version put a den at (maxX, ., minZ+1..minZ+5) and called the high-X wall clear of
+        // every mouth. It is clear of three: the EAST child starts at maxX+1 with z = minZ..minZ+4, so
+        // the den landed on it and walled its doorway shut, severing that entire branch of every sewer
+        // that grew one.
+        //
+        // So each den hugs a HIGH end of its wall, away from the min corner, and they are staggered by
+        // a block on both axes so they cannot touch each other either - the same version had them
+        // overlapping whenever the chamber rolled its two smallest sizes.
+        pieces.addPiece(new SewerPieces.SewerTurtleDen(1, turtleDenBox(chamber)));
+        pieces.addPiece(new SewerPieces.SewerFrogDen(1, frogDenBox(chamber)));
         return Optional.of(new Structure.GenerationStub(
             new BlockPos(chunk.getMiddleBlockX(), BUILD_Y + shift.getAsInt(), chunk.getMiddleBlockZ()),
             Either.right(pieces)));
@@ -161,6 +180,42 @@ public class SewerStructure extends Structure {
         return new BoundingBox(
             chamber.minX(), chamber.maxY(), chamber.minZ(),
             chamber.minX() + 2, ground - 1, chamber.minZ() + 2);
+    }
+
+    /** The turtle den's box: against the chamber's east wall, at the high-z end. */
+    public static BoundingBox turtleDenBox(BoundingBox chamber) {
+        return new BoundingBox(
+            chamber.maxX(), chamber.minY(), chamber.maxZ() - 4,
+            chamber.maxX() + 5, chamber.minY() + 3, chamber.maxZ() - 1);
+    }
+
+    /** The frog den's box: against the chamber's south wall, at the high-x end, staggered off the turtles. */
+    public static BoundingBox frogDenBox(BoundingBox chamber) {
+        return new BoundingBox(
+            chamber.maxX() - 4, chamber.minY(), chamber.maxZ(),
+            chamber.maxX() - 1, chamber.minY() + 3, chamber.maxZ() + 5);
+    }
+
+    /**
+     * The four boxes the chamber's own children occupy, for the test that has to prove nothing lands on
+     * them.
+     *
+     * <p>Derived here rather than restated in a test, because the numbers that matter are the anchors in
+     * {@code SewerRoom.addChildren} - and the bug this exists for was a comment claiming those anchors
+     * were somewhere they are not.
+     */
+    public static java.util.List<BoundingBox> childBoxes(BoundingBox chamber) {
+        int w = 5;
+        int l = 7;
+        return java.util.List.of(
+            SewerPieces.SewerPiece.box(chamber.minX(), chamber.minY(), chamber.minZ() - 1,
+                net.minecraft.core.Direction.NORTH, w, w, l),
+            SewerPieces.SewerPiece.box(chamber.minX(), chamber.minY(), chamber.maxZ() + 1,
+                net.minecraft.core.Direction.SOUTH, w, w, l),
+            SewerPieces.SewerPiece.box(chamber.minX() - 1, chamber.minY(), chamber.minZ(),
+                net.minecraft.core.Direction.WEST, w, w, l),
+            SewerPieces.SewerPiece.box(chamber.maxX() + 1, chamber.minY(), chamber.minZ(),
+                net.minecraft.core.Direction.EAST, w, w, l));
     }
 
     @Override

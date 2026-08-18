@@ -302,83 +302,161 @@ final class SewerTests {
             helper.succeed();
         });
 
-        // THE SEWER IS OCCUPIED, and both halves of that needed a mechanism rather than a wish.
+        // THE ANIMALS LIVE ON THEIR OWN GROUND, in a den each.
         //
-        // spawn_overrides picks WHICH mobs a structure offers; it does not bypass SpawnPlacements, whose
-        // per-type predicate still runs. Measured against 26.1: drowned are registered IN_WATER, which
-        // tests FluidTags.WATER, and leachate is deliberately outside it - so natural spawning yields
-        // none, ever. Turtles are worse: they want y < seaLevel + 4, and sea level here is -64.
+        // They used to be placed straight into the chamber's leachate pool, so every sewer generated
+        // with its turtles and frogs standing in the Hunger fluid - permanently, since RCLeachateContact
+        // fires on anything living in it. Playtest called it: "a pool with lots of drowned, frog and
+        // turtle", which is a zoo rather than a sewer.
         //
-        // Drowned get a spawner, because checkDrownedSpawnRules has an explicit isSpawner branch that
-        // skips the water test. Turtles get placed as entities, because their predicate has no such
-        // branch - and that also makes them finite, which is what the sewer wants.
-        RCGameTests.test("the_room_is_occupied_by_a_spawner_and_turtles", 40, helper -> {
+        // The substrate is the mechanism as well as the look. #minecraft:frogs_spawnable_on is grass
+        // block, mud and the two mangrove roots, so mud is the one member a sewer could hold; and
+        // TurtleEggBlock.onSand is half of vanilla's turtle rule. Neither makes them renewable - the
+        // other half is y < seaLevel + 4 against a sea level of -64.
+        RCGameTests.test("each_den_holds_its_animals_on_its_own_ground", 60, helper -> {
+            var level = helper.getLevel();
+            var gen = level.getChunkSource().getGenerator();
+            var mgr = level.structureManager();
+
+            BlockPos turtleAt = helper.absolutePos(new BlockPos(0, 30, 0));
+            var turtleDen = new SewerPieces.SewerTurtleDen(1, new BoundingBox(
+                turtleAt.getX(), turtleAt.getY(), turtleAt.getZ(),
+                turtleAt.getX() + 5, turtleAt.getY() + 3, turtleAt.getZ() + 4));
+            BlockPos frogAt = helper.absolutePos(new BlockPos(0, 30, 20));
+            var frogDen = new SewerPieces.SewerFrogDen(1, new BoundingBox(
+                frogAt.getX(), frogAt.getY(), frogAt.getZ(),
+                frogAt.getX() + 5, frogAt.getY() + 3, frogAt.getZ() + 4));
+
+            for (var den : List.of(turtleDen, frogDen)) {
+                BoundingBox box = den.getBoundingBox();
+                BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                    box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+                den.postProcess(level, mgr, gen, RandomSource.create(2L), limit,
+                    new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), turtleAt);
+            }
+
+            BoundingBox tBox = turtleDen.getBoundingBox();
+            helper.assertTrue(level.getBlockState(
+                    new BlockPos(tBox.minX() + 1, tBox.minY(), tBox.minZ() + 1))
+                    .is(net.minecraft.world.level.block.Blocks.SAND),
+                "the turtle den is not floored in sand, which is the ground vanilla's own turtle rule "
+                    + "names");
+            BoundingBox fBox = frogDen.getBoundingBox();
+            helper.assertTrue(level.getBlockState(
+                    new BlockPos(fBox.minX() + 1, fBox.minY(), fBox.minZ() + 1))
+                    .is(net.minecraft.world.level.block.Blocks.MUD),
+                "the frog den is not floored in mud, which is the only member of "
+                    + "#minecraft:frogs_spawnable_on a sewer could hold");
+
+            int turtles = level.getEntitiesOfClass(
+                net.minecraft.world.entity.animal.turtle.Turtle.class,
+                new net.minecraft.world.phys.AABB(tBox.minX(), tBox.minY() - 1, tBox.minZ(),
+                    tBox.maxX() + 1, tBox.maxY() + 1, tBox.maxZ() + 1)).size();
+            int frogs = level.getEntitiesOfClass(net.minecraft.world.entity.animal.frog.Frog.class,
+                new net.minecraft.world.phys.AABB(fBox.minX(), fBox.minY() - 1, fBox.minZ(),
+                    fBox.maxX() + 1, fBox.maxY() + 1, fBox.maxZ() + 1)).size();
+            helper.assertTrue(turtles == 3, "found " + turtles + " turtles in the den rather than 3");
+            helper.assertTrue(frogs == 2, "found " + frogs + " frogs in the den rather than 2");
+
+            // And they are not standing in the fluid, which is the whole reason the dens exist.
+            List<String> wet = new ArrayList<>();
+            // BOTH SPECIES. The first version iterated turtles only while its message claimed to cover
+            // both, so a change that moved the frog den's spawn row would have kept it green.
+            for (var box : List.of(tBox, fBox)) {
+                for (var mob : level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                        new net.minecraft.world.phys.AABB(box.minX(), box.minY() - 1, box.minZ(),
+                            box.maxX() + 1, box.maxY() + 1, box.maxZ() + 1))) {
+                    if (level.getFluidState(mob.blockPosition()).getType()
+                            == com.flatts.recompile.registry.RCFluids.LEACHATE.get()) {
+                        wet.add(mob.getType().toString() + " at " + mob.blockPosition());
+                    }
+                }
+            }
+            helper.assertTrue(wet.isEmpty(),
+                "these animals generate standing in leachate, which sickens them for as long as they "
+                    + "stay: " + wet);
+            level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                new net.minecraft.world.phys.AABB(tBox.minX() - 2, tBox.minY() - 2, tBox.minZ() - 2,
+                    fBox.maxX() + 2, fBox.maxY() + 2, fBox.maxZ() + 2))
+                .forEach(net.minecraft.world.entity.Entity::discard);
+            helper.succeed();
+        });
+
+        // AND THE CHAMBER YOU LAND IN IS QUIET.
+        //
+        // This is the point of the change rather than a side effect. The spawner used to sit five blocks
+        // from the ladder, so a player climbed down into a crowd that had been accumulating since the
+        // chunk loaded: you arrived at the payoff instead of walking to it.
+        RCGameTests.test("the_root_chamber_is_quiet", 40, helper -> {
             var level = helper.getLevel();
             BlockPos base = helper.absolutePos(new BlockPos(0, 44, 0));
             var room = new SewerPieces.SewerRoom(0, RandomSource.create(5L), base.getX(), base.getZ());
             room.move(0, base.getY() - room.getBoundingBox().minY(), 0);
             BoundingBox box = room.getBoundingBox();
-            var chunk = new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4);
+            BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+            room.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(5L), limit,
+                new net.minecraft.world.level.ChunkPos(base.getX() >> 4, base.getZ() >> 4), base);
 
-            // ONE postProcess PER CHUNK, which is what the real caller does. A single limit covering the
-            // whole room is the one shape that cannot reproduce the bug this test exists for: the room
-            // is 10-14 blocks across, so it straddles several chunks, and each pass gets its own limit
-            // and its own RandomSource. Rolling positions per pass made the turtle count a random sum
-            // that could be zero; a test with one big limit would never have noticed.
-            for (int cx = (box.minX() >> 4); cx <= (box.maxX() >> 4); cx++) {
-                for (int cz = (box.minZ() >> 4); cz <= (box.maxZ() >> 4); cz++) {
-                    BoundingBox slice = new BoundingBox(cx << 4, level.getMinY(), cz << 4,
-                        (cx << 4) + 15, level.getMaxY(), (cz << 4) + 15);
-                    // A DIFFERENT RandomSource PER PASS, as the real caller gives. Reusing one seed
-                    // makes every pass roll identically, which hides a per-chunk re-roll completely -
-                    // the version of this test that did that could not see the bug it was written for.
-                    room.postProcess(level, level.structureManager(),
-                        level.getChunkSource().getGenerator(),
-                        RandomSource.create(cx * 7919L + cz), slice, chunk, base);
+            List<String> found = new ArrayList<>();
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int y = box.minY(); y <= box.maxY(); y++) {
+                    for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                        if (level.getBlockState(new BlockPos(x, y, z))
+                                .is(net.minecraft.world.level.block.Blocks.SPAWNER)) {
+                            found.add("spawner at " + x + "," + y + "," + z);
+                        }
+                    }
                 }
             }
+            helper.assertTrue(found.isEmpty(),
+                "the chamber you climb down into still holds " + found + " - the threat belongs deeper "
+                    + "in, so that arriving is quiet and the fight is something you walk toward");
+            helper.succeed();
+        });
 
-            BlockPos seat = new BlockPos(box.minX() + 1, box.minY() + 1, box.getCenter().getZ());
-            helper.assertTrue(level.getBlockState(seat).is(net.minecraft.world.level.block.Blocks.SPAWNER),
-                "no spawner in the root chamber at " + seat + " - without one the sewer has no drowned "
-                    + "at all, because IN_WATER can never be satisfied by leachate");
-            // AND IT HOLDS A DROWNED. Asserting the BlockEntity exists is a tautology - SpawnerBlock is
-            // an EntityBlock, so it always has one - and a spawner with no entity id spawns nothing at
-            // all, which is the failure actually worth catching. Deleting setEntityId used to leave this
-            // test green.
-            helper.assertTrue(
-                level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
-                    .SpawnerBlockEntity be
-                    && be.saveWithoutMetadata(level.registryAccess()).toString().contains("drowned"),
-                "the spawner at " + seat + " holds no drowned - an empty spawner is a block that looks "
-                    + "right and spawns nothing");
+        // THE THREAT IS IN THE JUNCTIONS INSTEAD, and deterministically so.
+        //
+        // Keyed off the box rather than a roll: postProcess runs once per chunk a piece overlaps, so a
+        // random draw would answer differently on each pass and a junction could get a spawner in one
+        // half of itself and not the other.
+        RCGameTests.test("a_deep_crossing_carries_the_spawner", 40, helper -> {
+            var level = helper.getLevel();
+            // DETERMINISTIC, and against the gate the code actually uses.
+            //
+            // This selected on mod 3 while the placement fires on mod 2 - a leftover from loosening the
+            // gate - so it proceeded on boxes the code rejects and asserted a spawner that was never
+            // going to be there. It also had a skip branch, which meant that on plots where the two
+            // agreed by luck it passed, and on plots where they did not it failed: green locally, green
+            // on one CI run and red on the next for the same commit.
+            //
+            // 31 is odd, so the parity of (x*31 + z) is the parity of (x + z): nudging x by one when
+            // that sum is odd selects the box on any plot, every time. No skip branch, so it always
+            // asserts rather than sometimes excusing itself.
+            BlockPos base = helper.absolutePos(new BlockPos(0, 34, 0));
+            int x = base.getX() + (Math.floorMod(base.getX() + base.getZ(), 2) == 0 ? 0 : 1);
+            BoundingBox box = SewerPieces.SewerPiece.box(
+                x, base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 5);
+            helper.assertTrue(Math.floorMod(box.minX() * 31 + box.minZ(), 2) == 0,
+                "the probe box does not satisfy the spawner gate, so this test proves nothing");
+            var crossing = new SewerPieces.SewerCrossing(3, box, Direction.SOUTH);
+            BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+            crossing.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(6L), limit,
+                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), base);
 
-            var bounds = new net.minecraft.world.phys.AABB(
-                box.minX() - 1, box.minY() - 2, box.minZ() - 1,
-                box.maxX() + 2, box.maxY() + 2, box.maxZ() + 2);
-            var turtles = level.getEntitiesOfClass(
-                net.minecraft.world.entity.animal.turtle.Turtle.class, bounds);
-            helper.assertTrue(turtles.size() == 4,
-                "found " + turtles.size() + " turtles rather than 4 - they cannot spawn in this world "
-                    + "at all (sea level is -64 and there is no sand), and the count must not depend on "
-                    + "how many chunks the room happens to straddle");
-            // NOT ASSERTED, and stated rather than skipped: a turtle's homePos is private with a setter
-            // and no getter, so the test cannot read it back. A turtle added without finalizeSpawn keeps
-            // homePos = (0,0,0), and TurtleGoHomeGoal then fires on anything further than 64 blocks -
-            // always true for a sewer hundreds of blocks out - so the turtles walk off toward world
-            // origin and save the wrong home on the way. The placement calls setHomePos explicitly for
-            // that reason, rather than relying on a side effect of finalizeSpawn that nothing here can
-            // check.
-            var frogs = level.getEntitiesOfClass(
-                net.minecraft.world.entity.animal.frog.Frog.class, bounds);
-            helper.assertTrue(frogs.size() == 2,
-                "found " + frogs.size() + " frogs rather than 2 - a frog wants "
-                    + "#minecraft:frogs_spawnable_on (grass block, mud, mangrove roots) plus a brightness check, so a "
-                    + "brick sewer gives it nowhere to stand and it never arrives on its own");
-            frogs.forEach(net.minecraft.world.entity.Entity::discard);
-            // They are persistent and mostly land outside the plot, which GameTest cleanup does not
-            // reach - so they are removed here rather than left to wander through neighbouring tests.
-            turtles.forEach(net.minecraft.world.entity.Entity::discard);
+            boolean found = false;
+            for (int px = box.minX(); px <= box.maxX() && !found; px++) {
+                for (int pz = box.minZ(); pz <= box.maxZ() && !found; pz++) {
+                    found = level.getBlockState(new BlockPos(px, box.minY() + 1, pz))
+                        .is(net.minecraft.world.level.block.Blocks.SPAWNER);
+                }
+            }
+            helper.assertTrue(found,
+                "a selected junction past depth 2 has no spawner, so the sewer has no drowned anywhere - "
+                    + "IN_WATER can never be satisfied by leachate, and the spawner is the only route");
             helper.succeed();
         });
 
@@ -637,6 +715,130 @@ final class SewerTests {
             }
             helper.assertTrue(unset.isEmpty(),
                 "these barrels have no loot table attached, so they generate empty: " + unset);
+
+            // AND THE TABLE OFFERS A COMPONENT (owner, 2026-08-17). Bulk salvage alone is what a player
+            // already gets from sorting garbage, so it is not a reason to have cleared a sewer. The
+            // components here are all blueprint_crafting - a found one is a single unit that teaches
+            // nothing, so it cannot skip the tier the blueprint gates.
+            String table;
+            try (var in = SewerTests.class.getResourceAsStream(
+                    "/data/recompile/loot_table/chests/sewer.json")) {
+                helper.assertTrue(in != null, "the sewer loot table is not on the classpath");
+                table = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException e) {
+                helper.fail("could not read the sewer loot table: " + e);
+                return;
+            }
+            List<String> missing = new ArrayList<>();
+            for (String component : List.of("recompile:motor", "recompile:pump", "recompile:bulb")) {
+                if (!table.contains(component)) {
+                    missing.add(component);
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "the sewer table offers no " + missing + ", so a cleared sewer pays out only what "
+                    + "sorting garbage already pays");
+            helper.succeed();
+        });
+
+        // A DEN HAS A DOOR, which is the assertion whose absence shipped the whole feature invisible.
+        //
+        // Every wall of a den was written and nothing was ever carved, so each one generated as an
+        // airtight box with three turtles sealed inside. No player could enter one, see one, or know it
+        // existed - and the test that was supposed to cover dens asserted floor material and head count,
+        // both of which are perfectly true inside a sealed box.
+        RCGameTests.test("a_den_opens_into_the_chamber", 40, helper -> {
+            var level = helper.getLevel();
+            BlockPos at = helper.absolutePos(new BlockPos(0, 24, 0));
+            var den = new SewerPieces.SewerTurtleDen(1, new BoundingBox(
+                at.getX(), at.getY(), at.getZ(),
+                at.getX() + 5, at.getY() + 3, at.getZ() + 4));
+            BoundingBox box = den.getBoundingBox();
+            BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
+                box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
+            den.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(8L), limit,
+                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
+
+            // The turtle den's door is on its WEST face, which is the wall it shares with the chamber.
+            int open = 0;
+            for (int dy = 1; dy <= 2; dy++) {
+                if (level.getBlockState(new BlockPos(box.minX(), box.minY() + dy,
+                        box.getCenter().getZ())).isAir()) {
+                    open++;
+                }
+            }
+            helper.assertTrue(open == 2,
+                "the den's shared wall has " + open + " open cells rather than 2 - a den with no door "
+                    + "is a sealed box with animals in it, which is a feature nobody can ever see");
+            level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                new net.minecraft.world.phys.AABB(box.minX() - 2, box.minY() - 2, box.minZ() - 2,
+                    box.maxX() + 2, box.maxY() + 2, box.maxZ() + 2))
+                .forEach(net.minecraft.world.entity.Entity::discard);
+            helper.succeed();
+        });
+
+        // AND THE DENS LAND ON NOTHING, which is pure geometry and was pure fiction.
+        //
+        // The dens are added after the graph is built, so findCollisionPiece never sees them, and they
+        // postProcess last - so wherever they overlap something they win, silently. A comment claimed
+        // the high-X wall was clear of every corridor mouth; it is clear of three. The EAST child
+        // anchors at maxX+1 over z = minZ..minZ+4, and the turtle den sat exactly there, walling that
+        // branch shut on every sewer that grew one. The two dens also overlapped each other whenever
+        // the chamber rolled its two smallest sizes.
+        //
+        // Swept over every chamber size the room can roll, because both bugs were size-dependent.
+        RCGameTests.test("the_dens_land_on_no_corridor_and_not_on_each_other", 20, helper -> {
+            List<String> clashes = new ArrayList<>();
+            for (int w = 9; w <= 13; w++) {
+                for (int d = 9; d <= 13; d++) {
+                    BoundingBox chamber = new BoundingBox(0, 50, 0, w, 57, d);
+                    BoundingBox turtle = SewerStructure.turtleDenBox(chamber);
+                    BoundingBox frog = SewerStructure.frogDenBox(chamber);
+                    if (turtle.intersects(frog)) {
+                        clashes.add(w + "x" + d + ": the dens overlap each other");
+                    }
+                    for (var child : SewerStructure.childBoxes(chamber)) {
+                        if (turtle.intersects(child)) {
+                            clashes.add(w + "x" + d + ": turtle den on a corridor");
+                        }
+                        if (frog.intersects(child)) {
+                            clashes.add(w + "x" + d + ": frog den on a corridor");
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(clashes.isEmpty(),
+                "the dens are written last and win every overlap silently, so these seal whatever they "
+                    + "land on: " + clashes.subList(0, Math.min(4, clashes.size()))
+                    + " (" + clashes.size() + " total)");
+            helper.succeed();
+        });
+
+        // AND A SEWER ACTUALLY GETS A SPAWNER. The old code put one in the chamber unconditionally; the
+        // new one waits for a junction past depth 2 whose box hashes even, which is a guarantee traded
+        // for placement. Measured rather than assumed, because "no drowned at all" is the failure and
+        // IN_WATER means there is no other route to one.
+        RCGameTests.test("most_sewers_get_a_drowned_spawner", 20, helper -> {
+            int withSpawner = 0;
+            for (long seed = 0; seed < SEEDS; seed++) {
+                boolean found = false;
+                for (StructurePiece piece : layout(seed)) {
+                    if (piece instanceof SewerPieces.SewerCrossing && piece.getGenDepth() >= 2
+                            && Math.floorMod(piece.getBoundingBox().minX() * 31
+                                + piece.getBoundingBox().minZ(), 2) == 0) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    withSpawner++;
+                }
+            }
+            helper.assertTrue(withSpawner * 100 / SEEDS >= 80,
+                "only " + withSpawner + " of " + SEEDS + " sewers contain a junction that carries a "
+                    + "spawner, so the rest generate with no drowned anywhere - the spawner is the only "
+                    + "route, because IN_WATER can never be satisfied by leachate");
             helper.succeed();
         });
 

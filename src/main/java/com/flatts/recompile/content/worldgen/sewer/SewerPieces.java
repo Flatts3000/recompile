@@ -358,6 +358,30 @@ public final class SewerPieces {
             // A grate in the ceiling, which is what a sewer junction has and what stops a crossing
             // reading as nothing more than a wide bit of corridor.
             this.placeBlock(level, SewerPalette.GRATE, SHELL / 2, SHELL - 1, SHELL / 2, limit);
+            // THE THREAT LIVES DEEPER IN (owner, 2026-08-17). The spawner used to sit five blocks from
+            // the ladder in the root chamber, so a player climbed down into a crowd that had been
+            // accumulating since the chunk loaded - you landed in the payoff instead of walking to it.
+            // Junctions past the second link carry it now, so arriving is quiet and the fight is
+            // something you find.
+            //
+            // Keyed off the BOX rather than the random: postProcess runs once per chunk the piece
+            // overlaps, and a roll would give a different answer on each pass - a spawner that exists in
+            // one chunk's half of a junction and not the other.
+            if (this.getGenDepth() >= 2
+                    && Math.floorMod(this.boundingBox.minX() * 31 + this.boundingBox.minZ(), 2) == 0) {
+                // LOCAL X = 1, THE DRY WALKWAY. channel() fills local x = SHELL/2 for the run, so a
+                // seat at SHELL/2 stood directly over the leachate - putting back the wade-to-reach-it
+                // problem that the chamber's own comment was written about before the spawner moved.
+                BlockPos seat = new BlockPos(this.getWorldX(1, 1), this.getWorldY(1),
+                    this.getWorldZ(1, 1));
+                if (limit.isInside(seat)) {
+                    level.setBlock(seat, SewerPalette.SPAWNER, Block.UPDATE_CLIENTS);
+                    if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
+                            .SpawnerBlockEntity spawner) {
+                        spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
+                    }
+                }
+            }
         }
     }
 
@@ -414,6 +438,183 @@ public final class SewerPieces {
                     this.placeBlock(level, step, x, y, z, limit);
                 }
             }
+        }
+    }
+
+    /**
+     * A habitat pocket off the chamber: a small room floored in something an animal actually wants.
+     *
+     * <p><b>Owner call, 2026-08-17: a module each, sand for the turtles and mud for the frogs.</b> They
+     * used to be placed straight into the leachate pool in the middle of the chamber, which meant every
+     * sewer generated with its animals standing in the Hunger fluid, permanently - and it read like a
+     * zoo, because the drowned were in there with them.
+     *
+     * <p>The substrate is not decoration. {@code #minecraft:frogs_spawnable_on} is grass block, mud and
+     * the two mangrove roots, so mud is the one surface in that tag a sewer could hold; and
+     * {@code TurtleEggBlock.onSand} is half of vanilla's turtle rule. The animals are standing on the
+     * ground their own game logic names. Neither becomes renewable - a turtle also needs
+     * {@code y < seaLevel + 4} against a sea level of -64, and a frog needs light this place does not
+     * have.
+     */
+    public abstract static class SewerDen extends SewerPiece {
+
+        protected SewerDen(StructurePieceType type, int depth, BoundingBox box) {
+            super(type, depth, box);
+        }
+
+        protected SewerDen(StructurePieceType type, CompoundTag tag) {
+            super(type, tag);
+        }
+
+        /** What the floor is made of, and therefore which animal this is for. */
+        protected abstract BlockState bed();
+
+        /** How many to put in it. */
+        protected abstract int population();
+
+        /** The animal itself. */
+        protected abstract net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident();
+
+        /**
+         * Which of the den's own walls faces the chamber, and therefore where its door goes.
+         *
+         * <p>A den is placed flush against one of the chamber's walls, so exactly one of its four sides
+         * is shared masonry - carving anywhere else opens the den into solid rock.
+         */
+        protected abstract Direction doorSide();
+
+        /**
+         * Absolute coordinates, like the chamber and the entrance shaft: a den has no orientation, and
+         * with {@code getOrientation()} null {@code getWorldX/Y/Z} return what they are given.
+         */
+        @Override
+        public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
+                RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
+            BoundingBox box = this.boundingBox;
+            this.generateBox(level, limit, box.minX(), box.minY(), box.minZ(),
+                box.maxX(), box.maxY(), box.maxZ(), SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
+            // Shell it, then floor it in the substrate. The floor is the whole point of the room.
+            this.generateBox(level, limit, box.minX(), box.maxY(), box.minZ(),
+                box.maxX(), box.maxY(), box.maxZ(), SewerPalette.WALL, SewerPalette.WALL, false);
+            this.generateBox(level, limit, box.minX(), box.minY(), box.minZ(),
+                box.maxX(), box.minY(), box.maxZ(), this.bed(), this.bed(), false);
+            for (int y = box.minY() + 1; y < box.maxY(); y++) {
+                this.generateBox(level, limit, box.minX(), y, box.minZ(), box.minX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.maxX(), y, box.minZ(), box.maxX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.minX(), y, box.minZ(), box.maxX(), y, box.minZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+                this.generateBox(level, limit, box.minX(), y, box.maxZ(), box.maxX(), y, box.maxZ(),
+                    SewerPalette.WALL, SewerPalette.WALL, false);
+            }
+            // NO POOL. A den's interior is twelve walkable cells and the pool took four of them, so an
+            // animal wandering at random spent a third of its life in leachate and being sickened by
+            // RCLeachateContact - a smaller version of the exact problem the dens were built to fix.
+            // The chamber next door is the wet room; this one is the bank.
+            //
+            // AND A DOORWAY, which is the half that made the whole feature invisible. Every wall was
+            // written and nothing was ever carved, so each den shipped as an airtight box with three
+            // turtles sealed inside it. Nobody could enter one, see one, or know it was there.
+            int doorY = box.minY() + 1;
+            for (int step = 0; step < 2; step++) {
+                BlockPos door = switch (this.doorSide()) {
+                    case WEST -> new BlockPos(box.minX(), doorY + step, box.getCenter().getZ());
+                    case EAST -> new BlockPos(box.maxX(), doorY + step, box.getCenter().getZ());
+                    case NORTH -> new BlockPos(box.getCenter().getX(), doorY + step, box.minZ());
+                    default -> new BlockPos(box.getCenter().getX(), doorY + step, box.maxZ());
+                };
+                if (limit.isInside(door)) {
+                    level.setBlock(door, SewerPalette.HOLLOW, Block.UPDATE_CLIENTS);
+                }
+            }
+            for (int i = 0; i < this.population(); i++) {
+                BlockPos at = new BlockPos(box.minX() + 1 + i, box.minY() + 1, box.minZ() + 1);
+                if (!limit.isInside(at)) {
+                    continue;
+                }
+                var mob = this.resident().create(
+                    level.getLevel(), net.minecraft.world.entity.EntitySpawnReason.STRUCTURE);
+                if (mob == null) {
+                    continue;
+                }
+                mob.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, 0F, 0F);
+                mob.finalizeSpawn(level, level.getCurrentDifficultyAt(at),
+                    net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, null);
+                if (mob instanceof net.minecraft.world.entity.animal.turtle.Turtle turtle) {
+                    // Explicitly: homePos is private with no getter, so nothing can assert it, and a
+                    // turtle that believes home is world origin walks out of the den forever.
+                    turtle.setHomePos(at);
+                }
+                mob.setPersistenceRequired();
+                level.addFreshEntity(mob);
+            }
+        }
+    }
+
+    /** Sand, and the turtles that live on it. */
+    public static class SewerTurtleDen extends SewerDen {
+
+        public SewerTurtleDen(int depth, BoundingBox box) {
+            super(RCStructures.SEWER_TURTLE_DEN.get(), depth, box);
+        }
+
+        public SewerTurtleDen(CompoundTag tag) {
+            super(RCStructures.SEWER_TURTLE_DEN.get(), tag);
+        }
+
+        @Override
+        protected BlockState bed() {
+            return SewerPalette.TURTLE_BED;
+        }
+
+        @Override
+        protected int population() {
+            return 3;
+        }
+
+        @Override
+        protected net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
+            return net.minecraft.world.entity.EntityType.TURTLE;
+        }
+
+        /** It sits against the chamber's east wall, so its own west side is the shared one. */
+        @Override
+        protected Direction doorSide() {
+            return Direction.WEST;
+        }
+    }
+
+    /** Mud, and the frogs that live on it. */
+    public static class SewerFrogDen extends SewerDen {
+
+        public SewerFrogDen(int depth, BoundingBox box) {
+            super(RCStructures.SEWER_FROG_DEN.get(), depth, box);
+        }
+
+        public SewerFrogDen(CompoundTag tag) {
+            super(RCStructures.SEWER_FROG_DEN.get(), tag);
+        }
+
+        @Override
+        protected BlockState bed() {
+            return SewerPalette.FROG_BED;
+        }
+
+        @Override
+        protected int population() {
+            return 2;
+        }
+
+        @Override
+        protected net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
+            return net.minecraft.world.entity.EntityType.FROG;
+        }
+
+        /** It sits against the chamber's south wall, so its own north side is the shared one. */
+        @Override
+        protected Direction doorSide() {
+            return Direction.NORTH;
         }
     }
 
@@ -485,17 +686,6 @@ public final class SewerPieces {
             // The chamber is where the sewer is occupied from. One spawner per sewer, in the room
             // rather than at a corridor mouth, so meeting it is a thing you walk into rather than
             // something that meets you at the entrance.
-            // ON BRICK, NOT IN THE POOL. The pool fills minX+2..maxX-2, and the box centre is inside
-            // that inset by construction, so a spawner at the centre stood in the leachate - you had to
-            // wade into the Hunger fluid to reach or break it. One block in from the wall is dry.
-            BlockPos seat = new BlockPos(box.minX() + 1, box.minY() + 1, box.getCenter().getZ());
-            if (limit.isInside(seat)) {
-                level.setBlock(seat, SewerPalette.SPAWNER, 2);
-                if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
-                        .SpawnerBlockEntity spawner) {
-                    spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
-                }
-            }
             // THE LADDER THE SHAFT CANNOT PLACE. The entrance stops at the ceiling, because lining it
             // any lower would seal the ladder inside a brick tube standing in the middle of the room. So
             // the chamber runs the ladder from its floor up through its own ceiling to meet the shaft -
@@ -510,7 +700,6 @@ public final class SewerPieces {
                 }
             }
             placeBarrels(level, limit, box, random);
-            placeResidents(level, limit, box);
         }
     }
 
@@ -638,89 +827,4 @@ public final class SewerPieces {
         }
     }
 
-    /**
-     * Turtles and frogs, placed as <b>entities at generation</b> rather than spawned.
-     *
-     * <p><b>Owner call, 2026-08-17: turtles and frogs are LIMITED populations</b>, and placing them is
-     * the mechanism as well as the design. Neither can arrive any other way. A frog wants
-     * {@code #minecraft:frogs_spawnable_on} - grass block, mud and the two mangrove roots - plus a
-     * brightness check, so a brick
-     * sewer offers it nowhere to stand; and a turtle -
-     * {@code Turtle.checkTurtleSpawnRules} demands {@code y < seaLevel + 4}, and this world's sea level
-     * is <b>-64</b>, so the height test alone requires y &lt; -60; it also wants sand, which this world
-     * has none of. Unlike the drowned there is no spawner branch to lean on, so a spawner would need
-     * {@code custom_spawn_rules} to bypass the predicate entirely - and a spawner endlessly producing a
-     * passive animal reads wrong anyway. Placing them directly also makes the population <b>finite</b>,
-     * which is what the spec wanted: they cannot breed here (no seagrass) or lay eggs (no sand).
-     *
-     * <p><b>Fixed positions, not rolled ones.</b> {@code postProcess} runs <em>once per chunk</em> the
-     * piece overlaps, each time with a different {@code limit} and a different {@code RandomSource} - and
-     * a room is 10 to 14 blocks across, so it straddles two to four chunks in most placements. Rolling
-     * {@code 2 + rand(3)} positions per call meant each chunk rolled its own fresh set over the whole
-     * room and kept whichever happened to fall inside itself: the total was a random sum from 0 to 12
-     * rather than 2-4, and a room split four ways could quite easily produce a sewer with <b>no turtles
-     * at all</b> - exactly the ships-empty-in-silence failure this was written to prevent. Deriving the
-     * spots from the room's own box makes every chunk pass agree on them, and the {@code isInside} guard
-     * then places each one exactly once. It is the same shape as the spawner beside it, which was
-     * already correct.
-     *
-     * <p><b>And {@code finalizeSpawn} rather than a bare {@code addFreshEntity}.</b> A turtle's
-     * {@code homePos} defaults to {@code BlockPos.ZERO} and is only ever set there, so a turtle added
-     * without it believes home is world origin - {@code TurtleGoHomeGoal} then fires on any position
-     * more than 64 blocks away, which for a sewer hundreds of blocks out is always, and the turtles
-     * walk out of the chamber toward spawn. It survives a reload too, because the wrong home is what
-     * gets saved. Vanilla's {@code SwampHutPiece} calls {@code finalizeSpawn} on its witch and cat for
-     * exactly this reason.
-     */
-    private static void placeResidents(WorldGenLevel level, BoundingBox limit, BoundingBox room) {
-        int midZ = room.getCenter().getZ();
-        int midX = room.getCenter().getX();
-        BlockPos[] spots = {
-            new BlockPos(midX - 2, room.minY() + 1, midZ - 2),
-            new BlockPos(midX + 2, room.minY() + 1, midZ - 2),
-            new BlockPos(midX - 2, room.minY() + 1, midZ + 2),
-            new BlockPos(midX + 2, room.minY() + 1, midZ + 2),
-        };
-        BlockPos[] ponds = {
-            new BlockPos(midX, room.minY() + 1, midZ - 3),
-            new BlockPos(midX, room.minY() + 1, midZ + 3),
-        };
-        for (BlockPos at : spots) {
-            var turtle = (net.minecraft.world.entity.animal.turtle.Turtle) place(
-                level, limit, at, net.minecraft.world.entity.EntityType.TURTLE);
-            if (turtle != null) {
-                // Explicitly, not just as a side effect of finalizeSpawn. homePos is private with no
-                // getter, so no test can prove it was set - and the failure it causes is silent and
-                // permanent, since the wrong home is what gets saved. One line is cheap insurance.
-                turtle.setHomePos(at);
-            }
-        }
-        for (BlockPos at : ponds) {
-            place(level, limit, at, net.minecraft.world.entity.EntityType.FROG);
-        }
-    }
-
-    /**
-     * Put one entity down, once, at a fixed spot - or skip it because another chunk pass owns it.
-     *
-     * <p>Shared by the turtles and the frogs because the trap is shared: {@code postProcess} runs once
-     * per chunk the piece overlaps, so anything rolled here is rolled several times over. Fixed spots
-     * plus this {@code isInside} guard is what makes "four turtles" mean four rather than a random sum.
-     */
-    private static <T extends net.minecraft.world.entity.Mob> @Nullable T place(WorldGenLevel level,
-            BoundingBox limit, BlockPos at, net.minecraft.world.entity.EntityType<T> type) {
-        if (!limit.isInside(at)) {
-            return null;
-        }
-        T mob = type.create(level.getLevel(), net.minecraft.world.entity.EntitySpawnReason.STRUCTURE);
-        if (mob == null) {
-            return null;
-        }
-        mob.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, 0F, 0F);
-        mob.finalizeSpawn(level, level.getCurrentDifficultyAt(at),
-            net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, null);
-        mob.setPersistenceRequired();
-        level.addFreshEntity(mob);
-        return mob;
-    }
 }
