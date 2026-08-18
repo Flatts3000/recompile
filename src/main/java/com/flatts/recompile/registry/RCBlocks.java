@@ -746,7 +746,7 @@ public final class RCBlocks {
             .noOcclusion()  // see-through wire shell + inset compost bands - not a full cube
     );
 
-    /** A shared, inert component: a caged tote that holds nothing. Crafted and placed by hand. */
+    /** A shared component, and since #229 the only one that is not inert: a caged tote that holds two buckets of water. Crafted and placed by hand. */
     public static final DeferredBlock<WaterTankBlock> WATER_TANK = BLOCKS.registerBlock(
         "water_tank",
         WaterTankBlock::new,

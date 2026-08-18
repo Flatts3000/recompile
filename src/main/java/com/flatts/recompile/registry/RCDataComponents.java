@@ -12,8 +12,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * Item data components. Currently one: the water a broken Rain Collector carries on its dropped
- * item, so the tank survives break + replace instead of being emptied every time you move it.
+ * Item data components: state that has to survive a block being broken and put back, since
+ * {@code saveAdditional} covers save/load and nothing else.
  */
 public final class RCDataComponents {
 
@@ -23,6 +23,21 @@ public final class RCDataComponents {
     /** Stored water in mB, carried on a broken Rain Collector item (see RainCollectorBlockEntity). */
     public static final Supplier<DataComponentType<Integer>> RAIN_WATER =
         DATA_COMPONENTS.register("rain_water",
+            () -> DataComponentType.<Integer>builder()
+                .persistent(Codec.INT)
+                .networkSynchronized(ByteBufCodecs.VAR_INT)
+                .build());
+
+    /**
+     * Stored water in mB, carried on a broken Water Tank item (#229, see WaterTankBlockEntity).
+     *
+     * <p>Its own component rather than a second use of {@link #RAIN_WATER}, because the two mean
+     * different things to a reader and to a datapack: rain water is what a collector caught from the
+     * sky, and this is whatever somebody poured in. Sharing the id would make a tank's contents read
+     * as rainfall in every tooltip and loot function that names it.
+     */
+    public static final Supplier<DataComponentType<Integer>> TANK_WATER =
+        DATA_COMPONENTS.register("tank_water",
             () -> DataComponentType.<Integer>builder()
                 .persistent(Codec.INT)
                 .networkSynchronized(ByteBufCodecs.VAR_INT)

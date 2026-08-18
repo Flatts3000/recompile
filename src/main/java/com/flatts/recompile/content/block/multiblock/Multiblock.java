@@ -340,7 +340,18 @@ public record Multiblock(List<Cell> cells) {
                 // server-side, so an unexpected client Level means drop nothing rather than guess.
                 if (level instanceof ServerLevel server
                     && server.getGameRules().get(GameRules.BLOCK_DROPS)) {
-                    Block.popResource(level, pos, new ItemStack(cell.component()));
+                    // AND WHATEVER THE CELL WAS HOLDING. A component with no BlockEntity carries
+                    // nothing and this is a no-op, which is every cell but one - but the Water Tank
+                    // holds water now (#229) and a pipe can fill one inside a formed machine, so
+                    // disbanding without this pours it away and hands back an empty tote. Generic
+                    // rather than tank-shaped: the next component that stores something is covered
+                    // the day it is written, which is not true of a check that names a block.
+                    ItemStack part = new ItemStack(cell.component());
+                    net.minecraft.world.level.block.entity.BlockEntity held = level.getBlockEntity(pos);
+                    if (held != null) {
+                        part.applyComponents(held.collectComponents());
+                    }
+                    Block.popResource(level, pos, part);
                 }
             }
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);

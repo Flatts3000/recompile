@@ -26,7 +26,7 @@ original chain, **P2.4-R** the economy revision, **P1.7-R** encroachment). The d
 
 ## What it is
 
-A four-block drip-irrigation tower, ringed by four copper spigots. It draws water from an inert Water
+A four-block drip-irrigation tower, ringed by four copper spigots. It draws water from a Water
 Tank built into its own structure and throws it over the surrounding ground, turning dead earth to grass within a radius, forever,
 **consuming nothing**.
 
@@ -54,7 +54,7 @@ shared vocabulary keeps its user; here the moving part is a **Motor**.
 | 3 (top) | **Solar Panel** | *unchanged* | Unshaded, caps the tower. Shared component. |
 | 2 sides x4 | **Copper Pipe** | **drip spigot** | The drip ring. Turned to face the manifold on forming, so all four plumb inward. |
 | 2 | **Pump** | **manifold** | Lifts water to the spigots. |
-| 1 | **Water Tank** | *unchanged* | Crafted on its own: plastic scrap, rebar, scrap metal. Inert - it holds nothing and there is nothing to fill. |
+| 1 | **Water Tank** | *unchanged* | Crafted on its own: plastic scrap, rebar, scrap metal. **Holds water since #229** - two buckets, bucket- or pipe-filled. The spreader still draws on nothing. |
 | 0 (bottom) | *(the core itself)* | **Grass Spreader Core** | The master. **Its own texture** - never the collector's palette. |
 
 **The tank must not be the Rain Collector block itself.** A machine may never take another machine's
@@ -101,7 +101,7 @@ Three bespoke to this machine, plus two shared components later machines reuse.
 | Block | Kind | Notes |
 |---|---|---|
 | `grass_spreader` | core, bespoke | Holds `FORMED`; runs the conversion tick and the particles. |
-| `water_tank` | **shared component**, and its own formed appearance | The tank cell. Inert here: it holds nothing, and it is NOT a Rain Collector core (no nested cores). |
+| `water_tank` | **shared component**, and its own formed appearance | The tank cell. It holds water (#229) and the spreader does not drink it; it is NOT a Rain Collector core (no nested cores). |
 | `grass_spreader_frame` | dummy, bespoke | What a Pump becomes: the manifold the drip ring bolts into. Formed-only, no item. |
 | `grass_spreader_spigot` | dummy, bespoke | What each of the four Copper Pipes becomes. Drips via `animateTick`. Formed-only, no item. |
 | `pump` | **shared component** | **Teardown-only**, from a `washing_machine` find. Inert - see below. |
@@ -114,7 +114,7 @@ recipe, no new systems. It restores the appliance P1.11 dropped when Bulky Waste
 appliance "a vague abstraction sitting between the player and a specific thing." A washing machine
 visibly pumps water out, so the teardown needs no explanation.
 
-**Both shared components are inert, and their names invite exactly the opposite** - so state it
+**The Solar Panel is inert here and its name invites the opposite** - so state it
 plainly, because either would break locked design:
 
 - **Solar Panel** - a recoloured, **no-op** daylight detector: vanilla's `template_daylight_detector`

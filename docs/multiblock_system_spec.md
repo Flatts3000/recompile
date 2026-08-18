@@ -225,7 +225,7 @@ manifold** / **Solar Panel**, with four **Copper Pipes** ringing the pump, each 
 spigot. It waters the nearest dead ground first and consumes nothing; full design in
 [`grass_spreader_spec.md`](grass_spreader_spec.md).
 
-**The water cell is an inert Water Tank, not a Rain Collector** - a machine may not take another
+**The water cell is a Water Tank, not a Rain Collector** (and since #229 it holds water, though nothing in a Grass Spreader draws on it) - a machine may not take another
 machine's core as a component (nesting cores makes the inner one assemble itself), a rule the
 framework's `Multiblock` constructor now enforces. The **Pump** is the teardown-only part (out of a
 Washing Machine found in Bulky Waste), so rung 1 sits behind the teardown spine and a find. The

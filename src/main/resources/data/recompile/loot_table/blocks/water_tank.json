@@ -4,7 +4,19 @@
     {
       "rolls": 1,
       "conditions": [ { "condition": "minecraft:survives_explosion" } ],
-      "entries": [ { "type": "minecraft:item", "name": "recompile:water_tank" } ]
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:water_tank",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "source": "block_entity",
+              "include": [ "recompile:tank_water" ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -12,6 +12,7 @@ import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
+import com.flatts.recompile.content.block.entity.WaterTankBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
@@ -87,6 +88,15 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "rain_collector",
             () -> new BlockEntityType<>(RainCollectorBlockEntity::new, RCBlocks.RAIN_COLLECTOR.get()));
+
+    /**
+     * The Water Tank's contents (#229). The one shared component that is not inert - see
+     * {@link com.flatts.recompile.content.block.entity.WaterTankBlockEntity} for the ruling.
+     */
+    public static final Supplier<BlockEntityType<WaterTankBlockEntity>> WATER_TANK =
+        BLOCK_ENTITIES.register(
+            "water_tank",
+            () -> new BlockEntityType<>(WaterTankBlockEntity::new, RCBlocks.WATER_TANK.get()));
 
     /**
      * The Recompile Workbench's racked tools (design P1.4). Holds two tool stacks so their
@@ -212,6 +222,12 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Fluid.BLOCK,
             RAIN_COLLECTOR.get(),
+            (be, side) -> be.fluidHandler());
+        // The Water Tank, on the same terms (#229): a real tank, so a pipe or pump moves water through
+        // it as it would any other. Both directions - it is a store rather than a source or a sink.
+        event.registerBlockEntity(
+            Capabilities.Fluid.BLOCK,
+            WATER_TANK.get(),
             (be, side) -> be.fluidHandler());
         // The Scrap Bin's item handler: in and out (owner call, 2026-07-31, reversing P2.9's
         // "hopper in, no out"). Extraction keeps the binding, so draining a bin does not un-type it.
