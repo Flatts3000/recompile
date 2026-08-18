@@ -381,9 +381,13 @@ Three consequences, all of them worth knowing before tuning:
   `SewerPiece.deposit`, which is the only thing allowed to write one, and
   `the_silt_has_something_buried_in_it` walks the pieces and fails if any deposit is hollow.
 - **The payout is deliberately mostly nothing.** `recompile:archaeology/sewer_silt` is 30/77 empty. The
-  sump beds fifteen deposits (a 5x3 patch inset from the pool walls) and a corridor rolls up to four,
-  so a cleared sewer is a few dozen brushes; a find in every one of them would out-pay the crate that
-  room is built around. Contents are small lost things: bone, string, junk, e-scrap, glass shards, cullet, a
+  sump beds **fourteen** deposits (a 5x3 patch inset from the pool walls, less the cell the crate sits
+  in) and a corridor rolls **one or two**, so a cleared sewer is a few dozen brushes; a find in every one
+  of them would out-pay the crate that room is built around. Both numbers were overstated when this
+  paragraph was first written, and the corridor one is worth knowing: `silt()` tests four cells whose
+  keys differ by `{6, 8, 34, 36}`, which are `{0, 2, 1, 0}` mod 3 against a mod-3 gate - so a seed can
+  only ever satisfy the entries sharing one residue, and the loop cannot pay out the four it appears to
+  offer. Contents are small lost things: bone, string, junk, e-scrap, glass shards, cullet, a
   bottle, and at the thin end a heart pottery sherd (the #115 chain's second source) and a nautilus
   shell.
 
@@ -395,8 +399,8 @@ cannot open. That is a delay rather than a dead end - nothing about the silt is 
 but it means the silt is **not** the sewer's introduction to itself, and the crate in the sump (which
 needs no tool) still is.
 
-**Open for playtest:** fifteen brushables on the sump floor is fifteen brushes underwater, in leachate,
-with the drowned spawner running. That is on-theme - the spec already says the room's hazard is
+**Open for playtest:** fourteen brushables on the sump floor is fourteen brushes underwater, in
+leachate, with the drowned spawner running. That is on-theme - the spec already says the room's hazard is
 what guards its reward - but it is a lot of brushing, and the dial if it reads as a chore is the *count*
 of deposits rather than the table.
 | **Damp growth** - `vine` on walls, `brown_mushroom` on the floor | **S.** Two entries plus placement. Mushrooms are already the P1.9 forage vocabulary. | Low. `vine` needs a supporting face and will look wrong placed blind. |

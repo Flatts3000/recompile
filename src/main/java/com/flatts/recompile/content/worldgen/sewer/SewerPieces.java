@@ -130,10 +130,16 @@ public final class SewerPieces {
     /**
      * What is buried in the silt, for whoever brushes it out.
      *
-     * <p>Mostly nothing, on purpose. The sump alone carries two dozen deposits and a jackpot in every one
-     * of them would out-pay the crate the room is actually built around, so the table is weighted so that
-     * most of what a player digs is silt and the find is the exception - which is also what archaeology
-     * is supposed to feel like.
+     * <p>Mostly nothing, on purpose. A sump beds fourteen deposits and a corridor rolls one or two, so
+     * clearing a sewer is a few dozen brushes - a jackpot in every one would out-pay the crate the room
+     * is actually built around. The table is weighted so most of what a player digs is silt and the find
+     * is the exception, which is also what archaeology is supposed to feel like.
+     *
+     * <p>Those two numbers are measured rather than eyeballed, and the first draft of this sentence got
+     * both wrong in the generous direction ("two dozen" and "up to four"). The corridor figure is the
+     * interesting one: {@code silt()} tests four cells whose keys differ by {@code {6, 8, 34, 36}}, which
+     * are {@code {0, 2, 1, 0}} mod 3, so a seed can only ever satisfy the entries sharing one residue -
+     * two of them at best, and never the four the loop appears to offer.
      */
     static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot
         .LootTable> SILT_LOOT = net.minecraft.resources.ResourceKey.create(
@@ -1185,8 +1191,18 @@ public final class SewerPieces {
             // The reward is under the water rather than beside it, which is the point of putting it
             // here: the hazard the room already had is what guards it. You swim down, you dig, and the
             // clock the leachate started is the reason you might not manage all of it in one go.
+            //
+            // THE CRATE'S OWN CELL IS SKIPPED. It sits inside the bed (x = SIZE/2, z = SIZE - 3 is
+            // squarely in the 5x3 patch below), and it is written afterwards - so without this the
+            // barrel silently replaced a deposit that had just been given a block entity and a loot
+            // seed. It still worked, because the later write wins; it just meant a sump shipped
+            // fourteen deposits while the loop, the javadoc and the spec all said fifteen, and one
+            // roll of the silt table was spent on a block that no longer existed.
             for (int x = 2; x < SIZE - 2; x++) {
                 for (int z = DEPTH + 2; z < SIZE - 2; z++) {
+                    if (x == SIZE / 2 && z == SIZE - 3) {
+                        continue;
+                    }
                     this.deposit(level, limit, SewerPalette.SILT, x, 0, z, random);
                 }
             }

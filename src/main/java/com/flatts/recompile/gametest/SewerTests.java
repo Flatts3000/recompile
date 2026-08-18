@@ -50,6 +50,11 @@ final class SewerTests {
      * them further apart. Tests that want a den box ask this for a chamber and then ask
      * {@code SewerStructure} for the den, rather than retyping either shape.
      */
+    private static BoundingBox smallestChamber(BlockPos corner) {
+        return new BoundingBox(corner.getX(), corner.getY(), corner.getZ(),
+            corner.getX() + 9, corner.getY() + 7, corner.getZ() + 9);
+    }
+
     /**
      * One of {@code SewerStructure}'s den boxes, rebuilt at a corner of the caller's choosing.
      *
@@ -64,11 +69,6 @@ final class SewerTests {
             corner.getX() + shape.getXSpan() - 1,
             corner.getY() + shape.getYSpan() - 1,
             corner.getZ() + shape.getZSpan() - 1);
-    }
-
-    private static BoundingBox smallestChamber(BlockPos corner) {
-        return new BoundingBox(corner.getX(), corner.getY(), corner.getZ(),
-            corner.getX() + 9, corner.getY() + 7, corner.getZ() + 9);
     }
 
     private SewerTests() {
@@ -413,9 +413,19 @@ final class SewerTests {
             helper.assertTrue(wet.isEmpty(),
                 "these animals generate standing in leachate, which sickens them for as long as they "
                     + "stay: " + wet);
+            // MAX OF THE TWO, not whichever den is named second. This took its X ceiling from the frog
+            // den, which is four wide against the turtle den's eight - so the third turtle was outside
+            // the sweep by two blocks and only got discarded because its hitbox clipped the edge by 0.2.
+            // Any further widening, or any change to the pitch that shifts it east, leaves live turtles
+            // in a level the next test is counting mobs in.
             level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
-                new net.minecraft.world.phys.AABB(tBox.minX() - 2, tBox.minY() - 2, tBox.minZ() - 2,
-                    fBox.maxX() + 2, fBox.maxY() + 2, fBox.maxZ() + 2))
+                new net.minecraft.world.phys.AABB(
+                    Math.min(tBox.minX(), fBox.minX()) - 2,
+                    Math.min(tBox.minY(), fBox.minY()) - 2,
+                    Math.min(tBox.minZ(), fBox.minZ()) - 2,
+                    Math.max(tBox.maxX(), fBox.maxX()) + 2,
+                    Math.max(tBox.maxY(), fBox.maxY()) + 2,
+                    Math.max(tBox.maxZ(), fBox.maxZ()) + 2))
                 .forEach(net.minecraft.world.entity.Entity::discard);
             helper.succeed();
         });
@@ -440,18 +450,23 @@ final class SewerTests {
 
             // THE SHIPPED SHAPE AT A HEIGHT NOTHING ELSE USES. Plots are 5x5x5 and laid out along X, so
             // any sewer test is building into its neighbours' airspace - the whole file gets away with it
-            // by separating on Y, and 64 is this test's. It is not a nicety: this test read a turtle
-            // standing in bricks that another sewer test had written into the same cell at the same
-            // height, which looks exactly like the suffocation bug it exists to measure.
+            // by separating on Y. It is not a nicety: this test read a turtle standing in bricks another
+            // sewer test had written into the same cell, which looks exactly like the suffocation bug it
+            // exists to measure.
+            //
+            // 100, WELL CLEAR OF THE PACK. The first attempt at this took an unused NUMBER (36) rather
+            // than an unused SPACE, and every anchor in this file is the bottom of something several
+            // blocks tall - y=34 is a seven-tall sump, so it owns 34 through 40. Everything else here
+            // lives at 2 through 56; a hundred cannot be reached by any of it.
             //
             // The dens get the real boxes' DIMENSIONS at a corner of this test's choosing rather than
             // their real POSITION, because where a den sits relative to the chamber is a different
             // test's question and building it out there is what walks into a neighbour.
             var dens = List.of(
                 (SewerPieces.SewerDen) new SewerPieces.SewerTurtleDen(1,
-                    shapedLike(SewerStructure::turtleDenBox, helper.absolutePos(new BlockPos(0, 36, 0)))),
+                    shapedLike(SewerStructure::turtleDenBox, helper.absolutePos(new BlockPos(0, 100, 0)))),
                 new SewerPieces.SewerFrogDen(1,
-                    shapedLike(SewerStructure::frogDenBox, helper.absolutePos(new BlockPos(0, 36, 16)))));
+                    shapedLike(SewerStructure::frogDenBox, helper.absolutePos(new BlockPos(0, 100, 16)))));
             BlockPos at = dens.getFirst().getBoundingBox().getCenter();
 
             // GROUND UNDER THE DEN AND OUTSIDE ITS DOOR, both of which a real sewer has for free.
@@ -486,6 +501,20 @@ final class SewerTests {
             // THE ROOM HAS TO FIT THE POPULATION, checked before anything ticks. residents() places what
             // fits and no more, which stops a cramped den killing its animals - and would just as
             // happily generate a den two turtles short in silence. This is the half that notices.
+            // EVERY EXIT CLEARS UP FIRST. Both assertions here used to run with the animals still in the
+            // level, so a genuine failure left three turtles and two frogs standing in shared world space
+            // for every test that ran afterwards - and the neighbouring sewer tests count mobs by AABB,
+            // so one real failure could cascade into unrelated ones and bury its own cause.
+            Runnable sweep = () -> {
+                for (var den : dens) {
+                    BoundingBox box = den.getBoundingBox();
+                    level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
+                            new net.minecraft.world.phys.AABB(box.minX() - 12, box.minY() - 6,
+                                box.minZ() - 12, box.maxX() + 13, box.maxY() + 7, box.maxZ() + 13))
+                        .forEach(net.minecraft.world.entity.Entity::discard);
+                }
+            };
+
             List<String> cramped = new ArrayList<>();
             for (var den : dens) {
                 int fits = SewerPieces.SewerDen.residents(den.getBoundingBox(),
@@ -494,6 +523,9 @@ final class SewerTests {
                     cramped.add(den.resident() + ": the den holds " + fits + " with room to move but "
                         + "the design asks for " + den.population());
                 }
+            }
+            if (!cramped.isEmpty()) {
+                sweep.run();
             }
             helper.assertTrue(cramped.isEmpty(), String.join("; ", cramped));
 
@@ -541,14 +573,8 @@ final class SewerTests {
                         }
                     }
                 }
+                sweep.run();
                 helper.assertTrue(hurt.isEmpty(), String.join("; ", hurt));
-                for (var den : dens) {
-                    BoundingBox box = den.getBoundingBox();
-                    level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class,
-                            new net.minecraft.world.phys.AABB(box.minX() - 12, box.minY() - 6,
-                                box.minZ() - 12, box.maxX() + 13, box.maxY() + 7, box.maxZ() + 13))
-                        .forEach(net.minecraft.world.entity.Entity::discard);
-                }
                 helper.succeed();
             });
         });
@@ -1240,16 +1266,22 @@ final class SewerTests {
             // the path that actually rolls - and they are separate call sites, which is how one of them
             // would get missed.
             var pieces = new ArrayList<StructurePiece>();
-            BlockPos at = helper.absolutePos(new BlockPos(0, 50, 0));
+            BlockPos at = helper.absolutePos(new BlockPos(0, 120, 0));
             pieces.add(new SewerPieces.SewerSump(3, SewerPieces.SewerPiece.box(
                 at.getX(), at.getY(), at.getZ(), Direction.SOUTH, 9, 7, 9), Direction.SOUTH));
+            // ON A GRID, NOT A LINE, for the reason the_dressing_blocks_are_all_reachable already
+            // records. silt() seeds on minX * 31 + minZ * 17, so six corridors sharing an X and stepping
+            // Z by 9 shift the seed by 153 each time - which is 0 mod 3, and the gate is mod 3. Every
+            // corridor in a column lands in the SAME residue class and places an identical count, so a
+            // row of six samples one case six times.
             for (int step = 0; step < 6; step++) {
-                BlockPos runAt = at.offset(0, 0, 12 + step * 9);
+                BlockPos runAt = at.offset((step % 3) * 11, 0, 12 + (step / 3) * 9);
                 pieces.add(new SewerPieces.SewerCorridor(1, SewerPieces.SewerPiece.box(
                     runAt.getX(), runAt.getY(), runAt.getZ(), Direction.SOUTH, 5, 5, 7), Direction.SOUTH));
             }
 
-            int deposits = 0;
+            int sumpDeposits = 0;
+            int runDeposits = 0;
             List<String> hollow = new ArrayList<>();
             for (var piece : pieces) {
                 BoundingBox box = piece.getBoundingBox();
@@ -1265,7 +1297,11 @@ final class SewerTests {
                                     instanceof net.minecraft.world.level.block.BrushableBlock)) {
                                 continue;
                             }
-                            deposits++;
+                            if (piece instanceof SewerPieces.SewerSump) {
+                                sumpDeposits++;
+                            } else {
+                                runDeposits++;
+                            }
                             var be = level.getBlockEntity(here);
                             String carried = be == null ? "no block entity at all"
                                 : be.saveCustomOnly(level.registryAccess()).getStringOr("LootTable", "");
@@ -1276,9 +1312,22 @@ final class SewerTests {
                     }
                 }
             }
-            helper.assertTrue(deposits >= 20,
-                "only " + deposits + " brushable blocks were placed by the pieces that are supposed to "
-                    + "bed the silt, so everything below this line is measuring an empty set");
+            // EXACTLY FOURTEEN AND AT LEAST ONE EACH, rather than a total with a round number under it.
+            // The first version asserted 20 across the lot, which was precisely the achievable minimum -
+            // fourteen from the sump plus one from each of six correlated corridors - so it had no
+            // headroom in either direction and would have gone red on any tuning at all while still
+            // being unable to tell WHICH half moved.
+            //
+            // The sump's count is exact because nothing about it is rolled: a 5x3 patch inset from the
+            // pool walls, less the cell the crate sits in. A corridor's is a floor because its four
+            // candidate cells collapse to one residue class, which always yields one and sometimes two.
+            helper.assertTrue(sumpDeposits == 14,
+                "the sump bedded " + sumpDeposits + " deposits rather than 14 (a 5x3 patch, less the "
+                    + "crate's own cell), so either the bed moved or the crate is eating one of them");
+            helper.assertTrue(runDeposits >= pieces.size() - 1,
+                "only " + runDeposits + " deposits across " + (pieces.size() - 1) + " corridors, and "
+                    + "silt() places at least one whatever its seed - so a corridor is silting up with "
+                    + "nothing at all");
             helper.assertTrue(hollow.isEmpty(),
                 "these deposits have no loot table on them, so they brush away to nothing and the silt "
                     + "is scenery wearing an archaeology texture: " + hollow);
