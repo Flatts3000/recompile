@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## v0.11.0
+
+**There are sewers under the demolition yard.** Brick tunnels running with leachate, dug into rock
+that had to be made deep enough to hold them. They are the first place in this world that is built
+rather than dumped, and the first place worth going down instead of out.
 
 ### The ground got deep
 - **The world now has real rock under it.** It was a coarse-dirt slab 7 to 11 blocks thick sitting on
@@ -17,6 +21,72 @@
 - **It only affects newly generated land.** Chunks an existing save has already visited keep the thin
   slab and will never hold a sewer, and the boundary between old and new terrain will be visible
   where you walk into fresh chunks. A new world avoids both.
+
+### Getting in
+- **Look for a square of pale concrete set flush in the ground, with a rusted plate in the middle.**
+  That is a manhole, and under it is a ladder that goes a long way down.
+- **The plate comes up with a Prybar and nothing else.** Bare hands will tell you so.
+- Sewers are under the **demolition yard**, not the household sprawl, so finding one is a reason to
+  travel rather than something that happens at spawn.
+
+### What a sewer is
+- **Brick corridors, junctions and stairwells**, branching out from one chamber and running downhill.
+- **A leachate channel down the middle of every run**, with dry brick either side to walk on.
+- **Cobwebs**, which come off with shears.
+- **Decay follows the water.** Mossy and cracked brick gather at the waterline rather than scattering
+  evenly, silt settles in the corners where the flow slows, and mushrooms grow in the damp.
+- **Light follows the people.** The chamber, the entrance shaft and the animal dens are lit; the
+  corridors are not, and that is deliberate. Dark is where things spawn, so a lantern in the wrong
+  place would quietly switch the sewer off.
+
+### What lives down there
+- **Slimes.** This is the only place in the world one spawns - the two routes vanilla gives them both
+  need something this world does not have - and a slimeball has no other source here.
+- **Roaches**, which until now could only arrive by being disturbed out of a garbage block. They still
+  can, anywhere; a sewer is the only place they live on their own.
+- **Drowned**, around what is spawning them.
+- **Turtles and frogs**, in a den each - sand for the turtles, mud for the frogs, which is the ground
+  their own game logic names. **There are only ever as many as you find.** They cannot breed or lay
+  eggs down here, so a sewer's animals are the animals it was built with.
+
+### The bottom
+- **Every channel runs downhill and they all run to the same room.** The sump is the low point of the
+  system.
+- **Standing leachate deep enough to go over your head, no lamp, and a drowned spawner on the
+  walkway.** A walkway crosses the entrance so you see the water before you are in it.
+- This is the one place in a sewer that is guaranteed to be dangerous. Everything above it is a roll.
+
+### What you take home
+- **Every sewer has an access chamber**: a dry, lit side room off one of the runs, with barrels in it.
+  The loot used to sit in the room you arrive in; it is now somewhere you have to walk to, and
+  somewhere that explains why it is there.
+- Barrels carry scrap and, less often, a machine part - a Bulb, a Pump, a Motor, a Machine Frame.
+- **An echo shard, in a crate settled in the sump's silt.** One per sewer, and **the only source of
+  one in this world.** It is under the water rather than beside it: the hazard the room already had is
+  what guards it.
+
+### Digging the silt
+- **The silt is suspicious sand and suspicious gravel.** Brush it. Most of what you dig is silt,
+  because that is what silt is, and now and then something that went down a drain a long time ago
+  comes back out of it.
+- **Mining a deposit gives you nothing.** Brush it into ordinary sand or gravel first, then mine that.
+- **A brush is a feather, a stick and a copper ingot, so you want chickens before you want this.**
+  Nothing else in a sewer needs a tool you might not have.
+
+### Leachate can drown you
+- **It could not before, and now it can - everywhere, including the surface pools out in the sprawl.**
+- Drowning is checked at the eye, so one block deep is enough if you are crawling or swimming. Walking
+  through a pool is still fine.
+- It still does no damage on contact, and it still leaves you hungry.
+
+### Fixes
+- **Turtles no longer suffocate in their own den.** A turtle is 1.2 blocks wide - wider than the block
+  it stands on - and three of them were being placed a block apart in a room sized for something
+  narrower, so they spawned inside each other and inside the walls. The den is bigger and the animals
+  are spaced by how wide they actually are.
+- **A Water Tank, Solar Panel or Rain Collector Funnel placed on its own comes back when you break
+  it.** They were vanishing: the block you place and the block a formed machine uses are the same one
+  for those three, and the rule that stops a formed machine dropping loose parts was taking them too.
 
 ## v0.10.0
 
