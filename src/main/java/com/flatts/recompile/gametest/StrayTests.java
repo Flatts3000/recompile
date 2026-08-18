@@ -122,7 +122,14 @@ final class StrayTests {
         //
         // That matters here far more than it would elsewhere: coarse dirt is the entire surface of this
         // world, so any unlit building whose floor a player never replaced was a spawn platform.
-        RCGameTests.test("strays_do_not_spawn_in_the_dark", 40, helper -> {
+        // 120 ticks, not 40. The assertion is already retry-based (succeedWhen), so the budget is the
+        // only knob it has, and 40 stopped being enough the moment the sewer tests landed: they seal
+        // their own chambers and carve rooms, so the light engine has more queued work and this test's
+        // roof takes longer to darken what is under it. It went red on CI at "light 15" while passing
+        // locally - the same shape as the solar panel test, where a budget that held for months did not
+        // hold on a slower machine. Raising it costs nothing, because a passing run still exits on the
+        // first tick the assertion holds.
+        RCGameTests.test("strays_do_not_spawn_in_the_dark", 120, helper -> {
             BlockPos floor = new BlockPos(1, 1, 1);
             BlockPos on = floor.above();
             helper.setBlock(floor, Blocks.COARSE_DIRT);
