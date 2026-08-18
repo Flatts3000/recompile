@@ -423,15 +423,23 @@ final class SewerTests {
         // half of itself and not the other.
         RCGameTests.test("a_deep_crossing_carries_the_spawner", 40, helper -> {
             var level = helper.getLevel();
-            // A box whose hash selects it, at a depth past the second link.
+            // DETERMINISTIC, and against the gate the code actually uses.
+            //
+            // This selected on mod 3 while the placement fires on mod 2 - a leftover from loosening the
+            // gate - so it proceeded on boxes the code rejects and asserted a spawner that was never
+            // going to be there. It also had a skip branch, which meant that on plots where the two
+            // agreed by luck it passed, and on plots where they did not it failed: green locally, green
+            // on one CI run and red on the next for the same commit.
+            //
+            // 31 is odd, so the parity of (x*31 + z) is the parity of (x + z): nudging x by one when
+            // that sum is odd selects the box on any plot, every time. No skip branch, so it always
+            // asserts rather than sometimes excusing itself.
             BlockPos base = helper.absolutePos(new BlockPos(0, 34, 0));
-            int x = base.getX() - Math.floorMod(base.getX() * 31 + base.getZ(), 3) * 1;
+            int x = base.getX() + (Math.floorMod(base.getX() + base.getZ(), 2) == 0 ? 0 : 1);
             BoundingBox box = SewerPieces.SewerPiece.box(
                 x, base.getY(), base.getZ(), Direction.SOUTH, 5, 5, 5);
-            if (Math.floorMod(box.minX() * 31 + box.minZ(), 3) != 0) {
-                helper.succeed();   // this plot's coordinates do not select; nothing to prove here
-                return;
-            }
+            helper.assertTrue(Math.floorMod(box.minX() * 31 + box.minZ(), 2) == 0,
+                "the probe box does not satisfy the spawner gate, so this test proves nothing");
             var crossing = new SewerPieces.SewerCrossing(3, box, Direction.SOUTH);
             BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
                 box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
