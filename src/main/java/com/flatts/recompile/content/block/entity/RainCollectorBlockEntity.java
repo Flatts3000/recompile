@@ -47,6 +47,20 @@ public class RainCollectorBlockEntity extends BlockEntity {
         public boolean isValid(int index, FluidResource resource) {
             return resource.value() == Fluids.WATER;
         }
+
+        // MARK THE CHUNK DIRTY ON EVERY CHANGE, not only the ones this class initiates.
+        //
+        // A bucket goes through FluidUtil and a pipe goes through the capability, and BOTH mutate the
+        // handler directly - so setChanged() called from our own helpers covers exactly the paths a
+        // player does not use. Without this, filling a tank and then quitting without touching
+        // anything else in the chunk loses the water: Level.blockEntityChanged is never called, the
+        // chunk is never flagged unsaved, and it reloads empty. NeoForge names this hook in
+        // StacksResourceHandler's javadoc as the place to trigger setChanged, which is the tell.
+        @Override
+        protected void onContentsChanged(int index, net.neoforged.neoforge.fluids.FluidStack previous) {
+            super.onContentsChanged(index, previous);
+            setChanged();
+        }
     };
 
     public RainCollectorBlockEntity(BlockPos worldPosition, BlockState blockState) {

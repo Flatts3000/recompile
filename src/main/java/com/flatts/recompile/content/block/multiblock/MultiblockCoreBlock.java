@@ -208,8 +208,16 @@ public abstract class MultiblockCoreBlock extends Block {
             }
         }
         for (Multiblock.Cell cell : blueprint.cells()) {
-            consumeOne(player, cell.component().asItem());
-            level.setBlock(cell.at(pos, rotation), cell.component().defaultBlockState(), Block.UPDATE_ALL);
+            // CARRY THE STACK'S COMPONENTS INTO THE PLACED BLOCK. consumeOne matches by item id and
+            // ignores components, so building a machine out of the player's inventory used to empty a
+            // filled Water Tank into nothing (#229) - the stack was spent and a default block was put
+            // down in its place. Same shape as the disband fix and generic for the same reason.
+            ItemStack used = consumeOne(player, cell.component().asItem());
+            BlockPos at = cell.at(pos, rotation);
+            level.setBlock(at, cell.component().defaultBlockState(), Block.UPDATE_ALL);
+            if (!used.isEmpty() && level.getBlockEntity(at) != null) {
+                level.getBlockEntity(at).applyComponentsFromItemStack(used);
+            }
         }
         return AssembleResult.ASSEMBLED;
     }
@@ -224,16 +232,19 @@ public abstract class MultiblockCoreBlock extends Block {
         return total;
     }
 
-    private static void consumeOne(Player player, Item item) {
+    /** Takes one from the player and hands back what was taken, so its components can travel. */
+    private static ItemStack consumeOne(Player player, Item item) {
         if (player.getAbilities().instabuild) {
-            return;
+            return ItemStack.EMPTY;
         }
         for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
             if (stack.is(item) && !stack.isEmpty()) {
+                ItemStack taken = stack.copyWithCount(1);
                 stack.shrink(1);
-                return;
+                return taken;
             }
         }
+        return ItemStack.EMPTY;
     }
 
     /**
