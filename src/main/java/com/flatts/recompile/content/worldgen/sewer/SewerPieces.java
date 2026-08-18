@@ -104,6 +104,14 @@ public final class SewerPieces {
             net.minecraft.resources.Identifier.fromNamespaceAndPath(
                 com.flatts.recompile.Recompile.MOD_ID, "chests/sewer"));
 
+    /**
+     * How wide and how tall a doorway is cut, for rooms wider than the corridor that reaches them.
+     *
+     * <p>Equal to a corridor's walkable bore, which is the point: a door is the size of the passage, not
+     * the size of the room behind it.
+     */
+    private static final int DOOR = INNER;
+
     /** How far a stairs piece descends, and how long it is. Vanilla drops 5 over 8; so do we. */
     private static final int STAIR_DROP = 5;
     private static final int STAIR_RUN = 8;
@@ -146,6 +154,70 @@ public final class SewerPieces {
      * <p>Both guards live here rather than inside the pieces, so there is exactly one place a sewer's
      * extent is decided and a new piece type cannot forget to check them.
      */
+    /**
+     * Put the sump at the lowest end of the finished tree.
+     *
+     * <p><b>The tree decides where it goes, not the structure.</b> A sewer drains downhill, so the low
+     * point is wherever the stairs happened to descend furthest - which is only knowable once the graph
+     * is built. Attaching it anywhere else would make the one room whose position is physically
+     * determined into an arbitrary one.
+     *
+     * <p>It goes through {@code findCollisionPiece} by hand here rather than through {@code grow},
+     * because {@code grow} chooses a piece type at random and this one is not up for a vote.
+     */
+    public static void attachSump(StructurePiece root, StructurePiecesBuilder pieces,
+            RandomSource random) {
+        // DEEPEST FIRST, then the next deepest. Trying only the single lowest piece left 46 sewers in
+        // 200 without a sump: it is a nine-block room and the low end of a sewer is usually the busy
+        // end, so all four of its sides collide. Walking down the list keeps the fiction - the sump is
+        // still at the bottom of the system - while giving it somewhere to actually fit.
+        List<StructurePiece> candidates = new ArrayList<>();
+        for (StructurePiece piece : collect(pieces)) {
+            if (!(piece instanceof SewerRoom) && !(piece instanceof SewerEntrance)) {
+                candidates.add(piece);
+            }
+        }
+        candidates.sort(Comparator.comparingInt(piece -> piece.getBoundingBox().minY()));
+        for (StructurePiece candidate : candidates) {
+            if (trySump(root, pieces, candidate)) {
+                return;
+            }
+        }
+    }
+
+    /** Attempt the sump against one piece, on each of its four sides. */
+    private static boolean trySump(StructurePiece root, StructurePiecesBuilder pieces,
+            StructurePiece against) {
+        if (against.getGenDepth() >= MAX_DEPTH) {
+            return false;   // the same cap growAccess has; without it the sump alone could outrun it
+        }
+        BoundingBox from = against.getBoundingBox();
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            int x = switch (side) {
+                case WEST -> from.minX() - 1;
+                case EAST -> from.maxX() + 1;
+                default -> from.minX();
+            };
+            int z = switch (side) {
+                case NORTH -> from.minZ() - 1;
+                case SOUTH -> from.maxZ() + 1;
+                default -> from.minZ();
+            };
+            // BELOW ITS HOST, by exactly the water depth. The sump is the low point of the system, and
+            // it was previously anchored level with whatever it hung off - so it was the low point in
+            // name only, and its pool had nowhere to go but up against the doorway.
+            BoundingBox box = SewerPiece.box(x, from.minY() - SewerSump.DEPTH, z, side,
+                SewerSump.SIZE, SewerSump.TALL, SewerSump.SIZE);
+            if (Math.abs(x - root.getBoundingBox().minX()) <= RADIUS_CAP
+                    && Math.abs(z - root.getBoundingBox().minZ()) <= RADIUS_CAP
+                    && pieces.findCollisionPiece(box) == null) {
+                pieces.addPiece(new SewerSump(against.getGenDepth() + 1, box, side));
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Make sure the sewer has at least one access chamber, since all of its loot is in them.
      *
@@ -193,8 +265,14 @@ public final class SewerPieces {
             List<StructurePiece> built, int minDepth) {
         List<StructurePiece> candidates = new ArrayList<>();
         for (StructurePiece piece : built) {
+            // THE SUMP IS NOT A HOST. It sorts FIRST here - it is built at the deepest piece's genDepth
+            // plus one, so it usually holds the maximum - which meant the guaranteed dry loot room was
+            // tried against it before anything else, and an access chamber cuts its own doorway through
+            // the shared wall. The one room in the sewer that holds water, drained into the one room
+            // that holds the loot, on exactly the seeds where the fallback fires.
             if (piece instanceof SewerRoom || piece instanceof SewerEntrance
-                    || piece instanceof SewerDen || piece.getGenDepth() < minDepth) {
+                    || piece instanceof SewerDen || piece instanceof SewerSump
+                    || piece.getGenDepth() < minDepth) {
                 continue;
             }
             candidates.add(piece);
@@ -330,6 +408,24 @@ public final class SewerPieces {
          * carves the tunnel across its own width.
          */
         protected void line(WorldGenLevel level, BoundingBox limit, int w, int h, int l) {
+            this.line(level, limit, w, h, l, 1, w - 2, h - 2);
+        }
+
+        /**
+         * Hollow a room and cut a doorway of a stated size at a stated height.
+         *
+         * <p><b>The doorway is not the room.</b> The three-argument form cuts one as wide and as tall as
+         * the piece itself, which is right only while every piece is a corridor: a nine-wide sump against
+         * a five-wide corridor gouged three columns of untouched terrain either side of the mouth and
+         * slotted a hole through the corridor's ceiling course. Deterministically, on every sump.
+         *
+         * <p>{@code doorY} exists because a room is not always on its parent's floor. The sump hangs
+         * below its host so that its pool can sit under the walkway, so its door is up at the top of that
+         * walkway rather than down at its own floor - and a door cut at the wrong height connects a room
+         * to solid rock while looking, in every test that counts pieces, exactly like a connected one.
+         */
+        protected void line(WorldGenLevel level, BoundingBox limit, int w, int h, int l,
+                int doorY, int doorW, int doorH) {
             // Hollow everything first, ends included - that is what connects one piece to the next.
             this.generateBox(level, limit, 0, 0, 0, w - 1, h - 1, l - 1,
                 SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
@@ -358,8 +454,29 @@ public final class SewerPieces {
             //
             // Order makes this safe: a parent is added before its children and postProcesses first, so
             // the child always has the last word on the shared face.
-            this.generateBox(level, limit, 1, 1, -1, w - 2, h - 2, -1,
+            int door = Math.min(doorW, w - 2);
+            int inset = (w - door) / 2;
+            this.generateBox(level, limit, inset, doorY, -1, inset + door - 1,
+                doorY + Math.min(doorH, h - 1 - doorY) - 1, -1,
                 SewerPalette.HOLLOW, SewerPalette.HOLLOW, false);
+        }
+
+        /**
+         * Wall the far end of a room nothing is ever built off.
+         *
+         * <p>{@link #line} leaves <b>both</b> end planes hollow, which is what lets one corridor chain
+         * into the next - and is exactly wrong for a leaf. A terminal room built with {@code line} alone
+         * has a guaranteed hole in its back wall onto raw terrain, and for a room holding water that hole
+         * is also where the water leaves.
+         *
+         * <p>It lives here rather than in the room that first needed it because it has now been needed
+         * twice: the access chamber grew a hand-written copy of this, and the sump - written a day later,
+         * by someone who had read that copy and its comment - shipped without one. The third terminal
+         * room would have done the same. A rule that has to be remembered per piece is not a rule.
+         */
+        protected void sealFarEnd(WorldGenLevel level, BoundingBox limit, int w, int h, int l) {
+            this.generateBox(level, limit, 0, 0, l - 1, w - 1, h - 1, l - 1,
+                SewerPalette.WALL, SewerPalette.WALL, false);
         }
 
         /**
@@ -546,30 +663,11 @@ public final class SewerPieces {
             // A grate in the ceiling, which is what a sewer junction has and what stops a crossing
             // reading as nothing more than a wide bit of corridor.
             this.placeBlock(level, SewerPalette.GRATE, SHELL / 2, SHELL - 1, SHELL / 2, limit);
-            // THE THREAT LIVES DEEPER IN (owner, 2026-08-17). The spawner used to sit five blocks from
-            // the ladder in the root chamber, so a player climbed down into a crowd that had been
-            // accumulating since the chunk loaded - you landed in the payoff instead of walking to it.
-            // Junctions past the second link carry it now, so arriving is quiet and the fight is
-            // something you find.
-            //
-            // Keyed off the BOX rather than the random: postProcess runs once per chunk the piece
-            // overlaps, and a roll would give a different answer on each pass - a spawner that exists in
-            // one chunk's half of a junction and not the other.
-            if (this.getGenDepth() >= 2
-                    && Math.floorMod(this.boundingBox.minX() * 31 + this.boundingBox.minZ(), 2) == 0) {
-                // LOCAL X = 1, THE DRY WALKWAY. channel() fills local x = SHELL/2 for the run, so a
-                // seat at SHELL/2 stood directly over the leachate - putting back the wade-to-reach-it
-                // problem that the chamber's own comment was written about before the spawner moved.
-                BlockPos seat = new BlockPos(this.getWorldX(1, 1), this.getWorldY(1),
-                    this.getWorldZ(1, 1));
-                if (limit.isInside(seat)) {
-                    level.setBlock(seat, SewerPalette.SPAWNER, Block.UPDATE_CLIENTS);
-                    if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
-                            .SpawnerBlockEntity spawner) {
-                        spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
-                    }
-                }
-            }
+            // NO SPAWNER HERE ANY MORE. Junctions carried one past depth 2 on an even box-hash, which
+            // was a stand-in for a guarantee the graph could not give - measured, roughly one sewer in
+            // five had none at all. The sump provides it now, deterministically and for a reason that is
+            // not arithmetic: standing water is where drowned accumulate. Two mechanisms for one threat
+            // is one more than the fiction supports.
         }
     }
 
@@ -850,13 +948,8 @@ public final class SewerPieces {
                 RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
             // line() leaves both ends open, which is what connects this back to the corridor that
             // spawned it - the same doorway mechanism every other piece uses, so no special case.
-            this.line(level, limit, SIZE, TALL, SIZE);
-            // AND A BACK WALL. line() leaves BOTH end planes open, which is what lets corridors chain -
-            // but this room never has a child, so its rear face was guaranteed to be a five-by-four hole
-            // onto bare terrain, directly behind the barrels. A dead-ending corridor has the same
-            // artefact by accident; here it was by construction, in the one room the feature is about.
-            this.generateBox(level, limit, 0, 0, SIZE - 1, SIZE - 1, TALL - 1, SIZE - 1,
-                SewerPalette.WALL, SewerPalette.WALL, false);
+            this.line(level, limit, SIZE, TALL, SIZE, 1, DOOR, DOOR);
+            this.sealFarEnd(level, limit, SIZE, TALL, SIZE);
             // NO CHANNEL and NO FLUID. The point of the room is that it is the dry place.
             BlockPos lamp = new BlockPos(this.getWorldX(SIZE / 2, SIZE / 2), this.getWorldY(TALL - 2),
                 this.getWorldZ(SIZE / 2, SIZE / 2));
@@ -873,6 +966,107 @@ public final class SewerPieces {
                 level.setBlock(at, SewerPalette.BARREL, Block.UPDATE_CLIENTS);
                 net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(
                     level, random, at, BARREL_LOOT);
+            }
+        }
+    }
+
+    /**
+     * The sump: the bottom of the system (#90 improvements, phase 3).
+     *
+     * <p><b>Its position is not a design choice.</b> Everything the channels carry has to go somewhere,
+     * and it goes to the lowest point - so the sump belongs at the deepest end of the piece tree,
+     * wherever the stairs happened to descend furthest. Putting it anywhere else would be the
+     * ham-fisted version of exactly this feature: a room placed because a room was wanted.
+     *
+     * <p>Three things fall out of that placement rather than being added to it:
+     *
+     * <ul>
+     *   <li><b>The deep leachate is not a hazard we installed</b>, it is what a low point in a drainage
+     *       system contains. That is the difference between a hazard and a trap - and it is only lethal
+     *       at all because {@code RCLeachateContact} drains air when the eye is under, which the fluid's
+     *       own {@code canDrown} flag never did.
+     *   <li><b>The drowned belong here.</b> They are what accumulates in standing water, which is a
+     *       better reason for the guaranteed spawner than "somewhere deterministic was needed".
+     *   <li><b>It is dark.</b> Nobody maintained the bottom, so phase 1's lighting rule keeps out on its
+     *       own terms rather than as a spawn concession.
+     * </ul>
+     *
+     * <p><b>Telegraphed, and that is a requirement rather than a nicety.</b> Leachate is opaque and this
+     * room is unlit, so the drop is stepped rather than sheer: a ledge at the entrance, then the deep.
+     * A drop you cannot see is a death with no decision in front of it.
+     */
+    public static class SewerSump extends SewerPiece {
+
+        static final int SIZE = 9;
+        static final int TALL = 7;
+
+        /**
+         * How deep the standing water is, and it now means that.
+         *
+         * <p>Two, so that a player standing on the pool floor has both feet and eyes under - which is the
+         * whole room. It is also how far the sump hangs below its host and where the door is cut, so the
+         * three cannot disagree.
+         *
+         * <p>The first version had it control none of those. It sized a loop writing {@code HOLLOW} into
+         * space {@code line} had already hollowed, while the water itself was two hardcoded lines - so
+         * raising it widened a no-op and left the pool exactly two deep, with the javadoc still claiming
+         * it was the dial.
+         */
+        public static final int DEPTH = 2;
+
+        public SewerSump(int depth, BoundingBox box, Direction facing) {
+            super(RCStructures.SEWER_SUMP.get(), depth, box);
+            this.setOrientation(facing);
+        }
+
+        public SewerSump(CompoundTag tag) {
+            super(RCStructures.SEWER_SUMP.get(), tag);
+        }
+
+        @Override
+        public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
+                RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
+            // THE DOOR IS UP AT WALKWAY HEIGHT. The sump is anchored DEPTH below its host so the pool can
+            // sit under the walkway rather than beside it, so its mouth is DEPTH + 1 up from its own
+            // floor - which is the host corridor's walking level, and a flush step in.
+            this.line(level, limit, SIZE, TALL, SIZE, DEPTH + 1, DOOR, DOOR);
+            this.sealFarEnd(level, limit, SIZE, TALL, SIZE);
+
+            // THE WALKWAY, and it is what makes the water stay in the room. The entrance rows are filled
+            // solid to the waterline, so the pool's top layer is bounded by brick on every side: walls
+            // left and right, the sealed back, and this platform in front.
+            //
+            // The first version left them as open floor at the same level as the pool's surface, which
+            // is a source block with an air neighbour - and StructurePiece.placeBlock schedules a fluid
+            // tick for every fluid it places, so the pool did not sit there, it drained. Over the ledge
+            // that exists to telegraph it, out through the doorway, and into the stairwell that carries
+            // no channel of its own precisely to avoid being flooded.
+            this.generateBox(level, limit, 1, 1, 1, SIZE - 2, DEPTH, DEPTH,
+                SewerPalette.WALL, SewerPalette.WALL, false);
+
+            // THE POOL. Its floor is the room's floor and its surface is flush with the walkway, so a
+            // player steps off into water whose top is level with the brick they were standing on -
+            // visible as a surface, not as a hole. Standing on the bottom puts eyes under.
+            for (int x = 1; x < SIZE - 1; x++) {
+                for (int z = DEPTH + 1; z < SIZE - 1; z++) {
+                    for (int y = 1; y <= DEPTH; y++) {
+                        this.placeBlock(level, SewerPalette.FLUID, x, y, z, limit);
+                    }
+                }
+            }
+
+            // THE SPAWNER, and this is the room's other job: a sewer can otherwise generate with no
+            // drowned at all. Standing water is where drowned accumulate, so the guarantee and the
+            // fiction are the same fact. It sits on the walkway rather than in the pool, because a
+            // spawner block inside the water would displace the water that justifies it.
+            BlockPos seat = new BlockPos(this.getWorldX(SIZE / 2, 1), this.getWorldY(DEPTH),
+                this.getWorldZ(SIZE / 2, 1));
+            if (limit.isInside(seat)) {
+                level.setBlock(seat, SewerPalette.SPAWNER, Block.UPDATE_CLIENTS);
+                if (level.getBlockEntity(seat) instanceof net.minecraft.world.level.block.entity
+                        .SpawnerBlockEntity spawner) {
+                    spawner.setEntityId(net.minecraft.world.entity.EntityType.DROWNED, random);
+                }
             }
         }
     }
