@@ -1,0 +1,68 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:echo_shard"
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "min": 2,
+        "max": 4
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bone",
+          "weight": 20,
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "min": 1, "max": 4 } }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:cullet_glass",
+          "weight": 18,
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "min": 1, "max": 4 } }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:string",
+          "weight": 16,
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:e_scrap",
+          "weight": 14,
+          "functions": [
+            { "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:glass_bottle",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:nautilus_shell",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 24
+        }
+      ]
+    }
+  ]
+}

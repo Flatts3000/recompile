@@ -21,6 +21,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+import java.util.TreeSet;
+import net.minecraft.tags.TagKey;
 
 /**
  * The sewer's shape and its palette (#90, phase 2).
@@ -1149,6 +1151,164 @@ final class SewerTests {
             helper.succeed();
         });
 
+        // THE ONE THING ONLY A SEWER GIVES (#90 improvements, phase 4).
+        //
+        // This is the twin check the found_only rule already uses, because the failure has two halves
+        // and fixing one without the other is worse than neither: an item with no source is not "rare",
+        // it is a bug nobody can see, and an item with a second source is not exclusive however loudly
+        // the docs say it is. So one half asserts the sump crate really carries it, and the other walks
+        // everything the mod ships looking for a second way to get one.
+        RCGameTests.test("the_echo_shard_comes_from_the_sump_and_from_nowhere_else", 40, helper -> {
+            var level = helper.getLevel();
+            var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "chests/sump"));
+            helper.assertTrue(level.getServer().reloadableRegistries().getLootTable(key)
+                    != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
+                "recompile:chests/sump resolves to nothing, so the crate at the bottom of every sewer is "
+                    + "empty and the phase ships an item with no source at all");
+
+            BlockPos at = helper.absolutePos(new BlockPos(0, 34, 0));
+            BoundingBox box = SewerPieces.SewerPiece.box(at.getX(), at.getY(), at.getZ(),
+                Direction.SOUTH, 9, 7, 9);
+            BoundingBox limit = new BoundingBox(box.minX() - 8, box.minY() - 8, box.minZ() - 8,
+                box.maxX() + 8, box.maxY() + 8, box.maxZ() + 8);
+            new SewerPieces.SewerSump(3, box, Direction.SOUTH).postProcess(
+                level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(9L), limit,
+                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
+            int crates = 0;
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int y = box.minY(); y <= box.maxY(); y++) {
+                    for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                        if (level.getBlockEntity(new BlockPos(x, y, z))
+                                instanceof net.minecraft.world.RandomizableContainer c
+                                && key.equals(c.getLootTable())) {
+                            crates++;
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(crates == 1,
+                "the sump holds " + crates + " stocked crates rather than exactly 1 - the reward is "
+                    + "supposed to be one thing at the bottom of one room");
+
+            // AND NO SECOND ROUTE, through the registry rather than through the filesystem.
+            //
+            // The first version of this walked /data/recompile/loot_table on the classpath and grepped.
+            // It found ZERO files - NeoForge's dev classpath resolves an individual resource but returns
+            // null for a directory URL - so the emptiness assertion beneath it held against anything,
+            // and adding an echo shard to the sewer barrel table did not move it. LootSearch already
+            // solved this for the found_only rule by listing table IDS from the loaded registry and
+            // reading each one by its known path.
+            //
+            // A DATAPACK'S TABLE IS NOT COVERED, and the first version of this comment claimed it was.
+            // LootSearch takes only the ID LIST from the registry and reads contents off the classpath,
+            // so a table a pack adds or overrides is exactly the case it cannot see. That is why the
+            // skipped-table assertion below exists rather than being belt-and-braces: it turns the blind
+            // spot into a failure instead of a clean result.
+            var shard = net.minecraft.world.item.Items.ECHO_SHARD;
+            var tables = new TreeSet<>(LootSearch.tablesThatCanDrop(level, shard));
+            var unread = LootSearch.tablesNotRead(level);
+            helper.assertTrue(unread.isEmpty(),
+                "these loot tables are in the registry but were not read, so a second source could be "
+                    + "sitting in one of them and this sweep would still come back clean: " + unread);
+            helper.assertTrue(tables.remove("recompile:chests/sump"),
+                "recompile:chests/sump cannot produce an echo shard. The tables that can are " + tables
+                    + " - if that is empty the phase ships an item that exists in the registry and "
+                    + "nowhere in the world, which is not rarity but a bug no player can tell from one; "
+                    + "if it is not, the reward simply moved and the sump is a dry hole");
+            helper.assertTrue(tables.isEmpty(),
+                "the echo shard has a second loot source, so it is not the one thing only a sewer "
+                    + "gives: " + tables);
+
+            // AND NOTHING CRAFTS ONE EITHER. A loot-only sweep would miss a recipe, which is the other
+            // half of the found_only twin check and the half that costs nothing to run.
+            //
+            // TWICE, because neither pass sees everything. display() is empty for this mod's OWN recipe
+            // types - separating and pulverizing both return List.of(), and teardown never overrides it -
+            // so a display-only sweep is blind to precisely the schemas a pack extends. It was written
+            // that way first, and counting recipes did not save it: that counts recipes, not readable
+            // ones. The second pass reads every recompile: recipe as JSON, by id from the loaded registry
+            // and path by convention, which is the same trick LootSearch uses and for the same reason.
+            List<String> crafted = new ArrayList<>();
+            List<String> unreadable = new ArrayList<>();
+            int readable = 0;
+            for (var holder : level.recipeAccess().recipeMap().values()) {
+                for (var display : holder.value().display()) {
+                    readable++;
+                    if (RecipeResults.produces(display.result(), shard)) {
+                        crafted.add(String.valueOf(holder.id().identifier()));
+                    }
+                }
+                var rid = holder.id().identifier();
+                if (!Recompile.MOD_ID.equals(rid.getNamespace())) {
+                    continue;
+                }
+                String body = null;
+                try (var in = SewerTests.class.getResourceAsStream(
+                        "/data/" + rid.getNamespace() + "/recipe/" + rid.getPath() + ".json")) {
+                    if (in != null) {
+                        body = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                    }
+                } catch (java.io.IOException e) {
+                    helper.fail("could not read recipe " + rid + ": " + e);
+                    return;
+                }
+                if (body == null) {
+                    unreadable.add(rid.toString());
+                } else if (body.contains("minecraft:echo_shard")) {
+                    crafted.add(rid.toString());
+                }
+            }
+            helper.assertTrue(readable > 100,
+                "only " + readable + " recipes had a readable result, so the display half of this sweep "
+                    + "is measuring an empty set");
+            helper.assertTrue(unreadable.isEmpty(),
+                "these mod recipes could not be read, so a custom-type recipe making an echo shard would "
+                    + "be invisible to both halves of this sweep: " + unreadable);
+            helper.assertTrue(crafted.isEmpty(),
+                "the echo shard can be crafted, so it is found in name only: " + crafted);
+
+            // AND VANILLA'S OWN SOURCE IS OUT OF REACH. An echo shard is Ancient City loot, which needs
+            // a deep dark - so the exclusivity claim rests on this world containing none.
+            //
+            // OVER THE WORLD PRESET, not over our own biomes. The first version asked whether any
+            // recompile: biome was in #minecraft:has_structure/ancient_city, which is near-tautological:
+            // a mod biome only enters that vanilla tag if this mod puts it there. The regression that
+            // matters is a VANILLA biome entering the region source, and adding minecraft:deep_dark to
+            // the preset would have kept that version green.
+            String preset;
+            try (var in = SewerTests.class.getResourceAsStream(
+                    "/data/recompile/worldgen/world_preset/garbage.json")) {
+                helper.assertTrue(in != null, "the garbage world preset is not on the classpath");
+                preset = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException e) {
+                helper.fail("could not read the garbage world preset: " + e);
+                return;
+            }
+            var cities = TagKey.create(Registries.BIOME,
+                Identifier.withDefaultNamespace("has_structure/ancient_city"));
+            List<String> placeable = new ArrayList<>();
+            List<String> deep = new ArrayList<>();
+            level.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(holder -> {
+                String id = holder.key().identifier().toString();
+                if (!preset.contains("\"" + id + "\"")) {
+                    return;
+                }
+                placeable.add(id);
+                if (holder.is(cities)) {
+                    deep.add(id);
+                }
+            });
+            helper.assertTrue(!placeable.isEmpty(),
+                "the world preset names no biome this test could resolve, so the Ancient City check is "
+                    + "measuring an empty set");
+            helper.assertTrue(deep.isEmpty(),
+                "the garbage world can place " + deep + ", which hosts Ancient Cities - vanilla's own "
+                    + "echo shard source - so the sewer is no longer the only one");
+            helper.succeed();
+        });
+
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.
@@ -1184,4 +1344,5 @@ final class SewerTests {
             helper.succeed();
         });
     }
+
 }

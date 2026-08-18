@@ -112,6 +112,20 @@ public final class SewerPieces {
      */
     private static final int DOOR = INNER;
 
+    /**
+     * What the crate settled in the sump's silt holds (#90 improvements, phase 4).
+     *
+     * <p>Separate from {@code BARREL_LOOT} because it answers a different question. The access chamber's
+     * barrels are a maintenance crew's stores - bulk salvage and a component - and they are the reason to
+     * clear a sewer. This is the reason to go to the <b>bottom</b> of one, and it is the only source of
+     * an echo shard in the world.
+     */
+    private static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot
+        .LootTable> SUMP_LOOT = net.minecraft.resources.ResourceKey.create(
+            net.minecraft.core.registries.Registries.LOOT_TABLE,
+            net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                com.flatts.recompile.Recompile.MOD_ID, "chests/sump"));
+
     /** How far a stairs piece descends, and how long it is. Vanilla drops 5 over 8; so do we. */
     private static final int STAIR_DROP = 5;
     private static final int STAIR_RUN = 8;
@@ -1053,6 +1067,26 @@ public final class SewerPieces {
                         this.placeBlock(level, SewerPalette.FLUID, x, y, z, limit);
                     }
                 }
+            }
+
+            // WHAT WASHED DOWN (#90 improvements, phase 4). The heavy fraction settles at the low
+            // point, so the pool floor carries a gravel bed, and something that came down with it is
+            // still sitting in the bed holding what was inside it.
+            //
+            // The reward is under the water rather than beside it, which is the point of putting it
+            // here: the hazard the room already had is what guards it. You swim down, you dig, and the
+            // clock the leachate started is the reason you might not manage all of it in one go.
+            for (int x = 2; x < SIZE - 2; x++) {
+                for (int z = DEPTH + 2; z < SIZE - 2; z++) {
+                    this.placeBlock(level, SewerPalette.SILT, x, 0, z, limit);
+                }
+            }
+            BlockPos crate = new BlockPos(this.getWorldX(SIZE / 2, SIZE - 3), this.getWorldY(0),
+                this.getWorldZ(SIZE / 2, SIZE - 3));
+            if (limit.isInside(crate)) {
+                level.setBlock(crate, SewerPalette.BARREL, Block.UPDATE_CLIENTS);
+                net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(
+                    level, random, crate, SUMP_LOOT);
             }
 
             // THE SPAWNER, and this is the room's other job: a sewer can otherwise generate with no
