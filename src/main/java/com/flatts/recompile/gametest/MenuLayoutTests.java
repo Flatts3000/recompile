@@ -169,6 +169,49 @@ final class MenuLayoutTests {
             report(helper, clashes, "screen elements drawn on top of each other");
         });
 
+        // A GRID OF CELLS SITS IN THE MIDDLE OF ITS PANEL.
+        //
+        // Not a law about layout in general - a well is anchored to the left edge on purpose, and a
+        // countdown to the right. It is a law about GRIDS, because a grid is a block of interchangeable
+        // cells with no reason to favour a side, and because widening one is the one edit that moves
+        // its right edge and leaves its left where it was.
+        //
+        // Which is exactly what happened (#230): the Tree Nursery's species picker went from four
+        // columns to five to fit a ninth species, the origin stayed at x=52, and the picker ended up
+        // eight pixels - half a slot - right of centre, no longer under the Fertilizer slot above it.
+        // Every sweep above stayed green, because 52..140 neither collides with anything nor leaves the
+        // panel. Nothing in this file could see it and nothing was going to until somebody opened the
+        // screen.
+        RCGameTests.test("a_grid_of_cells_is_centred_in_its_panel", 20, helper -> {
+            List<String> crooked = new ArrayList<>();
+            for (Screen screen : SCREENS) {
+                Map<String, Rect> spans = new java.util.LinkedHashMap<>();
+                for (Map.Entry<ScreenLayout.Group, Rect> entry : screen.layout().everything()) {
+                    ScreenLayout.Group group = entry.getKey();
+                    if (group.kind() != ScreenLayout.Kind.CELL || group.count() <= 1) {
+                        continue;
+                    }
+                    Rect cell = entry.getValue();
+                    spans.merge(group.name(), cell, (a, b) -> new Rect(
+                        Math.min(a.x(), b.x()), Math.min(a.y(), b.y()),
+                        Math.max(a.right(), b.right()) - Math.min(a.x(), b.x()),
+                        Math.max(a.bottom(), b.bottom()) - Math.min(a.y(), b.y())));
+                }
+                for (Map.Entry<String, Rect> span : spans.entrySet()) {
+                    int left = span.getValue().x();
+                    int right = screen.layout().width() - span.getValue().right();
+                    // A pixel of slack: an odd leftover cannot be split evenly and either side is fine.
+                    if (Math.abs(left - right) > 1) {
+                        crooked.add(screen.name() + ": the " + span.getKey() + " grid spans "
+                            + span.getValue() + " in a " + screen.layout().width()
+                            + "-wide panel - " + left + "px of margin on the left against " + right
+                            + " on the right");
+                    }
+                }
+            }
+            report(helper, crooked, "cell grids sitting off the centre of their panel");
+        });
+
         // Anything outside the panel is drawn over the world: clickable at some resolutions, invisible at
         // others, and always wrong.
         RCGameTests.test("no_screen_element_leaves_the_panel", 20, helper -> {
