@@ -40,24 +40,43 @@ furnace, which skips the Cupola and opens the iron gate. **The classic mossy-cob
 one thing that cannot be built.** `mossy_stone_bricks` gets the same read and is not in the tag.
 Enforced by `the_sewer_palette_opens_no_gate`, which walks `SewerPalette.ALL`.
 
-**2. Every block the structure places must be in `SewerPalette.ALL`, or constraint 1 is not enforced.**
-The list only works if it is complete, and it has silently stopped being complete twice - the ladder,
-pad, cover and barrel were all placed from constants declared elsewhere. Adding a block anywhere other
-than the palette is how the guard becomes decoration.
+**2. Every block the structure places must end up in `SewerPalette.ALL`** - but this is a **soft
+constraint at planning time** (owner, 2026-08-17). It is an implementation obligation, not a design one,
+and it must not shape what gets considered. The list only enforces constraint 1 while it is complete,
+and it has silently stopped being complete twice - the ladder, pad, cover and barrel were all placed
+from constants declared elsewhere - so the rule at *build* time is still absolute. At *spec* time,
+ignore it.
 
-**3. Light is a mob budget, not decoration.** The drowned spawner checks light
-(`ignoresLightRequirements` is `TRIAL_SPAWNER`-only in 26.1) and the slime rule tests it directly. Every
-lantern, `glow_lichen` (light 7) or copper bulb carves a dead zone into the structure built to be
-inhabited. This is the argument that cut phase 0's held light, and it applies unchanged to decorative
-light sources.
+**3. Lights are wanted, sparse, and must not interfere with spawners** (owner, 2026-08-17). This
+revises the flat prohibition that was here.
 
-**4. Anything the structure places becomes obtainable, and must be checked against
-`progression_gates.md` before it lands, not after.** Mud went in as a frog-den floor and a false
-justification for it was written the same hour: *"nothing else in this world produces mud"* - untrue,
-because `#minecraft:convertable_to_mud` contains **coarse dirt**, this world's entire surface, and a
-water bottle converts it. That was the **third** instance of the same mistake (the glass-bottle gate and
-the iron gate #91 were the first two). **Scarcity measured by reading the mod's own content is not
-scarcity; what decides it is what vanilla does with the world's substrate.**
+The mechanism to design around: since 1.18 a hostile spawn needs block light **0**, so *any* light
+source suppresses spawning in its radius - the light level does not soften this, only the radius
+changes. `ignoresLightRequirements` is `TRIAL_SPAWNER`-only in 26.1, so the drowned spawner is subject
+to it too, and the slime rule tests darkness directly.
+
+**Therefore light is a placement question, not a brightness question.** The rule that follows:
+
+> **Light belongs only in spaces that are deliberately unspawnable, and stays out of the ones that are
+> not.** Lit: the root chamber (already deliberately quiet), the entrance shaft, the dens, and any
+> maintenance room. Dark: every corridor and junction, which is where the spawner and the slimes live.
+
+Sparse is the second half. A lantern every few blocks turns a sewer into a lit corridor with a roof; the
+target is enough to read the space by and not enough to walk it comfortably. Dim sources buy atmosphere
+rather than safety - `glow_lichen` (7), soul lanterns (10), candles (3-12) - but note they suppress
+spawns exactly as hard as a lantern does, so "dim" is an aesthetic choice, never a compromise.
+
+**4. Anything the structure places becomes obtainable, and that is allowed** (owner, 2026-08-17): more
+obtainables in the sewer are wanted. The obligation is to **record** each one in
+`progression_gates.md`, not to avoid it.
+
+What does *not* relax is the measuring. Mud went in as a frog-den floor and a false justification was
+written the same hour - *"nothing else in this world produces mud"* - untrue, because
+`#minecraft:convertable_to_mud` contains **coarse dirt**, this world's entire surface, and a water
+bottle converts it. That was the **third** instance of one mistake (the glass-bottle gate and the iron
+gate #91 were the first two). **Scarcity measured by reading the mod's own content is not scarcity; what
+decides it is what vanilla does with the world's substrate.** Adding a material is cheap; claiming it is
+new without checking is what costs.
 
 **5. Local coordinates are not world coordinates.** `getWorldX(x, z)` swaps local X and Z on EAST/WEST
 pieces and passes local values through **as absolute** when `getOrientation()` is null. Derive extents
@@ -76,6 +95,32 @@ through `grow`. Anything the structure attaches directly - the entrance, the den
 **8. The fluid may never be `minecraft:water`.** It ends the Rain Collector's monopoly (locked P1.10) the
 moment sewers are reachable. Leachate exists precisely so this constraint costs nothing.
 
+**9. `getBaseHeight` returns the first *air* block**, not the top solid one - the heightmap stores
+`y + 1`. Every improvement that touches the surface hits this, and it is what generated the manhole
+buried under a block of coarse dirt.
+
+**10. `placeBlock` mirrors the state it is given, and `mirror` is null unless `setOrientation` was
+called.** Almost every block ignores mirroring, so this bites only on **directional** blocks - which is
+most of category A: vines, pointed dripstone, stairs, trapdoors, lanterns, anything wall-mounted.
+
+**11. The sewer generates at `underground_structures`; the yard's own features run later at
+`vegetal_decoration`.** Anything the sewer places at or near the surface can have rubble stacked on it
+afterwards, and clearing the column at generation time does **not** help - the features run after the
+clearing. This taxes every entrance idea in category C.
+
+**12. The player should be able to drown in leachate** (owner, 2026-08-17). **This reverses the
+2026-08-17 depth ruling** recorded in `RCFluids` and in `sewers_spec.md`, which set `canDrown(false)` on
+the fluid because one-block depth could not deliver a no-drowning guarantee on its own.
+
+Two consequences to carry:
+
+- It is a property of the **fluid**, so it applies everywhere leachate exists, including the surface
+  pools from #156. Those are one block deep, which does not make drowning impossible - the check is at
+  the **eye**, and `canSwim(true)` is set, so a crawling or swimming player already has eyes in the
+  fluid.
+- It removes the argument that kept deep sections out of category D. A sump can now hold two-block
+  leachate as a genuine hazard rather than as a rules violation.
+
 ---
 
 ## A. Dressing - the palette
@@ -91,8 +136,15 @@ XS-S; the cost is not the code, it is constraint 4 on each block.
 | **Pipe** - `copper_grate` at junctions, oxidised copper stubs | **S.** Palette plus placement. | **Medium: copper is this world's everyman metal**, gated behind the Burn Barrel. Free copper blocks is a gate question, not a dressing question. |
 | **Limescale** - `dripstone_block` and `pointed_dripstone` where the ceiling drips | **M.** Pointed dripstone needs a supporting block and an up/down state; placing it blind produces floating spikes. | Low on gates, medium on geometry. |
 
+| **Light, sparse** - lanterns or soul lanterns in the chamber, the shaft, the dens and any maintenance room | **S.** Palette plus placement, and a placement *rule* rather than a scatter. | **Medium, and it is a spawn question not a light question.** Any source suppresses hostile spawns in its radius, so this only works while it stays out of corridors and junctions. A lantern in a junction quietly turns off that junction's spawner. |
+
 **Recommended first:** aged masonry and silt beds. They change how the whole structure reads, cost two
 palette entries each, and neither touches a gate.
+
+**And the light pass alongside them**, because it is the same size and the rule it needs - lit rooms,
+dark corridors - is easiest to get right while the room types are few. Adding light later, once there
+are maintenance rooms and sumps and junction halls, means auditing every one of them for whether it is
+meant to spawn.
 
 ---
 
