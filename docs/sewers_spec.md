@@ -82,30 +82,35 @@ design". **Leachate is better on every axis and it already ships** (#156):
   the bottom as this. The fiction needed no invention.
 
 **Depth is one block, matching the pools** (owner, 2026-08-17): leachate is atmosphere plus a Hunger
-tax, not a drowning hazard. Corridors stay walkable and the generator never has to reason about a body
+tax, not a drowning hazard. **Superseded the same day - see below: leachate drowns you now, and the
+corridors stay one block deep for the other reasons.** Corridors stay walkable and the generator never
+has to reason about a body
 deep enough to trap a player.
 
-**Depth alone does not deliver that, which is why `canDrown` is now false.** An earlier version of this
+**Depth alone never delivered that, and the ruling has since reversed: leachate drowns you**
+(owner, 2026-08-17). `canDrown` is `true` on the fluid again. An earlier version of this
 paragraph said one block keeps `canDrown` inert. That does not follow: drowning is evaluated at the
 **eye**, not from the depth of the pool. `canSwim(true)` is set, a crawling or swimming player has eyes
 inside a one-block body, and the Shape row above commits to corridors that branch and descend - so a
 source on an upper level weeps down a stair and puts a falling column at head height on the level below.
-The guarantee the owner asked for is a property of the fluid, so it is set on the fluid:
-`canDrown(false)` in `RCFluids`, with `leachate_never_drowns_anyone` holding it there. This changes
-nothing about the pools, where it was already unreachable.
+The reasoning stands and the conclusion flipped: because the check is at the **eye** and
+`canSwim(true)` is set, depth cannot decide this either way - so the value belongs on the fluid, and the
+owner has set it to drown. `leachate_can_drown_you` holds it there. It applies **everywhere leachate
+exists**, the surface pools included, and a one-block pool is genuinely enough for a player who crawls
+or swims: that is the accepted cost of the ruling, not an oversight in it.
 
 **Two consequences, because leachate was built for puddles and a sewer is not one.**
 
-1. **A deeper body would make `canDrown` reachable for the first time** - which is why it is not being
-   built. The flag is set in `RCFluids` and has been inert since the fluid shipped - its own javadoc
-   says so: "`canDrown` is set but unreachable because pools are one block deep". `LeachatePoolFeature`
-   has `DEPTH = 1`, and `RCLeachateContact` checks the entity's **feet** with a comment explaining that
-   an eye check would never fire on anything taller than a chicken. Two blocks of leachate in a corridor
-   turns all three of those statements false at once and adds drowning to a structure whose hazard
-   budget nobody has set. **Corridor depth is therefore a decision, not a detail.**
-2. **Hunger was tuned for a puddle you cross, not a corridor you wade.** `LeachateBlock.sicken` applies
-   Hunger, refreshed rather than stacked, so it holds steady instead of banking - correct for a pool you
-   step through in a second, and an open question for a structure you spend minutes inside.
+1. ~~**A deeper body would make `canDrown` reachable for the first time.**~~ **Wrong, and wrong in a way
+   worth keeping.** `canDrown` was never reachable at any depth: NeoForge's
+   `CommonHooks.onLivingBreathe` - the only consumer of `canDrownIn` - is **commented out** in
+   26.1.2.76, and the patched `LivingEntity.baseTick` calls vanilla `isEyeInFluid(FluidTags.WATER)`
+   directly, which leachate can never satisfy because it is deliberately in no fluid tag. The flag has
+   been inert since the fluid shipped. Both stories told about it here - "unreachable because pools are
+   one block deep" and later "reachable, so set it false" - were guesses at a mechanism nobody had
+   read, and `RCLeachateContact`'s own javadoc had already recorded the truth. Deep sections are
+   **permitted** (see `sewer_improvements_spec.md`), and drowning is delivered by that class draining
+   air itself.
 
 **A gate hole found while writing this, filed separately.** Plain `minecraft:deepslate` sits in
 `mineable/pickaxe` and in no `needs_*_tool` tag, so a **wooden** pickaxe drops cobbled deepslate - which
@@ -598,7 +603,9 @@ material economy may need retuning with them rather than around them.
 - **~~How much deeper the slab goes.~~** Answered 2026-08-17 and shipped: 55-61 blocks of tunnelable
   rock against a requirement of 45. See phase 2.
 - **~~What sewage is, mechanically.~~** Answered 2026-08-17: it is leachate, and there is no filter.
-- **~~How deep leachate lies in a corridor.~~** Answered 2026-08-17: one block, so drowning stays out.
+- **~~How deep leachate lies in a corridor.~~** Answered 2026-08-17: one block. The drowning half of
+  that answer was reversed the same day - leachate drowns you now, by an explicit air drain rather than
+  by the fluid flag, which never worked.
 - **Whether Hunger-on-contact is right for a structure you spend minutes in**, or wants its own number.
 - **Phase 0's answer.** Held torch light may not survive contact.
 - **~~Slime as a mob or as a found substance.~~** Answered 2026-08-17: both.
