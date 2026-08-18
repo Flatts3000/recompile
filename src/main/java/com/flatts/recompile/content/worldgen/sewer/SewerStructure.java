@@ -60,6 +60,11 @@ public class SewerStructure extends Structure {
             0, random, chunk.getBlockX(2), chunk.getBlockZ(2));
         pieces.addPiece(room);
         room.addChildren(room, pieces, random);
+        // BEFORE THE CLAMP, not after. sink() measures the assembled tree to keep the roof COVER blocks
+        // under the surface, so a piece added afterwards is not measured - and an access chamber is six
+        // tall against a corridor's five, so a forced one anchored to the topmost corridor pushed the
+        // sewer's roof a block higher than the clamp allowed and quietly ate a sixth of the cover.
+        SewerPieces.forceAccessChamber(room, pieces, random);
 
         // THE LOWEST SURFACE OVER THE WHOLE FOOTPRINT, not the height at the middle. Pieces reach 80
         // blocks out on each axis and the surface ranges 63..69 across this world, so a tree sunk
@@ -105,7 +110,6 @@ public class SewerStructure extends Structure {
         // Forced only if the roll produced none, so the common case stays organic and the fallback is
         // invisible. It still goes through findCollisionPiece, so a forced room cannot land on anything
         // either.
-        SewerPieces.forceAccessChamber(room, pieces, random);
         pieces.addPiece(new SewerPieces.SewerEntrance(1, shaft));
         // A DEN EACH, and WHERE is the whole difficulty. Deterministic rather than grown from the
         // graph, because "one module each" is a promise about the population and a random walk cannot

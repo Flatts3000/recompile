@@ -107,8 +107,25 @@ public final class SewerPalette {
      */
     public static final BlockState FINE_SILT = Blocks.SAND.defaultBlockState();
 
-    /** Damp growth, which needs dark and gets it everywhere down here. */
-    public static final BlockState GROWTH = Blocks.BROWN_MUSHROOM.defaultBlockState();
+    /**
+     * Damp growth, which needs dark and gets it everywhere down here.
+     *
+     * <p><b>RED, not brown, and the difference is not aesthetic.</b> {@code brown_mushroom} carries
+     * {@code .lightLevel(1)}. A hostile spawn needs block light <b>0</b>, so a scatter of brown mushrooms
+     * down a corridor quietly switches off the spawns that corridor exists to host - the same failure as
+     * hanging a lantern there, hidden in a block nobody thinks of as a light. Red emits nothing.
+     *
+     * <p><b>It shipped brown, and the test that exists to catch exactly this went green for a whole
+     * phase.</b> The growth is seeded from the piece's own bounding box, and a GameTest plot lands at a
+     * different absolute position on every run - so whether any mushroom was placed at all in the probed
+     * corridor was a coin flip per run, and the first several came up empty. A flaky test that fails open
+     * reads as a passing one.
+     *
+     * <p>Not the mod's own Dump Mushroom, which would be the thematic pick: its {@code mayPlaceOn} is
+     * restricted to mycelium and dirt, and widening that to accept brick would change where a player can
+     * plant one everywhere in the world - a bigger change than this corridor deserves.
+     */
+    public static final BlockState GROWTH = Blocks.RED_MUSHROOM.defaultBlockState();
 
     /**
      * Maintenance lighting.
