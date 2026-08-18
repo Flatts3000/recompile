@@ -40,15 +40,36 @@ final class LootSearch {
     /** Every item any of this mod's loot tables can produce. Built once, then cached. */
     private static Set<Item> droppable;
 
+    /** Which tables can produce each item, for the times "is there a source" is not the question. */
+    private static java.util.Map<Item, Set<String>> sources;
+
     static boolean anyTableCanDrop(ServerLevel level, Item item) {
         if (droppable == null) {
-            droppable = collect(level);
+            collect(level);
         }
         return droppable.contains(item);
     }
 
-    private static Set<Item> collect(ServerLevel level) {
-        Set<Item> found = new HashSet<>();
+    /**
+     * Which of this mod's loot tables can produce an item, by id.
+     *
+     * <p>Exists for the exclusivity question rather than the existence one: an item that must come from
+     * exactly one place needs the list, not the boolean. The obvious way to write that check - walk the
+     * data directory and grep - does not work here at all: NeoForge's dev classpath resolves individual
+     * resources but hands back null for a directory URL, so the walk finds zero files and the emptiness
+     * assertion built on it passes against anything. That was written, driven with a deliberate second
+     * source, and quietly stayed green.
+     */
+    static Set<String> tablesThatCanDrop(ServerLevel level, Item item) {
+        if (sources == null) {
+            collect(level);
+        }
+        return sources.getOrDefault(item, Set.of());
+    }
+
+    private static void collect(ServerLevel level) {
+        droppable = new HashSet<>();
+        sources = new java.util.HashMap<>();
         for (var key : level.getServer().reloadableRegistries().lookup()
                 .lookupOrThrow(Registries.LOOT_TABLE).listElementIds().toList()) {
             Identifier id = key.identifier();
@@ -56,11 +77,16 @@ final class LootSearch {
                 continue;
             }
             JsonElement root = read("/data/" + id.getNamespace() + "/loot_table/" + id.getPath() + ".json");
-            if (root != null) {
-                walk(level, root, found);
+            if (root == null) {
+                continue;
+            }
+            Set<Item> here = new HashSet<>();
+            walk(level, root, here);
+            droppable.addAll(here);
+            for (Item item : here) {
+                sources.computeIfAbsent(item, ignored -> new HashSet<>()).add(id.toString());
             }
         }
-        return found;
     }
 
     /**

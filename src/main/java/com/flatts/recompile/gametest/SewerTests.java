@@ -1152,6 +1152,102 @@ final class SewerTests {
         // IT IS BOUNDED. Two sewers must not merge and one must not run for a thousand blocks, so the
         // extent is checked on every seed rather than on average - this is the assertion where a single
         // outlier IS the bug.
+        // THE ONE THING ONLY A SEWER GIVES (#90 improvements, phase 4).
+        //
+        // This is the twin check the found_only rule already uses, because the failure has two halves
+        // and fixing one without the other is worse than neither: an item with no source is not "rare",
+        // it is a bug nobody can see, and an item with a second source is not exclusive however loudly
+        // the docs say it is. So one half asserts the sump crate really carries it, and the other walks
+        // everything the mod ships looking for a second way to get one.
+        RCGameTests.test("the_echo_shard_comes_from_the_sump_and_from_nowhere_else", 40, helper -> {
+            var level = helper.getLevel();
+            var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "chests/sump"));
+            helper.assertTrue(level.getServer().reloadableRegistries().getLootTable(key)
+                    != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
+                "recompile:chests/sump resolves to nothing, so the crate at the bottom of every sewer is "
+                    + "empty and the phase ships an item with no source at all");
+
+            BlockPos at = helper.absolutePos(new BlockPos(0, 34, 0));
+            BoundingBox box = SewerPieces.SewerPiece.box(at.getX(), at.getY(), at.getZ(),
+                Direction.SOUTH, 9, 7, 9);
+            BoundingBox limit = new BoundingBox(box.minX() - 8, box.minY() - 8, box.minZ() - 8,
+                box.maxX() + 8, box.maxY() + 8, box.maxZ() + 8);
+            new SewerPieces.SewerSump(3, box, Direction.SOUTH).postProcess(
+                level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(9L), limit,
+                new net.minecraft.world.level.ChunkPos(box.minX() >> 4, box.minZ() >> 4), at);
+            int crates = 0;
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int y = box.minY(); y <= box.maxY(); y++) {
+                    for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                        if (level.getBlockEntity(new BlockPos(x, y, z))
+                                instanceof net.minecraft.world.RandomizableContainer c
+                                && key.equals(c.getLootTable())) {
+                            crates++;
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(crates == 1,
+                "the sump holds " + crates + " stocked crates rather than exactly 1 - the reward is "
+                    + "supposed to be one thing at the bottom of one room");
+
+            // AND NO SECOND ROUTE, through the registry rather than through the filesystem.
+            //
+            // The first version of this walked /data/recompile/loot_table on the classpath and grepped.
+            // It found ZERO files - NeoForge's dev classpath resolves an individual resource but returns
+            // null for a directory URL - so the emptiness assertion beneath it held against anything,
+            // and adding an echo shard to the sewer barrel table did not move it. LootSearch already
+            // solved this for the found_only rule by listing table IDS from the loaded registry and
+            // reading each one by its known path; reusing it is also why a datapack table is covered.
+            var shard = net.minecraft.world.item.Items.ECHO_SHARD;
+            var tables = new java.util.TreeSet<>(LootSearch.tablesThatCanDrop(level, shard));
+            helper.assertTrue(tables.remove("recompile:chests/sump"),
+                "no loot table in the mod can produce an echo shard, so the phase ships an item that "
+                    + "exists in the registry and nowhere in the world - which is not rarity, it is a "
+                    + "bug no player can distinguish from one");
+            helper.assertTrue(tables.isEmpty(),
+                "the echo shard has a second loot source, so it is not the one thing only a sewer "
+                    + "gives: " + tables);
+
+            // AND NOTHING CRAFTS ONE EITHER. A loot-only sweep would miss a recipe, which is the other
+            // half of the found_only twin check and the half that costs nothing to run.
+            List<String> crafted = new ArrayList<>();
+            int seen = 0;
+            for (var holder : level.recipeAccess().recipeMap().values()) {
+                seen++;
+                for (var display : holder.value().display()) {
+                    if (produces(display.result(), shard)) {
+                        crafted.add(String.valueOf(holder.id()));
+                    }
+                }
+            }
+            helper.assertTrue(seen > 100,
+                "only " + seen + " recipes loaded, so the no-recipe assertion is measuring an empty set");
+            helper.assertTrue(crafted.isEmpty(),
+                "the echo shard can be crafted, so it is found in name only: " + crafted);
+
+            // AND VANILLA'S OWN SOURCE IS OUT OF REACH. An echo shard is Ancient City loot, which needs
+            // a deep dark - so the exclusivity claim rests on this world containing none. Asserted
+            // rather than assumed, because that is precisely the shape of the mistake this mod has now
+            // made three times: scarcity measured over the mod's own content while vanilla quietly
+            // supplies the thing anyway.
+            var cities = net.minecraft.tags.TagKey.create(Registries.BIOME,
+                Identifier.withDefaultNamespace("has_structure/ancient_city"));
+            List<String> deep = new ArrayList<>();
+            level.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(holder -> {
+                var id = holder.key().identifier();
+                if (Recompile.MOD_ID.equals(id.getNamespace()) && holder.is(cities)) {
+                    deep.add(id.toString());
+                }
+            });
+            helper.assertTrue(deep.isEmpty(),
+                "these mod biomes can host an Ancient City, which is vanilla's own echo shard source: "
+                    + deep);
+            helper.succeed();
+        });
+
         RCGameTests.test("a_sewer_is_bounded", 20, helper -> {
             List<String> runaway = new ArrayList<>();
             int worst = 0;
@@ -1184,4 +1280,59 @@ final class SewerTests {
             helper.succeed();
         });
     }
+    /** Every JSON under a classpath data directory, as absolute resource paths. */
+    private static List<String> classpathJson(String root) {
+        List<String> found = new ArrayList<>();
+        try {
+            var url = SewerTests.class.getResource(root);
+            if (url == null) {
+                return found;
+            }
+            var dir = java.nio.file.Paths.get(url.toURI());
+            try (var walk = java.nio.file.Files.walk(dir)) {
+                walk.filter(path -> path.toString().endsWith(".json")).forEach(path ->
+                    found.add(root + "/" + dir.relativize(path).toString()
+                        .replace(java.io.File.separatorChar, '/')));
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("could not walk " + root, e);
+        }
+        return found;
+    }
+
+    /** One classpath resource as text, or null if it is not there. */
+    private static @org.jspecify.annotations.Nullable String readClasspath(
+            net.minecraft.gametest.framework.GameTestHelper helper, String path) {
+        try (var in = SewerTests.class.getResourceAsStream(path)) {
+            return in == null ? null
+                : new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            helper.fail("could not read " + path + ": " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Whether a recipe's result display names an item.
+     *
+     * <p>Same shape as the blueprint sweep's, and for the same reason: 26.1 exposes a recipe's output as
+     * a {@code SlotDisplay} tree rather than a stack, so a plain equality check misses composites.
+     */
+    private static boolean produces(net.minecraft.world.item.crafting.display.SlotDisplay display,
+            net.minecraft.world.item.Item item) {
+        return switch (display) {
+            case net.minecraft.world.item.crafting.display.SlotDisplay.ItemSlotDisplay slot ->
+                slot.item().value() == item;
+            case net.minecraft.world.item.crafting.display.SlotDisplay.ItemStackSlotDisplay slot ->
+                slot.stack().item().value() == item;
+            case net.minecraft.world.item.crafting.display.SlotDisplay.Composite composite ->
+                composite.contents().stream().anyMatch(inner -> produces(inner, item));
+            case net.minecraft.world.item.crafting.display.SlotDisplay.WithRemainder remainder ->
+                produces(remainder.input(), item);
+            case net.minecraft.world.item.crafting.display.SlotDisplay.OnlyWithComponent only ->
+                produces(only.source(), item);
+            default -> false;
+        };
+    }
+
 }

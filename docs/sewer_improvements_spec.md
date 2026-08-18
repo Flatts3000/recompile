@@ -307,6 +307,22 @@ which is the opposite of every phase before it.
 **Takes:** M if it is an existing item given a sewer-only route, XL if it is a new one - art, lang,
 model, loot, a gate-doc entry and a guidebook line.
 
+**Shipped 2026-08-18: the echo shard.** Owner's pick from three candidates that have no route in this
+world at all (the others were a sniffer egg and a sponge; a nautilus shell and amethyst were ruled out
+because both already have one).
+
+**It arrives in a crate settled in the sump's gravel, not as a silt drop.** Three routes were considered
+and the container won on being the only one that is both guaranteed and testable. A dedicated silt block
+is the XL path and could not ship the same day regardless, because a new block needs a texture and a
+texture needs the owner's `select`. A global loot modifier keyed on silt-broken-inside-a-sewer reads best
+of the three, but it cannot promise a yield - and "clearing a sewer yields one" is an acceptance line
+here, not a preference. A crate is deterministic, needs no new block, and reuses the barrel-loot
+mechanism the access chambers already proved.
+
+**The reward is under the water, and that is the whole placement.** Nothing was added to guard it - the
+sump was already deep, dark and spawner-bearing, so putting the crate on the pool floor means recovering
+it costs a swim down into the one thing in the mod that drowns you, with the clock already running.
+
 **Acceptance:**
 - Exactly one thing, and only sewers produce it.
 - It does not skip a tier, checked against `progression_gates.md` **before** it lands, with what vanilla

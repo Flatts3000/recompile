@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "bottom",
+  "sort_number": 2,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.demolition.sewers.bottom.text",
+  "title": "book.recompile.guide.demolition.sewers.bottom.title"
+}
