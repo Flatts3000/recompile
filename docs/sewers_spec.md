@@ -415,7 +415,13 @@ wrong on its own:
 - **The chamber was the entrance and all the content at once**, which is backwards for a structure whose
   premise is exploring a sprawl.
 
-**A den each, sand and mud** (owner). The substrate is the mechanism as much as the look:
+**A den each, sand and mud** (owner), **and mud is an accepted new material** (owner, 2026-08-17).
+Nothing else in this world produces mud, and it opens packed mud and mud bricks - a building-block
+family that had no route before. Bounded like everything else down there: travel, a prybar, and a
+structure that does not regenerate. Sand is not new; sledgehammering Reinforced Concrete already yields
+it. Recorded in `progression_gates.md` under the sewers.
+
+The substrate is the mechanism as much as the look:
 `#minecraft:frogs_spawnable_on` is grass block, mud and the two mangrove roots, so **mud is the one
 member a sewer could plausibly hold**; and `TurtleEggBlock.onSand` is half of vanilla's turtle rule. The
 animals stand on ground their own game logic names. Neither becomes renewable - the other half of the
