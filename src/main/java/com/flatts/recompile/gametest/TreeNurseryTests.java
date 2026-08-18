@@ -6,6 +6,8 @@ import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -120,6 +122,37 @@ final class TreeNurseryTests {
             cookOnce(be);
             helper.assertTrue(be.getItem(TreeNurseryBlockEntity.SLOT_OUTPUT).is(Items.BIRCH_SAPLING),
                 "selecting birch must yield a birch sapling, got " + be.getItem(TreeNurseryBlockEntity.SLOT_OUTPUT));
+            helper.succeed();
+        });
+
+        // EVERY SPECIES IN THE PICKER ACTUALLY COMES OUT OF IT.
+        //
+        // The birch test above proves the selection is honoured and stops at one entry, so a species
+        // added to the array and nowhere else - or one whose index the cook maps wrongly - would ship
+        // as a button that yields the wrong tree. Walking the array is the same coverage for a
+        // one-line cost, and it is what caught pale oak (#230) being in the spec's species list since
+        // the machine was designed and in the code never.
+        RCGameTests.test("every_species_in_the_picker_grows", 200, helper -> {
+            TreeNurseryBlockEntity be = placeFormed(helper);
+            List<String> wrong = new ArrayList<>();
+            for (int i = 0; i < TreeNurseryBlockEntity.SPECIES.length; i++) {
+                loadInputs(be);
+                be.setSelectedSpecies(i);
+                cookOnce(be);
+                ItemStack out = be.getItem(TreeNurseryBlockEntity.SLOT_OUTPUT);
+                if (!out.is(TreeNurseryBlockEntity.SPECIES[i])) {
+                    wrong.add("index " + i + " wanted "
+                        + new ItemStack(TreeNurseryBlockEntity.SPECIES[i]).getHoverName().getString()
+                        + " got " + out.getHoverName().getString());
+                }
+                be.setItem(TreeNurseryBlockEntity.SLOT_OUTPUT, ItemStack.EMPTY);
+            }
+            helper.assertTrue(TreeNurseryBlockEntity.SPECIES.length >= 9,
+                "the picker offers only " + TreeNurseryBlockEntity.SPECIES.length + " species - vanilla "
+                    + "has nine and the spec has listed all nine since this machine was designed");
+            helper.assertTrue(wrong.isEmpty(),
+                "these picker entries grow the wrong tree, so the button and the output disagree: "
+                    + wrong);
             helper.succeed();
         });
 

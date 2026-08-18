@@ -71,7 +71,8 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
      */
     public static final Item[] SPECIES = {
         Items.OAK_SAPLING, Items.BIRCH_SAPLING, Items.SPRUCE_SAPLING, Items.JUNGLE_SAPLING,
-        Items.ACACIA_SAPLING, Items.DARK_OAK_SAPLING, Items.CHERRY_SAPLING, Items.MANGROVE_PROPAGULE
+        Items.ACACIA_SAPLING, Items.DARK_OAK_SAPLING, Items.CHERRY_SAPLING, Items.MANGROVE_PROPAGULE,
+        Items.PALE_OAK_SAPLING
     };
 
     private static final int[] NO_SLOTS = new int[0];

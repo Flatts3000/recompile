@@ -52,7 +52,17 @@ public class TreeNurseryMenu extends AbstractContainerMenu {
         .slot("output", 116, 24)
         .arrow("cook", 84, 24)
         .region("countdown", 138, 30, 30, 9)
-        .cellGrid("species", 4, TreeNurseryBlockEntity.SPECIES.length, 52, 46)
+        // FIVE COLUMNS, NOT FOUR, so nine species still fit in two rows. Four columns held the eight
+        // this picker shipped with exactly; the ninth started a third row at y=82 and landed on the
+        // Inventory label at y=90. no_screen_element_overlaps_another is what said so - the geometry
+        // is declared here and drawn elsewhere, and before the GUI framework nothing connected the two.
+        //
+        // AND x MOVES WITH IT, 52 -> 44. Widening a grid moves its right edge and nothing else, so
+        // leaving the origin alone shoved the picker 8px - half a slot - off the panel's centre. No
+        // test could see it: the geometry sweeps assert collisions and the panel bounds, and 52..140
+        // satisfies both. 44 centres 88 pixels of grid in a 176 panel AND puts the first column under
+        // the Fertilizer slot, which is where the eye expects it.
+        .cellGrid("species", 5, TreeNurseryBlockEntity.SPECIES.length, 44, 46)
         .playerInventory(102)
         .build();
     private static final int INV_START = MACHINE_SLOTS;
