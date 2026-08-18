@@ -150,6 +150,7 @@
   "jade.recompile.machine_incomplete": "Not built yet",
   "jade.recompile.machine_needs": "Needs %s",
   "jade.recompile.machine_running": "Running",
+  "jade.recompile.open_with": "Open with a %s",
   "jade.recompile.salvage_with": "Salvage with a %s",
   "jade.recompile.scrap_bin_amount": "%s  %s / %s",
   "jade.recompile.scrap_bin_bound": "%s  empty",

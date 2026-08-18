@@ -605,6 +605,38 @@ final class SewerTests {
             }
             helper.assertTrue(barrels == 2,
                 "found " + barrels + " barrels rather than 2");
+
+            // AND THEY CARRY LOOT, which nothing asserted and which fails in silence.
+            // ReloadableServerRegistries returns LootTable.EMPTY for a key that resolves to nothing -
+            // no log, no throw - so a typo in the path, a renamed file, or a refactor that drops the
+            // BlockEntity match ships every sewer with two empty barrels and the whole suite stays
+            // green. That is the entire phase-4 deliverable failing invisibly.
+            var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "chests/sewer"));
+            helper.assertTrue(level.getServer().reloadableRegistries().getLootTable(key)
+                    != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
+                "recompile:chests/sewer resolves to nothing, so every barrel in every sewer is empty "
+                    + "and nothing anywhere says so");
+            List<String> unset = new ArrayList<>();
+            for (int x = box.minX(); x <= box.maxX(); x++) {
+                for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                    BlockPos at = new BlockPos(x, box.minY() + 1, z);
+                    if (!level.getBlockState(at).is(net.minecraft.world.level.block.Blocks.BARREL)) {
+                        continue;
+                    }
+                    // The KEY, not merely that one is attached. "Has a table" passes for a barrel
+                    // pointed at a table that does not exist, which is exactly what a typo produces -
+                    // driving this red with a bad path proved the weaker version saw nothing.
+                    if (!(level.getBlockEntity(at) instanceof net.minecraft.world.RandomizableContainer
+                            container) || !key.equals(container.getLootTable())) {
+                        unset.add(at + " -> " + (level.getBlockEntity(at)
+                            instanceof net.minecraft.world.RandomizableContainer c
+                                ? String.valueOf(c.getLootTable()) : "no container"));
+                    }
+                }
+            }
+            helper.assertTrue(unset.isEmpty(),
+                "these barrels have no loot table attached, so they generate empty: " + unset);
             helper.succeed();
         });
 

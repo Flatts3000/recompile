@@ -30,7 +30,13 @@ public enum ToolHintProvider implements IBlockComponentProvider {
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
         Block block = accessor.getBlock();
         Item tool = salvageTool(block);
-        if (tool != null) {
+        if (block instanceof ManholeBlock) {
+            // OPEN, not salvage. "Salvage with a Prybar" is true of Bulky Waste, where prying drops the
+            // find - a manhole drops nothing at all and is deliberately unbreakable, so the salvage
+            // wording promises loot that is not there. Same gate, different promise.
+            tooltip.add(Component.translatable("jade.recompile.open_with",
+                Component.translatable(RCItems.PRYBAR.get().getDescriptionId())));
+        } else if (tool != null) {
             tooltip.add(Component.translatable("jade.recompile.salvage_with",
                 Component.translatable(tool.getDescriptionId())));
         } else if (block instanceof SortableBlock) {

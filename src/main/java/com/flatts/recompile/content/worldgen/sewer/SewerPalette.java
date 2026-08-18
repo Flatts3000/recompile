@@ -71,8 +71,31 @@ public final class SewerPalette {
     /** Air inside the tunnels. {@code CAVE_AIR} rather than air, as every vanilla structure uses. */
     public static final BlockState HOLLOW = Blocks.CAVE_AIR.defaultBlockState();
 
-    /** Everything above, for the test that has to walk it. */
-    public static final List<BlockState> ALL = List.of(WALL, GRATE, FLUID, WEB, STEP, SPAWNER, HOLLOW);
+    /** Ladders out of the entrance shaft. */
+    public static final BlockState LADDER = Blocks.LADDER.defaultBlockState();
+
+    /** The surface marker: a 3x3 pad, so a one-block cover is findable. */
+    public static final BlockState PAD =
+        com.flatts.recompile.registry.RCBlocks.REINFORCED_CONCRETE.get().defaultBlockState();
+
+    /** The cover itself - prybar-only, and the reason a sewer is not simply open. */
+    public static final BlockState COVER =
+        com.flatts.recompile.registry.RCBlocks.MANHOLE.get().defaultBlockState();
+
+    /** What the loot sits in. */
+    public static final BlockState BARREL = Blocks.BARREL.defaultBlockState();
+
+    /**
+     * Everything above, for the test that has to walk it.
+     *
+     * <p><b>It has to be everything, or it stops being a guard and becomes a list that reads as one.</b>
+     * The ladder, the pad, the cover and the barrel were all placed by the structure from constants
+     * living elsewhere, so the palette walk quietly covered less than it claimed - four blocks in, which
+     * is the point at which nobody re-checks. They are declared here now, which is also why the
+     * entrance's own constants are gone: one home, so a new block cannot be added anywhere else.
+     */
+    public static final List<BlockState> ALL =
+        List.of(WALL, GRATE, FLUID, WEB, STEP, SPAWNER, LADDER, PAD, COVER, BARREL, HOLLOW);
 
     private SewerPalette() {
     }
