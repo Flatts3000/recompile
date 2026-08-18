@@ -401,7 +401,7 @@ mechanisms, and the difference is in vanilla's own code:
   would need `custom_spawn_rules` to bypass it - and a spawner endlessly producing a passive animal
   reads wrong. Placing them directly sidesteps every rule and makes the population **finite**, which is
   what this spec already wanted: they cannot breed here (no seagrass) or lay eggs (no sand), so a
-  sewer's turtles are the turtles it was built with. Two to four per chamber.
+  sewer's turtles are the turtles it was built with. **Three turtles and two frogs, one den each** - this said "two to four per chamber" until the dens landed, and they are not in the chamber at all now.
 
 **Revised 2026-08-17 after the first playtest, which found a zoo.** The report: *"the first thing I see
 is a pool with lots of drowned, frog and turtle."* Three things were stacked in one room and each was
@@ -433,8 +433,26 @@ draw would answer differently on each pass and a junction could get a spawner in
 not the other.
 
 `each_den_holds_its_animals_on_its_own_ground`, `the_root_chamber_is_quiet` and
-`a_deep_crossing_carries_the_spawner` assert the three halves of that, because each is the kind of thing
-that silently ships empty or silently ships wrong.
+`a_deep_crossing_carries_the_spawner` assert the three halves of that.
+
+**Two more came out of review, and both were bugs the first three could not see:**
+
+- **A den needs a door.** Every wall was written and nothing was ever carved, so each den generated as
+  an airtight box with three turtles sealed inside - a feature no player could enter, see, or know
+  existed. Floor material and head count are both perfectly true inside a sealed box, which is exactly
+  why the original test passed it. `a_den_opens_into_the_chamber` asserts the opening.
+- **A den must land on nothing.** Dens are added after the graph is built, so `findCollisionPiece` never
+  sees them, and they `postProcess` last - wherever they overlap something, they win silently. The first
+  placement claimed the high-X wall was clear of every corridor mouth; it is clear of **three**. The
+  east child anchors at `maxX + 1` over `z = minZ..minZ+4`, exactly where the turtle den sat, and it
+  walled that branch shut on every sewer that grew one. The dens also overlapped each other whenever the
+  chamber rolled its two smallest sizes. `the_dens_land_on_no_corridor_and_not_on_each_other` sweeps
+  every chamber size, because both bugs were size-dependent.
+
+**And the spawner guarantee was traded away unnoticed.** The chamber placed one unconditionally;
+junctions place one only past depth 2 and only when the box hashes even, so a sewer could generate with
+**no drowned at all** - and `IN_WATER` means there is no other route to one. Loosened to one in two, and
+`most_sewers_get_a_drowned_spawner` measures the coverage across 200 layouts rather than assuming it.
 
 **Extended 2026-08-17 (owner): slimes spawn naturally; frogs and turtles are limited.** Three
 mechanisms for four mobs, and each one is the cheapest thing that actually works:
