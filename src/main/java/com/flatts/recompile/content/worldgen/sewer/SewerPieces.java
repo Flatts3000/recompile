@@ -17,7 +17,12 @@ import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
+import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * The sewer's pieces and the graph that lays them out (#90, {@code docs/sewers_spec.md} phase 2).
@@ -141,6 +146,111 @@ public final class SewerPieces {
      * <p>Both guards live here rather than inside the pieces, so there is exactly one place a sewer's
      * extent is decided and a new piece type cannot forget to check them.
      */
+    /**
+     * Make sure the sewer has at least one access chamber, since all of its loot is in them.
+     *
+     * <p>Corridors open these on a roll, which measured <b>192 sewers in 200</b>. The eight that missed
+     * generated with nothing to find, because moving the barrels out of the root chamber traded a
+     * guarantee for a placement - the right trade, made carelessly. This walks the finished tree and
+     * forces one only if the roll produced none, so the common case stays organic and the fallback never
+     * shows.
+     *
+     * <p>It goes through {@code growAccess}, so the forced room is collision-checked like any other.
+     */
+    public static void forceAccessChamber(StructurePiece root, StructurePiecesBuilder pieces,
+            RandomSource random) {
+        List<StructurePiece> built = collect(pieces);
+        for (StructurePiece piece : built) {
+            if (piece instanceof SewerAccessChamber) {
+                return;
+            }
+        }
+        // PAST THE FIRST LINK FIRST. The first corridor in build order is the one leaving the root
+        // chamber, and hanging the store room off it is exactly the placement the roll's depth >= 2
+        // guard exists to prevent - a store at the bottom of the ladder is the first thing you see.
+        // The earlier version walked build order and landed there every time the fallback fired.
+        if (attachSomewhere(root, pieces, built, 2)) {
+            return;
+        }
+        // Then anywhere at all. A sewer with its loot in an awkward place beats a sewer with no loot,
+        // and this is the branch that turns a best-effort into a guarantee: crossings and stairs count
+        // now, not only corridors, because 30% of pieces are neither.
+        if (attachSomewhere(root, pieces, built, 0)) {
+            return;
+        }
+        // LAST RESORT: the root chamber, which always exists. Reached only when every other piece in
+        // the sewer is boxed in, and it is the one placement the design would rather avoid - but the
+        // alternative is a sewer that pays out nothing, which is the failure this method is for.
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            if (growAccess(root, pieces, root.getBoundingBox(), side, 2)) {
+                return;
+            }
+        }
+    }
+
+    /** Try every side of every eligible piece at or past {@code minDepth}, deepest links first. */
+    private static boolean attachSomewhere(StructurePiece root, StructurePiecesBuilder pieces,
+            List<StructurePiece> built, int minDepth) {
+        List<StructurePiece> candidates = new ArrayList<>();
+        for (StructurePiece piece : built) {
+            if (piece instanceof SewerRoom || piece instanceof SewerEntrance
+                    || piece instanceof SewerDen || piece.getGenDepth() < minDepth) {
+                continue;
+            }
+            candidates.add(piece);
+        }
+        candidates.sort(Comparator.comparingInt(piece -> -piece.getGenDepth()));
+        for (StructurePiece candidate : candidates) {
+            for (Direction side : Direction.Plane.HORIZONTAL) {
+                if (growAccess(root, pieces, candidate.getBoundingBox(), side,
+                        Math.max(minDepth, candidate.getGenDepth()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** The builder's current contents, for the forced-room search. */
+    private static java.util.List<StructurePiece> collect(StructurePiecesBuilder pieces) {
+        java.util.List<StructurePiece> out = new ArrayList<>();
+        pieces.build().pieces().forEach(out::add);
+        return out;
+    }
+
+    /**
+     * Try to open an access chamber off one side of a corridor.
+     *
+     * <p>Goes through {@code findCollisionPiece} like any other child, so a room that would land on the
+     * sewer's own geometry is simply not built - no hand-written overlap test required, which is the
+     * whole argument for attaching through the graph rather than from the structure.
+     */
+    static boolean growAccess(StructurePiece root, StructurePieceAccessor pieces,
+            BoundingBox from, Direction side, int depth) {
+        if (depth > MAX_DEPTH) {
+            return false;
+        }
+        int x = switch (side) {
+            case WEST -> from.minX() - 1;
+            case EAST -> from.maxX() + 1;
+            default -> from.minX();
+        };
+        int z = switch (side) {
+            case NORTH -> from.minZ() - 1;
+            case SOUTH -> from.maxZ() + 1;
+            default -> from.minZ();
+        };
+        BoundingBox box = SewerPiece.box(x, from.minY(), z, side,
+            SewerAccessChamber.SIZE, SewerAccessChamber.TALL, SewerAccessChamber.SIZE);
+        if (Math.abs(x - root.getBoundingBox().minX()) > RADIUS_CAP
+                || Math.abs(z - root.getBoundingBox().minZ()) > RADIUS_CAP
+                || pieces.findCollisionPiece(box) != null) {
+            return false;
+        }
+        pieces.addPiece(new SewerAccessChamber(depth + 1, box, side));
+        return true;
+    }
+
     static @Nullable SewerPiece grow(StructurePiece root, StructurePieceAccessor pieces,
             RandomSource random, int x, int y, int z, Direction facing, int depth) {
         if (depth > MAX_DEPTH) {
@@ -370,6 +480,18 @@ public final class SewerPieces {
                 case SOUTH -> grow(root, pieces, random, box.minX(), y, box.maxZ() + 1, next, depth);
                 case WEST -> grow(root, pieces, random, box.minX() - 1, y, box.minZ(), next, depth);
                 default -> grow(root, pieces, random, box.maxX() + 1, y, box.minZ(), next, depth);
+            }
+            // AND SOMETIMES A DOOR IN THE SIDE. An access chamber hangs off the run rather than
+            // interrupting it, which is where a real one is - you pass the door, you do not walk through
+            // the room.
+            //
+            // Past the first link only: a store room at the bottom of the ladder is the first thing you
+            // see, and the point of it is to reward looking. Rolling here is safe in a way rolling in
+            // postProcess is not - addChildren runs ONCE, while the tree is built, not per chunk.
+            if (depth >= 2 && random.nextInt(4) == 0) {
+                Direction side = random.nextBoolean()
+                    ? facing.getClockWise() : facing.getCounterClockWise();
+                growAccess(root, pieces, box, side, depth);
             }
         }
 
@@ -690,6 +812,71 @@ public final class SewerPieces {
         }
     }
 
+    /**
+     * An access chamber: a dry room off the main run (#90 improvements, phase 2).
+     *
+     * <p><b>Why a sewer has one.</b> Somebody had to maintain this, and maintenance needs somewhere to
+     * stand that is not the channel - valve chambers, inspection points, a place the crew left their
+     * things. It also answers a question the loot was previously dodging: the barrels used to sit in the
+     * entrance chamber because that is where the code could put them, not because anyone would store
+     * anything at the foot of a ladder. They live here now, in a room that explains them.
+     *
+     * <p><b>It attaches through the graph, which the dens do not.</b> Being a child means
+     * {@code findCollisionPiece} sees it and rejects it if it would land on something - the guarantee
+     * the dens had to buy with hand-written geometry tests, because pieces attached directly by the
+     * structure are invisible to collision and win every overlap silently. Anything that can be a child
+     * should be.
+     *
+     * <p>Dry and lit, per phase 1's rule: this is a room a person worked in, so it has a lamp, and a lit
+     * room is an unspawnable one - which is what you want of the room holding the reward.
+     */
+    public static class SewerAccessChamber extends SewerPiece {
+
+        /** Outer size. Bigger than a corridor so it reads as a room, small enough to sit beside one. */
+        static final int SIZE = 7;
+        static final int TALL = 6;
+
+        public SewerAccessChamber(int depth, BoundingBox box, Direction facing) {
+            super(RCStructures.SEWER_ACCESS_CHAMBER.get(), depth, box);
+            this.setOrientation(facing);
+        }
+
+        public SewerAccessChamber(CompoundTag tag) {
+            super(RCStructures.SEWER_ACCESS_CHAMBER.get(), tag);
+        }
+
+        @Override
+        public void postProcess(WorldGenLevel level, StructureManager structures, ChunkGenerator generator,
+                RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
+            // line() leaves both ends open, which is what connects this back to the corridor that
+            // spawned it - the same doorway mechanism every other piece uses, so no special case.
+            this.line(level, limit, SIZE, TALL, SIZE);
+            // AND A BACK WALL. line() leaves BOTH end planes open, which is what lets corridors chain -
+            // but this room never has a child, so its rear face was guaranteed to be a five-by-four hole
+            // onto bare terrain, directly behind the barrels. A dead-ending corridor has the same
+            // artefact by accident; here it was by construction, in the one room the feature is about.
+            this.generateBox(level, limit, 0, 0, SIZE - 1, SIZE - 1, TALL - 1, SIZE - 1,
+                SewerPalette.WALL, SewerPalette.WALL, false);
+            // NO CHANNEL and NO FLUID. The point of the room is that it is the dry place.
+            BlockPos lamp = new BlockPos(this.getWorldX(SIZE / 2, SIZE / 2), this.getWorldY(TALL - 2),
+                this.getWorldZ(SIZE / 2, SIZE / 2));
+            if (limit.isInside(lamp)) {
+                level.setBlock(lamp, SewerPalette.LIGHT, Block.UPDATE_CLIENTS);
+            }
+            // The stores. Two barrels against the back wall, where a crew would have left them.
+            for (int dx : new int[]{1, SIZE - 2}) {
+                BlockPos at = new BlockPos(this.getWorldX(dx, SIZE - 2), this.getWorldY(1),
+                    this.getWorldZ(dx, SIZE - 2));
+                if (!limit.isInside(at)) {
+                    continue;
+                }
+                level.setBlock(at, SewerPalette.BARREL, Block.UPDATE_CLIENTS);
+                net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(
+                    level, random, at, BARREL_LOOT);
+            }
+        }
+    }
+
     /** The root chamber a sewer grows out of. Wider, taller, and it opens all four ways. */
     public static class SewerRoom extends SewerPiece {
 
@@ -782,7 +969,6 @@ public final class SewerPieces {
                     level.setBlock(hook, SewerPalette.LIGHT, Block.UPDATE_CLIENTS);
                 }
             }
-            placeBarrels(level, limit, box, random);
         }
     }
 
@@ -871,46 +1057,5 @@ public final class SewerPieces {
         }
     }
 
-    /**
-     * The reason to have come (#90 phase 4): two barrels in the chamber.
-     *
-     * <p><b>Fixed positions, for the reason everything else in this room is.</b> {@code postProcess}
-     * runs once per chunk the piece overlaps, so anything rolled here is rolled several times over -
-     * the turtles learned that the expensive way. Two known corners plus the {@code isInside} guard
-     * means two barrels, however the room happens to straddle the chunk grid.
-     *
-     * <p><b>The table is set, not rolled.</b> {@code setLootTable} defers the roll to the first time a
-     * player opens the barrel, so generation decides nothing and the contents stay a datapack question -
-     * which is where the balance of this belongs. It is also why a barrel that is never opened costs
-     * nothing to have placed.
-     */
-    private static void placeBarrels(WorldGenLevel level, BoundingBox limit, BoundingBox room,
-            RandomSource random) {
-        // CLEAR OF ALL FOUR CORRIDOR MOUTHS, not just of the ladder.
-        //
-        // The first position was the interior corner, which the entrance shaft had claimed for its
-        // column. Moving it to the two opposite corners then landed on the same class of cell from the
-        // other side: children grow from (minX, ., minZ) on every side, so the east mouth's dry walkways
-        // are z = minZ+1 and minZ+3 and the south mouth's are x = minX+1 and minX+3 - a barrel on one of
-        // those stands in a doorway, and a player leaving the chamber either squeezes past or wades the
-        // Hunger fluid. Both spots now sit on the east wall at high z, which every mouth is far from.
-        BlockPos[] spots = {
-            new BlockPos(room.maxX() - 1, room.minY() + 1, room.maxZ() - 1),
-            new BlockPos(room.maxX() - 1, room.minY() + 1, room.maxZ() - 3),
-        };
-        for (BlockPos at : spots) {
-            if (!limit.isInside(at)) {
-                continue;
-            }
-            level.setBlock(at, SewerPalette.BARREL, Block.UPDATE_CLIENTS);
-            // The STRUCTURE's random, via vanilla's own helper. level.getRandom() on a WorldGenRegion is
-            // a single shared source seeded per region centre chunk and drawn from by anything else
-            // generating in that region during the same step, so the stored seed shifted whenever an
-            // unrelated feature drew from it - the contents stopped being reproducible from the world
-            // seed alone. setBlockEntityLootTable folds in the null-BE check as well.
-            net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(
-                level, random, at, BARREL_LOOT);
-        }
-    }
 
 }

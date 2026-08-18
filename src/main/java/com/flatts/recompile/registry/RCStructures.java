@@ -59,6 +59,10 @@ public final class RCStructures {
         PIECE_TYPES.register("sewer_frog_den",
             () -> (StructurePieceType.ContextlessType) SewerPieces.SewerFrogDen::new);
 
+    public static final Supplier<StructurePieceType> SEWER_ACCESS_CHAMBER =
+        PIECE_TYPES.register("sewer_access_chamber",
+            () -> (StructurePieceType.ContextlessType) SewerPieces.SewerAccessChamber::new);
+
     public static final Supplier<StructurePieceType> SEWER_ROOM =
         PIECE_TYPES.register("sewer_room",
             () -> (StructurePieceType.ContextlessType) SewerPieces.SewerRoom::new);

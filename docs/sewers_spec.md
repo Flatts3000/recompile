@@ -535,9 +535,13 @@ confirms neither has any other route in this world.
 
 **Ships:** a reason to have come.
 
-**Shipped 2026-08-17.** Two barrels in the root chamber, at fixed positions for the reason everything
-else in that room is: `postProcess` runs once per chunk the piece overlaps, so anything *rolled* there
-is rolled several times over.
+**Shipped 2026-08-17; moved out of the root chamber the same day.** Two barrels, at fixed positions for
+the reason everything else placed by a piece is: `postProcess` runs once per chunk the piece overlaps,
+so anything *rolled* there is rolled several times over.
+
+**They live in an access chamber now, not at the foot of the ladder.** The root chamber held them
+because that is where the code could reach, not because anyone would store anything in the first room
+off the entrance - see the improvements phase 2 below.
 
 **The table is set, not rolled.** `setLootTable` defers the roll to the first time a player opens the
 barrel, so generation decides nothing, two players on the same seed do not see each other's rolls, and
