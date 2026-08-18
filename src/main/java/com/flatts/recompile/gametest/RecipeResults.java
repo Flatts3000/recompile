@@ -15,7 +15,7 @@ import net.minecraft.world.item.crafting.display.SlotDisplay;
  * never overrides it - so a sweep built on this alone is blind to exactly the schemas a datapack extends.
  * Anything asserting that nothing produces an item needs a second pass over those types; see
  * {@code FoundNotCraftedTests}, which allowlists them explicitly, and the echo shard sweep in
- * {@code SewerTests}, which reads their JSON.
+ * {@code SewerLootTests}, which reads their JSON.
  */
 final class RecipeResults {
 

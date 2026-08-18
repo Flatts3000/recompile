@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * player a vanilla furnace and skip the Cupola - and the criterion says explicitly that it must be
  * asserted "by a test that walks every block the structure can place, not by reading the palette". A
  * palette scattered through four piece classes cannot be walked; this one can, and
- * {@code SewerTests.the_sewer_palette_opens_no_gate} does.
+ * {@code SewerLootTests.the_sewer_palette_opens_no_gate} does.
  *
  * <p><b>Three slots, the way vanilla's mineshaft has three.</b> {@code MineshaftStructure.Type} carries
  * wood, planks and fence and the corridor code names nothing else except a handful of decorations. Ours
