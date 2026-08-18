@@ -18,6 +18,7 @@ import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -125,6 +126,20 @@ public final class SewerPieces {
             net.minecraft.core.registries.Registries.LOOT_TABLE,
             net.minecraft.resources.Identifier.fromNamespaceAndPath(
                 com.flatts.recompile.Recompile.MOD_ID, "chests/sump"));
+
+    /**
+     * What is buried in the silt, for whoever brushes it out.
+     *
+     * <p>Mostly nothing, on purpose. The sump alone carries two dozen deposits and a jackpot in every one
+     * of them would out-pay the crate the room is actually built around, so the table is weighted so that
+     * most of what a player digs is silt and the find is the exception - which is also what archaeology
+     * is supposed to feel like.
+     */
+    static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot
+        .LootTable> SILT_LOOT = net.minecraft.resources.ResourceKey.create(
+            net.minecraft.core.registries.Registries.LOOT_TABLE,
+            net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                com.flatts.recompile.Recompile.MOD_ID, "archaeology/sewer_silt"));
 
     /** How far a stairs piece descends, and how long it is. Vanilla drops 5 over 8; so do we. */
     private static final int STAIR_DROP = 5;
@@ -522,7 +537,7 @@ public final class SewerPieces {
          * is why this works the first and last cells rather than scattering down the middle - a sewer
          * silts up at its corners, not evenly.
          */
-        protected void silt(WorldGenLevel level, BoundingBox limit, int w, int l) {
+        protected void silt(WorldGenLevel level, BoundingBox limit, RandomSource random, int w, int l) {
             // ARITHMETIC THAT CAN ACTUALLY FIRE. The first version could not place two of its three
             // blocks at all: with the only caller passing l=7 the loop saw z in {1, 5}, so key = z*17+dx
             // was always even and the fine deposit never won its ternary, and the growth test wanted
@@ -540,12 +555,36 @@ public final class SewerPieces {
                     if (Math.floorMod(key, 3) != 0) {
                         continue;
                     }
-                    this.placeBlock(level, Math.floorMod(key, 2) == 0
-                        ? SewerPalette.SILT : SewerPalette.FINE_SILT, mid + dx, 0, z, limit);
+                    this.deposit(level, limit, Math.floorMod(key, 2) == 0
+                        ? SewerPalette.SILT : SewerPalette.FINE_SILT, mid + dx, 0, z, random);
                 }
                 if (Math.floorMod(seed + z, 4) == 0) {
                     this.placeBlock(level, SewerPalette.GROWTH, mid + 1, 1, z, limit);
                 }
+            }
+        }
+
+        /**
+         * Place one silt block and put something in it.
+         *
+         * <p><b>The only way a brushable block may be written.</b> Suspicious sand and gravel are inert
+         * without a loot table on their block entity: brushing one just turns it into ordinary sand or
+         * gravel and drops nothing, with no error anywhere - so a plain {@code placeBlock} of either
+         * ships a deposit that looks like a find and is a lie. Routing every one of them through here
+         * means the block and its contents cannot be added separately.
+         *
+         * <p>Local coordinates in, like {@code placeBlock}, but the block entity has to be fetched in
+         * world coordinates - hence the second conversion. {@code limit} is checked because
+         * {@code placeBlock} silently does nothing outside it, and asking for the block entity of a
+         * cell that was never written comes back null rather than throwing.
+         */
+        protected void deposit(WorldGenLevel level, BoundingBox limit, BlockState state,
+                int x, int y, int z, RandomSource random) {
+            this.placeBlock(level, state, x, y, z, limit);
+            BlockPos at = new BlockPos(this.getWorldX(x, z), this.getWorldY(y), this.getWorldZ(x, z));
+            if (limit.isInside(at) && level.getBlockEntity(at)
+                    instanceof net.minecraft.world.level.block.entity.BrushableBlockEntity brushable) {
+                brushable.setLootTable(SILT_LOOT, random.nextLong());
             }
         }
 
@@ -631,7 +670,7 @@ public final class SewerPieces {
                 RandomSource random, BoundingBox limit, ChunkPos chunk, BlockPos origin) {
             this.line(level, limit, SHELL, SHELL, SEGMENT);
             this.channel(level, limit, SHELL, SEGMENT);
-            this.silt(level, limit, SHELL, SEGMENT);
+            this.silt(level, limit, random, SHELL, SEGMENT);
             this.cobwebs(level, limit, random, SHELL, SHELL, SEGMENT);
         }
     }
@@ -769,11 +808,81 @@ public final class SewerPieces {
         /** What the floor is made of, and therefore which animal this is for. */
         protected abstract BlockState bed();
 
-        /** How many to put in it. */
-        protected abstract int population();
+        /**
+         * How many to put in it, and it is a <b>request</b> rather than a promise.
+         *
+         * <p>{@link #residents} places as many as the room can actually hold and no more. The two
+         * numbers agreeing is the job of {@code the_dens_animals_can_live_in_them}, which fails if the
+         * geometry stops fitting the population - so a den that shrinks goes red in CI rather than
+         * quietly generating with an animal packed into the brick.
+         */
+        public abstract int population();
 
-        /** The animal itself. */
-        protected abstract net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident();
+        /** The animal itself. Public because how wide it is decides how many of them fit. */
+        public abstract net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident();
+
+        /**
+         * Clearance a resident gets beyond its own body, on every side and between neighbours.
+         *
+         * <p>0.2 rather than 0.05 because the number that actually bites is not collision, it is
+         * {@code Entity.isInWall}: that samples a box <b>0.8 times the width</b> centred on the eye, so
+         * a body needs real slack before its own suffocation check clears the brick, and anything less
+         * turns one shove from a neighbour into a damage tick.
+         */
+        private static final double ELBOW = 0.2;
+
+        /**
+         * Where a den's residents stand, derived from how wide they actually are.
+         *
+         * <p><b>A turtle is 1.2 blocks across - wider than the block it stands on.</b> The first version
+         * of this was {@code minX + 1 + i}: a one-block pitch starting in the corner, which is correct
+         * only for a resident under one block wide. A turtle seeded that way overlapped its neighbour by
+         * 0.2 and the wall behind it by 0.1 <em>on the tick it spawned</em>, and the den then spent the
+         * rest of the save shoving three overlapping bodies around a room with 0.4 of slack in it.
+         * Playtest saw the end of that: turtles inside the brick, taking suffocation damage, dying in
+         * the room built to house them.
+         *
+         * <p>So the room decides the headcount, not a constant. Residents spread along the interior's
+         * <b>longer</b> axis and centre on the shorter one, which is what lets one function serve both
+         * dens - the turtle den is long in X and the frog den, rotated against the chamber's south wall,
+         * is long in Z. If fewer fit than {@link #population} asked for, fewer are placed; a den with two
+         * turtles in it is a smaller loss than a den with three dying ones.
+         *
+         * <p>Static and public so a test can ask what a box holds without generating one, which is the
+         * only way the population and the geometry can be checked against each other.
+         */
+        public static List<Vec3> residents(BoundingBox box, double width, int want) {
+            // The shell is one block thick, so the interior runs from minX+1 to maxX - and those are
+            // continuous edges, not block indices: the far wall's near face IS x = maxX.
+            double margin = width / 2.0 + ELBOW;
+            double pitch = width + ELBOW;
+            double xLo = box.minX() + 1 + margin;
+            double xHi = box.maxX() - margin;
+            double zLo = box.minZ() + 1 + margin;
+            double zHi = box.maxZ() - margin;
+            if (xLo > xHi || zLo > zHi) {
+                return List.of();
+            }
+            boolean alongX = xHi - xLo >= zHi - zLo;
+            double lo = alongX ? xLo : zLo;
+            double hi = alongX ? xHi : zHi;
+            double across = alongX ? (zLo + zHi) / 2.0 : (xLo + xHi) / 2.0;
+            int fit = Math.min(want, 1 + (int) Math.floor((hi - lo) / pitch));
+            // CENTRED ON THE ROOM AT MINIMUM PITCH, not stretched across it. Spreading residents evenly
+            // between lo and hi sounds tidier and is worse: it parks the outermost one at exactly the
+            // margin, which is the tightest legal spot in the room, and hands the slack to the gaps in
+            // the middle where nothing needs it. Packing them together in the centre gives every
+            // resident the same generous clearance from the brick, which is the thing that kills them.
+            double used = (fit - 1) * pitch;
+            double start = (lo + hi) / 2.0 - used / 2.0;
+            List<Vec3> spots = new ArrayList<>(fit);
+            double y = box.minY() + 1;
+            for (int i = 0; i < fit; i++) {
+                double at = start + i * pitch;
+                spots.add(alongX ? new Vec3(at, y, across) : new Vec3(across, y, at));
+            }
+            return spots;
+        }
 
         /**
          * Which of the den's own walls faces the chamber, and therefore where its door goes.
@@ -834,8 +943,8 @@ public final class SewerPieces {
             if (limit.isInside(lamp)) {
                 level.setBlock(lamp, SewerPalette.LIGHT, Block.UPDATE_CLIENTS);
             }
-            for (int i = 0; i < this.population(); i++) {
-                BlockPos at = new BlockPos(box.minX() + 1 + i, box.minY() + 1, box.minZ() + 1);
+            for (Vec3 spot : residents(box, this.resident().getWidth(), this.population())) {
+                BlockPos at = BlockPos.containing(spot);
                 if (!limit.isInside(at)) {
                     continue;
                 }
@@ -844,7 +953,7 @@ public final class SewerPieces {
                 if (mob == null) {
                     continue;
                 }
-                mob.snapTo(at.getX() + 0.5, (double) at.getY(), at.getZ() + 0.5, 0F, 0F);
+                mob.snapTo(spot.x, spot.y, spot.z, 0F, 0F);
                 mob.finalizeSpawn(level, level.getCurrentDifficultyAt(at),
                     net.minecraft.world.entity.EntitySpawnReason.STRUCTURE, null);
                 if (mob instanceof net.minecraft.world.entity.animal.turtle.Turtle turtle) {
@@ -875,12 +984,12 @@ public final class SewerPieces {
         }
 
         @Override
-        protected int population() {
+        public int population() {
             return 3;
         }
 
         @Override
-        protected net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
+        public net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
             return net.minecraft.world.entity.EntityType.TURTLE;
         }
 
@@ -908,12 +1017,12 @@ public final class SewerPieces {
         }
 
         @Override
-        protected int population() {
+        public int population() {
             return 2;
         }
 
         @Override
-        protected net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
+        public net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob> resident() {
             return net.minecraft.world.entity.EntityType.FROG;
         }
 
@@ -1078,7 +1187,7 @@ public final class SewerPieces {
             // clock the leachate started is the reason you might not manage all of it in one go.
             for (int x = 2; x < SIZE - 2; x++) {
                 for (int z = DEPTH + 2; z < SIZE - 2; z++) {
-                    this.placeBlock(level, SewerPalette.SILT, x, 0, z, limit);
+                    this.deposit(level, limit, SewerPalette.SILT, x, 0, z, random);
                 }
             }
             BlockPos crate = new BlockPos(this.getWorldX(SIZE / 2, SIZE - 3), this.getWorldY(0),

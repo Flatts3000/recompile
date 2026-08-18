@@ -406,7 +406,9 @@ mechanisms, and the difference is in vanilla's own code:
   would need `custom_spawn_rules` to bypass it - and a spawner endlessly producing a passive animal
   reads wrong. Placing them directly sidesteps every rule and makes the population **finite**, which is
   what this spec already wanted: they cannot breed here (no seagrass) or lay eggs (no sand), so a
-  sewer's turtles are the turtles it was built with. **Three turtles and two frogs, one den each** - this said "two to four per chamber" until the dens landed, and they are not in the chamber at all now.
+  sewer's turtles are the turtles it was built with. **Three turtles and two frogs, one den each** - this
+  said "two to four per chamber" until the dens landed, and they are not in the chamber at all now. Since
+  2026-08-18 the count is a **ceiling the room has to earn**, not a constant: see the revision below.
 
 **Revised 2026-08-17 after the first playtest, which found a zoo.** The report: *"the first thing I see
 is a pool with lots of drowned, frog and turtle."* Three things were stacked in one room and each was
@@ -453,6 +455,35 @@ The dens hang off the chamber's high-X wall, which every corridor mouth is far f
 from the min corner), and they are attached **deterministically** rather than grown from the graph: "one
 module each" is a promise about the population, and a random walk cannot promise exactly one of
 anything.
+
+**Revised 2026-08-18 after playtest: "turtles are getting stuck in the wall and dying."** They were, and
+the cause is a number nobody looked up. **`EntityType.TURTLE` is `sized(1.2F, 0.4F)` - a turtle is wider
+than the block it stands on.** The den was 6x4 with a 4x2 interior and seeded its three residents on a
+one-block pitch starting in the corner, which is correct only for something under a block across: each
+turtle spawned overlapping a neighbour by 0.2 and the wall behind it by 0.1, *on the tick it generated*.
+`Entity.isInWall` then samples a box 0.8x the body width across the eye, so the first shove put one
+inside the brick and started a suffocation clock. Measured on a fresh den: **one dead and one on 18/30
+health within 120 ticks.**
+
+Three things changed, and only one of them is the turtle den:
+
+- **Placement is derived from the resident's hitbox** (`SewerDen.residents`). Residents spread along the
+  interior's longer axis at a pitch of body width plus 0.2, centred as a group so the clearance goes to
+  the walls rather than to the gaps. The same function serves both dens: the turtle den is long in X and
+  the frog den, rotated against the south wall, is long in Z.
+- **The room decides the headcount.** `population()` is a request; `residents()` places what fits. A den
+  that ever gets smaller generates short rather than lethal, and
+  `the_dens_animals_can_live_in_them` fails in CI when the two disagree.
+- **The turtle den is 8x4, not 6x4.** Four of interior holds two turtles with elbow room and three only
+  by pressing all three into the brick, so the third turtle costs two blocks. It grows along **X**, away
+  from the chamber, which is the only free direction: deepening it in Z walks into the east corridor's
+  mouth on the smallest chamber the room can roll.
+
+**The old den test could not see any of it**, and that is the more useful half. It counted heads
+immediately after `postProcess` - the one moment the room is correct, because nothing has moved or been
+hurt yet. Suffocation is a tick-loop fact, so a test that never ticks asserts the placement and calls it
+the habitat. The new one runs 120 ticks and then asks whether the animals are alive, unhurt, and out of
+the walls.
 
 **The threat moved deeper.** Junctions past the second link carry the spawner now, selected by a hash of
 the piece's own box rather than a roll - `postProcess` runs once per chunk a piece overlaps, so a random

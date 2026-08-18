@@ -88,8 +88,22 @@ public final class SewerPalette {
     /** The same course where it has cracked rather than greened. */
     public static final BlockState CRACKED_COURSE = Blocks.CRACKED_STONE_BRICKS.defaultBlockState();
 
-    /** Silt: what settles where the flow slows. */
-    public static final BlockState SILT = Blocks.GRAVEL.defaultBlockState();
+    /**
+     * Silt: what settles where the flow slows, and what you can dig through it.
+     *
+     * <p><b>Suspicious gravel rather than gravel</b> (owner, 2026-08-18). A sewer's deposits are the one
+     * place in this world where the fiction and vanilla's archaeology already agree: silt is a slow
+     * accumulation of everything that came down the pipe, which is exactly what a brushable block is for.
+     * It costs the mod nothing in code - the block is vanilla and the payout is a loot table.
+     *
+     * <p>Two consequences worth knowing before tuning it. A brushable block <b>drops nothing when
+     * mined</b> ({@code loot_table/blocks/suspicious_gravel.json} has no pools at all), so the silt is no
+     * longer a free source of gravel and flint; brushing it turns it into ordinary gravel, which is. And
+     * the block is only worth placing if something is in it - a brushable with no loot table set on its
+     * block entity brushes away to nothing at all, silently, which is strictly worse than the gravel it
+     * replaced. {@code SewerPiece.deposit} is the only thing that may place one, for that reason.
+     */
+    public static final BlockState SILT = Blocks.SUSPICIOUS_GRAVEL.defaultBlockState();
 
     /**
      * The finer half of the same deposit.
@@ -104,8 +118,11 @@ public final class SewerPalette {
      * from #115, so a free source needs a glance at the gates doc" - and the glance was not taken. A
      * warning you write and then walk past is worse than no warning, because the next reader assumes it
      * was heeded.
+     *
+     * <p><b>Suspicious sand now</b>, for the reasons on {@link #SILT} - and it hands out even less than
+     * before, because a brushable drops nothing when mined and has to be brushed into plain sand first.
      */
-    public static final BlockState FINE_SILT = Blocks.SAND.defaultBlockState();
+    public static final BlockState FINE_SILT = Blocks.SUSPICIOUS_SAND.defaultBlockState();
 
     /**
      * Damp growth, which needs dark and gets it everywhere down here.
@@ -160,6 +177,12 @@ public final class SewerPalette {
      * own spawn rule, and a turtle standing on sand beside water is the animal in its habitat rather
      * than an animal that happens to be here. It does <b>not</b> make them renewable: the other half of
      * that rule is {@code y < seaLevel + 4}, and this world's sea level is -64.
+     *
+     * <p><b>Plain sand, and deliberately not the suspicious kind the silt became.</b> Vanilla puts
+     * {@code suspicious_sand} in {@code #minecraft:sand}, so the turtle rule would survive the swap - the
+     * reason is what the two surfaces are for. Silt is a deposit and a den floor is a habitat, and a
+     * habitat floored in two dozen brushable blocks is a dig site with animals standing on it. It is also
+     * the room a player is meant to look into rather than take apart.
      */
     public static final BlockState TURTLE_BED = Blocks.SAND.defaultBlockState();
 

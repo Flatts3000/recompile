@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "silt",
+  "sort_number": 2,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.demolition.sewers.silt.text",
+  "title": "book.recompile.guide.demolition.sewers.silt.title"
+}
