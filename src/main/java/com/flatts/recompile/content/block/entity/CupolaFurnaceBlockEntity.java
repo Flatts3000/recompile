@@ -121,6 +121,79 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         }
     }
 
+    /**
+     * Rake the slag off, once every {@code cupolaSmeltsPerSlag} smelts.
+     *
+     * <p><b>Slag is not a recipe output and cannot be</b> (#236). The Cupola is a
+     * {@link RecipeType#BLASTING} machine because that is the iron gate, and vanilla blasting has one
+     * result and no byproduct slot; {@code AbstractFurnaceBlockEntity} keeps its recipe lookup private
+     * behind a static tick, so nothing can be added to the smelt itself. The tick wrapper in
+     * {@code CupolaFurnaceBlock} is the only seam this machine has - the same one the network drain
+     * uses, and the same one the Burn Barrel's refuse gate uses.
+     *
+     * <p><b>Counted, not rolled.</b> One in eight is roughly the real ratio - an arc furnace throws
+     * 100-150kg of slag per tonne of steel - and counting makes it a trickle a player can plan around
+     * rather than a run of luck. It also makes it exactly testable, which a chance is not.
+     *
+     * <p>Where it goes is the three machines' contract: the Scrap Network first, the floor if nothing
+     * takes it. There is no fourth slot to put it in and there is not going to be - a vanilla furnace
+     * screen has three, and minting a bespoke screen for a waste product is the wrong trade.
+     */
+    public void rakeSlag(net.minecraft.server.level.ServerLevel level, int smelted) {
+        if (smelted <= 0) {
+            return;   // the ticker calls this every tick; do not read config to learn nothing happened
+        }
+        int per = com.flatts.recompile.RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
+        if (per <= 0) {
+            return;
+        }
+        smeltsSinceSlag += smelted;
+        int made = smeltsSinceSlag / per;
+        if (made <= 0) {
+            return;
+        }
+        // CAPPED AT A STACK, because the divisor can change under a running world. The count carries a
+        // remainder of up to per - 1, so a server owner who lowers cupolaSmeltsPerSlag from 1000 to 1
+        // would otherwise mint a single ItemStack of 999 on the next smelt and hand it to the network.
+        // What does not fit stays on the counter and comes off next time.
+        ItemStack slag = new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get(), 1);
+        made = Math.min(made, slag.getMaxStackSize());
+        slag.setCount(made);
+        smeltsSinceSlag -= made * per;
+        setChanged();
+        com.flatts.recompile.content.block.ScrapNetwork.insertFromMember(
+            level, worldPosition, slag, false);
+        if (!slag.isEmpty()) {
+            // THE MACHINE'S OWN BLOCK, not the one above it. A furnace takes its input from the UP face
+            // (getSlotsForFace(UP) is {0}), so pos.above() is exactly where a feeding hopper sits -
+            // popping there drops every lump into the feed line of the automation this machine's own
+            // javadoc sells as its reward. Popping into its own space is what vanilla does when a
+            // container breaks: the items push out sideways, and a hopper UNDER the furnace picks them
+            // up along with the iron, which is the outlet a player already built.
+            net.minecraft.world.level.block.Block.popResource(level, worldPosition, slag);
+        }
+    }
+
+    /** How many smelts have gone by since the last slag came off. Survives save/load. */
+    private int smeltsSinceSlag;
+
+    /** For GameTests: the running count, so a test can assert the trickle rather than wait for it. */
+    public int smeltsSinceSlag() {
+        return smeltsSinceSlag;
+    }
+
+    @Override
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("smeltsSinceSlag", smeltsSinceSlag);
+    }
+
+    @Override
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+        super.loadAdditional(input);
+        smeltsSinceSlag = input.getIntOr("smeltsSinceSlag", 0);
+    }
+
     @Override
     protected Component getDefaultName() {
         return Component.translatable("container.recompile.cupola_furnace");

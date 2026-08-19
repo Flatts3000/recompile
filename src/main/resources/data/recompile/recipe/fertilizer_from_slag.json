@@ -1,0 +1,26 @@
+{
+  "_comment": [
+    "Basic slag, ground (#236, owner 2026-08-18). This is not an invention: ground steelmaking slag",
+    "was sold across Europe as a phosphate fertiliser for the better part of a century, under the name",
+    "Thomas slag or basic slag. The phosphorus comes out of the ore with the iron and ends up in the",
+    "slag, and grinding is what makes it available to a plant.",
+    "",
+    "So the furnace's waste feeds the garden, which is the whole arc of this mod in one recipe.",
+    "",
+    "It does NOT undercut the Compost Heap. Composting is early and organic; this needs a Cupola, which",
+    "needs the demolition yard, which means it arrives long after the heap has done its job. It is the",
+    "industrial player's second route, not a cheaper first one. Ratio belongs to the balance pass (#36).",
+    "",
+    "Slag can only have ONE pulverizing recipe - the type is one input to one output - so this is the",
+    "grinding use, and the aggregate use is a grid recipe instead."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "recompile:slag",
+  "count": 1,
+  "result": {
+    "item": "recompile:fertilizer",
+    "count": 1
+  },
+  "ticks": 100,
+  "energy": 24
+}

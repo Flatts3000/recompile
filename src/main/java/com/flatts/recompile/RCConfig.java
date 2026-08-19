@@ -96,6 +96,9 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue TREE_NURSERY_WATER_PER_SAPLING;
     public static final ModConfigSpec.IntValue TREE_NURSERY_TANK_CAPACITY;
 
+    // ---- Slag (#236 - the Cupola's byproduct) ----
+    public static final ModConfigSpec.IntValue CUPOLA_SMELTS_PER_SLAG;
+
     // ---- Animal bait (rung 5 - wildlife returns to healed grass) ----
     public static final ModConfigSpec.BooleanValue ANIMAL_BAIT_ENABLED;
     public static final ModConfigSpec.IntValue ANIMAL_BAIT_SETTLE_INTERVAL_TICKS;
@@ -356,6 +359,18 @@ public final class RCConfig {
         ANIMAL_BAIT_SPACING = builder
             .comment("Minimum distance between working baits, in blocks - they do not stack up a spot.")
             .defineInRange("animalBaitSpacing", 8, 1, 64);
+        builder.pop();
+
+        // The demolition-yard machines. Their own section rather than a corner of [reclamation] -
+        // the Cupola is an iron-tier machine and a server owner tuning it would look anywhere else.
+        builder.push("machines");
+        CUPOLA_SMELTS_PER_SLAG = builder
+            .comment("Smelts the Cupola completes per Slag it rakes off. 0 disables slag entirely.",
+                "8 is roughly the real ratio: an electric arc furnace makes 100-150kg of slag per",
+                "tonne of steel. Counted rather than rolled, so it is a steady trickle you can plan",
+                "around instead of a run of luck.")
+            .defineInRange("cupolaSmeltsPerSlag", 8, 0, 1000);
+
         builder.pop();
 
         builder.push("storage");

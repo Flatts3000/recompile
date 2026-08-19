@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCItems;
 import java.util.ArrayList;
@@ -31,6 +32,35 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 final class CupolaFurnaceTests {
 
     private CupolaFurnaceTests() {
+    }
+
+    /**
+     * Loose slag in THIS test's plot.
+     *
+     * <p>{@code getBounds()} and an item filter, both of which matter. Tests are registered with
+     * padding 1, so batched 5x5x5 plots sit about six blocks apart - an eight-block bubble around the
+     * plot origin reaches well into the neighbours. The read-only version of that is merely wrong; the
+     * clearing version below was deleting other tests' dropped loot mid-assertion, which is an
+     * order-dependent CI flake that passes on every run where the scheduler happens to be kind.
+     */
+    private static int slagNear(net.minecraft.gametest.framework.GameTestHelper helper) {
+        int total = 0;
+        for (var entity : slagIn(helper)) {
+            total += entity.getItem().getCount();
+        }
+        return total;
+    }
+
+    private static java.util.List<net.minecraft.world.entity.item.ItemEntity> slagIn(
+            net.minecraft.gametest.framework.GameTestHelper helper) {
+        return helper.getLevel().getEntitiesOfClass(
+            net.minecraft.world.entity.item.ItemEntity.class,
+            helper.getBounds(),
+            entity -> entity.getItem().is(RCItems.SLAG.get()));
+    }
+
+    private static void clearSlag(net.minecraft.gametest.framework.GameTestHelper helper) {
+        slagIn(helper).forEach(net.minecraft.world.entity.Entity::discard);
     }
 
     private static CupolaFurnaceBlockEntity place(net.minecraft.gametest.framework.GameTestHelper helper,
@@ -104,6 +134,132 @@ final class CupolaFurnaceTests {
                     "a blast-only cupola must not cook beef, output was " + cupola.getItem(2));
                 helper.succeed();
             });
+        });
+
+        // IT RAKES SLAG OFF, one lump per cupolaSmeltsPerSlag smelts (#236).
+        //
+        // Slag cannot be a recipe output and never will be. The Cupola is a BLASTING machine because
+        // that IS the iron gate, and vanilla blasting has one result and no byproduct slot; the recipe
+        // lookup is private behind a static tick. So the count lives in the block's ticker wrapper -
+        // the same seam drainOutput uses - and it works by watching the result slot across the tick,
+        // which is exact because vanilla refuses every other route into slot 2.
+        //
+        // Counted rather than rolled, so this can assert the number instead of waiting for luck.
+        RCGameTests.test("the_cupola_rakes_slag_off_every_few_smelts", 20, helper -> {
+            CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(1, 1, 1));
+            if (cupola == null) {
+                return;
+            }
+            int per = RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
+            helper.assertTrue(per > 0, "precondition: slag is enabled, cupolaSmeltsPerSlag=" + per);
+
+            // Drive the counter directly rather than smelting `per` times: this is asserting the
+            // arithmetic of the rake, and a real cook is already covered by the tests above.
+            cupola.rakeSlag(helper.getLevel(), per - 1);
+            helper.assertTrue(slagNear(helper) == 0,
+                "slag came off after only " + (per - 1) + " smelts, so the ratio is not being counted");
+            helper.assertTrue(cupola.smeltsSinceSlag() == per - 1,
+                "the running count is " + cupola.smeltsSinceSlag() + " rather than " + (per - 1));
+
+            cupola.rakeSlag(helper.getLevel(), 1);
+            helper.assertTrue(slagNear(helper) == 1,
+                "the " + per + "th smelt produced " + slagNear(helper) + " slag rather than 1");
+            helper.assertTrue(cupola.smeltsSinceSlag() == 0,
+                "the count must reset after a rake, left at " + cupola.smeltsSinceSlag());
+
+            // AND THE REMAINDER CARRIES. A batch of 2*per must give exactly two, not one and a lost
+            // remainder - integer division that throws the leftover away is the obvious way to write
+            // this and it silently eats slag on every hopper-fed run.
+            clearSlag(helper);
+            cupola.rakeSlag(helper.getLevel(), per * 2 + (per - 1));
+            helper.assertTrue(slagNear(helper) == 2,
+                "a batch of " + (per * 2 + per - 1) + " smelts gave " + slagNear(helper)
+                    + " slag rather than 2");
+            helper.assertTrue(cupola.smeltsSinceSlag() == per - 1,
+                "the leftover " + (per - 1) + " smelts were dropped rather than carried, count is "
+                    + cupola.smeltsSinceSlag());
+            clearSlag(helper);
+            helper.succeed();
+        });
+
+        // AND A REAL COOK ADVANCES THE COUNT, which is the half that was not covered at all.
+        //
+        // The test above calls rakeSlag directly, so it measures the arithmetic and nothing else. The
+        // fragile part is in CupolaFurnaceBlock's ticker: the result slot is sampled BEFORE the furnace
+        // tick and before drainOutput, because drainOutput empties the slot and reading after it makes
+        // every smelt on a wired Cupola look like nothing happened. Review found that deleting that
+        // call outright left all 495 tests green - a machine that never makes slag in the world, and
+        // the whole suite calling it healthy.
+        //
+        // It is also what backs the allowlist entry in every_separating_input_is_findable_scrap. That
+        // test now accepts slag as a machine-made feed; without this, nothing anywhere asserts a
+        // machine makes any.
+        RCGameTests.test("smelting_in_the_cupola_counts_toward_slag", 250, helper -> {
+            CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(1, 1, 1));
+            if (cupola == null) {
+                return;
+            }
+            helper.assertTrue(cupola.smeltsSinceSlag() == 0, "precondition: a fresh Cupola has smelted nothing");
+            cupola.setItem(0, new ItemStack(RCItems.STEEL_OFFCUT.get(), 4));
+            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(cupola.getItem(2).is(Items.IRON_INGOT),
+                    "precondition: the cupola is smelting, output was " + cupola.getItem(2));
+                helper.assertTrue(cupola.smeltsSinceSlag() > 0,
+                    "the Cupola smelted and its slag count is still 0, so the ticker is not seeing "
+                        + "completed smelts - which is exactly what deleting the rake looks like");
+            });
+        });
+
+        // AND IT STILL COUNTS WHEN THE OUTPUT IS WIRED, which is the case the ordering exists for.
+        //
+        // The test above cannot see a swapped rakeSlag/drainOutput because an UNWIRED Cupola's drain
+        // does nothing - the ingot is still in the slot either way, so both orderings pass. Wire a
+        // barrel to it and the drain empties the slot the moment the smelt lands, so a rake that reads
+        // the slot afterwards sees zero forever. Verified: with the two calls swapped this fails and
+        // the unwired test does not.
+        RCGameTests.test("a_wired_cupola_still_counts_its_smelts", 250, helper -> {
+            BlockPos cupolaPos = new BlockPos(1, 1, 1);
+            helper.setBlock(cupolaPos, RCBlocks.CUPOLA_FURNACE.get());
+            helper.setBlock(new BlockPos(2, 1, 1), RCBlocks.SCRAP_BARREL.get());
+            var cupola = (CupolaFurnaceBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(cupolaPos));
+            if (cupola == null) {
+                helper.fail("no cupola block entity");
+                return;
+            }
+            cupola.setItem(0, new ItemStack(RCItems.STEEL_OFFCUT.get(), 4));
+            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
+            helper.succeedWhen(() -> helper.assertTrue(cupola.smeltsSinceSlag() > 0,
+                "a Cupola with storage wired to it smelted and counted nothing - the rake is reading "
+                    + "the result slot after drainOutput has already emptied it, so no automated "
+                    + "Cupola in the world will ever produce slag"));
+        });
+
+        // AND IT HAS SOMEWHERE TO GO. An item that accumulates with no sink is clutter, and slag
+        // accumulates whether the player wants it or not - so the disposal route is part of shipping it
+        // rather than a later nicety. Obsidian is the payoff and comes with the Slag Furnace; this is
+        // the route for the pile you are not going to vitrify.
+        RCGameTests.test("slag_can_be_disposed_of", 20, helper -> {
+            var level = helper.getLevel();
+            boolean sink = level.recipeAccess().recipeMap().values().stream().anyMatch(holder -> {
+                var id = holder.id().identifier();
+                if (!Recompile.MOD_ID.equals(id.getNamespace())) {
+                    return false;
+                }
+                try (var in = CupolaFurnaceTests.class.getResourceAsStream(
+                        "/data/" + id.getNamespace() + "/recipe/" + id.getPath() + ".json")) {
+                    return in != null
+                        && new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)
+                            .contains("\"recompile:slag\"");
+                } catch (java.io.IOException failed) {
+                    return false;
+                }
+            });
+            helper.assertTrue(sink,
+                "nothing in the mod consumes slag, so the Cupola now hands the player a lump every few "
+                    + "smelts that can only be thrown on the floor");
+            helper.succeed();
         });
 
         // THE GATE, as an assertion rather than a comment (#91).
