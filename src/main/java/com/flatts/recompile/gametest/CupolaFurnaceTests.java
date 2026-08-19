@@ -230,35 +230,71 @@ final class CupolaFurnaceTests {
                     + "Cupola in the world will ever produce slag"));
         });
 
-        // A FULL SLAG SLOT HOLDS THE MACHINE, it does not spill and it does not delete.
+        // A FULL SLAG SLOT LOSES NOTHING AND STOPS NOTHING.
         //
-        // Vanilla stops a furnace whose result slot is full rather than destroying what it makes; the
-        // same has to be true of the second output or the courtesy is a lie. Holding is enforced by
-        // skipping the tick, because AbstractFurnaceBlockEntity.serverTick is static and its canBurn
-        // check only ever looks at the result slot.
-        RCGameTests.test("a_full_slag_slot_stops_the_cupola", 260, helper -> {
+        // The first version of this held the machine: skip the tick while the slot is full. Review
+        // caught what that costs - AbstractFurnaceBlockEntity.serverTick is the only code that clears
+        // the LIT blockstate, so a Cupola stopped for slag stays lit forever, burning nothing and
+        // looking exactly like a machine that is working.
+        //
+        // And holding bought nothing, because rakeSlag carries its remainder. A full slot means the
+        // slag waits on the counter, the metal keeps coming, and the debt pays out the moment there is
+        // room. That is what this asserts: keep smelting, drop nothing, forget nothing.
+        RCGameTests.test("a_full_slag_slot_loses_no_slag", 260, helper -> {
             CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(3, 1, 1));
             if (cupola == null) {
                 return;
             }
-            cupola.setItem(CupolaFurnaceBlockEntity.SLAG_SLOT,
-                new ItemStack(RCItems.SLAG.get(), 64));
-            helper.assertTrue(cupola.holdsForSlag(), "precondition: a full slag slot holds the machine");
-            cupola.setItem(0, new ItemStack(RCItems.STEEL_OFFCUT.get(), 4));
-            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
-            // 200 TICKS, NOT 50. A blasting recipe cooks in 100, so a shorter wait asserts nothing at
-            // all: the output slot is empty either way and the test passes with the hold deleted.
-            // Checked - removing the guard left it green until this number went up.
-            helper.runAfterDelay(200, () -> {
-                helper.assertTrue(cupola.getItem(2).isEmpty(),
-                    "the Cupola smelted with nowhere to put the slag, so the slag was lost - output was "
-                        + cupola.getItem(2));
-                helper.assertTrue(looseSlag(helper) == 0,
-                    "a jammed Cupola threw slag on the floor rather than waiting");
-                helper.assertTrue(cupola.getItem(0).getCount() == 4,
-                    "a held Cupola must not consume its input, " + cupola.getItem(0).getCount()
-                        + " offcuts left of 4");
-                helper.succeed();
+            int per = RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
+            cupola.setItem(CupolaFurnaceBlockEntity.SLAG_SLOT, new ItemStack(RCItems.SLAG.get(), 64));
+            cupola.rakeSlag(helper.getLevel(), per * 3);
+
+            helper.assertTrue(slagIn(cupola) == 64,
+                "a full slot must stay at 64, found " + slagIn(cupola));
+            helper.assertTrue(looseSlag(helper) == 0,
+                looseSlag(helper) + " slag was thrown on the floor rather than owed");
+            helper.assertTrue(cupola.slagOwed() == 3,
+                "the machine owes " + cupola.slagOwed() + " slag rather than 3, so a full slot "
+                    + "silently destroys what it cannot hold");
+
+            // And the debt pays out once there is room.
+            cupola.setItem(CupolaFurnaceBlockEntity.SLAG_SLOT, ItemStack.EMPTY);
+            cupola.rakeSlag(helper.getLevel(), 0);
+            helper.assertTrue(cupola.slagOwed() == 3,
+                "a rake of zero smelts must not pay the debt out on its own");
+            cupola.rakeSlag(helper.getLevel(), per);
+            helper.assertTrue(slagIn(cupola) == 4,
+                "emptying the slot must release the owed slag, got " + slagIn(cupola) + " of 4");
+            helper.succeed();
+        });
+
+        // A HOPPER UNDER THE CUPOLA PULLS THE SLAG OUT, which is the PR's automation claim and had
+        // nothing asserting it. cupola_allows_a_hopper only ever put an ingot in the result slot, and
+        // the insert-parity test probes the other direction - so slot 3 joining the DOWN face, and
+        // canTakeItemThroughFace allowing it, could both have regressed in silence.
+        RCGameTests.test("a_hopper_can_pull_the_slag_out", 100, helper -> {
+            BlockPos cupolaPos = new BlockPos(1, 2, 1);
+            helper.setBlock(cupolaPos, RCBlocks.CUPOLA_FURNACE.get());
+            helper.setBlock(new BlockPos(1, 1, 1), net.minecraft.world.level.block.Blocks.HOPPER);
+            var cupola = (CupolaFurnaceBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(cupolaPos));
+            if (cupola == null) {
+                helper.fail("no cupola block entity");
+                return;
+            }
+            cupola.setItem(CupolaFurnaceBlockEntity.SLAG_SLOT, new ItemStack(RCItems.SLAG.get(), 4));
+            helper.succeedWhen(() -> {
+                var hopper = (net.minecraft.world.Container)
+                    helper.getLevel().getBlockEntity(helper.absolutePos(new BlockPos(1, 1, 1)));
+                int pulled = 0;
+                for (int slot = 0; slot < hopper.getContainerSize(); slot++) {
+                    if (hopper.getItem(slot).is(RCItems.SLAG.get())) {
+                        pulled += hopper.getItem(slot).getCount();
+                    }
+                }
+                helper.assertTrue(pulled > 0,
+                    "a hopper under the Cupola pulled no slag, so the only way out of the slag slot is "
+                        + "the GUI and an automated machine backs up on a byproduct nobody asked for");
             });
         });
 

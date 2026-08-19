@@ -100,11 +100,16 @@ public class CupolaFurnaceMenu extends AbstractContainerMenu {
         }));
         LAYOUT.forEachSlot("result", (i, x, y) ->
             this.addSlot(new FurnaceResultSlot(inventory.player, container, 2, x, y)));
-        // A RESULT SLOT, not a plain one: the slag is output, so nothing may be put INTO it by hand.
-        // Without that a player can park anything there and the machine stalls, because the ticker
-        // holds when the slag slot is full - which reads as a broken furnace with nothing to explain it.
-        LAYOUT.forEachSlot("slag", (i, x, y) ->
-            this.addSlot(new FurnaceResultSlot(inventory.player, container, 3, x, y)));
+        // OUTPUT-ONLY, but NOT a FurnaceResultSlot. That class pops the furnace's banked smelting XP
+        // and fires PlayerSmeltedEvent whenever it is taken from - so collecting slag would drain the
+        // experience owed for the metal and report slag to every listener as something that was smelted.
+        // A plain slot that refuses insertion gets the behaviour wanted and none of the side effects.
+        LAYOUT.forEachSlot("slag", (i, x, y) -> this.addSlot(new Slot(container, 3, x, y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return false;
+            }
+        }));
         LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
         this.addDataSlots(data);
     }
@@ -152,11 +157,22 @@ public class CupolaFurnaceMenu extends AbstractContainerMenu {
             }
             slot.onQuickCraft(stack, original);
         } else if (index >= INV_START) {
-            if (this.container.canPlaceItem(1, stack)
-                    && this.moveItemStackTo(stack, 1, 2, false)) {
-                // fuel
-            } else if (this.moveItemStackTo(stack, 0, 1, false)) {
-                // input
+            // VANILLA'S ORDER, AND VANILLA'S DEAD ENDS. Smeltable first, then fuel, and each branch
+            // RETURNS on failure rather than falling through to the next.
+            //
+            // The first version tried fuel first and let it fall through, which meant that with a full
+            // fuel slot a second stack of Oily Rags went into the INPUT - where nothing can smelt it and
+            // the machine simply stops. Slot.mayPlace returns true unconditionally in 26.1, and the
+            // recipe filter on canPlaceItemThroughFace only guards automation, so the GUI had nothing
+            // stopping it. Any non-smeltable junk went the same way.
+            if (canSmelt(player, stack)) {
+                if (!this.moveItemStackTo(stack, 0, 1, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (isFuel(player, stack)) {
+                if (!this.moveItemStackTo(stack, 1, 2, false)) {
+                    return ItemStack.EMPTY;
+                }
             } else if (index < INV_MAIN_END) {
                 if (!this.moveItemStackTo(stack, INV_MAIN_END, INV_END, false)) {
                     return ItemStack.EMPTY;
@@ -178,6 +194,27 @@ public class CupolaFurnaceMenu extends AbstractContainerMenu {
         }
         slot.onTake(player, stack);
         return original;
+    }
+
+    /**
+     * Both tests answer the same on the client and the server, which is the point of taking them from
+     * the level rather than from the container.
+     *
+     * <p>{@code container.canPlaceItem} looked right and is unusable here: on the client the container
+     * is the {@code SimpleContainer} from the menu's own factory, whose {@code canPlaceItem} returns
+     * true for everything. Shift-click is predicted locally before the server answers, so every stack
+     * would be predicted into the fuel slot and then corrected - visible flicker on every click.
+     * {@code fuelValues()} and the synced recipe property set are both present on both sides.
+     */
+    private static boolean isFuel(Player player, ItemStack stack) {
+        return stack.getBurnTime(net.minecraft.world.item.crafting.RecipeType.BLASTING,
+            player.level().fuelValues()) > 0;
+    }
+
+    private static boolean canSmelt(Player player, ItemStack stack) {
+        return player.level().recipeAccess()
+            .propertySet(net.minecraft.world.item.crafting.RecipePropertySet.BLAST_FURNACE_INPUT)
+            .test(stack);
     }
 
     /** Only useful to a test: which block this menu belongs to. */

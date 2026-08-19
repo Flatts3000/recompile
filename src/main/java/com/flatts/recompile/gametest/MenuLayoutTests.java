@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
+import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
@@ -68,6 +69,15 @@ final class MenuLayoutTests {
         }
     }
 
+    /**
+     * <b>Hand-maintained, and that is the standing risk.</b> A menu added to the mod and not to this
+     * list is a screen with no geometry checks at all - no overlap sweep, no panel-bounds sweep, no
+     * grid centring - while this class's own javadoc promises "a new machine is covered on the day it
+     * is written". The Cupola shipped that way for exactly one review cycle (#236).
+     *
+     * <p>{@code every_menu_type_is_swept} below fails the build if the registry holds a menu this list
+     * does not, so the next one cannot be forgotten quietly.
+     */
     private static final List<Screen> SCREENS = List.of(
         new Screen("burner_generator", () -> BurnerGeneratorMenu.LAYOUT,
             inv -> new BurnerGeneratorMenu(0, inv)),
@@ -76,9 +86,36 @@ final class MenuLayoutTests {
         new Screen("tree_nursery", () -> TreeNurseryMenu.LAYOUT,
             inv -> new TreeNurseryMenu(0, inv)),
         new Screen("scrap_crafting_station", () -> ScrapCraftingStationMenu.LAYOUT,
-            inv -> new ScrapCraftingStationMenu(0, inv, BlockPos.ZERO)));
+            inv -> new ScrapCraftingStationMenu(0, inv, BlockPos.ZERO)),
+        new Screen("cupola_furnace", () -> CupolaFurnaceMenu.LAYOUT,
+            inv -> new CupolaFurnaceMenu(0, inv)));
 
     static void register() {
+        // THE LIST ABOVE MUST COVER THE REGISTRY, or every sweep in this file is measuring a subset and
+        // reporting a clean result. This is how the Cupola's screen shipped unswept: it was registered,
+        // it worked, and nothing here knew it existed. Derived from the registry so the next menu
+        // cannot be forgotten the same way.
+        RCGameTests.test("every_menu_type_is_swept", 20, helper -> {
+            java.util.Set<String> swept = new java.util.HashSet<>();
+            for (Screen screen : SCREENS) {
+                swept.add(screen.name());
+            }
+            List<String> missed = new ArrayList<>();
+            for (var entry : com.flatts.recompile.registry.RCMenus.MENUS.getEntries()) {
+                String name = entry.getId().getPath();
+                if (!swept.contains(name)) {
+                    missed.add(name);
+                }
+            }
+            helper.assertTrue(swept.size() >= 4,
+                "only " + swept.size() + " screens listed - discovery is broken, so this passes by "
+                    + "checking nothing");
+            helper.assertTrue(missed.isEmpty(),
+                "these menus are registered but absent from SCREENS, so their geometry is swept by "
+                    + "nothing in this file: " + missed);
+            helper.succeed();
+        });
+
         /*
          * The structural guarantee, and the one that makes every other assertion here worth having:
          * a menu's slots ARE its layout's slots. Before the framework a menu placed slots from its own

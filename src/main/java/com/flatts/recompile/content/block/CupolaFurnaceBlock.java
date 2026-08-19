@@ -58,18 +58,17 @@ public class CupolaFurnaceBlock extends AbstractFurnaceBlock {
         // the tick is the only seam this machine has, which is the same reason the Burn Barrel's
         // refuse gate lives here rather than on its slots.
         return (lvl, pos, st, be) -> {
-            // HOLD IF THE SLAG SLOT IS FULL, before the furnace runs. Vanilla's canBurn only looks at
-            // the result slot, so it would happily smelt on and leave the slag with nowhere to go -
-            // and the only two alternatives to holding are dropping it or deleting it. Skipping the
-            // tick is the same seam the Burn Barrel's refuse gate uses, and it fails closed: no fuel is
-            // spent while the machine waits.
-            if (be instanceof com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity full
-                    && full.holdsForSlag()) {
-                if (lvl instanceof net.minecraft.server.level.ServerLevel draining) {
-                    full.drainOutput(draining);   // a wired machine clears its own jam
-                }
-                return;
-            }
+            // NO HOLD WHEN THE SLAG SLOT IS FULL, and the first version of this was wrong to add one.
+            //
+            // Skipping the tick froze the machine mid-burn: AbstractFurnaceBlockEntity.serverTick is
+            // the only code that clears the LIT blockstate, so a Cupola that stopped for slag stayed
+            // lit forever - light 13, fire crackle and smoke on a machine doing nothing, which is the
+            // worst possible signal since it looks exactly like a machine that is working.
+            //
+            // And it bought nothing. rakeSlag carries its remainder on the counter, so a full slot
+            // loses no slag at all: the debt simply waits and pays out the moment there is room. The
+            // metal keeps coming, which is what a player wants from the machine they are actually
+            // watching.
             // COUNT THE RESULT SLOT ACROSS THE TICK, which is how the slag knows a smelt finished.
             //
             // Nothing else can grow that slot: vanilla's canPlaceItem refuses insertion into slot 2 and

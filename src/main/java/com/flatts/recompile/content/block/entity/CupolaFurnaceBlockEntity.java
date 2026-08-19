@@ -155,9 +155,10 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
      * 100-150kg of slag per tonne of steel - and counting makes it a trickle a player can plan around
      * rather than a run of luck. It also makes it exactly testable, which a chance is not.
      *
-     * <p>Where it goes is the three machines' contract: the Scrap Network first, the floor if nothing
-     * takes it. There is no fourth slot to put it in and there is not going to be - a vanilla furnace
-     * screen has three, and minting a bespoke screen for a waste product is the wrong trade.
+     * <p><b>It goes in the slag slot</b> (owner, 2026-08-18: a second output slot, not items on the
+     * ground). If that slot is full the count simply carries: nothing is dropped and nothing is
+     * deleted, and the debt pays out the moment there is room. The machine keeps smelting either way,
+     * because stopping it would only freeze the burn that clears its own LIT state.
      */
     public void rakeSlag(net.minecraft.server.level.ServerLevel level, int smelted) {
         if (smelted <= 0) {
@@ -176,7 +177,15 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         // have a second output slot, not pop things onto the ground"). What does not fit stays on the
         // counter, so nothing is destroyed and nothing is littered - the machine simply owes you slag
         // until you take some, and holdsForSlag stops it smelting before that debt can grow.
+        // WHATEVER IS IN THE SLOT MUST BE SLAG BEFORE ANYTHING GROWS IT. canPlaceItem shuts out pipes
+        // and the menu's slot shuts out hands, but Container.setItem consults neither - a command or
+        // any mod touching the Container API can seed slot 3, and without this guard the Cupola would
+        // then mint free copies of whatever that is on every rake.
         ItemStack held = getItem(SLAG_SLOT);
+        boolean slagThere = held.is(com.flatts.recompile.registry.RCItems.SLAG.get());
+        if (!held.isEmpty() && !slagThere) {
+            return;   // something else is parked there; owe the slag rather than corrupt the slot
+        }
         int room = held.isEmpty()
             ? new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get()).getMaxStackSize()
             : held.getMaxStackSize() - held.getCount();
@@ -194,24 +203,10 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         setChanged();
     }
 
-    /**
-     * Whether the slag slot is too full to take another rake, in which case the machine waits.
-     *
-     * <p>The same courtesy vanilla extends to its own output: a furnace with a full result slot stops
-     * rather than destroying what it makes. Holding is the only honest option - the alternatives are
-     * dropping the slag on the floor, which the owner rejected, or deleting it, which is worse for
-     * being silent.
-     *
-     * <p>Enforced by skipping the tick in {@code CupolaFurnaceBlock}, because that is the only seam this
-     * machine has: {@code AbstractFurnaceBlockEntity.serverTick} is static and its {@code canBurn} check
-     * looks at the result slot and nothing else, so it cannot be taught about a fourth.
-     */
-    public boolean holdsForSlag() {
-        if (com.flatts.recompile.RCConfig.CUPOLA_SMELTS_PER_SLAG.get() <= 0) {
-            return false;   // slag is switched off, so it can never be the thing blocking
-        }
-        ItemStack held = getItem(SLAG_SLOT);
-        return !held.isEmpty() && held.getCount() >= held.getMaxStackSize();
+    /** How much slag the machine still owes, for the test that has to prove a full slot loses none. */
+    public int slagOwed() {
+        int per = com.flatts.recompile.RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
+        return per <= 0 ? 0 : smeltsSinceSlag / per;
     }
 
     /** How many smelts have gone by since the last slag came off. Survives save/load. */

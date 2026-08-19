@@ -27,11 +27,14 @@ public class CupolaFurnaceScreen extends LayoutScreen<CupolaFurnaceMenu> {
 
     @Override
     protected void paint(GuiPainter painter, int mouseX, int mouseY) {
-        // The flame fills from the bottom as the fuel burns down, which is what vanilla's does. Always
-        // drawn, empty or not: a gauge that vanishes when it is empty makes "no fuel" and "no gauge"
-        // look identical, which is the same argument the Burner Generator's meter settled.
-        painter.gauge("flame", Math.round(this.menu.burnProgress() * 100), 100,
-            this.menu.isLit() ? GuiTheme.POWER : GuiTheme.POWER_IDLE);
+        // The flame fills from the bottom as the fuel burns down, which is what vanilla's does.
+        //
+        // ONE COLOUR, because the two-colour version was a lie. GuiPainter.gauge returns early when the
+        // amount is zero, and isLit() is that same amount being positive - so the idle colour could
+        // never be reached, and the comment claiming the gauge is "always drawn, empty or not" was
+        // describing something that does not happen. An unlit Cupola shows an empty well, which is what
+        // vanilla's furnace shows too, and the well itself is the chrome telling you the gauge is there.
+        painter.gauge("flame", Math.round(this.menu.burnProgress() * 100), 100, GuiTheme.POWER);
         painter.arrow("cook", Math.round(this.menu.cookProgress() * 100), 100);
     }
 }
