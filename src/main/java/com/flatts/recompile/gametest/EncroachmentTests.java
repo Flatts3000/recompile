@@ -45,7 +45,13 @@ final class EncroachmentTests {
      * was undiscoverable - a player who learns the rule in one biome reads its absence in another as a
      * bug. A future non-garbage region may well belong here; it just has to say so out loud.
      */
-    private static final List<String> NON_ENCROACHING = List.of();
+    private static final List<String> NON_ENCROACHING = List.of(
+        // The compacted depths. Encroachment is the junkyard taking BACK healed ground - it reverts
+        // grass to coarse dirt and is gated on #recompile:encroachable, which is
+        // #minecraft:substrate_overworld plus farmland. None of that exists in the Nether: there is no
+        // soil, nothing to heal, and therefore nothing to lose. Tagging it #recompile:encroaches would
+        // add a biome the sweep runs in and finds nothing to do, every tick, forever.
+        "compacted_depths");
 
     /**
      * Tags that are legitimately empty, each with a reason. Empty by default is a bug; empty on purpose

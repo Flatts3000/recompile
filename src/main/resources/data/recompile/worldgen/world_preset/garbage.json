@@ -9,7 +9,10 @@
           "type": "recompile:region",
           "household": "recompile:household_sprawl",
           "frontier": [
-            { "biome": "recompile:demolition_yard", "onset": 512 }
+            {
+              "biome": "recompile:demolition_yard",
+              "onset": 512
+            }
           ],
           "core_radius": 512,
           "falloff": 256.0,
@@ -22,10 +25,10 @@
       "type": "minecraft:the_nether",
       "generator": {
         "type": "minecraft:noise",
-        "settings": "minecraft:nether",
+        "settings": "recompile:compacted_depths",
         "biome_source": {
-          "type": "minecraft:multi_noise",
-          "preset": "minecraft:nether"
+          "type": "minecraft:fixed",
+          "biome": "recompile:compacted_depths"
         }
       }
     },
