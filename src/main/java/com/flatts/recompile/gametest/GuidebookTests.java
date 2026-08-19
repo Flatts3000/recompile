@@ -180,6 +180,53 @@ final class GuidebookTests {
             report(helper, unresolved, "guidebook lang keys with no translation");
         });
 
+        // A BLANK LINE DOES NOT BREAK A PARAGRAPH IN THIS BOOK (#241), and writing one anyway is the
+        // most natural mistake available - it is what markdown means everywhere else.
+        //
+        // Modonomicon's CoreComponentNodeRenderer claims Paragraph in getNodeTypes() and has no
+        // visit(Paragraph) override, so AbstractVisitor walks a paragraph's children and emits nothing
+        // at the boundary. A blank line therefore renders as nothing: the last word of one paragraph is
+        // welded to the first word of the next, which reads as a typo rather than a layout fault. It
+        // shipped that way in all 71 of the book's text pages for releases, because no test layer can
+        // see a rendered page and GuidebookTests only ever proved the key resolves.
+        //
+        // The one node that emits anything is HardLineBreak, which appends a newline; commonmark makes
+        // one from a backslash at end of line, and two of them give a real blank line. Modonomicon's
+        // own demo book uses the same trick, which is what makes it the idiom rather than a workaround.
+        RCGameTests.test("every_guidebook_paragraph_break_actually_breaks", 20, helper -> {
+            List<String> files = bookFiles(helper);
+            Set<String> keys = new LinkedHashSet<>();
+            for (String json : files) {
+                Matcher m = LANG_KEY.matcher(json);
+                while (m.find()) {
+                    keys.add(m.group(1));
+                }
+            }
+            helper.assertTrue(keys.size() > 50,
+                "only " + keys.size() + " guidebook lang keys were found - discovery is broken");
+
+            List<String> welded = new ArrayList<>();
+            int withBreaks = 0;
+            for (String key : keys) {
+                String text = Component.translatable(key).getString();
+                if (!text.contains("\n\n")) {
+                    continue;
+                }
+                withBreaks++;
+                // Strip every WORKING break; a blank line left over is a bare one, and a bare one
+                // renders as nothing at all.
+                if (text.replace("\n\n\\\n\\\n", "").contains("\n\n")) {
+                    welded.add(key);
+                }
+            }
+            helper.assertTrue(withBreaks > 20,
+                "only " + withBreaks + " guidebook texts have paragraph breaks at all - either the "
+                    + "book lost its prose or this test is looking at the wrong thing");
+            report(helper, welded,
+                "guidebook texts whose blank line renders as nothing, welding two paragraphs together "
+                    + "(end a paragraph with a blank line and TWO backslash-terminated lines)");
+        });
+
         // An icon naming an item that does not exist draws the missing texture on the category map, next
         // to a perfectly good entry. Nothing else in the build looks at these ids.
         RCGameTests.test("every_guidebook_icon_is_a_real_item", 20, helper -> {
