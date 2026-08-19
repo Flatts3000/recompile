@@ -22,7 +22,12 @@
     "industrial residue that grinds into a ghast tear - they are mob drops, and the fortresses,",
     "bastions and ghasts already supply them.",
     "",
-    "Weights first-pass; #36 owns them."
+    "Weights first-pass; #36 owns them.",
+    "",
+    "MAGMA SHARD, moved here from Slag Rubble (owner, 2026-08-19). It is the one shard the fill",
+    "yields rather than the spoil, and the split is temperature: rubble is what finished cooling,",
+    "this has not. Still a shard and still four-to-a-block, so it does not break the scrap rule - a",
+    "shard is explicitly unfinished, which is the same reason netherite scrap is allowed here."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -53,6 +58,11 @@
           "type": "minecraft:item",
           "name": "minecraft:netherite_scrap",
           "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:magma_shard",
+          "weight": 40
         }
       ]
     }

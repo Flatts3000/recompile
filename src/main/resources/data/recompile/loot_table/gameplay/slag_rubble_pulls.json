@@ -9,7 +9,11 @@
     "what makes the dimension worth mining rather than a place you pass through.",
     "",
     "Weights mirror rubble_pulls' shape - the common ground leads, the specials trail. Final",
-    "numbers belong to the balance pass (#36)."
+    "numbers belong to the balance pass (#36).",
+    "",
+    "MAGMA IS NOT HERE (owner, 2026-08-19): it moved to techno-organic waste. Slag Rubble is the",
+    "fraction that never fused and has finished cooling - burnt, glassy, cold. Magma has not finished",
+    "cooling, so it belongs in the mass that is still hot rather than in the spoil beside it."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -30,11 +34,6 @@
           "type": "minecraft:item",
           "name": "recompile:blackstone_shard",
           "weight": 60
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:magma_shard",
-          "weight": 30
         },
         {
           "type": "minecraft:item",
