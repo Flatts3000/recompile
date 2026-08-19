@@ -19,6 +19,8 @@ import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
@@ -94,19 +96,28 @@ final class MenuLayoutTests {
             inv -> new com.flatts.recompile.content.menu.SlagFurnaceMenu(0, inv)));
 
     /**
-     * The two machines that hand JEI raw slot indices for its transfer button, and the ranges they
-     * hand it.
+     * The machines that hand JEI raw slot indices for its transfer button, and the ranges they hand it.
+     *
+     * <p>Hand-written, and {@code every_transfer_menu_is_swept} below fails the build if a menu
+     * declares transfer constants without appearing here - the same guard {@code SCREENS} gets from
+     * {@code every_menu_type_is_swept}, and for the same reason. A list nothing checks is a list that
+     * silently stops covering things.
      */
-    private record Transfer(String name, int invStart, int invCount,
+    private record Transfer(String name, Class<?> menuClass, int recipeStart, int recipeCount,
+                            int invStart, int invCount,
                             java.util.function.Function<net.minecraft.world.entity.player.Inventory,
                                 net.minecraft.world.inventory.AbstractContainerMenu> build) {
     }
 
     private static final List<Transfer> TRANSFERS = List.of(
-        new Transfer("cupola_furnace", CupolaFurnaceMenu.TRANSFER_INV_START,
-            CupolaFurnaceMenu.TRANSFER_INV_COUNT, inv -> new CupolaFurnaceMenu(0, inv)),
-        new Transfer("slag_furnace", SlagFurnaceMenu.TRANSFER_INV_START,
-            SlagFurnaceMenu.TRANSFER_INV_COUNT, inv -> new SlagFurnaceMenu(0, inv)));
+        new Transfer("cupola_furnace", CupolaFurnaceMenu.class,
+            CupolaFurnaceMenu.TRANSFER_RECIPE_START, CupolaFurnaceMenu.TRANSFER_RECIPE_COUNT,
+            CupolaFurnaceMenu.TRANSFER_INV_START, CupolaFurnaceMenu.TRANSFER_INV_COUNT,
+            inv -> new CupolaFurnaceMenu(0, inv)),
+        new Transfer("slag_furnace", SlagFurnaceMenu.class,
+            SlagFurnaceMenu.TRANSFER_RECIPE_START, SlagFurnaceMenu.TRANSFER_RECIPE_COUNT,
+            SlagFurnaceMenu.TRANSFER_INV_START, SlagFurnaceMenu.TRANSFER_INV_COUNT,
+            inv -> new SlagFurnaceMenu(0, inv)));
 
     static void register() {
         // JEI'S TRANSFER RANGES ARE RAW SLOT INDICES, AND GETTING ONE WRONG IS SILENT (#240).
@@ -116,14 +127,37 @@ final class MenuLayoutTests {
         // basic overload with an inventory start and count. Hand that overload an index one off and the
         // "+" button still appears and still moves items, into the wrong slots. Nothing throws.
         //
-        // The plugin is client-only, so nothing server-side can read a number written there; the two
-        // menus declare the ranges instead and this measures them against the menus they describe. A
-        // fifth slot on the Cupola breaks this test rather than a player's inventory.
+        // The plugin is client-only, so nothing server-side can read a number written there; the menus
+        // declare the ranges instead and this measures them against the menus they describe.
+        //
+        // Note what this does and does not catch, because an earlier version of this comment claimed
+        // more than it delivered. A fifth slot ADDED to the Cupola does not fail here and should not:
+        // TRANSFER_INV_START derives from SLOTS, so the range moves with it and stays correct. What
+        // would go wrong is the input being REORDERED - slot 0 becoming an output - and that is the
+        // case the recipe-slot assertions below exist for.
         RCGameTests.test("menu_transfer_ranges_match_the_real_slots", 20, helper -> {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
             for (Transfer transfer : TRANSFERS) {
                 var menu = transfer.build().apply(player.getInventory());
                 int total = menu.slots.size();
+
+                // THE RECIPE SLOT, which is the half that fails invisibly. JEI writes the chosen
+                // ingredient into these indices, and validateTransferInfo only rejects a FAKE slot -
+                // a FurnaceResultSlot is a real one - so pointing this at an output would quietly load
+                // the ingredient into the machine's results rather than refusing.
+                helper.assertTrue(transfer.recipeCount() == 1,
+                    transfer.name() + " declares " + transfer.recipeCount() + " recipe slots; both "
+                        + "smelters take exactly one input and the categories draw one input slot");
+                var recipeSlot = menu.slots.get(transfer.recipeStart());
+                helper.assertTrue(recipeSlot.container != player.getInventory(),
+                    transfer.name() + " points JEI's recipe slot at the player's inventory");
+                // mayPLACE, not mayPickup. Both are true on a FurnaceResultSlot, so only placement
+                // separates an input from an output: 26.1's base Slot.mayPlace is unconditionally
+                // true and ResultSlot overrides it to false.
+                helper.assertTrue(recipeSlot.mayPlace(new ItemStack(Items.STONE)),
+                    transfer.name() + " recipe slot " + transfer.recipeStart() + " refuses items, so "
+                        + "it is an output rather than an input - JEI would write the chosen "
+                        + "ingredient into the machine's results and not complain");
                 helper.assertTrue(transfer.invStart() + transfer.invCount() == total,
                     transfer.name() + " tells JEI the inventory runs " + transfer.invStart() + ".."
                         + (transfer.invStart() + transfer.invCount() - 1) + " but the menu has "
@@ -139,6 +173,42 @@ final class MenuLayoutTests {
                     transfer.name() + " slot " + (transfer.invStart() - 1) + " is already a player "
                         + "slot, so the range starts one too late and the first one is unreachable");
             }
+            helper.succeed();
+        });
+
+        // THE LIST ABOVE MUST COVER EVERY MENU THAT DECLARES TRANSFER CONSTANTS.
+        //
+        // Same asymmetry SCREENS already fixed: a hand-written list with nothing tying it to the code
+        // stops covering things without saying so. A third machine given a transfer handler would
+        // otherwise be entirely unmeasured. Declaring TRANSFER_RECIPE_START is the marker, because a
+        // menu only declares it in order to be handed to JEI.
+        RCGameTests.test("every_transfer_menu_is_swept", 20, helper -> {
+            List<String> missing = new ArrayList<>();
+            int declared = 0;
+            for (Class<?> candidate : List.of(
+                    CupolaFurnaceMenu.class, SlagFurnaceMenu.class, BurnerGeneratorMenu.class,
+                    HydroponicsBayMenu.class, TreeNurseryMenu.class, ScrapCraftingStationMenu.class)) {
+                boolean declaresTransfer;
+                try {
+                    candidate.getField("TRANSFER_RECIPE_START");
+                    declaresTransfer = true;
+                } catch (NoSuchFieldException absent) {
+                    declaresTransfer = false;
+                }
+                if (!declaresTransfer) {
+                    continue;
+                }
+                declared++;
+                if (TRANSFERS.stream().noneMatch(t -> t.menuClass() == candidate)) {
+                    missing.add(candidate.getSimpleName());
+                }
+            }
+            helper.assertTrue(declared == TRANSFERS.size(),
+                declared + " menus declare transfer constants but TRANSFERS holds "
+                    + TRANSFERS.size());
+            helper.assertTrue(missing.isEmpty(),
+                "these menus hand JEI slot ranges but are not swept here, so nothing checks them: "
+                    + missing);
             helper.succeed();
         });
 

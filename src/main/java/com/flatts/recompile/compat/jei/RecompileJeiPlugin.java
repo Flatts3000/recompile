@@ -493,14 +493,16 @@ public class RecompileJeiPlugin implements IModPlugin {
             com.flatts.recompile.content.menu.CupolaFurnaceMenu.class,
             com.flatts.recompile.registry.RCMenus.CUPOLA_FURNACE.get(),
             CUPOLA,
-            0, 1,
+            com.flatts.recompile.content.menu.CupolaFurnaceMenu.TRANSFER_RECIPE_START,
+            com.flatts.recompile.content.menu.CupolaFurnaceMenu.TRANSFER_RECIPE_COUNT,
             com.flatts.recompile.content.menu.CupolaFurnaceMenu.TRANSFER_INV_START,
             com.flatts.recompile.content.menu.CupolaFurnaceMenu.TRANSFER_INV_COUNT);
         registration.addRecipeTransferHandler(
             com.flatts.recompile.content.menu.SlagFurnaceMenu.class,
             com.flatts.recompile.registry.RCMenus.SLAG_FURNACE.get(),
             VITRIFYING,
-            0, 1,
+            com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_RECIPE_START,
+            com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_RECIPE_COUNT,
             com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_INV_START,
             com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_INV_COUNT);
     }
