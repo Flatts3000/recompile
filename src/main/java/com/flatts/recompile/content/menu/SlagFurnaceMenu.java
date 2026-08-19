@@ -66,6 +66,37 @@ public class SlagFurnaceMenu extends AbstractFurnaceMenu {
         .playerInventory(84)
         .build();
 
+
+    /**
+     * Where the player's inventory starts in this menu, for JEI's transfer handler (#240).
+     *
+     * <p><b>A constant rather than a literal in the plugin, because getting it wrong is silent.</b>
+     * JEI's basic transfer overload takes raw slot indices; hand it an index one off and the "+" button
+     * still appears and still moves items, into the wrong slots. Nothing throws, and the plugin is
+     * client-only so no server-side test can read a number written there. Declared here, where
+     * {@code menu_transfer_ranges_match_the_real_slots} can measure it against the menu it is built
+     * from.
+     */
+    public static final int TRANSFER_INV_START = 3;
+
+    /** The 27 main inventory slots plus the 9 hotbar ones, which is what a transfer may draw from. */
+    public static final int TRANSFER_INV_COUNT = 36;
+
+    /**
+     * The slot JEI writes a chosen recipe's ingredient into - the machine's input.
+     *
+     * <p><b>The more dangerous half of the range, and it was the one left as a literal.</b> An
+     * inventory index that is wrong lands items in the player's own slots, which is visible; a recipe
+     * index that is wrong lands them in whatever slot 0 has become. If that were an output slot JEI
+     * would not object - {@code validateTransferInfo} only rejects a FAKE slot, and a
+     * {@code FurnaceResultSlot} is a real one whose {@code mayPickup} is true - so the ingredient would
+     * be quietly written into the machine's output.
+     */
+    public static final int TRANSFER_RECIPE_START = 0;
+
+    /** One input, because both smelters take one thing at a time. */
+    public static final int TRANSFER_RECIPE_COUNT = 1;
+
     /** Client factory: a dummy container and data, filled by the sync. */
     public SlagFurnaceMenu(int containerId, Inventory inventory) {
         super(RCMenus.SLAG_FURNACE.get(), RCRecipeTypes.VITRIFYING.get(),
