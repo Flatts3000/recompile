@@ -120,9 +120,25 @@ public final class RCItems {
     public static final DeferredItem<Item> PHOSPHOR_SCRAP = ITEMS.registerItem("phosphor_scrap", Item::new);
     public static final DeferredItem<Item> RENDERED_ORGANICS = ITEMS.registerItem("rendered_organics", Item::new);
 
+    /**
+     * Oily Swarf: the chip waste off a lathe, still soaked in cutting fluid.
+     *
+     * <p><b>It answers to two verbs, which is why it is one item and not two.</b> Magnesium and
+     * titanium swarf is a real fire hazard - fine enough to ignite in air - so the mill reduces it to
+     * blaze powder. And swarf really does come off the tool wet, which is why real swarf recycling
+     * begins by separating the metal from the oil - so the separator divides it into magma cream and
+     * the chips themselves.
+     *
+     * <p>Slag already works this way (separating, pulverizing and vitrifying into three different
+     * things), so one material serving several machines is the established shape rather than a
+     * special case. It also gives magma cream its only route: vanilla wants a slime ball for it, and
+     * this world has no slime.
+     */
+    public static final DeferredItem<Item> OILY_SWARF = ITEMS.registerItem("oily_swarf", Item::new);
+
     /** The depths' scrap in creative-tab order. */
     public static final List<DeferredItem<Item>> DEPTHS_SCRAP = List.of(
-        FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS);
+        FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS, OILY_SWARF);
 
     /** Nether terrain shards in creative-tab order. */
     public static final List<DeferredItem<Item>> NETHER_SHARDS = List.of(

@@ -27,7 +27,9 @@
     "MAGMA SHARD, moved here from Slag Rubble (owner, 2026-08-19). It is the one shard the fill",
     "yields rather than the spoil, and the split is temperature: rubble is what finished cooling,",
     "this has not. Still a shard and still four-to-a-block, so it does not break the scrap rule - a",
-    "shard is explicitly unfinished, which is the same reason netherite scrap is allowed here."
+    "shard is explicitly unfinished, which is the same reason netherite scrap is allowed here.",
+    "",
+    "OILY SWARF answers to two verbs, which is why it is one item and not two. The mill reduces it to burning metal fines (blaze powder); the separator divides it into its oil and its chips (magma cream, byproduct scrap metal). Slag already works this way - three verbs, three outputs - so the precedent is in the mod rather than invented for this."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -63,6 +65,11 @@
           "type": "minecraft:item",
           "name": "recompile:magma_shard",
           "weight": 40
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:oily_swarf",
+          "weight": 70
         }
       ]
     }

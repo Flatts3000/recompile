@@ -1,0 +1,35 @@
+{
+  "_comment": [
+    "MAGMA CREAM. Swarf comes off the tool soaked in cutting fluid, which is why real swarf",
+    "recycling starts by separating the metal from the oil - the oil is recovered and the chips",
+    "are dried before they can be melted. Cook that oil fraction and what is left is a hot",
+    "viscous gel.",
+    "",
+    "Separating, because the input genuinely IS two things and this is the machine that divides a",
+    "mixed feed. The byproduct is the other half: the chips themselves, which are scrap metal.",
+    "",
+    "One material answering to two verbs is not new here - slag already separates, pulverizes AND",
+    "vitrifies into three different things. What makes it honest in both cases is that the verbs",
+    "are doing different work on the same material rather than being two names for one recipe.",
+    "",
+    "It also gives magma cream its only route: vanilla makes it from blaze powder and a slime",
+    "ball, and this world has no slime at all."
+  ],
+  "type": "recompile:separating",
+  "input": "recompile:oily_swarf",
+  "count": 4,
+  "ticks": 80,
+  "energy": 24,
+  "results": [
+    {
+      "item": "minecraft:magma_cream",
+      "count": 1
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:scrap_metal",
+      "count": 1
+    }
+  ]
+}

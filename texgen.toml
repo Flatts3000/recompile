@@ -1139,6 +1139,12 @@ palette = ["#8a8a8e", "#9a9a9e", "#77777c", "#6a6a70", "#b0b0b4", "#5c5c62", "#a
 # because the buried world has to stay recognisably ours.
 # ---------------------------------------------------------------------------
 
+[surface.oily_swarf]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small tangled clump of curled metal machining swarf, spiral shavings of bright and dull metal wound together, slick with dark cutting oil that beads on the curls, a few chips showing warm bare metal, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.fused_circuitry]
 kind = "item"
 backend = "ai"

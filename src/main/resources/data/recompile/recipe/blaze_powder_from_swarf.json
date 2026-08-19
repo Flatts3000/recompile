@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "BLAZE POWDER. Swarf is the chip waste off a lathe or mill, and magnesium and titanium swarf",
+    "is a real and well-known fire hazard - fine enough to ignite in air, and water makes it",
+    "worse rather than better. Reduced to a powder that is what it is: a dust whose whole",
+    "property is burning ferociously.",
+    "",
+    "Pulverizing, because this changes only fineness. The swarf is not being divided into two",
+    "things here - that is the separator's recipe on the same input - it is being made finer",
+    "until it behaves the way fine metal does.",
+    "",
+    "Ratio and cost are first-pass; #36 owns them."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "recompile:oily_swarf",
+  "count": 3,
+  "result": {
+    "item": "minecraft:blaze_powder",
+    "count": 1
+  },
+  "ticks": 100,
+  "energy": 24
+}
