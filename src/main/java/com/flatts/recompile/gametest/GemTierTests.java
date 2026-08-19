@@ -59,6 +59,35 @@ final class GemTierTests {
     private GemTierTests() {
     }
 
+    /**
+     * Every item any of this mod's pull streams can yield.
+     *
+     * <p><b>Derived from the registry, not listed.</b> Every {@code SortableBlock} names its own pull
+     * table, {@code SortingData.pathFor} turns that into the bundled JSON path, and
+     * {@code SortingData.outputs} reads it - the same route JEI takes. So a new sortable's stream is
+     * covered the day the block is registered rather than the day somebody remembers to extend a list,
+     * which is the failure mode this replaced.
+     */
+    private static java.util.Set<Item> pullableItems() {
+        java.util.Set<Item> items = new java.util.LinkedHashSet<>();
+        for (net.minecraft.world.level.block.Block block
+                : net.minecraft.core.registries.BuiltInRegistries.BLOCK) {
+            if (!(block instanceof com.flatts.recompile.content.block.SortableBlock)) {
+                continue;
+            }
+            net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> table =
+                com.flatts.recompile.content.block.SortableBlock.pullTableFor(block.asItem());
+            if (table == null) {
+                continue;
+            }
+            for (var weighted : com.flatts.recompile.compat.SortingData.outputs(
+                    com.flatts.recompile.compat.SortingData.pathFor(table))) {
+                items.add(weighted.stack().getItem());
+            }
+        }
+        return items;
+    }
+
     static void register() {
         // The tier's whole shape: the pile is the found half, the Separator is the refined half. A pile
         // that handed out a diamond directly would be a rarer loot table rather than a tier.
@@ -133,31 +162,40 @@ final class GemTierTests {
                     problems.add(holder.id() + " produces nothing");
                 }
                 boolean findable = false;
-                // MACHINE-MADE FEEDS COUNT TOO, and each one is listed with its reason.
+                // FINDABLE MEANS SOMETHING DROPS IT, so this reads the pull streams rather than a
+                // hand-list of items.
                 //
-                // The rule this test enforces is the comment above it: an input with no source is a
-                // dead machine. It was IMPLEMENTED as "the input is industrial scrap" because for three
-                // recipes those were the same sentence - every separating input came out of Mechanical
-                // Waste. Slag (#236) is the first that does not: the Cupola rakes it off every eighth
-                // smelt, which is a source, just not a loot table. A hardcoded list is honest here for
-                // the reason RegistryCompletenessTests keeps two of them - a justified entry beats a
-                // loosened check, because the next input with no source at all must still fail.
-                for (var made : List.of(RCItems.SLAG)) {
+                // It used to be "the input is one of INDUSTRIAL_SCRAP, or slag", which was the same
+                // sentence as findable for exactly as long as every separating input came out of
+                // Mechanical Waste. The compacted depths broke that: fused circuitry and rendered
+                // organics have a perfectly good source that simply is not that table, and the test
+                // called them dead machines. Walking every gameplay pull stream measures the property
+                // the comment above claims, and an input nothing anywhere drops still fails - which
+                // is the whole point of the check.
+                java.util.Set<Item> pullable = pullableItems();
+                for (Item pulled : pullable) {
                     if (holder.value().matches(
                             new net.minecraft.world.item.crafting.SingleRecipeInput(
-                                new ItemStack(made.get())), helper.getLevel())) {
+                                new ItemStack(pulled)), helper.getLevel())) {
                         findable = true;
+                        break;
                     }
                 }
-                for (var scrap : RCItems.INDUSTRIAL_SCRAP) {
-                    if (holder.value().matches(
-                            new net.minecraft.world.item.crafting.SingleRecipeInput(
-                                new ItemStack(scrap.get())), helper.getLevel())) {
-                        findable = true;
+                // Machine-made feeds are not in any pull stream and still have a source. Slag (#236)
+                // is the one: the Cupola rakes it off every eighth smelt. A justified entry beats a
+                // loosened check.
+                if (!findable) {
+                    for (var made : List.of(RCItems.SLAG)) {
+                        if (holder.value().matches(
+                                new net.minecraft.world.item.crafting.SingleRecipeInput(
+                                    new ItemStack(made.get())), helper.getLevel())) {
+                            findable = true;
+                        }
                     }
                 }
                 if (!findable) {
-                    problems.add(holder.id() + " eats something with no source - neither a Mechanical Waste drop nor a machine output");
+                    problems.add(holder.id() + " eats something with no source - it is in no pull "
+                        + "stream and no machine makes it");
                 }
             }
             helper.assertTrue(checked >= 3,

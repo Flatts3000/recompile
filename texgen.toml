@@ -1132,6 +1132,74 @@ palette = ["#8a8a8e", "#9a9a9e", "#77777c", "#6a6a70", "#b0b0b4", "#5c5c62", "#a
 # Prompts share one silhouette formula on purpose. Seven greyish rocks is the worst case for 16px mush -
 # the failure the Burner Generator's first prompt set hit - so the difference is carried by HUE plus a
 # single texture cue each, never by fine detail. Judge them as a row of seven, not one at a time.
+# ---------------------------------------------------------------------------
+# THE COMPACTED DEPTHS: SCRAP CATEGORIES. E-waste at civilisational scale, not science
+# fiction - server racks, lamps and screens, and the organic matter cooked in with them.
+# Each has a real-world referent because material literacy is flavour AND tutorial here, and
+# because the buried world has to stay recognisably ours.
+# ---------------------------------------------------------------------------
+
+[surface.fused_circuitry]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small slab of compacted circuit boards fused together by heat, green and gold board layers melted into a dark block, tiny gold contact pins and a clear quartz oscillator visible in the mass, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.phosphor_scrap]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small handful of broken lamp and screen glass with pale powdery phosphor coating still stuck to the inside faces, dull white-green dust, dirty glass fragments, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.rendered_organics]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small dense cake of cooked organic waste, dark brown rendered matter pressed into a block, dry and crumbling at the edges, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+# ---------------------------------------------------------------------------
+# NETHER TERRAIN SHARDS. The compacted depths generate no vanilla nether terrain at all, so
+# every block of it is rebuilt from a shard sifted out of Slag Rubble - the same trade the
+# demolition yard makes for stone. Item icons, so the same kind/backend as the stone shards
+# directly below.
+# ---------------------------------------------------------------------------
+
+[surface.netherrack_shard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small sharp chip of dark red netherrack, porous and crumbly, dull crimson-brown, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.basalt_shard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small sharp chip of dark grey basalt, fine columnar stone, cool near-black grey, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.blackstone_shard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small sharp chip of blackstone, matte charcoal-black volcanic rock, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.magma_shard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small sharp chip of magma block, dark crust with glowing orange cracks running through it, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.soul_sand_shard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small compacted lump of soul sand, dull grey-brown granular material with a faint hollow face pressed into it, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.soul_soil_shard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small compacted lump of soul soil, dark brown crumbly earth, drier and darker than sand, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.stone_shard]
 kind = "item"
 backend = "ai"

@@ -83,6 +83,8 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.STEEL_OFFCUT.get());
                     output.accept(RCItems.SLAG.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
+                    RCItems.DEPTHS_SCRAP.forEach(scrap -> output.accept(scrap.get()));
+                    RCItems.NETHER_SHARDS.forEach(shard -> output.accept(shard.get()));
                     RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
                     output.accept(RCItems.CIRCUIT_POWDER.get());
                     output.accept(RCItems.GROG.get());

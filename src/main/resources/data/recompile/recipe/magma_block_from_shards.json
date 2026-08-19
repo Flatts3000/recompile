@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:magma_shard",
+    "recompile:magma_shard",
+    "recompile:magma_shard",
+    "recompile:magma_shard"
+  ],
+  "result": {
+    "id": "minecraft:magma_block",
+    "count": 1
+  }
+}

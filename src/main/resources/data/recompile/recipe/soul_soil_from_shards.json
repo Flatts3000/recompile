@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:soul_soil_shard",
+    "recompile:soul_soil_shard",
+    "recompile:soul_soil_shard",
+    "recompile:soul_soil_shard"
+  ],
+  "result": {
+    "id": "minecraft:soul_soil",
+    "count": 1
+  }
+}

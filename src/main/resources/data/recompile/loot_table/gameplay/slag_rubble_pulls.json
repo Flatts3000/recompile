@@ -1,12 +1,15 @@
 {
   "_comment": [
-    "Slag Rubble: the burnt fraction that never fused into the fill. The mineral half of the",
-    "depths, against techno-organic waste's salvage half - the same split Stone Rubble and the",
-    "Block of Garbage make in the overworld.",
+    "Slag Rubble: the Nether's Stone Rubble, and it does the same job (owner, 2026-08-19).",
+    "Sift a shard out, put four together, get the terrain block back - the exact shape",
+    "rubble_pulls and stone_from_shards already use in the demolition yard.",
     "",
-    "FIRST PASS, weights for the balance pass (#36). Slag itself leads because this is where the",
-    "word came from: the Cupola rakes it a lump at a time, and a whole dimension of it is what",
-    "makes the Slag Furnace worth owning."
+    "This is the ONLY source of Nether terrain in the game: the compacted depths generate no",
+    "netherrack, no basalt and no soul sand, so every block of it is rebuilt from shards. That is",
+    "what makes the dimension worth mining rather than a place you pass through.",
+    "",
+    "Weights mirror rubble_pulls' shape - the common ground leads, the specials trail. Final",
+    "numbers belong to the balance pass (#36)."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -15,17 +18,32 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "recompile:slag",
+          "name": "recompile:netherrack_shard",
           "weight": 100
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:stone_shard",
-          "weight": 45
+          "name": "recompile:basalt_shard",
+          "weight": 60
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:scrap_metal",
+          "name": "recompile:blackstone_shard",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:magma_shard",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:soul_sand_shard",
+          "weight": 40
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:soul_soil_shard",
           "weight": 30
         }
       ]

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:blackstone_shard",
+    "recompile:blackstone_shard",
+    "recompile:blackstone_shard",
+    "recompile:blackstone_shard"
+  ],
+  "result": {
+    "id": "minecraft:blackstone",
+    "count": 1
+  }
+}

@@ -91,6 +91,43 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> STONE_SHARDS = List.of(
         STONE_SHARD, GRANITE_SHARD, DIORITE_SHARD, ANDESITE_SHARD, DEEPSLATE_SHARD, TUFF_SHARD, CALCITE_SHARD);
 
+    // ---------------- The compacted depths: nether terrain shards ----------------
+    // The same trade the demolition yard makes for stone, in the dimension that has no terrain of its
+    // own to mine. The depths generate NO vanilla nether blocks - no netherrack, no basalt, no soul
+    // sand - so every one of them is rebuilt four shards at a time out of Slag Rubble. That is what
+    // makes the dimension worth mining rather than a place to pass through.
+    //
+    // The two soul blocks are CLUMPS rather than shards: soul sand and soul soil are granular, and a
+    // "shard" of sand reads as a mistake. Same reason the overworld's sand arrives whole from
+    // Reinforced Concrete instead of as a shard.
+    public static final DeferredItem<Item> NETHERRACK_SHARD = ITEMS.registerItem("netherrack_shard", Item::new);
+    public static final DeferredItem<Item> BASALT_SHARD = ITEMS.registerItem("basalt_shard", Item::new);
+    public static final DeferredItem<Item> BLACKSTONE_SHARD = ITEMS.registerItem("blackstone_shard", Item::new);
+    public static final DeferredItem<Item> MAGMA_SHARD = ITEMS.registerItem("magma_shard", Item::new);
+    public static final DeferredItem<Item> SOUL_SAND_SHARD = ITEMS.registerItem("soul_sand_shard", Item::new);
+    public static final DeferredItem<Item> SOUL_SOIL_SHARD = ITEMS.registerItem("soul_soil_shard", Item::new);
+
+    // ---------------- The compacted depths: scrap categories ----------------
+    // The dump gives SCRAP; machines give materials. These are the Nether's three, and each feeds one
+    // machine verb: circuitry SEPARATES into quartz (a board really is a mixture), phosphor
+    // PULVERIZES into glowstone dust (a lamp really is coated in it), organics SEPARATE into nether
+    // wart (a fungus really does outlast everything else in a dump).
+    //
+    // E-waste at civilisational scale rather than science fiction, deliberately: server racks, lamps
+    // and screens, and the biological matter cooked in with them. Every one has a real-world referent,
+    // which is the standard material_economy.md holds the whole matrix to.
+    public static final DeferredItem<Item> FUSED_CIRCUITRY = ITEMS.registerItem("fused_circuitry", Item::new);
+    public static final DeferredItem<Item> PHOSPHOR_SCRAP = ITEMS.registerItem("phosphor_scrap", Item::new);
+    public static final DeferredItem<Item> RENDERED_ORGANICS = ITEMS.registerItem("rendered_organics", Item::new);
+
+    /** The depths' scrap in creative-tab order. */
+    public static final List<DeferredItem<Item>> DEPTHS_SCRAP = List.of(
+        FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS);
+
+    /** Nether terrain shards in creative-tab order. */
+    public static final List<DeferredItem<Item>> NETHER_SHARDS = List.of(
+        NETHERRACK_SHARD, BASALT_SHARD, BLACKSTONE_SHARD, MAGMA_SHARD, SOUL_SAND_SHARD, SOUL_SOIL_SHARD);
+
     /**
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +
      * fiber. It is the gate the Vegetation and Farming tiers consume - never crafted, only composted.

@@ -1,10 +1,28 @@
 {
   "_comment": [
-    "Techno-organic waste: fused machinery and organic refuse, compacted. The salvage half of the",
-    "compacted depths, weighted like household_pulls so the two read as siblings.",
+    "Techno-organic waste: the compacted depths' bulk block.",
     "",
-    "FIRST PASS. Weights are placeholders for the balance pass (#36). What is deliberate is what is",
-    "ABSENT: nothing here opens a gate the overworld ladder owns. No iron, no wood, no gold."
+    "THE DUMP GIVES SCRAP; MACHINES GIVE MATERIALS (owner, 2026-08-19). Copper is not in a",
+    "household mound - scrap metal is, and the Cupola smelts it. Quartz is not in here for exactly",
+    "the same reason. An earlier version of this table handed over glowstone dust, quartz, blaze",
+    "powder, magma cream, ghast tears and nether wart directly, which broke the rule the whole",
+    "economy rests on and skipped every machine the player owns.",
+    "",
+    "Two things are direct, and both because they are ALREADY unprocessed:",
+    "  slag            - the non-metallic fraction of a remelt. Cooked waste IS slag.",
+    "  netherite scrap - vanilla's own word for an intermediate; four of them plus gold plus a",
+    "                    smithing template is still ahead of you, so it is a scrap, not a metal.",
+    "",
+    "The three scrap categories are e-waste at civilisational scale rather than science fiction,",
+    "which is what makes 'techno-organic' mean something: server racks, lamps and screens, and the",
+    "biological matter cooked in with them. Each feeds one machine verb and each has a real-world",
+    "referent, because material literacy is flavour AND tutorial here.",
+    "",
+    "What is NOT here and will not be: blaze rods, magma cream and ghast tears. There is no honest",
+    "industrial residue that grinds into a ghast tear - they are mob drops, and the fortresses,",
+    "bastions and ghasts already supply them.",
+    "",
+    "Weights first-pass; #36 owns them."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -13,33 +31,28 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "recompile:scrap_metal",
-          "weight": 100
+          "name": "recompile:slag",
+          "weight": 150
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:plastic_scrap",
-          "weight": 70
+          "name": "recompile:fused_circuitry",
+          "weight": 90
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:e_scrap",
-          "weight": 45
+          "name": "recompile:phosphor_scrap",
+          "weight": 75
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:rebar",
-          "weight": 40
+          "name": "recompile:rendered_organics",
+          "weight": 60
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:glass_shards",
-          "weight": 35
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:junk",
-          "weight": 30
+          "name": "minecraft:netherite_scrap",
+          "weight": 2
         }
       ]
     }
