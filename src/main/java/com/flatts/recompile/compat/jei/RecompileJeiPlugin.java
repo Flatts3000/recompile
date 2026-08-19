@@ -532,8 +532,12 @@ public class RecompileJeiPlugin implements IModPlugin {
         // directions at once - advertising a cupola that cooks beef and makes glass, and hiding the iron
         // recipes that are the only reason to build one. Exactly the bug the Burn Barrel had before it
         // got its own category.
-        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.BLASTING);
-        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), CUPOLA);
+        // ONE call listing both types, not two calls. Registering the same stack twice makes JEI
+        // build the catalyst's tooltip once per registration, so the mod-name line renders twice -
+        // "Cupola Furnace / Recompile / Recompile". The varargs form is the documented shape and the
+        // only item in this plugin that catalyses two categories is the one that found it.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()),
+            RecipeTypes.BLASTING, CUPOLA);
         registration.addRecipeCatalyst(new ItemStack(RCItems.HYDROPONICS_BAY.get()), GROWING);
         // The station, not the sheet: what a player needs to know is WHERE these can be made, and the
         // answer is the mod's own table and nowhere else.
