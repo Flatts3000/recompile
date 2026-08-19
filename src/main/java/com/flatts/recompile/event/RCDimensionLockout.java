@@ -23,10 +23,11 @@ import net.neoforged.neoforge.event.level.BlockEvent;
  * then bounce off an invisible wall - so the frame is refused instead and there are no dead portals
  * standing around. It follows that flipping the flag on has to enable both, which it does.
  *
- * <p><b>What being open costs, until the themed generation ships.</b> The world preset's
- * {@code minecraft:the_nether} entry is still stock vanilla - {@code minecraft:nether} noise settings
- * and the vanilla biome preset - so the dimension hands over a great deal directly. Written out
- * because an earlier version of this list named only gold and stopped, which understated it badly:
+ * <p><b>What being open costs, now that the themed generation has shipped.</b> The preset's
+ * {@code minecraft:the_nether} entry points at {@code recompile:compacted_depths} with a single fixed
+ * biome, which closes some of this list and leaves the rest. Kept rather than deleted because the
+ * remainder is still live and because an earlier version named only gold and stopped, which
+ * understated it badly:
  *
  * <ul>
  *   <li><b>Iron</b>, which is gated harder than gold. {@code minecraft:gameplay/piglin_bartering}
@@ -34,20 +35,22 @@ import net.neoforged.neoforge.event.level.BlockEvent;
  *       ingots outright - so a player reaches iron with no demolition yard, no Cutting Torch and no
  *       Cupola. That is precisely the #91 shape: a gate built from the absence of a material dies the
  *       moment something adds the material, and this adds it.</li>
- *   <li><b>Wood</b>, which is the most heavily engineered scarcity in the mod. Crimson and warped
- *       stems craft to planks and those planks are in {@code #minecraft:planks}, so one trip is
- *       unlimited planks, sticks, chests and a vanilla crafting table. {@code StripSaplingsModifier}
- *       keys on {@code ItemTags.SAPLINGS}, which does not cover nether fungi, so nothing in this mod
- *       touches it - the Tree Nursery ladder and the whole rung-1-to-3 sequence become optional.</li>
+ *   <li><b>Wood - CLOSED by the themed generation.</b> The vanilla Nether's crimson and warped stems
+ *       craft to planks that sit in {@code #minecraft:planks}, which made one trip unlimited planks,
+ *       sticks, chests and a vanilla crafting table, and {@code StripSaplingsModifier} keys on
+ *       {@code ItemTags.SAPLINGS} and does not cover nether fungi. The compacted depths are one fixed
+ *       biome with no fungus forest in it, so there are no stems to cut. The Tree Nursery ladder is
+ *       load-bearing again.</li>
  *   <li><b>Gold</b>, deliberately behind E-Scrap to Circuit Powder to a Cupola blast, reachable from
  *       nether gold ore and bartering.</li>
  *   <li>Quartz, glowstone and ancient debris, each of which has a designed found source in
  *       {@code material_economy.md}.</li>
  * </ul>
  *
- * <p>None of that is enforced by this class and none of it is broken by this class - it is routed
- * around by a dimension nobody has themed yet, which is the accepted cost of the door being open. The
- * themed build is what closes it.
+ * <p>What remains is structure loot and bartering rather than terrain: fortresses and bastions are
+ * kept deliberately, so iron and gold still arrive through chests and piglins. None of it is enforced
+ * by this class or broken by it - it is the accepted cost of the door being open, now bounded to the
+ * structures rather than the whole dimension.
  */
 @EventBusSubscriber(modid = Recompile.MOD_ID)
 public final class RCDimensionLockout {

@@ -159,10 +159,6 @@ public final class RCBlocks {
     );
 
     /**
-     * Stone Rubble (demolition yard): a pick-through pile like a Block of Garbage, but its pull stream
-     * is stone shards. Bare-hand sift, shovel to carry off ({@code requiresCorrectToolForDrops}).
-     */
-    /**
      * Techno-organic waste: the Nether's Block of Garbage, and the bulk of the compacted depths.
      *
      * <p>Tougher than household garbage (0.6) because it is terrain rather than a heap, and mined with
@@ -195,6 +191,10 @@ public final class RCBlocks {
             .requiresCorrectToolForDrops()
     );
 
+    /**
+     * Stone Rubble (demolition yard): a pick-through pile like a Block of Garbage, but its pull stream
+     * is stone shards. Bare-hand sift, shovel to carry off ({@code requiresCorrectToolForDrops}).
+     */
     public static final DeferredBlock<RubbleBlock> STONE_RUBBLE = BLOCKS.registerBlock(
         "stone_rubble",
         RubbleBlock::new,

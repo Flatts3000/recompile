@@ -1050,8 +1050,7 @@ prompt = "a full-bleed top-down Minecraft block face of scattered mixed bait fee
 # Demolition yard (frontier) - stone path
 # ---------------------------------------------------------------------------
 
-# Stone Rubble: a pick-through pile like a Block of Garbage, but stone debris. Renamed from `rubble`
-# (block id and surface id both) in #61. The fallback reuses garbage_block's procedural "rubble" style.
+
 # ---------------------------------------------------------------------------
 # THE COMPACTED DEPTHS (the themed Nether). Owner, 2026-08-19: techno-organic waste is the Nether's
 # Block of Garbage "even down to having 4 different block textures", and slag rubble is its Stone
@@ -1105,6 +1104,8 @@ variants = 3
 prompt = "a full-bleed top-down Minecraft block face of loose burnt slag rubble: angular chunks of cooled black furnace slag with a glassy vitreous sheen on the broken faces, grey ash and grit between them, cold charcoal blacks and dark greys with a faint dull ember glow deep in a crack or two"
 vanilla_ref = "block/gravel"
 
+# Stone Rubble: a pick-through pile like a Block of Garbage, but stone debris. Renamed from `rubble`
+# (block id and surface id both) in #61. The fallback reuses garbage_block's procedural "rubble" style.
 [surface.stone_rubble]
 kind = "block"
 backend = "ai"

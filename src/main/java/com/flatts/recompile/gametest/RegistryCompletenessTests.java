@@ -714,6 +714,102 @@ final class RegistryCompletenessTests {
     private static final Pattern MODEL_REF = Pattern.compile("\"model\"\s*:\s*\"([^\"]+)\"");
 
     /** A classpath resource's text, or null when it is absent. */
+    /**
+     * Every state a block can reach must resolve to a variant.
+     *
+     * <p><b>A state with no matching variant is a missing-texture cube, and nothing else here looks
+     * for it.</b> The sweep above asserts the blockstate FILE exists; {@code
+     * StateSwitchedModelsDifferTest} asserts two named models differ. Neither reads the block's own
+     * property definitions, so a file covering four of five values passes both while a fifth of the
+     * blocks in the world render as the missing model - with a client-side log line nobody sees on a
+     * server.
+     *
+     * <p>This shipped: {@code techno_organic_waste} declared {@code MAX_PULLS = 5}, so its
+     * {@code sorted} property is 0..4, and the blockstate stopped at 3.
+     *
+     * <p><b>The rule is resolution, not enumeration</b>, and getting that wrong is how the first
+     * version of this test flagged eleven perfectly correct blocks. A variant key names only the
+     * properties that change the MODEL: {@code pressed_junk_slab} keys on {@code type} and says
+     * nothing about {@code waterlogged}, which is right, because water does not change the shape.
+     * Vanilla matches a variant whose pairs are a SUBSET of the state's, so the question is whether
+     * every state has at least one such variant - not whether every value appears somewhere in the
+     * file.
+     *
+     * <p>Scoped to plain {@code variants} files. A {@code multipart} blockstate describes coverage by
+     * condition rather than by enumeration and is a different question.
+     */
+    static void registerBlockstateCoverage() {
+        RCGameTests.test("every_blockstate_covers_every_state_its_block_allows", 20, helper -> {
+            List<String> gaps = new ArrayList<>();
+            int checked = 0;
+            for (Block block : BuiltInRegistries.BLOCK) {
+                Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+                if (!Recompile.MOD_ID.equals(id.getNamespace())) {
+                    continue;
+                }
+                String json = readResource(
+                    "/assets/" + id.getNamespace() + "/blockstates/" + id.getPath() + ".json");
+                if (json == null) {
+                    continue;   // already reported as missing by the sweep above
+                }
+                com.google.gson.JsonObject root =
+                    com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+                if (!root.has("variants")) {
+                    continue;   // multipart
+                }
+                checked++;
+                java.util.Set<String> keys = root.getAsJsonObject("variants").keySet();
+
+                for (net.minecraft.world.level.block.state.BlockState state
+                        : block.getStateDefinition().getPossibleStates()) {
+                    java.util.Set<String> have = new java.util.LinkedHashSet<>();
+                    for (var property : state.getProperties()) {
+                        have.add(property.getName() + "=" + propertyValue(state, property));
+                    }
+                    boolean resolved = false;
+                    for (String key : keys) {
+                        if (key.isEmpty()) {
+                            resolved = true;   // the catch-all variant matches everything
+                            break;
+                        }
+                        boolean all = true;
+                        for (String pair : key.split(",")) {
+                            if (!have.contains(pair.trim())) {
+                                all = false;
+                                break;
+                            }
+                        }
+                        if (all) {
+                            resolved = true;
+                            break;
+                        }
+                    }
+                    if (!resolved) {
+                        String gap = id + " state [" + String.join(",", have)
+                            + "] matches no variant";
+                        if (!gaps.contains(gap)) {
+                            gaps.add(gap);
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(checked > 20,
+                "only " + checked + " blockstates were read - discovery is broken, so this would pass "
+                    + "against any gap");
+            helper.assertTrue(gaps.isEmpty(),
+                "these blocks can reach a state no variant matches, so they render as the missing "
+                    + "model (" + gaps.size() + "): " + gaps.subList(0, Math.min(6, gaps.size())));
+            helper.succeed();
+        });
+    }
+
+    /** {@code Property.getName(value)} needs the value typed to the property; this bridges that. */
+    private static <T extends Comparable<T>> String propertyValue(
+            net.minecraft.world.level.block.state.BlockState state,
+            net.minecraft.world.level.block.state.properties.Property<T> property) {
+        return property.getName(state.getValue(property));
+    }
+
     private static String readResource(String path) {
         try (java.io.InputStream in = RegistryCompletenessTests.class.getResourceAsStream(path)) {
             return in == null ? null : new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);

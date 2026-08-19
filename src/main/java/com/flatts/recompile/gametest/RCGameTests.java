@@ -121,6 +121,7 @@ public final class RCGameTests {
         RateCensusTests.register();
         WorkstationTests.register();
         RegistryCompletenessTests.register();
+        RegistryCompletenessTests.registerBlockstateCoverage();
 
         FUNCTIONS.register(modEventBus);
         modEventBus.addListener(RCGameTests::onRegisterGameTests);

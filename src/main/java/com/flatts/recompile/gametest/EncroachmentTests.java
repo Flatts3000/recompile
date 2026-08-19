@@ -40,11 +40,15 @@ final class EncroachmentTests {
     /**
      * Biomes deliberately outside {@code #recompile:encroaches}, each needing a stated reason.
      *
-     * <p>Empty today: every garbage biome is contested. The demolition yard was the one exception
+     * <p><b>One entry, and it is not a garbage biome.</b> Every OVERWORLD garbage biome is
+     * contested; the compacted depths are exempt because encroachment has nothing to act on
+     * there, not because they are an exception to the rule. The demolition yard was the one real
+     * exception
      * ("a resource region, not contested green") and it was reversed 2026-07-31 because the asymmetry
      * was undiscoverable - a player who learns the rule in one biome reads its absence in another as a
      * bug. A future non-garbage region may well belong here; it just has to say so out loud.
      */
+    // One entry, not none: the compacted depths. See the reason on it.
     private static final List<String> NON_ENCROACHING = List.of(
         // The compacted depths. Encroachment is the junkyard taking BACK healed ground - it reverts
         // grass to coarse dirt and is gated on #recompile:encroachable, which is

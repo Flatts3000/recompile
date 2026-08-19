@@ -32,7 +32,14 @@ final class CompactedDepthsTests {
         Registries.NOISE_SETTINGS,
         Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "compacted_depths"));
 
-    /** One seed is enough here and is not enough on the overworld: this router has no noise in it. */
+    /**
+     * Two, where the overworld's slab test needs four.
+     *
+     * <p>This router is all constants - there is no continentalness to sample and no surface band to
+     * catch - so one seed would genuinely prove as much as a hundred. The second is a cheap guard
+     * against exactly that assumption stopping being true: the day somebody puts a noise term in
+     * {@code final_density}, a single-seed test would keep passing on the one slice it happens to see.
+     */
     private static final long[] SEEDS = {0L, 4242L};
 
     private CompactedDepthsTests() {
@@ -95,27 +102,37 @@ final class CompactedDepthsTests {
             helper.succeed();
         });
 
-        // VANILLA STRUCTURES NEED THE BIOME IN THEIR TAG, and that is the entire wiring - both are
-        // biome-tag driven (#minecraft:has_structure/...), so a themed biome hosts them with a two-line
-        // data change and hosts NOTHING without it. A fortress that never generates looks identical to
-        // one that generates far away, which is why this asks the tag rather than searching the world.
+        // VANILLA STRUCTURES NEED THIS BIOME IN THEIR OWN biomes() SET, and that is the entire wiring:
+        // both are biome-driven, so a themed biome hosts them with a two-line tag file and hosts
+        // NOTHING without it. A fortress that never generates looks identical to one that generates far
+        // away, so this cannot be left to a look in the world.
+        //
+        // ASKED OF THE STRUCTURE, NOT OF A TAG NAME. The first version built TagKeys from string
+        // literals and checked the biome was in them - but those tags are created by this same
+        // datapack, so a wrong path (`has_structure/fortress`, a typo, a rename in a later MC version)
+        // would define a differently-named tag containing the biome and the test would pass green while
+        // nothing generated. Reading Structure.biomes() measures the wiring the game actually consults.
         RCGameTests.test("the_depths_host_fortresses_and_bastions", 20, helper -> {
-            var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
-            ResourceKey<Biome> depths = ResourceKey.create(Registries.BIOME,
-                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "compacted_depths"));
-            var holder = biomes.getOrThrow(depths);
+            var access = helper.getLevel().registryAccess();
+            var holder = access.lookupOrThrow(Registries.BIOME).getOrThrow(
+                ResourceKey.create(Registries.BIOME,
+                    Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "compacted_depths")));
+            var structures = access.lookupOrThrow(Registries.STRUCTURE);
 
             List<String> missing = new ArrayList<>();
-            for (String tag : List.of("nether_fortress", "bastion_remnant")) {
-                var key = net.minecraft.tags.TagKey.create(Registries.BIOME,
-                    Identifier.withDefaultNamespace("has_structure/" + tag));
-                if (!holder.is(key)) {
-                    missing.add("has_structure/" + tag);
+            for (String id : List.of("fortress", "bastion_remnant")) {
+                var key = ResourceKey.create(Registries.STRUCTURE,
+                    Identifier.withDefaultNamespace(id));
+                var structure = structures.getOptional(key).orElse(null);
+                if (structure == null) {
+                    missing.add("minecraft:" + id + " (no such structure)");
+                } else if (!structure.biomes().contains(holder)) {
+                    missing.add("minecraft:" + id);
                 }
             }
             helper.assertTrue(missing.isEmpty(),
-                "the compacted depths are not in these structure tags, so those structures will never "
-                    + "generate there and nothing will say so: " + missing);
+                "these structures do not list the compacted depths among their biomes, so they will "
+                    + "never generate there and nothing will say so: " + missing);
             helper.succeed();
         });
     }
