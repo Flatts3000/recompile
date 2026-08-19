@@ -133,6 +133,22 @@ final class GemTierTests {
                     problems.add(holder.id() + " produces nothing");
                 }
                 boolean findable = false;
+                // MACHINE-MADE FEEDS COUNT TOO, and each one is listed with its reason.
+                //
+                // The rule this test enforces is the comment above it: an input with no source is a
+                // dead machine. It was IMPLEMENTED as "the input is industrial scrap" because for three
+                // recipes those were the same sentence - every separating input came out of Mechanical
+                // Waste. Slag (#236) is the first that does not: the Cupola rakes it off every eighth
+                // smelt, which is a source, just not a loot table. A hardcoded list is honest here for
+                // the reason RegistryCompletenessTests keeps two of them - a justified entry beats a
+                // loosened check, because the next input with no source at all must still fail.
+                for (var made : List.of(RCItems.SLAG)) {
+                    if (holder.value().matches(
+                            new net.minecraft.world.item.crafting.SingleRecipeInput(
+                                new ItemStack(made.get())), helper.getLevel())) {
+                        findable = true;
+                    }
+                }
                 for (var scrap : RCItems.INDUSTRIAL_SCRAP) {
                     if (holder.value().matches(
                             new net.minecraft.world.item.crafting.SingleRecipeInput(
@@ -141,7 +157,7 @@ final class GemTierTests {
                     }
                 }
                 if (!findable) {
-                    problems.add(holder.id() + " eats something Mechanical Waste does not drop");
+                    problems.add(holder.id() + " eats something with no source - neither a Mechanical Waste drop nor a machine output");
                 }
             }
             helper.assertTrue(checked >= 3,

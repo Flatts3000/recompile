@@ -1,0 +1,32 @@
+{
+  "_comment": [
+    "Slag separates (#236, owner 2026-08-18). This is the Separator's actual verb - one mixed feed",
+    "divided into distinct things - and slag is a mixture by definition: silica, alumina, lime and",
+    "iron oxides, whatever was not metal when the melt cooled.",
+    "",
+    "Concrete powder because ground slag IS a cement. Blast-furnace slag ground fine is sold as GGBS",
+    "and substitutes for Portland cement in a large fraction of the world's concrete. No new item was",
+    "needed: Reinforced Concrete already drops concrete powder when broken, so this is the same",
+    "material arriving by manufacture instead of by demolition.",
+    "",
+    "The byproduct is not decoration either. Steel slag is reprocessed to recover the metal droplets",
+    "trapped in it - that is a real industry, and it is why a scrapyard bothers to keep the slag."
+  ],
+  "type": "recompile:separating",
+  "input": "recompile:slag",
+  "count": 1,
+  "ticks": 100,
+  "energy": 24,
+  "results": [
+    {
+      "item": "minecraft:gray_concrete_powder",
+      "count": 1
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:scrap_metal",
+      "count": 1
+    }
+  ]
+}
