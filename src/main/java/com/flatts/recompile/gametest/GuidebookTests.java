@@ -190,9 +190,17 @@ final class GuidebookTests {
         // shipped that way in all 71 of the book's text pages for releases, because no test layer can
         // see a rendered page and GuidebookTests only ever proved the key resolves.
         //
-        // The one node that emits anything is HardLineBreak, which appends a newline; commonmark makes
-        // one from a backslash at end of line, and two of them give a real blank line. Modonomicon's
-        // own demo book uses the same trick, which is what makes it the idiom rather than a workaround.
+        // The only node that emits a NEWLINE is HardLineBreak; commonmark makes one from a backslash at
+        // end of line. One gives a line break, two give a blank line. Modonomicon's own demo book uses
+        // the same trick, which is what makes it the idiom rather than a workaround.
+        //
+        // A LONE NEWLINE IS NOT A BREAK EITHER, and this test missed that at first. It parses to a
+        // SoftLineBreak, and BookTextRenderer builds its renderer with renderSoftLineBreaks(false) and
+        // replaceSoftLineBreaksWithSpace(true) - so visit(SoftLineBreak) appends a SPACE. Nine list
+        // items separated by single newlines rendered as one wrapped sentence, and the first version of
+        // this guard walked straight past them because it only looked at values containing a blank
+        // line. Both failure modes are the same mistake - assuming a newline in the source is a newline
+        // on the page - so both are checked here.
         RCGameTests.test("every_guidebook_paragraph_break_actually_breaks", 20, helper -> {
             List<String> files = bookFiles(helper);
             Set<String> keys = new LinkedHashSet<>();
@@ -209,22 +217,26 @@ final class GuidebookTests {
             int withBreaks = 0;
             for (String key : keys) {
                 String text = Component.translatable(key).getString();
-                if (!text.contains("\n\n")) {
+                if (!text.contains("\n")) {
                     continue;
                 }
                 withBreaks++;
-                // Strip every WORKING break; a blank line left over is a bare one, and a bare one
-                // renders as nothing at all.
-                if (text.replace("\n\n\\\n\\\n", "").contains("\n\n")) {
+                // Strip the two forms that DO render - the paragraph gap and the single line break -
+                // and any newline left over is one that renders as nothing (a blank line) or as a
+                // space (a lone one). Either way it is not the break its author meant.
+                String rest = text.replace("\n\n\\\n\\\n", "").replace("\\\n", "");
+                if (rest.contains("\n")) {
                     welded.add(key);
                 }
             }
             helper.assertTrue(withBreaks > 20,
-                "only " + withBreaks + " guidebook texts have paragraph breaks at all - either the "
+                "only " + withBreaks + " guidebook texts contain a line break at all - either the "
                     + "book lost its prose or this test is looking at the wrong thing");
             report(helper, welded,
-                "guidebook texts whose blank line renders as nothing, welding two paragraphs together "
-                    + "(end a paragraph with a blank line and TWO backslash-terminated lines)");
+                "guidebook texts with a break that does not render - a blank line renders as nothing "
+                    + "and welds two paragraphs together, a lone newline renders as a SPACE and welds "
+                    + "a list into prose. End a paragraph with a blank line and TWO "
+                    + "backslash-terminated lines; end a list item with ONE");
         });
 
         // An icon naming an item that does not exist draws the missing texture on the category map, next

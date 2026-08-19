@@ -278,9 +278,12 @@ And the fourth, which cost the most: **a blank line does not break a paragraph**
 override**, so `AbstractVisitor` walks a paragraph's children and emits nothing at the boundary - the
 last word of one paragraph is welded to the first word of the next, which reads as a typo rather than
 a layout fault. It shipped that way in all 71 of the book's text pages for releases. The only node
-that emits anything is `HardLineBreak`, which appends a newline, and commonmark makes one from a
-**backslash at end of line** - so a paragraph gap is a blank line followed by TWO backslash-terminated
-lines, which is the idiom Modonomicon's own demo book uses. `every_guidebook_paragraph_break_actually_breaks`
+that emits a **newline** is `HardLineBreak`, and commonmark makes one from a **backslash at end of
+line** - so a paragraph gap is a blank line followed by TWO backslash-terminated lines, and a single
+line break is ONE, which is the idiom Modonomicon's own demo book uses. **A lone newline is not a
+break either**: it parses to a `SoftLineBreak`, and `BookTextRenderer` sets `renderSoftLineBreaks(false)`
+with `replaceSoftLineBreaksWithSpace(true)`, so it renders as a **space** - which is how a nine-item
+list shipped as one wrapped sentence, and how the first version of this fix walked past it. `every_guidebook_paragraph_break_actually_breaks`
 fails the build on a bare blank line. Proved offline by parsing each candidate with the commonmark
 0.29 jar Modonomicon jarjars, rather than by guessing at markdown: `A\n\nB` parses to two `Paragraph`s and
 renders as `AB`.
