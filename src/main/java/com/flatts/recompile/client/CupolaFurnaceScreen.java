@@ -27,14 +27,13 @@ public class CupolaFurnaceScreen extends LayoutScreen<CupolaFurnaceMenu> {
 
     @Override
     protected void paint(GuiPainter painter, int mouseX, int mouseY) {
-        // The flame fills from the bottom as the fuel burns down, which is what vanilla's does.
+        // VANILLA'S FLAME, not a coloured bar in a recess.
         //
-        // ONE COLOUR, because the two-colour version was a lie. GuiPainter.gauge returns early when the
-        // amount is zero, and isLit() is that same amount being positive - so the idle colour could
-        // never be reached, and the comment claiming the gauge is "always drawn, empty or not" was
-        // describing something that does not happen. An unlit Cupola shows an empty well, which is what
-        // vanilla's furnace shows too, and the well itself is the chrome telling you the gauge is there.
-        painter.gauge("flame", Math.round(this.menu.burnProgress() * 100), 100, GuiTheme.POWER);
+        // The first version used a well with a red fill, and a well is bevelled exactly like a slot -
+        // so between the input and the fuel it read as a fourth slot, which is what playtest asked
+        // about. Borrowing the flame costs nothing and every player in the game already knows what it
+        // means, which is the same argument that got the arrow borrowed rather than invented.
+        painter.flame("flame", Math.round(this.menu.burnProgress() * 100), 100);
         painter.arrow("cook", Math.round(this.menu.cookProgress() * 100), 100);
     }
 }

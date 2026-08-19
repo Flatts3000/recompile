@@ -58,7 +58,11 @@ public class CupolaFurnaceMenu extends AbstractContainerMenu {
         .panel()
         .slot("input", 56, 17)
         .slot("fuel", 56, 53)
-        .well("flame", 56, 36, 14, 14)
+        // A REGION, NOT A WELL. A well is bevelled exactly like a slot - same face, same size - so
+        // declaring one between the input and the fuel drew a fourth slot as far as any player was
+        // concerned, and playtest asked what it was for. Nothing draws a region; the screen paints
+        // vanilla's flame into it.
+        .region("flame", 56, 36, GuiTheme.FLAME_W, GuiTheme.FLAME_H)
         .arrow("cook", 79, 34)
         .slot("result", 116, 35)
         .slot("slag", 140, 35)

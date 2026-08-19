@@ -113,6 +113,10 @@ public final class GuiTheme {
     public static final int LABEL_W = 80;
 
     /** Vanilla's progress arrow, whose size is fixed by the sprite rather than chosen. */
+    /** Vanilla's furnace flame, which is square. Both halves live at (56,36) in furnace.png. */
+    public static final int FLAME_W = 14;
+    public static final int FLAME_H = 14;
+
     public static final int ARROW_W = 24;
     public static final int ARROW_H = 17;
 }

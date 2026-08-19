@@ -50,6 +50,12 @@ public final class VanillaGui {
     /** Vanilla's progress arrow: the empty outline lives in the panel, the fill is a sprite. */
     private static final Identifier ARROW_FILL =
         Identifier.withDefaultNamespace("container/furnace/burn_progress");
+    /** The unlit flame's place in the furnace panel, and the sprite that fills it. */
+    private static final int FLAME_U = 56;
+    private static final int FLAME_V = 36;
+    private static final Identifier FLAME_FILL =
+        Identifier.withDefaultNamespace("container/furnace/lit_progress");
+
     private static final int ARROW_U = 79;
     private static final int ARROW_V = 34;
 
@@ -94,6 +100,29 @@ public final class VanillaGui {
         if (filled > 0) {
             graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ARROW_FILL, GuiTheme.ARROW_W, 16, 0, 0,
                 x, y, Math.min(filled, GuiTheme.ARROW_W), 16);
+        }
+    }
+
+    /**
+     * Vanilla's furnace flame: the dark outline plus however much of it is burning.
+     *
+     * <p><b>It fills from the bottom up</b>, which is why the source rectangle moves rather than just
+     * shrinking - the sprite is sampled from its own bottom edge so the flame burns down rather than
+     * being clipped from the top.
+     *
+     * <p>This exists because a fuel gauge drawn as a {@link #well} is drawn as <em>slot chrome</em>:
+     * same face, same bevel, same size as the slots either side of it. Playtest asked "what is the slot
+     * in the middle?", which is the only question it could have prompted. Vanilla has a flame for this
+     * and every player in the game already knows what it means.
+     */
+    public static void flame(GuiGraphicsExtractor graphics, int x, int y, int filled) {
+        blit(graphics, x, y, FLAME_U, FLAME_V, GuiTheme.FLAME_W, GuiTheme.FLAME_H,
+            GuiTheme.FLAME_W, GuiTheme.FLAME_H);
+        int lit = Math.max(0, Math.min(filled, GuiTheme.FLAME_H));
+        if (lit > 0) {
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, FLAME_FILL,
+                GuiTheme.FLAME_W, GuiTheme.FLAME_H, 0, GuiTheme.FLAME_H - lit,
+                x, y + GuiTheme.FLAME_H - lit, GuiTheme.FLAME_W, lit);
         }
     }
 
