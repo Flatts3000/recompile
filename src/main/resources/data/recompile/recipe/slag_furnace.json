@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "The Slag Furnace (#236), built out of the Cupola the way the Cupola was built out of the Burn",
+    "Barrel: each smelter is the last one plus what it needed to do more. That chain is deliberate -",
+    "you cannot own this without having owned a Cupola, which is the machine that makes the slag it",
+    "eats, so the two arrive in the only order that makes sense.",
+    "",
+    "Steel rather than copper for the shell. A cupola remelts iron at around 1500C; vitrifying silicates",
+    "runs hotter still, and copper melts at 1085C - the Copper Pipe that plumbs the Cupola would not",
+    "survive this one.",
+    "",
+    "Cost belongs to the balance pass (#36); the shape belongs here."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "SSS",
+    "SCS",
+    "SSS"
+  ],
+  "key": {
+    "S": "recompile:steel_offcut",
+    "C": "recompile:cupola_furnace"
+  },
+  "result": {
+    "id": "recompile:slag_furnace"
+  }
+}

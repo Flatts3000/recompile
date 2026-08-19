@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
 import com.flatts.recompile.content.recipe.PulverizingRecipe;
+import com.flatts.recompile.content.recipe.VitrifyingRecipe;
 import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import java.util.function.Supplier;
@@ -89,6 +90,23 @@ public final class RCRecipeTypes {
     public static final Supplier<RecipeSerializer<PulverizingRecipe>> PULVERIZING_SERIALIZER =
         RECIPE_SERIALIZERS.register("pulverizing",
             () -> new RecipeSerializer<>(PulverizingRecipe.CODEC, PulverizingRecipe.STREAM_CODEC));
+
+    /**
+     * {@code recompile:vitrifying} - the Slag Furnace's verb (#236).
+     *
+     * <p><b>Its own type IS the gate.</b> Obsidian is made only, and the portal gate rides on that, so
+     * the operation must be one nothing else in the game can do. Measured: {@code minecraft:smelting}
+     * would hand it to a vanilla furnace and {@code minecraft:blasting} to a vanilla blast furnace,
+     * which is craftable here because iron is reachable. A recipe type is a property of a machine; an
+     * absent material is not, and that distinction cost the iron gate two designs (#91).
+     */
+    public static final Supplier<RecipeType<VitrifyingRecipe>> VITRIFYING =
+        RECIPE_TYPES.register("vitrifying", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "vitrifying")));
+
+    public static final Supplier<RecipeSerializer<VitrifyingRecipe>> VITRIFYING_SERIALIZER =
+        RECIPE_SERIALIZERS.register("vitrifying",
+            () -> new RecipeSerializer<>(VitrifyingRecipe.CODEC, VitrifyingRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

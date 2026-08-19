@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
+import com.flatts.recompile.content.menu.SlagFurnaceMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
 import net.minecraft.core.registries.Registries;
@@ -36,6 +37,26 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerGeneratorMenu>> BURNER_GENERATOR =
         MENUS.register("burner_generator", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new BurnerGeneratorMenu(id, inventory)));
+
+    /**
+     * The Slag Furnace (#236): vanilla's furnace menu with one method changed.
+     *
+     * <p>Unlike the Cupola's, this one <b>subclasses</b> {@code AbstractFurnaceMenu} - three slots, so
+     * {@code checkContainerSize(container, 3)} is satisfied - which hands it the slots,
+     * {@code quickMoveStack}, the progress data sync and the container plumbing for free, all of which
+     * the Cupola had to reimplement over a bare {@code AbstractContainerMenu}. It needs its own MenuType
+     * only because a MenuType is what binds a screen to a menu.
+     *
+     * <p><b>It does NOT inherit the recipe book or JEI's transfer button</b>, and this javadoc claimed
+     * both until review checked. The book widget is built by the SCREEN - vanilla's furnace screens
+     * construct their own recipe-book component - and this mod's screen extends
+     * {@code AbstractContainerScreen}; JEI's furnace transfer handler keys on vanilla's own menu
+     * classes rather than on any subclass. Subclassing saves reimplementing a menu, which is worth it
+     * on its own and is the whole claim.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<SlagFurnaceMenu>> SLAG_FURNACE =
+        MENUS.register("slag_furnace", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new SlagFurnaceMenu(id, inventory)));
 
     /**
      * The Cupola Furnace (#236): vanilla's furnace plus a slag slot.

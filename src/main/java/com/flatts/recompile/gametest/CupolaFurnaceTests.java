@@ -11,6 +11,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -324,6 +326,60 @@ final class CupolaFurnaceTests {
             helper.succeed();
         });
 
+        // JEI must describe the machine the game actually runs, and for this one that means the SLAG.
+        // Vanilla's blasting display has a single result slot, so a player reading "Blasting" is told
+        // the Cupola makes a gold nugget and nothing else - true, and materially incomplete, because
+        // the byproduct is the sole input to the Separator, the Pulverizer and the Slag Furnace. The
+        // whole obsidian chain hangs off a thing the shared category structurally cannot draw (#243).
+        //
+        // CupolaData parses the bundled JSON rather than the recipe manager (recipes are not
+        // client-synced in 26.1), which means it can quietly disagree with the game - and it fails
+        // SILENTLY, because a category with no rows registers without error. Same failure TeardownData
+        // shipped once: it named its recipes in a constant, a third shipped, and every viewer denied
+        // it existed.
+        RCGameTests.test("jei_sees_every_cupola_blasting_recipe", 20, helper -> {
+            var rows = com.flatts.recompile.compat.CupolaData.all();
+            helper.assertTrue(!rows.isEmpty(), "the Cupola category reads no recipes at all");
+
+            // Only THIS MOD's blasting recipes, because that is what CupolaData reads. Vanilla ships
+            // its own (iron ore and friends) and they are unreachable here for want of ore; counting
+            // them would make this permanently red for a reason that is not a defect.
+            int mine = 0;
+            for (RecipeHolder<net.minecraft.world.item.crafting.BlastingRecipe> holder
+                    : helper.getLevel().recipeAccess().recipeMap().byType(RecipeType.BLASTING)) {
+                if (!Recompile.MOD_ID.equals(holder.id().identifier().getNamespace())) {
+                    continue;
+                }
+                mine++;
+                boolean matched = false;
+                for (var row : rows) {
+                    if (holder.value().matches(new SingleRecipeInput(row.input()), helper.getLevel())) {
+                        matched = true;
+                    }
+                }
+                helper.assertTrue(matched, "JEI's Cupola category does not show " + holder.id());
+            }
+            helper.assertTrue(mine > 0 && rows.size() == mine,
+                "the mod ships " + mine + " blasting recipes and the Cupola category reads "
+                    + rows.size());
+
+            // The OUTPUT too. A result is an ItemStackTemplate and spells its field `id` where an
+            // ingredient is a bare string - two shapes in one file, and a parser that reads only one
+            // yields a row whose output box draws empty.
+            for (var row : rows) {
+                helper.assertTrue(!row.output().isEmpty(),
+                    "a Cupola row parsed its input but not its result, so JEI would draw an empty "
+                        + "output box for " + row.input());
+            }
+
+            // And the rate the category prints has to be the rate the machine keeps. It is config,
+            // not a literal 8 - a retuned pack must not be contradicted by its own viewer.
+            helper.assertTrue(com.flatts.recompile.compat.CupolaData.smeltsPerSlag()
+                    == RCConfig.CUPOLA_SMELTS_PER_SLAG.get(),
+                "the category prints a different slag rate than the machine uses");
+            helper.succeed();
+        });
+
         // THE GATE, as an assertion rather than a comment (#91).
         //
         // Iron is Cupola-only because both its recipes are minecraft:blasting: a vanilla furnace cannot
@@ -458,9 +514,13 @@ final class CupolaFurnaceTests {
         RCGameTests.test("cupola_can_be_picked_back_up", 40, helper -> {
             BlockPos pos = new BlockPos(5, 1, 3);
             helper.setBlock(pos, RCBlocks.CUPOLA_FURNACE.get());
-            BlockPos abs = helper.absolutePos(pos);
-            // destroyBlock on the LEVEL, not the helper - the helper's passes dropBlock=false.
-            helper.getLevel().destroyBlock(abs, true);
+            // A SURVIVAL PLAYER BREAK. This asserted the right thing for the wrong reason for months:
+            // Level.destroyBlock drops unconditionally, so it would have stayed green if anyone added
+            // requiresCorrectToolForDrops to this block - which is precisely what the comment above
+            // warns against, and precisely what then happened to the Slag Furnace.
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            player.gameMode.destroyBlock(helper.absolutePos(pos));
             helper.succeedWhen(() -> helper.assertItemEntityPresent(RCItems.CUPOLA_FURNACE.get(), pos, 2.0));
         });
 

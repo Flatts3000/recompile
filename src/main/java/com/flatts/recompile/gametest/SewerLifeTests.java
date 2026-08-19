@@ -62,12 +62,35 @@ final class SewerLifeTests {
             BlockPos turtleAt = helper.absolutePos(new BlockPos(0, 30, 0));
             var turtleDen = new SewerPieces.SewerTurtleDen(1,
                 SewerFixtures.shapedLike(SewerStructure::turtleDenBox, turtleAt));
-            BlockPos frogAt = helper.absolutePos(new BlockPos(0, 30, 16));
+            // ABOVE the turtle den, not a chunk to the south of it (#239). At z+16 this landed in a
+            // different chunk from the plot, and a GameTest plot lands somewhere different every run -
+            // so whether that chunk was entity-loaded was a coin flip. `setBlock` pulls a chunk in,
+            // which is why the mud-floor assertion below always passed, but `addFreshEntity` does not
+            // and simply returns without adding. The symptom was zero frogs rather than some, and it
+            // failed roughly one run in three.
+            //
+            // Both dens are four blocks tall, so twenty of clearance separates them with room to
+            // spare, and Y-separation keeps them in the chunk column the turtle den has always
+            // worked in.
+            BlockPos frogAt = helper.absolutePos(new BlockPos(0, 50, 0));
             var frogDen = new SewerPieces.SewerFrogDen(1,
                 SewerFixtures.shapedLike(SewerStructure::frogDenBox, frogAt));
 
             for (var den : List.of(turtleDen, frogDen)) {
                 BoundingBox box = den.getBoundingBox();
+                // A den built into a chunk that is not loaded places its blocks and silently drops its
+                // animals, so check before rather than diagnose after. This is the guard #239 asked
+                // for: "the test should fail loudly if its own setup did not take", because
+                // postProcess placing nothing looks exactly like the mechanic being broken.
+                for (int cx = box.minX() >> 4; cx <= box.maxX() >> 4; cx++) {
+                    for (int cz = box.minZ() >> 4; cz <= box.maxZ() >> 4; cz++) {
+                        helper.assertTrue(
+                            level.getChunkSource().hasChunk(cx, cz),
+                            "chunk " + cx + "," + cz + " is not loaded, so this den's animals would "
+                                + "be dropped without a word - the den is being built outside the "
+                                + "plot's own chunks");
+                    }
+                }
                 BoundingBox limit = new BoundingBox(box.minX() - 16, box.minY() - 16, box.minZ() - 16,
                     box.maxX() + 16, box.maxY() + 16, box.maxZ() + 16);
                 den.postProcess(level, mgr, gen, RandomSource.create(2L), limit,

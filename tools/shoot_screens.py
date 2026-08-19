@@ -45,6 +45,12 @@ SCREENS = [
     # rather than assembling a 2x2 wall the screen has no opinion about.
     ("tree_nursery", "recompile:tree_nursery[formed=true,facing=north]"),
     ("scrap_crafting_table", "recompile:scrap_crafting_table"),
+    # The two smelters. Both are furnace screens and both are here for the same reason the gauges
+    # are: a fuel flame or a cook arrow filled from the wrong end passes MenuLayoutTests, which
+    # measures slot geometry and cannot see a pixel. The Cupola is the one that needs looking at -
+    # it left AbstractFurnaceMenu behind for its slag slot and draws vanilla's chrome by hand.
+    ("cupola_furnace", "recompile:cupola_furnace"),
+    ("slag_furnace", "recompile:slag_furnace"),
 ]
 
 FOCUS_PS = """

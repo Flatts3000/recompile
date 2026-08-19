@@ -185,6 +185,21 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "stone_shards"));
 
     /**
+     * What the Slag Furnace will take (#236).
+     *
+     * <p><b>It exists because of the client, not because of the recipes.</b> A vitrifying recipe is the
+     * authority on what the machine actually melts; this tag is what shift-click and the recipe book
+     * can ask on both sides. Vanilla builds {@code RecipePropertySet}s from a fixed set of recipe types
+     * and a modded one has none, and the full recipe map is server-side - so without a tag, the menu's
+     * inherited {@code canSmelt} would answer "no" for the machine's only input.
+     *
+     * <p>A pack adding a vitrifying recipe adds its input here too. Slightly redundant, and the
+     * redundancy is the price of shift-click working at all.
+     */
+    public static final TagKey<Item> VITRIFIABLE = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "vitrifiable"));
+
+    /**
      * Finished goods: things a person would throw away, which the dump gives you and no recipe makes
      * (design P2.11, issue #161). Owner ruling 2026-08-08 on the case that decided it: <b>players should
      * find buckets, not craft them.</b>

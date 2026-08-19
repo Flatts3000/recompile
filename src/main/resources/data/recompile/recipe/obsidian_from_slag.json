@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "The point of the whole slag chain (#236): vitrify it and quench it, and what freezes out is a",
+    "black silicate glass. That is not a metaphor - plasma-vitrified waste slag is amorphous, breaks",
+    "with a conchoidal fracture, and is about the closest thing to obsidian anyone manufactures.",
+    "",
+    "recompile:vitrifying, and the type IS the gate. material_economy.md has said since the gem tier",
+    "that obsidian is 'made only (melt slag/glass; portal gate is earned)'. minecraft:smelting would",
+    "hand this to a vanilla furnace and minecraft:blasting to a vanilla blast furnace - which IS",
+    "craftable in this world, because iron is reachable through the Cupola. Measured, not assumed.",
+    "",
+    "ONE slag per block, because a cooking recipe consumes exactly one item - vanilla's ingredient has",
+    "no count and this type borrows its shape wholesale. An earlier draft of this comment said four,",
+    "as did the guidebook and the design log, and none of the three had been run. The cost lands in",
+    "the same place regardless: the Cupola rakes one slag every eight smelts, so a block is eight",
+    "remelts plus a twenty-second burn. The dial that IS available here is cookingtime, and 400 is",
+    "deliberately double a vanilla smelt.",
+    "Final numbers belong to the balance pass (#36)."
+  ],
+  "type": "recompile:vitrifying",
+  "category": "blocks",
+  "cookingtime": 400,
+  "experience": 1.0,
+  "ingredient": "recompile:slag",
+  "result": {
+    "id": "minecraft:obsidian"
+  }
+}

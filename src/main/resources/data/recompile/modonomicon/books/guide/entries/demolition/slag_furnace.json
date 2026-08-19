@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:demolition/slag_furnace",
+  "category": "recompile:demolition",
+  "name": "book.recompile.guide.demolition.slag_furnace.name",
+  "icon": {
+    "id": "recompile:slag_furnace"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "parents": [
+    {
+      "entry": "recompile:demolition/slag"
+    }
+  ],
+  "x": 4,
+  "y": 2
+}
