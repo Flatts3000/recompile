@@ -218,9 +218,10 @@ final class SortingTests {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             BlockPos probe = new BlockPos(1, 1, 1);
             List<Block> gated = com.flatts.recompile.event.RCHarvestGate.gatedSortables();
-            helper.assertTrue(gated.size() == 4,
-                "expected 4 gated sortable piles (garbage, bale, rubble, mechanical waste), got "
-                    + gated.size() + " - a new one is fine, but say so here");
+            helper.assertTrue(gated.size() == 6,
+                "expected 6 gated sortable piles (garbage, bale, rubble, mechanical waste, and the "
+                    + "Nether's techno-organic waste and slag rubble), got " + gated.size()
+                    + " - a new one is fine, but say so here");
 
             for (Block block : gated) {
                 BlockState state = block.defaultBlockState();

@@ -26,6 +26,8 @@ import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.MechanicalWasteBlock;
 import com.flatts.recompile.content.block.MoundGroundBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
+import com.flatts.recompile.content.block.SlagRubbleBlock;
+import com.flatts.recompile.content.block.TechnoOrganicWasteBlock;
 import com.flatts.recompile.content.block.SeparatorPartBlock;
 import com.flatts.recompile.content.block.SeparatorChamberBlock;
 import com.flatts.recompile.content.block.SeparatorCoreBlock;
@@ -153,6 +155,39 @@ public final class RCBlocks {
             .mapColor(MapColor.COLOR_GRAY)
             .strength(0.9F)
             .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
+    );
+
+    /**
+     * Techno-organic waste: the Nether's Block of Garbage, and the bulk of the compacted depths.
+     *
+     * <p>Tougher than household garbage (0.6) because it is terrain rather than a heap, and mined with
+     * a PICKAXE rather than a shovel - fused machinery does not shovel. Both of those are why it is
+     * registered next to Stone Rubble rather than beside its overworld twin.
+     */
+    public static final DeferredBlock<TechnoOrganicWasteBlock> TECHNO_ORGANIC_WASTE =
+        BLOCKS.registerBlock(
+            "techno_organic_waste",
+            TechnoOrganicWasteBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                .mapColor(MapColor.NETHER)
+                .strength(1.2F)
+                .sound(SoundType.GRAVEL)
+                .requiresCorrectToolForDrops()
+        );
+
+    /**
+     * Slag Rubble: the loose burnt fraction sitting inside that fill, and the Nether's Stone Rubble.
+     *
+     * <p>Unlike the waste it obeys gravity, which is the whole distinction between terrain and spoil.
+     */
+    public static final DeferredBlock<SlagRubbleBlock> SLAG_RUBBLE = BLOCKS.registerBlock(
+        "slag_rubble",
+        SlagRubbleBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLACK)
+            .strength(0.8F)
+            .sound(SoundType.GRAVEL)
             .requiresCorrectToolForDrops()
     );
 

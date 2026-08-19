@@ -55,6 +55,8 @@ public final class RCCreativeTabs {
                     // --- 1. Raw garbage: what you pick through ---
                     RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
                     output.accept(RCItems.STONE_RUBBLE.get());
+                    output.accept(RCItems.TECHNO_ORGANIC_WASTE.get());
+                    output.accept(RCItems.SLAG_RUBBLE.get());
                     output.accept(RCItems.REINFORCED_CONCRETE.get());
                     output.accept(RCItems.STEEL_I_BEAM.get());
                     output.accept(RCItems.MECHANICAL_WASTE.get());

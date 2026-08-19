@@ -82,6 +82,7 @@ public final class RCGameTests {
         BurnBarrelTests.register();
         CupolaFurnaceTests.register();
         SlagFurnaceTests.register();
+        CompactedDepthsTests.register();
         SteelStackTests.register();
         EncroachmentTests.register();
         SaplingLockoutTests.register();
@@ -120,6 +121,7 @@ public final class RCGameTests {
         RateCensusTests.register();
         WorkstationTests.register();
         RegistryCompletenessTests.register();
+        RegistryCompletenessTests.registerBlockstateCoverage();
 
         FUNCTIONS.register(modEventBus);
         modEventBus.addListener(RCGameTests::onRegisterGameTests);

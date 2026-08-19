@@ -121,9 +121,28 @@ public abstract class SortableBlock extends FallingBlock {
         this.registerDefaultState(this.stateDefinition.any().setValue(sortedProperty(), 0));
     }
 
+    /**
+     * Whether this block actually falls.
+     *
+     * <p><b>Two gates, and they answer different questions.</b> {@code GARBAGE_GRAVITY_ENABLED} is the
+     * player's, a global "do piles slump"; this one is the block's, and it is not tunable because it is
+     * not a preference. A sortable that IS the terrain - the Nether's bulk fill, floor to ceiling -
+     * cannot fall, because the first tunnel would bring the dimension down on top of the player and
+     * keep going. A pile on a plain can and should.
+     *
+     * <p>The class still extends {@code FallingBlock} either way. Overriding this leaves the falling
+     * machinery present and never entered: {@code isFree}, {@code onLand} and {@code getDustColor} only
+     * run during an actual fall, and the ticks {@code onPlace} schedules simply no-op. Splitting the
+     * hierarchy instead would mean a second copy of the whole pull mechanic to avoid inheriting one
+     * method, which is a worse trade.
+     */
+    protected boolean obeysGravity() {
+        return true;
+    }
+
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (RCConfig.GARBAGE_GRAVITY_ENABLED.get()) {
+        if (obeysGravity() && RCConfig.GARBAGE_GRAVITY_ENABLED.get()) {
             super.tick(state, level, pos, random);
         }
     }
@@ -190,11 +209,21 @@ public abstract class SortableBlock extends FallingBlock {
      *   compacted_bale       3-4        3.50         8      2.29x
      *   stone_rubble         2-4        2.89         7      2.42x
      *   mechanical_waste     3-4        3.50         8      2.29x
+     *   techno_organic_waste 3-5        3.89         9      2.31x
+     *   slag_rubble          2-4        2.89         7      2.42x
      * </pre>
      *
      * <p>Mechanical Waste is derived rather than picked: it shares the bale's 3-4 window, so it shares
      * the bale's hand average, so it takes the bale's number. Stone Rubble's 7 was chosen the same way,
      * to land inside the band rather than by eye.
+     *
+     * <p><b>The two Nether blocks follow the same two rules.</b> Slag Rubble shares Stone Rubble's 2-4
+     * window exactly, so it takes Stone Rubble's 7 - the Mechanical Waste move. Techno-Organic Waste has
+     * a window nothing else has (3-5, hand 3.89), so its number was computed against the band rather
+     * than copied: 9 gives 2.31x, alongside the bale and Mechanical Waste, where 8 would have been
+     * 2.06x and sat at the bottom on its own. The curve those averages come from is
+     * {@code shouldCrumble} below, and reproducing the five shipped numbers from it is what makes these
+     * two derived rather than guessed.
      */
     public static int sortRolls(Item item) {
         if (item == RCItems.GARBAGE_BLOCK.get().asItem()) {
@@ -211,6 +240,12 @@ public abstract class SortableBlock extends FallingBlock {
         }
         if (item == RCItems.MECHANICAL_WASTE.get().asItem()) {
             return 8;
+        }
+        if (item == RCItems.TECHNO_ORGANIC_WASTE.get().asItem()) {
+            return 9;
+        }
+        if (item == RCItems.SLAG_RUBBLE.get().asItem()) {
+            return 7;
         }
         return 0;
     }

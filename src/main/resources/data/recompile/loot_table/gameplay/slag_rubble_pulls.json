@@ -1,0 +1,34 @@
+{
+  "_comment": [
+    "Slag Rubble: the burnt fraction that never fused into the fill. The mineral half of the",
+    "depths, against techno-organic waste's salvage half - the same split Stone Rubble and the",
+    "Block of Garbage make in the overworld.",
+    "",
+    "FIRST PASS, weights for the balance pass (#36). Slag itself leads because this is where the",
+    "word came from: the Cupola rakes it a lump at a time, and a whole dimension of it is what",
+    "makes the Slag Furnace worth owning."
+  ],
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:slag",
+          "weight": 100
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:stone_shard",
+          "weight": 45
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:scrap_metal",
+          "weight": 30
+        }
+      ]
+    }
+  ]
+}
