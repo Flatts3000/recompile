@@ -13,7 +13,14 @@
     "",
     "MAGMA IS NOT HERE (owner, 2026-08-19): it moved to techno-organic waste. Slag Rubble is the",
     "fraction that never fused and has finished cooling - burnt, glassy, cold. Magma has not finished",
-    "cooling, so it belongs in the mass that is still hot rather than in the spoil beside it."
+    "cooling, so it belongs in the mass that is still hot rather than in the spoil beside it.",
+    "",
+    "NYLIUM comes from the rubble too (owner, 2026-08-19), and it is the most load-bearing thing in this",
+    "table. Nylium is terrain - netherrack with a fungal crust - so it belongs here on the same grounds",
+    "as the rest. What makes it matter more than the others is what vanilla does with it: bone meal on",
+    "nylium grows roots and fungus, and a fungus bone-mealed on its own nylium becomes a HUGE fungus,",
+    "which is stems, shroomlight and weeping vines. The depths grow no fungus forest, so this is the",
+    "only seed for one - and the whole crimson and warped family hangs off it."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -44,6 +51,16 @@
           "type": "minecraft:item",
           "name": "recompile:soul_soil_shard",
           "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:crimson_nylium_shard",
+          "weight": 50
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:warped_nylium_shard",
+          "weight": 50
         }
       ]
     }

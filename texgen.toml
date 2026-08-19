@@ -1170,6 +1170,22 @@ prompt = "a small dense cake of cooked organic waste, dark brown rendered matter
 # directly below.
 # ---------------------------------------------------------------------------
 
+[surface.crimson_nylium_shard]
+kind = "item"
+backend = "ai"
+size = 16
+# Re-prompted: the first pass said "top face" and gpt-image-1 built an isometric CUBE, which
+# reads as the block rather than a fragment of it - wrong beside five chip-shaped siblings.
+prompt = "an irregular broken chip of crimson nylium, a flat angular fragment of dark netherrack with deep crimson-red fungal crust clinging to one broken edge, tiny red filaments, NOT a cube and NOT an isometric block, a jagged flake lying flat, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.warped_nylium_shard]
+kind = "item"
+backend = "ai"
+size = 16
+# Re-prompted: the first pass said "top face" and gpt-image-1 built an isometric CUBE, which
+# reads as the block rather than a fragment of it - wrong beside five chip-shaped siblings.
+prompt = "an irregular broken chip of warped nylium, a flat angular fragment of dark netherrack with blue-green teal fungal crust clinging to one broken edge, tiny cyan filaments, NOT a cube and NOT an isometric block, a jagged flake lying flat, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.netherrack_shard]
 kind = "item"
 backend = "ai"
@@ -1187,12 +1203,6 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "a small sharp chip of blackstone, matte charcoal-black volcanic rock, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
-
-[surface.magma_shard]
-kind = "item"
-backend = "ai"
-size = 16
-prompt = "a small sharp chip of magma block, dark crust with glowing orange cracks running through it, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 [surface.soul_sand_shard]
 kind = "item"

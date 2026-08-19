@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:warped_nylium_shard",
+    "recompile:warped_nylium_shard",
+    "recompile:warped_nylium_shard",
+    "recompile:warped_nylium_shard"
+  ],
+  "result": {
+    "id": "minecraft:warped_nylium",
+    "count": 1
+  }
+}

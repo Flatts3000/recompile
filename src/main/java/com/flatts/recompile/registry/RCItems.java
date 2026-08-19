@@ -103,7 +103,6 @@ public final class RCItems {
     public static final DeferredItem<Item> NETHERRACK_SHARD = ITEMS.registerItem("netherrack_shard", Item::new);
     public static final DeferredItem<Item> BASALT_SHARD = ITEMS.registerItem("basalt_shard", Item::new);
     public static final DeferredItem<Item> BLACKSTONE_SHARD = ITEMS.registerItem("blackstone_shard", Item::new);
-    public static final DeferredItem<Item> MAGMA_SHARD = ITEMS.registerItem("magma_shard", Item::new);
     public static final DeferredItem<Item> SOUL_SAND_SHARD = ITEMS.registerItem("soul_sand_shard", Item::new);
     public static final DeferredItem<Item> SOUL_SOIL_SHARD = ITEMS.registerItem("soul_soil_shard", Item::new);
 
@@ -140,9 +139,24 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> DEPTHS_SCRAP = List.of(
         FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS, OILY_SWARF);
 
+    /**
+     * The two nylium shards, and they carry more than their own block.
+     *
+     * <p>Nylium is netherrack with a fungal crust, so it is terrain and belongs with the shards. What
+     * makes it the most load-bearing entry in the rubble table is what vanilla does next: bone meal on
+     * nylium grows roots and fungus, and a fungus bone-mealed on its own nylium becomes a HUGE fungus -
+     * stems, shroomlight, weeping vines. The compacted depths grow no fungus forest, so these two are
+     * the only seed for one.
+     */
+    public static final DeferredItem<Item> CRIMSON_NYLIUM_SHARD =
+        ITEMS.registerItem("crimson_nylium_shard", Item::new);
+    public static final DeferredItem<Item> WARPED_NYLIUM_SHARD =
+        ITEMS.registerItem("warped_nylium_shard", Item::new);
+
     /** Nether terrain shards in creative-tab order. */
     public static final List<DeferredItem<Item>> NETHER_SHARDS = List.of(
-        NETHERRACK_SHARD, BASALT_SHARD, BLACKSTONE_SHARD, MAGMA_SHARD, SOUL_SAND_SHARD, SOUL_SOIL_SHARD);
+        NETHERRACK_SHARD, BASALT_SHARD, BLACKSTONE_SHARD, SOUL_SAND_SHARD, SOUL_SOIL_SHARD,
+        CRIMSON_NYLIUM_SHARD, WARPED_NYLIUM_SHARD);
 
     /**
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +

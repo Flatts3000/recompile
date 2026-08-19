@@ -24,12 +24,16 @@
     "",
     "Weights first-pass; #36 owns them.",
     "",
-    "MAGMA SHARD, moved here from Slag Rubble (owner, 2026-08-19). It is the one shard the fill",
-    "yields rather than the spoil, and the split is temperature: rubble is what finished cooling,",
     "this has not. Still a shard and still four-to-a-block, so it does not break the scrap rule - a",
     "shard is explicitly unfinished, which is the same reason netherite scrap is allowed here.",
     "",
-    "OILY SWARF answers to two verbs, which is why it is one item and not two. The mill reduces it to burning metal fines (blaze powder); the separator divides it into its oil and its chips (magma cream, byproduct scrap metal). Slag already works this way - three verbs, three outputs - so the precedent is in the mod rather than invented for this."
+    "OILY SWARF answers to two verbs, which is why it is one item and not two. The mill reduces it to burning metal fines (blaze powder); the separator divides it into its oil and its chips (magma cream, byproduct scrap metal). Slag already works this way - three verbs, three outputs - so the precedent is in the mod rather than invented for this.",
+    "",
+    "NO MAGMA SHARD (owner, 2026-08-19). There was one, briefly, and it earned nothing: vanilla already",
+    "crafts a magma block from four magma cream, and Oily Swarf gives magma cream a route - so the block",
+    "arrived the moment the cream did. The shard was a second parallel path to something already",
+    "reachable, which is the one thing a terrain shard must not be. The other five are each the ONLY",
+    "route to their block, because the depths generate no vanilla nether terrain at all."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -60,11 +64,6 @@
           "type": "minecraft:item",
           "name": "minecraft:netherite_scrap",
           "weight": 2
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:magma_shard",
-          "weight": 40
         },
         {
           "type": "minecraft:item",

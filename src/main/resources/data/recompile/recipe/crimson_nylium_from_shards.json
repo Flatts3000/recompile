@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:crimson_nylium_shard",
+    "recompile:crimson_nylium_shard",
+    "recompile:crimson_nylium_shard",
+    "recompile:crimson_nylium_shard"
+  ],
+  "result": {
+    "id": "minecraft:crimson_nylium",
+    "count": 1
+  }
+}

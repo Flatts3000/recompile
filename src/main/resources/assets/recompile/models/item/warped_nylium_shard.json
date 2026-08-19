@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "recompile:item/magma_shard"
+    "layer0": "recompile:item/warped_nylium_shard"
   }
 }
