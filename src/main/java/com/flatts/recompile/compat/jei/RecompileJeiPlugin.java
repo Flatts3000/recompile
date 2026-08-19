@@ -111,6 +111,18 @@ public class RecompileJeiPlugin implements IModPlugin {
         RecipeType.create(Recompile.MOD_ID, "pulverizing", SalvageRecipe.class);
 
     /**
+     * The Cupola (#243). Its recipes are ordinary {@code minecraft:blasting} and appear under vanilla
+     * Blasting too - the machine really does run them, and that IS the iron gate. This category exists
+     * for the half vanilla's display has no slot for: every Nth completed smelt also rakes off a lump
+     * of slag, which is the sole input to the Separator, the Pulverizer and the Slag Furnace. A player
+     * reading Blasting was told the Cupola makes a gold nugget and nothing else - true, and materially
+     * incomplete, since the whole obsidian chain hangs off the byproduct.
+     */
+    static final RecipeType<com.flatts.recompile.compat.CupolaData.Entry> CUPOLA =
+        RecipeType.create(Recompile.MOD_ID, "cupola",
+            com.flatts.recompile.compat.CupolaData.Entry.class);
+
+    /**
      * The vitrifier (#236). Deterministic like the other two, and the only route to obsidian in the
      * game - which is precisely why it cannot be left out. JEI shows vanilla-typed recipes for free
      * and a modded RecipeType is not one however closely it copies the shape, so without a category
@@ -179,6 +191,8 @@ public class RecompileJeiPlugin implements IModPlugin {
                 gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
                 com.flatts.recompile.compat.PulverizingData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new CupolaCategory(CUPOLA, Component.translatable("jei.recompile.cupola"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.CUPOLA_FURNACE.get()))),
             new SalvageCategory(VITRIFYING, Component.translatable("jei.recompile.vitrifying"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SLAG_FURNACE.get())), false,
                 com.flatts.recompile.compat.VitrifyingData.all().stream()
@@ -397,6 +411,12 @@ public class RecompileJeiPlugin implements IModPlugin {
             registration.addRecipes(VITRIFYING, vitrifying);
         }
 
+        // The Cupola's own rows, carrying the slag vanilla Blasting cannot draw.
+        var cupola = com.flatts.recompile.compat.CupolaData.all();
+        if (!cupola.isEmpty()) {
+            registration.addRecipes(CUPOLA, cupola);
+        }
+
         // Machines only, not their parts. A crafted core says nothing about the tower it needs, and
         // JEI is where a player goes looking. The parts already have recipes here, and the appliance
         // already has a teardown entry, so a panel on those would only restate what JEI shows.
@@ -513,6 +533,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         // recipes that are the only reason to build one. Exactly the bug the Burn Barrel had before it
         // got its own category.
         registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), RecipeTypes.BLASTING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), CUPOLA);
         registration.addRecipeCatalyst(new ItemStack(RCItems.HYDROPONICS_BAY.get()), GROWING);
         // The station, not the sheet: what a player needs to know is WHERE these can be made, and the
         // answer is the mod's own table and nowhere else.
