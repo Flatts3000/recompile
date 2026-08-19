@@ -265,13 +265,32 @@ and each character one Z. The shape therefore exists twice - there and in `Multi
 would not form. The pages draw the **loose components**, not the formed machine, because their job is
 to teach the build.
 
-**Three things that fail silently.** A `text` naming a lang key that does not exist renders the raw
+**Four things that fail silently.** A `text` naming a lang key that does not exist renders the raw
 key to the player; an entry icon naming a missing item renders the pink-and-black missing texture on
 the category map; and a plain string in any text field is treated as a **translation key**
 (`BookTextHolder` runs it through `I18n`), so literal prose in one of those fields renders as itself.
 `GuidebookTests` covers the first two off the classpath. Everything else is
 **client-render-only** - GameTest and the JUnit layer are blind to it, so a `runClient` pass is the
 only proof a page draws.
+
+And the fourth, which cost the most: **a blank line does not break a paragraph** (#241). Modonomicon's
+`CoreComponentNodeRenderer` claims `Paragraph` in `getNodeTypes()` and has **no `visit(Paragraph)`
+override**, so `AbstractVisitor` walks a paragraph's children and emits nothing at the boundary - the
+last word of one paragraph is welded to the first word of the next, which reads as a typo rather than
+a layout fault. It shipped that way in all 71 of the book's text pages for releases. The only node
+that emits a **newline** is `HardLineBreak`, and commonmark makes one from a **backslash at end of
+line** - so a paragraph gap is a blank line followed by TWO backslash-terminated lines, and a single
+line break is ONE, which is the idiom Modonomicon's own demo book uses. **A lone newline is not a
+break either**: it parses to a `SoftLineBreak`, and `BookTextRenderer` sets `renderSoftLineBreaks(false)`
+with `replaceSoftLineBreaksWithSpace(true)`, so it renders as a **space** - which is how a nine-item
+list shipped as one wrapped sentence, and how the first version of this fix walked past it. `every_guidebook_paragraph_break_actually_breaks`
+fails the build on a bare blank line. Proved offline by parsing each candidate with the commonmark
+0.29 jar Modonomicon jarjars, rather than by guessing at markdown: `A\n\nB` parses to two `Paragraph`s and
+renders as `AB`.
+
+Worth knowing when judging page length: **Modonomicon shrinks the font as a text page grows**, so the
+book's longest entry (1237 characters, six paragraphs) still fits one page with room to spare. Blank
+lines are not the page-budget risk they look like.
 
 ## 26.1 API deltas that bite
 

@@ -180,6 +180,65 @@ final class GuidebookTests {
             report(helper, unresolved, "guidebook lang keys with no translation");
         });
 
+        // A BLANK LINE DOES NOT BREAK A PARAGRAPH IN THIS BOOK (#241), and writing one anyway is the
+        // most natural mistake available - it is what markdown means everywhere else.
+        //
+        // Modonomicon's CoreComponentNodeRenderer claims Paragraph in getNodeTypes() and has no
+        // visit(Paragraph) override, so AbstractVisitor walks a paragraph's children and emits nothing
+        // at the boundary. A blank line therefore renders as nothing: the last word of one paragraph is
+        // welded to the first word of the next, which reads as a typo rather than a layout fault. It
+        // shipped that way in all 71 of the book's text pages for releases, because no test layer can
+        // see a rendered page and GuidebookTests only ever proved the key resolves.
+        //
+        // The only node that emits a NEWLINE is HardLineBreak; commonmark makes one from a backslash at
+        // end of line. One gives a line break, two give a blank line. Modonomicon's own demo book uses
+        // the same trick, which is what makes it the idiom rather than a workaround.
+        //
+        // A LONE NEWLINE IS NOT A BREAK EITHER, and this test missed that at first. It parses to a
+        // SoftLineBreak, and BookTextRenderer builds its renderer with renderSoftLineBreaks(false) and
+        // replaceSoftLineBreaksWithSpace(true) - so visit(SoftLineBreak) appends a SPACE. Nine list
+        // items separated by single newlines rendered as one wrapped sentence, and the first version of
+        // this guard walked straight past them because it only looked at values containing a blank
+        // line. Both failure modes are the same mistake - assuming a newline in the source is a newline
+        // on the page - so both are checked here.
+        RCGameTests.test("every_guidebook_paragraph_break_actually_breaks", 20, helper -> {
+            List<String> files = bookFiles(helper);
+            Set<String> keys = new LinkedHashSet<>();
+            for (String json : files) {
+                Matcher m = LANG_KEY.matcher(json);
+                while (m.find()) {
+                    keys.add(m.group(1));
+                }
+            }
+            helper.assertTrue(keys.size() > 50,
+                "only " + keys.size() + " guidebook lang keys were found - discovery is broken");
+
+            List<String> welded = new ArrayList<>();
+            int withBreaks = 0;
+            for (String key : keys) {
+                String text = Component.translatable(key).getString();
+                if (!text.contains("\n")) {
+                    continue;
+                }
+                withBreaks++;
+                // Strip the two forms that DO render - the paragraph gap and the single line break -
+                // and any newline left over is one that renders as nothing (a blank line) or as a
+                // space (a lone one). Either way it is not the break its author meant.
+                String rest = text.replace("\n\n\\\n\\\n", "").replace("\\\n", "");
+                if (rest.contains("\n")) {
+                    welded.add(key);
+                }
+            }
+            helper.assertTrue(withBreaks > 20,
+                "only " + withBreaks + " guidebook texts contain a line break at all - either the "
+                    + "book lost its prose or this test is looking at the wrong thing");
+            report(helper, welded,
+                "guidebook texts with a break that does not render - a blank line renders as nothing "
+                    + "and welds two paragraphs together, a lone newline renders as a SPACE and welds "
+                    + "a list into prose. End a paragraph with a blank line and TWO "
+                    + "backslash-terminated lines; end a list item with ONE");
+        });
+
         // An icon naming an item that does not exist draws the missing texture on the category map, next
         // to a perfectly good entry. Nothing else in the build looks at these ids.
         RCGameTests.test("every_guidebook_icon_is_a_real_item", 20, helper -> {
