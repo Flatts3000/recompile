@@ -121,6 +121,64 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         }
     }
 
+    /**
+     * Rake the slag off, once every {@code cupolaSmeltsPerSlag} smelts.
+     *
+     * <p><b>Slag is not a recipe output and cannot be</b> (#236). The Cupola is a
+     * {@link RecipeType#BLASTING} machine because that is the iron gate, and vanilla blasting has one
+     * result and no byproduct slot; {@code AbstractFurnaceBlockEntity} keeps its recipe lookup private
+     * behind a static tick, so nothing can be added to the smelt itself. The tick wrapper in
+     * {@code CupolaFurnaceBlock} is the only seam this machine has - the same one the network drain
+     * uses, and the same one the Burn Barrel's refuse gate uses.
+     *
+     * <p><b>Counted, not rolled.</b> One in eight is roughly the real ratio - an arc furnace throws
+     * 100-150kg of slag per tonne of steel - and counting makes it a trickle a player can plan around
+     * rather than a run of luck. It also makes it exactly testable, which a chance is not.
+     *
+     * <p>Where it goes is the three machines' contract: the Scrap Network first, the floor if nothing
+     * takes it. There is no fourth slot to put it in and there is not going to be - a vanilla furnace
+     * screen has three, and minting a bespoke screen for a waste product is the wrong trade.
+     */
+    public void rakeSlag(net.minecraft.server.level.ServerLevel level, int smelted) {
+        int per = com.flatts.recompile.RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
+        if (per <= 0 || smelted <= 0) {
+            return;
+        }
+        smeltsSinceSlag += smelted;
+        int made = smeltsSinceSlag / per;
+        if (made <= 0) {
+            return;
+        }
+        smeltsSinceSlag -= made * per;
+        setChanged();
+        ItemStack slag = new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get(), made);
+        com.flatts.recompile.content.block.ScrapNetwork.insertFromMember(
+            level, worldPosition, slag, false);
+        if (!slag.isEmpty()) {
+            net.minecraft.world.level.block.Block.popResource(level, worldPosition.above(), slag);
+        }
+    }
+
+    /** How many smelts have gone by since the last slag came off. Survives save/load. */
+    private int smeltsSinceSlag;
+
+    /** For GameTests: the running count, so a test can assert the trickle rather than wait for it. */
+    public int smeltsSinceSlag() {
+        return smeltsSinceSlag;
+    }
+
+    @Override
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("smeltsSinceSlag", smeltsSinceSlag);
+    }
+
+    @Override
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+        super.loadAdditional(input);
+        smeltsSinceSlag = input.getIntOr("smeltsSinceSlag", 0);
+    }
+
     @Override
     protected Component getDefaultName() {
         return Component.translatable("container.recompile.cupola_furnace");

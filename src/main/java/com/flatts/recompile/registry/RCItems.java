@@ -120,6 +120,25 @@ public final class RCItems {
      */
     public static final DeferredItem<Item> STEEL_OFFCUT = ITEMS.registerItem("steel_offcut", Item::new);
 
+    /**
+     * Slag: what is left on top of a melt, and the one material in this mod nobody chooses to make.
+     *
+     * <p><b>Slag is a byproduct, not a product</b> (owner, 2026-08-18, #236). It is the non-metallic
+     * fraction - silica, alumina, lime, iron oxides - that floats off every remelt of scrap; the operator
+     * taps the metal from the bottom and rakes this off the top because it is in the way. So it has no
+     * recipe and never will: the {@link com.flatts.recompile.content.block.CupolaFurnaceBlock} hands one
+     * over every time it finishes a smelt, whether the player wants it or not.
+     *
+     * <p>That is the point of it. Every other material here is something you went and got; this is a
+     * waste stream that accumulates because you were doing something else, which is the only kind of
+     * problem this mod is actually about.
+     *
+     * <p>It is deliberately <b>out of {@code #recompile:found_only}</b>. That tag is about finished goods
+     * a person would throw away, and slag is neither finished nor thrown away by anybody - it is
+     * industrial residue, and the twin tests that guard the tag have nothing to say about it.
+     */
+    public static final DeferredItem<Item> SLAG = ITEMS.registerItem("slag", Item::new);
+
     // Blueprints (#95). BLUEPRINT is one item covering every blueprint the mod or a pack ships; which
     // one it is lives in a data component. CLEAN_MATTRESS is the proof of concept's payoff and is
     // deliberately craftable by nothing - the only route to it is the blueprint bench, which is what

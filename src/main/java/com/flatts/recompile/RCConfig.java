@@ -96,6 +96,9 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue TREE_NURSERY_WATER_PER_SAPLING;
     public static final ModConfigSpec.IntValue TREE_NURSERY_TANK_CAPACITY;
 
+    // ---- Slag (#236 - the Cupola's byproduct) ----
+    public static final ModConfigSpec.IntValue CUPOLA_SMELTS_PER_SLAG;
+
     // ---- Animal bait (rung 5 - wildlife returns to healed grass) ----
     public static final ModConfigSpec.BooleanValue ANIMAL_BAIT_ENABLED;
     public static final ModConfigSpec.IntValue ANIMAL_BAIT_SETTLE_INTERVAL_TICKS;
@@ -341,6 +344,13 @@ public final class RCConfig {
         TREE_NURSERY_TANK_CAPACITY = builder
             .comment("The nursery's internal water tank capacity, mB. 4000 = four buckets.")
             .defineInRange("treeNurseryTankCapacity", 4000, 1000, 1000000);
+
+        CUPOLA_SMELTS_PER_SLAG = builder
+            .comment("Smelts the Cupola completes per Slag it rakes off. 0 disables slag entirely.",
+                "8 is roughly the real ratio: an electric arc furnace makes 100-150kg of slag per",
+                "tonne of steel. Counted rather than rolled, so it is a steady trickle you can plan",
+                "around instead of a run of luck.")
+            .defineInRange("cupolaSmeltsPerSlag", 8, 0, 1000);
 
         ANIMAL_BAIT_ENABLED = builder
             .comment("Whether animal bait can draw wildlife back to healed grass (reclamation rung 5).")

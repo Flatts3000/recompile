@@ -58,10 +58,21 @@ public class CupolaFurnaceBlock extends AbstractFurnaceBlock {
         // the tick is the only seam this machine has, which is the same reason the Burn Barrel's
         // refuse gate lives here rather than on its slots.
         return (lvl, pos, st, be) -> {
+            // COUNT THE RESULT SLOT ACROSS THE TICK, which is how the slag knows a smelt finished.
+            //
+            // Nothing else can grow that slot: vanilla's canPlaceItem refuses insertion into slot 2 and
+            // FurnaceResultSlot.mayPlace refuses it in the GUI, so any increase is a completed smelt.
+            // Exact, and it needs none of the private cook state AbstractFurnaceBlockEntity hides.
+            //
+            // Sampled BEFORE drainOutput, because that empties the slot into the network - read it after
+            // and every smelt looks like nothing happened on any wired Cupola.
+            int before = be instanceof com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity c
+                ? c.getItem(2).getCount() : 0;
             furnace.tick(lvl, pos, st, be);
             if (lvl instanceof net.minecraft.server.level.ServerLevel serverLevel
                     && be instanceof com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity
                         cupola) {
+                cupola.rakeSlag(serverLevel, Math.max(0, cupola.getItem(2).getCount() - before));
                 cupola.drainOutput(serverLevel);
             }
         };

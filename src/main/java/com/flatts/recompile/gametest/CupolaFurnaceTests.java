@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCItems;
 import java.util.ArrayList;
@@ -31,6 +32,27 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 final class CupolaFurnaceTests {
 
     private CupolaFurnaceTests() {
+    }
+
+    /** Loose slag items around the plot - where a rake with nothing wired up puts them. */
+    private static int slagNear(net.minecraft.gametest.framework.GameTestHelper helper) {
+        int total = 0;
+        for (var entity : helper.getLevel().getEntitiesOfClass(
+                net.minecraft.world.entity.item.ItemEntity.class,
+                new net.minecraft.world.phys.AABB(helper.absolutePos(new BlockPos(0, 0, 0)))
+                    .inflate(8.0))) {
+            if (entity.getItem().is(RCItems.SLAG.get())) {
+                total += entity.getItem().getCount();
+            }
+        }
+        return total;
+    }
+
+    private static void clearSlag(net.minecraft.gametest.framework.GameTestHelper helper) {
+        helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                new net.minecraft.world.phys.AABB(helper.absolutePos(new BlockPos(0, 0, 0)))
+                    .inflate(8.0))
+            .forEach(net.minecraft.world.entity.Entity::discard);
     }
 
     private static CupolaFurnaceBlockEntity place(net.minecraft.gametest.framework.GameTestHelper helper,
@@ -104,6 +126,78 @@ final class CupolaFurnaceTests {
                     "a blast-only cupola must not cook beef, output was " + cupola.getItem(2));
                 helper.succeed();
             });
+        });
+
+        // IT RAKES SLAG OFF, one lump per cupolaSmeltsPerSlag smelts (#236).
+        //
+        // Slag cannot be a recipe output and never will be. The Cupola is a BLASTING machine because
+        // that IS the iron gate, and vanilla blasting has one result and no byproduct slot; the recipe
+        // lookup is private behind a static tick. So the count lives in the block's ticker wrapper -
+        // the same seam drainOutput uses - and it works by watching the result slot across the tick,
+        // which is exact because vanilla refuses every other route into slot 2.
+        //
+        // Counted rather than rolled, so this can assert the number instead of waiting for luck.
+        RCGameTests.test("the_cupola_rakes_slag_off_every_few_smelts", 20, helper -> {
+            CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(1, 1, 1));
+            if (cupola == null) {
+                return;
+            }
+            int per = RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
+            helper.assertTrue(per > 0, "precondition: slag is enabled, cupolaSmeltsPerSlag=" + per);
+
+            // Drive the counter directly rather than smelting `per` times: this is asserting the
+            // arithmetic of the rake, and a real cook is already covered by the tests above.
+            cupola.rakeSlag(helper.getLevel(), per - 1);
+            helper.assertTrue(slagNear(helper) == 0,
+                "slag came off after only " + (per - 1) + " smelts, so the ratio is not being counted");
+            helper.assertTrue(cupola.smeltsSinceSlag() == per - 1,
+                "the running count is " + cupola.smeltsSinceSlag() + " rather than " + (per - 1));
+
+            cupola.rakeSlag(helper.getLevel(), 1);
+            helper.assertTrue(slagNear(helper) == 1,
+                "the " + per + "th smelt produced " + slagNear(helper) + " slag rather than 1");
+            helper.assertTrue(cupola.smeltsSinceSlag() == 0,
+                "the count must reset after a rake, left at " + cupola.smeltsSinceSlag());
+
+            // AND THE REMAINDER CARRIES. A batch of 2*per must give exactly two, not one and a lost
+            // remainder - integer division that throws the leftover away is the obvious way to write
+            // this and it silently eats slag on every hopper-fed run.
+            clearSlag(helper);
+            cupola.rakeSlag(helper.getLevel(), per * 2 + (per - 1));
+            helper.assertTrue(slagNear(helper) == 2,
+                "a batch of " + (per * 2 + per - 1) + " smelts gave " + slagNear(helper)
+                    + " slag rather than 2");
+            helper.assertTrue(cupola.smeltsSinceSlag() == per - 1,
+                "the leftover " + (per - 1) + " smelts were dropped rather than carried, count is "
+                    + cupola.smeltsSinceSlag());
+            clearSlag(helper);
+            helper.succeed();
+        });
+
+        // AND IT HAS SOMEWHERE TO GO. An item that accumulates with no sink is clutter, and slag
+        // accumulates whether the player wants it or not - so the disposal route is part of shipping it
+        // rather than a later nicety. Obsidian is the payoff and comes with the Slag Furnace; this is
+        // the route for the pile you are not going to vitrify.
+        RCGameTests.test("slag_can_be_disposed_of", 20, helper -> {
+            var level = helper.getLevel();
+            boolean sink = level.recipeAccess().recipeMap().values().stream().anyMatch(holder -> {
+                var id = holder.id().identifier();
+                if (!Recompile.MOD_ID.equals(id.getNamespace())) {
+                    return false;
+                }
+                try (var in = CupolaFurnaceTests.class.getResourceAsStream(
+                        "/data/" + id.getNamespace() + "/recipe/" + id.getPath() + ".json")) {
+                    return in != null
+                        && new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)
+                            .contains("\"recompile:slag\"");
+                } catch (java.io.IOException failed) {
+                    return false;
+                }
+            });
+            helper.assertTrue(sink,
+                "nothing in the mod consumes slag, so the Cupola now hands the player a lump every few "
+                    + "smelts that can only be thrown on the floor");
+            helper.succeed();
         });
 
         // THE GATE, as an assertion rather than a comment (#91).
