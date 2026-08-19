@@ -218,8 +218,10 @@ public final class RCConfig {
 
         builder.push("dimensions");
         NETHER_ENABLED = builder
-            .comment("Allow travel to the Nether. Off until the themed Nether ships (P1.8).")
-            .define("netherEnabled", false);
+            .comment("Allow travel to the Nether. ON: its resources and progression are the reason "
+                + "to go (owner, 2026-08-19). Until the themed generation lands this is the VANILLA "
+                + "Nether, which supplies gold, quartz, glowstone and ancient debris directly.")
+            .define("netherEnabled", true);
         END_ENABLED = builder
             .comment("Allow travel to the End. Off until the themed End ships (P1.8).")
             .define("endEnabled", false);
