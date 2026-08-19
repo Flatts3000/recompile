@@ -93,13 +93,27 @@ public class CupolaFurnaceMenu extends AbstractContainerMenu {
         // point of the framework: the drawing and the hit boxes cannot disagree if there is only one of
         // them to read.
         LAYOUT.forEachSlot("input", (i, x, y) -> this.addSlot(new Slot(container, 0, x, y)));
-        // A plain Slot gated on the container, not vanilla's FurnaceFuelSlot - that class takes an
-        // AbstractFurnaceMenu and this deliberately is not one. The container's own canPlaceItem is
-        // where the fuel rule lives anyway, so asking it is both shorter and the single source.
+        // A plain Slot, because vanilla's FurnaceFuelSlot takes an AbstractFurnaceMenu and this
+        // deliberately is not one - but it copies what that class actually does, which the first
+        // version did not.
+        //
+        // NOT container.canPlaceItem. That is the same client/server split isFuel exists to avoid: on
+        // the client the container is this class's own SimpleContainer, which accepts everything, and
+        // menu clicks are predicted locally before the server answers - so cobblestone would visibly
+        // land in the fuel slot and snap back. I fixed that in quickMoveStack and left it standing
+        // here, two methods from the javadoc explaining it.
+        //
+        // The bucket clause is vanilla's too: an empty bucket is allowed in so lava buckets leave one
+        // behind, and it is capped at one so a stack of sixteen cannot be parked in the slot.
         LAYOUT.forEachSlot("fuel", (i, x, y) -> this.addSlot(new Slot(container, 1, x, y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return container.canPlaceItem(1, stack);
+                return isFuel(inventory.player, stack) || stack.is(net.minecraft.world.item.Items.BUCKET);
+            }
+
+            @Override
+            public int getMaxStackSize(ItemStack stack) {
+                return stack.is(net.minecraft.world.item.Items.BUCKET) ? 1 : super.getMaxStackSize(stack);
             }
         }));
         LAYOUT.forEachSlot("result", (i, x, y) ->

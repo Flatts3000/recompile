@@ -6,7 +6,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.BlastFurnaceMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -176,7 +175,7 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         // INTO THE SLAG SLOT, and only as much as fits (owner, 2026-08-18: "the cupola furnace should
         // have a second output slot, not pop things onto the ground"). What does not fit stays on the
         // counter, so nothing is destroyed and nothing is littered - the machine simply owes you slag
-        // until you take some, and holdsForSlag stops it smelting before that debt can grow.
+        // until you take some, and pays the debt down the moment there is room for it.
         // WHATEVER IS IN THE SLOT MUST BE SLAG BEFORE ANYTHING GROWS IT. canPlaceItem shuts out pipes
         // and the menu's slot shuts out hands, but Container.setItem consults neither - a command or
         // any mod touching the Container API can seed slot 3, and without this guard the Cupola would
@@ -269,8 +268,11 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
      * <p>Vanilla's {@code canPlaceItem} knows about three slots and returns <b>true</b> for anything
      * else - so simply widening the container made the slag slot insertable from the bottom face, and
      * {@code cupola_matches_vanilla_furnace} caught it: the machine accepted four items through a face
-     * vanilla accepts none through. An output slot that takes deliveries is a jam waiting to happen,
-     * since the ticker holds while that slot is full.
+     * vanilla accepts none through.
+     *
+     * <p>What it costs if this is removed: {@link #rakeSlag} refuses to grow a slot holding something
+     * that is not slag, so a single delivered item stops the machine paying out its slag for good and
+     * the debt climbs with nothing to spend it on.
      */
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {

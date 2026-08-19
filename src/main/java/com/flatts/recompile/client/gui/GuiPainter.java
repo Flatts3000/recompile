@@ -156,9 +156,11 @@ public final class GuiPainter {
     public void flame(String name, int remaining, int total) {
         Rect rect = at(name);
         int goal = Math.max(1, total);
-        int left = Math.max(0, Math.min(remaining, goal));
+        // NOT `left` - that is this class's panel origin, and shadowing it here would mean any later
+        // edit inside this method silently reads the fuel counter instead of the screen x.
+        int burning = Math.max(0, Math.min(remaining, goal));
         VanillaGui.flame(graphics, rect.x(), rect.y(),
-            (left * GuiTheme.FLAME_H + goal - 1) / goal);
+            (burning * GuiTheme.FLAME_H + goal - 1) / goal);
     }
 
     /** Vanilla's progress arrow, filled by proportion. Rounds up exactly the way vanilla's does. */

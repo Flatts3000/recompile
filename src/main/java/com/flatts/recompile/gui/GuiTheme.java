@@ -117,6 +117,7 @@ public final class GuiTheme {
     public static final int FLAME_W = 14;
     public static final int FLAME_H = 14;
 
+    /** Vanilla's progress arrow, whose size is fixed by the sprite rather than chosen. */
     public static final int ARROW_W = 24;
     public static final int ARROW_H = 17;
 }
