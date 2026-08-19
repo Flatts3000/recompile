@@ -25,12 +25,29 @@ import net.neoforged.neoforge.event.level.BlockEvent;
  *
  * <p><b>What being open costs, until the themed generation ships.</b> The world preset's
  * {@code minecraft:the_nether} entry is still stock vanilla - {@code minecraft:nether} noise settings
- * and the vanilla biome preset - so the dimension currently hands over gold ore, quartz, glowstone,
- * ancient debris, blaze rods and piglin bartering directly. Several of those have designed found
- * sources in {@code material_economy.md} and one of them, gold, is deliberately gated behind
- * E-Scrap to Circuit Powder to a Cupola blast. That gate is not enforced by this class and is not
- * broken by this class; it is simply routed around by a dimension nobody has themed yet. The themed
- * build is what closes it.
+ * and the vanilla biome preset - so the dimension hands over a great deal directly. Written out
+ * because an earlier version of this list named only gold and stopped, which understated it badly:
+ *
+ * <ul>
+ *   <li><b>Iron</b>, which is gated harder than gold. {@code minecraft:gameplay/piglin_bartering}
+ *       yields iron nuggets (and iron boots), and {@code minecraft:chests/nether_bridge} contains iron
+ *       ingots outright - so a player reaches iron with no demolition yard, no Cutting Torch and no
+ *       Cupola. That is precisely the #91 shape: a gate built from the absence of a material dies the
+ *       moment something adds the material, and this adds it.</li>
+ *   <li><b>Wood</b>, which is the most heavily engineered scarcity in the mod. Crimson and warped
+ *       stems craft to planks and those planks are in {@code #minecraft:planks}, so one trip is
+ *       unlimited planks, sticks, chests and a vanilla crafting table. {@code StripSaplingsModifier}
+ *       keys on {@code ItemTags.SAPLINGS}, which does not cover nether fungi, so nothing in this mod
+ *       touches it - the Tree Nursery ladder and the whole rung-1-to-3 sequence become optional.</li>
+ *   <li><b>Gold</b>, deliberately behind E-Scrap to Circuit Powder to a Cupola blast, reachable from
+ *       nether gold ore and bartering.</li>
+ *   <li>Quartz, glowstone and ancient debris, each of which has a designed found source in
+ *       {@code material_economy.md}.</li>
+ * </ul>
+ *
+ * <p>None of that is enforced by this class and none of it is broken by this class - it is routed
+ * around by a dimension nobody has themed yet, which is the accepted cost of the door being open. The
+ * themed build is what closes it.
  */
 @EventBusSubscriber(modid = Recompile.MOD_ID)
 public final class RCDimensionLockout {

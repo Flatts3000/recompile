@@ -28,9 +28,9 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue ROACH_CHANCE_DENOMINATOR;
 
     /**
-     * Dimension lockout (P1.8): Nether and End access are disabled by default until
-     * each themed dimension ships, so vanilla dimensions can't leak free resources
-     * into the closed trash economy. Flip a flag on when its themed build lands.
+     * Dimension lockout (P1.8), now half retired. The <b>Nether is open</b> (owner, 2026-08-19) and
+     * the <b>End is still held</b> until its themed build lands. See {@code RCDimensionLockout} for
+     * what an open vanilla Nether costs the closed economy in the meantime; it is not a short list.
      */
     public static final ModConfigSpec.BooleanValue NETHER_ENABLED;
     public static final ModConfigSpec.BooleanValue END_ENABLED;
@@ -218,9 +218,10 @@ public final class RCConfig {
 
         builder.push("dimensions");
         NETHER_ENABLED = builder
-            .comment("Allow travel to the Nether. ON: its resources and progression are the reason "
-                + "to go (owner, 2026-08-19). Until the themed generation lands this is the VANILLA "
-                + "Nether, which supplies gold, quartz, glowstone and ancient debris directly.")
+            .comment("Allow travel to the Nether. ON: its resources and progression are the reason to go.",
+                "Until the themed generation lands this is the VANILLA Nether, which routes around",
+                "several designed gates - iron (bartering and fortress chests), wood (crimson and",
+                "warped stems are planks), gold, quartz, glowstone and ancient debris.")
             .define("netherEnabled", true);
         END_ENABLED = builder
             .comment("Allow travel to the End. Off until the themed End ships (P1.8).")
