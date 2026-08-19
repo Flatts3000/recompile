@@ -6,7 +6,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.BlastFurnaceMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -63,11 +62,23 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
 
-    /** Vanilla's furnace layout: 0 input, 1 fuel, 2 result. */
+    /** Vanilla's furnace layout plus one: 0 input, 1 fuel, 2 result, 3 slag. */
     private static final int RESULT_SLOT = 2;
+    public static final int SLAG_SLOT = 3;
+    public static final int SLOTS = 4;
 
+    /**
+     * Four slots, on a class that hard-codes three.
+     *
+     * <p>{@code AbstractFurnaceBlockEntity} holds its stacks in a {@code protected NonNullList items}
+     * sized 3 and reads slots 0, 1 and 2 by index throughout, so widening the list is safe - the vanilla
+     * cook loop never looks at slot 3 and everything it does look at is where it was. What is NOT safe
+     * is vanilla's menu: {@code AbstractFurnaceMenu} calls {@code checkContainerSize(container, 3)} and
+     * throws, which is why this machine has its own (see {@code CupolaFurnaceMenu}).
+     */
     public CupolaFurnaceBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(RCBlockEntities.CUPOLA_FURNACE.get(), worldPosition, blockState, RecipeType.BLASTING);
+        this.items = net.minecraft.core.NonNullList.withSize(SLOTS, ItemStack.EMPTY);
     }
 
     /**
@@ -108,15 +119,23 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
      * storage connected the output stays put and you take it through the GUI.
      */
     public void drainOutput(net.minecraft.server.level.ServerLevel level) {
-        ItemStack result = getItem(RESULT_SLOT);
-        if (result.isEmpty()) {
+        drainSlot(level, RESULT_SLOT);
+        // AND THE SLAG. Without this a wired Cupola fills its slag slot and stops, which is the machine
+        // working exactly as designed and reading as a machine that broke - the metal keeps leaving and
+        // the furnace goes quiet anyway. A player who has wired the output has wired the output.
+        drainSlot(level, SLAG_SLOT);
+    }
+
+    private void drainSlot(net.minecraft.server.level.ServerLevel level, int slot) {
+        ItemStack held = getItem(slot);
+        if (held.isEmpty()) {
             return;
         }
-        ItemStack working = result.copy();
+        ItemStack working = held.copy();
         com.flatts.recompile.content.block.ScrapNetwork.insertFromMember(
             level, worldPosition, working, false);
-        if (working.getCount() != result.getCount()) {
-            setItem(RESULT_SLOT, working.isEmpty() ? ItemStack.EMPTY : working);
+        if (working.getCount() != held.getCount()) {
+            setItem(slot, working.isEmpty() ? ItemStack.EMPTY : working);
             setChanged();
         }
     }
@@ -135,9 +154,10 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
      * 100-150kg of slag per tonne of steel - and counting makes it a trickle a player can plan around
      * rather than a run of luck. It also makes it exactly testable, which a chance is not.
      *
-     * <p>Where it goes is the three machines' contract: the Scrap Network first, the floor if nothing
-     * takes it. There is no fourth slot to put it in and there is not going to be - a vanilla furnace
-     * screen has three, and minting a bespoke screen for a waste product is the wrong trade.
+     * <p><b>It goes in the slag slot</b> (owner, 2026-08-18: a second output slot, not items on the
+     * ground). If that slot is full the count simply carries: nothing is dropped and nothing is
+     * deleted, and the debt pays out the moment there is room. The machine keeps smelting either way,
+     * because stopping it would only freeze the burn that clears its own LIT state.
      */
     public void rakeSlag(net.minecraft.server.level.ServerLevel level, int smelted) {
         if (smelted <= 0) {
@@ -152,26 +172,40 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         if (made <= 0) {
             return;
         }
-        // CAPPED AT A STACK, because the divisor can change under a running world. The count carries a
-        // remainder of up to per - 1, so a server owner who lowers cupolaSmeltsPerSlag from 1000 to 1
-        // would otherwise mint a single ItemStack of 999 on the next smelt and hand it to the network.
-        // What does not fit stays on the counter and comes off next time.
-        ItemStack slag = new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get(), 1);
-        made = Math.min(made, slag.getMaxStackSize());
-        slag.setCount(made);
-        smeltsSinceSlag -= made * per;
-        setChanged();
-        com.flatts.recompile.content.block.ScrapNetwork.insertFromMember(
-            level, worldPosition, slag, false);
-        if (!slag.isEmpty()) {
-            // THE MACHINE'S OWN BLOCK, not the one above it. A furnace takes its input from the UP face
-            // (getSlotsForFace(UP) is {0}), so pos.above() is exactly where a feeding hopper sits -
-            // popping there drops every lump into the feed line of the automation this machine's own
-            // javadoc sells as its reward. Popping into its own space is what vanilla does when a
-            // container breaks: the items push out sideways, and a hopper UNDER the furnace picks them
-            // up along with the iron, which is the outlet a player already built.
-            net.minecraft.world.level.block.Block.popResource(level, worldPosition, slag);
+        // INTO THE SLAG SLOT, and only as much as fits (owner, 2026-08-18: "the cupola furnace should
+        // have a second output slot, not pop things onto the ground"). What does not fit stays on the
+        // counter, so nothing is destroyed and nothing is littered - the machine simply owes you slag
+        // until you take some, and pays the debt down the moment there is room for it.
+        // WHATEVER IS IN THE SLOT MUST BE SLAG BEFORE ANYTHING GROWS IT. canPlaceItem shuts out pipes
+        // and the menu's slot shuts out hands, but Container.setItem consults neither - a command or
+        // any mod touching the Container API can seed slot 3, and without this guard the Cupola would
+        // then mint free copies of whatever that is on every rake.
+        ItemStack held = getItem(SLAG_SLOT);
+        boolean slagThere = held.is(com.flatts.recompile.registry.RCItems.SLAG.get());
+        if (!held.isEmpty() && !slagThere) {
+            return;   // something else is parked there; owe the slag rather than corrupt the slot
         }
+        int room = held.isEmpty()
+            ? new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get()).getMaxStackSize()
+            : held.getMaxStackSize() - held.getCount();
+        made = Math.min(made, room);
+        if (made <= 0) {
+            return;
+        }
+        smeltsSinceSlag -= made * per;
+        if (held.isEmpty()) {
+            setItem(SLAG_SLOT, new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get(), made));
+        } else {
+            held.grow(made);
+            setChanged();
+        }
+        setChanged();
+    }
+
+    /** How much slag the machine still owes, for the test that has to prove a full slot loses none. */
+    public int slagOwed() {
+        int per = com.flatts.recompile.RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
+        return per <= 0 ? 0 : smeltsSinceSlag / per;
     }
 
     /** How many smelts have gone by since the last slag came off. Survives save/load. */
@@ -201,6 +235,47 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
 
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
-        return new BlastFurnaceMenu(containerId, inventory, this, this.dataAccess);
+        return new com.flatts.recompile.content.menu.CupolaFurnaceMenu(
+            containerId, inventory, this, this.dataAccess);
+    }
+
+    /**
+     * Automation may take from the slag slot as well as the result slot.
+     *
+     * <p>Vanilla lets a hopper pull the result out of the bottom; slag is output too, so it leaves the
+     * same way. Without this the only route out is the GUI, and an automated Cupola stalls on a byproduct
+     * the player never asked for - which is the shape of the original complaint, just slower.
+     */
+    @Override
+    public int[] getSlotsForFace(Direction side) {
+        int[] vanilla = super.getSlotsForFace(side);
+        if (side != Direction.DOWN) {
+            return vanilla;
+        }
+        int[] withSlag = java.util.Arrays.copyOf(vanilla, vanilla.length + 1);
+        withSlag[vanilla.length] = SLAG_SLOT;
+        return withSlag;
+    }
+
+    @Override
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
+        return slot == SLAG_SLOT || super.canTakeItemThroughFace(slot, stack, side);
+    }
+
+    /**
+     * Nothing may be put INTO the slag slot, by hand or by pipe.
+     *
+     * <p>Vanilla's {@code canPlaceItem} knows about three slots and returns <b>true</b> for anything
+     * else - so simply widening the container made the slag slot insertable from the bottom face, and
+     * {@code cupola_matches_vanilla_furnace} caught it: the machine accepted four items through a face
+     * vanilla accepts none through.
+     *
+     * <p>What it costs if this is removed: {@link #rakeSlag} refuses to grow a slot holding something
+     * that is not slag, so a single delivered item stops the machine paying out its slag for good and
+     * the debt climbs with nothing to spend it on.
+     */
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return slot != SLAG_SLOT && super.canPlaceItem(slot, stack);
     }
 }
