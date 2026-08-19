@@ -1052,6 +1052,59 @@ prompt = "a full-bleed top-down Minecraft block face of scattered mixed bait fee
 
 # Stone Rubble: a pick-through pile like a Block of Garbage, but stone debris. Renamed from `rubble`
 # (block id and surface id both) in #61. The fallback reuses garbage_block's procedural "rubble" style.
+# ---------------------------------------------------------------------------
+# THE COMPACTED DEPTHS (the themed Nether). Owner, 2026-08-19: techno-organic waste is the Nether's
+# Block of Garbage "even down to having 4 different block textures", and slag rubble is its Stone
+# Rubble. So these two mirror those two deliberately - same kind, same AI backend, same variant
+# strategy - and differ only in what the material IS.
+#
+# The pair has to read as one dimension and as two different things in it:
+#   techno_organic_waste - the fill. Machinery and flesh-of-a-city fused together under heat and
+#                          weight. Warm, dark, oily; circuitry and cable visible in the matrix.
+#   slag_rubble          - the spoil inside it. Burnt, glassy, cooled: the fraction that never fused.
+#                          Cooler and blacker, vitreous rather than metallic.
+#
+# FOUR variants on the waste rather than the overworld's three, because the player is inside this
+# block for a whole dimension rather than walking past heaps of it - a tiling repeat that reads fine
+# across a plain reads as wallpaper in a tunnel.
+# ---------------------------------------------------------------------------
+
+[surface.techno_organic_waste]
+kind = "block"
+backend = "ai"
+size = 16
+# BRIGHTNESS, calibrated against neighbours rather than in isolation. As generated this
+# surface meant luma ~28, against Stone Rubble 67-115 and the Block of Garbage 76-96 - its
+# own analogues - and against Mechanical Waste 39-50, which is the darkest block the mod
+# already ships. At 28 a wall of it is a black slab with no readable detail at all, which a
+# 16px contact sheet hides and a wall in-game does not. 1.55 lands it at ~44, beside
+# Mechanical Waste: still the darkest thing in the game, still legible.
+#
+# Promote-time, so this re-finalizes from art_src with NO API call and the owner-approved
+# picks are untouched. Re-check it if Mechanical Waste is ever regenerated.
+brightness = 1.55
+variants = 4
+prompt = "a full-bleed top-down Minecraft block face of compacted techno-organic waste: crushed machinery fused with dark organic matter, broken circuit board fragments, severed cable ends and twisted metal set in a dark tarry matrix, faint dull-orange heat in the cracks, oily browns and near-black with muted teal circuit-green flecks, gritty and dense"
+vanilla_ref = "block/netherrack"
+
+[surface.slag_rubble]
+kind = "block"
+backend = "ai"
+size = 16
+# BRIGHTNESS, calibrated against neighbours rather than in isolation. As generated this
+# surface meant luma ~28, against Stone Rubble 67-115 and the Block of Garbage 76-96 - its
+# own analogues - and against Mechanical Waste 39-50, which is the darkest block the mod
+# already ships. At 28 a wall of it is a black slab with no readable detail at all, which a
+# 16px contact sheet hides and a wall in-game does not. 1.55 lands it at ~44, beside
+# Mechanical Waste: still the darkest thing in the game, still legible.
+#
+# Promote-time, so this re-finalizes from art_src with NO API call and the owner-approved
+# picks are untouched. Re-check it if Mechanical Waste is ever regenerated.
+brightness = 1.55
+variants = 3
+prompt = "a full-bleed top-down Minecraft block face of loose burnt slag rubble: angular chunks of cooled black furnace slag with a glassy vitreous sheen on the broken faces, grey ash and grit between them, cold charcoal blacks and dark greys with a faint dull ember glow deep in a crack or two"
+vanilla_ref = "block/gravel"
+
 [surface.stone_rubble]
 kind = "block"
 backend = "ai"

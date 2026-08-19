@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "recompile:steel_i_beam",
-    "recompile:mechanical_waste"
+    "recompile:mechanical_waste",
+    "recompile:techno_organic_waste",
+    "recompile:slag_rubble"
   ]
 }

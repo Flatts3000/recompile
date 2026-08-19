@@ -346,6 +346,14 @@ public final class RCItems {
     // ---------------- Blocks-as-items ----------------
     public static final DeferredItem<BlockItem> GARBAGE_BLOCK =
         ITEMS.registerSimpleBlockItem("garbage_block", RCBlocks.GARBAGE_BLOCK);
+
+    /** The Nether's bulk fill, and its Block of Garbage. */
+    public static final DeferredItem<BlockItem> TECHNO_ORGANIC_WASTE =
+        ITEMS.registerSimpleBlockItem("techno_organic_waste", RCBlocks.TECHNO_ORGANIC_WASTE);
+
+    /** The loose burnt fraction inside that fill - the Nether's Stone Rubble. */
+    public static final DeferredItem<BlockItem> SLAG_RUBBLE =
+        ITEMS.registerSimpleBlockItem("slag_rubble", RCBlocks.SLAG_RUBBLE);
     /** Rubble: the demolition yard's pick-through stone-shard source. */
     public static final DeferredItem<BlockItem> PULVERIZER =
         ITEMS.registerSimpleBlockItem("pulverizer", RCBlocks.PULVERIZER);
