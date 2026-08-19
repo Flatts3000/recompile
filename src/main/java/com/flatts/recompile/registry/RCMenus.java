@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
+import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
 import net.minecraft.core.registries.Registries;
@@ -35,6 +36,17 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerGeneratorMenu>> BURNER_GENERATOR =
         MENUS.register("burner_generator", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new BurnerGeneratorMenu(id, inventory)));
+
+    /**
+     * The Cupola Furnace (#236): vanilla's furnace plus a slag slot.
+     *
+     * <p>The mod's fifth bespoke menu, and the reason is the same shape as the crafting table's:
+     * {@code AbstractFurnaceMenu} calls {@code checkContainerSize(container, 3)} in its constructor, so
+     * a fourth slot is not something it can be asked for.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<CupolaFurnaceMenu>> CUPOLA_FURNACE =
+        MENUS.register("cupola_furnace", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new CupolaFurnaceMenu(id, inventory)));
 
     /** The Hydroponics Bay (#43): two slots plus water, power and grow progress. */
     public static final DeferredHolder<MenuType<?>, MenuType<HydroponicsBayMenu>> HYDROPONICS_BAY =

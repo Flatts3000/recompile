@@ -34,33 +34,27 @@ final class CupolaFurnaceTests {
     private CupolaFurnaceTests() {
     }
 
+    /** How much slag is sitting in the Cupola's own output slot. */
+    private static int slagIn(CupolaFurnaceBlockEntity cupola) {
+        return cupola.getItem(CupolaFurnaceBlockEntity.SLAG_SLOT).getCount();
+    }
+
     /**
-     * Loose slag in THIS test's plot.
+     * Loose slag anywhere in THIS test's plot - which must always be none.
      *
-     * <p>{@code getBounds()} and an item filter, both of which matter. Tests are registered with
-     * padding 1, so batched 5x5x5 plots sit about six blocks apart - an eight-block bubble around the
-     * plot origin reaches well into the neighbours. The read-only version of that is merely wrong; the
-     * clearing version below was deleting other tests' dropped loot mid-assertion, which is an
-     * order-dependent CI flake that passes on every run where the scheduler happens to be kind.
+     * <p>{@code getBounds()} and an item filter, both of which matter. Tests register with padding 1, so
+     * batched 5x5x5 plots sit about six blocks apart and an eight-block bubble reaches well into the
+     * neighbours; an earlier version of this cleared every ItemEntity in that bubble and was deleting
+     * other tests' dropped loot mid-assertion.
      */
-    private static int slagNear(net.minecraft.gametest.framework.GameTestHelper helper) {
+    private static int looseSlag(net.minecraft.gametest.framework.GameTestHelper helper) {
         int total = 0;
-        for (var entity : slagIn(helper)) {
+        for (var entity : helper.getLevel().getEntitiesOfClass(
+                net.minecraft.world.entity.item.ItemEntity.class, helper.getBounds(),
+                e -> e.getItem().is(RCItems.SLAG.get()))) {
             total += entity.getItem().getCount();
         }
         return total;
-    }
-
-    private static java.util.List<net.minecraft.world.entity.item.ItemEntity> slagIn(
-            net.minecraft.gametest.framework.GameTestHelper helper) {
-        return helper.getLevel().getEntitiesOfClass(
-            net.minecraft.world.entity.item.ItemEntity.class,
-            helper.getBounds(),
-            entity -> entity.getItem().is(RCItems.SLAG.get()));
-    }
-
-    private static void clearSlag(net.minecraft.gametest.framework.GameTestHelper helper) {
-        slagIn(helper).forEach(net.minecraft.world.entity.Entity::discard);
     }
 
     private static CupolaFurnaceBlockEntity place(net.minecraft.gametest.framework.GameTestHelper helper,
@@ -145,7 +139,7 @@ final class CupolaFurnaceTests {
         // which is exact because vanilla refuses every other route into slot 2.
         //
         // Counted rather than rolled, so this can assert the number instead of waiting for luck.
-        RCGameTests.test("the_cupola_rakes_slag_off_every_few_smelts", 20, helper -> {
+        RCGameTests.test("the_cupola_rakes_slag_into_its_own_slot", 20, helper -> {
             CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(1, 1, 1));
             if (cupola == null) {
                 return;
@@ -153,32 +147,32 @@ final class CupolaFurnaceTests {
             int per = RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
             helper.assertTrue(per > 0, "precondition: slag is enabled, cupolaSmeltsPerSlag=" + per);
 
-            // Drive the counter directly rather than smelting `per` times: this is asserting the
-            // arithmetic of the rake, and a real cook is already covered by the tests above.
+            // Drive the counter directly: this asserts the arithmetic of the rake, and a real cook is
+            // covered by the two tests below.
             cupola.rakeSlag(helper.getLevel(), per - 1);
-            helper.assertTrue(slagNear(helper) == 0,
+            helper.assertTrue(slagIn(cupola) == 0,
                 "slag came off after only " + (per - 1) + " smelts, so the ratio is not being counted");
-            helper.assertTrue(cupola.smeltsSinceSlag() == per - 1,
-                "the running count is " + cupola.smeltsSinceSlag() + " rather than " + (per - 1));
 
             cupola.rakeSlag(helper.getLevel(), 1);
-            helper.assertTrue(slagNear(helper) == 1,
-                "the " + per + "th smelt produced " + slagNear(helper) + " slag rather than 1");
+            helper.assertTrue(slagIn(cupola) == 1,
+                "the " + per + "th smelt put " + slagIn(cupola) + " slag in the slot rather than 1");
             helper.assertTrue(cupola.smeltsSinceSlag() == 0,
                 "the count must reset after a rake, left at " + cupola.smeltsSinceSlag());
 
-            // AND THE REMAINDER CARRIES. A batch of 2*per must give exactly two, not one and a lost
-            // remainder - integer division that throws the leftover away is the obvious way to write
-            // this and it silently eats slag on every hopper-fed run.
-            clearSlag(helper);
+            // AND THE REMAINDER CARRIES. Integer division that throws the leftover away is the obvious
+            // way to write this and it silently eats slag on every hopper-fed run.
             cupola.rakeSlag(helper.getLevel(), per * 2 + (per - 1));
-            helper.assertTrue(slagNear(helper) == 2,
-                "a batch of " + (per * 2 + per - 1) + " smelts gave " + slagNear(helper)
-                    + " slag rather than 2");
+            helper.assertTrue(slagIn(cupola) == 3,
+                "a further " + (per * 2 + per - 1) + " smelts left " + slagIn(cupola)
+                    + " slag in the slot rather than 3");
             helper.assertTrue(cupola.smeltsSinceSlag() == per - 1,
                 "the leftover " + (per - 1) + " smelts were dropped rather than carried, count is "
                     + cupola.smeltsSinceSlag());
-            clearSlag(helper);
+
+            // AND NOTHING WAS THROWN ON THE FLOOR, which is the whole point of the slot (owner,
+            // 2026-08-18). The first version of this feature popped every lump as an item entity.
+            helper.assertTrue(looseSlag(helper) == 0,
+                looseSlag(helper) + " slag was dropped as an item instead of going in the slot");
             helper.succeed();
         });
 
@@ -234,6 +228,38 @@ final class CupolaFurnaceTests {
                 "a Cupola with storage wired to it smelted and counted nothing - the rake is reading "
                     + "the result slot after drainOutput has already emptied it, so no automated "
                     + "Cupola in the world will ever produce slag"));
+        });
+
+        // A FULL SLAG SLOT HOLDS THE MACHINE, it does not spill and it does not delete.
+        //
+        // Vanilla stops a furnace whose result slot is full rather than destroying what it makes; the
+        // same has to be true of the second output or the courtesy is a lie. Holding is enforced by
+        // skipping the tick, because AbstractFurnaceBlockEntity.serverTick is static and its canBurn
+        // check only ever looks at the result slot.
+        RCGameTests.test("a_full_slag_slot_stops_the_cupola", 260, helper -> {
+            CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(3, 1, 1));
+            if (cupola == null) {
+                return;
+            }
+            cupola.setItem(CupolaFurnaceBlockEntity.SLAG_SLOT,
+                new ItemStack(RCItems.SLAG.get(), 64));
+            helper.assertTrue(cupola.holdsForSlag(), "precondition: a full slag slot holds the machine");
+            cupola.setItem(0, new ItemStack(RCItems.STEEL_OFFCUT.get(), 4));
+            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
+            // 200 TICKS, NOT 50. A blasting recipe cooks in 100, so a shorter wait asserts nothing at
+            // all: the output slot is empty either way and the test passes with the hold deleted.
+            // Checked - removing the guard left it green until this number went up.
+            helper.runAfterDelay(200, () -> {
+                helper.assertTrue(cupola.getItem(2).isEmpty(),
+                    "the Cupola smelted with nowhere to put the slag, so the slag was lost - output was "
+                        + cupola.getItem(2));
+                helper.assertTrue(looseSlag(helper) == 0,
+                    "a jammed Cupola threw slag on the floor rather than waiting");
+                helper.assertTrue(cupola.getItem(0).getCount() == 4,
+                    "a held Cupola must not consume its input, " + cupola.getItem(0).getCount()
+                        + " offcuts left of 4");
+                helper.succeed();
+            });
         });
 
         // AND IT HAS SOMEWHERE TO GO. An item that accumulates with no sink is clutter, and slag

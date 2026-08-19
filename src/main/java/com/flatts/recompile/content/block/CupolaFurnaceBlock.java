@@ -58,6 +58,18 @@ public class CupolaFurnaceBlock extends AbstractFurnaceBlock {
         // the tick is the only seam this machine has, which is the same reason the Burn Barrel's
         // refuse gate lives here rather than on its slots.
         return (lvl, pos, st, be) -> {
+            // HOLD IF THE SLAG SLOT IS FULL, before the furnace runs. Vanilla's canBurn only looks at
+            // the result slot, so it would happily smelt on and leave the slag with nowhere to go -
+            // and the only two alternatives to holding are dropping it or deleting it. Skipping the
+            // tick is the same seam the Burn Barrel's refuse gate uses, and it fails closed: no fuel is
+            // spent while the machine waits.
+            if (be instanceof com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity full
+                    && full.holdsForSlag()) {
+                if (lvl instanceof net.minecraft.server.level.ServerLevel draining) {
+                    full.drainOutput(draining);   // a wired machine clears its own jam
+                }
+                return;
+            }
             // COUNT THE RESULT SLOT ACROSS THE TICK, which is how the slag knows a smelt finished.
             //
             // Nothing else can grow that slot: vanilla's canPlaceItem refuses insertion into slot 2 and
