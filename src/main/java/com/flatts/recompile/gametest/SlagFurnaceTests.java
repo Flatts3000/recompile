@@ -21,6 +21,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.Container;
@@ -196,15 +198,23 @@ final class SlagFurnaceTests {
             helper.succeed();
         });
 
-        // It costs a whole Cupola to build, so losing one to a misplacement would be brutal. Same trap
-        // the Cupola had: requiresCorrectToolForDrops reads as the obvious call for a stone machine and
-        // is exactly wrong, because the block is in no mineable tag and "correct tool" would mean none
-        // exists. Asserted through a real drop-yielding break.
+        // It costs a whole Cupola to build, so losing one to a misplacement would be brutal.
+        // BROKEN BY A SURVIVAL PLAYER, not by Level.destroyBlock.
+        //
+        // This test was vacuous when written, and vacuous in the exact way it was written to prevent.
+        // Level.destroyBlock calls Block.dropResources unconditionally; the correct-tool gate lives in
+        // ServerPlayerGameMode.destroyBlock, which that path never touches. So it passed green against
+        // a block carrying requiresCorrectToolForDrops while sitting in no mineable tag - meaning no
+        // tool in the game was correct, and a player breaking their own furnace got nothing back.
+        //
+        // makeMockServerPlayerInLevel() sets instabuild, which is exempt from the whole gate, so the
+        // survival call is load-bearing rather than tidy.
         RCGameTests.test("slag_furnace_can_be_picked_back_up", 40, helper -> {
             BlockPos pos = new BlockPos(5, 1, 3);
             helper.setBlock(pos, RCBlocks.SLAG_FURNACE.get());
-            // destroyBlock on the LEVEL, not the helper - the helper's passes dropBlock=false.
-            helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            player.gameMode.destroyBlock(helper.absolutePos(pos));
             helper.succeedWhen(
                 () -> helper.assertItemEntityPresent(RCItems.SLAG_FURNACE.get(), pos, 2.0));
         });
@@ -319,6 +329,41 @@ final class SlagFurnaceTests {
             helper.assertTrue(leaks.isEmpty(),
                 "a vitrifiable input also cooks in a furnace type someone else owns a machine for, so "
                     + "the Slag Furnace is not the only route through it: " + leaks);
+            helper.succeed();
+        });
+
+        // OBSIDIAN MUST NEVER ENTER A RECIPE BOOK, and this runs vanilla's own filing path rather
+        // than reading the flag that causes it.
+        //
+        // Every RecipeBookCategory that exists belongs to some VANILLA screen's tab list, so filing
+        // there offers the recipe in a machine that cannot run it. This shipped reusing
+        // BLAST_FURNACE_BLOCKS: a player who pulled obsidian out of a Slag Furnace and then opened a
+        // vanilla blast furnace was shown Obsidian in its book, and clicking it loaded their slag into
+        // a machine where it would sit forever. Visibly contradicting the "nothing else can vitrify"
+        // gate this recipe type exists to enforce.
+        //
+        // Asserted through RecipeBook.add + contains, not through isSpecial(), so it measures the
+        // behaviour rather than restating the implementation - a later change that files the recipe by
+        // some other route still fails here.
+        RCGameTests.test("obsidian_never_enters_a_recipe_book", 20, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            var book = player.getRecipeBook();
+            int checked = 0;
+            for (RecipeHolder<VitrifyingRecipe> holder : helper.getLevel().recipeAccess().recipeMap()
+                    .byType(RCRecipeTypes.VITRIFYING.get())) {
+                checked++;
+                // addRecipes is what awardUsedRecipesAndPopExperience calls when the player takes
+                // the obsidian out, and it returns how many it actually filed. Zero is the whole
+                // assertion.
+                int added = book.addRecipes(List.of(holder), player);
+                helper.assertTrue(added == 0,
+                    holder.id() + " was filed into a recipe book, so a vanilla furnace screen whose "
+                        + "tabs cover its category will offer it - loading the player's slag into a "
+                        + "machine that cannot melt it");
+            }
+            helper.assertTrue(checked > 0,
+                "no vitrifying recipes loaded, so this would pass vacuously");
             helper.succeed();
         });
 

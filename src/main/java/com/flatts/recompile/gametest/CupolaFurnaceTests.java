@@ -11,6 +11,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -324,16 +326,6 @@ final class CupolaFurnaceTests {
             helper.succeed();
         });
 
-        // THE GATE, as an assertion rather than a comment (#91).
-        //
-        // Iron is Cupola-only because both its recipes are minecraft:blasting: a vanilla furnace cannot
-        // run one, and a vanilla blast furnace costs five iron ingots, which is circular. The previous
-        // gate was "no other furnace exists", which was an absence of materials rather than a property of
-        // a machine - and it quietly stopped being true when the Tree Nursery shipped wood, because wood
-        // makes a pickaxe, a pickaxe makes cobbled deepslate, and that crafts a furnace. Nothing failed.
-        //
-        // This walks every smelting recipe in the game and asserts none of them produces iron. Adding one
-        // back as `minecraft:smelting` re-opens the gate, and this is what will say so.
         // JEI must describe the machine the game actually runs, and for this one that means the SLAG.
         // Vanilla's blasting display has a single result slot, so a player reading "Blasting" is told
         // the Cupola makes a gold nugget and nothing else - true, and materially incomplete, because
@@ -388,6 +380,16 @@ final class CupolaFurnaceTests {
             helper.succeed();
         });
 
+        // THE GATE, as an assertion rather than a comment (#91).
+        //
+        // Iron is Cupola-only because both its recipes are minecraft:blasting: a vanilla furnace cannot
+        // run one, and a vanilla blast furnace costs five iron ingots, which is circular. The previous
+        // gate was "no other furnace exists", which was an absence of materials rather than a property of
+        // a machine - and it quietly stopped being true when the Tree Nursery shipped wood, because wood
+        // makes a pickaxe, a pickaxe makes cobbled deepslate, and that crafts a furnace. Nothing failed.
+        //
+        // This walks every smelting recipe in the game and asserts none of them produces iron. Adding one
+        // back as `minecraft:smelting` re-opens the gate, and this is what will say so.
         RCGameTests.test("no_smelting_recipe_turns_a_mod_item_into_iron", 20, helper -> {
             // Scoped to THIS MOD's items as inputs, deliberately. Vanilla ships four smelting recipes
             // that make iron, and all four are unreachable here: three need iron ore or raw iron, which
@@ -512,9 +514,13 @@ final class CupolaFurnaceTests {
         RCGameTests.test("cupola_can_be_picked_back_up", 40, helper -> {
             BlockPos pos = new BlockPos(5, 1, 3);
             helper.setBlock(pos, RCBlocks.CUPOLA_FURNACE.get());
-            BlockPos abs = helper.absolutePos(pos);
-            // destroyBlock on the LEVEL, not the helper - the helper's passes dropBlock=false.
-            helper.getLevel().destroyBlock(abs, true);
+            // A SURVIVAL PLAYER BREAK. This asserted the right thing for the wrong reason for months:
+            // Level.destroyBlock drops unconditionally, so it would have stayed green if anyone added
+            // requiresCorrectToolForDrops to this block - which is precisely what the comment above
+            // warns against, and precisely what then happened to the Slag Furnace.
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            player.gameMode.destroyBlock(helper.absolutePos(pos));
             helper.succeedWhen(() -> helper.assertItemEntityPresent(RCItems.CUPOLA_FURNACE.get(), pos, 2.0));
         });
 

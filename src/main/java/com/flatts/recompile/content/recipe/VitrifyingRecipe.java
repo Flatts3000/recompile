@@ -56,11 +56,30 @@ public class VitrifyingRecipe extends AbstractCookingRecipe {
     }
 
     /**
-     * Which shelf the recipe book files this under.
+     * <b>Never in a recipe book.</b>
      *
-     * <p>Reusing vanilla's BLAST_FURNACE categories rather than minting a pair. A category is a heading
-     * in a list, and inventing two so that a machine with one recipe can have its own is more chrome
-     * than the content justifies - the furnace icon above already says which machine it is.
+     * <p>{@code RecipeBook.add} skips a special recipe, so it is never marked known and never files
+     * into any book at all. That is the point: every {@code RecipeBookCategory} that exists belongs to
+     * a VANILLA screen's tab list, and filing there leaks the recipe into a machine that cannot run it.
+     * This shipped reusing {@code BLAST_FURNACE_BLOCKS}, which meant a player who pulled obsidian out
+     * of a Slag Furnace then opened a vanilla blast furnace was offered Obsidian in its book - clicking
+     * it loaded their slag into a machine where it would sit forever, and it visibly contradicted the
+     * "nothing else can vitrify" gate this whole recipe type exists to enforce.
+     *
+     * <p>Minting our own category is not an escape either: a category is only ever drawn by the screen
+     * whose tab list names it, and this machine's screen has no recipe book. With one recipe in the
+     * type there is nothing for a book to be useful about, so the honest answer is not to be in one.
+     *
+     * <p>It does not affect JEI, which reads the recipe map and not the book.
+     */
+    @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
+    /**
+     * Unused in practice - {@link #isSpecial()} keeps this recipe out of every book - but a
+     * {@code RecipeBookCategory} is not optional on the interface, so it has to name something.
      */
     @Override
     public net.minecraft.world.item.crafting.RecipeBookCategory recipeBookCategory() {

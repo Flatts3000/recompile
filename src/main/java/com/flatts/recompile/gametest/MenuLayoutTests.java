@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
+import com.flatts.recompile.content.menu.SlagFurnaceMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
@@ -89,7 +90,7 @@ final class MenuLayoutTests {
             inv -> new ScrapCraftingStationMenu(0, inv, BlockPos.ZERO)),
         new Screen("cupola_furnace", () -> CupolaFurnaceMenu.LAYOUT,
             inv -> new CupolaFurnaceMenu(0, inv)),
-        new Screen("slag_furnace", () -> com.flatts.recompile.client.SlagFurnaceScreen.LAYOUT,
+        new Screen("slag_furnace", () -> SlagFurnaceMenu.LAYOUT,
             inv -> new com.flatts.recompile.content.menu.SlagFurnaceMenu(0, inv)));
 
     static void register() {

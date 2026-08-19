@@ -2,6 +2,8 @@ package com.flatts.recompile.content.menu;
 
 import com.flatts.recompile.registry.RCMenus;
 import com.flatts.recompile.registry.RCRecipeTypes;
+import com.flatts.recompile.gui.GuiTheme;
+import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.registry.RCTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,9 +17,16 @@ import net.minecraft.world.item.crafting.RecipePropertySet;
  * The Slag Furnace's menu: vanilla's furnace menu, with one method changed.
  *
  * <p><b>It subclasses {@link AbstractFurnaceMenu}, which the Cupola could not.</b> That class throws on
- * a container of any size but three, and the Cupola needed four for its slag - which cost it vanilla's
- * recipe book and JEI's transfer button (#240). This machine has three slots, so it keeps both, and
- * that is worth more than the symmetry of writing another bespoke menu would have been.
+ * a container of any size but three and the Cupola needed four for its slag, so it had to reimplement
+ * the slots, {@code quickMoveStack} and the data sync over a bare {@code AbstractContainerMenu}. This
+ * machine gets all of that for free, which is the entire reason for the subclass.
+ *
+ * <p><b>What it does not get is the recipe book or JEI's transfer button</b>, which this javadoc used
+ * to claim. Both belong to the SCREEN, not the menu: vanilla's furnace screens build their own
+ * recipe-book component and this mod's extends {@code AbstractContainerScreen}, while JEI's furnace
+ * transfer handler recognises vanilla's menu classes rather than subclasses of them. #240's account of
+ * what the Cupola gave up relative to a VANILLA furnace still stands; what was wrong was reading that
+ * as something this machine recovered.
  *
  * <p><b>{@code canSmelt} is overridden onto a tag, and the tag exists because of the client.</b> The
  * inherited version tests a {@link RecipePropertySet}, and vanilla builds those from a fixed set of
@@ -30,6 +39,32 @@ import net.minecraft.world.item.crafting.RecipePropertySet;
  * redundant, and the redundancy is the price of shift-click working.
  */
 public class SlagFurnaceMenu extends AbstractFurnaceMenu {
+
+    /**
+     * Vanilla's furnace geometry, declared here so the geometry sweeps can see it.
+     *
+     * <p><b>On the MENU, not on the screen</b> - the Cupola's lives here too, and this one did not
+     * until review caught it. A layout on a screen class cannot be read by anything server-side:
+     * {@code MenuLayoutTests} runs on a dedicated server, and reaching {@code SlagFurnaceScreen.LAYOUT}
+     * resolves {@code LayoutScreen} to {@code AbstractContainerScreen}, which is
+     * {@code @OnlyIn(Dist.CLIENT)}. It survives a dev run because dev classes are not dist-cleaned, so
+     * the failure was waiting for a production server rather than showing up here.
+     *
+     * <p>The slots are still placed by {@code AbstractFurnaceMenu}'s constructor at exactly these
+     * coordinates rather than from this declaration - the one place this screen departs from the
+     * framework's "the layout is the single source" rule. The alternative was reimplementing the menu
+     * to place its own slots, which is what the Cupola had to do. Better to borrow the menu and let
+     * {@code every_menu_slot_comes_from_its_layout} check the two agree.
+     */
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, GuiTheme.PANEL_H)
+        .panel()
+        .slot("input", 56, 17)
+        .slot("fuel", 56, 53)
+        .region("flame", 56, 36, GuiTheme.FLAME_W, GuiTheme.FLAME_H)
+        .arrow("cook", 79, 34)
+        .slot("result", 116, 35)
+        .playerInventory(84)
+        .build();
 
     /** Client factory: a dummy container and data, filled by the sync. */
     public SlagFurnaceMenu(int containerId, Inventory inventory) {

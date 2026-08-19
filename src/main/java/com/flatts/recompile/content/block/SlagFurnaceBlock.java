@@ -36,10 +36,11 @@ import org.jspecify.annotations.Nullable;
  * machine table needed - the other three change what a material is or how fine it is, and this one
  * changes its state.
  *
- * <p>No ticker wrapper, unlike the Cupola and the Burn Barrel. Neither of those could say what they
- * meant in a recipe - one needed a byproduct vanilla blasting has no slot for, the other an allowlist
- * on a machine whose recipe lookup is private. This machine's whole rule is "run vitrifying recipes",
- * and a {@code RecipeType} says that exactly.
+ * <p><b>Its ticker wrapper does one thing, and only one.</b> Like the Cupola and the Burn Barrel it
+ * wraps {@code createFurnaceTicker} - to drain finished glass into a connected Scrap Network, nothing
+ * more. What it does NOT need is what those two needed the seam for: a byproduct vanilla blasting has
+ * no slot for, and an allowlist on a machine whose recipe lookup is private. This machine's whole
+ * smelting rule is "run vitrifying recipes", and a {@code RecipeType} says that exactly.
  */
 public class SlagFurnaceBlock extends AbstractFurnaceBlock {
 

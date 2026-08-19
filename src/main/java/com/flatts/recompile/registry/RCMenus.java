@@ -42,8 +42,17 @@ public final class RCMenus {
      * The Slag Furnace (#236): vanilla's furnace menu with one method changed.
      *
      * <p>Unlike the Cupola's, this one <b>subclasses</b> {@code AbstractFurnaceMenu} - three slots, so
-     * nothing throws - which is why it keeps the recipe book and JEI's transfer button. It needs its own
-     * MenuType only because a MenuType is what binds a screen to a menu.
+     * {@code checkContainerSize(container, 3)} is satisfied - which hands it the slots,
+     * {@code quickMoveStack}, the progress data sync and the container plumbing for free, all of which
+     * the Cupola had to reimplement over a bare {@code AbstractContainerMenu}. It needs its own MenuType
+     * only because a MenuType is what binds a screen to a menu.
+     *
+     * <p><b>It does NOT inherit the recipe book or JEI's transfer button</b>, and this javadoc claimed
+     * both until review checked. The book widget is built by the SCREEN - vanilla's furnace screens
+     * construct their own recipe-book component - and this mod's screen extends
+     * {@code AbstractContainerScreen}; JEI's furnace transfer handler keys on vanilla's own menu
+     * classes rather than on any subclass. Subclassing saves reimplementing a menu, which is worth it
+     * on its own and is the whole claim.
      */
     public static final DeferredHolder<MenuType<?>, MenuType<SlagFurnaceMenu>> SLAG_FURNACE =
         MENUS.register("slag_furnace", () -> IMenuTypeExtension.create(

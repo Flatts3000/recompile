@@ -478,7 +478,13 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .strength(3.5F)
-            .requiresCorrectToolForDrops()
+            // NO requiresCorrectToolForDrops, for the reason spelled out on the Cupola thirty lines
+            // above - and this block had it anyway, which is how a documented trap gets walked into
+            // twice. `recompile:slag_furnace` is named in no mineable tag, and
+            // Tool.isCorrectForDrops only matches a rule whose block set contains the block, so
+            // "correct tool" resolves to NO tool existing. A player breaking their own furnace in
+            // survival got nothing back, losing a whole Cupola and eight Steel Offcuts, and the block
+            // took roughly ten seconds to break while doing it.
             .sound(SoundType.STONE)
             .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
 

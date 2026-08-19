@@ -4,46 +4,36 @@ import com.flatts.recompile.client.gui.GuiPainter;
 import com.flatts.recompile.client.gui.LayoutScreen;
 import com.flatts.recompile.content.menu.SlagFurnaceMenu;
 import com.flatts.recompile.gui.GuiTheme;
-import com.flatts.recompile.gui.ScreenLayout;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * The Slag Furnace's screen: a furnace, drawn like every other furnace in the game.
+ * The Slag Furnace's screen: vanilla furnace geometry, drawn through this mod's GUI framework.
  *
- * <p><b>Vanilla's exact geometry.</b> Input at (56,17), fuel at (56,53), the flame between them, the
- * arrow at (79,34) and the result at (116,35) - the numbers vanilla itself uses. A player who has ever
- * opened a furnace knows this screen already, and there is nothing here worth teaching them twice.
+ * <p><b>Vanilla's exact coordinates.</b> Input at (56,17), fuel at (56,53), the flame between them,
+ * the arrow at (79,34) and the result at (116,35) - the numbers vanilla itself uses. A player who has
+ * opened a furnace knows this screen already.
  *
- * <p><b>It only exists because a MenuType is what binds a screen to a menu.</b> The menu subclasses
- * {@link net.minecraft.world.inventory.AbstractFurnaceMenu} and changes one method, so this could have
- * been vanilla's {@code FurnaceScreen} if that class were not typed to {@code FurnaceMenu}. That makes
- * it the thinnest of the mod's custom screens by a distance: no gauge vanilla lacks, no picker, no
- * extra slot - just the same furnace with a different menu behind it.
+ * <p><b>It is not a recipe-book screen, and an earlier version of this file claimed it was.</b>
+ * {@link LayoutScreen} extends {@code AbstractContainerScreen}, not {@code AbstractRecipeBookScreen},
+ * so there is no book button and no ghost slots - the book widget comes from the SCREEN, not from the
+ * menu, whatever the menu's {@code RecipeBookType} says. The same correction applies to JEI's furnace
+ * transfer button, which its built-in handler keys to vanilla's own menu classes rather than to any
+ * subclass of {@code AbstractFurnaceMenu}. Neither integration is inherited by subclassing the menu.
+ *
+ * <p>What subclassing {@code AbstractFurnaceMenu} DOES buy is real and is the whole reason for it: the
+ * slots, {@code quickMoveStack}, the fuel/progress data sync and the container plumbing all come for
+ * free, where the Cupola had to reimplement every one of them over a bare {@code AbstractContainerMenu}
+ * because its fourth slot trips {@code checkContainerSize(container, 3)}. That is a smaller claim than
+ * the one this file used to make, and it is the true one.
+ *
+ * <p>The layout lives on {@link SlagFurnaceMenu} rather than here, because a screen class cannot be
+ * loaded server-side and the geometry sweeps run on a dedicated server.
  */
 public class SlagFurnaceScreen extends LayoutScreen<SlagFurnaceMenu> {
 
-    /**
-     * Vanilla's furnace layout, declared so the geometry sweeps can see it.
-     *
-     * <p>The slots are placed by {@code AbstractFurnaceMenu}'s constructor at these coordinates and not
-     * from this declaration, which is the one place this screen departs from the framework's rule that
-     * the layout is the single source. The alternative was reimplementing the menu to place its own
-     * slots, which is what the Cupola had to do and what cost it the recipe book. Better to borrow the
-     * menu and let {@code every_menu_slot_comes_from_its_layout} check the two agree.
-     */
-    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, GuiTheme.PANEL_H)
-        .panel()
-        .slot("input", 56, 17)
-        .slot("fuel", 56, 53)
-        .region("flame", 56, 36, GuiTheme.FLAME_W, GuiTheme.FLAME_H)
-        .arrow("cook", 79, 34)
-        .slot("result", 116, 35)
-        .playerInventory(84)
-        .build();
-
     public SlagFurnaceScreen(SlagFurnaceMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, LAYOUT);
+        super(menu, inventory, title, SlagFurnaceMenu.LAYOUT);
     }
 
     @Override

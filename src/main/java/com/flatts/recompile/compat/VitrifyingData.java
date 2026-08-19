@@ -80,8 +80,25 @@ public final class VitrifyingData {
         return cached;
     }
 
-    /** Every item an ingredient accepts. A tag expands to its members rather than being dropped. */
+    /**
+     * Every item an ingredient accepts.
+     *
+     * <p>Three forms, because 26.1's {@code Ingredient} has three and dropping any of them loses the
+     * whole recipe rather than part of it: a {@code "#tag"} string expands to its members, a bare id or
+     * an {@code item} object is one stack, and a JSON ARRAY is the union of its entries. The array form
+     * was missed at first, and it fails in the worst available way - {@code all()} sees an empty input
+     * list and skips the recipe entirely, so a pack extending this public schema gets a recipe that
+     * works in-world and does not exist in JEI, with nothing logged. The bundled recipes use none of
+     * it, which is exactly why a test would not have caught it either.
+     */
     private static List<ItemStack> stacks(JsonElement element) {
+        if (element != null && element.isJsonArray()) {
+            List<ItemStack> out = new ArrayList<>();
+            for (JsonElement inner : element.getAsJsonArray()) {
+                out.addAll(stacks(inner));
+            }
+            return List.copyOf(out);
+        }
         if (element != null && element.isJsonPrimitive()
                 && element.getAsString().startsWith("#")) {
             Identifier parsed = Identifier.tryParse(element.getAsString().substring(1));
