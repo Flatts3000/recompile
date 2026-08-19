@@ -532,12 +532,23 @@ public class RecompileJeiPlugin implements IModPlugin {
         // directions at once - advertising a cupola that cooks beef and makes glass, and hiding the iron
         // recipes that are the only reason to build one. Exactly the bug the Burn Barrel had before it
         // got its own category.
-        // ONE call listing both types, not two calls. Registering the same stack twice makes JEI
-        // build the catalyst's tooltip once per registration, so the mod-name line renders twice -
-        // "Cupola Furnace / Recompile / Recompile". The varargs form is the documented shape and the
-        // only item in this plugin that catalyses two categories is the one that found it.
-        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()),
-            RecipeTypes.BLASTING, CUPOLA);
+        // ITS OWN CATEGORY ONLY, deliberately not vanilla Blasting as well (owner, 2026-08-19).
+        //
+        // The machine does run minecraft:blasting - that IS the iron gate and has not changed - so
+        // listing it under Blasting was defensible and was what shipped first. It was still wrong in
+        // practice: every one of the mod's four blasting recipes then appeared twice, once as
+        // "scrap -> copper nugget" and once as "scrap -> copper nugget + slag", with the Cupola named
+        // in both. The second entry is a superset of the first, so the pair is noise rather than
+        // information.
+        //
+        // Nothing is hidden by dropping it. The Cupola category carries every recipe the Cupola runs,
+        // plus the byproduct Blasting has no slot for, so a player looking up Scrap Metal still learns
+        // both machines melt it - from two entries that now say different things.
+        //
+        // What it does cost: a blasting recipe this mod does not ship (vanilla's ore recipes, or one a
+        // pack adds) shows the Blast Furnace and not the Cupola, even though the Cupola would run it -
+        // it accepts every blasting recipe unfiltered. Academic here, because the world has no ore.
+        registration.addRecipeCatalyst(new ItemStack(RCItems.CUPOLA_FURNACE.get()), CUPOLA);
         registration.addRecipeCatalyst(new ItemStack(RCItems.HYDROPONICS_BAY.get()), GROWING);
         // The station, not the sheet: what a player needs to know is WHERE these can be made, and the
         // answer is the mod's own table and nowhere else.

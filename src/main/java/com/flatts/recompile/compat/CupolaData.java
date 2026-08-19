@@ -32,6 +32,10 @@ import net.minecraft.world.item.Items;
  * one result because vanilla cooking recipes have one result, and a machine with a byproduct is
  * outside what those screens and categories were built to show.
  *
+ * <p><b>And the Cupola is not a catalyst on vanilla Blasting any more</b>, so these rows are the only
+ * place it appears. Listing it in both showed each recipe twice with the Cupola named in both, where
+ * the second entry was a superset of the first - noise rather than a second fact.
+ *
  * <p><b>The slag is COUNTED, not rolled</b>, so it must never be drawn as a percentage. One per N
  * smelts exactly, N from config - not an N-to-one chance per smelt, which would be a different
  * machine that sometimes gives you nothing for sixteen smelts running. The category says "1 every N"

@@ -21,11 +21,12 @@ import net.minecraft.world.item.ItemStack;
  * running, which is not this one. The note under the slag says "1 every N smelts" instead, with N read
  * from config so a retuned pack is not contradicted by its own viewer.
  *
- * <p><b>The recipes also appear under vanilla Blasting</b>, and deliberately so: the Cupola really does
- * run {@code minecraft:blasting}, that IS the iron gate, and a vanilla Blast Furnace built after the
- * first iron will run the same four. Hiding the Cupola from that category to avoid the duplication
- * would trade a redundancy for a falsehood. What this category adds is the half vanilla's display has
- * no slot for.
+ * <p><b>The recipes still appear under vanilla Blasting, but the Cupola is no longer listed there</b>
+ * (owner, 2026-08-19). It shipped in both for a day and the duplication was the problem: each recipe
+ * showed twice, once as "scrap to copper nugget" and once as "scrap to copper nugget and slag", with
+ * the Cupola named in both. The second is a superset of the first, so the pair carried no extra
+ * information. Nothing is hidden by the removal, because this category holds every recipe the machine
+ * runs - a player looking up Scrap Metal still sees both machines, from two entries that now differ.
  */
 public class CupolaCategory implements IRecipeCategory<CupolaData.Entry> {
 
