@@ -467,6 +467,10 @@ public final class RCItems {
 
     public static final DeferredItem<BlockItem> BURN_BARREL =
         ITEMS.registerSimpleBlockItem("burn_barrel", RCBlocks.BURN_BARREL);
+
+    /** The Slag Furnace (#236): the only machine that vitrifies, and so the only route to obsidian. */
+    public static final DeferredItem<BlockItem> SLAG_FURNACE =
+        ITEMS.registerSimpleBlockItem("slag_furnace", RCBlocks.SLAG_FURNACE);
     /**
      * The Roach's spawn egg (#78). Not a convenience - an entity with no egg cannot be placed by hand in
      * creative, which is the loop this whole feature gets tuned through.

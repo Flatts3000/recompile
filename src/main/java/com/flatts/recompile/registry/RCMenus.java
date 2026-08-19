@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
+import com.flatts.recompile.content.menu.SlagFurnaceMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
 import net.minecraft.core.registries.Registries;
@@ -36,6 +37,17 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerGeneratorMenu>> BURNER_GENERATOR =
         MENUS.register("burner_generator", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new BurnerGeneratorMenu(id, inventory)));
+
+    /**
+     * The Slag Furnace (#236): vanilla's furnace menu with one method changed.
+     *
+     * <p>Unlike the Cupola's, this one <b>subclasses</b> {@code AbstractFurnaceMenu} - three slots, so
+     * nothing throws - which is why it keeps the recipe book and JEI's transfer button. It needs its own
+     * MenuType only because a MenuType is what binds a screen to a menu.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<SlagFurnaceMenu>> SLAG_FURNACE =
+        MENUS.register("slag_furnace", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new SlagFurnaceMenu(id, inventory)));
 
     /**
      * The Cupola Furnace (#236): vanilla's furnace plus a slag slot.

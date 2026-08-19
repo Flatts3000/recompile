@@ -1,0 +1,6 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "id": "recipe",
+  "sort_number": 1,
+  "recipe_id_1": "recompile:slag_furnace"
+}

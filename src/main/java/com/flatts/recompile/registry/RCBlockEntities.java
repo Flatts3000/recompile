@@ -12,6 +12,7 @@ import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
+import com.flatts.recompile.content.block.entity.SlagFurnaceBlockEntity;
 import com.flatts.recompile.content.block.entity.WaterTankBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
@@ -88,6 +89,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "rain_collector",
             () -> new BlockEntityType<>(RainCollectorBlockEntity::new, RCBlocks.RAIN_COLLECTOR.get()));
+
+    /** The Slag Furnace's three slots (#236). Vanilla's furnace shape, running a modded recipe type. */
+    public static final Supplier<BlockEntityType<SlagFurnaceBlockEntity>> SLAG_FURNACE =
+        BLOCK_ENTITIES.register(
+            "slag_furnace",
+            () -> new BlockEntityType<>(SlagFurnaceBlockEntity::new, RCBlocks.SLAG_FURNACE.get()));
 
     /**
      * The Water Tank's contents (#229). The one shared component that is not inert - see
@@ -262,6 +269,15 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             CUPOLA_FURNACE.get(),
+            (be, side) -> new WorldlyContainerWrapper(be, side));
+        // The SLAG FURNACE on the Cupola's terms, and for a reason beyond consistency: it is the far
+        // end of a chain the player has already automated. The Cupola rakes slag into a slot and
+        // something has to carry it here, so a machine that no pipe could reach would break the chain
+        // at its last link. every_container_block_declares_its_automation caught the omission on the
+        // first run, which is what that test is for.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            SLAG_FURNACE.get(),
             (be, side) -> new WorldlyContainerWrapper(be, side));
         // The Scrap Barrel is bulk overflow storage - the thing the network dumps into - so it is the
         // one member that should be freely automatable. It is a plain Container (chest-shaped), not a

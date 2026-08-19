@@ -62,6 +62,12 @@ final class ScrapNetworkTests {
             roles.put(RCBlocks.RECOMPILE_WORKBENCH.get(), "SOURCE");
             roles.put(RCBlocks.BURN_BARREL.get(), "SOURCE");
             roles.put(RCBlocks.CUPOLA_FURNACE.get(), "SOURCE");
+            // The Slag Furnace is a SOURCE for the same reason as the Cupola, and it shipped with
+            // exactly the Cupola's old bug: it called insertFromMember from its ticker while not
+            // being in the tag, and ScrapNetwork.collect returns an EMPTY member list when the block
+            // it floods FROM is not a member - so it routed nothing at all, silently, with no error
+            // anywhere. Caught by writing the test, not by reading the code.
+            roles.put(RCBlocks.SLAG_FURNACE.get(), "SOURCE");
             roles.put(RCBlocks.SCRAP_CRAFTING_TABLE.get(), "READER");
             roles.put(RCBlocks.FILING_CABINET.get(), "READER");
             // The Separator pushes what it separates straight into the cluster. It sorted garbage
@@ -147,12 +153,22 @@ final class ScrapNetworkTests {
             helper.assertTrue(cupola.getItem(2).isEmpty(),
                 "and so must the Cupola - it went weeks in the tag without doing this");
 
+            BlockPos slagPos = new BlockPos(3, 1, 0);
+            helper.setBlock(slagPos, RCBlocks.SLAG_FURNACE.get());
+            var slag = (com.flatts.recompile.content.block.entity.SlagFurnaceBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(slagPos));
+            slag.setItem(2, new ItemStack(Items.OBSIDIAN, 2));
+            slag.drainOutput(helper.getLevel());
+            helper.assertTrue(slag.getItem(2).isEmpty(),
+                "and so must the Slag Furnace - it shipped drainOutput without joining the tag, which "
+                    + "makes the drain a no-op rather than an error");
+
             int stored = 0;
             for (int slot = 0; slot < barrel.getContainerSize(); slot++) {
                 stored += barrel.getItem(slot).getCount();
             }
-            helper.assertTrue(stored == 4,
-                "everything both sources pushed must be in the barrel; found " + stored);
+            helper.assertTrue(stored == 6,
+                "everything all three sources pushed must be in the barrel; found " + stored);
             helper.succeed();
         });
 

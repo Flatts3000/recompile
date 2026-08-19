@@ -11,6 +11,7 @@ import com.flatts.recompile.content.block.TrommelPartBlock;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
+import com.flatts.recompile.content.block.SlagFurnaceBlock;
 import com.flatts.recompile.content.block.BurnerGeneratorBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
@@ -466,6 +467,20 @@ public final class RCBlocks {
             .strength(2.0F)
             .sound(SoundType.METAL)
             .lightLevel(state -> state.getValue(BurnerGeneratorBlock.LIT) ? 13 : 0));
+
+    /**
+     * The Slag Furnace (#236): the only thing in the game that can vitrify, and therefore the only
+     * route to obsidian. Lit level 13 like every other furnace - it is melting rock.
+     */
+    public static final DeferredBlock<SlagFurnaceBlock> SLAG_FURNACE = BLOCKS.registerBlock(
+        "slag_furnace",
+        SlagFurnaceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE)
+            .strength(3.5F)
+            .requiresCorrectToolForDrops()
+            .sound(SoundType.STONE)
+            .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
 
     public static final DeferredBlock<BurnBarrelBlock> BURN_BARREL = BLOCKS.registerBlock(
         "burn_barrel",

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "recompile:block/slag_furnace_top",
+    "front": "recompile:block/slag_furnace_front_on",
+    "side": "recompile:block/slag_furnace_side"
+  }
+}

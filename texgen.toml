@@ -341,21 +341,109 @@ leg = "a full-bleed Minecraft block face: a single square steel workbench leg, w
 
 # The Burn Barrel side: the Scrap Barrel's metal drum, retinted rusty so the body matches the
 # rusty top (retint sources the mod's own promoted scrap_barrel_side, not a vanilla texture).
-# The Cupola Furnace (#50): a retint of the vanilla blast furnace, not AI. A cupola IS recognisably a
-# stack furnace with a hot mouth, so vanilla's shape is already right and only the palette is wrong -
-# retint keeps the silhouette, the brick courses and the glowing front, and shifts them to weathered
-# sooty firebrick. Deterministic and offline: no API call, and it cannot drift between the four faces.
-[surface.cupola_furnace]
-kind = "block_multiface"
-backend = "retint"
+# ---------------------------------------------------------------------------
+# THE TWO SMELTERS (#50, #236). Generated rather than retinted, owner call 2026-08-19.
+#
+# Both were retints of vanilla furnaces, and the argument for that is still on record and still half
+# right: a furnace's silhouette is already correct, and four faces generated independently drift into
+# four different machines. The second half is what changed - a retinted blast furnace IS a blast
+# furnace, and two machines that matter this much to the yard should not be recoloured vanilla.
+#
+# The drift problem is handled the way the Trommel and Pulverizer handle it: every face match_hue's
+# against the SIDE, so the side is the machine and the others are told what metal they belong to.
+# Generating a top on its own has no idea what it is the top OF, which is how the Trommel's cap came
+# back rust-orange four candidates out of five.
+#
+# The two must not be confusable at a glance in a yard where they stand together:
+#   Cupola      - a tall coke-fired shaft that remelts scrap. WARM: sooty firebrick, rust, a round
+#                 charging mouth, a tap hole low down.
+#   Slag Furnace - a sealed vitrifier that melts what the Cupola rakes off. COLD: blue-grey slate and
+#                 dull glass, a slag runner rather than a tap, no brick anywhere.
+# ---------------------------------------------------------------------------
+
+[surface.cupola_furnace_side]
+kind = "block"
+backend = "ai"
 size = 16
-faces = ["top", "front", "front_on", "side"]
-tint = "#a08d78"
-[surface.cupola_furnace.source]
-top = "block/blast_furnace_top"
-front = "block/blast_furnace_front"
-front_on = "block/blast_furnace_front_on"
-side = "block/blast_furnace_side"
+prompt = "a full-bleed Minecraft block face: the side wall of a squat coke-fired cupola furnace, warm orange-red firebrick laid in rough courses with visible mortar lines, two dark iron banding straps running horizontally with rivets, soot staining upward from the base, clearly terracotta-coloured brick rather than grey stone, warm and grimy, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/bricks"
+
+[surface.cupola_furnace_top]
+kind = "block"
+backend = "ai"
+size = 16
+match_hue = "cupola_furnace_side"
+prompt = "a full-bleed Minecraft block face: the charging mouth of a cupola furnace seen from directly above, a wide dark round opening in the centre ringed by an iron collar, sooty firebrick around the outside, ash and scale dusting the rim, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/bricks"
+
+[surface.cupola_furnace_front]
+kind = "block"
+backend = "ai"
+size = 16
+match_hue = "cupola_furnace_side"
+prompt = "a full-bleed Minecraft block face: the front of a cold cupola furnace, sooty firebrick with a heavy iron tap door low down closed and dark, a rectangular iron frame around it, soot streaks fanning up the brick above, nothing glowing, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/bricks"
+
+# NO match_hue, and that is the whole point of this face. match_hue re-casts a surface onto its
+# sibling's colour while keeping its own luminance - which for a lit face repaints the fire in the
+# body's hue. Measured on the first attempt: the lit Cupola front came back DARKER than the cold one
+# (luma 41 against 51) and the white-hot pour came back at hue 198, the same cold blue as the wall.
+# the tap door is the one part of this machine that is not made of the machine.
+[surface.cupola_furnace_front_on]
+kind = "block"
+backend = "ai"
+size = 16
+# The lit door is the COLD DOOR PLUS FIRE, composited - not a second face generated beside it
+# (owner, 2026-08-19).
+#
+# Generated on its own it came back as different brick, and `reference` did not fix that: handed the
+# cold face as a starting point, the model still repainted the body 10 to 21 luma darker with its own
+# courses. Two states of one machine that disagree about their own material read as two blocks. So
+# `glow_from` keeps every non-fire pixel of the cold tile by construction, and promote fails the build
+# if the composite's re-quantize moves them.
+#
+# `match_hue` is deliberately absent and must stay absent: it locks a face to the body's palette, which
+# is right for a top or a cold front and exactly backwards for fire. Pointed at the side it dragged this
+# door to a desaturated salmon (hue 11, sat 49%), which is what sent this surface back to pending.
+glow_from = "cupola_furnace_front"
+reference = "cupola_furnace_front"
+prompt = "keep this brick face exactly as it is - same colour, same courses, same soot, same iron strap - and change only one thing: the tap door low down is now open and burning, a fierce orange and yellow fire in the opening throwing a warm glow onto the brick immediately around it and fading out within a few pixels. Everything outside that glow is untouched. muted except the fire, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/bricks"
+
+[surface.slag_furnace_side]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the side wall of a sealed industrial vitrifying furnace, cold steel-blue riveted plate with a dull glassy sheen, clearly blue-toned rather than neutral grey, a heavy vertical seam weld down one side and a row of rivets, pale grey slag dust settled along the bottom edge, no brick and no warm tones anywhere, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/deepslate_tiles"
+
+[surface.slag_furnace_top]
+kind = "block"
+backend = "ai"
+size = 16
+match_hue = "slag_furnace_side"
+prompt = "a full-bleed Minecraft block face: the top of a sealed vitrifying furnace seen from directly above, cold blue-grey steel plate with a small square bolted charging hatch in the centre, rivets around the edge, pale grey dust drifted into the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/deepslate_tiles"
+
+[surface.slag_furnace_front]
+kind = "block"
+backend = "ai"
+size = 16
+match_hue = "slag_furnace_side"
+prompt = "a full-bleed Minecraft block face: the front of a cold vitrifying furnace, blue-grey riveted steel with a dark slot-shaped slag runner across the lower third, a thick glassy black crust hardened in the runner and spilling slightly over the lip, a small dark inspection port above it, nothing glowing, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/deepslate_tiles"
+
+# NO match_hue, and that is the whole point of this face. match_hue re-casts a surface onto its
+# sibling's colour while keeping its own luminance - which for a lit face repaints the fire in the
+# body's hue. Measured on the first attempt: the lit Cupola front came back DARKER than the cold one
+# (luma 41 against 51) and the white-hot pour came back at hue 198, the same cold blue as the wall.
+# the pour is the one part of this machine that is not made of the machine.
+[surface.slag_furnace_front_on]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the front of a running vitrifying furnace, blue-grey riveted steel with a slot-shaped slag runner across the lower third pouring molten white-hot glass, the pour blazing brilliant white and yellow at its hottest and fading through orange as it cools over the lip, the molten stream by far the brightest and most saturated thing in the tile, a small inspection port above it lit from within, the surrounding plate still cold steel-blue, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/deepslate_tiles"
 
 # The Roach's skin (#78). RETINT, not AI, and that is not a shortcut - an entity texture is a 64x32 UV
 # ATLAS where every pixel's position is meaningful, because the model samples specific regions for the

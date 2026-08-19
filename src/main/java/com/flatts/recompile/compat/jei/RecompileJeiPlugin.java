@@ -111,6 +111,15 @@ public class RecompileJeiPlugin implements IModPlugin {
         RecipeType.create(Recompile.MOD_ID, "pulverizing", SalvageRecipe.class);
 
     /**
+     * The vitrifier (#236). Deterministic like the other two, and the only route to obsidian in the
+     * game - which is precisely why it cannot be left out. JEI shows vanilla-typed recipes for free
+     * and a modded RecipeType is not one however closely it copies the shape, so without a category
+     * the machine is invisible: a player holding slag is told nothing melts it.
+     */
+    static final RecipeType<SalvageRecipe> VITRIFYING =
+        RecipeType.create(Recompile.MOD_ID, "vitrifying", SalvageRecipe.class);
+
+    /**
      * Hydrating a Dry Clay Body in a water cauldron - the last step of the clay chain (#115).
      *
      * <p><b>This exists because the step is not a recipe.</b> It is a {@code CauldronInteraction}
@@ -169,6 +178,10 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageCategory(PULVERIZING, Component.translatable("jei.recompile.pulverizing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
                 com.flatts.recompile.compat.PulverizingData.all().stream()
+                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new SalvageCategory(VITRIFYING, Component.translatable("jei.recompile.vitrifying"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SLAG_FURNACE.get())), false,
+                com.flatts.recompile.compat.VitrifyingData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
@@ -372,6 +385,18 @@ public class RecompileJeiPlugin implements IModPlugin {
             registration.addRecipes(PULVERIZING, pulverizing);
         }
 
+        // Vitrifying, same shape again. This one matters most of the three: it is the ONLY route to
+        // obsidian, so a player who cannot see it here has no way to learn the chain exists short of
+        // reading the guidebook cover to cover.
+        List<SalvageRecipe> vitrifying = new ArrayList<>();
+        for (com.flatts.recompile.compat.VitrifyingData.Entry entry
+                : com.flatts.recompile.compat.VitrifyingData.all()) {
+            vitrifying.add(new SalvageRecipe(entry.inputs(), entry.outputs()));
+        }
+        if (!vitrifying.isEmpty()) {
+            registration.addRecipes(VITRIFYING, vitrifying);
+        }
+
         // Machines only, not their parts. A crafted core says nothing about the tower it needs, and
         // JEI is where a player goes looking. The parts already have recipes here, and the appliance
         // already has a teardown entry, so a panel on those would only restate what JEI shows.
@@ -478,6 +503,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get()), TEARDOWN);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SEPARATOR.get()), SEPARATING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PULVERIZER.get()), PULVERIZING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SLAG_FURNACE.get()), VITRIFYING);
         // The Burn Barrel is NOT a general smelting station - it burns refuse only, so it is the catalyst
         // for its own category, which lists exactly what it takes.
         registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), BURNING);

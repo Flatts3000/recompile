@@ -88,7 +88,9 @@ final class MenuLayoutTests {
         new Screen("scrap_crafting_station", () -> ScrapCraftingStationMenu.LAYOUT,
             inv -> new ScrapCraftingStationMenu(0, inv, BlockPos.ZERO)),
         new Screen("cupola_furnace", () -> CupolaFurnaceMenu.LAYOUT,
-            inv -> new CupolaFurnaceMenu(0, inv)));
+            inv -> new CupolaFurnaceMenu(0, inv)),
+        new Screen("slag_furnace", () -> com.flatts.recompile.client.SlagFurnaceScreen.LAYOUT,
+            inv -> new com.flatts.recompile.content.menu.SlagFurnaceMenu(0, inv)));
 
     static void register() {
         // THE LIST ABOVE MUST COVER THE REGISTRY, or every sweep in this file is measuring a subset and

@@ -23,6 +23,7 @@ public final class RCMenuScreens {
         event.register(RCMenus.SCRAP_CRAFTING_STATION.get(), ScrapCraftingStationScreen::new);
         event.register(RCMenus.BURNER_GENERATOR.get(), BurnerGeneratorScreen::new);
         event.register(RCMenus.CUPOLA_FURNACE.get(), CupolaFurnaceScreen::new);
+        event.register(RCMenus.SLAG_FURNACE.get(), SlagFurnaceScreen::new);
         event.register(RCMenus.HYDROPONICS_BAY.get(), HydroponicsBayScreen::new);
         event.register(RCMenus.TREE_NURSERY.get(), TreeNurseryScreen::new);
     }
