@@ -7,6 +7,7 @@ import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
 import com.flatts.recompile.content.recipe.PulverizingRecipe;
 import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
+import com.flatts.recompile.content.recipe.VitrifyingRecipe;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
@@ -337,6 +338,43 @@ final class SlagFurnaceTests {
             }
             helper.assertTrue(!makes.isEmpty(),
                 "nothing makes a Slag Furnace, so the obsidian chain is a dead end");
+            helper.succeed();
+        });
+
+        // The viewers must describe the machine the game actually runs, and this one has more riding
+        // on it than the others: vitrifying is the ONLY route to obsidian, so a category that reads
+        // nothing hides the entire chain behind knowing it exists. VitrifyingData parses the bundled
+        // JSON rather than the recipe manager (recipes are not client-synced in 26.1), which means it
+        // can quietly disagree with the game - and it would fail SILENTLY, since an empty category
+        // registers without error. Same failure TeardownData shipped once: it named its recipes in a
+        // constant, a third recipe shipped, and every viewer denied it existed.
+        RCGameTests.test("jei_sees_every_vitrifying_recipe", 20, helper -> {
+            var rows = com.flatts.recompile.compat.VitrifyingData.all();
+            int inGame = 0;
+            for (RecipeHolder<VitrifyingRecipe> holder : helper.getLevel().recipeAccess().recipeMap()
+                    .byType(RCRecipeTypes.VITRIFYING.get())) {
+                inGame++;
+                boolean matched = false;
+                for (var row : rows) {
+                    if (holder.value().matches(new SingleRecipeInput(row.input()),
+                            helper.getLevel())) {
+                        matched = true;
+                    }
+                }
+                helper.assertTrue(matched, "JEI does not show " + holder.id());
+            }
+            helper.assertTrue(inGame > 0 && rows.size() == inGame,
+                "the game runs " + inGame + " vitrifying recipes and JEI reads " + rows.size());
+
+            // And the OUTPUT, because reading the input right proves only half of it. The result is
+            // an ItemStackTemplate and spells its field `id` where an ingredient is a bare string or
+            // an `item` object - two shapes in one file, and a parser that handles only the second
+            // yields a row with an empty output that draws as a blank box.
+            for (var row : rows) {
+                helper.assertTrue(!row.outputs().isEmpty() && !row.outputs().get(0).stack().isEmpty(),
+                    "a vitrifying row parsed its input but not its result, so JEI would draw an "
+                        + "empty output box for " + row.input());
+            }
             helper.succeed();
         });
 

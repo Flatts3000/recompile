@@ -104,9 +104,12 @@ public final class VitrifyingData {
     /**
      * An item id as a stack.
      *
-     * <p>Reads {@code id} as well as {@code item}: vanilla's cooking result is an
-     * {@code ItemStackTemplate}, which spells the field {@code id}, while an ingredient is written as
-     * a bare string or an {@code item} object. Both shapes appear in one recipe file.
+     * <p><b>The result and the ingredient spell their field differently</b> - vanilla's cooking result
+     * is an {@code ItemStackTemplate} and says {@code id}, an ingredient is a bare string or an
+     * {@code item} object - but that is resolved by the CALLER, which unwraps {@code result.id} before
+     * calling in. The {@code id} branch here is only for an ingredient written the long way; a bad
+     * field name upstream of it yields a row with an empty output box, which
+     * {@code jei_sees_every_vitrifying_recipe} is what catches.
      */
     private static ItemStack stack(JsonElement element, int count) {
         if (element == null) {
