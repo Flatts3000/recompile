@@ -345,13 +345,6 @@ public final class RCConfig {
             .comment("The nursery's internal water tank capacity, mB. 4000 = four buckets.")
             .defineInRange("treeNurseryTankCapacity", 4000, 1000, 1000000);
 
-        CUPOLA_SMELTS_PER_SLAG = builder
-            .comment("Smelts the Cupola completes per Slag it rakes off. 0 disables slag entirely.",
-                "8 is roughly the real ratio: an electric arc furnace makes 100-150kg of slag per",
-                "tonne of steel. Counted rather than rolled, so it is a steady trickle you can plan",
-                "around instead of a run of luck.")
-            .defineInRange("cupolaSmeltsPerSlag", 8, 0, 1000);
-
         ANIMAL_BAIT_ENABLED = builder
             .comment("Whether animal bait can draw wildlife back to healed grass (reclamation rung 5).")
             .define("animalBaitEnabled", true);
@@ -366,6 +359,18 @@ public final class RCConfig {
         ANIMAL_BAIT_SPACING = builder
             .comment("Minimum distance between working baits, in blocks - they do not stack up a spot.")
             .defineInRange("animalBaitSpacing", 8, 1, 64);
+        builder.pop();
+
+        // The demolition-yard machines. Their own section rather than a corner of [reclamation] -
+        // the Cupola is an iron-tier machine and a server owner tuning it would look anywhere else.
+        builder.push("machines");
+        CUPOLA_SMELTS_PER_SLAG = builder
+            .comment("Smelts the Cupola completes per Slag it rakes off. 0 disables slag entirely.",
+                "8 is roughly the real ratio: an electric arc furnace makes 100-150kg of slag per",
+                "tonne of steel. Counted rather than rolled, so it is a steady trickle you can plan",
+                "around instead of a run of luck.")
+            .defineInRange("cupolaSmeltsPerSlag", 8, 0, 1000);
+
         builder.pop();
 
         builder.push("storage");

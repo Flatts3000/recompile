@@ -1169,9 +1169,6 @@ reference = "steel_beam_web"
 match_hue = "steel_beam_web"
 prompt = "keep this exact steel plate, its palette and its base colour unchanged, and add a regular evenly spaced grid of round rivet heads on top of it, each rivet catching a highlight with a little rust bleeding beneath it. Change nothing else about the plate. It must still tile seamlessly"
 
-# The offcut is cut FROM the beam, so it must be the same steel. match_hue re-casts the generated icon
-# onto the web's colour at promote time, which is cheaper and more reliable than hoping two separate
-# generations land on the same grey - they did not, last time we tried.
 # Slag (#236): the Cupola's byproduct. It has to read as a lump of cooled furnace waste and NOT as
 # a rock, an ore or a piece of metal - the three things a grey lump at 16px turns into by default.
 # What makes real slag legible is that it is GLASSY and full of holes: vitrified silicate froth,
@@ -1184,6 +1181,9 @@ size = 16
 match_hue = "steel_offcut"
 prompt = "a single lump of cooled furnace slag, one chunky irregular clinker of dark blue-grey vitrified waste, pitted all over with small round gas holes like frozen froth, a dull glassy sheen on the broken faces, one or two faint rusty streaks, the lump large in frame and filling most of the icon, very few details, chunky readable shapes, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# The offcut is cut FROM the beam, so it must be the same steel. match_hue re-casts the generated icon
+# onto the web's colour at promote time, which is cheaper and more reliable than hoping two separate
+# generations land on the same grey - they did not, last time we tried.
 [surface.steel_offcut]
 kind = "item"
 backend = "ai"

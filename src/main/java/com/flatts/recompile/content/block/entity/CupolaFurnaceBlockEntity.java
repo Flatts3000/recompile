@@ -140,8 +140,11 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
      * screen has three, and minting a bespoke screen for a waste product is the wrong trade.
      */
     public void rakeSlag(net.minecraft.server.level.ServerLevel level, int smelted) {
+        if (smelted <= 0) {
+            return;   // the ticker calls this every tick; do not read config to learn nothing happened
+        }
         int per = com.flatts.recompile.RCConfig.CUPOLA_SMELTS_PER_SLAG.get();
-        if (per <= 0 || smelted <= 0) {
+        if (per <= 0) {
             return;
         }
         smeltsSinceSlag += smelted;
@@ -149,13 +152,25 @@ public class CupolaFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         if (made <= 0) {
             return;
         }
+        // CAPPED AT A STACK, because the divisor can change under a running world. The count carries a
+        // remainder of up to per - 1, so a server owner who lowers cupolaSmeltsPerSlag from 1000 to 1
+        // would otherwise mint a single ItemStack of 999 on the next smelt and hand it to the network.
+        // What does not fit stays on the counter and comes off next time.
+        ItemStack slag = new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get(), 1);
+        made = Math.min(made, slag.getMaxStackSize());
+        slag.setCount(made);
         smeltsSinceSlag -= made * per;
         setChanged();
-        ItemStack slag = new ItemStack(com.flatts.recompile.registry.RCItems.SLAG.get(), made);
         com.flatts.recompile.content.block.ScrapNetwork.insertFromMember(
             level, worldPosition, slag, false);
         if (!slag.isEmpty()) {
-            net.minecraft.world.level.block.Block.popResource(level, worldPosition.above(), slag);
+            // THE MACHINE'S OWN BLOCK, not the one above it. A furnace takes its input from the UP face
+            // (getSlotsForFace(UP) is {0}), so pos.above() is exactly where a feeding hopper sits -
+            // popping there drops every lump into the feed line of the automation this machine's own
+            // javadoc sells as its reward. Popping into its own space is what vanilla does when a
+            // container breaks: the items push out sideways, and a hopper UNDER the furnace picks them
+            // up along with the iron, which is the outlet a player already built.
+            net.minecraft.world.level.block.Block.popResource(level, worldPosition, slag);
         }
     }
 

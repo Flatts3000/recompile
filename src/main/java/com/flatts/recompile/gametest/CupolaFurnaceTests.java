@@ -34,25 +34,33 @@ final class CupolaFurnaceTests {
     private CupolaFurnaceTests() {
     }
 
-    /** Loose slag items around the plot - where a rake with nothing wired up puts them. */
+    /**
+     * Loose slag in THIS test's plot.
+     *
+     * <p>{@code getBounds()} and an item filter, both of which matter. Tests are registered with
+     * padding 1, so batched 5x5x5 plots sit about six blocks apart - an eight-block bubble around the
+     * plot origin reaches well into the neighbours. The read-only version of that is merely wrong; the
+     * clearing version below was deleting other tests' dropped loot mid-assertion, which is an
+     * order-dependent CI flake that passes on every run where the scheduler happens to be kind.
+     */
     private static int slagNear(net.minecraft.gametest.framework.GameTestHelper helper) {
         int total = 0;
-        for (var entity : helper.getLevel().getEntitiesOfClass(
-                net.minecraft.world.entity.item.ItemEntity.class,
-                new net.minecraft.world.phys.AABB(helper.absolutePos(new BlockPos(0, 0, 0)))
-                    .inflate(8.0))) {
-            if (entity.getItem().is(RCItems.SLAG.get())) {
-                total += entity.getItem().getCount();
-            }
+        for (var entity : slagIn(helper)) {
+            total += entity.getItem().getCount();
         }
         return total;
     }
 
+    private static java.util.List<net.minecraft.world.entity.item.ItemEntity> slagIn(
+            net.minecraft.gametest.framework.GameTestHelper helper) {
+        return helper.getLevel().getEntitiesOfClass(
+            net.minecraft.world.entity.item.ItemEntity.class,
+            helper.getBounds(),
+            entity -> entity.getItem().is(RCItems.SLAG.get()));
+    }
+
     private static void clearSlag(net.minecraft.gametest.framework.GameTestHelper helper) {
-        helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
-                new net.minecraft.world.phys.AABB(helper.absolutePos(new BlockPos(0, 0, 0)))
-                    .inflate(8.0))
-            .forEach(net.minecraft.world.entity.Entity::discard);
+        slagIn(helper).forEach(net.minecraft.world.entity.Entity::discard);
     }
 
     private static CupolaFurnaceBlockEntity place(net.minecraft.gametest.framework.GameTestHelper helper,
@@ -172,6 +180,60 @@ final class CupolaFurnaceTests {
                     + cupola.smeltsSinceSlag());
             clearSlag(helper);
             helper.succeed();
+        });
+
+        // AND A REAL COOK ADVANCES THE COUNT, which is the half that was not covered at all.
+        //
+        // The test above calls rakeSlag directly, so it measures the arithmetic and nothing else. The
+        // fragile part is in CupolaFurnaceBlock's ticker: the result slot is sampled BEFORE the furnace
+        // tick and before drainOutput, because drainOutput empties the slot and reading after it makes
+        // every smelt on a wired Cupola look like nothing happened. Review found that deleting that
+        // call outright left all 495 tests green - a machine that never makes slag in the world, and
+        // the whole suite calling it healthy.
+        //
+        // It is also what backs the allowlist entry in every_separating_input_is_findable_scrap. That
+        // test now accepts slag as a machine-made feed; without this, nothing anywhere asserts a
+        // machine makes any.
+        RCGameTests.test("smelting_in_the_cupola_counts_toward_slag", 250, helper -> {
+            CupolaFurnaceBlockEntity cupola = place(helper, new BlockPos(1, 1, 1));
+            if (cupola == null) {
+                return;
+            }
+            helper.assertTrue(cupola.smeltsSinceSlag() == 0, "precondition: a fresh Cupola has smelted nothing");
+            cupola.setItem(0, new ItemStack(RCItems.STEEL_OFFCUT.get(), 4));
+            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(cupola.getItem(2).is(Items.IRON_INGOT),
+                    "precondition: the cupola is smelting, output was " + cupola.getItem(2));
+                helper.assertTrue(cupola.smeltsSinceSlag() > 0,
+                    "the Cupola smelted and its slag count is still 0, so the ticker is not seeing "
+                        + "completed smelts - which is exactly what deleting the rake looks like");
+            });
+        });
+
+        // AND IT STILL COUNTS WHEN THE OUTPUT IS WIRED, which is the case the ordering exists for.
+        //
+        // The test above cannot see a swapped rakeSlag/drainOutput because an UNWIRED Cupola's drain
+        // does nothing - the ingot is still in the slot either way, so both orderings pass. Wire a
+        // barrel to it and the drain empties the slot the moment the smelt lands, so a rake that reads
+        // the slot afterwards sees zero forever. Verified: with the two calls swapped this fails and
+        // the unwired test does not.
+        RCGameTests.test("a_wired_cupola_still_counts_its_smelts", 250, helper -> {
+            BlockPos cupolaPos = new BlockPos(1, 1, 1);
+            helper.setBlock(cupolaPos, RCBlocks.CUPOLA_FURNACE.get());
+            helper.setBlock(new BlockPos(2, 1, 1), RCBlocks.SCRAP_BARREL.get());
+            var cupola = (CupolaFurnaceBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(cupolaPos));
+            if (cupola == null) {
+                helper.fail("no cupola block entity");
+                return;
+            }
+            cupola.setItem(0, new ItemStack(RCItems.STEEL_OFFCUT.get(), 4));
+            cupola.setItem(1, new ItemStack(RCItems.OILY_RAG.get(), 8));
+            helper.succeedWhen(() -> helper.assertTrue(cupola.smeltsSinceSlag() > 0,
+                "a Cupola with storage wired to it smelted and counted nothing - the rake is reading "
+                    + "the result slot after drainOutput has already emptied it, so no automated "
+                    + "Cupola in the world will ever produce slag"));
         });
 
         // AND IT HAS SOMEWHERE TO GO. An item that accumulates with no sink is clutter, and slag

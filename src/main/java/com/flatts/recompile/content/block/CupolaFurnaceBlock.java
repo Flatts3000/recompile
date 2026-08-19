@@ -72,7 +72,13 @@ public class CupolaFurnaceBlock extends AbstractFurnaceBlock {
             if (lvl instanceof net.minecraft.server.level.ServerLevel serverLevel
                     && be instanceof com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity
                         cupola) {
-                cupola.rakeSlag(serverLevel, Math.max(0, cupola.getItem(2).getCount() - before));
+                // CLAMPED TO ONE. The delta counts result ITEMS and rakeSlag wants SMELTS, and a
+                // recipe may yield more than one - every recipe this mod ships yields exactly one, but
+                // a datapack is supported here and one with "count": 3 would make slag three times as
+                // fast, silently. A furnace completes at most one cook per tick, so any positive delta
+                // is exactly one smelt.
+                cupola.rakeSlag(serverLevel,
+                    Math.min(1, Math.max(0, cupola.getItem(2).getCount() - before)));
                 cupola.drainOutput(serverLevel);
             }
         };
