@@ -93,7 +93,55 @@ final class MenuLayoutTests {
         new Screen("slag_furnace", () -> SlagFurnaceMenu.LAYOUT,
             inv -> new com.flatts.recompile.content.menu.SlagFurnaceMenu(0, inv)));
 
+    /**
+     * The two machines that hand JEI raw slot indices for its transfer button, and the ranges they
+     * hand it.
+     */
+    private record Transfer(String name, int invStart, int invCount,
+                            java.util.function.Function<net.minecraft.world.entity.player.Inventory,
+                                net.minecraft.world.inventory.AbstractContainerMenu> build) {
+    }
+
+    private static final List<Transfer> TRANSFERS = List.of(
+        new Transfer("cupola_furnace", CupolaFurnaceMenu.TRANSFER_INV_START,
+            CupolaFurnaceMenu.TRANSFER_INV_COUNT, inv -> new CupolaFurnaceMenu(0, inv)),
+        new Transfer("slag_furnace", SlagFurnaceMenu.TRANSFER_INV_START,
+            SlagFurnaceMenu.TRANSFER_INV_COUNT, inv -> new SlagFurnaceMenu(0, inv)));
+
     static void register() {
+        // JEI'S TRANSFER RANGES ARE RAW SLOT INDICES, AND GETTING ONE WRONG IS SILENT (#240).
+        //
+        // Both smelters own a bespoke MenuType, so JEI's built-in furnace handler - which recognises
+        // vanilla's own menu classes and nothing else - does not cover them, and each registers the
+        // basic overload with an inventory start and count. Hand that overload an index one off and the
+        // "+" button still appears and still moves items, into the wrong slots. Nothing throws.
+        //
+        // The plugin is client-only, so nothing server-side can read a number written there; the two
+        // menus declare the ranges instead and this measures them against the menus they describe. A
+        // fifth slot on the Cupola breaks this test rather than a player's inventory.
+        RCGameTests.test("menu_transfer_ranges_match_the_real_slots", 20, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            for (Transfer transfer : TRANSFERS) {
+                var menu = transfer.build().apply(player.getInventory());
+                int total = menu.slots.size();
+                helper.assertTrue(transfer.invStart() + transfer.invCount() == total,
+                    transfer.name() + " tells JEI the inventory runs " + transfer.invStart() + ".."
+                        + (transfer.invStart() + transfer.invCount() - 1) + " but the menu has "
+                        + total + " slots - a transfer would land outside it");
+                // ...and the slot it names as the first inventory one must really belong to the player,
+                // which is the half a count check alone cannot see.
+                helper.assertTrue(
+                    menu.slots.get(transfer.invStart()).container == player.getInventory(),
+                    transfer.name() + " slot " + transfer.invStart() + " is not a player inventory "
+                        + "slot, so JEI would draw the transfer from the machine's own contents");
+                helper.assertTrue(
+                    menu.slots.get(transfer.invStart() - 1).container != player.getInventory(),
+                    transfer.name() + " slot " + (transfer.invStart() - 1) + " is already a player "
+                        + "slot, so the range starts one too late and the first one is unreachable");
+            }
+            helper.succeed();
+        });
+
         // THE LIST ABOVE MUST COVER THE REGISTRY, or every sweep in this file is measuring a subset and
         // reporting a clean result. This is how the Cupola's screen shipped unswept: it was registered,
         // it worked, and nothing here knew it existed. Derived from the registry so the next menu

@@ -476,6 +476,33 @@ public class RecompileJeiPlugin implements IModPlugin {
             new ScrapTableTransfer<>(ASSEMBLY, helper), ASSEMBLY);
         registration.addRecipeTransferHandler(
             new ScrapTableTransfer<>(RecipeTypes.CRAFTING, helper), RecipeTypes.CRAFTING);
+
+        // THE TWO SMELTERS (#240). Both own a bespoke MenuType, and JEI's built-in furnace transfer
+        // handler recognises vanilla's own menu classes and nothing else - so neither had a transfer
+        // arrow, and the comment above applies exactly: a category without a handler has no button,
+        // nothing warns you, and the absence reads as JEI deciding the recipe is uncraftable.
+        //
+        // The basic overload is enough for both: one recipe slot, one item, and the player inventory
+        // immediately after the machine's own slots. Nothing bespoke is needed because neither machine
+        // has a bespoke INPUT - the Cupola's fourth slot is an output, which transfer never touches.
+        //
+        // Registered against each machine's OWN category rather than vanilla Blasting. The Cupola
+        // stopped being a Blasting catalyst in #243, so a handler on Blasting would attach a button to
+        // a category the machine is no longer listed in.
+        registration.addRecipeTransferHandler(
+            com.flatts.recompile.content.menu.CupolaFurnaceMenu.class,
+            com.flatts.recompile.registry.RCMenus.CUPOLA_FURNACE.get(),
+            CUPOLA,
+            0, 1,
+            com.flatts.recompile.content.menu.CupolaFurnaceMenu.TRANSFER_INV_START,
+            com.flatts.recompile.content.menu.CupolaFurnaceMenu.TRANSFER_INV_COUNT);
+        registration.addRecipeTransferHandler(
+            com.flatts.recompile.content.menu.SlagFurnaceMenu.class,
+            com.flatts.recompile.registry.RCMenus.SLAG_FURNACE.get(),
+            VITRIFYING,
+            0, 1,
+            com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_INV_START,
+            com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_INV_COUNT);
     }
 
     /**
