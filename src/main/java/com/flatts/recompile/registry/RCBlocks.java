@@ -11,6 +11,7 @@ import com.flatts.recompile.content.block.TrommelPartBlock;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
+import com.flatts.recompile.content.block.SinteringKilnBlock;
 import com.flatts.recompile.content.block.SlagFurnaceBlock;
 import com.flatts.recompile.content.block.BurnerGeneratorBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
@@ -502,6 +503,24 @@ public final class RCBlocks {
             .strength(2.0F)
             .sound(SoundType.METAL)
             .lightLevel(state -> state.getValue(BurnerGeneratorBlock.LIT) ? 13 : 0));
+
+    /**
+     * The Sintering Kiln (#248): the only thing that can fuse a pressed powder back into a solid.
+     *
+     * <p>Lit level 13, like every other furnace here. No {@code requiresCorrectToolForDrops}, for the
+     * reason spelled out on the Cupola and re-learned on the Slag Furnace: this block is named in no
+     * mineable tag, and {@code Tool.isCorrectForDrops} only matches a rule whose block set contains
+     * the block, so "correct tool" resolves to no tool existing and a player breaking their own kiln
+     * in survival gets nothing back.
+     */
+    public static final DeferredBlock<SinteringKilnBlock> SINTERING_KILN = BLOCKS.registerBlock(
+        "sintering_kiln",
+        SinteringKilnBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE)
+            .strength(3.5F)
+            .sound(SoundType.STONE)
+            .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
 
     /**
      * The Slag Furnace (#236): the only thing in the game that can vitrify, and therefore the only

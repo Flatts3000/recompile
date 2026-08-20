@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "recompile:block/sintering_kiln_top",
+    "front": "recompile:block/sintering_kiln_front",
+    "side": "recompile:block/sintering_kiln_side"
+  }
+}

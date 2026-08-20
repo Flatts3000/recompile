@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:demolition/sintering_kiln",
+  "category": "recompile:demolition",
+  "name": "book.recompile.guide.demolition.sintering_kiln.name",
+  "icon": {
+    "id": "recompile:sintering_kiln"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 6,
+  "y": 2
+}

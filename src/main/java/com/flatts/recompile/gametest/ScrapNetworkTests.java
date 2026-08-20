@@ -68,6 +68,9 @@ final class ScrapNetworkTests {
             // it floods FROM is not a member - so it routed nothing at all, silently, with no error
             // anywhere. Caught by writing the test, not by reading the code.
             roles.put(RCBlocks.SLAG_FURNACE.get(), "SOURCE");
+            // The kiln pushes finished work out through drainOutput and never receives a route -
+            // the same shape as the Slag Furnace and the Cupola.
+            roles.put(RCBlocks.SINTERING_KILN.get(), "SOURCE");
             roles.put(RCBlocks.SCRAP_CRAFTING_TABLE.get(), "READER");
             roles.put(RCBlocks.FILING_CABINET.get(), "READER");
             // The Separator pushes what it separates straight into the cluster. It sorted garbage

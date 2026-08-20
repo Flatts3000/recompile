@@ -93,7 +93,10 @@ final class MenuLayoutTests {
         new Screen("cupola_furnace", () -> CupolaFurnaceMenu.LAYOUT,
             inv -> new CupolaFurnaceMenu(0, inv)),
         new Screen("slag_furnace", () -> SlagFurnaceMenu.LAYOUT,
-            inv -> new com.flatts.recompile.content.menu.SlagFurnaceMenu(0, inv)));
+            inv -> new com.flatts.recompile.content.menu.SlagFurnaceMenu(0, inv)),
+        new Screen("sintering_kiln",
+            () -> com.flatts.recompile.content.menu.SinteringKilnMenu.LAYOUT,
+            inv -> new com.flatts.recompile.content.menu.SinteringKilnMenu(0, inv)));
 
     /**
      * The machines that hand JEI raw slot indices for its transfer button, and the ranges they hand it.

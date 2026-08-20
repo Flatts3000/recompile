@@ -425,6 +425,55 @@ match_hue = "slag_furnace_side"
 prompt = "a full-bleed Minecraft block face: the top of a sealed vitrifying furnace seen from directly above, cold blue-grey steel plate with a small square bolted charging hatch in the centre, rivets around the edge, pale grey dust drifted into the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 vanilla_ref = "block/deepslate_tiles"
 
+# ---------------------------------------------------------------------------
+# THE SINTERING KILN (#248). A KILN, not a furnace, and the art has to carry that difference: it holds
+# a soak temperature rather than melting anything, so it reads as refractory brick with a glowing slot
+# rather than as a crucible pouring. Deliberately warmer and duller than the Slag Furnace, which is
+# vitreous and black.
+# ---------------------------------------------------------------------------
+
+[surface.sintering_kiln_front]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "the front face of a small industrial sintering kiln, pale fire-brick masonry with a dark closed rectangular loading hatch low in the centre, heavy iron strap hinges, soot staining above the hatch, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
+
+[surface.sintering_kiln_front_on]
+kind = "block"
+backend = "ai"
+size = 16
+# THE LIT FACE IS THE COLD FACE PLUS HEAT, composited - the lesson the Cupola paid for (owner,
+# 2026-08-19). Generated on its own, or even handed the cold face via `reference` alone, the model
+# repaints the brick with its own courses and tone, and two states of one machine that disagree about
+# their own material read as two different blocks. `glow_from` keeps every non-glowing pixel of the
+# cold tile by construction and promote fails the build if the re-quantize moves them.
+#
+# `match_hue` is deliberately absent and must stay absent: it locks a face to the body palette, which
+# is right for a cold face and exactly backwards for anything that glows.
+glow_from = "sintering_kiln_front"
+reference = "sintering_kiln_front"
+prompt = "keep this brick face exactly as it is - same colour, same courses, same soot, same iron straps - and change only one thing: the rectangular hatch low in the centre is now glowing from within, a deep orange heat behind it throwing a faint warm glow onto the brick immediately around the opening and fading out within a few pixels. It is a soak heat rather than a fire, so no flames and no yellow core. Everything outside that glow is untouched. muted except the heat, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+[surface.sintering_kiln_side]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "the side wall of a small industrial sintering kiln, pale fire-brick masonry in irregular courses banded by two iron tie straps, soot staining, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
+
+[surface.sintering_kiln_top]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "the top of a small industrial sintering kiln seen from directly above, pale fire-brick capped by a soot-blackened iron plate with a small round vent, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
+
+[surface.blaze_briquette]
+kind = "item"
+backend = "ai"
+size = 16
+# It must read as PRESSED rather than as a lump: flat faces and sharp edges are what say a die squeezed
+# it, and that is the whole story of the item.
+prompt = "a small pressed briquette of blaze powder, a squat rectangular block of compacted glowing orange-yellow granules with flat pressed faces and crisp edges, faint dark seams where the press closed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.slag_furnace_front]
 kind = "block"
 backend = "ai"

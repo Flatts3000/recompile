@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
+import com.flatts.recompile.content.menu.SinteringKilnMenu;
 import com.flatts.recompile.content.menu.SlagFurnaceMenu;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
@@ -54,6 +55,10 @@ public final class RCMenus {
      * classes rather than on any subclass. Subclassing saves reimplementing a menu, which is worth it
      * on its own and is the whole claim.
      */
+    public static final DeferredHolder<MenuType<?>, MenuType<SinteringKilnMenu>> SINTERING_KILN =
+        MENUS.register("sintering_kiln", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new SinteringKilnMenu(id, inventory)));
+
     public static final DeferredHolder<MenuType<?>, MenuType<SlagFurnaceMenu>> SLAG_FURNACE =
         MENUS.register("slag_furnace", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new SlagFurnaceMenu(id, inventory)));

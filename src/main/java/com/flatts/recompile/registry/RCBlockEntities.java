@@ -12,6 +12,7 @@ import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
+import com.flatts.recompile.content.block.entity.SinteringKilnBlockEntity;
 import com.flatts.recompile.content.block.entity.SlagFurnaceBlockEntity;
 import com.flatts.recompile.content.block.entity.WaterTankBlockEntity;
 import com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity;
@@ -91,6 +92,11 @@ public final class RCBlockEntities {
             () -> new BlockEntityType<>(RainCollectorBlockEntity::new, RCBlocks.RAIN_COLLECTOR.get()));
 
     /** The Slag Furnace's three slots (#236). Vanilla's furnace shape, running a modded recipe type. */
+    public static final Supplier<BlockEntityType<SinteringKilnBlockEntity>> SINTERING_KILN =
+        BLOCK_ENTITIES.register(
+            "sintering_kiln",
+            () -> new BlockEntityType<>(SinteringKilnBlockEntity::new, RCBlocks.SINTERING_KILN.get()));
+
     public static final Supplier<BlockEntityType<SlagFurnaceBlockEntity>> SLAG_FURNACE =
         BLOCK_ENTITIES.register(
             "slag_furnace",
@@ -278,6 +284,13 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             SLAG_FURNACE.get(),
+            (be, side) -> new WorldlyContainerWrapper(be, side));
+        // The SINTERING KILN on the same terms, and for the same reason: it is the far end of a chain
+        // the player already automated. Blaze powder comes out of a Pulverizer and gets pressed at a
+        // bench; a kiln no pipe could reach would break that chain at its last link.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            SINTERING_KILN.get(),
             (be, side) -> new WorldlyContainerWrapper(be, side));
         // The Scrap Barrel is bulk overflow storage - the thing the network dumps into - so it is the
         // one member that should be freely automatable. It is a plain Container (chest-shaped), not a

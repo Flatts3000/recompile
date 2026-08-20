@@ -215,6 +215,18 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "vitrifiable"));
 
     /**
+     * What the Sintering Kiln will take (#248), and it exists for the client rather than the recipes.
+     *
+     * <p>Identical reasoning to {@link #VITRIFIABLE}: a recipe is the authority on what the machine
+     * actually fires, but {@code canSmelt} runs on both sides for click prediction and the recipe map
+     * is server-side. Vanilla builds its {@code RecipePropertySet}s from a fixed set of recipe types,
+     * so a modded type has none and the inherited test would refuse every shift-click. A tag is
+     * synced, so it answers the same in both places.
+     */
+    public static final TagKey<Item> SINTERABLE = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "sinterable"));
+
+    /**
      * Finished goods: things a person would throw away, which the dump gives you and no recipe makes
      * (design P2.11, issue #161). Owner ruling 2026-08-08 on the case that decided it: <b>players should
      * find buckets, not craft them.</b>

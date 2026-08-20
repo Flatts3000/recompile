@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * The bundled {@code recompile:vitrifying} recipes, read for the viewers (#236).
+ * The bundled {@code recompile:sintering} recipes, read for the viewers (#236).
  *
  * <p>Reads files rather than the recipe manager for the reason {@link RecipeFiles} states: recipes are
  * not client-synced in 26.1 and the manager is reliably empty when JEI asks.
@@ -29,24 +29,26 @@ import net.minecraft.world.item.Items;
  * machine is invisible: a player holding a lump of slag would be told nothing melts it, and the only
  * route to obsidian in the game would be a thing you had to already know about.
  */
-public final class VitrifyingData {
+public final class SinteringData {
 
     private static List<CookingRecipeData.Entry> cached;
 
-    private VitrifyingData() {
+    private SinteringData() {
     }
 
     /**
-     * The bundled vitrifying recipes.
+     * The bundled sintering recipes, for JEI.
      *
-     * <p>The parsing moved to {@link CookingRecipeData} when sintering became the second cooking-shaped
-     * type (#248) - copying it would have duplicated a hundred and twenty lines whose corrections
-     * (the JSON array branch, {@code id} versus {@code item}, AIR-not-null) were each paid for once.
+     * <p><b>Without a category this verb is invisible.</b> JEI draws vanilla-typed recipes for free and
+     * a modded {@code RecipeType} is not one however closely it copies the shape - so a player holding
+     * a Blaze Briquette would be told nothing fires it, and the only route to a blaze rod outside a
+     * fortress would be a thing you had to already know about. Exactly the reason vitrifying needed
+     * one.
      */
     public static synchronized List<CookingRecipeData.Entry> all() {
         if (cached == null) {
-            cached = CookingRecipeData.read("recompile:vitrifying",
-                com.flatts.recompile.content.recipe.VitrifyingRecipe.DEFAULT_COOKING_TIME);
+            cached = CookingRecipeData.read("recompile:sintering",
+                com.flatts.recompile.content.recipe.SinteringRecipe.DEFAULT_COOKING_TIME);
         }
         return cached;
     }
