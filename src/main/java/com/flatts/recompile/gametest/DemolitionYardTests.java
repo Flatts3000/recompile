@@ -74,6 +74,18 @@ final class DemolitionYardTests {
         return total;
     }
 
+    /** One biome's hostile spawn entries as comparable strings, in declaration order. */
+    private static List<String> monsterList(net.minecraft.world.level.biome.Biome biome) {
+        List<String> out = new ArrayList<>();
+        for (var entry : biome.getMobSettings()
+                .getMobs(net.minecraft.world.entity.MobCategory.MONSTER).unwrap()) {
+            out.add(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE
+                .getKey(entry.value().type()) + " w" + entry.weight()
+                + " " + entry.value().minCount() + "-" + entry.value().maxCount());
+        }
+        return out;
+    }
+
     static void register() {
         // Sifting rubble bare-hand drops stone shards, then the pile crumbles - the stone entry path.
         RCGameTests.test("rubble_sift_yields_stone_shards", 40, helper -> {
@@ -95,6 +107,56 @@ final class DemolitionYardTests {
                 }
             }
             helper.assertTrue(shards > 0, "sifting rubble must drop at least one stone shard, got " + shards);
+            helper.succeed();
+        });
+
+        // THE YARD'S HOSTILE LIST IS VANILLA PLAINS', ENTRY FOR ENTRY (#227, owner 2026-08-20).
+        //
+        // It started as one line - emeralds sat behind villagers, villagers sat behind zombie
+        // villagers, and this world had none. The natural assumption is that a zombie has some chance
+        // of spawning as a zombie villager; that is FALSE in modern Java, where `zombie_villager` is
+        // its own biome spawner entry at weight 5, not a conversion roll.
+        //
+        // Adding just that entry gave the right NUMBER and the wrong RATE: the yard ran five hostile
+        // types where plains runs nine, so weight 5 was 1.33% of the pool against vanilla's 0.97%. The
+        // owner's answer was to make the yard's hostile list plains' outright, which makes the rate
+        // exact by construction rather than by tuning.
+        //
+        // MONSTER ONLY. Plains also lists sheep, pig, chicken, cow, horse and donkey under `creature`,
+        // and copying those would hand a player the animals the whole reclamation ladder exists to gate
+        // (P2.4, rung 5). The owner scoped this to hostile mobs and the creature list stays empty.
+        //
+        // Asserted as a whole-list comparison rather than on the one entry, because that is now the
+        // claim - and it is the assertion that catches a sibling being retuned, which a check on
+        // zombie_villager alone cannot see however carefully it is written.
+        RCGameTests.test("the_yards_hostile_spawns_are_vanilla_plains", 20, helper -> {
+            var biomes = helper.getLevel().registryAccess()
+                .lookupOrThrow(net.minecraft.core.registries.Registries.BIOME);
+            var yard = biomes.getOrThrow(net.minecraft.resources.ResourceKey.create(
+                net.minecraft.core.registries.Registries.BIOME,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "demolition_yard"))).value();
+            var plains = biomes.getOrThrow(net.minecraft.world.level.biome.Biomes.PLAINS).value();
+
+            List<String> ours = monsterList(yard);
+            List<String> vanilla = monsterList(plains);
+            helper.assertTrue(!vanilla.isEmpty(),
+                "vanilla plains lists no hostile mobs, so this test is comparing against nothing");
+            helper.assertTrue(ours.equals(vanilla),
+                "the yard's hostile spawns must be vanilla plains' entry for entry.\n  yard   : "
+                    + ours + "\n  plains : " + vanilla);
+
+            // A zombie villager is in there, which is the whole reason this changed - stated separately
+            // so a failure says WHY the list matters rather than just that two lists differ.
+            helper.assertTrue(ours.stream().anyMatch(e -> e.contains("zombie_villager")),
+                "no zombie villager in the yard, so there is no villager in this world and no emerald "
+                    + "behind one");
+
+            // And the animals stay gated. Copying plains wholesale would have brought its creature
+            // list with it, which is the reclamation ladder's entire payout handed over for free.
+            helper.assertTrue(yard.getMobSettings()
+                    .getMobs(net.minecraft.world.entity.MobCategory.CREATURE).unwrap().isEmpty(),
+                "the demolition yard lists passive creatures. Only the HOSTILE list is plains' - "
+                    + "animals are rung 5 of the reclamation ladder and are not given away by a biome");
             helper.succeed();
         });
 

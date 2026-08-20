@@ -19,28 +19,58 @@
   "spawners": {
     "monster": [
       {
-        "type": "minecraft:zombie",
-        "weight": 95,
+        "type": "minecraft:spider",
+        "maxCount": 4,
         "minCount": 4,
-        "maxCount": 4
+        "weight": 100
+      },
+      {
+        "type": "minecraft:zombie",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 90
+      },
+      {
+        "type": "minecraft:zombie_villager",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 5
+      },
+      {
+        "type": "minecraft:zombie_horse",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 5
       },
       {
         "type": "minecraft:skeleton",
-        "weight": 95,
+        "maxCount": 4,
         "minCount": 4,
-        "maxCount": 4
-      },
-      {
-        "type": "minecraft:spider",
-        "weight": 90,
-        "minCount": 4,
-        "maxCount": 4
+        "weight": 100
       },
       {
         "type": "minecraft:creeper",
-        "weight": 90,
+        "maxCount": 4,
         "minCount": 4,
-        "maxCount": 4
+        "weight": 100
+      },
+      {
+        "type": "minecraft:slime",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 100
+      },
+      {
+        "type": "minecraft:enderman",
+        "maxCount": 4,
+        "minCount": 1,
+        "weight": 10
+      },
+      {
+        "type": "minecraft:witch",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 5
       }
     ],
     "creature": [],

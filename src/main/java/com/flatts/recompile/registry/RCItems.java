@@ -130,7 +130,7 @@ public final class RCItems {
      *
      * <p>Slag already works this way (separating, pulverizing and vitrifying into three different
      * things), so one material serving several machines is the established shape rather than a
-     * special case. It also gives magma cream its only route: vanilla wants a slime ball for it, and
+     * special case. It also gives magma cream a route that is not a mob drop: vanilla wants a slime ball for it, which
      * this world has no slime.
      */
     public static final DeferredItem<Item> OILY_SWARF = ITEMS.registerItem("oily_swarf", Item::new);
