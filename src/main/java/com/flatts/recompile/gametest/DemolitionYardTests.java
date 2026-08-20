@@ -10,7 +10,9 @@ import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import java.util.List;
+import java.util.ArrayList;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -93,6 +95,60 @@ final class DemolitionYardTests {
                 }
             }
             helper.assertTrue(shards > 0, "sifting rubble must drop at least one stone shard, got " + shards);
+            helper.succeed();
+        });
+
+        // RED SAND HAS A SOURCE, and eleven items sit behind it (#232, owner 2026-08-20).
+        //
+        // Vanilla generates red sand in badlands and nowhere else, its block loot drops itself, and no
+        // recipe converts sand to red sand in either direction - so with no badlands the entire red
+        // sandstone family was unreachable. One loot entry closes all of it.
+        //
+        // Asserted through the whole family rather than on the one item, because that is the actual
+        // claim: a source for red sand is only worth having if what depends on it becomes craftable.
+        // Read STATICALLY from the tables rather than by rolling - a weighted entry at 8% would need a
+        // great many rolls before absence meant anything, and a test that fails on an unlucky seed is
+        // worse than no test.
+        RCGameTests.test("red_sand_has_a_source_and_its_family_closes", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            helper.assertTrue(LootSearch.anyTableCanDrop(level, Items.RED_SAND),
+                "no loot table can drop red sand, so the eleven items behind it are unreachable and "
+                    + "#232 is not fixed");
+
+            // It belongs with the sand and the gravel, which is the owner's ruling and also the only
+            // honest place for it: red sand is iron-stained sand, and reinforced concrete is aggregate
+            // cast around rebar that has been rusting in it.
+            var tables = LootSearch.tablesThatCanDrop(level, Items.RED_SAND);
+            helper.assertTrue(tables.stream().anyMatch(t -> t.contains("reinforced_concrete")),
+                "red sand must come out of Reinforced Concrete, beside the sand and gravel it is a "
+                    + "stained fraction of. Found in: " + tables);
+
+            // And the family. Every one of these is a plain vanilla recipe off red sand, so if the
+            // source exists they all close - but that is the point worth pinning, since the source was
+            // added FOR them.
+            List<String> unreachable = new ArrayList<>();
+            for (Item item : List.of(Items.RED_SANDSTONE, Items.CHISELED_RED_SANDSTONE,
+                    Items.CUT_RED_SANDSTONE, Items.SMOOTH_RED_SANDSTONE,
+                    Items.RED_SANDSTONE_SLAB, Items.RED_SANDSTONE_STAIRS, Items.RED_SANDSTONE_WALL,
+                    Items.CUT_RED_SANDSTONE_SLAB, Items.SMOOTH_RED_SANDSTONE_SLAB,
+                    Items.SMOOTH_RED_SANDSTONE_STAIRS)) {
+                boolean made = false;
+                for (var holder : level.recipeAccess().recipeMap().values()) {
+                    for (var display : holder.value().display()) {
+                        if (display.result().resolveForFirstStack(
+                                net.minecraft.world.item.crafting.display.SlotDisplayContext
+                                    .fromLevel(level)).is(item)) {
+                            made = true;
+                        }
+                    }
+                }
+                if (!made) {
+                    unreachable.add(BuiltInRegistries.ITEM.getKey(item).toString());
+                }
+            }
+            helper.assertTrue(unreachable.isEmpty(),
+                "these have no recipe at all, so adding red sand did not close the family: "
+                    + unreachable);
             helper.succeed();
         });
 

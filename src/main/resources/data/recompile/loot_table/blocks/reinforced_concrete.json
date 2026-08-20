@@ -4,20 +4,76 @@
     {
       "rolls": 1,
       "entries": [
-        { "type": "minecraft:item", "name": "minecraft:gravel", "weight": 30 },
-        { "type": "minecraft:item", "name": "minecraft:sand", "weight": 20 },
-        { "type": "minecraft:item", "name": "minecraft:white_concrete_powder", "weight": 12 },
-        { "type": "minecraft:item", "name": "minecraft:light_gray_concrete_powder", "weight": 18 },
-        { "type": "minecraft:item", "name": "minecraft:gray_concrete_powder", "weight": 18 },
-        { "type": "minecraft:item", "name": "minecraft:black_concrete_powder", "weight": 12 }
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gravel",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:sand",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:red_sand",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:white_concrete_powder",
+          "weight": 12
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:light_gray_concrete_powder",
+          "weight": 18
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gray_concrete_powder",
+          "weight": 18
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:black_concrete_powder",
+          "weight": 12
+        }
       ]
     },
     {
       "rolls": 1,
       "entries": [
-        { "type": "minecraft:empty", "weight": 65 },
-        { "type": "minecraft:item", "name": "recompile:rebar", "weight": 35 }
+        {
+          "type": "minecraft:empty",
+          "weight": 65
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:rebar",
+          "weight": 35
+        }
       ]
     }
+  ],
+  "_comment": [
+    "Reinforced Concrete: the aggregate comes back out when you crush it, which is the whole idea.",
+    "",
+    "RED SAND SITS HERE BECAUSE THIS IS WHERE SAND AND GRAVEL ALREADY ARE (owner, 2026-08-20, #232).",
+    "It is also the only honest place for it. Red sand is IRON-STAINED sand - that is literally what",
+    "makes it red - and reinforced concrete is aggregate cast around steel that has been rusting in it",
+    "for however long this world has been over. The stain is the rebar. Nowhere else in the game puts",
+    "sand and iron in prolonged contact.",
+    "",
+    "Weight 10 against sand's 20: the stained fraction is a minority of the aggregate, not half of it.",
+    "It is the only source of red sand in this world - vanilla generates it in badlands and nowhere",
+    "else, its block loot drops itself, and no recipe converts sand to red sand in either direction -",
+    "so this one entry closes the whole red sandstone family, eleven items.",
+    "",
+    "It touches no gate. The concern #232 raised was that an iron-adjacent material might muddy the",
+    "iron gate (#91), but red sand only LOOKS ferrous: it smelts to glass like any sand and yields no",
+    "iron to anything. The gate is a property of the Cupola's recipe type and nothing here goes near it.",
+    "",
+    "Weights are first-pass; #36 owns them."
   ]
 }
