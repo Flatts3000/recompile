@@ -1,0 +1,16 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:depths/netherite",
+  "category": "recompile:depths",
+  "name": "book.recompile.guide.depths.netherite.name",
+  "icon": {
+    "id": "recompile:worn_forging_die"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 5,
+  "y": 1
+}
