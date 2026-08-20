@@ -175,7 +175,7 @@ inference, not a hard constraint).
 ### 4.2 Reinforced Concrete (the iron + masonry path)
 - Solid full cube, `requiresCorrectToolForDrops`, mineable **only with the Sledgehammer** (min copper tier);
   carries `#recompile:mineable/sledgehammer`.
-- Loot: **always** exactly one of `{concrete_powder(grayscale shade) | gravel | sand}`; **sometimes** also
+- Loot: **always** exactly one of `{concrete_powder(grayscale shade) | gravel | sand | red_sand}` (red sand added #232 - the aggregate nearest the rebar rusts, and it is the only source in the game); **sometimes** also
   drops **rebar**.
 - Solid + tool-gated, so **iron is the deeper, gated prize** (the sledgehammer is tree-gated, S6).
 
@@ -198,7 +198,7 @@ inference, not a hard constraint).
 - **Concrete powder (grayscale ramp: white / light gray / gray / black)** -> concrete via vanilla water. The
   world's masonry, and the crafting material for the Makeshift Forge. (Full 16 colors rejected - pink concrete
   breaks the demolition read.)
-- Gravel and sand are incidental vanilla drops (flavor, and feed vanilla concrete-powder crafting).
+- Gravel and sand are incidental vanilla drops (flavor, and feed vanilla concrete-powder crafting). Red sand joined them in #232: the aggregate nearest the rebar rusts, and it is the only source of red sand in the game.
 
 ---
 
