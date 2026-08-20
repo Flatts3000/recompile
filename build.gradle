@@ -1,5 +1,9 @@
 plugins {
     id 'java'
+    // JaCoCo, added by the COVER pass. It instruments the JUnit layer only - see the jacocoTestReport
+    // block below for why the GameTests cannot be measured the same way, which matters because they
+    // are where most of this mod's behaviour is actually proven.
+    id 'jacoco'
     id 'net.neoforged.moddev' version '2.0.141'
     // CurseForgeGradle: wraps the CurseForge Upload API so `./gradlew publishCurseForge`
     // uploads the built jar. Mirrors the productive-frogs setup.
@@ -18,6 +22,31 @@ version = mod_version
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
 }
+
+// The JaCoCo agent, fetched as a plain dependency so a run task can point -javaagent at a real file.
+// The plugin's own internal configuration is not addressable from a moddev run block.
+configurations {
+    jacocoRuntimeAgent
+}
+
+/**
+ * What no coverage report counts, shared by both so their numbers mean the same thing.
+ *
+ * <p>Only the gametest package. It is test code that lives under src/main/java because GameTest
+ * registration requires it, so counting it would pad the figure with tests testing themselves.
+ *
+ * <p>client/** is deliberately NOT excluded here even though neither test layer can reach it. Hiding it
+ * would make the headline number look better while removing the evidence that 389 lines have no
+ * automated coverage at all; docs/test_coverage.md subtracts it explicitly instead, where the
+ * subtraction is visible and argued.
+ */
+ext.COVERAGE_EXCLUDES = [
+    'com/flatts/recompile/gametest/**',
+]
+dependencies {
+    jacocoRuntimeAgent "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
+}
+
 
 neoForge {
     version = neoforge_version
@@ -69,6 +98,32 @@ neoForge {
         // has no gameTestServer() convenience method, so set the type directly.
         gameTestServer {
             type.set('gameTestServer')
+            // COVERAGE FOR THE LAYER THAT ACTUALLY PROVES THIS MOD. GameTests run in their own server
+            // JVM, so the `test` task's JaCoCo sees none of them - and reading that report alone says
+            // content/block/entity is at 0.7% when in truth nearly every machine in it has in-world
+            // tests. Opt in with -PgameTestCoverage so a normal run is not slowed or altered.
+            if (project.hasProperty('gameTestCoverage')) {
+                // The PROVIDER is handed over unresolved. Calling .get() here would resolve the agent
+                // configuration during the configuration phase, so every task in the build - compileJava
+                // included - would pay for dependency resolution and fail at configuration time if the
+                // artifact were unavailable.
+                jvmArguments.add(providers.provider {
+                    def agent = configurations.jacocoRuntimeAgent.singleFile
+                    def out = project.layout.buildDirectory.get().asFile
+                    // JaCoCo separates its own options with commas and equals signs, so a path
+                    // containing either is misparsed rather than rejected - it would silently write the
+                    // exec file somewhere else and report a coverage number from nothing. Fail loudly
+                    // instead; this machine's paths are fine and a CI runner's may not be.
+                    [agent.toString(), out.toString()].each { path ->
+                        if (path.contains(',')) {
+                            throw new GradleException(
+                                "JaCoCo cannot take a path containing a comma: ${path}")
+                        }
+                    }
+                    "-javaagent:${agent}=destfile=${out}/jacoco/gameTest.exec," +
+                        "append=false,includes=com.flatts.recompile.*"
+                })
+            }
         }
     }
 
@@ -155,6 +210,84 @@ tasks.named('test', Test) {
     testLogging {
         events 'passed', 'skipped', 'failed'
         exceptionFormat 'full'
+    }
+    finalizedBy tasks.named('jacocoTestReport')
+}
+
+/**
+ * Coverage for the JUnit layer.
+ *
+ * <p>READ THE NUMBER CAREFULLY. It measures `./gradlew test` only, and this mod proves most of its
+ * behaviour in GameTests, which run in a separate server JVM launched by moddev - so a class with
+ * thorough in-world coverage and no unit test reports 0% here. The report is a map of what the PURE
+ * layer touches, not a verdict on whether a class is tested.
+ *
+ * <p>Two whole packages are excluded because counting them makes the number meaningless rather than
+ * strict: `gametest` is test code that happens to live in src/main (GameTest registration requires
+ * it), and `client` never loads on the server the tests run on.
+ */
+/**
+ * THE NUMBER THAT MEANS SOMETHING: both layers at once.
+ *
+ * <p>Neither half is the truth on its own. `jacocoTestReport` sees only the JUnit tests and reports
+ * content/block/entity at under 1%, when almost every machine in that package has thorough in-world
+ * coverage. `gameTest.exec` sees only the GameTests and misses the pure logic the unit layer exists
+ * for. This merges them.
+ *
+ * <p>Run it as: {@code ./gradlew test runGameTestServer -PgameTestCoverage coverageReport}
+ */
+tasks.register('coverageReport', JacocoReport) {
+    group = 'verification'
+    description = 'Merged coverage across the JUnit layer and the in-world GameTests.'
+    dependsOn tasks.named('classes')
+    // ORDERING, not just dependency. Gradle does not honour command-line order for tasks with no
+    // declared relationship, so `test runGameTestServer coverageReport` could otherwise report before
+    // either had written its exec file.
+    mustRunAfter tasks.named('test'), tasks.named('runGameTestServer')
+
+    // A GLOB WOULD REPORT LAST WEEK'S RUN AS THIS ONE'S. `append=false` truncates gameTest.exec only
+    // when the agent actually attaches, so without -PgameTestCoverage the file simply survives from an
+    // earlier instrumented run and gets merged in silently - a stale number that looks exactly like a
+    // fresh one, which is the failure this whole PR is written against. Name the files, and require the
+    // GameTest half only when it was actually asked for.
+    executionData.setFrom(files(
+        project.layout.buildDirectory.file('jacoco/test.exec'),
+        project.layout.buildDirectory.file('jacoco/gameTest.exec')
+    ).filter { it.exists() })
+    doFirst {
+        File gameTestExec = project.layout.buildDirectory.file('jacoco/gameTest.exec').get().asFile
+        if (!project.hasProperty('gameTestCoverage') && gameTestExec.exists()) {
+            throw new GradleException(
+                "build/jacoco/gameTest.exec is left over from an earlier instrumented run and this "
+                    + "one did not produce it. Merging it would report stale GameTest coverage as "
+                    + "current. Re-run with -PgameTestCoverage, or delete the file for a JUnit-only "
+                    + "report.")
+        }
+    }
+    sourceDirectories.setFrom(files('src/main/java'))
+    classDirectories.setFrom(files(sourceSets.main.output.classesDirs.files.collect {
+        fileTree(dir: it, exclude: COVERAGE_EXCLUDES)
+    }))
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestReport {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    afterEvaluate {
+        // THE SAME EXCLUSION AS coverageReport, so the two reports are measured over the same classes
+        // and the numbers can be compared. They differed - this one also dropped client/** - which
+        // meant 389 zero-covered lines were in one denominator and not the other, and any table putting
+        // the two side by side was comparing different things.
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: COVERAGE_EXCLUDES)
+        }))
     }
 }
 

@@ -72,6 +72,7 @@ public final class RCGameTests {
         BulkyWasteTests.register();
         BuildingBlockTests.register();
         SortingDataTests.register();
+        JadeDataTests.register();
         FoundToolTests.register();
         MattressTests.register();
         StrayTests.register();
