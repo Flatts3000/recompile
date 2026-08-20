@@ -1,6 +1,6 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, and **Phase 5 (mound regrowth) shipped 2026-08-05**. **v0.9.0 is released** (2026-08-12; v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27).
+**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether shipped 2026-08-19** (pulled forward - see that phase). **v0.12.0 is released** (2026-08-19, the compacted depths; v0.11.0 2026-08-18 the sewers, v0.10.0 2026-08-17, v0.9.0 2026-08-12, v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27). **Phase 6 (the full loop) is what remains.**
 the latter as the CurseForge ModJam 2026 entry). The mod is a
 playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
 Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
@@ -85,6 +85,9 @@ What the player reaches for the moment hand-sorting palls: better tools and a fa
   it holding garbage, sorted materials drop into the world. Hopper-proof by construction.
 - **Dimension lockout (P1.8):** cheap config disabling Nether/End portals. Pulled in here
   (ahead of its "try a portal" discovery slot) to plug the vanilla-resource leak early.
+  **Half of this was reversed on 2026-08-19 (owner): the Nether is OPEN.** Its resources and
+  progression are the reason to go, and the themed Nether below is what you arrive in. The **End
+  is still held** - travel and portal formation together, so there are no dead frames.
 - Fold in garbage-block gravity (deferred from Phase 1).
 
 **Exit:** the full pre-knowledge loop - scavenge with real tools, meet every garbage type, sort
@@ -441,7 +444,15 @@ Discovered as you climb tiers; leans on curation + sibling mods.
 
 ## Phase 7 - Themed dimensions + polish  *(design P3)*
 
-- Themed Nether (Hard) - solid techno-organic waste; first RF power + osmium originate here.
+- ~~Themed Nether (Hard) - solid techno-organic waste; first RF power + osmium originate here.~~
+  **DONE 2026-08-19, pulled forward** (v0.12.0). The compacted depths: solid techno-organic waste
+  floor to ceiling with slag rubble and lava pockets, vanilla fortresses and bastions, terrain
+  rebuilt four shards at a time, and three scrap categories feeding the machines you already own.
+  **Two halves of the original line did not come true and are not going to.** RF power arrived far
+  earlier, in the power tier (#72), so the Nether was not its origin; and **osmium is Mekanism's**,
+  which this mod does not require, so nothing osmium-shaped shipped with it. What the depths
+  actually originate is coal, quartz, glowstone, nether wart, blaze powder and magma cream, each out
+  of a machine rather than out of the ground.
 - Themed End (Medium-Hard) - the found-economy capstone.
 - Field Manual (whichever guide-book mod is on 26.x; not a lore vehicle).
 

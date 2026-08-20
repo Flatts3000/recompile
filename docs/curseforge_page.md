@@ -113,6 +113,15 @@ machine GUIs and no BlockEntity for the structure.
 | Cupola Furnace | Makes iron. Rebar and Steel Offcuts are blasting recipes, so an ordinary furnace will not take them. It does not cook food. |
 | Burn Barrel | Burns refuse, and cooks food. |
 | Hydroponics Bay | Grows a plant from water and power with no soil. 20 seconds a batch, 100 mB, 8 FE/tick. The input crop is never consumed and replants itself; a second slot catches byproducts. |
+| Trommel | Sorts a garbage block into its drops, unattended. The automated rung of the same job the Sorting Tarp does by hand. |
+| Separator | Divides a mixed feed into several materials plus a byproduct. Spent Abrasive into diamond, slag into concrete powder, circuitry into quartz. |
+| Pulverizer | Reduces something to a finer form. E-Scrap to circuit powder for gold, phosphor to glowstone, slag to fertilizer. |
+| Slag Furnace | Vitrifies slag into obsidian, one lump to a block. The only obsidian in this world. Runs on fuel, not power. |
+
+Three of those - Trommel, Separator, Pulverizer - have **no GUI and no inventory anything can reach
+into**. You feed them by dropping items on them or parking a container on top, and their output goes
+to a connected Scrap Network, then a chute, then the floor. Jade reports what they are holding and why
+they have stopped.
 
 The Scrap Network is a cluster: Scrap Bins each bound to one material, plus barrels for overflow,
 joined by placing them touching each other.
@@ -138,6 +147,43 @@ Erosion rules:
 - Erosion does not run while you are logged off.
 - Mycelium is exempt, because it is the substrate the world's only renewable food grows on.
 
+## Under the demolition yard
+
+Brick tunnels running with leachate, the first place in this world that was built rather than dumped.
+
+- The way in is a **manhole**: a square of pale concrete set flush in the ground with a rusted plate
+  in the middle. The plate comes up with a Prybar and nothing else.
+- Corridors, junctions and stairwells branching from one chamber and running downhill, with a leachate
+  channel down the middle and dry brick either side.
+- **Decay follows the water** and **light follows the people**. Mossy and cracked brick gather at the
+  waterline; the chamber and the shaft are lit and the corridors are not, because dark is where things
+  spawn.
+- **Slimes live here and nowhere else.** Both vanilla routes to one need something this world does not
+  have.
+- An **echo shard** in a crate settled in the sump silt, one per sewer, and the only one anywhere.
+- **Leachate can drown you.** It does no damage on contact and still leaves you hungry.
+
+## The compacted depths
+
+The overworld is a dump you clear. The Nether is a dump you mine.
+
+- **Every column is full**, bedrock floor to bedrock ceiling. No caverns, no lava sea, no ceiling to
+  fall from. The only open spaces are the things buried in it.
+- **Techno-organic waste** is the fill and behaves like a Block of Garbage: right-click to pick through
+  it. It does not fall, because a dimension of falling blocks would bury you.
+- **Slag rubble** is the spoil inside it, and it does fall.
+- **Fortresses and bastions generate normally.**
+- **No vanilla nether terrain generates at all.** Sorting slag rubble gives shards, and four shards
+  craft the block. Netherrack, basalt, blackstone, both nyliums, soul sand and soul soil are each
+  reachable only that way.
+- **The waste gives scrap and your machines give materials**, the same rule the surface runs on.
+  Circuitry separates into quartz, phosphor grinds into glowstone, cooked organics separate into nether
+  wart, and swarf answers to two machines for blaze powder and magma cream.
+- **Lignite** is brown coal, found in the waste, and smelting it is the only route to coal here. It
+  burns on its own at half a coal, so it is useful before you upgrade it.
+- **Getting in is the point of the slag chain.** The Cupola rakes off slag every eighth smelt, the Slag
+  Furnace vitrifies it into obsidian, and that is the only obsidian there is.
+
 ## Also in
 
 - **Food** - tin cans, which apply a random effect on eating the way Suspicious Stew does, and
@@ -155,8 +201,16 @@ Alpha, in active development.
 - **Mound regrowth needs a new world.** Quarried mounds grow back, but the memory of what a mound
   was is written into the ground when the world generates, so a save made before this update has
   none and its mounds stay finite.
-- **One garbage region.** The distance-banded region system is in; the scrapyard and e-waste regions
-  are not.
+- **Two overworld regions.** The distance-banded region system is in and the demolition yard is its
+  first frontier region; the scrapyard and e-waste regions are not.
+- **The compacted depths need a new world.** A dimension's generator is written into a save when the
+  world is made, so an existing world keeps whatever Nether it already had.
+- **Brewing is still fortress-gated.** Nether wart has a route now, but a brewing stand needs a blaze
+  rod and nothing grinds into one yet.
+- **Netherite gear is still out of reach.** The scrap is findable; the smithing template it needs comes
+  only from a bastion and is self-referential.
+- **The depths have no guidebook chapter yet.**
+- **The End is closed**, travel and portal formation together, so there are no dead frames.
 - **Balance numbers are first-pass.** Drop rates, recipe costs, and teardown yields were picked to
   prove the mechanics, not tuned against play.
 

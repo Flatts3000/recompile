@@ -20,13 +20,13 @@ Recompile is the engine; **Trashlands** is its showcase modpack (the Productive 
 
 ## Status
 
-**Alpha - released.** **v0.1.0** shipped 2026-07-27 to CurseForge and [GitHub Releases](https://github.com/Flatts3000/recompile/releases), built against MC `26.1.2` / NeoForge `26.1.2.76`. Recompile is the CurseForge ModJam 2026 ("Echoes of the Past") entry.
+**Alpha - released.** **v0.12.0** shipped 2026-08-19 to CurseForge and [GitHub Releases](https://github.com/Flatts3000/recompile/releases), built against MC `26.1.2` / NeoForge `26.1.2`. Recompile is the CurseForge ModJam 2026 ("Echoes of the Past") entry.
 
-Shipped: the garbage world and pick-through loop (Blocks of Garbage, bags, bales, Bulky Waste); trash-tier tools; the workstations (Scrap Crafting Table, Sorting Tarp, Recompile Workbench, Burn Barrel) and storage (Scrap Barrel, Scrap Bin, the Scrap Network); food, water (Rain Collector), lighting, smelting, and building blocks; encroachment and the multiblock framework; the full **reclamation ladder** (Grass Spreader, Vegetation, Farming, Compost Heap); **collectibles** (the Puzzle Cube, ported voxel curios, the Display Pedestal); and an in-game **guidebook** (Modonomicon).
+Shipped: the garbage world and pick-through loop (Blocks of Garbage, bags, bales, Bulky Waste); trash-tier tools; the workstations (Scrap Crafting Table, Sorting Tarp, Recompile Workbench, Burn Barrel) and storage (Scrap Barrel, Scrap Bin, the Scrap Network); food, water (Rain Collector), lighting, smelting, and building blocks; encroachment and the multiblock framework; the full **reclamation ladder** (Grass Spreader, Vegetation, Farming, Tree Nursery, animals); **collectibles** (the Puzzle Cube, ported voxel curios, the Display Pedestal); the **demolition yard** and the **sewers** beneath it; four powered machines (Trommel, Separator, Pulverizer, Slag Furnace) plus the Cupola Furnace; the **compacted depths**, this world's Nether; and an in-game **guidebook** (Modonomicon).
 
-**The Recompile Workbench is in** - hold right-click with a found item to break it down into materials, on a timer, with the right tool. That is the *materials* half. The **knowledge** half (studying a recipe, then unlocking it) is the mod's distinct axis and is **not built yet**; its design is under review, because recipe-locking does not survive contact with modded autocrafting. Its data spine - the public `recompile:teardown` recipe type - has been in place since day one, so the schema will not be retrofitted.
+**Teardown is complete, both halves.** The Recompile Workbench breaks a found item down into materials - hold right-click, on a timer, with the right tool. The **knowledge** half is the mod's distinct axis and shipped 2026-08-02: tearing something down can yield an **Idea Fragment**, enough fragments about one thing craft into a **Blueprint**, and the Scrap Crafting Table runs a blueprint recipe only while that sheet is in reach. The long-open knowledge-vs-function question was decided in favour of knowledge. Its data spine - the public `recompile:teardown` recipe type - has been in place since day one, so the schema was never retrofitted.
 
-Next: the knowledge half of teardown (the mod's distinct axis, design under review) and the remaining reclamation rungs (trees, animals). See [`docs/roadmap.md`](docs/roadmap.md) for the build order and per-phase status.
+Next: **Phase 6, the full loop**, plus the balance pass (#36). See [`docs/roadmap.md`](docs/roadmap.md) for the build order and per-phase status.
 
 ## License
 
