@@ -458,6 +458,11 @@ prompt = "keep this brick face exactly as it is - same colour, same courses, sam
 kind = "block"
 backend = "ai"
 size = 16
+# TONE-MATCHED TO THE FRONT, at promote time so it costs no API call and does not touch the picked art.
+# As generated this face meant luma 149.5 against the front's 121.8 and the top's 127.3, which on a
+# placed block reads as one wall built from a paler brick than the other three. 0.83 lands it at ~124.
+# Re-check if the front is ever regenerated - tone is calibrated against neighbours, not in isolation.
+brightness = 0.83
 prompt = "the side wall of a small industrial sintering kiln, pale fire-brick masonry in irregular courses banded by two iron tie straps, soot staining, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
 
 [surface.sintering_kiln_top]
@@ -1257,7 +1262,7 @@ backend = "ai"
 size = 16
 # It has to read as a TOOL rather than as another lump, because it is the one object in a table
 # of materials. A rectangular block with a shaped hollow in its face is what carries that at 16px.
-prompt = "a small heavy rectangular steel forging die block, a shaped recessed cavity cut into its top face, worn rounded edges and scale discolouration from heat, dark grey tool steel with a polished lighter patch where metal was pressed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+prompt = "a thick rectangular slab of dark tool steel lying flat, seen from slightly above, with a shallow shaped hollow milled into its flat top face and four bolt holes at its corners, worn rounded edges, brown heat scale and a polished lighter patch inside the hollow. It is a solid squat block of metal: NOT an anvil, no horn, no narrow waist, no tapered base, no pointed end. simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # ---------------------------------------------------------------------------
 # THE COMPACTED DEPTHS: SCRAP CATEGORIES. E-waste at civilisational scale, not science
