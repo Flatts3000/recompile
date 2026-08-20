@@ -1,0 +1,26 @@
+{
+  "_comment": [
+    "COMPACTION, which is step one of two (#248). Powder metallurgy presses a powder into a fragile",
+    "green body and THEN sinters it; this is the press, and the Sintering Kiln is the firing.",
+    "",
+    "Four, and the number is load-bearing rather than tuned. Vanilla crafts one blaze rod into TWO",
+    "blaze powder, and a cooking recipe consumes exactly one item - so anything that turned powder",
+    "into a rod one-for-one would hand back more than it took and multiply without limit. At four,",
+    "a rod costs four powder and melts back to two: a loss in both directions, and no loop.",
+    "",
+    "A bench rather than a machine because pressing is the cheap half. The verb this feature adds is",
+    "sintering, and that is what the kiln does."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PP",
+    "PP"
+  ],
+  "key": {
+    "P": "minecraft:blaze_powder"
+  },
+  "result": {
+    "id": "recompile:blaze_briquette"
+  }
+}

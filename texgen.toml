@@ -452,6 +452,60 @@ vanilla_ref = "block/deepslate_tiles"
 # and a roach anyway: grey-blue chitin becomes warm reddish-brown.
 #
 # kind = "entity" tells the pipeline this is an atlas: no crop, no downscale, quantize only.
+
+# ---------------------------------------------------------------------------
+# THE SINTERING KILN (#248). A KILN, not a furnace, and the art has to carry that difference: it holds
+# a soak temperature rather than melting anything, so it reads as refractory brick with a glowing slot
+# rather than as a crucible pouring. Deliberately warmer and duller than the Slag Furnace, which is
+# vitreous and black.
+# ---------------------------------------------------------------------------
+
+[surface.sintering_kiln_front]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "the front face of a small industrial sintering kiln, pale fire-brick masonry with a dark closed rectangular loading hatch low in the centre, heavy iron strap hinges, soot staining above the hatch, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
+
+[surface.sintering_kiln_front_on]
+kind = "block"
+backend = "ai"
+size = 16
+# THE LIT FACE IS THE COLD FACE PLUS HEAT, composited - the lesson the Cupola paid for (owner,
+# 2026-08-19). Generated on its own, or even handed the cold face via `reference` alone, the model
+# repaints the brick with its own courses and tone, and two states of one machine that disagree about
+# their own material read as two different blocks. `glow_from` keeps every non-glowing pixel of the
+# cold tile by construction and promote fails the build if the re-quantize moves them.
+#
+# `match_hue` is deliberately absent and must stay absent: it locks a face to the body palette, which
+# is right for a cold face and exactly backwards for anything that glows.
+glow_from = "sintering_kiln_front"
+reference = "sintering_kiln_front"
+prompt = "keep this brick face exactly as it is - same colour, same courses, same soot, same iron straps - and change only one thing: the rectangular hatch low in the centre is now glowing from within, a deep orange heat behind it throwing a faint warm glow onto the brick immediately around the opening and fading out within a few pixels. It is a soak heat rather than a fire, so no flames and no yellow core. Everything outside that glow is untouched. muted except the heat, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+
+[surface.sintering_kiln_side]
+kind = "block"
+backend = "ai"
+size = 16
+# TONE-MATCHED TO THE FRONT, at promote time so it costs no API call and does not touch the picked art.
+# As generated this face meant luma 149.5 against the front's 121.8 and the top's 127.3, which on a
+# placed block reads as one wall built from a paler brick than the other three. 0.83 lands it at ~124.
+# Re-check if the front is ever regenerated - tone is calibrated against neighbours, not in isolation.
+brightness = 0.83
+prompt = "the side wall of a small industrial sintering kiln, pale fire-brick masonry in irregular courses banded by two iron tie straps, soot staining, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
+
+[surface.sintering_kiln_top]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "the top of a small industrial sintering kiln seen from directly above, pale fire-brick capped by a soot-blackened iron plate with a small round vent, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
+
+[surface.blaze_briquette]
+kind = "item"
+backend = "ai"
+size = 16
+# It must read as PRESSED rather than as a lump: flat faces and sharp edges are what say a die squeezed
+# it, and that is the whole story of the item.
+prompt = "a small pressed briquette of blaze powder, a squat rectangular block of compacted glowing orange-yellow granules with flat pressed faces and crisp edges, faint dark seams where the press closed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 [surface.roach]
 kind = "entity"
 backend = "retint"
@@ -1208,7 +1262,7 @@ backend = "ai"
 size = 16
 # It has to read as a TOOL rather than as another lump, because it is the one object in a table
 # of materials. A rectangular block with a shaped hollow in its face is what carries that at 16px.
-prompt = "a small heavy rectangular steel forging die block, a shaped recessed cavity cut into its top face, worn rounded edges and scale discolouration from heat, dark grey tool steel with a polished lighter patch where metal was pressed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+prompt = "a thick rectangular slab of dark tool steel lying flat, seen from slightly above, with a shallow shaped hollow milled into its flat top face and four bolt holes at its corners, worn rounded edges, brown heat scale and a polished lighter patch inside the hollow. It is a solid squat block of metal: NOT an anvil, no horn, no narrow waist, no tapered base, no pointed end. simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
 # ---------------------------------------------------------------------------
 # THE COMPACTED DEPTHS: SCRAP CATEGORIES. E-waste at civilisational scale, not science

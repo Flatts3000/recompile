@@ -132,6 +132,14 @@ public class RecompileJeiPlugin implements IModPlugin {
         RecipeType.create(Recompile.MOD_ID, "vitrifying", SalvageRecipe.class);
 
     /**
+     * Sintering (#248) - the fifth verb, and invisible without this for the same reason vitrifying
+     * was: JEI shows vanilla-typed recipes for free and a modded {@code RecipeType} is not one. A
+     * player holding a Blaze Briquette would otherwise be told nothing fires it.
+     */
+    static final RecipeType<SalvageRecipe> SINTERING =
+        RecipeType.create(Recompile.MOD_ID, "sintering", SalvageRecipe.class);
+
+    /**
      * Hydrating a Dry Clay Body in a water cauldron - the last step of the clay chain (#115).
      *
      * <p><b>This exists because the step is not a recipe.</b> It is a {@code CauldronInteraction}
@@ -196,6 +204,10 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SalvageCategory(VITRIFYING, Component.translatable("jei.recompile.vitrifying"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SLAG_FURNACE.get())), false,
                 com.flatts.recompile.compat.VitrifyingData.all().stream()
+                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            new SalvageCategory(SINTERING, Component.translatable("jei.recompile.sintering"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SINTERING_KILN.get())), false,
+                com.flatts.recompile.compat.SinteringData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
@@ -403,12 +415,23 @@ public class RecompileJeiPlugin implements IModPlugin {
         // obsidian, so a player who cannot see it here has no way to learn the chain exists short of
         // reading the guidebook cover to cover.
         List<SalvageRecipe> vitrifying = new ArrayList<>();
-        for (com.flatts.recompile.compat.VitrifyingData.Entry entry
+        for (com.flatts.recompile.compat.CookingRecipeData.Entry entry
                 : com.flatts.recompile.compat.VitrifyingData.all()) {
             vitrifying.add(new SalvageRecipe(entry.inputs(), entry.outputs()));
         }
         if (!vitrifying.isEmpty()) {
             registration.addRecipes(VITRIFYING, vitrifying);
+        }
+
+        // Sintering, same shape. Its one recipe is the only route to a blaze rod outside a fortress,
+        // and therefore to a brewing stand and every potion behind it.
+        List<SalvageRecipe> sintering = new ArrayList<>();
+        for (com.flatts.recompile.compat.CookingRecipeData.Entry entry
+                : com.flatts.recompile.compat.SinteringData.all()) {
+            sintering.add(new SalvageRecipe(entry.inputs(), entry.outputs()));
+        }
+        if (!sintering.isEmpty()) {
+            registration.addRecipes(SINTERING, sintering);
         }
 
         // The Cupola's own rows, carrying the slag vanilla Blasting cannot draw.
@@ -505,6 +528,14 @@ public class RecompileJeiPlugin implements IModPlugin {
             com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_RECIPE_COUNT,
             com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_INV_START,
             com.flatts.recompile.content.menu.SlagFurnaceMenu.TRANSFER_INV_COUNT);
+        registration.addRecipeTransferHandler(
+            com.flatts.recompile.content.menu.SinteringKilnMenu.class,
+            com.flatts.recompile.registry.RCMenus.SINTERING_KILN.get(),
+            SINTERING,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_RECIPE_START,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_RECIPE_COUNT,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_INV_START,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_INV_COUNT);
     }
 
     /**
@@ -553,6 +584,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(RCItems.SEPARATOR.get()), SEPARATING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.PULVERIZER.get()), PULVERIZING);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SLAG_FURNACE.get()), VITRIFYING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SINTERING_KILN.get()), SINTERING);
         // The Burn Barrel is NOT a general smelting station - it burns refuse only, so it is the catalyst
         // for its own category, which lists exactly what it takes.
         registration.addRecipeCatalyst(new ItemStack(RCItems.BURN_BARREL.get()), BURNING);

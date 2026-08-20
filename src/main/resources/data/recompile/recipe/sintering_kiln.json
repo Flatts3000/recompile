@@ -1,0 +1,27 @@
+{
+  "_comment": [
+    "The Sintering Kiln (#248). Brick rather than steel, and that is the point of the machine:",
+    "sintering holds a compact BELOW its melting point, so the shell does not have to survive a",
+    "melt the way the Slag Furnace's does. A kiln is refractory lining, not a crucible.",
+    "",
+    "It still costs a Bulb, because holding a soak temperature means watching one - and the Bulb is",
+    "a component the depths and the household stream both supply.",
+    "",
+    "Cost belongs to the balance pass (#36); the shape belongs here."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB",
+    "BLB",
+    "BSB"
+  ],
+  "key": {
+    "B": "minecraft:bricks",
+    "L": "recompile:bulb",
+    "S": "recompile:steel_offcut"
+  },
+  "result": {
+    "id": "recompile:sintering_kiln"
+  }
+}

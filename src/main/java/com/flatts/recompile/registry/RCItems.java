@@ -594,6 +594,25 @@ public final class RCItems {
     /** The Slag Furnace (#236): the only machine that vitrifies, and so the only route to obsidian. */
     public static final DeferredItem<BlockItem> SLAG_FURNACE =
         ITEMS.registerSimpleBlockItem("slag_furnace", RCBlocks.SLAG_FURNACE);
+
+    /** The Sintering Kiln (#248): the fifth verb, and the first that puts something back together. */
+    public static final DeferredItem<BlockItem> SINTERING_KILN =
+        ITEMS.registerSimpleBlockItem("sintering_kiln", RCBlocks.SINTERING_KILN);
+
+    /**
+     * A Blaze Briquette: four blaze powder pressed into one compact, and the Sintering Kiln's feed.
+     *
+     * <p><b>It exists so that a cooking recipe cannot become an infinite loop.</b> Vanilla crafts one
+     * blaze rod into TWO blaze powder, and a cooking recipe consumes exactly one item - so a direct
+     * {@code powder -> rod} recipe would hand back more than it took and multiply forever. Four powder
+     * to a briquette makes a rod cost four and give back two, which loses in both directions.
+     *
+     * <p>The step is not a workaround, it is the rest of the real process. Powder metallurgy compacts
+     * a green body first and sinters it second, and a green compact is famously fragile until it is
+     * fired - which is exactly what a briquette of blaze powder should feel like.
+     */
+    public static final DeferredItem<Item> BLAZE_BRIQUETTE =
+        ITEMS.registerItem("blaze_briquette", Item::new);
     /**
      * The Roach's spawn egg (#78). Not a convenience - an entity with no egg cannot be placed by hand in
      * creative, which is the loop this whole feature gets tuned through.

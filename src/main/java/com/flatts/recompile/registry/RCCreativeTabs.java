@@ -110,6 +110,8 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SCRAP_BIN.get());
                     output.accept(RCItems.BURN_BARREL.get());
                     output.accept(RCItems.SLAG_FURNACE.get());
+                    output.accept(RCItems.SINTERING_KILN.get());
+                    output.accept(RCItems.BLAZE_BRIQUETTE.get());
                     output.accept(RCItems.CUPOLA_FURNACE.get());
 
                     // --- 7. Knowledge (#95): fragments, the sheets they become, what they unlock ---

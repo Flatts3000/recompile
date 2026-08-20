@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
 import com.flatts.recompile.content.recipe.PulverizingRecipe;
+import com.flatts.recompile.content.recipe.SinteringRecipe;
 import com.flatts.recompile.content.recipe.VitrifyingRecipe;
 import com.flatts.recompile.content.recipe.SeparatingRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
@@ -107,6 +108,18 @@ public final class RCRecipeTypes {
     public static final Supplier<RecipeSerializer<VitrifyingRecipe>> VITRIFYING_SERIALIZER =
         RECIPE_SERIALIZERS.register("vitrifying",
             () -> new RecipeSerializer<>(VitrifyingRecipe.CODEC, VitrifyingRecipe.STREAM_CODEC));
+
+    /**
+     * {@code recompile:sintering} (#248) - the fifth verb, and the first that consolidates rather than
+     * reduces. See {@link SinteringRecipe} for why it could not be any of the other four.
+     */
+    public static final Supplier<RecipeType<SinteringRecipe>> SINTERING =
+        RECIPE_TYPES.register("sintering", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "sintering")));
+
+    public static final Supplier<RecipeSerializer<SinteringRecipe>> SINTERING_SERIALIZER =
+        RECIPE_SERIALIZERS.register("sintering",
+            () -> new RecipeSerializer<>(SinteringRecipe.CODEC, SinteringRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

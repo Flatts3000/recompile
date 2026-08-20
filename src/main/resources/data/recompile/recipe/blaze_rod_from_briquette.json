@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "THE FIFTH VERB, and the only recipe of its type today (#248).",
+    "",
+    "Blaze powder cannot be melted - it is already fire - so the honest operation is sintering:",
+    "holding a pressed compact below its melting point until the particles fuse into a solid. That",
+    "is how powder metallurgy makes rod stock, and it is a different thing from vitrifying, which",
+    "takes a solid to a glass.",
+    "",
+    "What it unlocks is larger than one item. A brewing stand needs a blaze rod, so every potion in",
+    "the game sat behind this, and the fortresses in the compacted depths were the only way to one.",
+    "",
+    "Time and experience are first-pass; #36 owns them."
+  ],
+  "type": "recompile:sintering",
+  "category": "misc",
+  "cookingtime": 250,
+  "experience": 0.2,
+  "ingredient": "recompile:blaze_briquette",
+  "result": {
+    "id": "minecraft:blaze_rod"
+  }
+}
