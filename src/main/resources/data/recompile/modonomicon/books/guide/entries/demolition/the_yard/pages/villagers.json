@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "villagers",
+  "sort_number": 1,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.demolition.the_yard.villagers.text",
+  "title": "book.recompile.guide.demolition.the_yard.villagers.title"
+}

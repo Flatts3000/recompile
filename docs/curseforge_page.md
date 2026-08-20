@@ -195,9 +195,10 @@ The overworld is a dump you clear. The Nether is a dump you mine.
 - **Demolition yard** - rubble, steel beams, a Cutting Torch, reinforced concrete. Some of its
   sand comes up red, stained by the rebar rusting in it, and that is the only red sand there is.
 - **The only villagers in the world** are the zombie villagers out in the yard. There are no
-  villages here. Cure one and you have the only trade in the game, and the only emeralds - but the
-  cure needs a brewing stand, so it needs a blaze rod, so it needs the Nether. Emeralds are an endgame
-  currency here rather than an early one.
+  villages here. Cure one and you have the only villager you will ever trade with, and the only
+  emeralds. Weakness can be brewed or thrown at you by a witch, which spawns out here at the same
+  rarity; the golden apple is the part that costs, since gold is ground-up circuit boards blasted in a
+  Cupola and the apple wants an oak.
 - **Netherite** - the scrap is in the depths, and a Worn Forging Die found down there teaches the
   smithing pattern vanilla will only sell you out of a bastion chest.
 - **Guidebook** - in-game, via Modonomicon. Multiblock entries have 3D pages that project the build
