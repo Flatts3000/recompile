@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "A SENSOR listens and answers in redstone, so redstone is what it is built around.",
+    "",
+    "Vanilla ships no recipe for one - a sensor is deep dark generation only - so this is the whole",
+    "route to it in this world, and to the calibrated sensor behind it (that one IS vanilla: a sensor",
+    "plus three amethyst, and amethyst already comes off the Separator)."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PPP",
+    "PXP",
+    "PPP"
+  ],
+  "key": {
+    "P": "recompile:sculk_powder",
+    "X": "minecraft:redstone"
+  },
+  "result": {
+    "id": "minecraft:sculk_sensor"
+  }
+}

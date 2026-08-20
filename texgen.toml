@@ -1271,6 +1271,27 @@ prompt = "a thick rectangular slab of dark tool steel lying flat, seen from slig
 # because the buried world has to stay recognisably ours.
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# ANCIENT SCULK (#266). The one deep-dark thing in this world, and it has to read as ALIVE against a
+# dimension of dead material - the waste is warm and oily, the rubble is burnt and glassy, and this is
+# the only thing down there that grew. Vanilla sculk's blue-green bioluminescence is the cue a player
+# already knows; darker and older than vanilla's, because this seam has been buried under a city.
+# ---------------------------------------------------------------------------
+
+[surface.ancient_sculk]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a block of ancient sculk growth, very dark blue-black organic matter with a fibrous veined surface, faint blue-green bioluminescent tendrils threaded through it glowing softly, wet and alive, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
+
+[surface.sculk_powder]
+kind = "item"
+backend = "ai"
+size = 16
+# A powder, not a lump - loose grains with a faint glow, so it reads as ground-up sculk rather than a
+# small piece of the block.
+prompt = "a small loose heap of dark blue-black powder, fine granular texture, a faint blue-green glow coming from within the grains, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.lignite]
 kind = "item"
 backend = "ai"

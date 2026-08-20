@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "A SHRIEKER is built around soul sand, which the compacted depths already supply as clumps out of",
+    "Slag Rubble. The thing it calls is not something this world can produce, and that is fine - the",
+    "block is a redstone component here rather than a summoning ritual."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PPP",
+    "PXP",
+    "PPP"
+  ],
+  "key": {
+    "P": "recompile:sculk_powder",
+    "X": "minecraft:soul_sand"
+  },
+  "result": {
+    "id": "minecraft:sculk_shrieker"
+  }
+}

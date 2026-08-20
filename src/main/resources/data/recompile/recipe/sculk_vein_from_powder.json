@@ -1,0 +1,14 @@
+{
+  "_comment": [
+    "Veins are a skin rather than a block, so one powder spreads further."
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "recompile:sculk_powder"
+  ],
+  "result": {
+    "id": "minecraft:sculk_vein",
+    "count": 2
+  }
+}

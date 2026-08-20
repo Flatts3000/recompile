@@ -1,0 +1,39 @@
+{
+  "_comment": [
+    "Three to five powder a block. The block itself never drops - it is a seam, not a building",
+    "material, and handing it back would let a player carry the deep dark around as a block.",
+    "",
+    "requiresCorrectToolForDrops on the block plus #minecraft:needs_diamond_tool is what makes this",
+    "yield nothing to a copper or iron sledgehammer. There is no tool condition in this table",
+    "because there does not need to be one: the tier gate is a property of the block.",
+    "",
+    "Counts first-pass; #36 owns them."
+  ],
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:sculk_powder",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3.0,
+                "max": 5.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
