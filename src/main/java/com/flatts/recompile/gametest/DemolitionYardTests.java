@@ -74,6 +74,21 @@ final class DemolitionYardTests {
         return total;
     }
 
+    /** One biome's spawn entry for an entity type, or null if it does not list one. */
+    private static net.minecraft.util.random.Weighted<
+            net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData> spawnEntry(
+            net.minecraft.world.level.biome.Biome biome,
+            net.minecraft.world.entity.EntityType<?> type) {
+        for (var category : net.minecraft.world.entity.MobCategory.values()) {
+            for (var entry : biome.getMobSettings().getMobs(category).unwrap()) {
+                if (entry.value().type() == type) {
+                    return entry;
+                }
+            }
+        }
+        return null;
+    }
+
     static void register() {
         // Sifting rubble bare-hand drops stone shards, then the pile crumbles - the stone entry path.
         RCGameTests.test("rubble_sift_yields_stone_shards", 40, helper -> {
@@ -95,6 +110,53 @@ final class DemolitionYardTests {
                 }
             }
             helper.assertTrue(shards > 0, "sifting rubble must drop at least one stone shard, got " + shards);
+            helper.succeed();
+        });
+
+        // THE ONLY VILLAGER IN THE WORLD STARTS HERE (#227, owner 2026-08-20).
+        //
+        // Emeralds sat behind villagers and villagers sat behind nothing at all. This world generates
+        // no villages, and the natural assumption - that a zombie has some chance of spawning as a
+        // zombie villager - is FALSE in modern Java: `zombie_villager` is its own biome spawner entry
+        // at weight 5 beside zombie's 90, not a conversion roll. The yard listed zombie, skeleton,
+        // spider and creeper, so there was no zombie villager anywhere, and therefore no villager, and
+        // therefore no emerald.
+        //
+        // Everything downstream of the cure was already reachable when this shipped, which is what
+        // made one spawner entry enough: a brewing stand needs a blaze rod (the Sintering Kiln, #248),
+        // a glass bottle is a find, sugar comes off the Hydroponics Bay's seedling pool, spider eyes
+        // and gunpowder come from this same biome's own spiders and creepers, and a golden apple is
+        // e-scrap gold plus an apple off a nursery oak.
+        //
+        // Asserted AGAINST VANILLA rather than against the literal 5, because the owner's instruction
+        // was "in the same fashion as they do in the overworld in vanilla" - so the claim is parity,
+        // and a test that hardcodes the number would still pass if vanilla's changed underneath it.
+        RCGameTests.test("the_yard_spawns_zombie_villagers_the_way_vanilla_does", 20, helper -> {
+            var biomes = helper.getLevel().registryAccess()
+                .lookupOrThrow(net.minecraft.core.registries.Registries.BIOME);
+
+            var yard = biomes.getOrThrow(net.minecraft.resources.ResourceKey.create(
+                net.minecraft.core.registries.Registries.BIOME,
+                Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "demolition_yard"))).value();
+            var plains = biomes.getOrThrow(net.minecraft.world.level.biome.Biomes.PLAINS).value();
+
+            var ours = spawnEntry(yard, net.minecraft.world.entity.EntityType.ZOMBIE_VILLAGER);
+            var vanilla = spawnEntry(plains, net.minecraft.world.entity.EntityType.ZOMBIE_VILLAGER);
+
+            helper.assertTrue(vanilla != null,
+                "vanilla plains does not list a zombie villager, so this test has nothing to compare "
+                    + "against and its premise is wrong");
+            helper.assertTrue(ours != null,
+                "the demolition yard does not spawn zombie villagers, so there is no villager in this "
+                    + "world and no emerald behind one");
+            helper.assertTrue(ours.weight() == vanilla.weight(),
+                "weight " + ours.weight() + " against vanilla's " + vanilla.weight()
+                    + " - the ruling was to match the overworld, not to pick a number");
+            helper.assertTrue(ours.value().minCount() == vanilla.value().minCount()
+                    && ours.value().maxCount() == vanilla.value().maxCount(),
+                "pack size " + ours.value().minCount() + "-" + ours.value().maxCount()
+                    + " against vanilla's " + vanilla.value().minCount() + "-"
+                    + vanilla.value().maxCount());
             helper.succeed();
         });
 
