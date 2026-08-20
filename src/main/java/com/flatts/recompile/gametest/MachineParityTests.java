@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
+import com.flatts.recompile.registry.RCRecipeTypes;
 import com.flatts.recompile.registry.RCTags;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,52 @@ final class MachineParityTests {
     }
 
     static void register() {
+        // NO GUI-LESS MACHINE RECIPE TAKES MORE THAN ONE INPUT (owner, 2026-08-19).
+        //
+        // The reasoning is a property of this whole machine family rather than of any one recipe, which
+        // is why the rule lives here. These machines have no GUI and are not Containers: there is
+        // nothing to open and nothing to take back out. So a feed the recipe cannot use yet is
+        // invisible and unrecoverable by any means except breaking the block - and it is the NORMAL
+        // state rather than an edge case, because a recipe wanting four leaves a remainder whenever the
+        // feed is not a multiple of four, and the pull streams hand their scrap out one item at a time.
+        //
+        // It was found the hard way. separating_nether_wart shipped at count 4 and the owner called it
+        // dangerous on sight of its JEI page; the Separator was then measured holding a three-of-four
+        // remainder at the head with a full queue behind it and producing nothing at all.
+        //
+        // The machines still refuse to BRICK on a count above one, because this schema is public and a
+        // pack can ship whatever it likes - both head scans skip a slot they cannot run rather than
+        // stalling on it. This test binds the recipes THIS MOD ships, which is the half the ruling is
+        // about.
+        RCGameTests.test("no_gui_less_machine_recipe_takes_more_than_one_input", 20, helper -> {
+            List<String> offenders = new ArrayList<>();
+            int checked = 0;
+            var recipes = helper.getLevel().recipeAccess();
+
+            for (var holder : recipes.recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
+                checked++;
+                if (holder.value().count() > 1) {
+                    offenders.add(holder.id() + " wants " + holder.value().count());
+                }
+            }
+            for (var holder : recipes.recipeMap().byType(RCRecipeTypes.PULVERIZING.get())) {
+                checked++;
+                if (holder.value().count() > 1) {
+                    offenders.add(holder.id() + " wants " + holder.value().count());
+                }
+            }
+
+            // The sweep must prove it looked at something: no recipes loaded would otherwise pass as
+            // loudly as every recipe obeying the rule.
+            helper.assertTrue(checked >= 12,
+                "only " + checked + " GUI-less machine recipes loaded, so this sweep is not covering"
+                    + " the recipe types it names");
+            helper.assertTrue(offenders.isEmpty(),
+                "these feed a machine with no GUI and no way to retrieve a remainder, so anything short"
+                    + " of a full batch is invisible and unrecoverable: " + offenders);
+            helper.succeed();
+        });
+
         // A MACHINE THAT HOLDS YOUR MATERIAL MUST BE ABLE TO SHOW IT.
         //
         // None of these has a screen and none is a Container, so Jade is the only surface that can say

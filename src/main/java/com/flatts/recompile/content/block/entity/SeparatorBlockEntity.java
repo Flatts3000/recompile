@@ -54,6 +54,13 @@ import org.jspecify.annotations.Nullable;
  * <p><b>Progress is banked against the head of the queue.</b> Change what is at the head and the run
  * resets; if the power runs out the queue simply waits, the way a furnace with no fuel sits full and
  * cold. Everything queued drops on break, so the machine is never an item sink.
+ *
+ * <p><b>A slot the machine cannot run yet is skipped, not waited on.</b> A recipe wanting several of
+ * its input leaves a remainder whenever the feed is not a multiple of it, which is the ordinary state
+ * of a machine fed one item at a time out of a bin. That remainder parks where it is and the head scan
+ * moves past it, so the rest of the queue keeps running and the next matching item tops it up. Getting
+ * this wrong is severe rather than untidy <i>because</i> of the closed door above: with no GUI and no
+ * Container there is nothing to open and nothing to take back out.
  */
 public class SeparatorBlockEntity extends BlockEntity {
 
@@ -164,8 +171,12 @@ public class SeparatorBlockEntity extends BlockEntity {
             be.progress = 0;
             be.goal = 0;
             be.grinding = ItemStack.EMPTY;
-            be.feedHave = 0;
-            be.feedNeed = 0;
+            // NOT zeroed unconditionally. If the scan skipped an under-count slot, these carry what it
+            // was short of, so Jade can still show "needs 3 of 4" - the one line a player can act on,
+            // on a machine with no screen. They are 0 when nothing was skipped, which is the ordinary
+            // idle case and reads as "no feed" rather than as a near miss.
+            be.feedHave = be.skippedHave;
+            be.feedNeed = be.skippedNeed;
             be.stall(level, pos, state);
             return;
         }
@@ -189,8 +200,15 @@ public class SeparatorBlockEntity extends BlockEntity {
         be.feedHave = stack.getCount();
         be.feedNeed = match.value().count();
         if (stack.getCount() < be.feedNeed) {
-            // Queued, but not enough of it yet for a recipe a pack has set above 1. Wait, do not stall
-            // the whole machine - a later slot may well be ready.
+            // Defence in depth: headSlot already refuses an under-count slot, so reaching here means
+            // the queue changed under us within a tick. Hold rather than consume - a machine that ate
+            // a partial stack and gave nothing back is indistinguishable from one that lost it.
+            //
+            // This comment used to read "wait, do not stall the whole machine - a later slot may well
+            // be ready", which described the intended behaviour of code that did the opposite: it
+            // stalled and returned without ever looking at a later slot. It went unnoticed because
+            // every separating recipe shipped at count 1 until the compacted depths, so the branch
+            // was unreachable.
             be.stall(level, pos, state);
             return;
         }
@@ -217,6 +235,19 @@ public class SeparatorBlockEntity extends BlockEntity {
     }
 
     /**
+     * What the first slot SKIPPED for being under-count was holding, and how much it wanted. Zero when
+     * nothing was skipped.
+     *
+     * <p>These exist so that skipping does not silently take the machine's only explanation with it.
+     * When every queued slot is under-count the head scan returns -1, and the tick that follows used to
+     * zero feedHave/feedNeed - which made {@code SeparatorProvider}'s "needs 3 of 4" line unreachable
+     * and left Jade showing a queue with no reason beside it. That line is the only thing a player can
+     * act on, and this machine has no screen to fall back to.
+     */
+    private int skippedHave;
+    private int skippedNeed;
+
+    /**
      * The first slot holding something this machine can grind, or -1.
      *
      * <p>Also the self-heal: anything queued that no longer has a recipe is thrown out of the chute
@@ -225,13 +256,40 @@ public class SeparatorBlockEntity extends BlockEntity {
      * floor.
      */
     private int headSlot(ServerLevel level) {
+        skippedHave = 0;
+        skippedNeed = 0;
         for (int slot = 0; slot < queue.size(); slot++) {
             ItemStack stack = queue.get(slot);
             if (stack.isEmpty()) {
                 continue;
             }
-            if (accepts(level, stack)) {
-                return slot;
+            RecipeHolder<SeparatingRecipe> recipe = recipeFor(level, stack);
+            if (recipe != null) {
+                // ENOUGH OF IT, not merely something separable - and the difference is the normal case
+                // rather than an edge one. A recipe wanting four of its input leaves a remainder
+                // whenever the feed is not a multiple of four, and the pull streams hand their scrap
+                // out one item at a time, so a machine fed from a bin sits on a remainder most of the
+                // time. Returning that slot anyway stalled the machine ON it and starved everything
+                // behind it: three spare Rendered Organics in the head and a chest of Magnet Scrap
+                // parked on the chamber is a machine that drains the chest and separates none of it.
+                //
+                // This block has no GUI and is not a Container, so there was no way to see the 3-of-4
+                // and no way to take it back - the only exits were finding more of that exact item or
+                // breaking the block.
+                //
+                // Skipping is not dropping. mergeInto() fills a matching slot before taking an empty
+                // one, so the remainder is topped up by the next one that arrives and runs then. It
+                // waits its turn instead of holding the queue.
+                if (stack.getCount() >= recipe.value().count()) {
+                    return slot;
+                }
+                // Remember the FIRST one skipped, so that if nothing at all turns out to be runnable
+                // the machine can still say which number it is waiting for.
+                if (skippedNeed == 0) {
+                    skippedHave = stack.getCount();
+                    skippedNeed = recipe.value().count();
+                }
+                continue;
             }
             Block.popResource(level, SeparatorCoreBlock.outlet(level, worldPosition), stack.copy());
             // Dropped rather than delivered on purpose: this is the self-heal path for something a
