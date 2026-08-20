@@ -1,7 +1,11 @@
 # In-game guidebook - build spec
 
 > **Status: SHIPPED.** The book landed as seven chapters on 2026-07-27 (#29, PR #35) and has
-> grown to **ten categories**; an audit on 2026-08-02 (PR #105) found and filled twelve
+> **The map below lags the book.** It is the original contract and entries have been added without it
+> since - the sewers, clay, gold, the Trommel and the Pulverizer are all in the book and not in the
+> table. Read it as the plan it was, not as an inventory of what ships.
+>
+> grown to **eleven categories**; an audit on 2026-08-02 (PR #105) found and filled twelve
 > systems that had shipped without an entry, and the four multiblock render pages landed the
 > same week (#37, PR #111). This stays the contract for the work: the engine, the dependency
 > posture, the voice, the content map (every mechanic that deviates from vanilla), and
@@ -92,6 +96,7 @@ can slot content between. Ordered by discovery - the sequence a player actually 
 | 14 | **Collectibles** | The Puzzle Cube; Found curios; The Display Pedestal | Find nine Puzzle Cube pieces in the garbage and craft the cube (craft it with itself to scramble/solve). Rare whole finds (avocado, present, gold coin, toy car). The Display Pedestal floats and spins any item. **Recovered paintings** are six specific works found in Bulky Waste that keep their identity through break and replace, unlike a vanilla painting. |
 | 15 | **The Demolition Yard** | Travelling Out; Reinforced Concrete; Steel & the Cutting Torch; The Cupola Furnace | Biomes are placed by **distance from origin**, not climate: household is guaranteed within 512 blocks and the yard starts past it, so **travel is the gate**. A Sledgehammer is the only tool Reinforced Concrete answers to, and its sand is the **only sand in the world** (so the only glass). A Steel I-Beam only parts under a Cutting Torch, charged with Oily Rags (1 rag = 8 cuts, holds 64). Offcuts and rebar become iron **only** in a Cupola Furnace: these are blast recipes, so no ordinary furnace can run them and the Burn Barrel refuses metal outright. |
 | 16 | **Power & Automation** | Power; Solar Panel & Burner Generator; The Hydroponics Bay | Generators **push into whatever they touch** - no cable, no network. Each machine buffers its own, which is why it keeps going after its generator stops. Solar needs open sky and fades at dusk; the Burner burns anything a furnace would. The Hydroponics Bay needs water **and** power at once, keeps the one plant you give it, takes seed crops **as their seed**, and has a second harvest slot for byproducts. |
+| 18 | **The Compacted Depths** | Getting there; the solid fill; terrain from shards; scrap and which machine takes it; lignite and coal; the forging die and netherite | Added #252. Almost nothing in that dimension behaves like vanilla, which is the test this book applies. |
 | 17 | **Config & viewers** | Config toggles; JEI & Jade | The one entry that enumerates the config gates (gravity, encroachment, dimension lockout, ...) for pack authors. JEI's Sorting/Cutting/Prying categories and Jade's tool-hint / sort-progress tooltips surface the non-vanilla mechanics in-game. |
 
 ## Out of scope
