@@ -1,5 +1,9 @@
 plugins {
     id 'java'
+    // JaCoCo, added by the COVER pass. It instruments the JUnit layer only - see the jacocoTestReport
+    // block below for why the GameTests cannot be measured the same way, which matters because they
+    // are where most of this mod's behaviour is actually proven.
+    id 'jacoco'
     id 'net.neoforged.moddev' version '2.0.141'
     // CurseForgeGradle: wraps the CurseForge Upload API so `./gradlew publishCurseForge`
     // uploads the built jar. Mirrors the productive-frogs setup.
@@ -18,6 +22,16 @@ version = mod_version
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
 }
+
+// The JaCoCo agent, fetched as a plain dependency so a run task can point -javaagent at a real file.
+// The plugin's own internal configuration is not addressable from a moddev run block.
+configurations {
+    jacocoRuntimeAgent
+}
+dependencies {
+    jacocoRuntimeAgent "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
+}
+
 
 neoForge {
     version = neoforge_version
@@ -69,6 +83,18 @@ neoForge {
         // has no gameTestServer() convenience method, so set the type directly.
         gameTestServer {
             type.set('gameTestServer')
+            // COVERAGE FOR THE LAYER THAT ACTUALLY PROVES THIS MOD. GameTests run in their own server
+            // JVM, so the `test` task's JaCoCo sees none of them - and reading that report alone says
+            // content/block/entity is at 0.7% when in truth nearly every machine in it has in-world
+            // tests. Opt in with -PgameTestCoverage so a normal run is not slowed or altered.
+            if (project.hasProperty('gameTestCoverage')) {
+                jvmArguments.add(providers.provider {
+                    def agent = configurations.jacocoRuntimeAgent.singleFile
+                    def out = project.layout.buildDirectory.get().asFile
+                    "-javaagent:${agent}=destfile=${out}/jacoco/gameTest.exec," +
+                        "append=false,includes=com.flatts.recompile.*"
+                }.get())
+            }
         }
     }
 
@@ -155,6 +181,64 @@ tasks.named('test', Test) {
     testLogging {
         events 'passed', 'skipped', 'failed'
         exceptionFormat 'full'
+    }
+    finalizedBy tasks.named('jacocoTestReport')
+}
+
+/**
+ * Coverage for the JUnit layer.
+ *
+ * <p>READ THE NUMBER CAREFULLY. It measures `./gradlew test` only, and this mod proves most of its
+ * behaviour in GameTests, which run in a separate server JVM launched by moddev - so a class with
+ * thorough in-world coverage and no unit test reports 0% here. The report is a map of what the PURE
+ * layer touches, not a verdict on whether a class is tested.
+ *
+ * <p>Two whole packages are excluded because counting them makes the number meaningless rather than
+ * strict: `gametest` is test code that happens to live in src/main (GameTest registration requires
+ * it), and `client` never loads on the server the tests run on.
+ */
+/**
+ * THE NUMBER THAT MEANS SOMETHING: both layers at once.
+ *
+ * <p>Neither half is the truth on its own. `jacocoTestReport` sees only the JUnit tests and reports
+ * content/block/entity at under 1%, when almost every machine in that package has thorough in-world
+ * coverage. `gameTest.exec` sees only the GameTests and misses the pure logic the unit layer exists
+ * for. This merges them.
+ *
+ * <p>Run it as: {@code ./gradlew test runGameTestServer -PgameTestCoverage coverageReport}
+ */
+tasks.register('coverageReport', JacocoReport) {
+    group = 'verification'
+    description = 'Merged coverage across the JUnit layer and the in-world GameTests.'
+    dependsOn tasks.named('classes')
+    executionData.setFrom(fileTree(project.layout.buildDirectory.dir('jacoco')) {
+        include '*.exec'
+    })
+    sourceDirectories.setFrom(files('src/main/java'))
+    classDirectories.setFrom(files(sourceSets.main.output.classesDirs.files.collect {
+        fileTree(dir: it, exclude: [
+            'com/flatts/recompile/gametest/**',
+        ])
+    }))
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestReport {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                'com/flatts/recompile/gametest/**',
+                'com/flatts/recompile/client/**',
+            ])
+        }))
     }
 }
 
