@@ -257,7 +257,7 @@ An in-game **Modonomicon** book, `recompile:guide` (spec `docs/guidebook_spec.md
 `runtimeOnly` and `transitive = false` - the book is pure data, so the mod ships and runs without
 Modonomicon present, and the guide item's recipe is gated `mod_loaded: modonomicon`. **One rule
 decides content: if a mechanic deviates from vanilla it earns an entry, if it behaves exactly like
-vanilla it does not.** Nine categories today.
+vanilla it does not.** Ten categories today, the newest being the compacted depths (#252).
 
 **Layout:** `books/guide/{book.json, categories/, entries/<cat>/<entry>.json, entries/<cat>/<entry>/pages/}`.
 An entry does **not** list its pages - the `pages/` directory is scanned, so adding a page is adding
