@@ -304,7 +304,7 @@ dropped for ported real objects. Spec: [`collectibles_spec.md`](collectibles_spe
 ## Phase 2.16 - The Tree Nursery, reclamation rung 4  *(DONE 2026-07-27, design P2.4)* (#38, #40)
 
 Trees are machine-only: a global loot modifier (`StripSaplingsModifier`, P2.4-R2) strips saplings from
-every roll, so the player never holds one loose - the **Tree Nursery** is the sole forest source. It is a
+every roll, so the player never finds one - the **Tree Nursery** is the forest source. *(Narrowed 2026-08-20: a wandering trader sells saplings for emeralds, so this is now "no loot roll yields one" rather than an absolute. See `StripSaplingsModifier`.)* It is a
 **2x2x1 wall multiblock** (a core + a water tank on the bottom row, two solar panels on top) that raises a
 **vanilla sapling of the player's choice** from **water + Fertilizer + an Unknown Seedling** over a slow
 cook, and **glows while it works** (a furnace-shaped producer). Eight species (oak, birch, spruce, jungle,
@@ -428,10 +428,11 @@ Discovered as you climb tiers; leans on curation + sibling mods.
   and [`multiblock_system_spec.md`](multiblock_system_spec.md) - the machines are IE-style
   multiblocks and the spreader **consumes nothing** (its cost is the one-time build; P1.7-R's erosion
   is the ongoing pressure). Design background + rungs 2-4: [`reclamation_handoff.md`](reclamation_handoff.md).
-  **The nursery / tree planter is the only source of trees in the game** (P2.4-R2, shipped): saplings
-  are stripped from all loot, so they exist only already-planted and only where the planter puts them.
-  A "tree farm" is therefore a running planter, not hand-replanting; and **until the planter ships,
-  P1.7-R's rung-3 anchor is unreachable**, so the encroachment frontier currently has no permanent
+  **The nursery is the source of trees** (P2.4-R2, shipped as rung 4 in Phase 2.16): saplings are
+  stripped from all loot, so none is ever found. *(Narrowed 2026-08-20: a wandering trader sells saplings for emeralds, so this is now "no loot roll yields one" rather than an absolute. See `StripSaplingsModifier`.)*
+  A "tree farm" is therefore a running nursery, not hand-replanting. *(This entry also said "until the
+  planter ships, P1.7-R's rung-3 anchor is unreachable" - the nursery shipped 2026-07-27, so that
+  sentence outlived itself by a month.)* The encroachment frontier previously had no permanent
   stop. Correct for now (the world has no trees), but it makes the planter the load-bearing rung
   rather than the last one.
 - E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6).

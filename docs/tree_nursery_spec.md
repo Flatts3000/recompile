@@ -32,9 +32,9 @@ This machine hands the player sapling **items**, so it revises that decision. Th
 - **Keep the loot strip.** `StripSaplingsModifier` stays exactly as-is. Saplings still cannot be
   *found* - not in pulls, not in chests, not from a chopped tree's drops. The modifier strips loot;
   the nursery is a machine output, which the modifier never touches.
-- **The nursery becomes the *only* sapling source in the game.** That is precisely P2.4-R2 item 2's
-  intent ("the tree planter is the only source of trees"), preserved. Wood is still metered by a
-  machine you build and feed.
+- **The nursery becomes the only sapling source a player can reach without a villager.** That is
+  P2.4-R2 item 2's intent ("the tree planter is the only source of trees"), preserved where it
+  matters. Wood is still metered by a machine you build and feed. *(Narrowed 2026-08-20: a wandering trader sells saplings for emeralds, so this is now "no loot roll yields one" rather than an absolute. See `StripSaplingsModifier`.)*
 - **No self-perpetuating forest.** A chopped tree drops no sapling, so a tree farm is a *nursery
   running* (consuming water + Fertilizer + Unknown Seedling per sapling), not hand-replanting from
   drops. P2.4-R2 item 3's intent survives.
@@ -135,8 +135,8 @@ cosmetic win, so not now.)
 The mod's standing rule is **no new custom machine screen without recording a reversal** (CLAUDE.md;
 `design_decisions.md`). There is exactly one today: the Scrap Crafting Station's connected-storage
 panel. The nursery earns the second, and the justification is concrete: **species selection has no
-vanilla-screen analog**, and it cannot be an inserted-item template because saplings cannot be held as
-an input (the very lockout above). A picker means buttons; no `FurnaceMenu`/`ChestMenu` has them.
+vanilla-screen analog**, and it cannot be an inserted-item template because the player has no sapling to
+insert - the nursery is what produces them, so requiring one as input would be circular. A picker means buttons; no `FurnaceMenu`/`ChestMenu` has them.
 
 **Reuse the proven pattern**, scoped to this block:
 
