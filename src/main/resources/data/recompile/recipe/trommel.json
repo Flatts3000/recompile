@@ -1,16 +1,22 @@
 {
   "_comment": [
-    "The Trommel core. Demolition yard tier (owner, 2026-08-12), and the recipe says so: steel",
-    "is the yard's material and the Motor cannot be forged out of any quantity of scrap.",
+    "THE MOTOR SITS AT THE END OF THE DRUM, and that is what makes this recipe reachable.",
     "",
-    "The drum cells are Steel I-Beam and the stand is Machine Frame, supplied at assembly rather",
-    "than in this recipe - the multiblock is what the machine costs, this is just its brain."
+    "This was byte-identical to pulverizer.json from #197 - same pattern, same key, same five steel",
+    "offcuts, one motor and three plating. Two recipes that accept the same grid are one recipe: the",
+    "map yields one of them and the other simply cannot be crafted, with no error and a JEI page that",
+    "says it works. One of these two machines had been uncraftable in survival for four releases.",
+    "",
+    "The cost is deliberately unchanged - same items, same counts, only the arrangement moves - so this",
+    "is a reachability fix rather than a balance one. The arrangement is the honest one for each",
+    "machine: a trommel is a rotating drum driven from one END, while a pulverizer's rotor is central,",
+    "which is the SMS row the pulverizer keeps."
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
     "SSS",
-    "SMS",
+    "MSS",
     "PPP"
   ],
   "key": {

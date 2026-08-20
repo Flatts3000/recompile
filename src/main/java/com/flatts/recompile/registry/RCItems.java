@@ -611,11 +611,12 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("slag_furnace", RCBlocks.SLAG_FURNACE);
 
     /** The Sintering Kiln (#248): the fifth verb, and the first that puts something back together. */
-    public static final DeferredItem<BlockItem> ANCIENT_SCULK =
-        ITEMS.registerSimpleBlockItem("ancient_sculk", RCBlocks.ANCIENT_SCULK);
-
     public static final DeferredItem<BlockItem> SINTERING_KILN =
         ITEMS.registerSimpleBlockItem("sintering_kiln", RCBlocks.SINTERING_KILN);
+
+    /** Ancient Sculk (#266): the seam, in item form. See RCBlocks for why it needs a diamond hammer. */
+    public static final DeferredItem<BlockItem> ANCIENT_SCULK =
+        ITEMS.registerSimpleBlockItem("ancient_sculk", RCBlocks.ANCIENT_SCULK);
 
     /**
      * A Blaze Briquette: four blaze powder pressed into one compact, and the Sintering Kiln's feed.
