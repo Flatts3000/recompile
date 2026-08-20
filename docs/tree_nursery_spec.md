@@ -24,7 +24,7 @@ pack than a machine that plants for you.)
 
 ## The reversal - P2.4-R2 revised (saplings are made, never found)
 
-P2.4-R2 locked "**a player can never obtain a sapling as an item**" - narrowed on 2026-08-20 to "no loot roll yields one", because villagers (#227) brought a trader who sells them and #263 closed not-planned rather than curate trades - and enforced it with
+P2.4-R2 locked "**a player can never obtain a sapling as an item**" - narrowed on 2026-08-20 to "no loot roll yields one", because #227 brought the EMERALDS to buy one from a wandering trader (the traders themselves always spawned here - no village is needed) and #263 closed not-planned rather than curate trades - and enforced it with
 `StripSaplingsModifier`, a global loot modifier stripping `#minecraft:saplings` from every loot roll.
 This machine hands the player sapling **items**, so it revises that decision. The revision is
 **narrower than it looks**, and the load-bearing half of P2.4-R2 survives intact:
