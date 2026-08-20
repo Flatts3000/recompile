@@ -51,13 +51,19 @@ public final class RCSewerSpawns {
 
     @SubscribeEvent
     public static void onRegisterSpawnPlacements(RegisterSpawnPlacementsEvent event) {
-        // SLIME, NATURALLY, AND ONLY DOWN THERE.
+        // SLIME, NATURALLY, AND RELIABLY DOWN THERE.
         //
-        // Vanilla gives slime two routes and this world closes both: the surface route needs the biome
-        // in #minecraft:allows_surface_slime_spawns (swamps only) at y 50-70, and the slime-chunk route
-        // needs y < 40 in one chunk in ten. A sewer that had slimes in a tenth of its lower corridors
-        // and nowhere else is not "slimes live in the sewers", it is a coincidence the player cannot
-        // read.
+        // This said "AND ONLY DOWN THERE" until 2026-08-20, and that half is no longer true: the
+        // demolition yard's hostile list is now vanilla plains' entry for entry (#227), which includes
+        // slime at weight 100. Because this world's ground sits below y=40 everywhere, that opens
+        // vanilla's SLIME-CHUNK route in the yard - roughly one chunk in ten, at any light level.
+        //
+        // The relaxation below is still worth having, and its reason survives intact. Vanilla's two
+        // routes are the surface one (biome in #minecraft:allows_surface_slime_spawns, swamps only, y
+        // 50-70) and the chunk one (y < 40, one chunk in ten). A sewer that had slimes in a tenth of
+        // its lower corridors and nowhere else is not "slimes live in the sewers", it is a coincidence
+        // the player cannot read - so the sewer still gets a route of its own that does not depend on
+        // which chunk it was built in. What changed is that it is no longer the ONLY place they are.
         //
         // OR rather than REPLACE, so vanilla slimes are untouched everywhere else - swamps and slime
         // chunks keep working exactly as they do now. The added route is gated on actually being inside

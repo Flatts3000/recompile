@@ -544,7 +544,7 @@ locked. So they are finds, not farms.
   The trident is a prize, not a break.
 - **Frogs and turtles** are atmosphere and a payoff for a player who wanted life back.
 
-**Cobwebs and slime (decided 2026-08-02).** Both are sewer-exclusive, and a reachability closure
+**Cobwebs and slime (decided 2026-08-02; slime's exclusivity ended 2026-08-20).** Cobwebs are still sewer-exclusive. Slime is not: the demolition yard's hostile list became vanilla plains' entry for entry (#227), which lists slime, and this world's ground is below y=40 everywhere so the slime-chunk route is open there. The sewer keeps its own reliable route; it no longer keeps the monopoly. Originally, and a reachability closure
 confirms neither has any other route in this world.
 
 - **Cobwebs** generate in the corridors the way they do in a vanilla mineshaft, which this structure

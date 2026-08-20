@@ -158,7 +158,10 @@ Brick tunnels running with leachate, the first place in this world that was buil
 - **Decay follows the water** and **light follows the people**. Mossy and cracked brick gather at the
   waterline; the chamber and the shaft are lit and the corridors are not, because dark is where things
   spawn.
-- **Slimes live here and nowhere else.** Both vanilla routes to one need something this world does not
+- **Roaches live here and nowhere else.** Slimes did too until the demolition yard's hostile mobs were
+  brought in line with a vanilla plains; they are still far more reliable down here, because a sewer
+  gets them by being a sewer rather than by being one chunk in ten. Both vanilla routes to a slime need
+  something this world does not
   have.
 - An **echo shard** in a crate settled in the sump silt, one per sewer, and the only one anywhere.
 - **Leachate can drown you.** It does no damage on contact and still leaves you hungry.
