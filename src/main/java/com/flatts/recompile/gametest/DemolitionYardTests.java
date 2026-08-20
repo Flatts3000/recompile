@@ -98,57 +98,63 @@ final class DemolitionYardTests {
             helper.succeed();
         });
 
-        // RED SAND HAS A SOURCE, and eleven items sit behind it (#232, owner 2026-08-20).
+        // RED SAND HAS A SOURCE, AND ONLY THE ONE (#232, owner 2026-08-20).
         //
-        // Vanilla generates red sand in badlands and nowhere else, its block loot drops itself, and no
-        // recipe converts sand to red sand in either direction - so with no badlands the entire red
-        // sandstone family was unreachable. One loot entry closes all of it.
+        // Vanilla generates red sand in badlands, its block loot drops itself, and no recipe converts
+        // sand to red sand in either direction - so with no badlands the whole red sandstone family
+        // was unreachable. One loot entry closes it.
         //
-        // Asserted through the whole family rather than on the one item, because that is the actual
-        // claim: a source for red sand is only worth having if what depends on it becomes craftable.
-        // Read STATICALLY from the tables rather than by rolling - a weighted entry at 8% would need a
-        // great many rolls before absence meant anything, and a test that fails on an unlucky seed is
-        // worse than no test.
-        RCGameTests.test("red_sand_has_a_source_and_its_family_closes", 20, helper -> {
+        // The exclusivity half is asserted rather than asserted-about, because the shipped guidebook
+        // makes the claim to the player and a second source added later would make the book wrong
+        // silently. Same shape SewerLootTests uses for the echo shard: prove every table was READ
+        // first, because a table the classpath sweep could not see is exactly the case that would come
+        // back clean.
+        RCGameTests.test("red_sand_comes_from_reinforced_concrete_and_nowhere_else", 20, helper -> {
             ServerLevel level = helper.getLevel();
-            helper.assertTrue(LootSearch.anyTableCanDrop(level, Items.RED_SAND),
-                "no loot table can drop red sand, so the eleven items behind it are unreachable and "
-                    + "#232 is not fixed");
-
-            // It belongs with the sand and the gravel, which is the owner's ruling and also the only
-            // honest place for it: red sand is iron-stained sand, and reinforced concrete is aggregate
-            // cast around rebar that has been rusting in it.
-            var tables = LootSearch.tablesThatCanDrop(level, Items.RED_SAND);
-            helper.assertTrue(tables.stream().anyMatch(t -> t.contains("reinforced_concrete")),
+            var tables = new java.util.TreeSet<>(
+                LootSearch.tablesThatCanDrop(level, Items.RED_SAND));
+            var unread = LootSearch.tablesNotRead(level);
+            helper.assertTrue(unread.isEmpty(),
+                "these loot tables are in the registry but were not read, so a second source could sit "
+                    + "in one and this sweep would still come back clean: " + unread);
+            helper.assertTrue(tables.remove("recompile:blocks/reinforced_concrete"),
                 "red sand must come out of Reinforced Concrete, beside the sand and gravel it is a "
-                    + "stained fraction of. Found in: " + tables);
+                    + "stained fraction of. Tables that can drop it: " + tables);
+            helper.assertTrue(tables.isEmpty(),
+                "red sand has a second loot source, so the guidebook's claim about where it comes from "
+                    + "is no longer true: " + tables);
+            helper.succeed();
+        });
 
-            // And the family. Every one of these is a plain vanilla recipe off red sand, so if the
-            // source exists they all close - but that is the point worth pinning, since the source was
-            // added FOR them.
-            List<String> unreachable = new ArrayList<>();
-            for (Item item : List.of(Items.RED_SANDSTONE, Items.CHISELED_RED_SANDSTONE,
-                    Items.CUT_RED_SANDSTONE, Items.SMOOTH_RED_SANDSTONE,
-                    Items.RED_SANDSTONE_SLAB, Items.RED_SANDSTONE_STAIRS, Items.RED_SANDSTONE_WALL,
-                    Items.CUT_RED_SANDSTONE_SLAB, Items.SMOOTH_RED_SANDSTONE_SLAB,
-                    Items.SMOOTH_RED_SANDSTONE_STAIRS)) {
-                boolean made = false;
-                for (var holder : level.recipeAccess().recipeMap().values()) {
-                    for (var display : holder.value().display()) {
-                        if (display.result().resolveForFirstStack(
-                                net.minecraft.world.item.crafting.display.SlotDisplayContext
-                                    .fromLevel(level)).is(item)) {
-                            made = true;
-                        }
+        // AND THE FAMILY ACTUALLY HANGS OFF IT. The first version of this checked that the ten red
+        // sandstone items had a recipe at all, which is true on main and would stay true with the loot
+        // entry deleted - vanilla ships those recipes whether or not their input exists. It proved
+        // nothing about reachability while its failure message claimed to.
+        //
+        // The load-bearing question is the INGREDIENT side: does the thing at the bottom of the family
+        // actually consume red sand? If it does, a source for red sand is a source for all of it.
+        RCGameTests.test("the_red_sandstone_family_is_built_out_of_red_sand", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            boolean consumes = false;
+            for (var holder : level.recipeAccess().recipeMap().values()) {
+                boolean makesSandstone = false;
+                for (var display : holder.value().display()) {
+                    if (RecipeResults.produces(display.result(), Items.RED_SANDSTONE)) {
+                        makesSandstone = true;
                     }
                 }
-                if (!made) {
-                    unreachable.add(BuiltInRegistries.ITEM.getKey(item).toString());
+                if (!makesSandstone) {
+                    continue;
+                }
+                for (var ingredient : holder.value().placementInfo().ingredients()) {
+                    if (ingredient.test(new ItemStack(Items.RED_SAND))) {
+                        consumes = true;
+                    }
                 }
             }
-            helper.assertTrue(unreachable.isEmpty(),
-                "these have no recipe at all, so adding red sand did not close the family: "
-                    + unreachable);
+            helper.assertTrue(consumes,
+                "nothing turns red sand into red sandstone, so a source for red sand opens nothing and "
+                    + "the eleven items #232 is about stay unreachable");
             helper.succeed();
         });
 
