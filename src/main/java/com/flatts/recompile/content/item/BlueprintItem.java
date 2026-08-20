@@ -81,24 +81,6 @@ public class BlueprintItem extends Item {
         return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE);
     }
 
-    /**
-     * The sixth blueprint, and the first that gates a <b>vanilla</b> item rather than one of ours
-     * (#249).
-     *
-     * <p>Learned from a <b>Worn Forging Die</b> found in the compacted depths. It is the only net-new
-     * source of a Netherite Upgrade Smithing Template in this world: vanilla's single recipe for one
-     * consumes one, so a bastion chest is otherwise the only way in and netherite gear is unreachable
-     * by mining however much scrap you have.
-     *
-     * <p><b>{@code a_blueprint_result_has_no_other_route} still passes, and for the right reason.</b>
-     * That sweep skips a recipe which consumes the gated item and hands one back, on the grounds that
-     * a copy is not a source and net new items are what a gate is about. Vanilla's duplication is
-     * exactly that shape, so it is correctly ignored rather than needing an exception - the gate here
-     * really is the only way to make one that did not exist before.
-     */
-    public static final Identifier NETHERITE_UPGRADE =
-        Identifier.fromNamespaceAndPath("recompile", "netherite_upgrade");
-
     /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
     public static final Identifier CLEAN_MATTRESS =
         Identifier.fromNamespaceAndPath("recompile", "clean_mattress");
@@ -155,4 +137,22 @@ public class BlueprintItem extends Item {
 
     public static final Identifier BULB =
         Identifier.fromNamespaceAndPath("recompile", "bulb");
+
+    /**
+     * The sixth blueprint, and the first that gates a <b>vanilla</b> item rather than one of ours
+     * (#249).
+     *
+     * <p>Learned from a <b>Worn Forging Die</b> found in the compacted depths. It is the only net-new
+     * source of a Netherite Upgrade Smithing Template in this world: vanilla's single recipe for one
+     * consumes one, so a bastion chest is otherwise the only way in and netherite gear is unreachable
+     * by mining however much scrap you have.
+     *
+     * <p><b>{@code a_blueprint_result_has_no_other_route} still passes, and for the right reason.</b>
+     * That sweep skips a recipe which consumes the gated item and hands one back, on the grounds that
+     * a copy is not a source and net new items are what a gate is about. Vanilla's duplication is
+     * exactly that shape, so it is correctly ignored rather than needing an exception - the gate here
+     * really is the only way to make one that did not exist before.
+     */
+    public static final Identifier NETHERITE_UPGRADE =
+        Identifier.fromNamespaceAndPath("recompile", "netherite_upgrade");
 }

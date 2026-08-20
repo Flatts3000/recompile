@@ -34,15 +34,6 @@ final class BlueprintTests {
     }
 
     static void register() {
-        // THE GATE. Nothing in the crafting recipe manager may produce a Clean Mattress: the blueprint
-        // bench is the only route, and that is the entire proposition of the feature.
-        //
-        // READ THE SCOPE BEFORE TRUSTING A GREEN HERE. This sweeps CRAFTING routes, via display(), and
-        // TeardownRecipe does not implement display() - so it is structurally blind to salvage. That is
-        // correct for the two blueprints that are genuinely exclusive, and says nothing at all about the
-        // Pump, which is deliberately reachable both ways (#160). A component that gains a blueprint
-        // while staying a find passes this test without being tested by it; ComponentBlueprintTests is
-        // where that pairing is actually pinned.
         // NETHERITE GEAR IS REACHABLE BY MINING (#249), and this is the whole claim in one test.
         //
         // Vanilla ships exactly one recipe for a Netherite Upgrade Smithing Template and it CONSUMES
@@ -75,16 +66,30 @@ final class BlueprintTests {
                     + BlueprintItem.NETHERITE_UPGRADE + ", so the blueprint a player can earn does not "
                     + "open it");
 
-            // 2. a teardown teaches that blueprint
+            // 2. a teardown teaches that blueprint, at a chance that can actually fire
             List<String> teachers = new ArrayList<>();
+            List<String> problems = new ArrayList<>();
             for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
                     : recipes.recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
                 for (var taught : holder.value().teaches()) {
-                    if (BlueprintItem.NETHERITE_UPGRADE.equals(taught.recipe())) {
-                        teachers.add(holder.id().toString());
+                    if (!BlueprintItem.NETHERITE_UPGRADE.equals(taught.recipe())) {
+                        continue;
                     }
+                    // CHANCE, not just the id. TeachEntry's codec defaults chance to 0.0 and the bench
+                    // skips any entry at or below zero, so a `teaches` block that omits the field is
+                    // declared, loads without complaint, appears in this list, and grants a fragment
+                    // never. Matching on the id alone would go green on exactly the silent break this
+                    // test exists to catch.
+                    if (taught.chance() <= 0.0F) {
+                        problems.add(holder.id() + " declares it at chance " + taught.chance()
+                            + ", so the bench will never grant a fragment for it");
+                        continue;
+                    }
+                    teachers.add(holder.id().toString());
                 }
             }
+            helper.assertTrue(problems.isEmpty(),
+                "declared but dead: " + problems);
             helper.assertTrue(!teachers.isEmpty(),
                 "no teardown teaches " + BlueprintItem.NETHERITE_UPGRADE + ", so the blueprint cannot "
                     + "be earned and the gated recipe above is unreachable");
@@ -105,6 +110,15 @@ final class BlueprintTests {
             helper.succeed();
         });
 
+        // THE GATE. Nothing in the crafting recipe manager may produce a Clean Mattress: the blueprint
+        // bench is the only route, and that is the entire proposition of the feature.
+        //
+        // READ THE SCOPE BEFORE TRUSTING A GREEN HERE. This sweeps CRAFTING routes, via display(), and
+        // TeardownRecipe does not implement display() - so it is structurally blind to salvage. That is
+        // correct for the two blueprints that are genuinely exclusive, and says nothing at all about the
+        // Pump, which is deliberately reachable both ways (#160). A component that gains a blueprint
+        // while staying a find passes this test without being tested by it; ComponentBlueprintTests is
+        // where that pairing is actually pinned.
         RCGameTests.test("a_blueprint_result_has_no_other_route", 20, helper -> {
             // EVERY blueprint-gated result, not one named item. The Hydroponics Bay moved behind a
             // blueprint after this test was written, and a mattress-only sweep would have said nothing
