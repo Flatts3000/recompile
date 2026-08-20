@@ -1201,6 +1201,14 @@ palette = ["#dcdcd8", "#e8e8e4", "#c8c8c4", "#f0f0ec"]
 # because the buried world has to stay recognisably ours.
 # ---------------------------------------------------------------------------
 
+[surface.worn_forging_die]
+kind = "item"
+backend = "ai"
+size = 16
+# It has to read as a TOOL rather than as another lump, because it is the one object in a table
+# of materials. A rectangular block with a shaped hollow in its face is what carries that at 16px.
+prompt = "a small heavy rectangular steel forging die block, a shaped recessed cavity cut into its top face, worn rounded edges and scale discolouration from heat, dark grey tool steel with a polished lighter patch where metal was pressed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.lignite]
 kind = "item"
 backend = "ai"

@@ -34,7 +34,9 @@
     "reachable, which is the one thing a terrain shard must not be. The other five are each the ONLY",
     "route to their block, because the depths generate no vanilla nether terrain at all.",
     "",
-    "LIGNITE is the third direct entry, and it qualifies for the same reason the other two do: it is already unprocessed. Lignite IS brown coal - the real rank between peat and the bituminous coal vanilla calls 'coal' - so finding it here is not skipping a machine, it is finding the thing before the machine. Smelting upgrades it (#226), which is the only route to coal in this world."
+    "LIGNITE is the third direct entry, and it qualifies for the same reason the other two do: it is already unprocessed. Lignite IS brown coal - the real rank between peat and the bituminous coal vanilla calls 'coal' - so finding it here is not skipping a machine, it is finding the thing before the machine. Smelting upgrades it (#226), which is the only route to coal in this world.",
+    "",
+    "A WORN FORGING DIE is the one OBJECT in this table rather than a material, and it is here because the knowledge it carries has nowhere else to come from (#249). Everything else in the depths is scrap you process; a die is a thing you tear down at the Workbench to learn the pattern stamped into it. It is the seam's only route to netherite GEAR, which vanilla otherwise locks behind a bastion chest and a recipe that needs its own output."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -70,6 +72,11 @@
           "type": "minecraft:item",
           "name": "recompile:rendered_organics",
           "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:worn_forging_die",
+          "weight": 12
         },
         {
           "type": "minecraft:item",

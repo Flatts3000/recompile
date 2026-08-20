@@ -43,6 +43,68 @@ final class BlueprintTests {
         // Pump, which is deliberately reachable both ways (#160). A component that gains a blueprint
         // while staying a find passes this test without being tested by it; ComponentBlueprintTests is
         // where that pairing is actually pinned.
+        // NETHERITE GEAR IS REACHABLE BY MINING (#249), and this is the whole claim in one test.
+        //
+        // Vanilla ships exactly one recipe for a Netherite Upgrade Smithing Template and it CONSUMES
+        // one - seven diamond, netherrack and a template, for two - so its only starting point is a
+        // bastion chest. Netherite scrap comes out of the compacted depths and gold off the E-Scrap
+        // chain, which meant a player could craft ingots and upgrade nothing at all.
+        //
+        // Asserted as a CHAIN rather than as "the recipe file exists", because three separate files
+        // have to agree and any one of them slipping is silent. One already did while this was being
+        // written: the teardown used a teaching POOL, which teaches whichever ITEM it drew, so it
+        // taught "steel_offcut" and the netherite blueprint was never granted by anything. Every file
+        // still loaded and every other test still passed.
+        RCGameTests.test("the_netherite_template_has_a_route_that_is_not_a_bastion", 20, helper -> {
+            var recipes = helper.getLevel().recipeAccess();
+
+            // 1. a gated recipe makes the vanilla template, behind the blueprint we ship
+            Identifier gate = null;
+            for (RecipeHolder<BlueprintCraftingRecipe> holder
+                    : recipes.recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                if (holder.value().result().item()
+                        == net.minecraft.world.item.Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE) {
+                    gate = holder.value().blueprint();
+                }
+            }
+            helper.assertTrue(gate != null,
+                "nothing makes a Netherite Upgrade Smithing Template, so netherite gear is unreachable "
+                    + "however much scrap the depths hand over");
+            helper.assertTrue(BlueprintItem.NETHERITE_UPGRADE.equals(gate),
+                "the template is gated behind " + gate + " rather than "
+                    + BlueprintItem.NETHERITE_UPGRADE + ", so the blueprint a player can earn does not "
+                    + "open it");
+
+            // 2. a teardown teaches that blueprint
+            List<String> teachers = new ArrayList<>();
+            for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
+                    : recipes.recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                for (var taught : holder.value().teaches()) {
+                    if (BlueprintItem.NETHERITE_UPGRADE.equals(taught.recipe())) {
+                        teachers.add(holder.id().toString());
+                    }
+                }
+            }
+            helper.assertTrue(!teachers.isEmpty(),
+                "no teardown teaches " + BlueprintItem.NETHERITE_UPGRADE + ", so the blueprint cannot "
+                    + "be earned and the gated recipe above is unreachable");
+
+            // 3. and the thing you tear down is actually findable
+            var table = com.flatts.recompile.content.block.SortableBlock.pullTableOf(
+                com.flatts.recompile.registry.RCBlocks.TECHNO_ORGANIC_WASTE.get());
+            boolean findable = false;
+            for (var weighted : com.flatts.recompile.compat.SortingData.outputs(
+                    com.flatts.recompile.compat.SortingData.pathFor(table))) {
+                if (weighted.stack().is(RCItems.WORN_FORGING_DIE.get())) {
+                    findable = true;
+                }
+            }
+            helper.assertTrue(findable,
+                "a Worn Forging Die is not in the compacted depths' pull stream, so nothing can be "
+                    + "torn down to learn the pattern and the whole chain is decorative");
+            helper.succeed();
+        });
+
         RCGameTests.test("a_blueprint_result_has_no_other_route", 20, helper -> {
             // EVERY blueprint-gated result, not one named item. The Hydroponics Bay moved behind a
             // blueprint after this test was written, and a mattress-only sweep would have said nothing

@@ -1,0 +1,52 @@
+{
+  "_comment": [
+    "THE BOOTSTRAP FOR NETHERITE (#249). A forging die is the tool a drop forge presses metal",
+    "against - the pattern lives in the die, which is what a smithing template is. So this is not",
+    "an analogy, it is the same object doing the same job, and that is the standard the material",
+    "matrix is held to.",
+    "",
+    "It teaches rather than drops. A die you found is worn out; what survives is the SHAPE of it,",
+    "rather than one lucky one - the same treatment the Pump got in #160.",
+    "",
+    "Prybar rather than knife: it is a solid steel block and the pattern plate comes off it.",
+    "",
+    "Weights and counts are first-pass; #36 owns them.",
+    "",
+    "DECLARED teaches, not a teaching pool. A pool teaches whichever ITEM it drew, and the blueprint here is recompile:netherite_upgrade, which has no item behind it - a pool would have quietly taught 'steel_offcut' instead and left the chain decorative. Four fragments, so it takes four finds rather than one lucky one, the same treatment the Pump got in #160."
+  ],
+  "type": "recompile:teardown",
+  "input": "recompile:worn_forging_die",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 160,
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "recompile:steel_offcut"
+        }
+      ]
+    },
+    {
+      "rolls": 3,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 3
+        },
+        {
+          "item": "recompile:slag",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:netherite_upgrade",
+      "chance": 1.0,
+      "scraps_required": 4
+    }
+  ]
+}

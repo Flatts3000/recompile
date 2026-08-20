@@ -84,6 +84,8 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SLAG.get());
                     RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
                     RCItems.DEPTHS_SCRAP.forEach(scrap -> output.accept(scrap.get()));
+                    // Beside the scrap it is found with, though it is a find rather than a material.
+                    output.accept(RCItems.WORN_FORGING_DIE.get());
                     RCItems.NETHER_SHARDS.forEach(shard -> output.accept(shard.get()));
                     RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
                     output.accept(RCItems.CIRCUIT_POWDER.get());
