@@ -173,6 +173,13 @@ public final class RCTags {
      * "household material" - a shard is what sifting rubble yields, exactly as scrap metal is what
      * sifting garbage yields. Cut products and crafted intermediates (Steel Offcut, ingots, rebar) stay
      * out, same as they always were on the household side.
+     *
+     * <p>The compacted depths join on the same rule ({@link #NETHER_SHARDS} plus the depths scrap), and
+     * they shipped without it first. <b>That failure is silent in every direction</b>, which is why
+     * {@code every_shard_and_scrap_is_binnable} now derives the membership from the registry lists
+     * rather than trusting this paragraph: the Sorting Tarp's file-all walks straight past a non-binnable
+     * stack, a Scrap Bin refuses it, and Trommel output routes past every bin to the Scrap Barrel. No
+     * error is logged on any of those paths, so the symptom a player reports is "the bin is broken".
      */
     public static final TagKey<Item> BINNABLE = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "binnable"));
@@ -183,6 +190,14 @@ public final class RCTags {
      */
     public static final TagKey<Item> STONE_SHARDS = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "stone_shards"));
+
+    /**
+     * The compacted depths' seven terrain shards - what sifting Slag Rubble yields, and the only route
+     * to any vanilla nether terrain block. The Nether's {@link #STONE_SHARDS}, declared for the same
+     * reason: so Java can assert against it rather than restate the list.
+     */
+    public static final TagKey<Item> NETHER_SHARDS = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "nether_shards"));
 
     /**
      * What the Slag Furnace will take (#236).

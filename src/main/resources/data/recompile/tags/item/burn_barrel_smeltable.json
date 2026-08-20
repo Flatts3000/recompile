@@ -1,6 +1,7 @@
 {
   "values": [
     "recompile:scrap_metal",
-    "minecraft:kelp"
+    "minecraft:kelp",
+    "recompile:lignite"
   ]
 }

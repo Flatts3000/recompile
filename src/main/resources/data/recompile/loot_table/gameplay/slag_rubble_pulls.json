@@ -1,12 +1,26 @@
 {
   "_comment": [
-    "Slag Rubble: the burnt fraction that never fused into the fill. The mineral half of the",
-    "depths, against techno-organic waste's salvage half - the same split Stone Rubble and the",
-    "Block of Garbage make in the overworld.",
+    "Slag Rubble: the Nether's Stone Rubble, and it does the same job (owner, 2026-08-19).",
+    "Sift a shard out, put four together, get the terrain block back - the exact shape",
+    "rubble_pulls and stone_from_shards already use in the demolition yard.",
     "",
-    "FIRST PASS, weights for the balance pass (#36). Slag itself leads because this is where the",
-    "word came from: the Cupola rakes it a lump at a time, and a whole dimension of it is what",
-    "makes the Slag Furnace worth owning."
+    "This is the ONLY source of Nether terrain in the game: the compacted depths generate no",
+    "netherrack, no basalt and no soul sand, so every block of it is rebuilt from shards. That is",
+    "what makes the dimension worth mining rather than a place you pass through.",
+    "",
+    "Weights mirror rubble_pulls' shape - the common ground leads, the specials trail. Final",
+    "numbers belong to the balance pass (#36).",
+    "",
+    "MAGMA IS NOT HERE (owner, 2026-08-19): it moved to techno-organic waste. Slag Rubble is the",
+    "fraction that never fused and has finished cooling - burnt, glassy, cold. Magma has not finished",
+    "cooling, so it belongs in the mass that is still hot rather than in the spoil beside it.",
+    "",
+    "NYLIUM comes from the rubble too (owner, 2026-08-19), and it is the most load-bearing thing in this",
+    "table. Nylium is terrain - netherrack with a fungal crust - so it belongs here on the same grounds",
+    "as the rest. What makes it matter more than the others is what vanilla does with it: bone meal on",
+    "nylium grows roots and fungus, and a fungus bone-mealed on its own nylium becomes a HUGE fungus,",
+    "which is stems, shroomlight and weeping vines. The depths grow no fungus forest, so this is the",
+    "only seed for one - and the whole crimson and warped family hangs off it."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -15,18 +29,38 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "recompile:slag",
+          "name": "recompile:netherrack_shard",
           "weight": 100
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:stone_shard",
-          "weight": 45
+          "name": "recompile:basalt_shard",
+          "weight": 60
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:scrap_metal",
+          "name": "recompile:blackstone_shard",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:soul_sand_shard",
+          "weight": 40
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:soul_soil_shard",
           "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:crimson_nylium_shard",
+          "weight": 50
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:warped_nylium_shard",
+          "weight": 50
         }
       ]
     }

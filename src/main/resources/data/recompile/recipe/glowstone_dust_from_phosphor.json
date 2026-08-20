@@ -1,0 +1,19 @@
+{
+  "_comment": [
+    "GLOWSTONE, and material_economy named this source too: 'Glowstone | Lamps, CRT/fluorescent",
+    "phosphor coatings'. A fluorescent tube is coated on the inside with a phosphor powder that",
+    "glows when excited - grinding the glass to recover it is what a real lamp recycler does.",
+    "",
+    "Pulverizing, not separating: nothing is being divided into distinct things here, the coating",
+    "is simply being taken off the glass and reduced. A mill does not sort."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "recompile:phosphor_scrap",
+  "count": 3,
+  "result": {
+    "item": "minecraft:glowstone_dust",
+    "count": 1
+  },
+  "ticks": 80,
+  "energy": 20
+}

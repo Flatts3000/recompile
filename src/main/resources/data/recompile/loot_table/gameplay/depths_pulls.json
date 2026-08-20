@@ -1,10 +1,40 @@
 {
   "_comment": [
-    "Techno-organic waste: fused machinery and organic refuse, compacted. The salvage half of the",
-    "compacted depths, weighted like household_pulls so the two read as siblings.",
+    "Techno-organic waste: the compacted depths' bulk block.",
     "",
-    "FIRST PASS. Weights are placeholders for the balance pass (#36). What is deliberate is what is",
-    "ABSENT: nothing here opens a gate the overworld ladder owns. No iron, no wood, no gold."
+    "THE DUMP GIVES SCRAP; MACHINES GIVE MATERIALS (owner, 2026-08-19). Copper is not in a",
+    "household mound - scrap metal is, and the Cupola smelts it. Quartz is not in here for exactly",
+    "the same reason. An earlier version of this table handed over glowstone dust, quartz, blaze",
+    "powder, magma cream, ghast tears and nether wart directly, which broke the rule the whole",
+    "economy rests on and skipped every machine the player owns.",
+    "",
+    "Three things are direct, and all three because they are ALREADY unprocessed:",
+    "  slag            - the non-metallic fraction of a remelt. Cooked waste IS slag.",
+    "  netherite scrap - vanilla's own word for an intermediate; four of them plus gold plus a",
+    "                    smithing template is still ahead of you, so it is a scrap, not a metal.",
+    "  lignite         - brown coal. A real rank of coal, the one below the coal vanilla ships,",
+    "                    so this is the thing BEFORE the machine rather than past it (#226).",
+    "",
+    "The three scrap categories are e-waste at civilisational scale rather than science fiction,",
+    "which is what makes 'techno-organic' mean something: server racks, lamps and screens, and the",
+    "biological matter cooked in with them. Each feeds one machine verb and each has a real-world",
+    "referent, because material literacy is flavour AND tutorial here.",
+    "",
+    "What is NOT here and will not be: blaze rods, magma cream and ghast tears. There is no honest",
+    "industrial residue that grinds into a ghast tear - they are mob drops, and the fortresses,",
+    "bastions and ghasts already supply them.",
+    "",
+    "Weights first-pass; #36 owns them.",
+    "",
+    "OILY SWARF answers to two verbs, which is why it is one item and not two. The mill reduces it to burning metal fines (blaze powder); the separator divides it into its oil and its chips (magma cream, byproduct scrap metal). Slag already works this way - three verbs, three outputs - so the precedent is in the mod rather than invented for this.",
+    "",
+    "NO MAGMA SHARD (owner, 2026-08-19). There was one, briefly, and it earned nothing: vanilla already",
+    "crafts a magma block from four magma cream, and Oily Swarf gives magma cream a route - so the block",
+    "arrived the moment the cream did. The shard was a second parallel path to something already",
+    "reachable, which is the one thing a terrain shard must not be. The other five are each the ONLY",
+    "route to their block, because the depths generate no vanilla nether terrain at all.",
+    "",
+    "LIGNITE is the third direct entry, and it qualifies for the same reason the other two do: it is already unprocessed. Lignite IS brown coal - the real rank between peat and the bituminous coal vanilla calls 'coal' - so finding it here is not skipping a machine, it is finding the thing before the machine. Smelting upgrades it (#226), which is the only route to coal in this world."
   ],
   "type": "minecraft:chest",
   "pools": [
@@ -13,33 +43,38 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "recompile:scrap_metal",
-          "weight": 100
+          "name": "recompile:slag",
+          "weight": 150
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:plastic_scrap",
+          "name": "recompile:fused_circuitry",
+          "weight": 90
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:lignite",
+          "weight": 80
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:phosphor_scrap",
+          "weight": 75
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:oily_swarf",
           "weight": 70
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:e_scrap",
-          "weight": 45
+          "name": "recompile:rendered_organics",
+          "weight": 60
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:rebar",
-          "weight": 40
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:glass_shards",
-          "weight": 35
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:junk",
-          "weight": 30
+          "name": "minecraft:netherite_scrap",
+          "weight": 2
         }
       ]
     }

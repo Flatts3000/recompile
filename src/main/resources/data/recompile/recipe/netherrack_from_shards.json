@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:netherrack_shard",
+    "recompile:netherrack_shard",
+    "recompile:netherrack_shard",
+    "recompile:netherrack_shard"
+  ],
+  "result": {
+    "id": "minecraft:netherrack",
+    "count": 1
+  }
+}

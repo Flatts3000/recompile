@@ -5,6 +5,9 @@
     },
     "recompile:junk": {
       "burn_time": 400
+    },
+    "recompile:lignite": {
+      "burn_time": 800
     }
   }
 }

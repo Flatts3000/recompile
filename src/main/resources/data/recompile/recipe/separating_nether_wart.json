@@ -1,0 +1,33 @@
+{
+  "_comment": [
+    "NETHER WART, which is the one output here that is alive.",
+    "",
+    "It is a FUNGUS, and fungal spores survive being cooked and buried far better than anything",
+    "else in a dump - which is the whole reason this chain is defensible where a chain ending in",
+    "a ghast tear would not be. Separating, because the machine is picking viable spores out of a",
+    "mass that is mostly not: the byproduct is ordinary organic muck, the same material the",
+    "overworld's compost tier already runs on.",
+    "",
+    "Why it matters: wart otherwise comes only from a fortress. This gives a player who mines a",
+    "route to brewing without raiding one, which is the mod's own thesis - salvage instead of",
+    "adventure - and it pairs with the soul sand that Slag Rubble already yields, since wart will",
+    "not grow on anything else."
+  ],
+  "type": "recompile:separating",
+  "input": "recompile:rendered_organics",
+  "count": 4,
+  "ticks": 80,
+  "energy": 20,
+  "results": [
+    {
+      "item": "minecraft:nether_wart",
+      "count": 1
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:organic_muck",
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:basalt_shard",
+    "recompile:basalt_shard",
+    "recompile:basalt_shard",
+    "recompile:basalt_shard"
+  ],
+  "result": {
+    "id": "minecraft:basalt",
+    "count": 1
+  }
+}

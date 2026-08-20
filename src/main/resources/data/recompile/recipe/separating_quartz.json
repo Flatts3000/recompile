@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "QUARTZ, and material_economy named this source years before the dimension existed:",
+    "'Quartz | Circuit oscillators (real!), old clocks, countertops'. A quartz crystal really is",
+    "what keeps a circuit board's clock, so recovering it from fused boards is the literal truth",
+    "rather than a convenient fiction - which is the standard the whole material matrix is held to.",
+    "",
+    "Separating rather than pulverizing because a board is a mixture and this divides it. The",
+    "byproduct is circuit powder, which is stage one of the EXISTING gold chain (#120) - so the",
+    "depths make gold faster without a second route to it.",
+    "",
+    "Ratio and cost are first-pass; #36 owns the numbers."
+  ],
+  "type": "recompile:separating",
+  "input": "recompile:fused_circuitry",
+  "count": 2,
+  "ticks": 60,
+  "energy": 24,
+  "results": [
+    {
+      "item": "minecraft:quartz",
+      "count": 1
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:circuit_powder",
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "_comment": [
+    "COAL, and the only route to it in this world (#226).",
+    "",
+    "Lignite is brown coal - a real rank of coal, the one between peat and the bituminous coal",
+    "vanilla calls 'coal'. Upgrading one to the other is heat driving off the water and the",
+    "volatiles until what is left is denser carbon, so a furnace is the honest machine and no new",
+    "verb is needed. Vanilla already models the same operation as log -> charcoal.",
+    "",
+    "SMELTING rather than blasting, deliberately. Blasting is the iron gate (#91) and nothing else",
+    "should ride on it; coal is not gated. So this runs in the Burn Barrel, which is the humblest",
+    "furnace in the mod and the one whose whole job is refuse - lignite is in",
+    "#recompile:burn_barrel_smeltable for that reason, and it is the barrel's first NEW input since",
+    "it shipped.",
+    "",
+    "Lignite burns on its own (800 ticks, half a coal), so upgrading is a choice rather than a",
+    "chore - and it pays: one lignite of fuel smelts four, turning 800 ticks of heat into 6400.",
+    "Vanilla's charcoal loop has exactly the same shape.",
+    "",
+    "Times and experience are first-pass; #36 owns them."
+  ],
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "recompile:lignite",
+  "result": {
+    "id": "minecraft:coal"
+  }
+}
