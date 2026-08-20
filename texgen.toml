@@ -1139,6 +1139,15 @@ palette = ["#8a8a8e", "#9a9a9e", "#77777c", "#6a6a70", "#b0b0b4", "#5c5c62", "#a
 # because the buried world has to stay recognisably ours.
 # ---------------------------------------------------------------------------
 
+[surface.lignite]
+kind = "item"
+backend = "ai"
+size = 16
+# It has to read as NOT-QUITE-COAL at 16px, beside vanilla coal in the same inventory. The whole
+# mechanic is "this is the unfinished one", so brown rather than black, and dull rather than
+# glossy, are doing the teaching.
+prompt = "a rough lump of lignite brown coal, dull matte dark brown rather than black, woody fibrous grain still visible running through it, crumbly earthy broken edges, soft and dusty not glossy, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.oily_swarf]
 kind = "item"
 backend = "ai"

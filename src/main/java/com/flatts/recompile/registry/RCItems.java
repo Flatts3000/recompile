@@ -135,9 +135,31 @@ public final class RCItems {
      */
     public static final DeferredItem<Item> OILY_SWARF = ITEMS.registerItem("oily_swarf", Item::new);
 
+    /**
+     * Lignite: brown coal, and the only source of coal in this world (owner, 2026-08-19; #226).
+     *
+     * <p>It sits in the waste table DIRECTLY, which every other material there has to earn, and it
+     * earns it the same way slag and netherite scrap do - by being <b>already unprocessed</b>. Lignite
+     * is not a stand-in for coal, it is a real rank of it: the one between peat and the bituminous coal
+     * vanilla simply calls "coal". Finding a lump of unfinished coal in buried compacted organics is
+     * not a shortcut past a machine, it is what that ground is made of.
+     *
+     * <p>Which is also why it comes from here rather than the demolition yard, the other candidate
+     * #226 offered. The compacted depths are buried organic waste under heat and weight; that is not
+     * <i>like</i> a coal seam forming, it is one. A demolition yard is a place things fell over.
+     *
+     * <p>It burns on its own at half a coal's worth, so it is useful the moment you find it and better
+     * once you cook it - the depths' only solid fuel, in a dimension with no wood.
+     *
+     * <p>Deliberately NOT in {@code #minecraft:coals}: that tag is what torches and campfires take, and
+     * admitting lignite there would let the unfinished thing do the finished thing's job. Upgrade it
+     * first. (This world's torch does not want coal anyway - it burns an Oily Rag.)
+     */
+    public static final DeferredItem<Item> LIGNITE = ITEMS.registerItem("lignite", Item::new);
+
     /** The depths' scrap in creative-tab order. */
     public static final List<DeferredItem<Item>> DEPTHS_SCRAP = List.of(
-        FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS, OILY_SWARF);
+        FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS, OILY_SWARF, LIGNITE);
 
     /**
      * The two nylium shards, and they carry more than their own block.

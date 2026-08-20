@@ -43,6 +43,44 @@ final class BurnBarrelTests {
                     "the burn barrel must smelt scrap metal into copper, output was " + barrel.getItem(2)));
         });
 
+        // COAL, and the only route to it in this world (#226). Lignite is brown coal - the rank below
+        // the coal vanilla ships - and smelting drives off its moisture and volatiles to leave the
+        // denser thing, the same operation vanilla models as log -> charcoal.
+        //
+        // This is a real behaviour test rather than a recipe-exists test, and the difference matters:
+        // the recipe and the barrel's allowlist are two separate files, and shipping the recipe
+        // without adding lignite to #recompile:burn_barrel_smeltable produces a barrel that silently
+        // refuses its own input. Driven red by removing the tag entry - the recipe alone is not enough.
+        RCGameTests.test("lignite_upgrades_to_coal_in_the_barrel", 250, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.BURN_BARREL.get());
+            if (!(helper.getLevel().getBlockEntity(helper.absolutePos(pos))
+                    instanceof BurnBarrelBlockEntity barrel)) {
+                helper.fail("the burn barrel has no BlockEntity");
+                return;
+            }
+            barrel.setItem(0, new ItemStack(RCItems.LIGNITE.get()));
+            barrel.setItem(1, new ItemStack(RCItems.OILY_RAG.get()));
+            helper.succeedWhen(() ->
+                helper.assertTrue(barrel.getItem(2).is(Items.COAL),
+                    "lignite must smelt into coal, output was " + barrel.getItem(2)));
+        });
+
+        // Lignite is a fuel too, and a WORSE one than what it becomes - which is the whole reason
+        // upgrading is a choice rather than a chore. Asserted as a comparison rather than against the
+        // literal 800, so retuning the number in the data map cannot make this test wrong, only the
+        // relationship can.
+        RCGameTests.test("lignite_burns_worse_than_the_coal_it_becomes", 20, helper -> {
+            int lignite = helper.getLevel().fuelValues().burnDuration(
+                new ItemStack(RCItems.LIGNITE.get()));
+            int coal = helper.getLevel().fuelValues().burnDuration(new ItemStack(Items.COAL));
+            helper.assertTrue(lignite > 0, "lignite must burn at all - it is the depths' only solid fuel");
+            helper.assertTrue(lignite < coal,
+                "lignite must burn worse than coal (" + lignite + " vs " + coal + "), or there is no"
+                    + " reason to ever smelt it");
+            helper.succeed();
+        });
+
         // Refuse only. The barrel handles food and scrap; it will not smelt ore, sand, stone or logs,
         // so it cannot quietly hand out what the economy gates behind better machines.
         RCGameTests.test("burn_barrel_burns_refuse_only", 20, helper -> {
