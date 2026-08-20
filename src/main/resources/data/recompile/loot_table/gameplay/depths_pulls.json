@@ -53,8 +53,18 @@
         },
         {
           "type": "minecraft:item",
+          "name": "recompile:lignite",
+          "weight": 80
+        },
+        {
+          "type": "minecraft:item",
           "name": "recompile:phosphor_scrap",
           "weight": 75
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:oily_swarf",
+          "weight": 70
         },
         {
           "type": "minecraft:item",
@@ -65,16 +75,6 @@
           "type": "minecraft:item",
           "name": "minecraft:netherite_scrap",
           "weight": 2
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:oily_swarf",
-          "weight": 70
-        },
-        {
-          "type": "minecraft:item",
-          "name": "recompile:lignite",
-          "weight": 80
         }
       ]
     }

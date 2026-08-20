@@ -75,8 +75,13 @@ final class GemTierTests {
             if (!(block instanceof com.flatts.recompile.content.block.SortableBlock)) {
                 continue;
             }
+            // pullTableOf(block), NOT pullTableFor(block.asItem()). The round-trip through the item
+            // is lossy: a SortableBlock registered without a BlockItem answers Items.AIR, which maps
+            // back to Blocks.AIR and yields null - so that block's ENTIRE pull stream would drop out
+            // of the findable set in silence, and this test would then call a genuinely findable
+            // input a dead machine. SortingData.sortingSources() already takes the block directly.
             net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> table =
-                com.flatts.recompile.content.block.SortableBlock.pullTableFor(block.asItem());
+                com.flatts.recompile.content.block.SortableBlock.pullTableOf(block);
             if (table == null) {
                 continue;
             }
@@ -153,6 +158,9 @@ final class GemTierTests {
         // be findable, and nothing it eats may be a vanilla gem. A recipe whose input has no source is
         // a dead machine that every test would otherwise call healthy.
         RCGameTests.test("every_separating_input_is_findable_scrap", 20, helper -> {
+            // Hoisted: this walks every block in the registry and parses every pull-table JSON, and
+            // none of that changes between recipes. Inside the loop it was re-done once per recipe.
+            java.util.Set<Item> pullable = pullableItems();
             List<String> problems = new ArrayList<>();
             int checked = 0;
             for (RecipeHolder<SeparatingRecipe> holder : helper.getLevel().recipeAccess()
@@ -172,7 +180,6 @@ final class GemTierTests {
                 // called them dead machines. Walking every gameplay pull stream measures the property
                 // the comment above claims, and an input nothing anywhere drops still fails - which
                 // is the whole point of the check.
-                java.util.Set<Item> pullable = pullableItems();
                 for (Item pulled : pullable) {
                     if (holder.value().matches(
                             new net.minecraft.world.item.crafting.SingleRecipeInput(
@@ -181,9 +188,15 @@ final class GemTierTests {
                         break;
                     }
                 }
-                // Machine-made feeds are not in any pull stream and still have a source. Slag (#236)
-                // is the one: the Cupola rakes it off every eighth smelt. A justified entry beats a
-                // loosened check.
+                // THE ESCAPE HATCH for a feed that no block drops. It is kept deliberately empty of
+                // work right now: slag is listed because the Cupola rakes it off every eighth smelt
+                // (#236), but slag ALSO entered depths_pulls in this same change, so the loop above
+                // already finds it and this branch is currently unreached. That is a balance fact and
+                // #36 could reverse it, which is exactly why the entry stays rather than being deleted
+                // as dead - the Cupola is still slag's primary source whatever the loot table does.
+                //
+                // What must not happen is this list quietly becoming the answer for everything. A feed
+                // nothing drops and no machine makes still has to fail.
                 if (!findable) {
                     for (var made : List.of(RCItems.SLAG)) {
                         if (holder.value().matches(
@@ -198,8 +211,11 @@ final class GemTierTests {
                         + "stream and no machine makes it");
                 }
             }
-            helper.assertTrue(checked >= 3,
-                "only " + checked + " separating recipes - the tier ships three");
+            // The floor is a did-the-sweep-look-at-anything guard, not a count of the design. It was
+            // 3 with a message saying "the tier ships three" while six shipped, so it could have gone
+            // to four unnoticed and still passed with a message asserting the wrong number.
+            helper.assertTrue(checked >= 6,
+                "only " + checked + " separating recipes loaded - the mod ships at least six");
             helper.assertTrue(problems.isEmpty(), "broken separating recipes: " + problems);
             helper.succeed();
         });

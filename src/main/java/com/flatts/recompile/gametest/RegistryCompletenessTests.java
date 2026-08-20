@@ -2,6 +2,9 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCCreativeTabs;
+import com.flatts.recompile.registry.RCItems;
+import com.flatts.recompile.registry.RCTags;
+import net.neoforged.neoforge.registries.DeferredItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -322,6 +325,46 @@ final class RegistryCompletenessTests {
         });
 
         // A model file existing is not the same as it RESOLVING. See checkModelParentsResolve.
+        // A shard or a scrap that is not binnable looks EXACTLY like a broken Scrap Bin, and nothing
+        // logs. The Sorting Tarp's file-all walks past a stack that is not in #recompile:binnable, a
+        // Scrap Bin refuses to accept it, and Trommel output routes past every bin to the Scrap Barrel.
+        // The demolition yard's seven stone shards joined the tag in #68 for this reason; the compacted
+        // depths then shipped seven shards and five scraps without it, and the omission was found by a
+        // person reading a diff rather than by anything here.
+        //
+        // Derived from the registry lists rather than from a list of item ids, so the next material
+        // group is covered the day someone adds it to RCItems - which is the whole point, because the
+        // failure mode is forgetting, not getting it wrong.
+        RCGameTests.test("every_shard_and_scrap_is_binnable", 20, helper -> {
+            record Group(String name, List<DeferredItem<Item>> items) {
+            }
+            List<Group> groups = List.of(
+                new Group("stone shards", RCItems.STONE_SHARDS),
+                new Group("nether shards", RCItems.NETHER_SHARDS),
+                new Group("depths scrap", RCItems.DEPTHS_SCRAP));
+
+            List<String> missing = new ArrayList<>();
+            int checked = 0;
+            for (Group group : groups) {
+                for (DeferredItem<Item> held : group.items()) {
+                    checked++;
+                    Item item = held.get();
+                    if (!item.builtInRegistryHolder().is(RCTags.BINNABLE)) {
+                        missing.add(BuiltInRegistries.ITEM.getKey(item) + " (" + group.name() + ")");
+                    }
+                }
+            }
+            // The sweep has to prove it looked at something: an empty list of groups would otherwise
+            // pass as loudly as a correct one.
+            helper.assertTrue(checked >= 19,
+                "the binnable sweep only checked " + checked + " items, so it is not covering the"
+                    + " material groups it names");
+            helper.assertTrue(missing.isEmpty(),
+                "these are pulled out of a sortable block but a Scrap Bin refuses them, which reads as"
+                    + " a broken bin rather than a missing tag: " + missing);
+            helper.succeed();
+        });
+
         RCGameTests.test("every_model_parent_resolves", 20, helper -> {
             checkModelParentsResolve(helper);
             helper.succeed();
