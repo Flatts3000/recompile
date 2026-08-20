@@ -92,11 +92,6 @@ public final class RCBlockEntities {
             () -> new BlockEntityType<>(RainCollectorBlockEntity::new, RCBlocks.RAIN_COLLECTOR.get()));
 
     /** The Slag Furnace's three slots (#236). Vanilla's furnace shape, running a modded recipe type. */
-    public static final Supplier<BlockEntityType<SinteringKilnBlockEntity>> SINTERING_KILN =
-        BLOCK_ENTITIES.register(
-            "sintering_kiln",
-            () -> new BlockEntityType<>(SinteringKilnBlockEntity::new, RCBlocks.SINTERING_KILN.get()));
-
     public static final Supplier<BlockEntityType<SlagFurnaceBlockEntity>> SLAG_FURNACE =
         BLOCK_ENTITIES.register(
             "slag_furnace",
@@ -170,6 +165,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register("trommel",
             () -> new BlockEntityType<>(TrommelBlockEntity::new, RCBlocks.TROMMEL.get()));
 
+
+    /** The Sintering Kiln's three slots (#248), running {@code recompile:sintering}. */
+    public static final Supplier<BlockEntityType<SinteringKilnBlockEntity>> SINTERING_KILN =
+        BLOCK_ENTITIES.register(
+            "sintering_kiln",
+            () -> new BlockEntityType<>(SinteringKilnBlockEntity::new, RCBlocks.SINTERING_KILN.get()));
 
     private RCBlockEntities() {
         // utility class

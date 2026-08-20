@@ -120,7 +120,14 @@ final class MenuLayoutTests {
         new Transfer("slag_furnace", SlagFurnaceMenu.class,
             SlagFurnaceMenu.TRANSFER_RECIPE_START, SlagFurnaceMenu.TRANSFER_RECIPE_COUNT,
             SlagFurnaceMenu.TRANSFER_INV_START, SlagFurnaceMenu.TRANSFER_INV_COUNT,
-            inv -> new SlagFurnaceMenu(0, inv)));
+            inv -> new SlagFurnaceMenu(0, inv)),
+        new Transfer("sintering_kiln",
+            com.flatts.recompile.content.menu.SinteringKilnMenu.class,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_RECIPE_START,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_RECIPE_COUNT,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_INV_START,
+            com.flatts.recompile.content.menu.SinteringKilnMenu.TRANSFER_INV_COUNT,
+            inv -> new com.flatts.recompile.content.menu.SinteringKilnMenu(0, inv)));
 
     static void register() {
         // JEI'S TRANSFER RANGES ARE RAW SLOT INDICES, AND GETTING ONE WRONG IS SILENT (#240).
@@ -188,9 +195,23 @@ final class MenuLayoutTests {
         RCGameTests.test("every_transfer_menu_is_swept", 20, helper -> {
             List<String> missing = new ArrayList<>();
             int declared = 0;
-            for (Class<?> candidate : List.of(
+            // THE CANDIDATE LIST IS ITSELF A HAND-LIST, which is why this guard did not fire when
+            // the Sintering Kiln shipped declaring transfer constants and missing from TRANSFERS: the
+            // kiln was in neither list, so `declared` never counted it and the sweep passed by not
+            // looking. A guard whose coverage is a literal has the same failure mode as the thing it
+            // guards. The size assertion below is what makes that visible - it cannot name the class
+            // somebody forgot, but it can refuse to believe six candidates cover eight menus.
+            List<Class<?>> candidates = List.of(
                     CupolaFurnaceMenu.class, SlagFurnaceMenu.class, BurnerGeneratorMenu.class,
-                    HydroponicsBayMenu.class, TreeNurseryMenu.class, ScrapCraftingStationMenu.class)) {
+                    HydroponicsBayMenu.class, TreeNurseryMenu.class, ScrapCraftingStationMenu.class,
+                    com.flatts.recompile.content.menu.SinteringKilnMenu.class);
+            int registered = com.flatts.recompile.registry.RCMenus.MENUS.getEntries().size();
+            helper.assertTrue(candidates.size() >= registered,
+                "this sweep considers " + candidates.size() + " menu classes while " + registered
+                    + " menu types are registered, so at least one menu is checked by nothing. Add it "
+                    + "to the candidate list - a guard that only looks at what someone remembered to "
+                    + "list is not a guard.");
+            for (Class<?> candidate : candidates) {
                 boolean declaresTransfer;
                 try {
                     candidate.getField("TRANSFER_RECIPE_START");

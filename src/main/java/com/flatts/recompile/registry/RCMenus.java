@@ -55,10 +55,6 @@ public final class RCMenus {
      * classes rather than on any subclass. Subclassing saves reimplementing a menu, which is worth it
      * on its own and is the whole claim.
      */
-    public static final DeferredHolder<MenuType<?>, MenuType<SinteringKilnMenu>> SINTERING_KILN =
-        MENUS.register("sintering_kiln", () -> IMenuTypeExtension.create(
-            (id, inventory, buffer) -> new SinteringKilnMenu(id, inventory)));
-
     public static final DeferredHolder<MenuType<?>, MenuType<SlagFurnaceMenu>> SLAG_FURNACE =
         MENUS.register("slag_furnace", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new SlagFurnaceMenu(id, inventory)));
@@ -82,6 +78,17 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<TreeNurseryMenu>> TREE_NURSERY =
         MENUS.register("tree_nursery", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new TreeNurseryMenu(id, inventory)));
+
+    /**
+     * The Sintering Kiln (#248): vanilla's three furnace slots, running {@code recompile:sintering}.
+     *
+     * <p>A {@code MenuType} exists at all only because it is what binds a screen to a menu - vanilla's
+     * {@code FurnaceScreen} is typed to {@code FurnaceMenu}, so a machine with its own screen needs its
+     * own type even when the menu is otherwise vanilla's.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<SinteringKilnMenu>> SINTERING_KILN =
+        MENUS.register("sintering_kiln", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new SinteringKilnMenu(id, inventory)));
 
     private RCMenus() {
     }

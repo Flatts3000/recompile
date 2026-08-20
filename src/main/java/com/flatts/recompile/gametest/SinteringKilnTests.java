@@ -184,7 +184,110 @@ final class SinteringKilnTests {
             }
             helper.assertTrue(checked > 0,
                 "no sintering recipes loaded, so this sweep is checking nothing");
+
+            // THE OTHER DIRECTION, and the first version of this test did not have it while its PR
+            // body claimed it did. Swept over the whole item registry rather than read off the
+            // recipes, because an Ingredient can match a TAG - so "what does this recipe accept" is a
+            // wider question than the ids it names, and asking every item is the only answer that
+            // cannot be narrower than the truth.
+            //
+            // What it catches: a pack adds an item to #recompile:sinterable with no recipe behind it.
+            // The player can then shift-click that item into the kiln, where it sits forever with no
+            // feedback at all - the machine has no screen element that says "I cannot cook this".
+            List<String> dead = new ArrayList<>();
+            int swept = 0;
+            for (var item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
+                ItemStack stack = new ItemStack(item);
+                if (!stack.is(RCTags.SINTERABLE)) {
+                    continue;
+                }
+                swept++;
+                boolean cooks = false;
+                for (RecipeHolder<com.flatts.recompile.content.recipe.SinteringRecipe> holder
+                        : helper.getLevel().recipeAccess().recipeMap()
+                            .byType(RCRecipeTypes.SINTERING.get())) {
+                    if (holder.value().matches(
+                            new net.minecraft.world.item.crafting.SingleRecipeInput(stack),
+                            helper.getLevel())) {
+                        cooks = true;
+                    }
+                }
+                if (!cooks) {
+                    dead.add(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item)
+                        .toString());
+                }
+            }
+            helper.assertTrue(swept > 0, "#recompile:sinterable is empty");
+            helper.assertTrue(dead.isEmpty(),
+                "these are in #recompile:sinterable but no recipe fires them, so shift-click loads a "
+                    + "slot that will never cook: " + dead);
             helper.assertTrue(problems.isEmpty(), "tag and recipes disagree: " + problems);
+            helper.succeed();
+        });
+
+        // JEI READS FILES, THE GAME READS THE RECIPE MAP, and the two can disagree in silence.
+        // SinteringData parses the bundled JSON because recipes are not client-synced in 26.1 - so a
+        // recipe the game runs perfectly can be absent from, or half-parsed by, the viewer. An empty
+        // category registers without error, and the player is told nothing fires a briquette, which is
+        // the single thing that category exists to prevent.
+        RCGameTests.test("jei_sees_every_sintering_recipe", 20, helper -> {
+            var rows = com.flatts.recompile.compat.SinteringData.all();
+            int inGame = 0;
+            for (RecipeHolder<com.flatts.recompile.content.recipe.SinteringRecipe> holder
+                    : helper.getLevel().recipeAccess().recipeMap()
+                        .byType(RCRecipeTypes.SINTERING.get())) {
+                inGame++;
+                boolean matched = false;
+                for (var row : rows) {
+                    if (holder.value().matches(
+                            new net.minecraft.world.item.crafting.SingleRecipeInput(row.input()),
+                            helper.getLevel())) {
+                        matched = true;
+                    }
+                }
+                helper.assertTrue(matched, "JEI does not show " + holder.id());
+            }
+            helper.assertTrue(inGame > 0 && rows.size() == inGame,
+                "the game runs " + inGame + " sintering recipes and JEI reads " + rows.size());
+
+            // And the OUTPUT, because reading the input right proves only half of it. A cooking result
+            // is an ItemStackTemplate and spells its field `id`, where an ingredient is a bare string
+            // or an `item` object - two shapes in one file, and a parser handling only one yields a
+            // row that draws an empty output box.
+            for (var row : rows) {
+                helper.assertTrue(!row.outputs().isEmpty() && !row.outputs().get(0).stack().isEmpty(),
+                    "a sintering row parsed its input but not its result, so JEI would draw an empty "
+                        + "output box for " + row.input());
+            }
+            helper.succeed();
+        });
+
+        // NEVER IN A RECIPE BOOK, proved through vanilla's own filing path rather than by reading
+        // isSpecial(). Every RecipeBookCategory belongs to a VANILLA screen's tab list, so a sintering
+        // recipe that filed would be offered inside an ordinary furnace - the most-opened screen in the
+        // game - and clicking it would load a briquette into a machine that can never cook it.
+        //
+        // This is the test the Slag Furnace has and this machine shipped without. Its category names
+        // FURNACE_* rather than the Slag Furnace's BLAST_FURNACE_*, which is right for a machine that
+        // cooks at furnace speed and is inert either way while isSpecial() holds - but "inert either
+        // way" is exactly the kind of claim that needs a test rather than a comment.
+        RCGameTests.test("a_blaze_rod_never_enters_a_recipe_book", 20, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            var book = player.getRecipeBook();
+            int checked = 0;
+            for (RecipeHolder<com.flatts.recompile.content.recipe.SinteringRecipe> holder
+                    : helper.getLevel().recipeAccess().recipeMap()
+                        .byType(RCRecipeTypes.SINTERING.get())) {
+                checked++;
+                int added = book.addRecipes(List.of(holder), player);
+                helper.assertTrue(added == 0,
+                    holder.id() + " was filed into a recipe book, so a vanilla furnace screen whose "
+                        + "tabs cover its category will offer it - loading a briquette into a machine "
+                        + "that cannot fire it");
+            }
+            helper.assertTrue(checked > 0,
+                "no sintering recipes loaded, so this would pass vacuously");
             helper.succeed();
         });
 

@@ -425,6 +425,34 @@ match_hue = "slag_furnace_side"
 prompt = "a full-bleed Minecraft block face: the top of a sealed vitrifying furnace seen from directly above, cold blue-grey steel plate with a small square bolted charging hatch in the centre, rivets around the edge, pale grey dust drifted into the corners, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 vanilla_ref = "block/deepslate_tiles"
 
+[surface.slag_furnace_front]
+kind = "block"
+backend = "ai"
+size = 16
+match_hue = "slag_furnace_side"
+prompt = "a full-bleed Minecraft block face: the front of a cold vitrifying furnace, blue-grey riveted steel with a dark slot-shaped slag runner across the lower third, a thick glassy black crust hardened in the runner and spilling slightly over the lip, a small dark inspection port above it, nothing glowing, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/deepslate_tiles"
+
+# NO match_hue, and that is the whole point of this face. match_hue re-casts a surface onto its
+# sibling's colour while keeping its own luminance - which for a lit face repaints the fire in the
+# body's hue. Measured on the first attempt: the lit Cupola front came back DARKER than the cold one
+# (luma 41 against 51) and the white-hot pour came back at hue 198, the same cold blue as the wall.
+# the pour is the one part of this machine that is not made of the machine.
+[surface.slag_furnace_front_on]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face: the front of a running vitrifying furnace, blue-grey riveted steel with a slot-shaped slag runner across the lower third pouring molten white-hot glass, the pour blazing brilliant white and yellow at its hottest and fading through orange as it cools over the lip, the molten stream by far the brightest and most saturated thing in the tile, a small inspection port above it lit from within, the surrounding plate still cold steel-blue, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
+vanilla_ref = "block/deepslate_tiles"
+
+# The Roach's skin (#78). RETINT, not AI, and that is not a shortcut - an entity texture is a 64x32 UV
+# ATLAS where every pixel's position is meaningful, because the model samples specific regions for the
+# head, legs and body. A generated image would map legs onto the head. Recolouring vanilla's silverfish
+# keeps the unwrap exactly and changes only the hue, which is the whole difference between a silverfish
+# and a roach anyway: grey-blue chitin becomes warm reddish-brown.
+#
+# kind = "entity" tells the pipeline this is an atlas: no crop, no downscale, quantize only.
+
 # ---------------------------------------------------------------------------
 # THE SINTERING KILN (#248). A KILN, not a furnace, and the art has to carry that difference: it holds
 # a soak temperature rather than melting anything, so it reads as refractory brick with a glowing slot
@@ -478,34 +506,6 @@ size = 16
 # It must read as PRESSED rather than as a lump: flat faces and sharp edges are what say a die squeezed
 # it, and that is the whole story of the item.
 prompt = "a small pressed briquette of blaze powder, a squat rectangular block of compacted glowing orange-yellow granules with flat pressed faces and crisp edges, faint dark seams where the press closed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
-
-[surface.slag_furnace_front]
-kind = "block"
-backend = "ai"
-size = 16
-match_hue = "slag_furnace_side"
-prompt = "a full-bleed Minecraft block face: the front of a cold vitrifying furnace, blue-grey riveted steel with a dark slot-shaped slag runner across the lower third, a thick glassy black crust hardened in the runner and spilling slightly over the lip, a small dark inspection port above it, nothing glowing, muted, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
-vanilla_ref = "block/deepslate_tiles"
-
-# NO match_hue, and that is the whole point of this face. match_hue re-casts a surface onto its
-# sibling's colour while keeping its own luminance - which for a lit face repaints the fire in the
-# body's hue. Measured on the first attempt: the lit Cupola front came back DARKER than the cold one
-# (luma 41 against 51) and the white-hot pour came back at hue 198, the same cold blue as the wall.
-# the pour is the one part of this machine that is not made of the machine.
-[surface.slag_furnace_front_on]
-kind = "block"
-backend = "ai"
-size = 16
-prompt = "a full-bleed Minecraft block face: the front of a running vitrifying furnace, blue-grey riveted steel with a slot-shaped slag runner across the lower third pouring molten white-hot glass, the pour blazing brilliant white and yellow at its hottest and fading through orange as it cools over the lip, the molten stream by far the brightest and most saturated thing in the tile, a small inspection port above it lit from within, the surrounding plate still cold steel-blue, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
-vanilla_ref = "block/deepslate_tiles"
-
-# The Roach's skin (#78). RETINT, not AI, and that is not a shortcut - an entity texture is a 64x32 UV
-# ATLAS where every pixel's position is meaningful, because the model samples specific regions for the
-# head, legs and body. A generated image would map legs onto the head. Recolouring vanilla's silverfish
-# keeps the unwrap exactly and changes only the hue, which is the whole difference between a silverfish
-# and a roach anyway: grey-blue chitin becomes warm reddish-brown.
-#
-# kind = "entity" tells the pipeline this is an atlas: no crop, no downscale, quantize only.
 [surface.roach]
 kind = "entity"
 backend = "retint"
