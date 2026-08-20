@@ -1,0 +1,34 @@
+{
+  "_comment": [
+    "THE ONLY NET-NEW SOURCE of a Netherite Upgrade Smithing Template in this world (#249).",
+    "",
+    "Vanilla ships exactly one recipe for this item and it CONSUMES one: seven diamond, one",
+    "netherrack and a template, for two templates. That is a duplication, not a source, and its",
+    "only starting point is a bastion chest. Netherite scrap comes out of the compacted depths and",
+    "gold comes off the E-Scrap chain, so a player can craft ingots and still upgrade nothing.",
+    "",
+    "DELIBERATELY WORSE THAN DUPLICATING. Vanilla's recipe averages 3.5 diamond per template; this",
+    "one is seven diamond AND a netherite scrap for one. That is the point: the bastion stays the",
+    "fast route and vanilla's duplication stays the cheap one, and this is only ever the bootstrap.",
+    "It also costs the rarest thing in the dimension, which is what stops it being the obvious",
+    "first move.",
+    "",
+    "The scrap sits where vanilla puts the template it is copying, because that is what it is doing",
+    "- pressing the pattern into the alloy the pattern is for."
+  ],
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:netherite_upgrade",
+  "key": {
+    "D": "minecraft:diamond",
+    "S": "minecraft:netherite_scrap",
+    "C": "minecraft:netherrack"
+  },
+  "pattern": [
+    "DSD",
+    "DCD",
+    "DDD"
+  ],
+  "result": {
+    "item": "minecraft:netherite_upgrade_smithing_template"
+  }
+}

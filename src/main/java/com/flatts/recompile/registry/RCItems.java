@@ -157,6 +157,32 @@ public final class RCItems {
      */
     public static final DeferredItem<Item> LIGNITE = ITEMS.registerItem("lignite", Item::new);
 
+    /**
+     * A Worn Forging Die: the compacted depths' one findable OBJECT, and the bootstrap for netherite
+     * gear (#249).
+     *
+     * <p>A forging die is the block a drop forge presses metal against, and the pattern lives in the
+     * die. That is what a smithing template is, so this is not an analogy - it is the same object doing
+     * the same job, which is the standard {@code material_economy.md} holds this mod to.
+     *
+     * <p><b>It exists because vanilla's netherite template cannot be made.</b> The only recipe for one
+     * consumes one (seven diamond, netherrack, and a template, for two), so its sole starting point is
+     * a bastion chest. Netherite scrap comes out of the waste and gold off the E-Scrap chain, which
+     * means a player could craft ingots and upgrade nothing at all.
+     *
+     * <p>Everything else in the depths is a material you process. This is a thing you take apart, and
+     * what survives a worn-out die is its SHAPE rather than its steel - so it teaches rather than
+     * drops, which is the mod's thesis in one item.
+     *
+     * <p><b>Deliberately NOT in {@link #DEPTHS_SCRAP}, and therefore not binnable.</b> That list means
+     * "bulk material out of the depths", and everything on it belongs in a Scrap Bin. A die is a find
+     * you tear down, the same class of thing as a bucket or a tin can out of a household mound, and
+     * none of those are binnable either. {@code every_shard_and_scrap_is_binnable} caught this when it
+     * was first filed under scrap - the tag was not the defect, the membership was.
+     */
+    public static final DeferredItem<Item> WORN_FORGING_DIE =
+        ITEMS.registerItem("worn_forging_die", Item::new);
+
     /** The depths' scrap in creative-tab order. */
     public static final List<DeferredItem<Item>> DEPTHS_SCRAP = List.of(
         FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS, OILY_SWARF, LIGNITE);

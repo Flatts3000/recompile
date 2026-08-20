@@ -207,8 +207,9 @@ Alpha, in active development.
   world is made, so an existing world keeps whatever Nether it already had.
 - **Brewing is still fortress-gated.** Nether wart has a route now, but a brewing stand needs a blaze
   rod and nothing grinds into one yet.
-- **Netherite gear is still out of reach.** The scrap is findable; the smithing template it needs comes
-  only from a bastion and is self-referential.
+- **Netherite gear needs a find.** The scrap comes out of the waste, and the smithing template vanilla
+  gates it behind is craftable here once you have torn down a Worn Forging Die and learned the pattern.
+  A bastion is still the fast way to a template.
 - **The depths have no guidebook chapter yet.**
 - **The End is closed**, travel and portal formation together, so there are no dead frames.
 - **Balance numbers are first-pass.** Drop rates, recipe costs, and teardown yields were picked to
