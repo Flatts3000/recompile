@@ -256,6 +256,37 @@ public final class RCBlocks {
             .sound(SoundType.METAL)
     );
 
+    /**
+     * Ancient Sculk (#266): the compacted depths' rarest seam, and the only deep dark in this world.
+     *
+     * <p><b>Why it is here at all.</b> This world places no deep dark biome and therefore no ancient
+     * city, so nine vanilla items had no source. Sculk takes hold on dead organic matter and
+     * techno-organic waste is exactly that - a city's flesh and machinery fused and buried - so the
+     * depths are where sculk would already be if the world were real.
+     *
+     * <p><b>Diamond sledgehammer or better</b> (owner, 2026-08-20), and the gate is entirely vanilla
+     * tags. {@code #recompile:mineable/sledgehammer} says only a sledgehammer works at all;
+     * {@code #minecraft:needs_diamond_tool} says which ones. That second half works because
+     * {@code RCItems.COPPER_TIER} is built on {@code INCORRECT_FOR_STONE_TOOL} and vanilla's
+     * incorrect-for-stone and incorrect-for-iron tags both contain needs-diamond - so copper and iron
+     * sledgehammers are refused and diamond and netherite are not, with no Java.
+     *
+     * <p><b>It is the first block in this mod to gate on tool TIER rather than tool type.</b>
+     * Reinforced Concrete and the Steel I-Beam both say "this tool and no other"; this says "this tool,
+     * and a good one". Diamonds come from the Separator, so the gate sits behind the machine tier, and
+     * the netherite sledgehammer that has shipped future-gated since the ladder was built finally has
+     * something to be better at.
+     */
+    public static final DeferredBlock<Block> ANCIENT_SCULK = BLOCKS.registerBlock(
+        "ancient_sculk",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLACK)
+            // Harder than the fill it sits in: this is the thing you came down for.
+            .strength(3.0F, 6.0F)
+            .requiresCorrectToolForDrops()
+            .sound(SoundType.SCULK));
+
     public static final DeferredBlock<Block> REINFORCED_CONCRETE = BLOCKS.registerBlock(
         "reinforced_concrete",
         Block::new,

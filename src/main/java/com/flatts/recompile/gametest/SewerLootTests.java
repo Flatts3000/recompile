@@ -41,6 +41,36 @@ final class SewerLootTests {
     private SewerLootTests() {
     }
 
+    /**
+     * Whether a recipe's OUTPUT positions mention an item id.
+     *
+     * <p><b>Outputs only, and the distinction is the whole point.</b> This pass used to search the raw
+     * file, which cannot tell a result from an ingredient - so a recipe that SPENDS an echo shard was
+     * reported as one that makes them. {@code sculk_catalyst_from_powder} (#266) is exactly that: eight
+     * sculk powder around one shard, consuming the rarest thing in a sewer to buy the deep dark's
+     * living heart. It creates no shards at all.
+     *
+     * <p>The repo already draws this line elsewhere and in the same words:
+     * {@code a_blueprint_result_has_no_other_route} skips a recipe that consumes the gated item and
+     * hands one back, because "net new items is what the gate is about".
+     *
+     * <p><b>Raw text within those subtrees rather than a typed read</b>, because that is the property
+     * the second pass exists for: this mod's own recipe types return an empty {@code display()}, so a
+     * custom-type recipe producing a shard is invisible to the typed sweep above. Every output shape
+     * this mod ships is covered - {@code result} for the cooking and crafting types, {@code results}
+     * and {@code extras} for teardown and separating, {@code pools} for the weighted draws.
+     */
+    private static boolean outputsMention(String body, String id) {
+        com.google.gson.JsonObject root =
+            com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+        for (String key : List.of("result", "results", "extras", "pools", "byproducts")) {
+            if (root.has(key) && root.get(key).toString().contains(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static void register() {
         // THE PALETTE OPENS NO GATE. Phase 2's acceptance criterion, and it says explicitly that it must
         // be asserted by walking every block the structure can place rather than by reading the palette -
@@ -328,7 +358,7 @@ final class SewerLootTests {
                 }
                 if (body == null) {
                     unreadable.add(rid.toString());
-                } else if (body.contains("minecraft:echo_shard")) {
+                } else if (outputsMention(body, "minecraft:echo_shard")) {
                     crafted.add(rid.toString());
                 }
             }

@@ -68,7 +68,8 @@
     [],
     [
       "recompile:slag_rubble_pocket",
-      "recompile:depths_lava_pocket"
+      "recompile:depths_lava_pocket",
+      "recompile:ancient_sculk_vein"
     ],
     [],
     [],

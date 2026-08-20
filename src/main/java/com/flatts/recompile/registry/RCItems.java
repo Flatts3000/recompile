@@ -183,6 +183,21 @@ public final class RCItems {
     public static final DeferredItem<Item> WORN_FORGING_DIE =
         ITEMS.registerItem("worn_forging_die", Item::new);
 
+    /**
+     * Sculk powder: what a broken seam of Ancient Sculk leaves, and the whole deep dark in one item.
+     *
+     * <p>It crafts the sculk family rather than being smelted or milled, which is a departure from the
+     * depths' other materials and a deliberate one - every scrap down there is a FEED for a machine,
+     * and this is a MATERIAL you shape. Slag Rubble's terrain shards are the nearer relative, though
+     * those are pieces of the block they came from and this is not.
+     *
+     * <p>The catalyst is the expensive recipe (owner, 2026-08-20) and it costs an <b>echo shard</b>,
+     * which is a sewer's one prize. That is the design rather than a price: a catalyst grows sculk
+     * wherever something dies near it, so one is a forever supply, and the only fitting cost is the
+     * other thing in this world that came out of the deep dark.
+     */
+    public static final DeferredItem<Item> SCULK_POWDER = ITEMS.registerItem("sculk_powder", Item::new);
+
     /** The depths' scrap in creative-tab order. */
     public static final List<DeferredItem<Item>> DEPTHS_SCRAP = List.of(
         FUSED_CIRCUITRY, PHOSPHOR_SCRAP, RENDERED_ORGANICS, OILY_SWARF, LIGNITE);
@@ -598,6 +613,10 @@ public final class RCItems {
     /** The Sintering Kiln (#248): the fifth verb, and the first that puts something back together. */
     public static final DeferredItem<BlockItem> SINTERING_KILN =
         ITEMS.registerSimpleBlockItem("sintering_kiln", RCBlocks.SINTERING_KILN);
+
+    /** Ancient Sculk (#266): the seam, in item form. See RCBlocks for why it needs a diamond hammer. */
+    public static final DeferredItem<BlockItem> ANCIENT_SCULK =
+        ITEMS.registerSimpleBlockItem("ancient_sculk", RCBlocks.ANCIENT_SCULK);
 
     /**
      * A Blaze Briquette: four blaze powder pressed into one compact, and the Sintering Kiln's feed.

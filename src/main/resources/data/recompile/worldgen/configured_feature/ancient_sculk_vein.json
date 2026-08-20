@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "ANCIENT SCULK, in veins through the fill.",
+    "",
+    "An ore feature rather than vanilla's sculk_patch, and that is not a stylistic choice: a",
+    "sculk_patch decorates an exposed surface and needs air beside it, and the compacted depths are",
+    "solid every column floor to ceiling. It would place nothing, throw nothing and log nothing.",
+    "Block REPLACEMENT is what works in solid fill, which is why every feature down here is an ore.",
+    "",
+    "The target must be techno_organic_waste. Aiming at netherrack - the obvious guess for a Nether",
+    "biome - would be silently inert, because this dimension generates none.",
+    "",
+    "Size 6 against slag rubble's 20, so it reads as a vein rather than a seam."
+  ],
+  "type": "minecraft:ore",
+  "config": {
+    "size": 6,
+    "discard_chance_on_air_exposure": 0.0,
+    "targets": [
+      {
+        "target": {
+          "predicate_type": "minecraft:block_match",
+          "block": "recompile:techno_organic_waste"
+        },
+        "state": {
+          "Name": "recompile:ancient_sculk"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "_comment": [
+    "Veins are a skin rather than a block, so powder spreads twice as far: 1 powder to 2 veins.",
+    "",
+    "TWO powder rather than one, and that is not a price - it is what keeps the recipe reachable.",
+    "sculk_from_powder is shapeless and takes ONE powder, so a one-powder vein recipe accepts exactly",
+    "the same grid, and a grid resolves to a single result: whichever recipe the map yielded first won",
+    "and the other could never be crafted at all. Caught in review on #267 by",
+    "every_crafting_recipe_is_reachable_at_a_bench, which is also what found the trommel/pulverizer",
+    "pair that had shipped that way since #197. The ratio is untouched - 2 powder, 4 veins."
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "recompile:sculk_powder",
+    "recompile:sculk_powder"
+  ],
+  "result": {
+    "id": "minecraft:sculk_vein",
+    "count": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "_comment": [
+    "Packed back into the block it came out of. One for one: the powder IS the sculk, just loose."
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "recompile:sculk_powder"
+  ],
+  "result": {
+    "id": "minecraft:sculk"
+  }
+}

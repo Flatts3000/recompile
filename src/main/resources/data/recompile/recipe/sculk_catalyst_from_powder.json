@@ -1,0 +1,30 @@
+{
+  "_comment": [
+    "THE EXPENSIVE ONE, and deliberately (owner, 2026-08-20).",
+    "",
+    "A catalyst is not another block, it is a SOURCE: it turns what is around a mob's death into",
+    "sculk, and that spread lays down veins and eventually sensors and shriekers. One catalyst is the",
+    "family forever, the way one Tree Nursery is wood forever. Priced as one of several recipes it",
+    "would make Ancient Sculk a single trip; priced as the costly one, the seam stays worth returning",
+    "to.",
+    "",
+    "The cost is an ECHO SHARD, which is one per sewer and has no other use in this world. That is the",
+    "design rather than a number: a catalyst is the deep dark's living heart, and the only other thing",
+    "here that came out of the deep dark is the shard in a sump. Making one buy the other is the",
+    "closest this mod gets to a ritual."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PPP",
+    "PXP",
+    "PPP"
+  ],
+  "key": {
+    "P": "recompile:sculk_powder",
+    "X": "minecraft:echo_shard"
+  },
+  "result": {
+    "id": "minecraft:sculk_catalyst"
+  }
+}

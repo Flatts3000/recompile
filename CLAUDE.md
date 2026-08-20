@@ -319,7 +319,7 @@ lines are not the page-budget risk they look like.
 Most tutorials target 1.20/1.21 and will mislead you:
 
 - **Event buses are merged.** `@EventBusSubscriber` takes no `bus` parameter; `EventBusSubscriber.Bus` is gone.
-- `net.minecraft.resources.Identifier`, not `ResourceLocation`.
+- `net.minecraft.resources.Identifier`, not `ResourceLocation`. **And `ResourceKey.location()` is `ResourceKey.identifier()`** - the accessor was renamed with the class it returns, so every 1.21-era snippet that reads a key's id fails to compile with a bare `cannot find symbol` that names neither the old method nor the new one.
 - **Data directories are singular**: `loot_table/`, `recipe/`, `structure/`, `tags/block/`, `tags/item/`, `worldgen/configured_feature/`, `worldgen/placed_feature/`.
 - **`DirectionProperty` is gone.** Horizontal facing is `EnumProperty<Direction>` now (`BlockStateProperties.HORIZONTAL_FACING`); the old dedicated class does not exist, so 1.21-era snippets that declare one will not compile.
 - **`GameRules` moved to `net.minecraft.world.level.gamerules`**, and **every rule was renamed to snake_case** - not just the Java constants, the *command ids too*. `doTileDrops` is `block_drops` (`GameRules.BLOCK_DROPS`, a `GameRule<Boolean>`), `doDaylightCycle` is `advance_time`, `doWeatherCycle` is `advance_weather`. This bites in **datapack functions**, where the only symptom is the whole function refusing to load: `Incorrect argument for command at position 9: gamerule <--[HERE]`, which names the command and not the rule. Every 1.21-era snippet uses the old ids.
