@@ -359,6 +359,8 @@ Feature design is decided there, not here. Read before changing gameplay:
 
 **Engine / pack split:** Recompile is the engine (systems, the public schema, tag-driven defaults). Trashlands is the pack (curation, quests, tuning, most cross-mod teardown tables). The mod never *requires* Create or Mekanism; it ships standalone config fallbacks.
 
+**What a pack can change without a mod release is written down**: `docs/pack_extension.md` - the three sewer loot tables and every pull stream, the six public recipe types, the tag surface, and how to add guidebook entries from another namespace. It also states what a pack CANNOT reach from data, which is the half people discover the hard way: the viewers read the mod's bundled JSON rather than the live registry, so a retuned pull stream is right in-world and stale in JEI.
+
 ## Conventions
 
 - **No em-dashes or en-dashes, no emoji** in any authored text (hard rule). ASCII punctuation only.
