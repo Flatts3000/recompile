@@ -1,5 +1,86 @@
 # Changelog
 
+## v0.13.0
+
+**Three things that could not be reached now can be: brewing, netherite, and emeralds.** v0.12.0 gave
+you a place to go. This one is about what was still missing once you got there, and it closes the last
+of the resource gaps that had been sitting open since the reachability sweep.
+
+It also adds the fifth machine, and the fifth machine is the first one that puts something back together
+instead of taking it apart.
+
+### The Sintering Kiln
+
+- **Every machine until now ran one direction.** The Trommel cuts a block into its drops, the Separator
+  divides a mixture, the Pulverizer grinds things finer, the Slag Furnace melts rock to glass. All four
+  take something apart, and the Pulverizer alone had seven recipes that every one of them turned
+  something into a powder. Nothing turned powder back into a solid.
+- **The kiln fires a pressed powder until the grains fuse.** Not melting: a kiln holds a heat below
+  that and waits, which is how you make a solid out of dust without turning it into a puddle.
+- It is brick, a Bulb and a Steel Offcut, and it burns fuel rather than power.
+- **Press four blaze powder into a Blaze Briquette at any bench, fire the briquette, get a blaze rod.**
+  That is a brewing stand, and every potion behind it, without setting foot in a fortress.
+- **Four is not arbitrary.** A rod breaks back down into two powder, so at any lower price you could
+  make rods out of nothing by going round in circles. It costs four and refunds two.
+
+### Netherite
+
+- **Netherite scrap was already down there and the ingots were already yours.** What you could not do
+  was upgrade anything, because that needs a smithing template and vanilla's only recipe for one
+  consumes a template to make it. A bastion chest was the sole way in.
+- **A Worn Forging Die** now turns up in the compacted depths, a bit over two percent of pulls. A forging die is
+  the block a press shapes metal against, so the pattern lives in the die, which is what a smithing
+  template is.
+- **Tear one down at the Workbench with a prybar** and it gives up almost nothing, because a worn-out
+  die has nothing left to give but its shape. Four of them and you have the pattern for good.
+- **It is expensive on purpose:** making a template from the pattern costs more than copying one you
+  already have, so a bastion is still the quick way and this is the way that does not need one.
+
+### Emeralds, and the only villager in the world
+
+- **There are no villages here and there never will be.** What there are now is zombie villagers, among
+  the ordinary zombies out in the demolition yard.
+- **Cure one the usual way** - a splash potion of weakness and a golden apple - and you have the only
+  trade in the game. Both halves of the cure are reachable, and one of them only became so with the
+  kiln above.
+- **The yard's hostile mobs are now vanilla plains' list outright**, entry for entry, rather than the
+  short list it had. That is what makes the zombie villager as rare here as it is anywhere else instead
+  of a third more common by accident.
+
+### Red sand
+
+- **Some of the sand out of Reinforced Concrete now comes up red.** That is rust: the aggregate nearest
+  the steel has been staining for as long as this place has been standing, and red sand is iron-stained
+  sand wherever you find it.
+- Nothing else you can dig up here is red, and the whole red sandstone family comes off it - eleven
+  blocks that had no route at all. (A wandering trader will sell you some too, now that emeralds
+  exist.)
+
+### The compacted depths get a chapter
+
+- Six entries in the guidebook: getting there, why the dimension is solid, terrain from shards, which
+  machine each scrap goes to, lignite, and the forging die.
+- The book had nine categories and none of them was the Nether, while almost nothing down there behaves
+  the way vanilla does.
+
+### Changed behaviour
+
+- **Slimes are no longer sewers-only.** Bringing the demolition yard's hostile mobs in line with a
+  vanilla plains brought slimes with them, and because this world's ground sits low, they turn up out in
+  the yard the way they would in any ordinary overworld chunk.
+- **A sewer is still much the better place to find them.** Down there they come from the sewer being a
+  sewer; up in the yard they come from being in the right chunk, which is about one in ten.
+
+### Worth knowing
+
+- **The compacted depths still need a new world**, as in v0.12.0: a dimension's generator is written
+  into a save when the world is made.
+- **Villagers will sell you things this world otherwise gates.** Saplings, buckets and iron gear are all
+  on vanilla's trade tables, and trading is not yet curated. If that matters to how you want to play,
+  it is worth knowing before you cure one.
+- **The crimson and warped families are still short**, and crying obsidian and resin still have no
+  source.
+
 ## v0.12.0
 
 **There is a Nether now, and it is a dump you mine.** The overworld is a dump you clear: you sort it,
