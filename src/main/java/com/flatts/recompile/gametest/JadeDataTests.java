@@ -55,10 +55,10 @@ final class JadeDataTests {
         // way to explain itself. The Pulverizer once shipped with no providers at all and an audit
         // found it, not a test.
         RCGameTests.test("every_powered_machine_reports_real_numbers_to_jade", 60, helper -> {
-            if (!jadePresent()) {
-                helper.succeed();
-                return;
-            }
+            helper.assertTrue(jadePresent(),
+                "Jade is not on the GameTest classpath, so this test would pass without checking "
+                    + "anything and compat/jade would silently return to zero coverage. It is "
+                    + "runtimeOnly in build.gradle and every dev and CI run has it.");
             List<Block> machines = poweredMachines(helper);
             helper.assertTrue(machines.size() >= 3,
                 "only " + machines.size() + " powered machine cores found - discovery is broken, so "
@@ -100,10 +100,10 @@ final class JadeDataTests {
         // is the shape a stub takes. This one changes the machine and watches the report change with
         // it - the property a player is actually relying on when they look at a stalled Separator.
         RCGameTests.test("jade_follows_the_separators_power_down", 60, helper -> {
-            if (!jadePresent()) {
-                helper.succeed();
-                return;
-            }
+            helper.assertTrue(jadePresent(),
+                "Jade is not on the GameTest classpath, so this test would pass without checking "
+                    + "anything and compat/jade would silently return to zero coverage. It is "
+                    + "runtimeOnly in build.gradle and every dev and CI run has it.");
             BlockPos probe = new BlockPos(1, 1, 1);
             helper.setBlock(probe, com.flatts.recompile.registry.RCBlocks.SEPARATOR.get());
             BlockPos abs = helper.absolutePos(probe);
@@ -139,7 +139,21 @@ final class JadeDataTests {
 
     // ---------------------------------------------------------------- plumbing
 
-    /** Whether Jade is on the classpath at all. Absent is a pass, not a failure - it is optional. */
+    /**
+     * Whether Jade is on the classpath.
+     *
+     * <p><b>Absent is a FAILURE, not a quiet pass</b>, and that is a deliberate reversal of how this
+     * started. Skipping silently means that if the Jade coordinate is ever bumped or broken, or the mod
+     * stops loading in the GameTest JVM, this file's coverage returns to zero while the suite stays
+     * green - which is precisely the "a covered line is not a tested one" failure the whole coverage
+     * pass was written against. The dev and CI runs always have Jade: {@code runtimeOnly} in
+     * build.gradle, and {@link MachineParityTests} already depends on it being there.
+     *
+     * <p>Reflection is still how Jade is reached, for a different reason: a GameTest class is registered
+     * unconditionally at mod init, so importing {@code snownee.jade.api.BlockAccessor} here would throw
+     * {@code NoClassDefFoundError} on a Jade-less install and take the mod down with it. Class-loading
+     * safety and test strictness are separate concerns and this file wants both.
+     */
     private static boolean jadePresent() {
         try {
             Class.forName(ACCESSOR);
@@ -178,10 +192,25 @@ final class JadeDataTests {
 
             Method append = type.getMethod("appendServerData", CompoundTag.class, accessorType);
             CompoundTag data = new CompoundTag();
-            append.invoke(instance, data, accessor);
+            try {
+                append.invoke(instance, data, accessor);
+            } catch (java.lang.reflect.InvocationTargetException thrown) {
+                // NOT swallowed as "absent". InvocationTargetException is a ReflectiveOperationException,
+                // so catching that alone reported a provider which THREW - an NPE on a null battery, an
+                // accessor call the proxy answers with null - as "has no usable XDataProvider", pointing
+                // the reader at a missing class and discarding the stack trace that says what actually
+                // broke. A crash is the most interesting thing this test can find; it must surface.
+                throw new IllegalStateException(
+                    provider + ".appendServerData threw " + thrown.getCause(), thrown.getCause());
+            }
             return data;
-        } catch (ReflectiveOperationException absent) {
+        } catch (ClassNotFoundException | NoSuchMethodException absent) {
+            // Genuinely not there: no such provider class, or it does not implement the interface.
             return null;
+        } catch (ReflectiveOperationException broken) {
+            // Present but unusable - a non-public constructor, say. Also worth surfacing rather than
+            // being filed under "missing".
+            throw new IllegalStateException("cannot invoke " + provider, broken);
         }
     }
 

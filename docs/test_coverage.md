@@ -25,16 +25,35 @@ the opposite direction.**
   unchanged, which is the point - a normal run should not pay for this.
 - `coverageReport` merges both `.exec` files into one report.
 
-The `gametest` package is excluded from the denominator. It is test code that happens to live under
-`src/main/java`, because GameTest registration requires it - counting it would inflate the number with
-tests testing themselves.
+The `gametest` package is the only thing excluded from the denominator. It is test code that happens to
+live under `src/main/java`, because GameTest registration requires it - counting it would inflate the
+number with tests testing themselves.
+
+**`client/**` is deliberately NOT excluded from the reports**, even though neither layer can reach it.
+Hiding it would make the headline look better while deleting the evidence that 389 lines have no
+automated coverage at all. The "actionable" row subtracts it in the open, where the subtraction can be
+argued with.
+
+**Two ways this measurement can lie to you, both now guarded:**
+
+- Running `coverageReport` without `-PgameTestCoverage` used to merge whatever `gameTest.exec` was left
+  on disk. `append=false` truncates that file only when the agent actually attaches, so a stale one
+  survives and gets reported as current - a wrong number that looks exactly like a right one. The task
+  now fails rather than merging an exec file this invocation did not produce.
+- Gradle does not honour command-line order for tasks with no declared relationship, so `coverageReport`
+  could run before either test task had written anything. It now `mustRunAfter` both.
 
 ## The numbers, 2026-08-19
 
+All three rows share one denominator - 9712 lines, `src/main/java` minus `gametest` - so they can be
+compared. That is enforced by a single `COVERAGE_EXCLUDES` list both report tasks use. They did not
+share it at first: one report also dropped `client/**`, which put 389 zero-covered lines in one
+denominator and not the other and made this very table a comparison of different things.
+
 | | line | branch |
 |---|---|---|
-| Merged, all of `src/main/java` minus `gametest` | **70.0%** | 54.2% |
-| JUnit layer alone | 24.1% | 3.4% |
+| Merged, both layers | **69.9%** | 54.2% |
+| JUnit layer alone | 23.2% | 3.4% |
 | **Actionable** (minus what neither layer can reach) | **75.8%** | - |
 
 The floor in `~/.claude/rules/common/testing.md` is **80%**, so the actionable figure is under it.
