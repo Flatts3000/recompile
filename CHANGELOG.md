@@ -1,5 +1,112 @@
 # Changelog
 
+## v0.12.0
+
+**There is a Nether now, and it is a dump you mine.** The overworld is a dump you clear: you sort it,
+green it, and push the grey back. Down here nothing is going to be cleared. The compacted depths are
+solid from the bedrock floor to the bedrock ceiling, wall to wall, and the only open spaces are the
+things buried in it.
+
+Getting there is the point of the whole slag chain that came with it. Obsidian is made, never found,
+and until this release there was nothing that made it.
+
+### The way in
+- **Slag comes out of the Cupola Furnace whether you want it or not.** Every eighth smelt it rakes off
+  a lump into a second output slot. It is the non-metallic fraction that floats off any remelt, so it
+  has no recipe and you cannot ask for it.
+- **The Slag Furnace vitrifies it into obsidian**, one lump to a block, over a burn twice the length of
+  a normal smelt. It runs on fuel rather than power, and it is the only obsidian in this world.
+- **So the portal is earned rather than found**, and the cost is upstream: the eight smelts it takes to
+  rake one lump ARE the price.
+- Slag has two other exits if you would rather not build a portal. The **Separator** divides it into
+  concrete powder with recovered scrap metal as the byproduct, and the **Pulverizer** grinds it into
+  Fertilizer. Ground slag really was sold as phosphate fertiliser for a century.
+
+### The compacted depths
+- **Every column is full.** Techno-organic waste, floor to ceiling, with pockets of slag rubble and lava
+  through it. There is no open cavern, no lava sea and no ceiling to fall from.
+- **Techno-organic waste is the Nether's Block of Garbage.** Right-click to pick through it, same as a
+  mound. It has four faces so a tunnel does not read as wallpaper, and unlike a Block of Garbage **it
+  does not fall** - a dimension of falling blocks would bury you the moment you started.
+- **Slag rubble is the Nether's Stone Rubble**, and it does fall.
+- **Fortresses and bastions generate normally.** Everything vanilla puts in them is still there.
+
+### Nether terrain is rebuilt, not mined
+- **The depths generate no vanilla nether blocks at all.** No netherrack, no basalt, no soul sand,
+  nothing. Sorting slag rubble gives **shards**, and four shards craft the block.
+- Seven of them: netherrack, basalt, blackstone, crimson nylium, warped nylium, and clumps of soul sand
+  and soul soil. The soul pair are clumps rather than shards because a shard of sand reads as a
+  mistake.
+- **Each one is the only route to its block**, which is what makes the dimension worth mining rather
+  than a place to walk through.
+- **The nylium pair may be worth more than the block they make.** Bone meal on nylium grows fungus, and
+  a fungus bone-mealed on its own nylium becomes a huge one. Nothing down there grows a fungus forest,
+  so those two shards are the only seed for one.
+
+### The waste gives scrap; your machines give materials
+This is the same rule the overworld runs on. Copper is not in a household mound, scrap metal is, and
+the Cupola smelts it. So quartz is not in the waste either.
+
+- **Fused Circuitry** separates into **quartz**, with circuit powder as the byproduct - which is stage
+  one of the gold chain you already had. A quartz crystal really is what keeps a circuit board's clock.
+- **Phosphor Scrap** pulverizes into **glowstone dust**. A fluorescent tube is coated on the inside with
+  a phosphor powder; grinding the glass to recover it is what a lamp recycler does.
+- **Rendered Organics** separates into **nether wart**, with organic muck as the byproduct. Wart is a
+  fungus and spores survive being cooked and buried better than anything else in a dump. It pairs with
+  the soul sand the rubble already gives you, since wart grows on nothing else.
+- **Oily Swarf** answers to two machines. The mill reduces it to **blaze powder**; magnesium and
+  titanium swarf is a real and well-known fire hazard, fine enough to ignite in air. The separator
+  divides it into **magma cream** and scrap metal, because swarf comes off the tool soaked in cutting
+  fluid and real swarf recycling starts by separating the metal from the oil.
+- **Netherite scrap** comes out of the waste directly, about one pull in 260. Vanilla
+  already calls it a scrap.
+
+### Coal, at last
+- **Lignite** is found in the waste, and smelting it gives **coal** - the only route to coal in this
+  world.
+- Lignite is not a stand-in. It is a real rank of coal, the one between peat and the coal vanilla
+  ships, and the depths are buried compacted organics under heat and weight, which is not like a coal
+  seam forming, it is one.
+- **It burns on its own, at half a coal.** So it is useful the moment you find it, in a dimension with
+  no wood, and upgrading it visibly pays: one lignite of heat smelts four.
+- Charcoal already covered every coal recipe except the storage block, so this is a material and a
+  found fuel rather than a wave of new recipes.
+
+### Machines
+- **The Cupola Furnace has a second output slot** for the slag it rakes off.
+- **No machine recipe takes more than one input any more.** The Separator, Trommel and Pulverizer have
+  no screen and nothing can reach into them, so a part-finished batch was invisible and could only be
+  recovered by breaking the block - and a part-finished batch was the normal case, since the pull
+  streams hand scrap out one item at a time. This affects six recipes; each one now consumes one item
+  per run.
+- **A Water Tank holds water when it is loose.** It was the only component named for a capacity rather
+  than an action, and a tank that does not hold reads as broken rather than as a part. Every other
+  component is still inert. Once it is part of a formed machine, the machine's tank takes over.
+- **The Tree Nursery grows pale oak**, the ninth species. It grew eight and vanilla has nine, and since
+  saplings are stripped out of every loot roll, a species the picker does not list did not exist.
+
+### Fixes
+- **Every paragraph break in the guidebook was being swallowed.** All 71 text pages ran their
+  paragraphs together with no space between them, and had done for several releases. It reads as a
+  typo rather than a layout fault, which is why it survived so long.
+- **The Cupola Furnace has its own JEI category.** It runs vanilla blasting recipes, so they always
+  showed - but vanilla blasting draws one result and the machine hands back two things, so the slag
+  that the whole obsidian chain hangs off was invisible.
+- **Both smelters have a JEI transfer button again.** Its absence read as "this recipe is uncraftable"
+  rather than "this button is missing".
+- **The Cupola no longer shows every blasting recipe twice in JEI**, once with slag and once without.
+
+### Worth knowing
+- **The Nether generator is baked into a save when the world is made**, so an existing world keeps
+  whatever Nether it already had. The compacted depths need a new world.
+- **Brewing is still fortress-gated.** Nether wart has a route now, but a brewing stand needs a blaze
+  rod and nothing down there grinds into one.
+- **Netherite gear is still unreachable.** The scrap is findable; the smithing template it needs comes
+  only from a bastion and is self-referential.
+- **The crimson and warped families are still short.** The nylium shards may open them by cultivation;
+  that is untested.
+- **The depths have no guidebook chapter yet.**
+
 ## v0.11.0
 
 **There are sewers under the demolition yard.** Brick tunnels running with leachate, dug into rock
