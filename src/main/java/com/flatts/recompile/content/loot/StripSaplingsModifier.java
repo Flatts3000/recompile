@@ -10,9 +10,21 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.neoforged.neoforge.common.loot.LootModifier;
 
 /**
- * Removes every sapling from every loot roll in the game (design P2.4-R2): <b>a player can never
- * obtain a sapling as an item.</b> Saplings exist only in a planted state, and the tree planter is
- * the only thing that can place one.
+ * Removes every sapling from every loot roll in the game (design P2.4-R2). <b>No loot roll anywhere
+ * yields a sapling</b> - not a broken sapling, not decaying leaves, not a chest - so the Tree Nursery
+ * is where trees come from and a sapling is not something a player carries around.
+ *
+ * <p><b>This javadoc used to say "a player can never obtain a sapling as an item", and that stopped
+ * being true on 2026-08-20.</b> Villagers arrived with #227 and a wandering trader sells saplings for
+ * emeralds; trades are not loot rolls, so nothing here sees them. Curating trade tables was considered
+ * and declined (#263, closed not-planned): trading is accepted as a real alternative route, and the
+ * cost of getting a villager at all - a cured zombie villager, a splash potion of weakness, a golden
+ * apple - is what stands in for the gates it walks around.
+ *
+ * <p><b>The mechanism below is unchanged and still worth having.</b> It covers every route except that
+ * one, and the reasoning in the next paragraph is why: a sapling picked up off the ground early is a
+ * tree on virgin coarse dirt, and one bought after a villager is a tree bought at the price of a
+ * villager. The word to be careful with is "never"; the rule itself is intact.
  *
  * <p><b>Why this rule exists.</b> Vanilla lets a sapling be planted, and grown, on raw coarse dirt:
  * {@code VegetationBlock.mayPlaceOn} tests {@code #minecraft:supports_vegetation}, which resolves

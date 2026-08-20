@@ -6,9 +6,16 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
 /**
- * GameTests for the sapling lockout (design P2.4-R2): a player can never obtain a sapling, so the
- * tree planter is the only way one ever enters the world and no found sapling can shortcut the
- * reclamation ladder onto raw coarse dirt.
+ * GameTests for the sapling lockout (design P2.4-R2): no loot roll yields a sapling, so the Tree
+ * Nursery is how trees enter the world and no <i>found</i> sapling can shortcut the reclamation ladder
+ * onto raw coarse dirt.
+ *
+ * <p><b>Scope, because it narrowed.</b> This said "a player can never obtain a sapling" until
+ * 2026-08-20, when villagers arrived (#227) and a wandering trader began selling them. Trades are not
+ * loot rolls and these tests do not cover them, deliberately - #263 closed not-planned, so buying a
+ * sapling is accepted behaviour rather than a hole. What these still guarantee is that one cannot be
+ * <b>found</b>, which is the half the reclamation ladder actually depends on: the failure P2.4-R
+ * guards against is a sapling in the first hour, not one bought after a cured villager.
  *
  * <p>The failure mode these are shaped around is <b>silence</b>. A global loot modifier that fails
  * to load - wrong directory, bad codec, missing index entry - throws nothing and simply leaves the
