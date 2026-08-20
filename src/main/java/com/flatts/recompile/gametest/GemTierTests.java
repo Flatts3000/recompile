@@ -410,6 +410,70 @@ final class GemTierTests {
             });
         });
 
+        // NO FEED IS EVER SHORT, because no recipe here takes more than one input (owner,
+        // 2026-08-19). This is the end-to-end shape of that ruling, and it fails against the data this
+        // mod shipped a day earlier.
+        //
+        // What it replaces: separating_nether_wart wanted FOUR Rendered Organics, and the owner called
+        // it dangerous on sight of its JEI page. Measured, it was worse than dangerous. Three organics
+        // reaching the head of the queue stalled the machine ON that slot, and everything behind it
+        // starved - this exact arrangement produced NOTHING out of the chute at all. The machine has no
+        // GUI and is not a Container, so there was no way to see the three-of-four and no way to take
+        // it back: the only exits were finding a fourth or breaking the block. A remainder is also the
+        // normal case rather than a contrived one, since the pull streams hand scrap out one at a time.
+        //
+        // Both halves of the fix are load-bearing and only one of them is visible here. The recipes are
+        // count 1, which no_gui_less_machine_recipe_takes_more_than_one_input binds. The head scans
+        // ALSO now skip a slot they cannot run rather than stalling on it, so a pack shipping a count
+        // above one gets a slow machine rather than a bricked one - the schema is public and this mod
+        // cannot ship a recipe that would prove it.
+        RCGameTests.test("a_short_feed_still_separates", 400, helper -> {
+            BlockPos core = new BlockPos(1, 2, 1);
+            helper.setBlock(core, RCBlocks.SEPARATOR.get());
+            buildAround(helper, core);
+            helper.assertTrue(MultiblockCoreBlock.tryForm(helper.getLevel(), helper.absolutePos(core)),
+                "the Separator did not form");
+            var be = (com.flatts.recompile.content.block.entity.SeparatorBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(core));
+            try (Transaction tx = Transaction.openRoot()) {
+                be.battery().insert(1_000_000, tx);
+                tx.commit();
+            }
+
+            // Three of what used to be a four-count recipe, at the head, with other work behind it.
+            drop(helper, core, new ItemStack(RCItems.RENDERED_ORGANICS.get(), 3));
+            drop(helper, core, new ItemStack(RCItems.MAGNET_SCRAP.get(), 1));
+
+            // succeedWhen, not a fixed delay. Three organics are three separate runs now, and the
+            // exact tick they finish on is a function of numbers #36 owns.
+            helper.succeedWhen(() -> {
+                // Stand in for an attached generator. The buffer is 4000 FE and energy is charged PER
+                // TICK, so three 80-tick separations cost 4800 - more than one fill holds. Without this
+                // the machine runs dry two thirds of the way through, which looks exactly like the
+                // starvation this test exists to watch for.
+                try (Transaction top = Transaction.openRoot()) {
+                    be.battery().insert(4000, top);
+                    top.commit();
+                }
+                java.util.Set<net.minecraft.world.item.Item> out = new java.util.HashSet<>();
+                for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
+                    out.add(entity.getItem().getItem());
+                }
+                helper.assertTrue(out.contains(Items.NETHER_WART),
+                    "three Rendered Organics went in and no nether wart came out. Out of the chute: "
+                        + out);
+                helper.assertTrue(out.contains(Items.REDSTONE),
+                    "the magnet scrap queued BEHIND the organics was never processed, which is the "
+                        + "starvation this ruling removed. Queue: " + be.queued() + ", out of the "
+                        + "chute: " + out);
+                helper.assertTrue(be.queuedCount() == 0,
+                    "the machine is still holding " + be.queuedCount() + " items it should have been "
+                        + "able to process - nothing can extract from it, so anything stuck here is "
+                        + "only recoverable by breaking the block");
+            });
+        });
+
         // The queue is BOUNDED and only takes what it can grind. Both halves matter: unbounded makes
         // the machine a storage block, and swallowing junk means a player loses an item to a machine
         // that will never give it back, since nothing can extract from this block.

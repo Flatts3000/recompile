@@ -181,8 +181,11 @@ final class PulverizerTests {
             var chest = (net.minecraft.world.Container) helper.getLevel().getBlockEntity(outlet);
             helper.assertTrue(chest != null, "no chest at the discharge");
 
-            // STAGE ONE: enough E-Scrap for exactly one operation, so the count is exercised too.
-            int need = 4;
+            // STAGE ONE: enough E-Scrap for exactly one operation, which is ONE since the owner's
+            // 2026-08-19 ruling that a GUI-less machine cannot take N > 1 inputs. It fed 4 while the
+            // recipe wanted 4, "so the count is exercised too"; there is no count to exercise now, and
+            // feeding 4 here just makes four separate runs and times the test out.
+            int need = 1;
             BlockPos feed = feedPoint(helper, core);
             helper.getLevel().addFreshEntity(new ItemEntity(helper.getLevel(),
                 feed.getX() + 0.5, feed.getY() + 0.5, feed.getZ() + 0.5,

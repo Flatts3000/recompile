@@ -82,7 +82,16 @@ The schema, following `TeardownRecipe`'s shape so the two read as siblings:
 ```
 
 - `input` is an `Ingredient`, so a tag works, matching teardown.
-- `count` is how many of the input one operation consumes. **This is the concentration dial.**
+- `count` is how many of the input one operation consumes, and for any recipe THIS MOD ships it is
+  **1** (owner, 2026-08-19): *a GUI-less machine cannot take N > 1 inputs to make an output.* It was
+  the concentration dial, and it cannot be, because these machines have no GUI and are not Containers -
+  there is nothing to open and nothing to take back out, so a feed the recipe cannot use yet is
+  invisible and unrecoverable except by breaking the block. A remainder is also the ordinary state
+  rather than an edge case: a recipe wanting four leaves one whenever the feed is not a multiple of
+  four, and the pull streams hand scrap out one item at a time. `no_gui_less_machine_recipe_takes_more_than_one_input`
+  binds it. The field stays in the schema because it is public and a pack may use it - and both head
+  scans skip a slot they cannot run rather than stalling on it, so a pack that does gets a slow machine
+  rather than a bricked one. **The concentration dial is now the drop weight**, which is #36's anyway.
 - `energy` is **FE per tick**, not per operation, matching `hydroponicsFePerTick`. Per-tick is what lets an
   underpowered machine visibly stall rather than silently refuse.
 - `byproducts` are **deterministic, not weighted**. A separator splits a feed; it does not roll for a

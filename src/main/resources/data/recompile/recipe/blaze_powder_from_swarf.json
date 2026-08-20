@@ -9,11 +9,21 @@
     "things here - that is the separator's recipe on the same input - it is being made finer",
     "until it behaves the way fine metal does.",
     "",
-    "Ratio and cost are first-pass; #36 owns them."
+    "Ratio and cost are first-pass; #36 owns them.",
+    "",
+    "COUNT IS 1, and must be (owner, 2026-08-19): a GUI-less machine cannot take N > 1 inputs to",
+    "make an output. This was 3. A machine with no GUI and no Container has nothing to open and",
+    "nothing to take back out, so a remainder the recipe cannot use is invisible and unrecoverable -",
+    "and a remainder is the NORMAL state, because the pull streams hand their scrap out one item at",
+    "a time.",
+    "",
+    "Ticks and energy are unchanged on purpose. An operation already made one output, so the cost",
+    "per output in time and power is the same as before; the only thing that moves is the material",
+    "ratio, and that is #36's, whose dial is the drop weight."
   ],
   "type": "recompile:pulverizing",
   "input": "recompile:oily_swarf",
-  "count": 3,
+  "count": 1,
   "result": {
     "item": "minecraft:blaze_powder",
     "count": 1

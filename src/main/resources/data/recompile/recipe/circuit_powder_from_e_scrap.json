@@ -9,11 +9,21 @@
     "",
     "Four E-Scrap per powder is the ratio dial (#36 owns the final number). It is deliberately not",
     "one-for-one: gold is trace, and the fiction the whole tier rests on is that e-waste is rich",
-    "compared to ore, not that it is free."
+    "compared to ore, not that it is free.",
+    "",
+    "COUNT IS 1, and must be (owner, 2026-08-19): a GUI-less machine cannot take N > 1 inputs to",
+    "make an output. This was 4. A machine with no GUI and no Container has nothing to open and",
+    "nothing to take back out, so a remainder the recipe cannot use is invisible and unrecoverable -",
+    "and a remainder is the NORMAL state, because the pull streams hand their scrap out one item at",
+    "a time.",
+    "",
+    "Ticks and energy are unchanged on purpose. An operation already made one output, so the cost",
+    "per output in time and power is the same as before; the only thing that moves is the material",
+    "ratio, and that is #36's, whose dial is the drop weight."
   ],
   "type": "recompile:pulverizing",
   "input": "recompile:e_scrap",
-  "count": 4,
+  "count": 1,
   "result": {
     "item": "recompile:circuit_powder",
     "count": 1

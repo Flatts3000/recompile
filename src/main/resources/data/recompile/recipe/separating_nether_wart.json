@@ -11,11 +11,21 @@
     "Why it matters: wart otherwise comes only from a fortress. This gives a player who mines a",
     "route to brewing without raiding one, which is the mod's own thesis - salvage instead of",
     "adventure - and it pairs with the soul sand that Slag Rubble already yields, since wart will",
-    "not grow on anything else."
+    "not grow on anything else.",
+    "",
+    "COUNT IS 1, and must be (owner, 2026-08-19): a GUI-less machine cannot take N > 1 inputs to",
+    "make an output. This was 4. A machine with no GUI and no Container has nothing to open and",
+    "nothing to take back out, so a remainder the recipe cannot use is invisible and unrecoverable -",
+    "and a remainder is the NORMAL state, because the pull streams hand their scrap out one item at",
+    "a time.",
+    "",
+    "Ticks and energy are unchanged on purpose. An operation already made one output, so the cost",
+    "per output in time and power is the same as before; the only thing that moves is the material",
+    "ratio, and that is #36's, whose dial is the drop weight."
   ],
   "type": "recompile:separating",
   "input": "recompile:rendered_organics",
-  "count": 4,
+  "count": 1,
   "ticks": 80,
   "energy": 20,
   "results": [
