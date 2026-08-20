@@ -16,8 +16,8 @@ dedicated specs.
 > **Superseded in part, same day.** After this was written, three things happened and this doc no
 > longer leads:
 > - **Encroachment shipped** (Phase 2.10, `RCEncroachment`) - the frontier the machines build against.
-> - **The sapling lockout shipped** (P2.4-R2) - saplings are unobtainable, so the tree planter is the
->   only source of trees.
+> - **The sapling lockout shipped** (P2.4-R2) - no loot roll yields a sapling, so the Tree Nursery is
+>   the source of trees. (Narrowed 2026-08-20: a wandering trader sells them for emeralds.)
 > - **Rung 1 and the multiblock framework are BUILT** (Phase 2.11 the framework + Rain Collector,
 >   Phase 2.12 the Grass Spreader, #21, 2026-07-24). The specs
 >   [`grass_spreader_spec.md`](grass_spreader_spec.md) and
