@@ -117,6 +117,7 @@ machine GUIs and no BlockEntity for the structure.
 | Separator | Divides a mixed feed into several materials plus a byproduct. Spent Abrasive into diamond, slag into concrete powder, circuitry into quartz. |
 | Pulverizer | Reduces something to a finer form. E-Scrap to circuit powder for gold, phosphor to glowstone, slag to fertilizer. |
 | Slag Furnace | Vitrifies slag into obsidian, one lump to a block. The only obsidian in this world. Runs on fuel, not power. |
+| Sintering Kiln | Fires a pressed powder until the grains fuse. The only machine that puts a material back together rather than taking it apart. Four blaze powder press into a briquette; the kiln turns it into a blaze rod, and that is a brewing stand. |
 
 Three of those - Trommel, Separator, Pulverizer - have **no GUI and no inventory anything can reach
 into**. You feed them by dropping items on them or parking a container on top, and their output goes
@@ -191,7 +192,12 @@ The overworld is a dump you clear. The Nether is a dump you mine.
 
 - **Food** - tin cans, which apply a random effect on eating the way Suspicious Stew does, and
   foraged dump mushrooms.
-- **Demolition yard** - rubble, steel beams, a Cutting Torch, reinforced concrete.
+- **Demolition yard** - rubble, steel beams, a Cutting Torch, reinforced concrete. Some of its
+  sand comes up red, stained by the rebar rusting in it, and that is the only red sand there is.
+- **The only villagers in the world** are the zombie villagers out in the yard. There are no
+  villages here. Cure one and you have the only trade in the game, and the only emeralds.
+- **Netherite** - the scrap is in the depths, and a Worn Forging Die found down there teaches the
+  smithing pattern vanilla will only sell you out of a bastion chest.
 - **Guidebook** - in-game, via Modonomicon. Multiblock entries have 3D pages that project the build
   into the world in front of you.
 - **JEI and Jade plugins** - the mod's own recipe categories, and tooltips reporting which tool a
@@ -208,12 +214,9 @@ Alpha, in active development.
   first frontier region; the scrapyard and e-waste regions are not.
 - **The compacted depths need a new world.** A dimension's generator is written into a save when the
   world is made, so an existing world keeps whatever Nether it already had.
-- **Brewing is still fortress-gated.** Nether wart has a route now, but a brewing stand needs a blaze
-  rod and nothing grinds into one yet.
-- **Netherite gear needs a find.** The scrap comes out of the waste, and the smithing template vanilla
-  gates it behind is craftable here once you have torn down a Worn Forging Die and learned the pattern.
-  A bastion is still the fast way to a template.
-- **The depths have no guidebook chapter yet.**
+- **Villager trading is not curated.** A villager or a wandering trader will sell you saplings, buckets
+  and iron gear, all of which this world otherwise gates behind a machine or a find. Getting a villager
+  at all is the cost that stands in for those gates; whether that is the right trade is still open.
 - **The End is closed**, travel and portal formation together, so there are no dead frames.
 - **Balance numbers are first-pass.** Drop rates, recipe costs, and teardown yields were picked to
   prove the mechanics, not tuned against play.
