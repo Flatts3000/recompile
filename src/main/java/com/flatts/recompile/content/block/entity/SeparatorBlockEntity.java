@@ -171,8 +171,12 @@ public class SeparatorBlockEntity extends BlockEntity {
             be.progress = 0;
             be.goal = 0;
             be.grinding = ItemStack.EMPTY;
-            be.feedHave = 0;
-            be.feedNeed = 0;
+            // NOT zeroed unconditionally. If the scan skipped an under-count slot, these carry what it
+            // was short of, so Jade can still show "needs 3 of 4" - the one line a player can act on,
+            // on a machine with no screen. They are 0 when nothing was skipped, which is the ordinary
+            // idle case and reads as "no feed" rather than as a near miss.
+            be.feedHave = be.skippedHave;
+            be.feedNeed = be.skippedNeed;
             be.stall(level, pos, state);
             return;
         }
@@ -231,6 +235,19 @@ public class SeparatorBlockEntity extends BlockEntity {
     }
 
     /**
+     * What the first slot SKIPPED for being under-count was holding, and how much it wanted. Zero when
+     * nothing was skipped.
+     *
+     * <p>These exist so that skipping does not silently take the machine's only explanation with it.
+     * When every queued slot is under-count the head scan returns -1, and the tick that follows used to
+     * zero feedHave/feedNeed - which made {@code SeparatorProvider}'s "needs 3 of 4" line unreachable
+     * and left Jade showing a queue with no reason beside it. That line is the only thing a player can
+     * act on, and this machine has no screen to fall back to.
+     */
+    private int skippedHave;
+    private int skippedNeed;
+
+    /**
      * The first slot holding something this machine can grind, or -1.
      *
      * <p>Also the self-heal: anything queued that no longer has a recipe is thrown out of the chute
@@ -239,6 +256,8 @@ public class SeparatorBlockEntity extends BlockEntity {
      * floor.
      */
     private int headSlot(ServerLevel level) {
+        skippedHave = 0;
+        skippedNeed = 0;
         for (int slot = 0; slot < queue.size(); slot++) {
             ItemStack stack = queue.get(slot);
             if (stack.isEmpty()) {
@@ -263,6 +282,12 @@ public class SeparatorBlockEntity extends BlockEntity {
                 // waits its turn instead of holding the queue.
                 if (stack.getCount() >= recipe.value().count()) {
                     return slot;
+                }
+                // Remember the FIRST one skipped, so that if nothing at all turns out to be runnable
+                // the machine can still say which number it is waiting for.
+                if (skippedNeed == 0) {
+                    skippedHave = stack.getCount();
+                    skippedNeed = recipe.value().count();
                 }
                 continue;
             }

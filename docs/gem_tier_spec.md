@@ -73,7 +73,7 @@ The schema, following `TeardownRecipe`'s shape so the two read as siblings:
 {
   "type": "recompile:separating",
   "input": "recompile:magnet_scrap",
-  "count": 16,
+  "count": 1,
   "ticks": 200,
   "energy": 16,
   "results":    [ { "item": "minecraft:redstone", "count": 4 } ],
@@ -302,7 +302,7 @@ Placeholders, chosen against the machines either side of it, and joining #36:
 | Value | Setting | Why |
 |---|---|---|
 | Energy | **16 FE/tick** | The Hydroponics Bay is 8. This is the top tier and should cost visibly more |
-| Time | **200 ticks** (10s) per operation | Half the Bay's cook, because the input count is doing the work instead |
+| Time | **200 ticks** (10s) per operation | Half the Bay's cook. This used to read "because the input count is doing the work instead", which stopped being true when every count went to 1 (owner, 2026-08-19) |
 
 **The grinder separates, it does not transmute.** One run yields the raw material **plus recovered
 ordinary scrap** - metal, plastic, glass - because that is what a real separator does: it splits a mixed
@@ -374,7 +374,9 @@ grind percentage or **which** of the two idle reasons applies, and a gem tier se
 `../trashlands/docs/progression_gates.md`.
 
 The JEI category shows **no odds column**: a separator splits a feed rather than rolling on it, so "100%"
-beside every row would be noise. The input carries its count because that count *is* the tier.
+beside every row would be noise. (This sentence used to end "the input carries its count because that
+count *is* the tier". The count is 1 everywhere now - see the `count` bullet above - so the tier is
+carried by the drop weight of the feed and by the energy cost, not by the input ratio.)
 
 ---
 

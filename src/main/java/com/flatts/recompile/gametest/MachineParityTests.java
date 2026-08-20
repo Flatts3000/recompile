@@ -75,17 +75,6 @@ final class MachineParityTests {
     }
 
     static void register() {
-        // A MACHINE THAT HOLDS YOUR MATERIAL MUST BE ABLE TO SHOW IT.
-        //
-        // None of these has a screen and none is a Container, so Jade is the only surface that can say
-        // what is inside, how much power it has, and why it has stopped. Without it the machine is a box
-        // that swallowed nine stacks and will not discuss it.
-        //
-        // Checked by class name because that is the convention every one of them already follows, and
-        // because the alternative - reading Jade's registry - needs Jade loaded and linked, which a
-        // headless test cannot rely on. The names are asserted against machines DISCOVERED from the
-        // registry, so a new machine is covered the day it is registered rather than the day someone
-        // remembers to add it here.
         // NO GUI-LESS MACHINE RECIPE TAKES MORE THAN ONE INPUT (owner, 2026-08-19).
         //
         // The reasoning is a property of this whole machine family rather than of any one recipe, which
@@ -132,6 +121,17 @@ final class MachineParityTests {
             helper.succeed();
         });
 
+        // A MACHINE THAT HOLDS YOUR MATERIAL MUST BE ABLE TO SHOW IT.
+        //
+        // None of these has a screen and none is a Container, so Jade is the only surface that can say
+        // what is inside, how much power it has, and why it has stopped. Without it the machine is a box
+        // that swallowed nine stacks and will not discuss it.
+        //
+        // Checked by class name because that is the convention every one of them already follows, and
+        // because the alternative - reading Jade's registry - needs Jade loaded and linked, which a
+        // headless test cannot rely on. The names are asserted against machines DISCOVERED from the
+        // registry, so a new machine is covered the day it is registered rather than the day someone
+        // remembers to add it here.
         RCGameTests.test("every_powered_machine_has_jade_coverage", 60, helper -> {
             List<Block> machines = poweredMachines(helper);
             helper.assertTrue(machines.size() >= 3,
