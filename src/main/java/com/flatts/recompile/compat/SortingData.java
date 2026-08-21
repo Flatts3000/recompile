@@ -46,8 +46,8 @@ import net.minecraft.world.item.Items;
  * silent lie.</b> A {@code minecraft:item} is itself. A {@code minecraft:loot_table} entry is followed
  * into the table it names, with the parent's share multiplied in - Bulky Waste is two nested tiers now,
  * and skipping those entries would have shown a Prying category containing nothing but paintings. A
- * {@code minecraft:tag} entry expands to the tag's members, splitting its share between them, which is
- * how one wool entry reports as sixteen colours at a sixteenth each rather than vanishing.
+ * {@code minecraft:tag} entry reports every member of the tag at the entry's own share - see
+ * {@link #expandTag} for why that is the same number for both forms of the entry.
  *
  * <p>Anything else is skipped rather than guessed at, and a table that references itself is cut off at
  * the first repeat.
@@ -282,7 +282,7 @@ public final class SortingData {
                     // Count EVERY entry's weight, including minecraft:empty. A rare-bonus pool (a big
                     // empty weight + one rare item) has to divide by the full weight, or the item reads
                     // as 100% of its pool instead of its true 1-in-N odds.
-                    total += weight(e.getAsJsonObject());
+                    total += effectiveWeight(e.getAsJsonObject());
                 }
                 if (total == 0) {
                     continue;
@@ -330,10 +330,29 @@ public final class SortingData {
     /**
      * Split a tag entry's share evenly across the tag's members.
      *
-     * <p>Even, because that is what {@code expand: false} actually does - the entry rolls once and then
-     * picks a member at random. Reporting the whole share against the tag's name would overstate every
-     * colour by sixteen times, and reporting nothing at all is what happens if this method does not
-     * exist.
+     * <p><b>Every member gets the entry's FULL share, and that is true of both forms of the entry -
+     * for opposite reasons.</b> Review of #279 caught this method dividing the share by the member
+     * count, on the belief that {@code expand: false} rolls once and then picks a member. It does not.
+     * From {@code net.minecraft.world.level.storage.loot.entries.TagEntry} in 26.1.2:
+     *
+     * <pre>public void createItemStack(Consumer&lt;ItemStack&gt; output, LootContext context) {
+     *     BuiltInRegistries.ITEM.getTagOrEmpty(this.tag).forEach(item -&gt; output.accept(new ItemStack(item)));
+     * }</pre>
+     *
+     * <p>So {@code expand: false} is ONE entry that emits ALL members together when it wins, and each
+     * member's chance of appearing is the entry's chance: {@code weight / total}. {@code expand: true}
+     * instead emits one entry PER MEMBER, each at the entry's weight - mutually exclusive, but the
+     * denominator grew to match (see {@link #effectiveWeight}), so each member is again
+     * {@code weight / total}. Same figure, different mechanism.
+     *
+     * <p>The mod's own data said so all along: {@code chests/sump.json} records that
+     * {@code expand: false} "yields EVERY item in the tag at once rather than picking one", measured
+     * at 16 of 16 in #268. The code contradicted its own measurement.
+     *
+     * <p><b>Nothing shipped exercises this today</b>, which is why no test caught it: the only tag
+     * entry in the mod is that sump pool, and this class reads pull streams rather than chest tables.
+     * {@code no_unexercised_tag_entry_reaches_the_viewer} fails the build if that stops being true, so
+     * the untested path cannot be relied on without coverage arriving with it.
      */
     private static void expandTag(String id, float share, List<Weighted> out) {
         Identifier parsed = Identifier.tryParse(id.startsWith("#") ? id.substring(1) : id);
@@ -349,10 +368,42 @@ public final class SortingData {
         if (members.isEmpty()) {
             return;
         }
-        float each = share / members.size();
         for (var holder : members) {
-            out.add(new Weighted(new ItemStack(holder.value()), each));
+            out.add(new Weighted(new ItemStack(holder.value()), share));
         }
+    }
+
+    /**
+     * What an entry contributes to its pool's total weight, which is not always its {@code weight}.
+     *
+     * <p><b>A {@code minecraft:tag} entry with {@code expand: true} contributes one entry PER MEMBER</b>,
+     * so its real contribution is weight times member count - and <b>nothing at all when the tag is
+     * empty</b>, which is what makes an absent mod's tag cost the pool nothing. Modelling it as a flat
+     * {@code weight} inflates the denominator and quietly understates every other entry in the pool:
+     * caught by {@code pull_rates_match_what_the_mod_claims} when the Ender IO grains entry landed,
+     * which put all seven of Mechanical Waste's real drops out by 1.1x (247 against the game's 227).
+     *
+     * <p>{@code expand: false} always contributes exactly one entry whether the tag has members or not,
+     * so its weight counts in full - and an empty tag then wins rolls and yields nothing, which is why
+     * the grains entry uses {@code expand: true}.
+     */
+    private static int effectiveWeight(JsonObject entry) {
+        if (!isType(entry, "minecraft:tag") || !entry.has("name")
+            || !entry.has("expand") || !entry.get("expand").getAsBoolean()) {
+            return weight(entry);
+        }
+        return weight(entry) * tagSize(entry.get("name").getAsString());
+    }
+
+    /** How many items a tag holds right now; 0 if it does not exist in this install. */
+    private static int tagSize(String id) {
+        Identifier parsed = Identifier.tryParse(id.startsWith("#") ? id.substring(1) : id);
+        if (parsed == null) {
+            return 0;
+        }
+        var tag = BuiltInRegistries.ITEM.get(net.minecraft.tags.TagKey.create(
+            net.minecraft.core.registries.Registries.ITEM, parsed));
+        return tag.map(named -> named.size()).orElse(0);
     }
 
     /**
