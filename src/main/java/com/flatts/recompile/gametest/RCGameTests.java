@@ -75,6 +75,7 @@ public final class RCGameTests {
         SinteringKilnTests.register();
         AncientSculkTests.register();
         RecipeReachabilityTests.register();
+        MenuTransferTests.register();
         JadeDataTests.register();
         FoundToolTests.register();
         MattressTests.register();
