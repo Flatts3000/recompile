@@ -1,0 +1,46 @@
+{
+  "_comment": [
+    "A DEGAUSSER: copper winding on a scrap core.",
+    "",
+    "This one needs no invention at all - real e-waste plants degauss drives before shredding them,",
+    "so a coil of copper around scrap is what the machine actually is. Redstone stays, because it",
+    "exists here and comes out of the same Magnet Scrap.",
+    "",
+    "TEMPORARY, and it is another mod's resource location (#269).",
+    "",
+    "This file sits at simplemagnets' OWN recipe id, which is how an override works and also how it",
+    "fails: load order decides who wins, and the loser is silent. Hence ordering = \"AFTER\" on the",
+    "optional simplemagnets dependency in neoforge.mods.toml. This mod has the scar already - with",
+    "ordering = \"NONE\" on the neoforge dependency, seventeen found-only overrides were ignored with",
+    "no error anywhere, and it was only caught because corrupting one produced no parse error at all.",
+    "",
+    "Land this at the wrong id and it is not an override at all: it is a SECOND recipe, and if the",
+    "grid matches theirs only one of the two can ever be crafted. That is what",
+    "every_crafting_recipe_is_reachable_at_a_bench guards for our own recipes, and it CANNOT see this",
+    "one - simplemagnets is not loaded at test time. Verify in game, not in CI.",
+    "",
+    "The pack should be shipping this, not the engine. It is here only because the pack cannot ship",
+    "data on 26.1.2; it leaves when KubeJS is fixed - Flatts3000/trashlands#47."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "simplemagnets"
+    }
+  ],
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "RSR",
+    "SSS"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone",
+    "S": "recompile:scrap_metal"
+  },
+  "result": {
+    "id": "simplemagnets:basic_demagnetization_coil"
+  }
+}

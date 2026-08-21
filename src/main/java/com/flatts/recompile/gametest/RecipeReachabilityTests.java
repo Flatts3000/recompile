@@ -135,6 +135,70 @@ final class RecipeReachabilityTests {
                     + "the other is dead content: " + shadowed);
             helper.succeed();
         });
+
+        // A GUARDED OVERRIDE FOR A MOD THAT IS NOT HERE MUST BE INERT, AND FOR THE RIGHT REASON (#269).
+        //
+        // This mod ships four files at Simple Magnets' own recipe ids, re-theming its magnets onto
+        // Magnet Scrap. An override lives at ANOTHER mod's resource location, so without that mod the
+        // ids inside it - simplemagnets:basicmagnet as a result - resolve to nothing.
+        //
+        // <p><b>The obvious test is vacuous, which is why this one is shaped oddly.</b> "No
+        // simplemagnets recipe is loaded" passes in BOTH the good and the bad state: with the guard
+        // the recipe is skipped, and WITHOUT the guard it fails to parse - measured, the log reads
+        // {@code Unknown registry key ... simplemagnets:basicmagnet} - and is equally absent. A broken
+        // file and a correctly guarded one are indistinguishable from the recipe map. So absence is
+        // checked together with the REASON for it: the file on disk must carry the guard.
+        //
+        // <p>A parse failure here is quieter than the loot-table equivalent. One bad recipe file does
+        // not take its neighbours with it, so the run stays green and the only trace is a single ERROR
+        // line - which is how the seventeen-recipe incident stayed hidden.
+        //
+        // <p><b>It does not pin the files.</b> Each is checked only if it is present, so when this
+        // stopgap leaves (Flatts3000/trashlands#47) deleting the four files is the whole removal and
+        // this passes over an empty list. Naming them is forced rather than chosen: NeoForge's dev
+        // classpath resolves an individual resource but will not enumerate a directory, which
+        // SewerLootTests found the hard way.
+        RCGameTests.test("a_guarded_override_is_inert_without_its_mod", 40, helper -> {
+            var level = helper.getLevel();
+            if (net.neoforged.fml.ModList.get().isLoaded("simplemagnets")) {
+                // Then the overrides are SUPPOSED to be live and every assertion below is backwards.
+                // Whether the override won its load-order race is an in-game check, not one CI makes.
+                helper.succeed();
+                return;
+            }
+
+            List<String> unguarded = new ArrayList<>();
+            List<String> loaded = new ArrayList<>();
+            int present = 0;
+            for (String name : List.of("basicmagnet", "advancedmagnet",
+                    "basic_demagnetization_coil", "advanced_demagnetization_coil")) {
+                String body = read("/data/simplemagnets/recipe/" + name + ".json");
+                if (body == null) {
+                    continue;
+                }
+                present++;
+                if (!JsonParser.parseString(body).getAsJsonObject().has("neoforge:conditions")) {
+                    unguarded.add(name);
+                }
+            }
+            for (var holder : level.recipeAccess().recipeMap().values()) {
+                if ("simplemagnets".equals(holder.id().identifier().getNamespace())) {
+                    loaded.add(holder.id().identifier().toString());
+                }
+            }
+
+            helper.assertTrue(unguarded.isEmpty(),
+                "these override another mod's recipe id with no neoforge:mod_loaded guard, so without "
+                    + "that mod they do not merely fail to apply - they FAIL TO PARSE, which is one "
+                    + "ERROR line in an otherwise green run: " + unguarded);
+            helper.assertTrue(loaded.isEmpty(),
+                "recipes loaded for a mod that is not present: " + loaded);
+            helper.assertTrue(present == 0 || present == 4,
+                "found " + present + " of the 4 Simple Magnets overrides. Partial is the bad state: "
+                    + "re-theming two recipes and leaving two stock is worse than doing neither, and "
+                    + "removing the stopgap means removing all four.");
+            helper.succeed();
+        });
     }
 
     /** One ingredient's JSON form to a concrete item; a tag resolves to any one member. */

@@ -56,6 +56,18 @@ Four shaped recipes, all on materials this world does not have a story for:
 
 An ender pearl in a magnet is a placeholder, not a recipe.
 
+## What this is NOT: unblocking dead content
+
+**Measured during #269: all four stock recipes are craftable in this world today.** Iron comes from
+the Cupola, redstone from Magnet Scrap, lapis is an output of the Printer teardown, and endermen spawn
+in both `demolition_yard` and `compacted_depths`, so ender pearls and an ender eye are reachable.
+
+That makes this a **re-theme plus a balance change**, not a fix - which is the opposite risk profile
+from the AE2 handoff beside it. AE2 is genuinely dead and any route is an improvement; magnets already
+work, so getting this wrong makes the pack worse rather than merely not-better. The case for doing it
+is that an ender pearl in a magnet is a placeholder, and that spending Magnet Scrap is a real decision
+where spending an ender pearl is not.
+
 ## The material this already has
 
 **`recompile:magnet_scrap`.** Weight 15 of 227 in `loot_table/gameplay/mechanical_pulls.json`, and

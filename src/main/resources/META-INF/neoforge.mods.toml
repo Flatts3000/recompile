@@ -39,3 +39,23 @@ type = "required"
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
+
+# Simple Magnets (#269), optional and AFTER for exactly the reason the neoforge dependency above is.
+#
+# This mod ships four files at simplemagnets' OWN recipe ids, re-theming its magnets onto Magnet Scrap
+# because its stock recipes are built on an ender pearl and lapis, which are placeholders rather than
+# recipes in a world about recovering material. An override at another mod's id only wins if this mod's
+# datapack is read after theirs, and the loser is silent - the seventeen-recipe incident above is the
+# same failure, one dependency line up.
+#
+# OPTIONAL, so the mod loads normally without Simple Magnets, and the four files carry a
+# neoforge:mod_loaded guard so they are inert in that case.
+#
+# TEMPORARY. This is pack content in the engine because the pack cannot ship data on 26.1.2; it leaves
+# when KubeJS is fixed (Flatts3000/trashlands#47), and this dependency block leaves with it.
+[[dependencies.${mod_id}]]
+modId = "simplemagnets"
+type = "optional"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"

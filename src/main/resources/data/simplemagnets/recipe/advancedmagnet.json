@@ -1,0 +1,47 @@
+{
+  "_comment": [
+    "AN ELECTROMAGNET, so it needs control as well as mass.",
+    "",
+    "Stock recipe wanted 4 gold, lapis, an ENDER EYE and a diamond. Gold becomes copper because",
+    "copper is the everyman metal here and gold is the gated one; the eye and the diamond become",
+    "Fused Circuitry, which is a Nether material and so a real tier step rather than a reskin.",
+    "",
+    "TEMPORARY, and it is another mod's resource location (#269).",
+    "",
+    "This file sits at simplemagnets' OWN recipe id, which is how an override works and also how it",
+    "fails: load order decides who wins, and the loser is silent. Hence ordering = \"AFTER\" on the",
+    "optional simplemagnets dependency in neoforge.mods.toml. This mod has the scar already - with",
+    "ordering = \"NONE\" on the neoforge dependency, seventeen found-only overrides were ignored with",
+    "no error anywhere, and it was only caught because corrupting one produced no parse error at all.",
+    "",
+    "Land this at the wrong id and it is not an override at all: it is a SECOND recipe, and if the",
+    "grid matches theirs only one of the two can ever be crafted. That is what",
+    "every_crafting_recipe_is_reachable_at_a_bench guards for our own recipes, and it CANNOT see this",
+    "one - simplemagnets is not loaded at test time. Verify in game, not in CI.",
+    "",
+    "The pack should be shipping this, not the engine. It is here only because the pack cannot ship",
+    "data on 26.1.2; it leaves when KubeJS is fixed - Flatts3000/trashlands#47."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "simplemagnets"
+    }
+  ],
+  "category": "misc",
+  "pattern": [
+    " F ",
+    "MBM",
+    "CCC"
+  ],
+  "key": {
+    "F": "recompile:fused_circuitry",
+    "M": "recompile:magnet_scrap",
+    "B": "simplemagnets:basicmagnet",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "simplemagnets:advancedmagnet"
+  }
+}
