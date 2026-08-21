@@ -150,6 +150,28 @@ table, so there is no override race and no `ordering = "AFTER"` needed.
 - Whatever the rate, four presses gated behind a structure is a long chain; the pack's own
   progression notes would rather that be legible than fast.
 
+## The second half: AE2's own tooltip has to be corrected too
+
+**Shipped 2026-08-20, and it is easy to miss because it is not loot.** AE2's JEI info tab for the
+presses reads *"Crafting Presses are obtained by breaking a Mysterious Cube. Mysterious Cubes are in
+the center of meteorites... located by using a meteorite compass."* Every clause of that is false
+here, and it is worse than an unhelpful tooltip: it is a confident wrong answer, pointing at a
+Meteorite Compass that has nothing to point at, with no way for a player to find out.
+
+So the stopgap is three things, not one, and all three move together:
+
+- the press pool in `chests/sump.json`
+- `assets/ae2/lang/en_us.json`, overriding `gui.ae2.inWorldCraftingPresses`
+- the optional `ae2` dependency with `ordering = "AFTER"` in `neoforge.mods.toml`
+
+**One key, not a copy of AE2's lang file**, because language files MERGE: the client applies every
+lang resource for a namespace in ascending priority, so ours only has to be later, not complete. That
+is the opposite of a recipe, where only the top file at a path is read - which is why the Simple
+Magnets handoff needs whole-file replacements and this needs one line.
+
+Verified with AE2 actually loaded (its jar plus guideme dropped into `run/mods`): the sump yields all
+four presses in 20 of 20 rolls, and the key resolves to our text rather than AE2's.
+
 ## The wider issue this exposed, which is not AE2's fault
 
 **Recompile's overworld biomes being absent from `#minecraft:is_overworld` is not an AE2 problem.**

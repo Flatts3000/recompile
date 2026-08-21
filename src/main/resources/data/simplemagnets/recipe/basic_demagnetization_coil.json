@@ -1,10 +1,15 @@
 {
   "_comment": [
-    "A DEGAUSSER: copper winding on a scrap core.",
+    "A DEGAUSSER: copper winding on a magnet scrap core.",
     "",
     "This one needs no invention at all - real e-waste plants degauss drives before shredding them,",
-    "so a coil of copper around scrap is what the machine actually is. Redstone stays, because it",
-    "exists here and comes out of the same Magnet Scrap.",
+    "so a coil of copper around a recovered magnet is what the machine actually is. Redstone stays,",
+    "because it exists here and comes out of the same Magnet Scrap.",
+    "",
+    "THE CORE IS ONE MAGNET SCRAP (owner, from playtest). It shipped as plain scrap metal, which read",
+    "as odd for the one machine in the set whose whole job is magnetism - every other recipe here",
+    "names the material and this one did not. One in the middle, where a coil's core goes, and three",
+    "scrap metal around it rather than four, so the housing gives up a piece to pay for it.",
     "",
     "TEMPORARY, and it is another mod's resource location (#269).",
     "",
@@ -32,12 +37,13 @@
   "category": "misc",
   "pattern": [
     " C ",
-    "RSR",
+    "RMR",
     "SSS"
   ],
   "key": {
     "C": "minecraft:copper_ingot",
     "R": "minecraft:redstone",
+    "M": "recompile:magnet_scrap",
     "S": "recompile:scrap_metal"
   },
   "result": {

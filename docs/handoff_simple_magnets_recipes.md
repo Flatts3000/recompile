@@ -103,14 +103,19 @@ CCC      B = simplemagnets:basicmagnet     (1)
          C = minecraft:copper_ingot        (3)
 ```
 
-**Basic Demagnetization Coil** - a degausser: copper winding on a scrap core. Real e-waste plants
-degauss drives before shredding them, so this one needs no invention.
+**Basic Demagnetization Coil** - a degausser: copper winding on a magnet scrap core. Real e-waste
+plants degauss drives before shredding them, so this one needs no invention.
 
 ```
  C       C = minecraft:copper_ingot  (1)
-RSR      R = minecraft:redstone      (2)
-SSS      S = recompile:scrap_metal   (4)
+RMR      R = minecraft:redstone      (2)
+SSS      M = recompile:magnet_scrap  (1)
+         S = recompile:scrap_metal   (3)
 ```
+
+*(The core was plain scrap metal when this was written. Owner changed it from playtest, 2026-08-20:
+the one machine in the set whose whole job is magnetism was the only recipe not naming the material.
+Three scrap metal rather than four, so the housing pays for the core.)*
 
 **Advanced Coil** - the powered version.
 
