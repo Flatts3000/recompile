@@ -23,6 +23,7 @@ final class SortingDataTests {
     }
 
     static void register() {
+        registerTagFormGuard();
         // JEI INFO PANELS AND LANG KEYS AGREE, BOTH WAYS.
         //
         // A declared-but-unregistered key is a translation nothing can ever ask for: it resolves
@@ -263,9 +264,10 @@ final class SortingDataTests {
         });
 
         /*
-         * A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME. A reader that did not expand one would drop the
-         * whole entry from the Sorting category - no error, just a row missing from a screen whose only
-         * job is telling the player what is in a bag.
+         * A TAG ENTRY IS SIXTEEN ITEMS, NOT ONE NAME, AND EACH ONE CARRIES THE ENTRY'S FULL ODDS. A
+         * reader that did not expand one would drop the whole entry from the Sorting category - no
+         * error, just a row missing from a screen whose only job is telling the player what is in a
+         * bag - and one that expanded it while dividing the share understates every member instead.
          *
          * RUN AGAINST A FIXTURE, AND THAT IS THE POINT. This used to read bag_pulls, where wool was a
          * tag entry. Wool left the stream on 2026-08-11 (fiber scrap already makes string and string
@@ -289,25 +291,42 @@ final class SortingDataTests {
             helper.assertTrue(wools.size() > 8,
                 "a wool tag entry should read as every colour in the tag, got " + wools.size());
 
-            // Evenly, because that is what expand:false does - roll the entry once, then pick a
-            // member. Reporting the whole share against one colour would overstate it sixteenfold.
+            // Equally, and at the ENTRY'S OWN SHARE rather than a sixteenth of it.
+            //
+            // This assertion used to divide, and it was wrong for the same reason the code was: an
+            // expand:false tag entry does NOT roll once and then pick a member. Vanilla's
+            // TagEntry.createItemStack emits EVERY member of the tag when the entry wins:
+            //
+            //   BuiltInRegistries.ITEM.getTagOrEmpty(this.tag)
+            //       .forEach(item -> output.accept(new ItemStack(item)));
+            //
+            // So all sixteen colours drop together in the 32 rolls per 100 that the entry wins, and
+            // each colour's chance of appearing is 0.32 - not 0.02. The mod had measured this already
+            // and written it down in chests/sump.json ("yields EVERY item in the tag at once rather
+            // than picking one", 16 of 16 in #268); the code, this test and two javadocs all agreed
+            // with each other and all disagreed with the measurement. Caught reviewing #279.
             float first = wools.get(0).chance();
             for (SortingData.Weighted w : wools) {
                 helper.assertTrue(Math.abs(w.chance() - first) < 0.0001F,
-                    "every colour in a tag entry shares its odds evenly - got " + w.chance()
+                    "every colour in a tag entry shares its odds equally - got " + w.chance()
                         + " against " + first);
             }
+            helper.assertTrue(Math.abs(first - 0.32F) < 0.01F,
+                "each colour of an expand:false tag entry appears whenever the ENTRY wins, so each "
+                    + "should read 0.32 (weight 32 of 100), got " + first + ". Dividing by the member "
+                    + "count understates every member by sixteen times here.");
 
-            // The tag's whole share, not a member's: 32 of 100, split across the tag rather than
-            // created or destroyed by the split. This is the assertion that would have caught an
-            // expansion that silently multiplied the entry instead of dividing it.
-            float tagShare = 0;
+            // NOT a probability distribution, and that is the thing worth stating out loud: these
+            // sixteen are not mutually exclusive, so their shares sum to an expected COUNT (5.12
+            // wool per hundred rolls) rather than to the entry's 0.32. An assertion that they sum to
+            // the entry's share is what encoded the wrong model for as long as it stood.
+            float woolPerRoll = 0;
             for (SortingData.Weighted w : wools) {
-                tagShare += w.chance();
+                woolPerRoll += w.chance();
             }
-            helper.assertTrue(Math.abs(tagShare - 0.32F) < 0.01F,
-                "expanding a tag must not create or destroy probability - the entry is weight 32 of "
-                    + "100, so its colours should still sum to 0.32, got " + tagShare);
+            helper.assertTrue(Math.abs(woolPerRoll - 5.12F) < 0.05F,
+                "sixteen colours at 0.32 each is an expected count of 5.12 per roll, got "
+                    + woolPerRoll);
 
             // And the live stream still parses to a whole, tag entry or not. Catches a pool that
             // silently drops entries, which is the failure this file exists for.
@@ -392,5 +411,88 @@ final class SortingDataTests {
                 "a cut beam must show steel offcuts and nothing else, got " + out);
             helper.succeed();
         });
+    }
+
+    /**
+     * No table this viewer reads may use an {@code expand: false} tag entry, because the share maths
+     * for that form has never been exercised.
+     *
+     * <p><b>Why a guard rather than a test of the behaviour.</b> Review of #279 found
+     * {@code SortingData.expandTag} dividing a tag entry's share by its member count, on the belief
+     * that {@code expand: false} rolls once and picks one member. Vanilla's {@code TagEntry} emits
+     * ALL members instead, so every member's chance is the entry's own - the code understated each by
+     * a factor of N. Nothing caught it because nothing reaches it: the mod's single tag entry lives in
+     * {@code chests/sump.json}, and this class reads pull streams rather than chest tables.
+     *
+     * <p>Correcting the maths without covering the path would leave the same silence behind. This
+     * fails the build the day a stream starts using that form, so the coverage has to arrive with the
+     * content. {@code expand: true} is unaffected and stays free to use - it is what the Grains of
+     * Infinity entry uses, and the rate census measures it end to end.
+     */
+    private static void registerTagFormGuard() {
+        RCGameTests.test("no_unexercised_tag_entry_reaches_the_viewer", 40, helper -> {
+            var offenders = new java.util.TreeSet<String>();
+            var paths = new java.util.ArrayList<>(java.util.List.of(
+                SortingData.HOUSEHOLD, SortingData.BAG, SortingData.MECHANICAL, SortingData.RUBBLE,
+                SortingData.BULKY, SortingData.STEEL_BEAM, SortingData.SEEDLING));
+            for (var source : SortingData.sortingSources()) {
+                paths.add(source.path());
+            }
+
+            int scanned = 0;
+            for (String path : paths) {
+                String body = readResource(path);
+                if (body == null) {
+                    continue;
+                }
+                scanned++;
+                scanForTagEntries(com.google.gson.JsonParser.parseString(body), path, offenders);
+            }
+
+            helper.assertTrue(scanned >= 7,
+                "scanned only " + scanned + " tables, so this guard would pass against a viewer that "
+                    + "had stopped reading anything");
+            helper.assertTrue(offenders.isEmpty(),
+                "these use a minecraft:tag entry with expand:false, whose share maths in SortingData "
+                    + "is not exercised by any test: " + offenders + ". Vanilla emits EVERY member of "
+                    + "the tag when such an entry wins, so each member's chance is the entry's own - "
+                    + "getting that wrong understates every member by the member count and the pool's "
+                    + "reported odds stop summing to 1. Use expand:true, which the rate census "
+                    + "measures, or add coverage for this form in the same change.");
+            helper.succeed();
+        });
+    }
+
+    /** Walk any JSON, collecting {@code minecraft:tag} entries that do not set {@code expand: true}. */
+    private static void scanForTagEntries(com.google.gson.JsonElement node, String path,
+            java.util.Set<String> offenders) {
+        if (node.isJsonArray()) {
+            for (var child : node.getAsJsonArray()) {
+                scanForTagEntries(child, path, offenders);
+            }
+            return;
+        }
+        if (!node.isJsonObject()) {
+            return;
+        }
+        var obj = node.getAsJsonObject();
+        if (obj.has("type") && obj.get("type").isJsonPrimitive()
+            && "minecraft:tag".equals(obj.get("type").getAsString())
+            && !(obj.has("expand") && obj.get("expand").getAsBoolean())) {
+            offenders.add(path + " -> " + (obj.has("name") ? obj.get("name").getAsString() : "?"));
+        }
+        for (var entry : obj.entrySet()) {
+            scanForTagEntries(entry.getValue(), path, offenders);
+        }
+    }
+
+    /** One bundled JSON as text, or null. */
+    private static String readResource(String path) {
+        try (java.io.InputStream in = SortingDataTests.class.getResourceAsStream(path)) {
+            return in == null ? null
+                : new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException failed) {
+            return null;
+        }
     }
 }
