@@ -29,8 +29,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Reuses {@link SortingData.Weighted} for output rows: {@code results} are certain (chance 1.0,
  * carrying their count) and {@code extras} carry their own chance. The required {@code tool} is
- * read for callers that want it; the input handles only a bare item id (the schema also allows a
- * tag or array, surfaced later if a real recipe needs it).
+ * read for callers that want it. The input may be a bare item id, a {@code #tag} (expanded to one row
+ * per member, #275) or an array of item ids - the three forms {@code Ingredient.CODEC} accepts.
  */
 public final class TeardownData {
 
@@ -47,11 +47,29 @@ public final class TeardownData {
     // is always the copy nobody remembers to update. RecipeFiles discovers them instead.
     private static List<Entry> cached;
 
+    /**
+     * Drop the cache when tags change, which is what makes caching this safe at all.
+     *
+     * <p><b>Before tag inputs this list depended only on {@code BuiltInRegistries.ITEM}</b>, which is
+     * fixed for the JVM, so caching once forever was sound. Expanding a tag made it depend on tag
+     * MEMBERSHIP instead, which is rebound on every datapack load and on every server tag sync - so a
+     * permanent cache freezes whichever server was joined first. Review of #283 caught it: connect to
+     * a server whose datapack extends a cable tag, disconnect, join another, and JEI rebuilds its
+     * Teardown category from the first server's cable set.
+     *
+     * <p>Called on {@code TagsUpdatedEvent}, which fires on both sides once tags are bound.
+     * {@code SortingData.expandTag} does not cache at all and so never had this problem; this one
+     * caches because {@code forInput} is called from a Jade tooltip provider, which runs per frame.
+     */
+    public static synchronized void invalidate() {
+        cached = null;
+    }
+
     private TeardownData() {
     }
 
     /** All readable bundled teardown recipes, parsed once and cached. */
-    public static List<Entry> all() {
+    public static synchronized List<Entry> all() {
         if (cached == null) {
             List<Entry> entries = new ArrayList<>();
             for (com.google.gson.JsonObject recipe : RecipeFiles.ofType("recompile:teardown")) {
@@ -98,7 +116,29 @@ public final class TeardownData {
      */
     public static List<Entry> parseAll(JsonObject root) {
         JsonElement inputEl = root.get("input");
-        if (inputEl == null || !inputEl.isJsonPrimitive()) {
+        if (inputEl == null) {
+            return List.of();
+        }
+
+        // AN ARRAY OF ITEM IDS is the third form Ingredient.CODEC accepts, and TeardownRecipe's own
+        // javadoc documents it. It was dropped silently alongside tags; leaving it that way now costs
+        // more than it did, because every_bundled_teardown_reaches_the_viewers turns an unsurfaced
+        // recipe into a build failure rather than an invisible row.
+        if (inputEl.isJsonArray()) {
+            List<Entry> fromArray = new ArrayList<>();
+            for (JsonElement each : inputEl.getAsJsonArray()) {
+                if (!each.isJsonPrimitive()) {
+                    continue;
+                }
+                Item member = item(each.getAsString());
+                Entry entry = member == Items.AIR ? null : parse(root, member);
+                if (entry != null) {
+                    fromArray.add(entry);
+                }
+            }
+            return List.copyOf(fromArray);
+        }
+        if (!inputEl.isJsonPrimitive()) {
             return List.of();
         }
         String raw = inputEl.getAsString();

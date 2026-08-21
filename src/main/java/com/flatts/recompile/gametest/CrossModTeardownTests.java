@@ -41,7 +41,7 @@ final class CrossModTeardownTests {
 
         RCGameTests.test("cross_mod_teardowns_are_inert_for_the_right_reason", 40, helper -> {
             List<String> unguarded = new ArrayList<>();
-            List<String> wrongMod = new ArrayList<>();
+            List<String> wrongStation = new ArrayList<>();
             var badIds = new TreeSet<String>();
             int present = 0;
 
@@ -53,9 +53,9 @@ final class CrossModTeardownTests {
                 present++;
                 JsonObject root = JsonParser.parseString(body).getAsJsonObject();
 
-                // THE GUARD, and that it names the RIGHT mod. A file producing ae2 items guarded on
-                // enderio is guarded and still wrong: with Ender IO installed and AE2 absent it would
-                // load and fail to resolve its own outputs.
+                // THE GUARD, and that it names the RIGHT mod - the check below requires the modid to
+                // equal the one this file's items come from, so a file producing ae2 items guarded on
+                // enderio counts as unguarded rather than as a separate finding.
                 boolean guarded = false;
                 if (root.has("neoforge:conditions") && root.get("neoforge:conditions").isJsonArray()) {
                     for (JsonElement raw : root.getAsJsonArray("neoforge:conditions")) {
@@ -85,7 +85,7 @@ final class CrossModTeardownTests {
                     : com.flatts.recompile.content.recipe.TeardownRecipe.DEFAULT_STATION;
                 if (!com.flatts.recompile.content.recipe.TeardownRecipe.DEFAULT_STATION
                         .equals(station)) {
-                    wrongMod.add(entry.getKey() + " has station '" + station
+                    wrongStation.add(entry.getKey() + " has station '" + station
                         + "', which no station in this mod reads");
                 }
             }
@@ -107,8 +107,8 @@ final class CrossModTeardownTests {
                 "these produce another mod's item with no neoforge:mod_loaded condition naming that "
                     + "mod, so without it they do not merely fail to apply - they FAIL TO PARSE on "
                     + "their own ids, which is one ERROR line in an otherwise green run: " + unguarded);
-            helper.assertTrue(wrongMod.isEmpty(),
-                "these are unreachable despite parsing correctly: " + wrongMod);
+            helper.assertTrue(wrongStation.isEmpty(),
+                "these are unreachable despite parsing correctly: " + wrongStation);
             helper.assertTrue(badIds.isEmpty(),
                 "these ids do not resolve, and the guard cannot save them - the file would load fine "
                     + "for a player who has the mod and then name an item that does not exist: "
@@ -154,8 +154,13 @@ final class CrossModTeardownTests {
                 // TeardownRecipe.DEFAULT_STATION - neither is an item or block, so neither resolves
                 // against a registry. The station is asserted separately instead, because a typo
                 // there leaves a recipe that parses, loads, and no station will ever run.
+                // "recipe" inside a teaches entry is a RECIPE id, not an item - resolving it against
+                // the item registry would report a correct file as broken. Latent today (none of
+                // these teach anything) and caught in review of #283 precisely because this guard is
+                // meant to survive future edits.
                 if ("_comment".equals(entry.getKey()) || "neoforge:conditions".equals(entry.getKey())
-                    || "type".equals(entry.getKey()) || "station".equals(entry.getKey())) {
+                    || "type".equals(entry.getKey()) || "station".equals(entry.getKey())
+                    || "recipe".equals(entry.getKey())) {
                     continue;
                 }
                 collectIds(entry.getValue(), foreignNs, file, bad);
