@@ -53,6 +53,14 @@ side = "BOTH"
 #
 # TEMPORARY. This is pack content in the engine because the pack cannot ship data on 26.1.2; it leaves
 # when KubeJS is fixed (Flatts3000/trashlands#47), and this dependency block leaves with it.
+
+[[dependencies.${mod_id}]]
+modId = "simplemagnets"
+type = "optional"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"
+
 # AE2 (#268), optional and AFTER, for a LANGUAGE key rather than a recipe.
 #
 # AE2's JEI info tab for the Inscriber presses says they come from a Mysterious Cube in a meteorite,
@@ -69,13 +77,6 @@ side = "BOTH"
 # TEMPORARY, with the press pool it explains - Flatts3000/trashlands#46.
 [[dependencies.${mod_id}]]
 modId = "ae2"
-type = "optional"
-versionRange = "*"
-ordering = "AFTER"
-side = "BOTH"
-
-[[dependencies.${mod_id}]]
-modId = "simplemagnets"
 type = "optional"
 versionRange = "*"
 ordering = "AFTER"
