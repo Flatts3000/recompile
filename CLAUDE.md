@@ -417,13 +417,7 @@ client, CraftTweaker has not ported - so things that belong to Trashlands ship h
 cuts against the engine/pack split rather than revising it**, and they all leave when KubeJS is fixed
 (`Flatts3000/trashlands#46`, `#47` and `#52`). Specs and removal instructions:
 `docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`,
-`docs/handoff_enderio_grains_and_blaze.md`, `docs/handoff_cross_mod_teardown.md`.
-
-**Teardown routes for both mods ship too** (#275): five AE2 cable tiers by TAG - its own tags cover all
-90 cable items, so a new colour is carried for free - plus Ender IO conduits, capacitors and gears.
-**Assemblies only, never ingots**: an alloy ingot is a mixture you remelt, not something you prise
-apart, so the Separator would be the machine if they are ever wanted. Every entry returns strictly less
-than its craft cost, with the arithmetic read from each mod's own recipes and written into the file.
+`docs/handoff_enderio_grains_and_blaze.md`.
 
 **Ender IO needed no sourcing work, unlike AE2**, and that is worth knowing before anyone re-audits it:
 a reachability closure over its 1187 recipes puts 897 of 924 items in reach from a vanilla-only seed,

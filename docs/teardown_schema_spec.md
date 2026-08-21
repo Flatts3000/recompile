@@ -32,7 +32,7 @@ a pack author has to read Java to use.
 | Field | Required | Default | Notes |
 |---|---|---|---|
 | `type` | yes | - | Always `recompile:teardown` |
-| `input` | yes | - | An `Ingredient`: a bare item id, a tag as `"#c:ingots"`, or an array of item ids. **Not** the pre-1.21.2 `{"tag": ...}` object form, which does not parse in 26.1 |
+| `input` | yes | - | An `Ingredient`, so a tag works: `{"tag": "c:ingots"}` |
 | `station` | no | `recompile:workbench` | Tier gate string. One format covers the whole progression |
 | `tool` | no | none | An `Ingredient` naming the tool that must be **racked at the bench**. Omit for a no-tool teardown |
 | `ticks` | no | `80` (4s) | 1..72000. How long the player holds to complete one breakdown |
