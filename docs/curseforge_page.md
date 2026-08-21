@@ -187,6 +187,10 @@ The overworld is a dump you clear. The Nether is a dump you mine.
   burns on its own at half a coal, so it is useful before you upgrade it.
 - **Getting in is the point of the slag chain.** The Cupola rakes off slag every eighth smelt, the Slag
   Furnace vitrifies it into obsidian, and that is the only obsidian there is.
+- **Ancient Sculk** runs through the waste in rare seams, lit from inside. There is no deep dark here
+  and no city under one, so this is the only sculk there is. It takes a diamond sledgehammer or better
+  and breaks into a powder that makes the whole family: sculk, veins, a sensor, a shrieker. A catalyst
+  costs an echo shard, and there is exactly one of those at the bottom of each sewer.
 
 ## Also in
 
@@ -205,6 +209,14 @@ The overworld is a dump you clear. The Nether is a dump you mine.
   into the world in front of you.
 - **JEI and Jade plugins** - the mod's own recipe categories, and tooltips reporting which tool a
   block requires and how far a sort has progressed.
+- **Applied Energistics 2, if you have it.** AE2 cannot be started in this world at all - its tree
+  hangs off Sky Stone, Sky Stone comes from meteorites, and no meteorite falls here. All four Inscriber
+  presses are in the crate at the bottom of a sewer instead, together, the way one Mysterious Cube
+  hands them over. Nothing about that crate changes if you do not have AE2.
+- **Simple Magnets, if you have it.** Its recipes want an ender pearl, which is a placeholder rather
+  than a recipe. They are rebuilt on Magnet Scrap, which is what a magnet is actually recovered from,
+  and which is also the only redstone in the world - so spending it on magnets means not spending it on
+  redstone.
 
 ## Not in yet
 
@@ -216,7 +228,9 @@ Alpha, in active development.
 - **Two overworld regions.** The distance-banded region system is in and the demolition yard is its
   first frontier region; the scrapyard and e-waste regions are not.
 - **The compacted depths need a new world.** A dimension's generator is written into a save when the
-  world is made, so an existing world keeps whatever Nether it already had.
+  world is made, so an existing world keeps whatever Nether it already had. Ancient Sculk arrived after
+  the depths did and follows the same rule, so a world made before this update will not have seams in
+  the Nether it already generated.
 - **Villager trading is not curated.** A villager or a wandering trader will sell you saplings, buckets
   and iron gear, all of which this world otherwise gates behind a machine or a find. Getting a villager
   at all is the cost that stands in for those gates; whether that is the right trade is still open.

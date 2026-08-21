@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **What this is:** a standalone **NeoForge** mod (MC 26.1.2). Core mechanic: **teardown-as-knowledge** - disassemble items to recover their recipes, not just their materials. Also ships the garbage-world systems (worldgen, Blocks of Garbage, sorting, mound regrowth) that the **Trashlands** modpack is built on. Mod id / package: `recompile` / `com.flatts.recompile`.
 
-**Status:** Phases 0 through 2.17 are shipped (through the full reclamation ladder - Grass, Vegetation, Farming, Trees, Animals), **Phase 3 (teardown-as-knowledge) shipped 2026-08-02**, **Phase 4's region system and its first frontier region (the demolition yard) are shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether was pulled forward and shipped 2026-08-19** (the compacted depths, plus the slag chain that gets you there: the Cupola's byproduct, the Slag Furnace, and the only obsidian in the game). **v0.13.0 is released** (2026-08-20, the Sintering Kiln and the last of the resource gaps - brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 on 2026-08-18 the sewers, v0.10.0 on 2026-08-17, v0.9.0 on 2026-08-12, v0.8.0 on 2026-08-11, v0.7.0 on 2026-08-05, v0.6.0 on 2026-08-04, v0.5.0 on 2026-08-02, v0.4.0 on 2026-08-01, v0.3.0 on 2026-07-30, v0.1.0 and v0.2.0 on 2026-07-27). The grey-to-living arc the ModJam entry is built around now plays end to end, and mounds are renewable quarries rather than a finite stock. `docs/roadmap.md` is the engineering build order and tracks per-phase status; **Phase 6 (the full loop) is what remains**. Phase 3's long-open **knowledge-vs-function question was decided on 2026-08-01: knowledge**, as Immersive-Engineering-style **Blueprint items** (spec `docs/blueprints_spec.md`, issue #95). Tear something down at the Workbench and you may come away with an **Idea Fragment**; enough fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files them and joins the Scrap Network by placement; and the **Scrap Crafting Table** will run a `recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a cabinet in the same cluster. A vanilla crafting table needs no code to be excluded - blueprint recipes are not of type `minecraft:crafting`, so it cannot see them at all.
+**Status:** Phases 0 through 2.17 are shipped (through the full reclamation ladder - Grass, Vegetation, Farming, Trees, Animals), **Phase 3 (teardown-as-knowledge) shipped 2026-08-02**, **Phase 4's region system and its first frontier region (the demolition yard) are shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether was pulled forward and shipped 2026-08-19** (the compacted depths, plus the slag chain that gets you there: the Cupola's byproduct, the Slag Furnace, and the only obsidian in the game). **v0.14.0 is released** (2026-08-21, Ancient Sculk plus the two cross-mod stopgaps and the recipe-collision fix; v0.13.0 2026-08-20 the Sintering Kiln and the last of the resource gaps - brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 on 2026-08-18 the sewers, v0.10.0 on 2026-08-17, v0.9.0 on 2026-08-12, v0.8.0 on 2026-08-11, v0.7.0 on 2026-08-05, v0.6.0 on 2026-08-04, v0.5.0 on 2026-08-02, v0.4.0 on 2026-08-01, v0.3.0 on 2026-07-30, v0.1.0 and v0.2.0 on 2026-07-27). The grey-to-living arc the ModJam entry is built around now plays end to end, and mounds are renewable quarries rather than a finite stock. `docs/roadmap.md` is the engineering build order and tracks per-phase status; **Phase 6 (the full loop) is what remains**. Phase 3's long-open **knowledge-vs-function question was decided on 2026-08-01: knowledge**, as Immersive-Engineering-style **Blueprint items** (spec `docs/blueprints_spec.md`, issue #95). Tear something down at the Workbench and you may come away with an **Idea Fragment**; enough fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files them and joins the Scrap Network by placement; and the **Scrap Crafting Table** will run a `recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a cabinet in the same cluster. A vanilla crafting table needs no code to be excluded - blueprint recipes are not of type `minecraft:crafting`, so it cannot see them at all.
 
 **The proof of concept is the bed, and it is now the only bed in the game.** All sixteen wool-to-bed recipes are deleted; a Clean Mattress (blueprint-only, three wool and three string) plus three planks is the sole route, and dyeing the mattress at an ordinary table picks the colour. **The teardown schema's `teaches` field, parsed and ignored since Phase 0, is finally read** - which immediately turned the schema's own example recipe into live content, because it carried a `teaches` pointing at a blueprint that does not exist.
 
@@ -77,6 +77,21 @@ Membership is the `#recompile:found_only` item tag (data, so a pack extends it w
 `household_sprawl` has **all spawner lists empty by design** - the starting biome is creature-free, which is why food comes from tin cans and foraged mushrooms rather than mobs.
 
 **The same preset defines the Nether, and it is the compacted depths** (P3.5, owner 2026-08-19). `noise_settings/compacted_depths.json` is vanilla's nether shape - min_y 0, height 128, bedrock shell both ends - with `final_density` a **constant 1** and `default_block` set to `recompile:techno_organic_waste`. Solid every column, floor to ceiling: *the overworld is a dump you clear, the Nether is a dump you mine.* The only voids are embedded structures, and vanilla fortresses and bastions generate because both are **biome-tag driven** - `#minecraft:has_structure/nether_fortress` and `.../bastion_remnant` - so a themed biome hosts them with a two-line data change and hosts nothing at all without it. Slag rubble and lava arrive as `minecraft:ore` features, which is block REPLACEMENT rather than an ore, so neither needed Java. **No ancient debris in worldgen** (owner ruling).
+
+**Ancient Sculk is the only deep dark in the game** (#266, v0.14.0). There is no deep dark biome and no
+ancient city, so nine vanilla items had no source at all. One `minecraft:ore` feature - size 6, count 8,
+about 1 in 680 - lays seams of `recompile:ancient_sculk` through the fill, and the block breaks into
+Sculk Powder that crafts the family (sculk, veins, a sensor around redstone, a shrieker around soul
+sand, a catalyst around an **echo shard**, which is one per sewer and the only other thing here that
+came out of the deep dark). Two things worth keeping:
+
+- **Vanilla's `sculk_patch` feature is unusable here.** It decorates an exposed surface and needs air
+  beside it; the depths are solid floor to ceiling, so it would place nothing, log nothing and throw
+  nothing. An ore feature is block REPLACEMENT, which is the only shape that works in solid fill.
+- **It is the first block in this mod to gate on tool TIER rather than tool TYPE**, and it does it with
+  no Java: `#recompile:mineable/sledgehammer` for the type plus `#minecraft:needs_diamond_tool` for the
+  tier. That works only because `RCItems.COPPER_TIER` is built on `INCORRECT_FOR_STONE_TOOL` - retier
+  the copper sledgehammer and this silently opens.
 
 Three things bite here:
 
@@ -210,6 +225,22 @@ Pulverizer shipped with zero Jade providers against the Separator's four.
 destroyed it while breaking any CELL handed it back. A formed cell drops nothing of its own and the
 blueprint decides what disassembly returns on every path, so a cell break returns the component you
 put in that cell rather than whatever that shared formed block's loot table happened to name.
+
+**Two recipes that accept the same grid are one recipe, and the loser is silent.** A crafting grid
+resolves to a single result, so when two recipes match the same arrangement of the same items only one
+can ever be crafted: no error, no log line, a JEI page saying it works, and the other thing coming out.
+**`trommel` and `pulverizer` were byte-identical from v0.10.0 to v0.14.0** - one of those two machines
+could not be made for four releases, and nobody noticed. `every_crafting_recipe_is_reachable_at_a_bench`
+(`RecipeReachabilityTests`) now builds each shipped recipe's grid from its bundled JSON and asks the
+**live recipe manager** what matches.
+
+**It asks vanilla's matcher rather than comparing JSON, and that is not fastidiousness.** A static
+comparison has to reimplement the matcher to be right: shaped recipes are distinguished by their
+PATTERN, so the three stairs/wall pairs here are not collisions, while a shapeless recipe swallows every
+arrangement of its multiset and so CAN collide with a shaped one. A first pass in Python got exactly
+that wrong and cried wolf on all three. `getRecipesFor` returns every match rather than the first, which
+is the only reason the shadowed half is visible at all. It also asserts each recipe matches its OWN
+grid, so a wrongly built grid fails loudly instead of quietly making the check vacuous.
 
 **The data spine.** `TeardownRecipe` registers the public `recompile:teardown` recipe type - JSON in `data/<ns>/recipe/`, with `results` (deterministic core), `extras` (weighted bonus), and `teaches` (recipes to study). It was registered from day one so the Phase 3 knowledge system is never retrofitted into a live schema. **Three public recipe types now, not one**: `recompile:teardown`, `recompile:separating` (one feed into several distinct outputs plus byproducts) and `recompile:pulverizing` (one input, one finer output; `count` exists but **is 1 in every recipe this mod ships** - owner, 2026-08-19: *a GUI-less machine cannot take N > 1 inputs to make an output*, because with no GUI and no Container a partial batch is invisible and unrecoverable, and a partial batch is the ordinary state when the pull streams hand scrap out one at a time. The field stays because the schema is public, and both queue machines now SKIP a slot they cannot run instead of stalling on it, so a pack using it gets a slow machine rather than a bricked one). They are separate types rather than one flexible one because a schema expressing all three expresses none, and separating is already extended by packs - overloading it would redefine what their existing recipes mean. **Packs and addons extend the teardown tree through this schema without a mod release - treat it as public API** (reference: `docs/teardown_schema_spec.md`). `pools` (v0.9.0) is the weighted-draw form: N draws from a weighted list, an entry with no `item` is the filler, and a pool marked `teaches` grants the fragment for whichever item it drew.
 
@@ -347,6 +378,45 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - Custom worldgen: `noise_router` requires `preliminary_surface_level` (16 fields, not 15); biome `carvers` is a flat list; biome `features` is 11 arrays (index 9 = vegetal_decoration). A world preset must be **selected** at world creation via the World Type button - a default world silently ignores it, the #1 cause of "worldgen isn't working."
 - **A custom furnace is an `AbstractFurnace{Block,BlockEntity}` subclass + vanilla `FurnaceMenu`** (see `BurnBarrelBlock`/`BurnBarrelBlockEntity`). `AbstractFurnaceBlock` supplies FACING, the `LIT` state, placement, and open-on-use; the BE takes a `RecipeType` in its ctor (`RecipeType.SMELTING` for a plain furnace) and only implements `getDefaultName` + `createMenu` (`new FurnaceMenu(id, inv, this, this.dataAccess)`). **To make it manual-only (no hopper / Create automation), override `getSlotsForFace` to return an empty `int[]`** (and `canPlace/TakeItemThroughFace` -> false): a furnace is a `WorldlyContainer`, so empty faces cut off all automation while the GUI still loads by hand. Fuel is the `data/neoforge/data_maps/item/furnace_fuels.json` data map (`{"values": {"<id>": {"burn_time": N}}}`), read live via `level.fuelValues().burnDuration(stack)`.
 - **Carry BlockEntity state through break+replace with an item data component, not just `saveAdditional`.** `saveAdditional`/`loadAdditional` survive *save/load* only; breaking the block destroys the BE, so its state is lost on pickup. To keep it on the dropped item (the Rain Collector's water), register a `DataComponentType` (`RCDataComponents`), write it in `BlockEntity.collectImplicitComponents` (read back in `applyImplicitComponents` on placement), and copy it onto the drop with a `minecraft:copy_components` loot function (`"source": "block_entity"`, `"include": [...]`) - the mechanism vanilla beehives use for bees. See `RainCollectorBlockEntity`.
+
+## Two cross-mod stopgaps, which are pack content living in the engine
+
+**The pack cannot ship data on 26.1.2** - no datapack loader has a NeoForge build, KubeJS crashes the
+client, CraftTweaker has not ported - so two things that belong to Trashlands ship here instead
+(v0.14.0). **This cuts against the engine/pack split rather than revising it**, and both leave when
+KubeJS is fixed (`Flatts3000/trashlands#46` and `#47`). Specs and removal instructions:
+`docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`.
+
+- **AE2's four Inscriber presses** are a pool on `chests/sump.json`, plus a lang override correcting
+  AE2's own tooltip. AE2 is otherwise unstartable here: its tree hangs off Sky Stone, Sky Stone comes
+  from meteorites, and meteorites gate on `#minecraft:is_overworld` - which this mod ships **no entry
+  for, by owner ruling 2026-08-20**. Adding that tag would fix AE2 and every other mod keyed on it at
+  once, and that breadth is the objection: it admits anything gating worldgen on it, sight-unseen, into
+  a closed economy. Reopen only if a vanilla mechanic turns out to be silently not firing, or if enough
+  mods are blocked that per-mod handoffs stop scaling.
+- **Simple Magnets' four recipes** are overridden onto Magnet Scrap at that mod's own recipe ids.
+
+Three traps live here, all measured rather than reasoned about:
+
+- **An unresolvable ITEM id kills a whole loot table at parse; a TagKey does not resolve at parse
+  time.** Naming `ae2:silicon_press` in `sump.json` without AE2 gives `Unknown registry key` and takes
+  the entire file down - the crate at the bottom of every sewer comes up empty, which reads in-game as
+  bad luck. A `minecraft:tag` entry is inert instead, and `expand: false` yields EVERY member per roll
+  rather than picking one, which is how AE2's own `mysterious_cube` hands the set over.
+- **`neoforge:conditions` gates a whole loot table FILE, not a pool or an entry inside one.** So a
+  mod-gated loot entry is not available; the tag entry is what makes the guard unnecessary. On a
+  RECIPE the condition does work, and it is load-bearing: strip it and the file fails to PARSE on its
+  own result id.
+- **Language files MERGE; recipes and resources do not.** The client applies every lang resource for a
+  namespace in ascending priority, so a one-key `assets/<their-ns>/lang/en_us.json` override only has
+  to be LATER, not complete. A recipe at another mod's id is a whole-file replacement and only the top
+  file at a path is read at all - which also means a typo there does not degrade to their recipe, it
+  deletes the id. Both need `ordering = "AFTER"` on an optional dependency; `neoforge.mods.toml` now
+  carries three such entries (neoforge, simplemagnets, ae2).
+
+**CI cannot see either override working**, because neither mod is present at test time. What the tests
+assert is inertness WITHOUT the mod, plus the reason for it; the with-mod half was verified by dropping
+the jars into `run/mods` and running the gametest server against them.
 
 ## Design lives in the Trashlands repo (source of truth)
 
