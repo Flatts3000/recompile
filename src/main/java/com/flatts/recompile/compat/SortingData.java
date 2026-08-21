@@ -46,8 +46,8 @@ import net.minecraft.world.item.Items;
  * silent lie.</b> A {@code minecraft:item} is itself. A {@code minecraft:loot_table} entry is followed
  * into the table it names, with the parent's share multiplied in - Bulky Waste is two nested tiers now,
  * and skipping those entries would have shown a Prying category containing nothing but paintings. A
- * {@code minecraft:tag} entry expands to the tag's members, splitting its share between them, which is
- * how one wool entry reports as sixteen colours at a sixteenth each rather than vanishing.
+ * {@code minecraft:tag} entry reports every member of the tag at the entry's own share - see
+ * {@link #expandTag} for why that is the same number for both forms of the entry.
  *
  * <p>Anything else is skipped rather than guessed at, and a table that references itself is cut off at
  * the first repeat.
@@ -308,8 +308,7 @@ public final class SortingData {
                             collect(nested, entryShare, registries, out, visited);
                         }
                     } else if (isType(o, "minecraft:tag") && o.has("name")) {
-                        expandTag(o.get("name").getAsString(), entryShare, out,
-                            o.has("expand") && o.get("expand").getAsBoolean());
+                        expandTag(o.get("name").getAsString(), entryShare, out);
                     } else if (isType(o, "minecraft:alternatives") && o.has("children")) {
                         alternatives(o.getAsJsonArray("children"), entryShare, registries, out);
                     }
@@ -331,12 +330,31 @@ public final class SortingData {
     /**
      * Split a tag entry's share evenly across the tag's members.
      *
-     * <p>Even, because that is what {@code expand: false} actually does - the entry rolls once and then
-     * picks a member at random. Reporting the whole share against the tag's name would overstate every
-     * colour by sixteen times, and reporting nothing at all is what happens if this method does not
-     * exist.
+     * <p><b>Every member gets the entry's FULL share, and that is true of both forms of the entry -
+     * for opposite reasons.</b> Review of #279 caught this method dividing the share by the member
+     * count, on the belief that {@code expand: false} rolls once and then picks a member. It does not.
+     * From {@code net.minecraft.world.level.storage.loot.entries.TagEntry} in 26.1.2:
+     *
+     * <pre>public void createItemStack(Consumer&lt;ItemStack&gt; output, LootContext context) {
+     *     BuiltInRegistries.ITEM.getTagOrEmpty(this.tag).forEach(item -&gt; output.accept(new ItemStack(item)));
+     * }</pre>
+     *
+     * <p>So {@code expand: false} is ONE entry that emits ALL members together when it wins, and each
+     * member's chance of appearing is the entry's chance: {@code weight / total}. {@code expand: true}
+     * instead emits one entry PER MEMBER, each at the entry's weight - mutually exclusive, but the
+     * denominator grew to match (see {@link #effectiveWeight}), so each member is again
+     * {@code weight / total}. Same figure, different mechanism.
+     *
+     * <p>The mod's own data said so all along: {@code chests/sump.json} records that
+     * {@code expand: false} "yields EVERY item in the tag at once rather than picking one", measured
+     * at 16 of 16 in #268. The code contradicted its own measurement.
+     *
+     * <p><b>Nothing shipped exercises this today</b>, which is why no test caught it: the only tag
+     * entry in the mod is that sump pool, and this class reads pull streams rather than chest tables.
+     * {@code no_unexercised_tag_entry_reaches_the_viewer} fails the build if that stops being true, so
+     * the untested path cannot be relied on without coverage arriving with it.
      */
-    private static void expandTag(String id, float share, List<Weighted> out, boolean expand) {
+    private static void expandTag(String id, float share, List<Weighted> out) {
         Identifier parsed = Identifier.tryParse(id.startsWith("#") ? id.substring(1) : id);
         if (parsed == null) {
             return;
@@ -350,12 +368,8 @@ public final class SortingData {
         if (members.isEmpty()) {
             return;
         }
-        // expand:false rolls ONCE and then picks a member, so the share splits. expand:true creates
-        // one entry PER MEMBER, each at the entry's full weight, so every member gets the whole share
-        // and the pool total grew to match (see effectiveWeight).
-        float each = expand ? share : share / members.size();
         for (var holder : members) {
-            out.add(new Weighted(new ItemStack(holder.value()), each));
+            out.add(new Weighted(new ItemStack(holder.value()), share));
         }
     }
 
