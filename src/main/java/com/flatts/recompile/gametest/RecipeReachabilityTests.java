@@ -153,6 +153,23 @@ final class RecipeReachabilityTests {
         // not take its neighbours with it, so the run stays green and the only trace is a single ERROR
         // line - which is how the seventeen-recipe incident stayed hidden.
         //
+        // <p><b>The guard is checked by its CONTENTS, not by the key being there</b>, because two
+        // states get past a bare presence check and both are the failure this exists to catch. An
+        // EMPTY condition array reads as all-conditions-met, so the recipe decodes, dies on its own
+        // result id, and leaves nothing loaded - green on both counts. And a typo in the modid makes
+        // the condition simply false: green here forever, and when the pack DOES load Simple Magnets
+        // the override is skipped and the stock ender-pearl recipe stays, with nothing anywhere
+        // saying so.
+        //
+        // <p><b>The ids are resolved too, and that is the half CI could otherwise never reach.</b>
+        // These files are never decoded in a test run - the guard sees to that - so the guard that
+        // makes CI safe is also what leaves the four files completely unverified. A typo in an
+        // ingredient does not degrade to the stock recipe: recipes load through
+        // SimpleJsonResourceReloadListener, which reads only the TOP resource at each path, and this
+        // mod is ordered AFTER, so ours is the only file read for that id. It fails to parse, the id
+        // is then absent entirely, and the magnet is UNCRAFTABLE rather than merely stock-themed -
+        // strictly worse than the dead-duplicate case, with one ERROR line as the only trace.
+        //
         // <p><b>It does not pin the files.</b> Each is checked only if it is present, so when this
         // stopgap leaves (Flatts3000/trashlands#47) deleting the four files is the whole removal and
         // this passes over an empty list. Naming them is forced rather than chosen: NeoForge's dev
@@ -167,8 +184,15 @@ final class RecipeReachabilityTests {
                 return;
             }
 
+            // Every simplemagnets: id these four files may name, checked against the jar the pack
+            // ships. Anything else in that namespace is a typo, and a typo here is silent.
+            var known = java.util.Set.of("simplemagnets:basicmagnet", "simplemagnets:advancedmagnet",
+                "simplemagnets:basic_demagnetization_coil",
+                "simplemagnets:advanced_demagnetization_coil");
+
             List<String> unguarded = new ArrayList<>();
             List<String> loaded = new ArrayList<>();
+            List<String> badIds = new ArrayList<>();
             int present = 0;
             for (String name : List.of("basicmagnet", "advancedmagnet",
                     "basic_demagnetization_coil", "advanced_demagnetization_coil")) {
@@ -177,8 +201,40 @@ final class RecipeReachabilityTests {
                     continue;
                 }
                 present++;
-                if (!JsonParser.parseString(body).getAsJsonObject().has("neoforge:conditions")) {
+                JsonObject root = JsonParser.parseString(body).getAsJsonObject();
+
+                boolean guarded = false;
+                if (root.has("neoforge:conditions")) {
+                    for (JsonElement raw : root.getAsJsonArray("neoforge:conditions")) {
+                        JsonObject cond = raw.getAsJsonObject();
+                        guarded |= cond.has("type") && cond.has("modid")
+                            && "neoforge:mod_loaded".equals(cond.get("type").getAsString())
+                            && "simplemagnets".equals(cond.get("modid").getAsString());
+                    }
+                }
+                if (!guarded) {
                     unguarded.add(name);
+                }
+
+                // Every id this file names, resolved. simplemagnets: ones cannot resolve without the
+                // mod, so they are checked against the known set instead.
+                List<String> ids = new ArrayList<>();
+                for (var entry : root.getAsJsonObject("key").entrySet()) {
+                    ids.add(entry.getValue().getAsString());
+                }
+                ids.add(root.getAsJsonObject("result").get("id").getAsString());
+                for (String id : ids) {
+                    if (id.startsWith("#")) {
+                        continue;
+                    }
+                    if (id.startsWith("simplemagnets:")) {
+                        if (!known.contains(id)) {
+                            badIds.add(name + " -> " + id);
+                        }
+                    } else if (BuiltInRegistries.ITEM.getValue(Identifier.parse(id))
+                            == net.minecraft.world.item.Items.AIR) {
+                        badIds.add(name + " -> " + id);
+                    }
                 }
             }
             for (var holder : level.recipeAccess().recipeMap().values()) {
@@ -188,9 +244,16 @@ final class RecipeReachabilityTests {
             }
 
             helper.assertTrue(unguarded.isEmpty(),
-                "these override another mod's recipe id with no neoforge:mod_loaded guard, so without "
-                    + "that mod they do not merely fail to apply - they FAIL TO PARSE, which is one "
-                    + "ERROR line in an otherwise green run: " + unguarded);
+                "these override another mod's recipe id without a neoforge:mod_loaded condition "
+                    + "naming simplemagnets, so without that mod they do not merely fail to apply - "
+                    + "they FAIL TO PARSE, which is one ERROR line in an otherwise green run. An "
+                    + "EMPTY condition array counts as unguarded here, because NeoForge reads it as "
+                    + "all-conditions-met: " + unguarded);
+            helper.assertTrue(badIds.isEmpty(),
+                "these ids do not resolve, and the consequence is not what it looks like: this mod is "
+                    + "ordered AFTER simplemagnets, so ours is the ONLY file read at that path. It "
+                    + "fails to parse, the id is absent entirely, and the magnet becomes UNCRAFTABLE "
+                    + "rather than falling back to the stock recipe: " + badIds);
             helper.assertTrue(loaded.isEmpty(),
                 "recipes loaded for a mod that is not present: " + loaded);
             helper.assertTrue(present == 0 || present == 4,
