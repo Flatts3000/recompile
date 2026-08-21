@@ -1,5 +1,6 @@
 {
   "values": [
-    "recompile:blaze_briquette"
+    "recompile:blaze_briquette",
+    "recompile:propellant_briquette"
   ]
 }

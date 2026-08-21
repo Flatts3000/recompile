@@ -1,0 +1,29 @@
+{
+  "_comment": [
+    "THE KILN'S SECOND RECIPE, and the only Breeze Rod in the game (#278).",
+    "",
+    "A Breeze Rod drops only from a Breeze, a Breeze spawns only from a trial spawner inside a",
+    "trial chamber, and this world opts into exactly three structures - nether fortress, bastion",
+    "remnant and the mod's own sewer. No breeze can spawn here at all, so the rod, the Wind Charge",
+    "and everything downstream had no source.",
+    "",
+    "Sintering is the honest verb: hold a pressed compact below its melting point until the",
+    "particles fuse into a solid. A propellant grain is made exactly that way, which is why this",
+    "is the same machine and the same shape as the blaze chain rather than a new mechanic.",
+    "",
+    "WHAT IT UNLOCKS, stated honestly because #278 records the case as thin: Wind Charges, at",
+    "vanilla's four per rod, and Ender IO's Concentrated Cloud Seed. NOT the Mace - that also",
+    "needs a Heavy Core, which comes only from an ominous vault and is still absent - and not the",
+    "flow armour trim, whose template is trial chamber loot.",
+    "",
+    "Time and experience mirror the blaze recipe; #36 owns them."
+  ],
+  "type": "recompile:sintering",
+  "category": "misc",
+  "cookingtime": 250,
+  "experience": 0.2,
+  "ingredient": "recompile:propellant_briquette",
+  "result": {
+    "id": "minecraft:breeze_rod"
+  }
+}

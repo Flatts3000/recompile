@@ -8,6 +8,7 @@ import com.flatts.recompile.registry.RCTags;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -59,6 +60,101 @@ final class SinteringKilnTests {
                 helper.assertTrue(3 - left == made,
                     "one briquette per rod: " + made + " made but " + (3 - left) + " consumed");
             });
+        });
+
+        // THE SECOND RECIPE, and the only Breeze Rod in the game (#278). Same shape as the blaze
+        // chain above, deliberately: a Breeze drops the rod in vanilla, a Breeze spawns only from a
+        // trial spawner, and this world opts into exactly three structures - so the rod is
+        // manufactured here or it does not exist.
+        RCGameTests.test("the_kiln_sinters_a_briquette_into_a_breeze_rod", 600, helper -> {
+            SinteringKilnBlockEntity kiln = place(helper, new BlockPos(1, 1, 1));
+            kiln.setItem(0, new ItemStack(RCItems.PROPELLANT_BRIQUETTE.get(), 3));
+            kiln.setItem(1, new ItemStack(Items.COAL, 8));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(kiln.getItem(2).is(Items.BREEZE_ROD),
+                    "a propellant briquette and fuel must eventually make a breeze rod; the result "
+                        + "slot holds " + kiln.getItem(2));
+                int made = kiln.getItem(2).getCount();
+                int left = kiln.getItem(0).getCount();
+                helper.assertTrue(3 - left == made,
+                    "one briquette per rod: " + made + " made but " + (3 - left) + " consumed");
+            });
+        });
+
+        // FOUR GUNPOWDER, MEASURED AS BEHAVIOUR. Same method as the blaze cost below: ask the live
+        // recipe manager what a 2x2 of gunpowder makes, rather than counting slots in a file. The
+        // first version of the blaze test counted unique ingredients, got 1, and reported a cost of
+        // zero - so the number is pinned by what the grid actually does.
+        RCGameTests.test("four_gunpowder_press_into_a_propellant_briquette", 20, helper -> {
+            var recipes = helper.getLevel().recipeAccess();
+            int cost = 0;
+            for (int n = 1; n <= 4; n++) {
+                List<ItemStack> grid = new ArrayList<>();
+                for (int i = 0; i < 4; i++) {
+                    grid.add(i < n ? new ItemStack(Items.GUNPOWDER) : ItemStack.EMPTY);
+                }
+                var input = net.minecraft.world.item.crafting.CraftingInput.of(2, 2, grid);
+                boolean makes = recipes.getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, helper.getLevel())
+                    .map(h -> h.value().assemble(input).is(RCItems.PROPELLANT_BRIQUETTE.get()))
+                    .orElse(Boolean.FALSE);
+                if (makes && cost == 0) {
+                    cost = n;
+                }
+            }
+            helper.assertTrue(cost == 4,
+                "a Propellant Briquette must cost exactly four gunpowder, measured " + cost
+                    + ". Vanilla turns the rod it makes into FOUR wind charges, so this number is "
+                    + "the whole exchange rate: at four it is one gunpowder per charge.");
+            helper.succeed();
+        });
+
+        // THE CHAIN MUST STAY ONE-WAY (#278). Vanilla turns one breeze rod into FOUR wind charges and
+        // ships no reverse recipe, so today nothing can be fed back and the chain cannot loop. That is
+        // the property to protect rather than a bug to fix: any recipe that turned a rod or a charge
+        // back into gunpowder or a briquette would print wind forever, at a 4:1 advantage.
+        //
+        // <p>Deliberately broader than the blaze guard beside it, which measures one known pair. This
+        // asks the live recipe map whether ANY recipe consumes wind and produces propellant, so a
+        // route added later - by this mod or by a pack - is caught without anyone remembering to
+        // extend a list.
+        RCGameTests.test("nothing_turns_wind_back_into_propellant", 20, helper -> {
+            var level = helper.getLevel();
+            var context = net.minecraft.world.item.crafting.display.SlotDisplayContext
+                .fromLevel(level);
+            List<String> loops = new ArrayList<>();
+            int scanned = 0;
+
+            for (RecipeHolder<?> holder : level.getServer().getRecipeManager().recipeMap().values()) {
+                scanned++;
+                boolean eatsWind = false;
+                for (var ingredient : holder.value().placementInfo().ingredients()) {
+                    for (var item : ingredient.items().toList()) {
+                        eatsWind |= new ItemStack(item).is(Items.BREEZE_ROD)
+                            || new ItemStack(item).is(Items.WIND_CHARGE);
+                    }
+                }
+                if (!eatsWind) {
+                    continue;
+                }
+                for (var display : holder.value().display()) {
+                    for (ItemStack out : display.result().resolveForStacks(context)) {
+                        if (out.is(Items.GUNPOWDER)
+                            || out.is(RCItems.PROPELLANT_BRIQUETTE.get())) {
+                            loops.add(holder.id().identifier() + " makes "
+                                + BuiltInRegistries.ITEM.getKey(out.getItem()));
+                        }
+                    }
+                }
+            }
+
+            helper.assertTrue(scanned > 500,
+                "expected the full recipe set, scanned only " + scanned + " - this guard would pass "
+                    + "against an empty recipe map");
+            helper.assertTrue(loops.isEmpty(),
+                "these turn wind back into propellant, which closes a loop that pays 4:1 - one "
+                    + "briquette makes a rod, and vanilla makes FOUR wind charges from it: " + loops);
+            helper.succeed();
         });
 
         // THE LOOP THAT MUST NOT EXIST, and it is the reason the briquette exists at all. Vanilla

@@ -506,6 +506,15 @@ size = 16
 # It must read as PRESSED rather than as a lump: flat faces and sharp edges are what say a die squeezed
 # it, and that is the whole story of the item.
 prompt = "a small pressed briquette of blaze powder, a squat rectangular block of compacted glowing orange-yellow granules with flat pressed faces and crisp edges, faint dark seams where the press closed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.propellant_briquette]
+kind = "item"
+backend = "ai"
+size = 16
+# Same press language as blaze_briquette - flat faces, crisp edges, visible seam - but grey-black
+# granular rather than glowing. It must read as the SAME OPERATION on a different powder, so the
+# silhouette is deliberately its sibling's.
+prompt = "a small pressed briquette of dark grey gunpowder, a squat rectangular block of compacted charcoal-grey granules with flat pressed faces and crisp edges, faint dark seams where the press closed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.roach]
 kind = "entity"
 backend = "retint"

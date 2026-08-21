@@ -612,6 +612,7 @@
   "book.recompile.guide.depths.netherite.intro.text": "Netherite scrap comes out of the waste on its own, rarely. Gold comes off the circuit powder. So the ingots are yours. Upgrading anything with them is not, because that needs a smithing template, and the only recipe for one of those consumes a template to make it.\n\n\\\n\\\nA Worn Forging Die is what breaks the circle. A forging die is the block a press shapes metal against, so the pattern lives in the die - which is exactly what a smithing template is.\n\n\\\n\\\nTear one down at the Workbench with a prybar. It gives up almost nothing, because a worn-out die has nothing left to give but its shape - and the shape is the point. Four of them and you have the pattern for good.\n\n\\\n\\\nIt is expensive on purpose. Making a template from the pattern costs more than copying one you already have, so a bastion is still the quick way in and this is the way that does not need one.",
   "block.recompile.sintering_kiln": "Sintering Kiln",
   "item.recompile.blaze_briquette": "Blaze Briquette",
+  "item.recompile.propellant_briquette": "Propellant Briquette",
   "container.recompile.sintering_kiln": "Sintering Kiln",
   "jei.recompile.sintering": "Sintering",
   "book.recompile.guide.demolition.sintering_kiln.name": "The Sintering Kiln",

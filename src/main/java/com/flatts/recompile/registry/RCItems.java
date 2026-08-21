@@ -659,6 +659,34 @@ public final class RCItems {
      */
     public static final DeferredItem<Item> BLAZE_BRIQUETTE =
         ITEMS.registerItem("blaze_briquette", Item::new);
+
+    /**
+     * A Propellant Briquette: four gunpowder pressed into one compact, and the Sintering Kiln's
+     * second feed. Fired, it becomes a Breeze Rod (#278).
+     *
+     * <p><b>The referent is a solid propellant grain</b>, which is the standard
+     * {@code material_economy.md} holds every route to. A rocket motor and an airbag inflator both
+     * work the same way: compact a powder into a solid mass that, once lit, releases a large volume of
+     * gas very fast. That is a rod, made of pressed powder, that produces a burst of wind - so a Breeze
+     * Rod in this world is <b>manufactured, not harvested off a mob</b>.
+     *
+     * <p><b>It has to exist for the same mechanical reason the Blaze Briquette does:</b> a cooking
+     * recipe consumes exactly one item, so four gunpowder cannot feed the kiln directly. Pressing them
+     * into a green body first is also the rest of the real process, not a workaround.
+     *
+     * <p><b>Why this route exists at all.</b> A Breeze Rod drops only from a Breeze, a Breeze spawns
+     * only from a trial spawner, and this world opts into exactly three structures - nether fortress,
+     * bastion remnant, and the mod's own sewer. So the whole family was unobtainable. See #278 for what
+     * that does and does not unlock: Wind Charges yes, the Mace no, because a Heavy Core is
+     * ominous-vault-only and stays absent.
+     *
+     * <p><b>The loop risk runs the other way here, and is smaller.</b> Vanilla turns one rod into FOUR
+     * wind charges and ships no reverse recipe, so nothing can be fed back. The invariant to protect is
+     * that it stays that way - {@code nothing_turns_wind_back_into_propellant} fails the build if any
+     * recipe ever converts a rod or a charge back into gunpowder or a briquette.
+     */
+    public static final DeferredItem<Item> PROPELLANT_BRIQUETTE =
+        ITEMS.registerItem("propellant_briquette", Item::new);
     /**
      * The Roach's spawn egg (#78). Not a convenience - an entity with no egg cannot be placed by hand in
      * creative, which is the loop this whole feature gets tuned through.

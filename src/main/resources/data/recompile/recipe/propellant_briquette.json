@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "FOUR GUNPOWDER PRESSED INTO ONE COMPACT (#278, owner 2026-08-21).",
+    "",
+    "The same 2x2 press as the Blaze Briquette, and for the same mechanical reason: a cooking",
+    "recipe consumes exactly one item, so four powder cannot feed the Sintering Kiln directly.",
+    "",
+    "Gunpowder because a solid propellant grain IS compacted powder - that is how a rocket motor",
+    "and an airbag inflator are both built, and both exist to release a burst of gas. It also",
+    "needs no new find: creepers are weight 100 in the demolition yard, so the feedstock is",
+    "already renewable and this becomes a competing sink against TNT rather than a free one.",
+    "",
+    "Net cost is one gunpowder per Wind Charge, since vanilla turns the rod it makes into four.",
+    "First pass; #36 owns the number."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "minecraft:gunpowder"
+  },
+  "pattern": [
+    "PP",
+    "PP"
+  ],
+  "result": {
+    "id": "recompile:propellant_briquette"
+  }
+}
