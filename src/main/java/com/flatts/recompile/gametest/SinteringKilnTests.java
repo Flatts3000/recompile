@@ -8,6 +8,7 @@ import com.flatts.recompile.registry.RCTags;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -59,6 +60,149 @@ final class SinteringKilnTests {
                 helper.assertTrue(3 - left == made,
                     "one briquette per rod: " + made + " made but " + (3 - left) + " consumed");
             });
+        });
+
+        // THE SECOND RECIPE, and the only Breeze Rod in the game (#278). Same shape as the blaze
+        // chain above, deliberately: a Breeze drops the rod in vanilla, a Breeze spawns only from a
+        // trial spawner, and this world opts into exactly three structures - so the rod is
+        // manufactured here or it does not exist.
+        RCGameTests.test("the_kiln_sinters_a_briquette_into_a_breeze_rod", 600, helper -> {
+            SinteringKilnBlockEntity kiln = place(helper, new BlockPos(1, 1, 1));
+            kiln.setItem(0, new ItemStack(RCItems.PROPELLANT_BRIQUETTE.get(), 3));
+            kiln.setItem(1, new ItemStack(Items.COAL, 8));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(kiln.getItem(2).is(Items.BREEZE_ROD),
+                    "a propellant briquette and fuel must eventually make a breeze rod; the result "
+                        + "slot holds " + kiln.getItem(2));
+                int made = kiln.getItem(2).getCount();
+                int left = kiln.getItem(0).getCount();
+                helper.assertTrue(3 - left == made,
+                    "one briquette per rod: " + made + " made but " + (3 - left) + " consumed");
+            });
+        });
+
+        // FOUR GUNPOWDER, MEASURED AS BEHAVIOUR. Same method as the blaze cost below: ask the live
+        // recipe manager what a 2x2 of gunpowder makes, rather than counting slots in a file. The
+        // first version of the blaze test counted unique ingredients, got 1, and reported a cost of
+        // zero - so the number is pinned by what the grid actually does.
+        RCGameTests.test("four_gunpowder_press_into_a_propellant_briquette", 20, helper -> {
+            var recipes = helper.getLevel().recipeAccess();
+            int cost = 0;
+            for (int n = 1; n <= 4; n++) {
+                List<ItemStack> grid = new ArrayList<>();
+                for (int i = 0; i < 4; i++) {
+                    grid.add(i < n ? new ItemStack(Items.GUNPOWDER) : ItemStack.EMPTY);
+                }
+                var input = net.minecraft.world.item.crafting.CraftingInput.of(2, 2, grid);
+                boolean makes = recipes.getRecipeFor(
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, helper.getLevel())
+                    .map(h -> h.value().assemble(input).is(RCItems.PROPELLANT_BRIQUETTE.get()))
+                    .orElse(Boolean.FALSE);
+                if (makes && cost == 0) {
+                    cost = n;
+                }
+            }
+            helper.assertTrue(cost == 4,
+                "a Propellant Briquette must cost exactly four gunpowder, measured " + cost
+                    + ". Vanilla turns the rod it makes into FOUR wind charges, so this number is "
+                    + "the whole exchange rate: at four it is one gunpowder per charge.");
+            helper.succeed();
+        });
+
+        // THE CHAIN MUST STAY ONE-WAY (#278). Vanilla turns one breeze rod into FOUR wind charges and
+        // ships no reverse recipe, so today nothing can be fed back and the chain cannot loop. That is
+        // the property to protect rather than a bug to fix: any recipe that turned a rod or a charge
+        // back into gunpowder or a briquette would print wind forever, at a 4:1 advantage.
+        //
+        // <p><b>Reading a recipe's inputs and outputs generically is the hard part, and the first
+        // version of this got it wrong in both directions.</b> It walked placementInfo().ingredients()
+        // and display(), and BOTH are empty for this mod's own schemas: TeardownRecipe and
+        // BlueprintCraftingRecipe return PlacementInfo.NOT_PLACEABLE, and display() is a default method
+        // returning an empty list that neither overrides. So a teardown converting a wind charge into
+        // gunpowder - exactly the route a pack would add, since teardown is the schema this mod
+        // advertises as public API - was invisible, and the test reported zero loops while claiming to
+        // catch precisely that. RecipeResults' own javadoc warns about this: a sweep asserting NOTHING
+        // produces an item "needs a second pass over those types".
+        //
+        // <p>So teardown is read through its real accessors, and <b>any recipe this sweep cannot read
+        // is an ERROR rather than a skip</b> - the same shape FoundNotCraftedTests uses. Silence is
+        // what made the first version pass.
+        RCGameTests.test("nothing_turns_wind_back_into_propellant", 20, helper -> {
+            var level = helper.getLevel();
+            var context = net.minecraft.world.item.crafting.display.SlotDisplayContext
+                .fromLevel(level);
+            List<String> loops = new ArrayList<>();
+            java.util.Set<String> unreadable = new java.util.TreeSet<>();
+            int scanned = 0;
+
+            for (RecipeHolder<?> holder : level.getServer().getRecipeManager().recipeMap().values()) {
+                scanned++;
+                var recipe = holder.value();
+
+                // --- what it eats ---
+                boolean eatsWind = false;
+                if (recipe instanceof com.flatts.recompile.content.recipe.TeardownRecipe teardown) {
+                    eatsWind = teardown.input().test(new ItemStack(Items.BREEZE_ROD))
+                        || teardown.input().test(new ItemStack(Items.WIND_CHARGE));
+                } else if (recipe
+                        instanceof com.flatts.recompile.content.recipe.BlueprintCraftingRecipe bp) {
+                    for (var slot : bp.ingredients()) {
+                        eatsWind |= slot.isPresent()
+                            && (slot.get().test(new ItemStack(Items.BREEZE_ROD))
+                                || slot.get().test(new ItemStack(Items.WIND_CHARGE)));
+                    }
+                } else {
+                    for (var ingredient : recipe.placementInfo().ingredients()) {
+                        for (var item : ingredient.items().toList()) {
+                            eatsWind |= new ItemStack(item).is(Items.BREEZE_ROD)
+                                || new ItemStack(item).is(Items.WIND_CHARGE);
+                        }
+                    }
+                }
+
+                // --- what it makes, and whether that is even readable ---
+                if (recipe instanceof com.flatts.recompile.content.recipe.TeardownRecipe teardown) {
+                    if (eatsWind && teardown.everyPossibleOutput().anyMatch(
+                            out -> out == Items.GUNPOWDER
+                                || out == RCItems.PROPELLANT_BRIQUETTE.get())) {
+                        loops.add(holder.id().identifier() + " (teardown)");
+                    }
+                    continue;
+                }
+                if (recipe.display().isEmpty()) {
+                    if (!recipe.isSpecial()) {
+                        unreadable.add(String.valueOf(BuiltInRegistries.RECIPE_TYPE.getKey(
+                            recipe.getType())) + " (" + holder.id().identifier() + ")");
+                    }
+                    continue;
+                }
+                if (!eatsWind) {
+                    continue;
+                }
+                for (var display : recipe.display()) {
+                    for (ItemStack out : display.result().resolveForStacks(context)) {
+                        if (out.is(Items.GUNPOWDER)
+                            || out.is(RCItems.PROPELLANT_BRIQUETTE.get())) {
+                            loops.add(holder.id().identifier() + " makes "
+                                + BuiltInRegistries.ITEM.getKey(out.getItem()));
+                        }
+                    }
+                }
+            }
+
+            helper.assertTrue(scanned > 500,
+                "expected the full recipe set, scanned only " + scanned + " - this guard would pass "
+                    + "against an empty recipe map");
+            helper.assertTrue(unreadable.isEmpty(),
+                "this sweep cannot read what these recipes produce, so it is silently blind to them "
+                    + "rather than clearing them: " + unreadable + ". Implement display(), or read the "
+                    + "type concretely here the way TeardownRecipe is read. Do NOT simply skip it - "
+                    + "skipping is what let the first version of this test report zero loops while "
+                    + "being unable to see the schema a pack is most likely to add one through.");
+            helper.assertTrue(loops.isEmpty(),
+                "these turn wind back into propellant, which closes a loop that pays 4:1 - one "
+                    + "briquette makes a rod, and vanilla makes FOUR wind charges from it: " + loops);
+            helper.succeed();
         });
 
         // THE LOOP THAT MUST NOT EXIST, and it is the reason the briquette exists at all. Vanilla
