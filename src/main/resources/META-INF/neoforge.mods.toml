@@ -53,6 +53,27 @@ side = "BOTH"
 #
 # TEMPORARY. This is pack content in the engine because the pack cannot ship data on 26.1.2; it leaves
 # when KubeJS is fixed (Flatts3000/trashlands#47), and this dependency block leaves with it.
+# AE2 (#268), optional and AFTER, for a LANGUAGE key rather than a recipe.
+#
+# AE2's JEI info tab for the Inscriber presses says they come from a Mysterious Cube in a meteorite,
+# and points at the Meteorite Compass. None of that is true here - meteorites gate on a biome tag this
+# mod ships no entry for - so a player reading it is sent after something that cannot exist. This mod
+# ships assets/ae2/lang/en_us.json overriding gui.ae2.inWorldCraftingPresses to say where they really
+# are.
+#
+# LANGUAGE FILES MERGE, which is why this needs one key rather than a copy of AE2's whole file: the
+# client applies every lang resource for a namespace in ascending priority, so ours only has to be
+# LATER, not complete. That is the opposite of a recipe, where only the top file at a path is read.
+# Later still means load order, hence AFTER.
+#
+# TEMPORARY, with the press pool it explains - Flatts3000/trashlands#46.
+[[dependencies.${mod_id}]]
+modId = "ae2"
+type = "optional"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"
+
 [[dependencies.${mod_id}]]
 modId = "simplemagnets"
 type = "optional"
