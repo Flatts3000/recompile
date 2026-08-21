@@ -388,7 +388,11 @@ KubeJS is fixed (`Flatts3000/trashlands#46` and `#47`). Specs and removal instru
 `docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`.
 
 - **AE2's four Inscriber presses** are a pool on `chests/sump.json`, plus a lang override correcting
-  AE2's own tooltip. AE2 is otherwise unstartable here: its tree hangs off Sky Stone, Sky Stone comes
+  AE2's own tooltip. **This unblocks one of AE2's two gates and not both** (#276): 330 of its 364 items
+  have a recipe, and everything traces back to `certus_quartz_crystal`, whose only non-circular source
+  is a `quartz_cluster` - which drops only from budding blocks, which generate only inside a meteorite.
+  AE2's entire worldgen is `structure/meteorite.json` and no AE2 chest table carries certus. So the
+  presses give a player an Inscriber and nothing to put in it. AE2 is otherwise unstartable here: its tree hangs off Sky Stone, Sky Stone comes
   from meteorites, and meteorites gate on `#minecraft:is_overworld` - which this mod ships **no entry
   for, by owner ruling 2026-08-20**. Adding that tag would fix AE2 and every other mod keyed on it at
   once, and that breadth is the objection: it admits anything gating worldgen on it, sight-unseen, into

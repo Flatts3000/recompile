@@ -209,10 +209,11 @@ The overworld is a dump you clear. The Nether is a dump you mine.
   into the world in front of you.
 - **JEI and Jade plugins** - the mod's own recipe categories, and tooltips reporting which tool a
   block requires and how far a sort has progressed.
-- **Applied Energistics 2, if you have it.** AE2 cannot be started in this world at all - its tree
-  hangs off Sky Stone, Sky Stone comes from meteorites, and no meteorite falls here. All four Inscriber
-  presses are in the crate at the bottom of a sewer instead, together, the way one Mysterious Cube
-  hands them over. Nothing about that crate changes if you do not have AE2.
+- **Applied Energistics 2, if you have it.** No meteorite falls in this world, so AE2 has no way in.
+  All four Inscriber presses are in the crate at the bottom of a sewer instead, together, the way one
+  Mysterious Cube hands them over. Nothing about that crate changes if you do not have AE2.
+  **That is one of its two gates, not both**: certus quartz also comes only from meteorites, so the
+  presses give you an Inscriber with nothing yet to put in it. A certus route is the next piece.
 - **Simple Magnets, if you have it.** Its recipes want an ender pearl, which is a placeholder rather
   than a recipe. They are rebuilt on Magnet Scrap, which is what a magnet is actually recovered from,
   and which is also the only redstone in the world - so spending it on magnets means not spending it on

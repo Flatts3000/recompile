@@ -49,6 +49,9 @@ It also fixes a machine that has been uncraftable for four releases without anyb
   than a meteorite.
 - **Its own tooltip used to send you after meteorites.** It now tells you where they really are.
 - Only when AE2 is installed. Nothing about the crate changes without it.
+- **Correction, one day on:** this clears one of AE2's two gates, not both. Certus quartz is
+  meteorite-only as well, so the presses give you an Inscriber with nothing to put in it yet. Tracked
+  as #276.
 
 ### Simple Magnets, re-themed onto Magnet Scrap
 

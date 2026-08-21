@@ -146,7 +146,9 @@ table, so there is no override race and no `ordering = "AFTER"` needed.
 - **Consider one press per sewer rather than all four**, so a player works several. There is
   precedent in the same structure: the echo shard is one per sewer.
 - **Sky Stone itself may not need a route.** Once presses exist, check whether the rest of AE2 opens
-  up on its own before adding a second thing.
+  up on its own before adding a second thing. **CHECKED 2026-08-20, and it does not** (#276). Certus
+  quartz is the real gate and it is meteorite-only too, so the presses alone leave a player with an
+  Inscriber and nothing to feed it.
 - Whatever the rate, four presses gated behind a structure is a long chain; the pack's own
   progression notes would rather that be legible than fast.
 
