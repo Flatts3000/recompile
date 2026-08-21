@@ -1,0 +1,54 @@
+{
+  "_comment": [
+    "ENDER IO TEARDOWN (#275).",
+    "",
+    "ASSEMBLIES ONLY, NOT INGOTS, and that is the scoping decision worth recording. An alloy ingot is",
+    "a MIXTURE - you remelt it, you do not prise it apart with a knife - so conductive, energetic,",
+    "dark steel and the rest are deliberately absent from this set. What is here is the things a",
+    "player manufactures, supersedes, and ends up with a chest of.",
+    "",
+    "THE MARGIN. Eight conduits cost six conduit binder and three conductive alloy ingots, so ONE",
+    "costs 0.75 binder and 0.375 of an ingot. This returns an ingot at 10 percent - under a third",
+    "of that - and scrap for the rest. A conduit is the item a player most often has a stack of",
+    "after rerouting a base, which is exactly what this is for.",
+    "",
+    "Every conduit type is one item (enderio:conduit) distinguished by a data component, so a",
+    "single entry covers energy, item, fluid and redstone without naming any of them.",
+    "",
+    "TEMPORARY, and guarded. Pack content living in the engine because the pack cannot ship data on",
+    "26.1.2; it leaves with the rest - see docs/handoff_cross_mod_teardown.md.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own ids, which is one ERROR line in an otherwise",
+    "green run."
+  ],
+  "type": "recompile:teardown",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "enderio"
+    }
+  ],
+  "input": "enderio:conduit",
+  "station": "recompile:workbench",
+  "tool": "recompile:scrap_knife",
+  "ticks": 60,
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "enderio:conductive_alloy_ingot",
+          "weight": 10
+        },
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 40
+        },
+        {
+          "weight": 50
+        }
+      ]
+    }
+  ]
+}

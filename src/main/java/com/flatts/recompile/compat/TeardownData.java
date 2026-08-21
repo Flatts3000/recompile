@@ -55,10 +55,7 @@ public final class TeardownData {
         if (cached == null) {
             List<Entry> entries = new ArrayList<>();
             for (com.google.gson.JsonObject recipe : RecipeFiles.ofType("recompile:teardown")) {
-                Entry entry = parse(recipe);
-                if (entry != null) {
-                    entries.add(entry);
-                }
+                entries.addAll(parseAll(recipe));
             }
             cached = List.copyOf(entries);
         }
@@ -88,17 +85,63 @@ public final class TeardownData {
         }
     }
 
+    /**
+     * Every entry a teardown recipe surfaces: one per input item, so a TAG input becomes one row per
+     * member.
+     *
+     * <p><b>Tag inputs used to be dropped silently</b>, with a comment saying they would be surfaced
+     * "later if a real recipe needs it". #275 is that recipe: AE2 ships 90 cable items and naming them
+     * individually is the sixteen-beds mistake, so the five cable teardowns take AE2's own tags. Left
+     * unhandled, all five parsed and ran in-world while every viewer denied they existed - exactly the
+     * Broken Hydroponics Bay failure this class's own comment records, one schema feature along.
+     * Caught by {@code every_bundled_teardown_reaches_the_viewers}: 15 files, 10 surfaced.
+     */
+    public static List<Entry> parseAll(JsonObject root) {
+        JsonElement inputEl = root.get("input");
+        if (inputEl == null || !inputEl.isJsonPrimitive()) {
+            return List.of();
+        }
+        String raw = inputEl.getAsString();
+        if (!raw.startsWith("#")) {
+            Entry single = parse(root);
+            return single == null ? List.of() : List.of(single);
+        }
+
+        // A tag that does not exist here - the usual case for a mod-gated teardown whose mod is
+        // absent - yields no rows rather than an error, which is the same inert behaviour the recipe
+        // itself has.
+        Identifier parsed = Identifier.tryParse(raw.substring(1));
+        if (parsed == null) {
+            return List.of();
+        }
+        var tag = BuiltInRegistries.ITEM.get(
+            net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM, parsed));
+        if (tag.isEmpty()) {
+            return List.of();
+        }
+        List<Entry> out = new ArrayList<>();
+        for (var holder : tag.get()) {
+            Entry member = parse(root, holder.value());
+            if (member != null) {
+                out.add(member);
+            }
+        }
+        return List.copyOf(out);
+    }
+
     /** One already-parsed teardown recipe, or null if its input is not a bare item. */
     public static @Nullable Entry parse(JsonObject root) {
+        JsonElement inputEl = root.get("input");
+        if (inputEl == null || !inputEl.isJsonPrimitive()) {
+            return null;
+        }
+        Item input = item(inputEl.getAsString());
+        return input == Items.AIR ? null : parse(root, input);
+    }
+
+    /** The body of {@link #parse}, with the input item supplied rather than read. */
+    private static @Nullable Entry parse(JsonObject root, Item input) {
         try {
-            JsonElement inputEl = root.get("input");
-            if (inputEl == null || !inputEl.isJsonPrimitive()) {
-                return null; // tag / array inputs are not surfaced yet
-            }
-            Item input = item(inputEl.getAsString());
-            if (input == Items.AIR) {
-                return null;
-            }
 
             List<SortingData.Weighted> outputs = new ArrayList<>();
             if (root.has("results")) {
