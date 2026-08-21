@@ -17,6 +17,32 @@ ported, and `release.yml` rejects a loose jar in the CurseForge export so a data
 Recompile already ships conditional data for another mod: `data/recompile/recipe/guide_book.json`
 produces a Modonomicon item behind `neoforge:mod_loaded`. This is the same pattern.
 
+
+## This is temporary, and it should be built to be deleted
+
+**Owner, 2026-08-20: both cross-mod handoffs are stopgaps until KubeJS is fixed.** The pack cannot
+ship data on 26.1.2 - that is the only reason this lives in the engine at all. When
+[kube-mods/kubejs#1178](https://github.com/kube-mods/kubejs/issues/1178) is fixed (or any datapack
+loader ports), this moves to the pack and comes back out of Recompile.
+
+**It cuts against the engine/pack split in CLAUDE.md**, which puts curation and cross-mod tables on
+the pack side. That split is not being revised; it is being suspended for one mod's delivery problem.
+
+So build it to be removable, which is not how engine content is built:
+
+- **One file per thing, deletable wholesale.** No folding these entries into an existing table or
+  recipe that also carries engine content.
+- **Nothing else may come to depend on it.** No guidebook entry, no `docs/` reference outside this
+  handoff, and no GameTest asserting the entry exists - a test pinning it makes the removal a code
+  change instead of a delete.
+- **Not in `pack_extension.md`.** That documents what a pack may rely on, and this is the opposite:
+  something a pack should take back.
+- Every file already needs its `neoforge:mod_loaded` guard, which is what makes deletion safe rather
+  than merely tidy.
+
+**The removal trigger is KubeJS working on 26.1.2, not a release number**, and nothing will announce
+it. Whoever next updates mods should check that issue and reopen this.
+
 ## What Simple Magnets ships today
 
 Four shaped recipes, all on materials this world does not have a story for:
