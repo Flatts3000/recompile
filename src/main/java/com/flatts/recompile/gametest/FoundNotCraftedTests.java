@@ -85,6 +85,30 @@ final class FoundNotCraftedTests {
         "minecraft:smithing_trim"
     );
 
+    /**
+     * Individual recipes exempted by ID, for when a whole serializer is too broad a brush.
+     *
+     * <p><b>Ender IO's tank empties a CONTAINER</b>: draining an experience bottle hands back the
+     * glass bottle it was made from. A glass bottle is in {@code #recompile:found_only}, and the owner
+     * ruled 2026-08-21 (#280) that draining a bottle you already have is not manufacturing one.
+     *
+     * <p><b>By id rather than by serializer, which review of #281 called for.</b> Exempting
+     * {@code enderio:tank} wholesale would also cover 19 {@code tank_fill/*_concrete} recipes turning
+     * concrete POWDER into concrete blocks, and {@code tank_fill/nutritious_stick} - genuine
+     * manufacture with a different output item. None produces a found-only item today, so nothing was
+     * broken, but the exemption would have been wider than the ruling behind it and would silently
+     * cover the next one that did.
+     *
+     * <p><b>The caveat on the ruling, recorded rather than glossed.</b> This is not purely a round
+     * trip: an experience bottle can also be BOUGHT - villagers arrived with #227 - so a player with
+     * emeralds has a narrow route to glass bottles that does not involve finding one. Accepted as the
+     * same shape as the wandering trader's saplings, where the cost of getting a villager at all
+     * stands in for the gate it walks around.
+     */
+    private static final Set<String> EXEMPT_RECIPES = Set.of(
+        "enderio:tank_empty/glass_bottle"
+    );
+
     static void register() {
         /*
          * Drive it red by leaving the bucket craftable - which is exactly how this was written. The
@@ -118,6 +142,9 @@ final class FoundNotCraftedTests {
                     if (!RESULT_NOT_READABLE.contains(id)) {
                         unreadable.add(id + " (" + holder.id().identifier() + ")");
                     }
+                    continue;
+                }
+                if (EXEMPT_RECIPES.contains(holder.id().identifier().toString())) {
                     continue;
                 }
                 for (RecipeDisplay display : displays) {

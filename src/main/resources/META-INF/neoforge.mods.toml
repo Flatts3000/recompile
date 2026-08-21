@@ -81,3 +81,21 @@ type = "optional"
 versionRange = "*"
 ordering = "AFTER"
 side = "BOTH"
+
+# Ender IO (#280), optional and AFTER, to DISABLE one of its recipes.
+#
+# This mod ships a file at enderio:sag_milling/blaze_powder whose condition is never satisfied, which
+# replaces Ender IO's recipe with one that does not load. Its version grinds a blaze rod back into
+# four powder, and with a grinding ball's output multiplier - up to 1.75 on the vibrant alloy ball -
+# that turns this mod's four-powder-to-one-rod Sintering Kiln chain into an automatable gain of up to
+# 75 percent per cycle: the exact loop the Blaze Briquette was designed to make impossible.
+#
+# AFTER is what makes the override win. Only the top file at a path is read and datapacks are ordered
+# by mod load order, so without this line Ender IO's file stays on top, ours is never read, and
+# nothing anywhere says so.
+[[dependencies.${mod_id}]]
+modId = "enderio"
+type = "optional"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"

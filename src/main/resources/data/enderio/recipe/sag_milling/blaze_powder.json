@@ -1,0 +1,60 @@
+{
+  "_comment": [
+    "DISABLED: Ender IO's SAG Mill must not grind a blaze rod back into powder (owner, 2026-08-21,",
+    "#280). This file REPLACES enderio:sag_milling/blaze_powder and never loads, so the recipe is",
+    "simply absent.",
+    "",
+    "WHY. Ender IO's version returns FOUR blaze powder from one rod. This mod's chain runs the",
+    "other way - four powder press into a Blaze Briquette and the Sintering Kiln fires it into one",
+    "rod - so the round trip becomes break-even, which is precisely what the Briquette exists to",
+    "prevent. CLAUDE.md: it exists because vanilla crafts one rod into TWO powder, so a",
+    "one-for-one powder-to-rod recipe would print rods forever.",
+    "",
+    "AND IT IS WORSE THAN BREAK-EVEN, because the SAG Mill multiplies output. Ender IO's own",
+    "data_maps/item/grinding_ball.json (read from the 9.0.5-alpha jar the pack pins) runs from",
+    "1.0 on the redstone and pulsating balls up to 1.75 on the VIBRANT ALLOY one, with energetic",
+    "at 1.6 and end steel at 1.4. So one rod returns up to SEVEN powder against the four it cost:",
+    "a 75 percent gain per cycle, automatable, powered, and blaze rods gate brewing here.",
+    "",
+    "That ceiling was first written here as 1.4, because the file was read truncated and only its",
+    "first three entries were seen. Caught in review of #281. The conclusion did not change - it",
+    "got stronger - but a number stated as measured has to survive being checked.",
+    "",
+    "DISABLED RATHER THAN REBALANCED (owner ruling). Cutting the yield to two would restore the",
+    "loss and was the alternative on the table; removing it outright means there is no number to",
+    "re-check when Ender IO retunes its grinding balls, and nothing is lost - blaze powder is",
+    "already obtainable here by the vanilla route.",
+    "",
+    "HOW A DISABLE WORKS, since there is no remove-recipe primitive. A file at another mod's",
+    "recipe id REPLACES it wholesale (only the top file at a path is read), and a condition that",
+    "is never satisfied means this replacement itself never loads. Net: the id is gone. The body",
+    "below is a valid recipe purely so the file is well-formed; it is never decoded, because a",
+    "failing neoforge:conditions stops the rest of the file being read - which is the same",
+    "mechanism that lets the AE2 recipes name ae2 items safely when AE2 is absent.",
+    "",
+    "LOAD ORDER IS LOAD-BEARING AND SILENT. An override at another mod's id only wins if this",
+    "mod's datapack is read AFTER theirs, so neoforge.mods.toml carries an optional enderio",
+    "dependency with ordering = AFTER. Without it this file is never read, nothing is logged, and",
+    "the loop is quietly still there - the same failure as the seventeen NeoForge-reshipped",
+    "recipes in #161.",
+    "",
+    "TEMPORARY, like every other cross-mod file here: it is pack content living in the engine",
+    "because the pack cannot ship data on 26.1.2, and it leaves with the rest."
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:never"
+    }
+  ],
+  "type": "enderio:sag_milling",
+  "energy": 2400,
+  "input": "#c:rods/blaze",
+  "outputs": [
+    {
+      "item": {
+        "count": 1,
+        "id": "minecraft:blaze_powder"
+      }
+    }
+  ]
+}
