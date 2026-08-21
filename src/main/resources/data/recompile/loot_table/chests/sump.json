@@ -21,7 +21,13 @@
           "name": "minecraft:bone",
           "weight": 20,
           "functions": [
-            { "function": "minecraft:set_count", "count": { "min": 1, "max": 4 } }
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 1,
+                "max": 4
+              }
+            }
           ]
         },
         {
@@ -29,7 +35,13 @@
           "name": "recompile:cullet_glass",
           "weight": 18,
           "functions": [
-            { "function": "minecraft:set_count", "count": { "min": 1, "max": 4 } }
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 1,
+                "max": 4
+              }
+            }
           ]
         },
         {
@@ -37,7 +49,13 @@
           "name": "minecraft:string",
           "weight": 16,
           "functions": [
-            { "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 1,
+                "max": 3
+              }
+            }
           ]
         },
         {
@@ -45,7 +63,13 @@
           "name": "recompile:e_scrap",
           "weight": 14,
           "functions": [
-            { "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 1,
+                "max": 3
+              }
+            }
           ]
         },
         {
@@ -61,6 +85,49 @@
         {
           "type": "minecraft:empty",
           "weight": 24
+        }
+      ]
+    },
+    {
+      "_comment": [
+        "THE INSCRIBER PRESSES, and only when AE2 is installed (#268).",
+        "",
+        "AE2 cannot be progressed at all in this world. Its tree hangs off Sky Stone, Sky Stone comes",
+        "from meteorites, and meteorites gate on #ae2:has_meteorites -> #minecraft:is_overworld, which",
+        "matches nothing here - this mod ships no is_overworld entry, by owner ruling. The four presses",
+        "have no other source: AE2's own recipes for them take the SAME press as the stamp, so they",
+        "duplicate a press rather than make one.",
+        "",
+        "A TAG ENTRY, NOT FOUR ITEM ENTRIES, and that is what makes the guard unnecessary. An item id in",
+        "a loot table resolves against the registry when the file is parsed, so naming ae2:silicon_press",
+        "without AE2 breaks the whole table. A TagKey does not resolve at parse time and an absent tag",
+        "rolls to nothing, so this pool is simply empty without AE2. That is asserted by",
+        "the_sump_is_unchanged_without_ae2, which runs in exactly that state.",
+        "",
+        "expand:false yields EVERY item in the tag at once rather than picking one. That is AE2's own",
+        "mechanism, copied from its mysterious_cube loot table, and it is what its guide describes: the",
+        "four presses come from ONE find. Using AE2's tag also means a fifth processor press would be",
+        "carried here the day AE2 adds it, and that name_press is excluded because AE2 excludes it.",
+        "",
+        "IN THE SUMP RATHER THAN THE BARRELS, which is a correction to #268. The barrels roll",
+        "chests/sewer twice per access chamber and a sewer has several, so 'one press set per sewer'",
+        "cannot be expressed there. The sump crate is one per sewer - it is already the echo shard's",
+        "home and the reason to go to the BOTTOM of one - so it is the only table that can say it.",
+        "",
+        "GUARANTEED, like the shard beside it. A gate that is random is a bad gate, and this is stricter",
+        "than AE2 intends already: it calls meteorites 'fairly common', while a sewer is one per ~250",
+        "chunks of demolition yard, behind a Prybar.",
+        "",
+        "TEMPORARY. This is pack content living in the engine because the pack cannot ship data on",
+        "26.1.2. When KubeJS is fixed it moves out - Flatts3000/trashlands#46. Deleting this pool is the",
+        "whole removal."
+      ],
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:tag",
+          "name": "ae2:inscriber_presses",
+          "expand": false
         }
       ]
     }

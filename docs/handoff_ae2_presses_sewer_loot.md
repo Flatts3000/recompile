@@ -59,8 +59,33 @@ So build it to be removable, which is not how engine content is built:
   change instead of a delete.
 - **Not in `pack_extension.md`.** That documents what a pack may rely on, and this is the opposite:
   something a pack should take back.
-- Every file already needs its `neoforge:mod_loaded` guard, which is what makes deletion safe rather
-  than merely tidy.
+
+### The AE2 half reversed the first bullet, on purpose (#268)
+
+**The presses ship as a POOL INSIDE `chests/sump.json`, which also carries the echo shard** - engine
+content, and the only source of that item in the game. That is the thing the first bullet forbids, so
+it is recorded here rather than decided in a PR body.
+
+The alternatives were worse. A global loot modifier is a separate file and takes conditions, but
+NeoForge ships no add-item modifier, so a stopgap would need a Java class - code is a heavier thing to
+remove than data. A separate table pulled in by a `minecraft:loot_table` entry still needs the
+reference line inside `sump.json`, so removal still edits that file, and it adds a way to fail: delete
+the target and the reference dangles.
+
+**So the removal is a POOL DELETION, not a file deletion, and the difference matters.** Deleting
+`sump.json` takes the echo shard with it, which is a silent break -
+`the_echo_shard_comes_from_the_sump_and_from_nowhere_else` catches it, but only if it is run. Delete
+the last pool, the one whose comment says so, and leave the other two alone.
+
+**There is no `neoforge:mod_loaded` guard, and there cannot be one.** *(An earlier version of this
+list said every file needs one. That was wrong, and it survived into the same commit that disproved
+it.)* `neoforge:conditions` gates a whole loot table file, not a pool or an entry inside one. The
+guard is unnecessary anyway: the entry is a TAG, a `TagKey` does not resolve at parse time, and an
+absent tag rolls to nothing. Naming the items directly instead is what would need a guard, and no
+guard would have saved it - an unresolvable item id fails the whole table at parse.
+
+Also remove the AE2 branch in `the_sump_is_unchanged_without_ae2` when the pool goes; it is a standing
+constraint that only makes sense while the pool is there.
 
 **The removal trigger is KubeJS working on 26.1.2, not a release number**, and nothing will announce
 it. Whoever next updates mods should check that issue and reopen this.
@@ -86,20 +111,35 @@ ae2:logic_processor_press
 
 They also carry the tag `ae2:inscriber_presses`, if a tag entry reads better than four item entries.
 
-Target table: **`data/recompile/loot_table/chests/sewer.json`** (type `minecraft:chest`, pools rolling
-3 to 6, weighted entries). `loot_table/archaeology/sewer_silt.json` is the other candidate if you
-would rather they were dug rather than opened.
+Target table: **`data/recompile/loot_table/chests/sump.json`**, not `sewer.json`. *(This section named
+`sewer.json` when written; corrected in #268 after measuring.)* `chests/sewer` is the BARREL table and
+a sewer rolls it twice per access chamber across several chambers, so the "one press set per sewer"
+note below cannot be expressed there. `chests/sump` is the single crate at the bottom of each sewer -
+already the echo shard's home, and described in `SewerPieces` as the reason to go to the bottom of one.
 
-Each entry needs the guard so the table is unchanged without AE2:
+**Use a tag entry, not four item entries, and this is not a style preference.** An item id in a loot
+table resolves against the registry when the file is parsed, so naming `ae2:silicon_press` without AE2
+**kills the entire sump table** - measured, not guessed: `Unknown registry key ... ae2:silicon_press`,
+and the crate at the bottom of every sewer comes up empty for every player not running AE2. A `TagKey`
+does not resolve at parse time and an absent tag rolls to nothing.
 
 ```json
-"neoforge:conditions": [
-  { "type": "neoforge:mod_loaded", "modid": "ae2" }
-]
+{ "type": "minecraft:tag", "name": "ae2:inscriber_presses", "expand": false }
 ```
 
-No load-order problem here, unlike the Simple Magnets handoff: this is Recompile's own loot table, so
-there is no override race and no `ordering = "AFTER"` needed.
+`expand: false` yields EVERY item in the tag per roll rather than picking one - measured at 16 of 16
+against a stand-in tag. That is AE2's own mechanism, lifted from its `mysterious_cube` loot table, and
+it matches what AE2's guide tells players: the four presses come from ONE find. It also means a fifth
+processor press would be carried the day AE2 adds it, and that `name_press` stays out because AE2's
+tag leaves it out.
+
+**No `neoforge:conditions` guard, because there is nowhere to put one and nothing to guard.**
+`neoforge:conditions` gates a whole loot table file, not a pool or an entry inside one - so a
+mod-gated entry is not available here. The tag entry needs no guard: it is inert without AE2 by
+construction, which `the_sump_is_unchanged_without_ae2` asserts in exactly that state.
+
+No load-order problem here either, unlike the Simple Magnets handoff: this is Recompile's own loot
+table, so there is no override race and no `ordering = "AFTER"` needed.
 
 ### Design notes, not requirements
 
