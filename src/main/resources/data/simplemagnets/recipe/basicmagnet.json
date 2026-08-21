@@ -1,0 +1,50 @@
+{
+  "_comment": [
+    "A SALVAGED PERMANENT MAGNET in a scrap housing. Horseshoe on purpose.",
+    "",
+    "Stock recipe was 5 iron, lapis, an ENDER PEARL and redstone. The pearl is a placeholder rather",
+    "than a recipe - nothing about a magnet is made of one. Magnet Scrap is: neodymium is recovered",
+    "from hard drive actuators and speaker voice coils, which is exactly what the item is.",
+    "",
+    "Four scrap is deliberately steep. Magnet Scrap is weight 15 of 227 in mechanical_pulls and it",
+    "is ALSO the world's only redstone, so this competes with the one thing it already does. That",
+    "tension is the point rather than a cost to tune away, but the number is a first pass (#36).",
+    "",
+    "TEMPORARY, and it is another mod's resource location (#269).",
+    "",
+    "This file sits at simplemagnets' OWN recipe id, which is how an override works and also how it",
+    "fails: load order decides who wins, and the loser is silent. Hence ordering = \"AFTER\" on the",
+    "optional simplemagnets dependency in neoforge.mods.toml. This mod has the scar already - with",
+    "ordering = \"NONE\" on the neoforge dependency, seventeen found-only overrides were ignored with",
+    "no error anywhere, and it was only caught because corrupting one produced no parse error at all.",
+    "",
+    "Land this at the wrong id and it is not an override at all: it is a SECOND recipe, and if the",
+    "grid matches theirs only one of the two can ever be crafted. That is what",
+    "every_crafting_recipe_is_reachable_at_a_bench guards for our own recipes, and it CANNOT see this",
+    "one - simplemagnets is not loaded at test time. Verify in game, not in CI.",
+    "",
+    "The pack should be shipping this, not the engine. It is here only because the pack cannot ship",
+    "data on 26.1.2; it leaves when KubeJS is fixed - Flatts3000/trashlands#47."
+  ],
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "simplemagnets"
+    }
+  ],
+  "category": "misc",
+  "pattern": [
+    "M M",
+    "M M",
+    "SCS"
+  ],
+  "key": {
+    "M": "recompile:magnet_scrap",
+    "S": "recompile:scrap_metal",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "simplemagnets:basicmagnet"
+  }
+}
