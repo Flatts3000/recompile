@@ -169,6 +169,13 @@ lang resource for a namespace in ascending priority, so ours only has to be late
 is the opposite of a recipe, where only the top file at a path is read - which is why the Simple
 Magnets handoff needs whole-file replacements and this needs one line.
 
+**AE2's own in-game guide is deliberately left wrong** (owner, 2026-08-20, #273 closed not-planned).
+Its Getting Started and presses pages still tell players to find a meteorite and craft a Meteorite
+Compass. Correcting them means overriding markdown RESOURCES, which do not merge the way lang keys do -
+so it would mean owning AE2's prose and re-checking it on every update, for a surface the owner does not
+read. The JEI tab carries the correction instead, and nobody can get stuck: the presses are guaranteed
+in the sump. Do not re-file this.
+
 Verified with AE2 actually loaded (its jar plus guideme dropped into `run/mods`): the sump yields all
 four presses in 20 of 20 rolls, and the key resolves to our text rather than AE2's.
 
