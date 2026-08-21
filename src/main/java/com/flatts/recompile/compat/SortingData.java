@@ -282,7 +282,7 @@ public final class SortingData {
                     // Count EVERY entry's weight, including minecraft:empty. A rare-bonus pool (a big
                     // empty weight + one rare item) has to divide by the full weight, or the item reads
                     // as 100% of its pool instead of its true 1-in-N odds.
-                    total += weight(e.getAsJsonObject());
+                    total += effectiveWeight(e.getAsJsonObject());
                 }
                 if (total == 0) {
                     continue;
@@ -308,7 +308,8 @@ public final class SortingData {
                             collect(nested, entryShare, registries, out, visited);
                         }
                     } else if (isType(o, "minecraft:tag") && o.has("name")) {
-                        expandTag(o.get("name").getAsString(), entryShare, out);
+                        expandTag(o.get("name").getAsString(), entryShare, out,
+                            o.has("expand") && o.get("expand").getAsBoolean());
                     } else if (isType(o, "minecraft:alternatives") && o.has("children")) {
                         alternatives(o.getAsJsonArray("children"), entryShare, registries, out);
                     }
@@ -335,7 +336,7 @@ public final class SortingData {
      * colour by sixteen times, and reporting nothing at all is what happens if this method does not
      * exist.
      */
-    private static void expandTag(String id, float share, List<Weighted> out) {
+    private static void expandTag(String id, float share, List<Weighted> out, boolean expand) {
         Identifier parsed = Identifier.tryParse(id.startsWith("#") ? id.substring(1) : id);
         if (parsed == null) {
             return;
@@ -349,10 +350,46 @@ public final class SortingData {
         if (members.isEmpty()) {
             return;
         }
-        float each = share / members.size();
+        // expand:false rolls ONCE and then picks a member, so the share splits. expand:true creates
+        // one entry PER MEMBER, each at the entry's full weight, so every member gets the whole share
+        // and the pool total grew to match (see effectiveWeight).
+        float each = expand ? share : share / members.size();
         for (var holder : members) {
             out.add(new Weighted(new ItemStack(holder.value()), each));
         }
+    }
+
+    /**
+     * What an entry contributes to its pool's total weight, which is not always its {@code weight}.
+     *
+     * <p><b>A {@code minecraft:tag} entry with {@code expand: true} contributes one entry PER MEMBER</b>,
+     * so its real contribution is weight times member count - and <b>nothing at all when the tag is
+     * empty</b>, which is what makes an absent mod's tag cost the pool nothing. Modelling it as a flat
+     * {@code weight} inflates the denominator and quietly understates every other entry in the pool:
+     * caught by {@code pull_rates_match_what_the_mod_claims} when the Ender IO grains entry landed,
+     * which put all seven of Mechanical Waste's real drops out by 1.1x (247 against the game's 227).
+     *
+     * <p>{@code expand: false} always contributes exactly one entry whether the tag has members or not,
+     * so its weight counts in full - and an empty tag then wins rolls and yields nothing, which is why
+     * the grains entry uses {@code expand: true}.
+     */
+    private static int effectiveWeight(JsonObject entry) {
+        if (!isType(entry, "minecraft:tag") || !entry.has("name")
+            || !entry.has("expand") || !entry.get("expand").getAsBoolean()) {
+            return weight(entry);
+        }
+        return weight(entry) * tagSize(entry.get("name").getAsString());
+    }
+
+    /** How many items a tag holds right now; 0 if it does not exist in this install. */
+    private static int tagSize(String id) {
+        Identifier parsed = Identifier.tryParse(id.startsWith("#") ? id.substring(1) : id);
+        if (parsed == null) {
+            return 0;
+        }
+        var tag = BuiltInRegistries.ITEM.get(net.minecraft.tags.TagKey.create(
+            net.minecraft.core.registries.Registries.ITEM, parsed));
+        return tag.map(named -> named.size()).orElse(0);
     }
 
     /**

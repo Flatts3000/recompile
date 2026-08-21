@@ -38,6 +38,48 @@
           "type": "minecraft:item",
           "name": "recompile:motor",
           "weight": 5
+        },
+        {
+          "_comment": [
+            "GRAINS OF INFINITY, if Ender IO is installed (owner, 2026-08-21). TEMPORARY - this entry",
+            "is the whole of it and it leaves with the other cross-mod stopgaps.",
+            "",
+            "IT IS NOT A GAP BEING CLOSED. Ender IO already makes these here: its own fire_crafting",
+            "recipes burn a fire on deepslate (40%) or bedrock (80%, one to three), both restricted to",
+            "minecraft:overworld, and this world has sixty blocks of deepslate under the dirt slab with",
+            "bedrock beneath it. That route STAYS and remains the bulk supply. This one exists so the",
+            "material also arrives the way everything else in this world does - out of the waste.",
+            "",
+            "IN THE YARD RATHER THAN THE DEPTHS, which is the decision worth recording. Grains are",
+            "consumed in bulk - two per basic capacitor and one per iron gear, and both go into nearly",
+            "every Ender IO machine - so wherever they come from sets the pace of that whole mod. The",
+            "yard is reachable long before the Nether, so Ender IO's alloy spine starts here instead of",
+            "behind a dimension. They sit beside Quartz Grit and Spent Abrasive because a hard abrasive",
+            "dust is what they read as in an industrial pile.",
+            "",
+            "WEIGHT 20 OF 247 is about one pull in twelve: enough to bootstrap a first Alloy Smelter and",
+            "a few capacitors in a few hundred pulls, not enough to make burning deepslate pointless.",
+            "Final number belongs to the balance pass (#36).",
+            "",
+            "A TAG ENTRY, AND expand:true IS LOAD-BEARING - both halves were measured, and getting",
+            "either wrong fails silently.",
+            "",
+            "Naming enderio:grains_of_infinity directly would kill THIS ENTIRE TABLE at parse when Ender",
+            "IO is absent (an item id resolves against the registry at parse time; measured in #270 as",
+            "'Unknown registry key'), which would take the Motor and Magnet Scrap with it. A TagKey does",
+            "not resolve at parse time, so an absent tag is simply inert - and unlike a nested",
+            "conditional table it leaves no dangling reference and no loot-validation warning (#277).",
+            "",
+            "expand:true makes the tag contribute ONE ENTRY PER MEMBER, so with Ender IO absent it",
+            "contributes NONE and the pool total falls back to 227. expand:false would instead leave a",
+            "single entry holding weight 20 that wins one roll in twelve and hands back NOTHING - the",
+            "exact silent dud pull that shipped in #276 and was caught in review of #277.",
+            "grains_of_infinity_is_inert_without_enderio pins it."
+          ],
+          "type": "minecraft:tag",
+          "name": "c:dusts/grains_of_infinity",
+          "expand": true,
+          "weight": 20
         }
       ]
     }
