@@ -1,5 +1,74 @@
 # Changelog
 
+## v0.14.0
+
+**The deep dark comes to the Nether, and two mods that could not be played here now can.** v0.13.0
+closed the last of the resource gaps in this mod's own tree. This one goes after the things that were
+missing *around* it: the nine vanilla items no ancient city could ever hand you, and the two mods in the
+pack that were either unplayable or built on materials this world has never heard of.
+
+It also fixes a machine that has been uncraftable for four releases without anybody noticing.
+
+### Ancient Sculk
+
+- **There is no deep dark here, and there is no city under one.** Nine vanilla items had no source at
+  all because of it.
+- **Rare seams of Ancient Sculk now run through the compacted depths**, lit from inside by a blue-green
+  glow, roughly one block in seven hundred. Sculk takes hold on dead organic matter, and techno-organic
+  waste is exactly that: a city's flesh and machinery fused and buried.
+- **A diamond sledgehammer or better**, and nothing else. Not a hand, not a pick, not a copper or iron
+  hammer however long you swing. It is the first block in this mod that cares how good your tool is
+  rather than just which tool it is, and the netherite sledgehammer finally has something to be better
+  at.
+- **It breaks into Sculk Powder, three to five a block**, and never into itself. The powder is the whole
+  family: it packs back into sculk, spreads into veins, and builds a sensor around redstone or a
+  shrieker around soul sand.
+- **A catalyst costs an echo shard**, and there is one of those at the bottom of every sewer. That is a
+  hard price and it is the right one - a catalyst grows sculk wherever something dies near it, so you
+  only ever need the one, and the only other thing in this world that came out of the deep dark is the
+  shard in a sump.
+
+### The Trommel or the Pulverizer was uncraftable, and had been since v0.10.0
+
+- **Their recipes were byte-identical.** Same shape, same five steel offcuts, one motor, three plating.
+- **A crafting grid gives one result, so two recipes that accept the same grid are one recipe.** One of
+  those two machines simply could not be made, and it failed in the quietest way this mod has: no
+  error, no log line, a JEI page saying it works, and the other machine coming out instead.
+- **The Trommel's motor now sits at the end of the drum** rather than the middle. Same items, same
+  counts, only the arrangement - a trommel is a drum driven from one end and a pulverizer's rotor is
+  central, so each is now built the way it actually works.
+- Every crafting recipe this mod ships is checked against every other one from now on.
+
+### Applied Energistics 2, which could not be started at all
+
+- **AE2's whole tree hangs off Sky Stone, Sky Stone comes from meteorites, and no meteorite can fall in
+  this world.** Its own recipes for the Inscriber presses take the same press as the stamp, so they
+  copy a press rather than make one. There was no way in.
+- **All four presses are now in the crate at the bottom of a sewer**, together, guaranteed. That is how
+  AE2 hands them over anyway - one Mysterious Cube gives the set - and a sewer is a good deal rarer
+  than a meteorite.
+- **Its own tooltip used to send you after meteorites.** It now tells you where they really are.
+- Only when AE2 is installed. Nothing about the crate changes without it.
+
+### Simple Magnets, re-themed onto Magnet Scrap
+
+- **A basic magnet wanted an ender pearl.** An ender pearl in a magnet is a placeholder, not a recipe.
+- **Magnet Scrap is the honest material** - neodymium is recovered from hard drive actuators and speaker
+  voice coils, which is exactly what that item is. All four recipes are rebuilt on it, on scrap metal
+  and on copper, with Fused Circuitry standing in for the diamond so the advanced magnet costs a trip
+  to the Nether.
+- **Spending Magnet Scrap on magnets means not spending it on redstone**, since it is the only source of
+  either. That tension is the point.
+- **The Demagnetization Coil is wound on a magnet scrap core.** Real e-waste plants degauss drives
+  before shredding them, so a coil of copper around a recovered magnet is what the machine is.
+- Only when Simple Magnets is installed.
+
+### Fixes
+
+- **The guidebook's account of curing a villager was wrong** about what you need and where to get it.
+- **The sapling lockout said "never"** where the truth is narrower: one cannot be found, but a wandering
+  trader will sell you one now that emeralds exist.
+
 ## v0.13.0
 
 **Three things that could not be reached now can be: brewing, netherite, and emeralds.** v0.12.0 gave
