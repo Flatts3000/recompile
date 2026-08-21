@@ -370,35 +370,15 @@ final class SortingDataTests {
             helper.succeed();
         });
 
-        // EVERY LOADED TEARDOWN FILE MUST PRODUCE AT LEAST ONE VIEWER ROW.
-        //
-        // <p>This used to assert that the row count EQUALS the file count, which quietly assumed one
-        // row per file. That stopped being true in #275: a teardown may take a TAG, and AE2's cable
-        // tags hold seventeen colours each, so five files legitimately surface eighty-five rows. The
-        // equality would have failed on correct data while still not saying WHICH file was invisible.
-        //
-        // <p>Asked per file instead, which is both stronger and more useful - it names the offender.
-        // A file that loads and surfaces nothing is the Broken Hydroponics Bay failure: the teardown
-        // works in-world and every viewer denies it exists.
         RCGameTests.test("every_bundled_teardown_reaches_the_viewers", 20, helper -> {
-            var loaded = com.flatts.recompile.compat.RecipeFiles.ofType("recompile:teardown");
-            var invisible = new java.util.ArrayList<String>();
-            int rows = 0;
-            for (var recipe : loaded) {
-                int made = com.flatts.recompile.compat.TeardownData.parseAll(recipe).size();
-                rows += made;
-                if (made == 0) {
-                    invisible.add(recipe.has("input") ? recipe.get("input").getAsString() : "?");
-                }
-            }
-            helper.assertTrue(loaded.size() > 2,
-                "only " + loaded.size() + " teardown files were discovered - the walk is broken, so "
-                    + "this would pass against any recipe the viewers cannot see");
-            helper.assertTrue(invisible.isEmpty(),
-                "these teardown recipes load but reach no viewer, so they work in-world while JEI "
-                    + "denies they exist: " + invisible);
-            helper.assertTrue(rows >= loaded.size(),
-                "fewer viewer rows (" + rows + ") than loaded files (" + loaded.size() + ")");
+            int onDisk = com.flatts.recompile.compat.RecipeFiles.ofType("recompile:teardown").size();
+            int surfaced = com.flatts.recompile.compat.TeardownData.all().size();
+            helper.assertTrue(onDisk > 2,
+                "only " + onDisk + " teardown files were discovered - the walk is broken, so this "
+                    + "would pass against any recipe the viewers cannot see");
+            helper.assertTrue(surfaced == onDisk,
+                "every teardown recipe on disk must reach JEI; " + onDisk + " files, "
+                    + surfaced + " surfaced");
             helper.succeed();
         });
 
