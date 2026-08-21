@@ -57,39 +57,73 @@ public final class SortingData {
     /**
      * Whether a nested loot table's own {@code neoforge:conditions} are satisfied here.
      *
-     * <p>Mirrors {@code RecipeFiles.conditionsHold} and for the same reason: this class reads bundled
-     * FILES, so it sees tables the game did not load. Only {@code neoforge:mod_loaded} is evaluated
-     * and anything else counts as satisfied - the honest bias for a model the player reads, since
-     * over-reporting a drop is a worse afternoon than under-reporting one.
+     * <p>This class reads bundled FILES, so it sees tables the game did not load. The evaluation
+     * itself is {@code RecipeFiles.conditionsHold} rather than a copy of it: review of #277 found
+     * this method duplicated there byte for byte, and two evaluators of a condition that fails
+     * silently drift apart without either one saying so.
      */
     private static boolean conditionsHold(String path) {
-        JsonObject obj;
+        JsonObject obj = json(path);
+        return obj == null || RecipeFiles.conditionsHold(obj);
+    }
+
+    /** One bundled JSON off the classpath, or null if it cannot be read or parsed. */
+    private static @Nullable JsonObject json(String path) {
         try (InputStream in = SortingData.class.getResourceAsStream(path)) {
             if (in == null) {
-                return true;
+                return null;
             }
-            obj = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+            return JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8))
                 .getAsJsonObject();
         } catch (Exception unreadable) {
-            return true;
+            return null;
         }
-        if (!obj.has("neoforge:conditions")) {
-            return true;
-        }
-        for (JsonElement raw : obj.getAsJsonArray("neoforge:conditions")) {
-            if (!raw.isJsonObject()) {
+    }
+
+    /**
+     * Items that an ACTIVE global loot modifier removes from every roll, so no viewer offers them.
+     *
+     * <p><b>Why a viewer has to know about loot modifiers at all.</b> This class models the drops a
+     * player will actually see, and a {@code recompile:strip_item} modifier deletes an item from every
+     * loot roll in the game after the table has produced it. A table that lists the item is telling
+     * the truth about itself and a lie about the world.
+     *
+     * <p>That is not hypothetical: the Sky Stone Shard is named unconditionally in
+     * {@code slag_rubble_pulls} and stripped again when AE2 is absent, so without this the census
+     * predicted it at 1 in 27 while the game gave 0 - caught by
+     * {@code pull_rates_match_what_the_mod_claims}, which exists for exactly this disagreement.
+     *
+     * <p>Read from the folder rather than a list of known modifiers, on the {@code TeardownData}
+     * precedent: a hardcoded inventory of the same facts is a second copy, and the copy nobody
+     * remembers to update is always the one that gets read.
+     */
+    private static java.util.Set<Item> strippedItems() {
+        java.util.Set<Item> stripped = new java.util.HashSet<>();
+        for (JsonObject modifier : RecipeFiles.folder(MODIFIER_ANCHOR)) {
+            if (!isType(modifier, "recompile:strip_item") || !modifier.has("item")) {
                 continue;
             }
-            JsonObject condition = raw.getAsJsonObject();
-            if (condition.has("type") && condition.has("modid")
-                && "neoforge:mod_loaded".equals(condition.get("type").getAsString())
-                && !net.neoforged.fml.ModList.get()
-                    .isLoaded(condition.get("modid").getAsString())) {
-                return false;
+            if (!RecipeFiles.conditionsHold(modifier)) {
+                continue;
+            }
+            Item item = BuiltInRegistries.ITEM.getValue(
+                Identifier.parse(modifier.get("item").getAsString()));
+            if (item != Items.AIR) {
+                stripped.add(item);
             }
         }
-        return true;
+        return stripped;
     }
+
+    /**
+     * Any modifier file, used to find the folder the rest live in.
+     *
+     * <p>{@code loot_modifiers} is NeoForge's directory and is PLURAL - not one of the vanilla data
+     * directories 26.1 singularised. Correcting it to match {@code loot_table/} would silently read
+     * nothing here and silently stop the modifiers loading in the game.
+     */
+    private static final String MODIFIER_ANCHOR =
+        "/data/" + Recompile.MOD_ID + "/loot_modifiers/no_saplings.json";
 
 
     /** The household pull stream: garbage blocks and compacted bales draw from it. */
@@ -204,6 +238,15 @@ public final class SortingData {
             HolderLookup.@Nullable Provider registries) {
         List<Weighted> out = new ArrayList<>();
         collect(resourcePath, 1.0F, registries, out, new java.util.HashSet<>());
+
+        // A table lists what it can produce; a global loot modifier decides what survives the roll.
+        // Applied here rather than inside collect so it covers nested tables and tag expansions too -
+        // stripping is global, and a viewer that honoured it at only one depth would be a subtler
+        // version of not honouring it at all.
+        java.util.Set<Item> stripped = strippedItems();
+        if (!stripped.isEmpty()) {
+            out.removeIf(weighted -> stripped.contains(weighted.stack().getItem()));
+        }
         return out;
     }
 
@@ -260,9 +303,9 @@ public final class SortingData {
                         // Following one whose condition fails models drops that cannot happen:
                         // pull_rates_match_what_the_mod_claims caught exactly that when the AE2 sky
                         // stone drop landed (#276) - predicted 1 in 27, the game gave 0.
-                        if (conditionsHold(pathOf(o.get("value").getAsString()))) {
-                            collect(pathOf(o.get("value").getAsString()), entryShare, registries, out,
-                                visited);
+                        String nested = pathOf(o.get("value").getAsString());
+                        if (conditionsHold(nested)) {
+                            collect(nested, entryShare, registries, out, visited);
                         }
                     } else if (isType(o, "minecraft:tag") && o.has("name")) {
                         expandTag(o.get("name").getAsString(), entryShare, out);

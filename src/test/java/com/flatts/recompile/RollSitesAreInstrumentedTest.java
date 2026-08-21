@@ -46,7 +46,14 @@ class RollSitesAreInstrumentedTest {
         "PigeonForageGoal.java", "pigeons pecking a pile - records FORAGE",
         // Not sorting and not a pull stream: the bay rolls its own seedling table, which is a
         // machine output rather than something a player's time converts into materials.
-        "HydroponicsBayBlockEntity.java", "the seedling table - deliberately not a pull stream");
+        "HydroponicsBayBlockEntity.java", "the seedling table - deliberately not a pull stream",
+        // Does NOT roll anything. It is a global loot modifier: it filters what a roll already
+        // produced, so there is no player action behind it to record. It matches only because the
+        // scan reads raw text and its javadoc CITES getRandomItems - explaining that the queried
+        // loot table id is never set on that call, which is why a modifier cannot be aimed at one
+        // table (#277). Kept blunt on purpose: a tripwire that skipped comments could be talked out
+        // of firing by a real roll site that happened to look like prose.
+        "StripItemModifier.java", "a loot modifier - filters a roll, never makes one");
 
     private static Path mainSources() {
         for (Path dir = Path.of("").toAbsolutePath(); dir != null; dir = dir.getParent()) {

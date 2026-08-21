@@ -72,26 +72,55 @@ public final class RecipeFiles {
      * {@code jei_sees_every_separating_recipe_with_its_real_count} when the AE2 sourcing recipes
      * landed (#276): the game ran 7 separating recipes and JEI read 10.
      *
-     * <p><b>Only {@code neoforge:mod_loaded} is evaluated, and anything else is treated as SATISFIED.</b>
-     * That is the honest bias for a viewer: showing one recipe too many is a worse afternoon than
-     * hiding a real one, and mod_loaded is the only condition this mod ships. If a condition type ever
-     * appears here that can be false at runtime, this needs to grow rather than be trusted.
+     * <p><b>{@code neoforge:mod_loaded} and {@code neoforge:not} are evaluated; anything else is
+     * treated as SATISFIED.</b> That is the honest bias for a viewer: showing one recipe too many is a
+     * worse afternoon than hiding a real one. The previous version of this handled only
+     * {@code mod_loaded} and said that it "needs to grow rather than be trusted" if a type that can be
+     * false at runtime ever appeared - and then #277 shipped one, {@code neoforge:not}, wrapping the
+     * guard on the sky stone strip modifier. Unrecognised, it read as satisfied, so the viewer thought
+     * the strip was active even with AE2 installed and hid a drop the game was really producing.
+     * Caught by {@code pull_rates_match_what_the_mod_claims} on the with-AE2 run.
+     *
+     * <p>{@code neoforge:and} and {@code neoforge:or} are deliberately NOT handled, because this mod
+     * ships neither and an untested branch is worse than an absent one. Adding one means adding it
+     * here too; the default is silent, which is exactly why it is called out.
+     *
+     * <p><b>Public because {@code SortingData} needs the same answer about loot tables and loot
+     * modifiers.</b> It had a byte-for-byte copy of this method, which review of #277 called out: two
+     * evaluators of a silently-failing condition drift in both directions at once, and neither
+     * direction announces itself - one viewer over-reports drops that cannot happen while the other
+     * hides real ones.
      */
-    private static boolean conditionsHold(JsonObject recipe) {
-        if (!recipe.has("neoforge:conditions")) {
+    public static boolean conditionsHold(JsonObject recipe) {
+        if (!recipe.has("neoforge:conditions") || !recipe.get("neoforge:conditions").isJsonArray()) {
+            // Not an array is malformed rather than false. Reading it as one threw ClassCastException
+            // straight out of ofType and into JEI category construction, undoing this class's own
+            // rule that a viewer failure must never become a crash on world join (#277).
             return true;
         }
         for (var raw : recipe.getAsJsonArray("neoforge:conditions")) {
-            if (!raw.isJsonObject()) {
-                continue;
-            }
-            JsonObject condition = raw.getAsJsonObject();
-            if (condition.has("type") && condition.has("modid")
-                && "neoforge:mod_loaded".equals(condition.get("type").getAsString())
-                && !net.neoforged.fml.ModList.get()
-                    .isLoaded(condition.get("modid").getAsString())) {
+            if (raw.isJsonObject() && !holds(raw.getAsJsonObject())) {
                 return false;
             }
+        }
+        return true;
+    }
+
+    /** One condition. Recursive, so {@code neoforge:not} can wrap another. */
+    private static boolean holds(JsonObject condition) {
+        if (!condition.has("type")) {
+            return true;
+        }
+        String type = condition.get("type").getAsString();
+        if ("neoforge:mod_loaded".equals(type)) {
+            return !condition.has("modid")
+                || net.neoforged.fml.ModList.get().isLoaded(condition.get("modid").getAsString());
+        }
+        if ("neoforge:not".equals(type)) {
+            // A malformed not() is satisfied rather than inverted: guessing at what it meant to negate
+            // is how a viewer ends up confidently wrong in the one direction it is meant to avoid.
+            return !condition.has("value") || !condition.get("value").isJsonObject()
+                || !holds(condition.getAsJsonObject("value"));
         }
         return true;
     }
@@ -108,9 +137,23 @@ public final class RecipeFiles {
         if (cached != null) {
             return cached;
         }
-        URL anchor = RecipeFiles.class.getResource(ANCHOR);
-        cached = anchor == null ? List.of() : List.copyOf(scan(anchor));
+        cached = folder(ANCHOR);
         return cached;
+    }
+
+    /**
+     * Every bundled JSON file sitting beside {@code anchorResource}, parsed.
+     *
+     * <p>The generic half of {@link #all()}, exposed because {@code loot_modifiers/} needs reading the
+     * same way and for the same reason: a viewer that models what the player will see has to know
+     * which modifiers are active. Same anchoring trick, and more importantly the same jar-safe
+     * {@link #scan} - a second folder reader would be a second chance to reintroduce the
+     * {@code FileSystemNotFoundException} bug that made every viewer deny the teardown system in
+     * packaged installs.
+     */
+    public static List<JsonObject> folder(String anchorResource) {
+        URL anchor = RecipeFiles.class.getResource(anchorResource);
+        return anchor == null ? List.of() : List.copyOf(scan(anchor));
     }
 
     /**

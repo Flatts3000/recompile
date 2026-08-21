@@ -67,10 +67,16 @@ content, and the only source of that item in the game. That is the thing the fir
 it is recorded here rather than decided in a PR body.
 
 The alternatives were worse. A global loot modifier is a separate file and takes conditions, but
-NeoForge ships no add-item modifier, so a stopgap would need a Java class - code is a heavier thing to
-remove than data. A separate table pulled in by a `minecraft:loot_table` entry still needs the
-reference line inside `sump.json`, so removal still edits that file, and it adds a way to fail: delete
-the target and the reference dangles.
+adding the presses through one would need a Java class - code is a heavier thing to remove than data.
+*(This said "NeoForge ships no add-item modifier". That is wrong: `neoforge:add_table` is a built-in
+and it does fire on this mod's tables. What it cannot do is AIM - see the sourcing section below.)* A
+separate table pulled in by a `minecraft:loot_table` entry still needs the reference line inside
+`sump.json`, so removal still edits that file, and it adds a way to fail: delete the target and the
+reference dangles.
+
+**That last sentence was written before #276 and #276 did it anyway**, in `slag_rubble_pulls.json`
+rather than in `sump.json`. It failed exactly as predicted and then some: see the sourcing section
+below.
 
 **So the removal is a POOL DELETION, not a file deletion, and the difference matters.** Deleting
 `sump.json` takes the echo shard with it, which is a silent break -
@@ -210,3 +216,102 @@ the pattern the problem, and note that nothing reports the gap, so the count has
 
 Nothing until this ships. AE2 stays pinned and non-functional, documented as such in
 `docs/pack_setup.md`, and the pack issue stays open pointing here.
+
+## The third half: sourcing, because the presses cleared only one of two gates (#276, #277)
+
+**Shipped 2026-08-21.** The design notes above ask whether "the rest of AE2 opens up on its own once
+presses exist" and answer no. This is what closing the rest took, and it is by far the largest part of
+the stopgap - four routes, one new item, and a Java class. **All of it moves to the pack with
+everything else.**
+
+330 of AE2's 364 items have a recipe and every one traces back to `certus_quartz_crystal`, whose only
+non-circular source is a `quartz_cluster` off a budding block, which generates only inside a meteorite.
+So the presses give a player an Inscriber and nothing to put in it.
+
+### The four routes
+
+| Route | Where | File |
+|---|---|---|
+| `ae2:silicon` from E-Scrap | Separator, anywhere | `recipe/separating_silicon.json` |
+| 2x `ae2:certus_quartz_crystal` from a Granite Shard | Separator, demolition yard feed | `recipe/separating_certus_quartz.json` |
+| 2x `ae2:fluix_crystal` from Phosphor Scrap | Separator, compacted depths feed | `recipe/separating_fluix.json` |
+| `ae2:sky_stone_block` from 4 Sky Stone Shards | crafting grid | `recipe/sky_stone_block_from_shards.json` |
+
+Each recipe carries a `neoforge:mod_loaded` guard, and the guard is **load-bearing rather than tidy**:
+strip it and the file does not merely fail to apply, it fails to PARSE on its own result id, leaving a
+single ERROR line in an otherwise green run.
+
+### The removal list, in full
+
+Deleting this is more than deleting files, which is the second reversal of the "one file per thing"
+rule above and is recorded here rather than in a PR body:
+
+- the four recipes in the table above
+- `RCItems.SKY_STONE_SHARD`, its lang key, `models/item/`, `items/` client definition, its texture,
+  its `texgen.toml` surface, and its entry in the creative tab
+- its membership in `RCTags.NETHER_SHARDS` and in `tags/item/nether_shards.json`
+- **the second pool in `loot_table/gameplay/slag_rubble_pulls.json`** - engine content, and the only
+  source of Nether terrain in the game. Delete the pool whose comment says so; leave pool 0 alone.
+- `loot_modifiers/no_sky_stone.json` and `content/loot/StripItemModifier.java`, plus its line in
+  `RCLootModifiers`
+- `gametest/Ae2SourcingTests.java`, and the `ae2` branch of `MODIFIER_ANCHOR`'s consumers is generic
+  and stays
+
+`StripItemModifier` is deliberately generic - it strips one named item, and the file's condition
+decides when - so if a later stopgap needs the same trick, only the JSON is new.
+
+### Why the drop is gated by a STRIP rather than by a condition, which took four measurements
+
+This is the part worth reading before touching it, because three of the obvious mechanisms fail
+silently and one of them shipped.
+
+`neoforge:conditions` is honoured on a whole loot table file, a recipe file, an advancement, and - new
+in #277 - a **`loot_modifiers` file**. It is NOT honoured on a loot pool, a loot entry, or a **tag
+file**; that last one is silently ignored in 26.1, measured by watching a guarded tag keep its member
+with AE2 absent.
+
+**#276 shipped the drop as a `minecraft:loot_table` entry pointing at a guarded table, and gating the
+target of a reference is not the same as gating the reference.** Without AE2 the table did not load
+but the entry still did: it kept its weight, kept winning 15 rolls in 405, and handed back nothing.
+That is a silent **one-in-27 empty pull in the default install** - the player spends the pull, may
+crumble the block, and gets no item, with no log line and no message. Measured at 291 items from 300
+rolls. It also left a permanent `Missing element recompile:gameplay/sky_stone_finds` loot-validation
+WARN on every world load, pointing at an engine file.
+
+**The obvious inverse was built next and cannot aim.** `neoforge:add_table` does fire on this mod's
+pull streams - measured at 3.6% against an intended 3.7%. But restricting a modifier to one table
+needs `neoforge:loot_table_id`, which compares `LootContext.getQueriedLootTableId()`, and **that is
+never set on a table rolled programmatically**. All five of this mod's roll sites call
+`LootTable.getRandomItems(LootParams)` directly, so with the condition the drop rate was zero and
+without it the modifier fired on every table in the game.
+
+**So the drop is unconditional and the STRIP is conditional.** The shard is named directly in
+`slag_rubble_pulls` - it is our own item, so the id always resolves and cannot take the table down at
+parse - in a **pool of its own**, and `no_sky_stone.json` (guarded by `neoforge:not(mod_loaded ae2)`)
+removes it again when AE2 is absent. Stripping needs no aim, because the invariant really is global:
+without AE2 that item is not loot anywhere.
+
+A separate pool rather than an eighth entry, because an entry **displaces** a terrain shard and a pool
+**rides along**. The seven terrain weights are back to exactly what they were before #276 touched them.
+
+### Two viewers had to learn about it, and both were caught by existing tests
+
+Neither is AE2-specific and both stay after removal:
+
+- `RecipeFiles` reads bundled recipe JSON, so it saw three AE2 recipes the game had not loaded and JEI
+  advertised recipes no player could make. It now evaluates `neoforge:mod_loaded` itself.
+- `SortingData` is the model behind JEI's odds and the guidebook's, and it now honours
+  `recompile:strip_item` modifiers. Without that it predicted sky stone at 1 in 27 while the game gave
+  0 - caught by `pull_rates_match_what_the_mod_claims`, which exists for precisely that disagreement.
+
+### GameTests pin this, which reverses the third bullet above a second time
+
+`Ae2SourcingTests` asserts the without-AE2 state: nothing drops, no recipe loads, and - the half that
+matters - **the guards are present rather than merely inferred from the silence**. Absence alone
+passes in both the good state and the bad one, because an unguarded recipe fails to parse and is
+equally absent.
+
+Its with-AE2 branch runs only by hand, by dropping the AE2 and `guideme` jars into `run/mods` and
+re-running the suite. That is deliberate: it makes the with-mod verification repeatable instead of
+something someone once eyeballed. **Verified that way on 2026-08-21** - the shard drops in band, the
+terrain pool still yields exactly one shard per roll, and all four recipes load.

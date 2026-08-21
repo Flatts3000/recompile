@@ -111,12 +111,23 @@ public final class RCItems {
      *
      * <p><b>It is only worth anything with AE2 installed</b>, which is the one uncomfortable thing
      * about it. Four craft an {@code ae2:sky_stone_block}, and that recipe is guarded, so without AE2
-     * the shard has no use at all. The drop is therefore routed through a CONDITIONAL TAG rather than
-     * named in the pull stream directly - see {@code tags/item/sky_stone_finds.json} - so it never
-     * enters a world that cannot use it. CLAUDE.md: a find that is neither useful nor wanted is
-     * clutter.
+     * the shard has no use at all. CLAUDE.md: a find that is neither useful nor wanted is clutter.
      *
-     * <p>It is a shard rather than the block dropping whole because every one of the seven entries in
+     * <p><b>So the DROP is gated, by {@code loot_modifiers/no_sky_stone.json}, which strips this item
+     * from every loot roll when AE2 is absent.</b> The shard is named directly in
+     * {@code slag_rubble_pulls} - it is our own item, so the id always resolves - in a pool of its
+     * own, and the modifier takes it back out again. Gating the pull stream's ENTRY instead was tried
+     * and measured wrong twice: a condition on a tag file is silently ignored in 26.1, and a
+     * conditional nested table leaves the entry in place, so it kept winning 15 rolls in 405 and
+     * handing back nothing - a silent one-in-27 empty pull in the default install. See
+     * {@code StripItemModifier} for the whole account.
+     *
+     * <p><b>The item itself is registered unconditionally and that is deliberate.</b> It is in the
+     * creative tab and JEI's item list whether or not AE2 is present, because a registry entry that
+     * comes and goes with another mod breaks every world that ever held one. Only the drop and the
+     * recipe are conditional, which is the half a player can notice.
+     *
+     * <p>It is a shard rather than the block dropping whole because every entry in the terrain pool of
      * {@code slag_rubble_pulls} is a shard, four to a block. Breaking that pattern for one material
      * would read as an oversight rather than a decision (owner, 2026-08-20).
      */

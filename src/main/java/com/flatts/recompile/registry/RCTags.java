@@ -192,9 +192,16 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "stone_shards"));
 
     /**
-     * The compacted depths' seven terrain shards - what sifting Slag Rubble yields, and the only route
-     * to any vanilla nether terrain block. The Nether's {@link #STONE_SHARDS}, declared for the same
+     * The compacted depths' terrain shards - what sifting Slag Rubble yields, and the only route to
+     * any vanilla nether terrain block. The Nether's {@link #STONE_SHARDS}, declared for the same
      * reason: so Java can assert against it rather than restate the list.
+     *
+     * <p><b>Seven of them are terrain; the Sky Stone Shard is the eighth and is neither.</b> It joined
+     * for the mechanical reason the tag is used for - a Scrap Bin binds to it, and a shard that could
+     * not be binned would be the odd one out on the player's shelf - but it is not nether terrain, it
+     * does not craft a vanilla block, and without AE2 it is not what sifting yields at all, because a
+     * loot modifier strips it. Read this as "shards that behave alike", not as a census of the pull
+     * stream.
      */
     public static final TagKey<Item> NETHER_SHARDS = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "nether_shards"));
