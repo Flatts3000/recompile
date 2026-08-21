@@ -54,6 +54,44 @@ import net.minecraft.world.item.Items;
  */
 public final class SortingData {
 
+    /**
+     * Whether a nested loot table's own {@code neoforge:conditions} are satisfied here.
+     *
+     * <p>Mirrors {@code RecipeFiles.conditionsHold} and for the same reason: this class reads bundled
+     * FILES, so it sees tables the game did not load. Only {@code neoforge:mod_loaded} is evaluated
+     * and anything else counts as satisfied - the honest bias for a model the player reads, since
+     * over-reporting a drop is a worse afternoon than under-reporting one.
+     */
+    private static boolean conditionsHold(String path) {
+        JsonObject obj;
+        try (InputStream in = SortingData.class.getResourceAsStream(path)) {
+            if (in == null) {
+                return true;
+            }
+            obj = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+                .getAsJsonObject();
+        } catch (Exception unreadable) {
+            return true;
+        }
+        if (!obj.has("neoforge:conditions")) {
+            return true;
+        }
+        for (JsonElement raw : obj.getAsJsonArray("neoforge:conditions")) {
+            if (!raw.isJsonObject()) {
+                continue;
+            }
+            JsonObject condition = raw.getAsJsonObject();
+            if (condition.has("type") && condition.has("modid")
+                && "neoforge:mod_loaded".equals(condition.get("type").getAsString())
+                && !net.neoforged.fml.ModList.get()
+                    .isLoaded(condition.get("modid").getAsString())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     /** The household pull stream: garbage blocks and compacted bales draw from it. */
     public static final String HOUSEHOLD = "/data/recompile/loot_table/gameplay/household_pulls.json";
     /** The trash-bag pull stream. */
@@ -217,8 +255,15 @@ public final class SortingData {
                                 withComponents(registries, new ItemStack(item), o), entryShare));
                         }
                     } else if (isType(o, "minecraft:loot_table") && o.has("value")) {
-                        collect(pathOf(o.get("value").getAsString()), entryShare, registries, out,
-                            visited);
+                        // A nested table can be CONDITIONAL, and a condition on a whole loot table
+                        // file is honoured by the game (unlike one on a pool, an entry, or a tag).
+                        // Following one whose condition fails models drops that cannot happen:
+                        // pull_rates_match_what_the_mod_claims caught exactly that when the AE2 sky
+                        // stone drop landed (#276) - predicted 1 in 27, the game gave 0.
+                        if (conditionsHold(pathOf(o.get("value").getAsString()))) {
+                            collect(pathOf(o.get("value").getAsString()), entryShare, registries, out,
+                                visited);
+                        }
                     } else if (isType(o, "minecraft:tag") && o.has("name")) {
                         expandTag(o.get("name").getAsString(), entryShare, out);
                     } else if (isType(o, "minecraft:alternatives") && o.has("children")) {

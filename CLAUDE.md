@@ -137,6 +137,18 @@ Three rules that bite:
 Two traps in that area:
 
 - **A recipe override can lose to NeoForge silently.** Shipping a file at a vanilla recipe id replaces vanilla's - that is how the sixteen beds are deleted. But **NeoForge ships its own copies of 17 vanilla recipes**, retagged to the `#c:` common tags: `minecraft:bucket` and all sixteen `dye_*_carpet`. Mod datapacks are ordered by mod load order, so with `ordering = "NONE"` on the neoforge dependency our file is **never read** for those ids, and nothing is logged - corrupting one produces no parse error at all, which is the only way it was caught. `ordering = "AFTER"` in `neoforge.mods.toml` fixes it, and the split is a perfect tell: overrides for recipes NeoForge does not re-ship work, the ones it does are ignored. See #161.
+- **`neoforge:conditions` works on a whole FILE and nowhere else, and the three near-misses all fail
+  silently.** A condition on a loot POOL or on a loot ENTRY is not read. A condition in a TAG file is
+  **ignored in 26.1** - measured in #276, where the tag kept its member with the named mod absent. What
+  works is a condition at the top of a loot table file, a recipe file, or an advancement. So the way to
+  make a single drop conditional is a **nested table**: put the entry in its own conditional file and
+  reach it from the parent with a `minecraft:loot_table` entry. On a RECIPE the condition works
+  directly and is load-bearing - strip it and the file fails to PARSE on its own result id, leaving one
+  ERROR line in an otherwise green run.
+- **A viewer that reads bundled files reads files the game did not load.** `RecipeFiles` and
+  `SortingData` both evaluate `neoforge:mod_loaded` themselves for exactly this reason; without it JEI
+  advertises recipes that do not exist and the rate census predicts drops that cannot happen (both
+  caught by tests when #276 landed).
 - **The GLM directory is `loot_modifiers`, plural** - it is NeoForge's folder, not one of the vanilla dirs 26.1 singularised. "Fixing" it to match `loot_table/` silently stops the modifier loading, with no error anywhere.
 - **There is no `global_loot_modifiers.json` index in 26.1.** Every JSON in `data/<ns>/loot_modifiers/` is loaded as a modifier by directory scan, so the old `data/neoforge/loot_modifiers/global_loot_modifiers.json` index is not just unnecessary - it gets parsed *as a modifier*, has no `type` field, and logs `Couldn't parse data file 'neoforge:global_loot_modifiers'` at ERROR on every load. The modifier works regardless, so the error is pure noise that points at the wrong thing. Deleted 2026-07-23; the sapling-lockout GameTests (which break a real sapling and can only pass with the modifier live) prove it was never load-bearing.
 - **A dev run reads resources from `src/main/resources`, not `build/resources/main`.** Deleting a datapack file from the build output does *not* disable it at runtime. To prove a data-driven feature is actually doing something, neuter the **Java** and re-run - a resource-file negative control will lie to you.

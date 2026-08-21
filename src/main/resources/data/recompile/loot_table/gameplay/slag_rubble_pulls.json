@@ -61,6 +61,17 @@
           "type": "minecraft:item",
           "name": "recompile:warped_nylium_shard",
           "weight": 50
+        },
+        {
+          "_comment": [
+            "SKY STONE, the rarest thing in the stream, through a nested table so it can be",
+            "conditioned on AE2 - see gameplay/sky_stone_finds.json. Weight 15 of 405 (3.7%)",
+            "against a previous floor of 30. Demand is bounded and front-loaded: 16 shards per",
+            "Controller block and 16 per 256k cell, so 50 to 150 for a whole playthrough."
+          ],
+          "type": "minecraft:loot_table",
+          "value": "recompile:gameplay/sky_stone_finds",
+          "weight": 15
         }
       ]
     }

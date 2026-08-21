@@ -106,6 +106,22 @@ public final class RCItems {
     public static final DeferredItem<Item> SOUL_SAND_SHARD = ITEMS.registerItem("soul_sand_shard", Item::new);
     public static final DeferredItem<Item> SOUL_SOIL_SHARD = ITEMS.registerItem("soul_soil_shard", Item::new);
 
+    /**
+     * A Sky Stone Shard (#276): a piece of the meteorite buried in the compacted depths.
+     *
+     * <p><b>It is only worth anything with AE2 installed</b>, which is the one uncomfortable thing
+     * about it. Four craft an {@code ae2:sky_stone_block}, and that recipe is guarded, so without AE2
+     * the shard has no use at all. The drop is therefore routed through a CONDITIONAL TAG rather than
+     * named in the pull stream directly - see {@code tags/item/sky_stone_finds.json} - so it never
+     * enters a world that cannot use it. CLAUDE.md: a find that is neither useful nor wanted is
+     * clutter.
+     *
+     * <p>It is a shard rather than the block dropping whole because every one of the seven entries in
+     * {@code slag_rubble_pulls} is a shard, four to a block. Breaking that pattern for one material
+     * would read as an oversight rather than a decision (owner, 2026-08-20).
+     */
+    public static final DeferredItem<Item> SKY_STONE_SHARD = ITEMS.registerItem("sky_stone_shard", Item::new);
+
     // ---------------- The compacted depths: scrap categories ----------------
     // The dump gives SCRAP; machines give materials. These are the Nether's three, and each feeds one
     // machine verb: circuitry SEPARATES into quartz (a board really is a mixture), phosphor
@@ -219,7 +235,7 @@ public final class RCItems {
     /** Nether terrain shards in creative-tab order. */
     public static final List<DeferredItem<Item>> NETHER_SHARDS = List.of(
         NETHERRACK_SHARD, BASALT_SHARD, BLACKSTONE_SHARD, SOUL_SAND_SHARD, SOUL_SOIL_SHARD,
-        CRIMSON_NYLIUM_SHARD, WARPED_NYLIUM_SHARD);
+        CRIMSON_NYLIUM_SHARD, WARPED_NYLIUM_SHARD, SKY_STONE_SHARD);
 
     /**
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +

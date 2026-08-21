@@ -1,0 +1,52 @@
+{
+  "_comment": [
+    "CERTUS QUARTZ OUT OF GRANITE, in the demolition yard (owner, 2026-08-20, #276).",
+    "",
+    "Granite is 20-40% quartz by volume, and separating quartz from crushed granite is what a real",
+    "aggregate plant does. That is the standard this mod holds itself to elsewhere - neodymium from",
+    "hard drive actuators, grog from fired ceramic, ground slag as fertiliser - and it is why the",
+    "feed is granite rather than any of the other six rubble shards. Diorite and andesite are the",
+    "same family with less quartz, so the geology already ranks a poorer second route if one is",
+    "ever wanted.",
+    "",
+    "SEPARATING because granite is a MIXTURE of quartz, feldspar and mica. Pulling the quartz out",
+    "is division. The Pulverizer would give a powder, and AE2's certus dust is downstream of the",
+    "crystal rather than a substitute for it - the crystal is what charges, and charged certus is",
+    "the workhorse of the whole mod at eleven recipes.",
+    "",
+    "TWO PER FEED, because a playthrough wants 4 to 8 stacks (owner). At one apiece that is roughly",
+    "3200 pulls of Stone Rubble; at two it is about 226 blocks, which is a real dig without being a",
+    "wall. The OUTPUT COUNT is the lever here rather than the drop weight: granite's 60 of 370 in",
+    "rubble_pulls is already balanced against the six shards beside it and should not move.",
+    "",
+    "TEMPORARY, and guarded. This is pack content living in the engine because the pack cannot ship",
+    "data on 26.1.2; it leaves with the press pool - Flatts3000/trashlands#46.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own result id - measured on the Simple Magnets",
+    "overrides in #271 - and one bad recipe file leaves a single ERROR line in an otherwise green run."
+  ],
+  "type": "recompile:separating",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "input": "recompile:granite_shard",
+  "count": 1,
+  "ticks": 100,
+  "energy": 40,
+  "results": [
+    {
+      "item": "ae2:certus_quartz_crystal",
+      "count": 2
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:stone_shard",
+      "count": 1
+    }
+  ]
+}

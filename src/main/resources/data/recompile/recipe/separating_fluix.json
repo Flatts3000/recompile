@@ -1,0 +1,50 @@
+{
+  "_comment": [
+    "FLUIX OUT OF PHOSPHOR SCRAP, in the compacted depths (owner, 2026-08-20, #276).",
+    "",
+    "Fluix's defining property is that it holds charge and glows, and phosphor is the luminous",
+    "fraction of the waste. The two verbs divide cleanly and neither crowds the other: GRIND it for",
+    "glowstone dust, SEPARATE it for fluix.",
+    "",
+    "This exists because AE2's own route to fluix is an in-world ritual - charged certus plus",
+    "redstone plus nether quartz thrown into water - and the owner does not want that to be how you",
+    "get it here (2026-08-20). AE2's recipe still exists and still works; this is the route that",
+    "does not require it.",
+    "",
+    "IN THE NETHER, and certus in the overworld, which is also AE2's own tier order: certus is its",
+    "early material and fluix is what comes after. It puts the Controller behind the depths, which",
+    "is right for the one structure that eats fluix crystals directly.",
+    "",
+    "Two per feed for the same reason certus is: 4 to 8 stacks a playthrough.",
+    "",
+    "TEMPORARY, and guarded. This is pack content living in the engine because the pack cannot ship",
+    "data on 26.1.2; it leaves with the press pool - Flatts3000/trashlands#46.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own result id - measured on the Simple Magnets",
+    "overrides in #271 - and one bad recipe file leaves a single ERROR line in an otherwise green run."
+  ],
+  "type": "recompile:separating",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "input": "recompile:phosphor_scrap",
+  "count": 1,
+  "ticks": 100,
+  "energy": 40,
+  "results": [
+    {
+      "item": "ae2:fluix_crystal",
+      "count": 2
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "minecraft:glowstone_dust",
+      "count": 1
+    }
+  ]
+}

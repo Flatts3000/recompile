@@ -49,15 +49,51 @@ public final class RecipeFiles {
     private RecipeFiles() {
     }
 
-    /** Every bundled recipe of the given type, parsed once and cached. */
+    /** Every bundled recipe of the given type that is actually LOADED, parsed once and cached. */
     public static List<JsonObject> ofType(String type) {
         List<JsonObject> out = new ArrayList<>();
         for (JsonObject recipe : all()) {
-            if (recipe.has("type") && type.equals(recipe.get("type").getAsString())) {
+            if (recipe.has("type") && type.equals(recipe.get("type").getAsString())
+                && conditionsHold(recipe)) {
                 out.add(recipe);
             }
         }
         return out;
+    }
+
+    /**
+     * Whether a bundled recipe's {@code neoforge:conditions} are satisfied in this install.
+     *
+     * <p><b>Reading files instead of the recipe manager means reading files the game did not load.</b>
+     * A conditional recipe is still a file on the classpath when its condition fails, so without this
+     * every viewer would advertise recipes that do not exist - and the ones that are conditional here
+     * are conditional precisely because they need another mod, so the player has no way to make them
+     * and no way to find out why. Caught by
+     * {@code jei_sees_every_separating_recipe_with_its_real_count} when the AE2 sourcing recipes
+     * landed (#276): the game ran 7 separating recipes and JEI read 10.
+     *
+     * <p><b>Only {@code neoforge:mod_loaded} is evaluated, and anything else is treated as SATISFIED.</b>
+     * That is the honest bias for a viewer: showing one recipe too many is a worse afternoon than
+     * hiding a real one, and mod_loaded is the only condition this mod ships. If a condition type ever
+     * appears here that can be false at runtime, this needs to grow rather than be trusted.
+     */
+    private static boolean conditionsHold(JsonObject recipe) {
+        if (!recipe.has("neoforge:conditions")) {
+            return true;
+        }
+        for (var raw : recipe.getAsJsonArray("neoforge:conditions")) {
+            if (!raw.isJsonObject()) {
+                continue;
+            }
+            JsonObject condition = raw.getAsJsonObject();
+            if (condition.has("type") && condition.has("modid")
+                && "neoforge:mod_loaded".equals(condition.get("type").getAsString())
+                && !net.neoforged.fml.ModList.get()
+                    .isLoaded(condition.get("modid").getAsString())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
