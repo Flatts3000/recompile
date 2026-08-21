@@ -43,7 +43,7 @@ argued with.
 - Gradle does not honour command-line order for tasks with no declared relationship, so `coverageReport`
   could run before either test task had written anything. It now `mustRunAfter` both.
 
-## The numbers, 2026-08-21 (post-v0.14.0)
+## The numbers, 2026-08-20 (post-v0.14.0)
 
 All three rows share one denominator - 9847 lines, `src/main/java` minus `gametest` - so they can be
 compared. That is enforced by a single `COVERAGE_EXCLUDES` list both report tasks use. They did not
@@ -53,7 +53,13 @@ denominator and not the other and made this very table a comparison of different
 | | line | branch |
 |---|---|---|
 | Merged, both layers | **70.6%** | 55.2% |
+| JUnit layer alone | 23.3% | 3.4% |
 | **Actionable** (minus what neither layer can reach) | **76.6%** | - |
+
+*(The JUnit-alone row was briefly dropped from this table and put back in review of #274: the preamble
+above argues that reading either layer on its own gives a wrong answer in the opposite direction, and
+this row is the evidence for that argument. 23.3% is what this mod looks like to someone who runs only
+`./gradlew test`.)*
 
 The floor in `~/.claude/rules/common/testing.md` is **80%**, so the actionable figure is still under it.
 
@@ -64,20 +70,22 @@ aimed rather than broad: `content/menu` branch went 30.2% to 36.7% and `compat` 
 because that is where the two verified findings were.
 
 **Where the remaining actionable debt sits**, largest first, so the next pass does not re-derive it:
-`content/block` (437 missed lines), `content/block/entity` (382), `content/menu` (230 - the other two
-custom menus' `quickMoveStack` are still at 0 branches), `compat` (178), `content/worldgen` (118 -
+`content/block` (437 missed lines), `content/block/entity` (382), `content/menu` (230 - **four** other
+menus override `quickMoveStack` and none is covered: `BurnerGeneratorMenu`, `HydroponicsBayMenu`,
+`TreeNurseryMenu` at 0 branches each, and `ScrapCraftingStationMenu` at 43.5% of 184), `compat` (178),
+`content/worldgen` (118 -
 `MoundFeature` is at 4.5% and `MyceliumPatchFeature` at 7.4%, both features a GameTest can call
 directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
-750 lines, all at 0%, and they are excluded from the actionable figure rather than counted as debt:
+771 lines, all at 0%, and they are excluded from the actionable figure rather than counted as debt:
 
-- **`client/**` (389 lines)** - screens, the GUI framework's rendering visitor, the one
+- **`client/**` (395 lines: `client` 242 plus `client/gui` 153)** - screens, the GUI framework's rendering visitor, the one
   BlockEntityRenderer. A GameTest server has no client and JUnit loads none. `CLAUDE.md` already says
   screens are the layer both test layers are blind to; `python tools/shoot_screens.py` against a
   running `runClient` is the acceptance evidence for them, not a coverage number.
-- **`compat/jei` (361 lines)** - categories and renderers. JEI's own registration only happens
+- **`compat/jei` (376 lines)** - categories and renderers. JEI's own registration only happens
   client-side. `SortingData` is the server-safe half and is covered by `SortingDataTests`, which is
   exactly why that split exists.
 
