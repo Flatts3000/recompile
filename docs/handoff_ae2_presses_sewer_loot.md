@@ -86,20 +86,35 @@ ae2:logic_processor_press
 
 They also carry the tag `ae2:inscriber_presses`, if a tag entry reads better than four item entries.
 
-Target table: **`data/recompile/loot_table/chests/sewer.json`** (type `minecraft:chest`, pools rolling
-3 to 6, weighted entries). `loot_table/archaeology/sewer_silt.json` is the other candidate if you
-would rather they were dug rather than opened.
+Target table: **`data/recompile/loot_table/chests/sump.json`**, not `sewer.json`. *(This section named
+`sewer.json` when written; corrected in #268 after measuring.)* `chests/sewer` is the BARREL table and
+a sewer rolls it twice per access chamber across several chambers, so the "one press set per sewer"
+note below cannot be expressed there. `chests/sump` is the single crate at the bottom of each sewer -
+already the echo shard's home, and described in `SewerPieces` as the reason to go to the bottom of one.
 
-Each entry needs the guard so the table is unchanged without AE2:
+**Use a tag entry, not four item entries, and this is not a style preference.** An item id in a loot
+table resolves against the registry when the file is parsed, so naming `ae2:silicon_press` without AE2
+**kills the entire sump table** - measured, not guessed: `Unknown registry key ... ae2:silicon_press`,
+and the crate at the bottom of every sewer comes up empty for every player not running AE2. A `TagKey`
+does not resolve at parse time and an absent tag rolls to nothing.
 
 ```json
-"neoforge:conditions": [
-  { "type": "neoforge:mod_loaded", "modid": "ae2" }
-]
+{ "type": "minecraft:tag", "name": "ae2:inscriber_presses", "expand": false }
 ```
 
-No load-order problem here, unlike the Simple Magnets handoff: this is Recompile's own loot table, so
-there is no override race and no `ordering = "AFTER"` needed.
+`expand: false` yields EVERY item in the tag per roll rather than picking one - measured at 16 of 16
+against a stand-in tag. That is AE2's own mechanism, lifted from its `mysterious_cube` loot table, and
+it matches what AE2's guide tells players: the four presses come from ONE find. It also means a fifth
+processor press would be carried the day AE2 adds it, and that `name_press` stays out because AE2's
+tag leaves it out.
+
+**No `neoforge:conditions` guard, because there is nowhere to put one and nothing to guard.**
+`neoforge:conditions` gates a whole loot table file, not a pool or an entry inside one - so a
+mod-gated entry is not available here. The tag entry needs no guard: it is inert without AE2 by
+construction, which `the_sump_is_unchanged_without_ae2` asserts in exactly that state.
+
+No load-order problem here either, unlike the Simple Magnets handoff: this is Recompile's own loot
+table, so there is no override race and no `ordering = "AFTER"` needed.
 
 ### Design notes, not requirements
 
