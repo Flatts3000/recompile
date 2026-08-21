@@ -43,20 +43,31 @@ argued with.
 - Gradle does not honour command-line order for tasks with no declared relationship, so `coverageReport`
   could run before either test task had written anything. It now `mustRunAfter` both.
 
-## The numbers, 2026-08-19
+## The numbers, 2026-08-21 (post-v0.14.0)
 
-All three rows share one denominator - 9712 lines, `src/main/java` minus `gametest` - so they can be
+All three rows share one denominator - 9847 lines, `src/main/java` minus `gametest` - so they can be
 compared. That is enforced by a single `COVERAGE_EXCLUDES` list both report tasks use. They did not
 share it at first: one report also dropped `client/**`, which put 389 zero-covered lines in one
 denominator and not the other and made this very table a comparison of different things.
 
 | | line | branch |
 |---|---|---|
-| Merged, both layers | **69.9%** | 54.2% |
-| JUnit layer alone | 23.2% | 3.4% |
-| **Actionable** (minus what neither layer can reach) | **75.8%** | - |
+| Merged, both layers | **70.6%** | 55.2% |
+| **Actionable** (minus what neither layer can reach) | **76.6%** | - |
 
-The floor in `~/.claude/rules/common/testing.md` is **80%**, so the actionable figure is under it.
+The floor in `~/.claude/rules/common/testing.md` is **80%**, so the actionable figure is still under it.
+
+Two releases landed between the 2026-08-19 reading and this one and the number did not move on its own -
+69.9% to 69.9% - which is the useful part: new code arrived carrying roughly the coverage the mod
+already had. The movement here is from the COVER pass that followed, and it is deliberately small and
+aimed rather than broad: `content/menu` branch went 30.2% to 36.7% and `compat` branch 51.1% to 57.2%,
+because that is where the two verified findings were.
+
+**Where the remaining actionable debt sits**, largest first, so the next pass does not re-derive it:
+`content/block` (437 missed lines), `content/block/entity` (382), `content/menu` (230 - the other two
+custom menus' `quickMoveStack` are still at 0 branches), `compat` (178), `content/worldgen` (118 -
+`MoundFeature` is at 4.5% and `MyceliumPatchFeature` at 7.4%, both features a GameTest can call
+directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
