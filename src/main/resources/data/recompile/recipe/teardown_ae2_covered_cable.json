@@ -1,0 +1,64 @@
+{
+  "_comment": [
+    "AE2 CABLE TEARDOWN, BY TAG RATHER THAN BY ITEM (#275).",
+    "",
+    "AE2 ships 90 cable items - five types in seventeen colours - and naming them individually is the",
+    "same mistake as the sixteen beds: it goes stale the day a colour or a type is added. Its own",
+    "tags group them, so five entries cover all ninety and a new colour is carried for free.",
+    "",
+    "A tag input also cannot take this file down when AE2 is absent: a TagKey does not resolve at",
+    "parse time, so the recipe is simply inert.",
+    "",
+    "THE MARGIN. A covered cable is a glass cable plus a wool, so 0.50 fluix and one wool. This",
+    "returns 0.25 fluix and some fibre; the wool is not recoverable as wool, which is the point of",
+    "a teardown rather than an uncraft.",
+    "",
+    "TEMPORARY, and guarded. Pack content living in the engine because the pack cannot ship data on",
+    "26.1.2; it leaves with the rest - see docs/handoff_cross_mod_teardown.md.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own ids, which is one ERROR line in an otherwise",
+    "green run."
+  ],
+  "type": "recompile:teardown",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "input": "#ae2:covered_cable",
+  "station": "recompile:workbench",
+  "tool": "recompile:scrap_knife",
+  "ticks": 70,
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "ae2:fluix_crystal",
+          "weight": 25
+        },
+        {
+          "item": "recompile:glass_shards",
+          "weight": 30
+        },
+        {
+          "weight": 45
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "recompile:fiber_scrap",
+          "weight": 60
+        },
+        {
+          "weight": 40
+        }
+      ]
+    }
+  ]
+}

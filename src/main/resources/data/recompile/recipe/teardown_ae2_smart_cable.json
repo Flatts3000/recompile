@@ -1,0 +1,70 @@
+{
+  "_comment": [
+    "AE2 CABLE TEARDOWN, BY TAG RATHER THAN BY ITEM (#275).",
+    "",
+    "AE2 ships 90 cable items - five types in seventeen colours - and naming them individually is the",
+    "same mistake as the sixteen beds: it goes stale the day a colour or a type is added. Its own",
+    "tags group them, so five entries cover all ninety and a new colour is carried for free.",
+    "",
+    "A tag input also cannot take this file down when AE2 is absent: a TagKey does not resolve at",
+    "parse time, so the recipe is simply inert.",
+    "",
+    "THE MARGIN. A smart cable is a covered cable plus one redstone and one glowstone dust. Each",
+    "of those comes back at 30 percent, and the fluix at 25 against a cost of 0.50 - so every",
+    "line of the ledger loses.",
+    "",
+    "TEMPORARY, and guarded. Pack content living in the engine because the pack cannot ship data on",
+    "26.1.2; it leaves with the rest - see docs/handoff_cross_mod_teardown.md.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own ids, which is one ERROR line in an otherwise",
+    "green run.",
+    "",
+    "GATED MATERIALS REMOVED. This first returned minecraft:redstone, and GemTierTests.no_teardown_recipe_yields_a_gated_material rejected it: everything past the iron gate - diamond, emerald, redstone, gold, amethyst - has the Separator as its sanctioned route and teardown is not it. Redstone is past the iron gate, so it is this mod's own scrap instead, which only widens the margin below."
+  ],
+  "type": "recompile:teardown",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "input": "#ae2:smart_cable",
+  "station": "recompile:workbench",
+  "tool": "recompile:scrap_knife",
+  "ticks": 80,
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "ae2:fluix_crystal",
+          "weight": 25
+        },
+        {
+          "item": "recompile:glass_shards",
+          "weight": 30
+        },
+        {
+          "weight": 45
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "recompile:e_scrap",
+          "weight": 30
+        },
+        {
+          "item": "minecraft:glowstone_dust",
+          "weight": 30
+        },
+        {
+          "weight": 40
+        }
+      ]
+    }
+  ]
+}

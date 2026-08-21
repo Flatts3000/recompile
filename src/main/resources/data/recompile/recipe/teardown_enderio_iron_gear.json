@@ -1,0 +1,59 @@
+{
+  "_comment": [
+    "ENDER IO TEARDOWN (#275).",
+    "",
+    "ASSEMBLIES ONLY, NOT INGOTS, and that is the scoping decision worth recording. An alloy ingot is",
+    "a MIXTURE - you remelt it, you do not prise it apart with a knife - so conductive, energetic,",
+    "dark steel and the rest are deliberately absent from this set. What is here is the things a",
+    "player manufactures, supersedes, and ends up with a chest of.",
+    "",
+    "THE MARGIN. An iron gear costs four iron ingots, four iron nuggets and one Grain of Infinity.",
+    "This returns scrap metal and a grain at 25 percent. Scrap metal is not iron - it blasts into",
+    "a COPPER nugget - so there is no route back to the ingots at all, and the grain loses four to",
+    "one.",
+    "",
+    "TEMPORARY, and guarded. Pack content living in the engine because the pack cannot ship data on",
+    "26.1.2; it leaves with the rest - see docs/handoff_cross_mod_teardown.md.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own ids, which is one ERROR line in an otherwise",
+    "green run."
+  ],
+  "type": "recompile:teardown",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "enderio"
+    }
+  ],
+  "input": "enderio:iron_gear",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 100,
+  "pools": [
+    {
+      "rolls": 2,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 60
+        },
+        {
+          "weight": 40
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "enderio:grains_of_infinity",
+          "weight": 25
+        },
+        {
+          "weight": 75
+        }
+      ]
+    }
+  ]
+}
