@@ -277,10 +277,17 @@ final class SewerLootTests {
         // the pool is gone.
         RCGameTests.test("the_sump_is_unchanged_without_ae2", 60, helper -> {
             var level = helper.getLevel();
-            helper.assertFalse(
-                net.neoforged.fml.ModList.get().isLoaded("ae2"),
-                "AE2 is loaded, so this test cannot prove what it is for - it measures the WITHOUT "
-                    + "case, and with AE2 present the presses are supposed to appear");
+            // NOT a failure when AE2 is present - a skip. This measures the WITHOUT case, and with
+            // AE2 loaded that question does not apply: the presses are SUPPOSED to appear, so every
+            // assertion below would be wrong rather than merely unmeasurable. Trashlands ships AE2,
+            // so failing here would turn a correct pack environment red with a message that reads
+            // like a defect in the sump. GameTest has no skip verb; succeeding early is the nearest
+            // thing, and it deliberately does not assert the WITH case instead - that would pin the
+            // pool and make its eventual removal a code change.
+            if (net.neoforged.fml.ModList.get().isLoaded("ae2")) {
+                helper.succeed();
+                return;
+            }
 
             var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
                 Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "chests/sump"));
