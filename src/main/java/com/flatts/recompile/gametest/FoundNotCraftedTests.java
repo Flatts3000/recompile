@@ -82,7 +82,18 @@ final class FoundNotCraftedTests {
      */
     private static final Set<String> RETURNS_ITS_OWN_INPUT = Set.of(
         "minecraft:crafting_dye",
-        "minecraft:smithing_trim"
+        "minecraft:smithing_trim",
+        // Ender IO's tank fills and empties a CONTAINER; it never makes one. Emptying an experience
+        // bottle hands back the glass bottle it was made from, and filling one takes a glass bottle
+        // back. Owner ruling 2026-08-21, on the case that surfaced it (#280): a glass bottle is in
+        // #recompile:found_only, and draining a bottle you already have is not manufacturing one.
+        //
+        // <p><b>The caveat, recorded rather than glossed.</b> This is not purely a round trip, because
+        // an experience bottle can also be BOUGHT - villagers arrived with #227 - so a player with
+        // emeralds has a narrow route to glass bottles that does not involve finding one. That was put
+        // to the owner and accepted: it is the same shape as the wandering trader's saplings, where
+        // the cost of getting a villager at all stands in for the gate it walks around.
+        "enderio:tank"
     );
 
     static void register() {

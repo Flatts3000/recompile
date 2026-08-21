@@ -410,13 +410,47 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - **A custom furnace is an `AbstractFurnace{Block,BlockEntity}` subclass + vanilla `FurnaceMenu`** (see `BurnBarrelBlock`/`BurnBarrelBlockEntity`). `AbstractFurnaceBlock` supplies FACING, the `LIT` state, placement, and open-on-use; the BE takes a `RecipeType` in its ctor (`RecipeType.SMELTING` for a plain furnace) and only implements `getDefaultName` + `createMenu` (`new FurnaceMenu(id, inv, this, this.dataAccess)`). **To make it manual-only (no hopper / Create automation), override `getSlotsForFace` to return an empty `int[]`** (and `canPlace/TakeItemThroughFace` -> false): a furnace is a `WorldlyContainer`, so empty faces cut off all automation while the GUI still loads by hand. Fuel is the `data/neoforge/data_maps/item/furnace_fuels.json` data map (`{"values": {"<id>": {"burn_time": N}}}`), read live via `level.fuelValues().burnDuration(stack)`.
 - **Carry BlockEntity state through break+replace with an item data component, not just `saveAdditional`.** `saveAdditional`/`loadAdditional` survive *save/load* only; breaking the block destroys the BE, so its state is lost on pickup. To keep it on the dropped item (the Rain Collector's water), register a `DataComponentType` (`RCDataComponents`), write it in `BlockEntity.collectImplicitComponents` (read back in `applyImplicitComponents` on placement), and copy it onto the drop with a `minecraft:copy_components` loot function (`"source": "block_entity"`, `"include": [...]`) - the mechanism vanilla beehives use for bees. See `RainCollectorBlockEntity`.
 
-## Two cross-mod stopgaps, which are pack content living in the engine
+## Three cross-mod stopgaps, which are pack content living in the engine
 
 **The pack cannot ship data on 26.1.2** - no datapack loader has a NeoForge build, KubeJS crashes the
-client, CraftTweaker has not ported - so two things that belong to Trashlands ship here instead
-(v0.14.0). **This cuts against the engine/pack split rather than revising it**, and both leave when
-KubeJS is fixed (`Flatts3000/trashlands#46` and `#47`). Specs and removal instructions:
+client, CraftTweaker has not ported - so things that belong to Trashlands ship here instead. **This
+cuts against the engine/pack split rather than revising it**, and they all leave when KubeJS is fixed
+(`Flatts3000/trashlands#46` and `#47`). Specs and removal instructions:
 `docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`.
+
+**The third one SUBTRACTS rather than adds, and that is a shape worth knowing** (#280, owner
+2026-08-21). Ender IO's SAG Mill grinds a blaze rod back into **four** blaze powder. This mod's chain
+runs the other way - four powder press into a Blaze Briquette and the Sintering Kiln fires it into one
+rod - so that recipe alone makes the round trip break even, which is exactly what the Briquette exists
+to prevent. It is worse than break-even in practice: Ender IO's `data_maps/item/grinding_ball.json`
+gives an **OutputMultiplier of 1.35 to 1.4**, so a rod returns 5.4 to 5.6 powder and every automated
+cycle gains 35 to 40 percent. Blaze rods gate brewing here.
+
+**There is no remove-recipe primitive, so a disable is an override that never loads.** A file at
+another mod's recipe id replaces it wholesale (only the top file at a path is read), and a
+`neoforge:never` condition means the replacement itself is skipped - net, the id is gone. The body
+still has to be well-formed JSON but is never decoded, which is the same mechanism that lets a guarded
+recipe safely name an absent mod's items. Two things make it work and both are silent if missed:
+`ordering = "AFTER"` on an optional `enderio` dependency (without it Ender IO's file stays on top and
+nothing is logged), and the condition itself. `every_cross_mod_override_is_ordered_after_its_mod` now
+pins the ordering for **all three** mods - it was unasserted for the other two as well, described in a
+test message without ever being checked - and `the_blaze_grinding_override_can_never_load` pins the
+condition.
+
+**A found-only item gained a route and it was accepted rather than fixed** (owner, 2026-08-21).
+Emptying an experience bottle in an Ender IO tank hands back a `minecraft:glass_bottle`, which is in
+`#recompile:found_only`. It is a container conversion rather than manufacture - you already had the
+bottle - so `enderio:tank` joins `RETURNS_ITS_OWN_INPUT` in `FoundNotCraftedTests`. The caveat is
+recorded there rather than glossed: an experience bottle can be **bought**, so a player with emeralds
+has a narrow route that does not involve finding one, judged the same shape as the wandering trader's
+saplings.
+
+**None of this is visible to CI, which has no Ender IO**, so both defects were found by dropping the
+jar into `run/mods` and running the suite - and the guards that caught them are this mod's own. Worth
+repeating for the pack's other majors. One caveat when doing so: **about 58 unrelated tests fail with
+Ender IO present** because it registers a payload the headless harness refuses (`Payload
+enderio:powered_spawner_soul may not be sent to the client`), which breaks every test using a mock
+player. Filter those before reading a red run as a regression.
 
 - **AE2's four Inscriber presses** are a pool on `chests/sump.json`, plus a lang override correcting
   AE2's own tooltip. **This unblocks one of AE2's two gates and not both** (#276): 330 of its 364 items
