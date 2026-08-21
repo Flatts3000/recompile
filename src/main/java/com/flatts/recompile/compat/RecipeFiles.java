@@ -142,6 +142,80 @@ public final class RecipeFiles {
     }
 
     /**
+     * Every namespace this mod ships a {@code data/} directory for.
+     *
+     * <p>Most are its own or vanilla's. The interesting ones are <b>other mods'</b>: a file under
+     * {@code data/<their-ns>/} overrides theirs at that path, which only wins if this mod is ordered
+     * AFTER them - and that line failing is completely silent.
+     *
+     * <p>Derived rather than listed, because review of #281 pointed out that the test guarding those
+     * dependency lines named three mods by hand, so a fourth override would be added with no guard and
+     * the test written to catch exactly that would pass green. Same reasoning as
+     * {@code MachineParityTests} deriving its list from the registry.
+     *
+     * <p>Uses the same anchor-and-walk as {@link #scan}: asking a classloader for a directory does not
+     * reliably return a URL, so this resolves a known FILE and walks up to {@code data/}. The jar
+     * branch matters for the same reason it does there - in a packaged install the URL is
+     * {@code jar:...!/data/...} and {@code Path.of} throws.
+     */
+    public static java.util.Set<String> dataNamespaces() {
+        java.util.Set<String> out = new java.util.TreeSet<>();
+        // Both roots, because an override can live under either and both need the same load order.
+        // The mutation test for this found only data/ namespaces at first, which missed the AE2 lang
+        // key entirely - assets/ merge by ascending priority, so AFTER decides that one too.
+        namespacesUnder(ANCHOR, 3, out);
+        namespacesUnder("/assets/" + Recompile.MOD_ID + "/lang/en_us.json", 3, out);
+        return out;
+    }
+
+    /** Sibling directories of the namespace folder containing {@code anchorResource}. */
+    private static void namespacesUnder(String anchorResource, int up, java.util.Set<String> out) {
+        URL anchor = RecipeFiles.class.getResource(anchorResource);
+        if (anchor == null) {
+            return;
+        }
+        try {
+            URI uri = anchor.toURI();
+            Path recipeFile;
+            FileSystem opened = null;
+            try {
+                if ("jar".equals(uri.getScheme())) {
+                    FileSystem fs;
+                    try {
+                        fs = FileSystems.getFileSystem(uri);
+                    } catch (FileSystemNotFoundException notOpenYet) {
+                        fs = opened = FileSystems.newFileSystem(uri, Map.of());
+                    }
+                    String entry = uri.toString().substring(uri.toString().indexOf('!') + 1);
+                    recipeFile = fs.getPath(entry);
+                } else {
+                    recipeFile = Path.of(uri);
+                }
+                // .../<root>/<ns>/<dir>/<file> -> .../<root>
+                Path data = recipeFile;
+                for (int i = 0; i < up; i++) {
+                    data = data.getParent();
+                }
+                try (Stream<Path> children = Files.list(data)) {
+                    for (Path child : children.filter(Files::isDirectory).toList()) {
+                        String name = child.getFileName().toString().replace("/", "");
+                        if (!name.isEmpty()) {
+                            out.add(name);
+                        }
+                    }
+                }
+            } finally {
+                if (opened != null) {
+                    opened.close();
+                }
+            }
+        } catch (IOException | URISyntaxException | RuntimeException ignored) {
+            // Callers treat an empty set as "could not tell", and the test that uses this fails
+            // loudly on empty rather than passing vacuously.
+        }
+    }
+
+    /**
      * Every bundled JSON file sitting beside {@code anchorResource}, parsed.
      *
      * <p>The generic half of {@link #all()}, exposed because {@code loot_modifiers/} needs reading the

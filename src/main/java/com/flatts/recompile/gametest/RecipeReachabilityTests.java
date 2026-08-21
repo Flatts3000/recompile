@@ -281,8 +281,19 @@ final class RecipeReachabilityTests {
             helper.assertTrue(toml != null,
                 "could not read neoforge.mods.toml off the classpath, so this test measured nothing");
 
+            // DERIVED, not listed. A hand-written list of the mods we override is a second
+            // inventory of the same facts, and the copy nobody updates is the one that gets read -
+            // so a fourth override would ship with no dependency line and THIS test, written to
+            // catch exactly that, would pass green. Review of #281 caught it naming three.
+            var ours = java.util.Set.of("recompile", "minecraft", "neoforge", "c");
+            var foreign = new java.util.TreeSet<String>(
+                com.flatts.recompile.compat.RecipeFiles.dataNamespaces());
+            foreign.removeAll(ours);
+            helper.assertTrue(!com.flatts.recompile.compat.RecipeFiles.dataNamespaces().isEmpty(),
+                "could not enumerate this mod's data/ namespaces, so this guard measured nothing");
+
             var missing = new java.util.TreeSet<String>();
-            for (String mod : java.util.List.of("simplemagnets", "ae2", "enderio")) {
+            for (String mod : foreign) {
                 int at = toml.indexOf("modId = \"" + mod + "\"");
                 if (at < 0) {
                     missing.add(mod + " (no dependency block at all)");
@@ -299,10 +310,11 @@ final class RecipeReachabilityTests {
                 }
             }
             helper.assertTrue(missing.isEmpty(),
-                "these mods are overridden by files this mod ships, but their dependency block does "
-                    + "not make the override win: " + missing + ". Without ordering = AFTER our file "
-                    + "is never read at that path and NOTHING is logged - the recipe keeps its "
-                    + "original behaviour and the feature is silently absent.");
+                "this mod ships files under data/<ns>/ for these namespaces, but their dependency "
+                    + "block does not make the override win: " + missing + ". Without "
+                    + "ordering = AFTER our file is never read at that path and NOTHING is logged - "
+                    + "the other mod's version keeps working and the feature is silently absent. "
+                    + "Namespaces found: " + foreign + " (both data/ and assets/ are scanned).");
             helper.succeed();
         });
 

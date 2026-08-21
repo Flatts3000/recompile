@@ -415,16 +415,24 @@ Most tutorials target 1.20/1.21 and will mislead you:
 **The pack cannot ship data on 26.1.2** - no datapack loader has a NeoForge build, KubeJS crashes the
 client, CraftTweaker has not ported - so things that belong to Trashlands ship here instead. **This
 cuts against the engine/pack split rather than revising it**, and they all leave when KubeJS is fixed
-(`Flatts3000/trashlands#46` and `#47`). Specs and removal instructions:
-`docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`.
+(`Flatts3000/trashlands#46`, `#47` and `#48`). Specs and removal instructions:
+`docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`,
+`docs/handoff_enderio_grains_and_blaze.md`.
+
+**Ender IO needed no sourcing work, unlike AE2**, and that is worth knowing before anyone re-audits it:
+a reachability closure over its 1187 recipes puts 897 of 924 items in reach from a vanilla-only seed,
+its whole alloy spine included, and it makes its own silicon by SAG-milling sand. What ships for it is
+a Grains of Infinity find in Mechanical Waste (#279, owner call - the material was already obtainable
+via Ender IO's own fire crafting on deepslate), plus the two invariant fixes below.
 
 **The third one SUBTRACTS rather than adds, and that is a shape worth knowing** (#280, owner
 2026-08-21). Ender IO's SAG Mill grinds a blaze rod back into **four** blaze powder. This mod's chain
 runs the other way - four powder press into a Blaze Briquette and the Sintering Kiln fires it into one
 rod - so that recipe alone makes the round trip break even, which is exactly what the Briquette exists
 to prevent. It is worse than break-even in practice: Ender IO's `data_maps/item/grinding_ball.json`
-gives an **OutputMultiplier of 1.35 to 1.4**, so a rod returns 5.4 to 5.6 powder and every automated
-cycle gains 35 to 40 percent. Blaze rods gate brewing here.
+runs from 1.0 up to an **OutputMultiplier of 1.75** on the vibrant alloy ball, so a rod returns up to
+**seven** powder against the four it cost - a 75 percent gain per automated cycle. Blaze rods gate
+brewing here.
 
 **There is no remove-recipe primitive, so a disable is an override that never loads.** A file at
 another mod's recipe id replaces it wholesale (only the top file at a path is read), and a
@@ -481,7 +489,7 @@ Three traps live here, all measured rather than reasoned about:
   to be LATER, not complete. A recipe at another mod's id is a whole-file replacement and only the top
   file at a path is read at all - which also means a typo there does not degrade to their recipe, it
   deletes the id. Both need `ordering = "AFTER"` on an optional dependency; `neoforge.mods.toml` now
-  carries three such entries (neoforge, simplemagnets, ae2).
+  carries four such entries (neoforge, simplemagnets, ae2, enderio).
 
 **CI cannot see either override working**, because neither mod is present at test time. What the tests
 assert is inertness WITHOUT the mod, plus the reason for it; the with-mod half was verified by dropping
