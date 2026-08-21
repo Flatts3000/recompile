@@ -3,7 +3,7 @@
 **Analysed against:** Recompile at v0.14.0+, Ender IO `9.0.5-alpha` (the jar the pack pins), MC 26.1.2 /
 NeoForge 26.1.2.76.
 **Status:** shipped 2026-08-21 across #279 and #281.
-**Move-back tracker:** `Flatts3000/trashlands#48`, alongside `#46` (AE2) and `#47` (Simple Magnets).
+**Move-back tracker:** `Flatts3000/trashlands#52`, alongside `#46` (AE2) and `#47` (Simple Magnets).
 
 ## Why this is in the engine at all
 

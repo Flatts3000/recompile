@@ -415,7 +415,7 @@ Most tutorials target 1.20/1.21 and will mislead you:
 **The pack cannot ship data on 26.1.2** - no datapack loader has a NeoForge build, KubeJS crashes the
 client, CraftTweaker has not ported - so things that belong to Trashlands ship here instead. **This
 cuts against the engine/pack split rather than revising it**, and they all leave when KubeJS is fixed
-(`Flatts3000/trashlands#46`, `#47` and `#48`). Specs and removal instructions:
+(`Flatts3000/trashlands#46`, `#47` and `#52`). Specs and removal instructions:
 `docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`,
 `docs/handoff_enderio_grains_and_blaze.md`.
 
