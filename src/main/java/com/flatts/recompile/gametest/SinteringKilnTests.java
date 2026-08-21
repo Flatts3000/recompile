@@ -114,30 +114,72 @@ final class SinteringKilnTests {
         // the property to protect rather than a bug to fix: any recipe that turned a rod or a charge
         // back into gunpowder or a briquette would print wind forever, at a 4:1 advantage.
         //
-        // <p>Deliberately broader than the blaze guard beside it, which measures one known pair. This
-        // asks the live recipe map whether ANY recipe consumes wind and produces propellant, so a
-        // route added later - by this mod or by a pack - is caught without anyone remembering to
-        // extend a list.
+        // <p><b>Reading a recipe's inputs and outputs generically is the hard part, and the first
+        // version of this got it wrong in both directions.</b> It walked placementInfo().ingredients()
+        // and display(), and BOTH are empty for this mod's own schemas: TeardownRecipe and
+        // BlueprintCraftingRecipe return PlacementInfo.NOT_PLACEABLE, and display() is a default method
+        // returning an empty list that neither overrides. So a teardown converting a wind charge into
+        // gunpowder - exactly the route a pack would add, since teardown is the schema this mod
+        // advertises as public API - was invisible, and the test reported zero loops while claiming to
+        // catch precisely that. RecipeResults' own javadoc warns about this: a sweep asserting NOTHING
+        // produces an item "needs a second pass over those types".
+        //
+        // <p>So teardown is read through its real accessors, and <b>any recipe this sweep cannot read
+        // is an ERROR rather than a skip</b> - the same shape FoundNotCraftedTests uses. Silence is
+        // what made the first version pass.
         RCGameTests.test("nothing_turns_wind_back_into_propellant", 20, helper -> {
             var level = helper.getLevel();
             var context = net.minecraft.world.item.crafting.display.SlotDisplayContext
                 .fromLevel(level);
             List<String> loops = new ArrayList<>();
+            java.util.Set<String> unreadable = new java.util.TreeSet<>();
             int scanned = 0;
 
             for (RecipeHolder<?> holder : level.getServer().getRecipeManager().recipeMap().values()) {
                 scanned++;
+                var recipe = holder.value();
+
+                // --- what it eats ---
                 boolean eatsWind = false;
-                for (var ingredient : holder.value().placementInfo().ingredients()) {
-                    for (var item : ingredient.items().toList()) {
-                        eatsWind |= new ItemStack(item).is(Items.BREEZE_ROD)
-                            || new ItemStack(item).is(Items.WIND_CHARGE);
+                if (recipe instanceof com.flatts.recompile.content.recipe.TeardownRecipe teardown) {
+                    eatsWind = teardown.input().test(new ItemStack(Items.BREEZE_ROD))
+                        || teardown.input().test(new ItemStack(Items.WIND_CHARGE));
+                } else if (recipe
+                        instanceof com.flatts.recompile.content.recipe.BlueprintCraftingRecipe bp) {
+                    for (var slot : bp.ingredients()) {
+                        eatsWind |= slot.isPresent()
+                            && (slot.get().test(new ItemStack(Items.BREEZE_ROD))
+                                || slot.get().test(new ItemStack(Items.WIND_CHARGE)));
                     }
+                } else {
+                    for (var ingredient : recipe.placementInfo().ingredients()) {
+                        for (var item : ingredient.items().toList()) {
+                            eatsWind |= new ItemStack(item).is(Items.BREEZE_ROD)
+                                || new ItemStack(item).is(Items.WIND_CHARGE);
+                        }
+                    }
+                }
+
+                // --- what it makes, and whether that is even readable ---
+                if (recipe instanceof com.flatts.recompile.content.recipe.TeardownRecipe teardown) {
+                    if (eatsWind && teardown.everyPossibleOutput().anyMatch(
+                            out -> out == Items.GUNPOWDER
+                                || out == RCItems.PROPELLANT_BRIQUETTE.get())) {
+                        loops.add(holder.id().identifier() + " (teardown)");
+                    }
+                    continue;
+                }
+                if (recipe.display().isEmpty()) {
+                    if (!recipe.isSpecial()) {
+                        unreadable.add(String.valueOf(BuiltInRegistries.RECIPE_TYPE.getKey(
+                            recipe.getType())) + " (" + holder.id().identifier() + ")");
+                    }
+                    continue;
                 }
                 if (!eatsWind) {
                     continue;
                 }
-                for (var display : holder.value().display()) {
+                for (var display : recipe.display()) {
                     for (ItemStack out : display.result().resolveForStacks(context)) {
                         if (out.is(Items.GUNPOWDER)
                             || out.is(RCItems.PROPELLANT_BRIQUETTE.get())) {
@@ -151,6 +193,12 @@ final class SinteringKilnTests {
             helper.assertTrue(scanned > 500,
                 "expected the full recipe set, scanned only " + scanned + " - this guard would pass "
                     + "against an empty recipe map");
+            helper.assertTrue(unreadable.isEmpty(),
+                "this sweep cannot read what these recipes produce, so it is silently blind to them "
+                    + "rather than clearing them: " + unreadable + ". Implement display(), or read the "
+                    + "type concretely here the way TeardownRecipe is read. Do NOT simply skip it - "
+                    + "skipping is what let the first version of this test report zero loops while "
+                    + "being unable to see the schema a pack is most likely to add one through.");
             helper.assertTrue(loops.isEmpty(),
                 "these turn wind back into propellant, which closes a loop that pays 4:1 - one "
                     + "briquette makes a rod, and vanilla makes FOUR wind charges from it: " + loops);
