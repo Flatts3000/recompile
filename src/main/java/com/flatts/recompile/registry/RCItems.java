@@ -106,6 +106,33 @@ public final class RCItems {
     public static final DeferredItem<Item> SOUL_SAND_SHARD = ITEMS.registerItem("soul_sand_shard", Item::new);
     public static final DeferredItem<Item> SOUL_SOIL_SHARD = ITEMS.registerItem("soul_soil_shard", Item::new);
 
+    /**
+     * A Sky Stone Shard (#276): a piece of the meteorite buried in the compacted depths.
+     *
+     * <p><b>It is only worth anything with AE2 installed</b>, which is the one uncomfortable thing
+     * about it. Four craft an {@code ae2:sky_stone_block}, and that recipe is guarded, so without AE2
+     * the shard has no use at all. CLAUDE.md: a find that is neither useful nor wanted is clutter.
+     *
+     * <p><b>So the DROP is gated, by {@code loot_modifiers/no_sky_stone.json}, which strips this item
+     * from every loot roll when AE2 is absent.</b> The shard is named directly in
+     * {@code slag_rubble_pulls} - it is our own item, so the id always resolves - in a pool of its
+     * own, and the modifier takes it back out again. Gating the pull stream's ENTRY instead was tried
+     * and measured wrong twice: a condition on a tag file is silently ignored in 26.1, and a
+     * conditional nested table leaves the entry in place, so it kept winning 15 rolls in 405 and
+     * handing back nothing - a silent one-in-27 empty pull in the default install. See
+     * {@code StripItemModifier} for the whole account.
+     *
+     * <p><b>The item itself is registered unconditionally and that is deliberate.</b> It is in the
+     * creative tab and JEI's item list whether or not AE2 is present, because a registry entry that
+     * comes and goes with another mod breaks every world that ever held one. Only the drop and the
+     * recipe are conditional, which is the half a player can notice.
+     *
+     * <p>It is a shard rather than the block dropping whole because every entry in the terrain pool of
+     * {@code slag_rubble_pulls} is a shard, four to a block. Breaking that pattern for one material
+     * would read as an oversight rather than a decision (owner, 2026-08-20).
+     */
+    public static final DeferredItem<Item> SKY_STONE_SHARD = ITEMS.registerItem("sky_stone_shard", Item::new);
+
     // ---------------- The compacted depths: scrap categories ----------------
     // The dump gives SCRAP; machines give materials. These are the Nether's three, and each feeds one
     // machine verb: circuitry SEPARATES into quartz (a board really is a mixture), phosphor
@@ -219,7 +246,7 @@ public final class RCItems {
     /** Nether terrain shards in creative-tab order. */
     public static final List<DeferredItem<Item>> NETHER_SHARDS = List.of(
         NETHERRACK_SHARD, BASALT_SHARD, BLACKSTONE_SHARD, SOUL_SAND_SHARD, SOUL_SOIL_SHARD,
-        CRIMSON_NYLIUM_SHARD, WARPED_NYLIUM_SHARD);
+        CRIMSON_NYLIUM_SHARD, WARPED_NYLIUM_SHARD, SKY_STONE_SHARD);
 
     /**
      * Fertilizer (Mod Jam - the fertilizer tier): the Compost Heap's output, composted from muck +

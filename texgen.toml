@@ -1196,6 +1196,20 @@ prompt = "a small sharp chip of plain grey stone, simple bold Minecraft item ico
 style = "lump"
 palette = ["#9a9a9e", "#8a8a8e", "#aaaaae", "#77777c"]
 
+# Sky Stone Shard (#276). AE2's meteorite rock, turning up in Slag Rubble because a meteorite is
+# buried in the compacted depths. Judged against the five NETHER shards rather than the seven stone
+# ones - it shares their stream, not the yard's - and it has to read apart from blackstone_shard at
+# 16px, which is the near miss: both are near-black rock. The difference is carried by SURFACE, a
+# smooth fused crust against blackstone's dry matte chip, plus a faint blue cast.
+[surface.sky_stone_shard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small chip of smooth blue-black meteorite rock with a glassy fused crust, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.sky_stone_shard.procedural]
+style = "lump"
+palette = ["#3a3d47", "#4a4e5a", "#2c2f37", "#5a5f6c"]
+
 [surface.granite_shard]
 kind = "item"
 backend = "ai"

@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "FOUR SHARDS TO A BLOCK, the same trade every other shard in this world makes (#276).",
+    "",
+    "Sky stone is meteoric rock, and a meteorite is buried in the compacted depths, crushed into",
+    "the waste like everything else down there. Slag Rubble is where its pieces turn up.",
+    "",
+    "Demand is bounded and front-loaded: 16 shards per Controller block and 16 per 256k cell",
+    "component - four shards to a block, then 1:1 smelting to smooth and 1:1 inscribing to dust -",
+    "so 50 to 150 shards for an entire playthrough, almost all spent once. Nothing in AE2 burns sky",
+    "stone as a running cost, which is why the drop can be the rarest thing in its stream.",
+    "",
+    "TEMPORARY, and guarded. This is pack content living in the engine because the pack cannot ship",
+    "data on 26.1.2; it leaves with the press pool - Flatts3000/trashlands#46.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own result id - measured on the Simple Magnets",
+    "overrides in #271 - and one bad recipe file leaves a single ERROR line in an otherwise green run."
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "category": "misc",
+  "ingredients": [
+    "recompile:sky_stone_shard",
+    "recompile:sky_stone_shard",
+    "recompile:sky_stone_shard",
+    "recompile:sky_stone_shard"
+  ],
+  "result": {
+    "id": "ae2:sky_stone_block"
+  }
+}

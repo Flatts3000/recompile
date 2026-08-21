@@ -63,6 +63,39 @@
           "weight": 50
         }
       ]
+    },
+    {
+      "_comment": [
+        "SKY STONE, AND IT RIDES ALONG RATHER THAN COMPETING (#276). TEMPORARY - this whole pool",
+        "leaves with the AE2 stopgap, Flatts3000/trashlands#46; nothing above it is affected.",
+        "",
+        "A SEPARATE POOL, not an eighth entry in the one above, and that is the fix from review of",
+        "#277 rather than a stylistic choice. As an entry it took weight 15 of 405 and DISPLACED a",
+        "terrain shard, which was fine with AE2 and a silent bug without it. The seven weights above",
+        "are load-bearing and stay untouched: this pool rolls separately, so a pull still always",
+        "yields its terrain shard and sky stone is a bonus on top of it.",
+        "",
+        "The shard is OUR item and always registered, so naming it here resolves in every install and",
+        "cannot take the table down at parse the way an absent mod's item id would. What makes it",
+        "conditional is loot_modifiers/no_sky_stone.json, which STRIPS it when AE2 is missing - the",
+        "one layer that gates without leaving a dud roll or a dangling reference behind.",
+        "",
+        "15 against 390 is 3.7%. Demand is bounded and front-loaded: 16 shards per Controller block",
+        "and 16 per 256k cell, so 50 to 150 for a whole playthrough, and nothing in AE2 burns sky",
+        "stone as a running cost. Final number belongs to the balance pass (#36)."
+      ],
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:sky_stone_shard",
+          "weight": 15
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 390
+        }
+      ]
     }
   ]
 }

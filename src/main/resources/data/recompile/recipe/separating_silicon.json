@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "SILICON OUT OF E-WASTE, which is where silicon actually comes from (#276).",
+    "",
+    "AE2 smelts silicon from certus dust, so as shipped CERTUS is the bottleneck for its entire",
+    "tree - every processor needs printed silicon and silicon needs certus. Sourcing silicon",
+    "separately splits one chokepoint into two, and leaves certus gating only what genuinely needs",
+    "a crystal: calculation processors, charged certus, fluix.",
+    "",
+    "SEPARATING, not pulverizing, and the two verbs on this one material do different jobs. E-Scrap",
+    "is a mixture - board, die, resin, plastic, plated metal - and taking the silicon die OUT of it",
+    "is division. Grinding is what liberates gold from resin, which is why the pulverizing slot",
+    "stays Circuit Powder. You do not grind a wafer to get silicon; you take it out.",
+    "",
+    "TEMPORARY, and guarded. This is pack content living in the engine because the pack cannot ship",
+    "data on 26.1.2; it leaves with the press pool - Flatts3000/trashlands#46.",
+    "",
+    "The neoforge:mod_loaded guard is load-bearing rather than tidy. Strip it and this file does not",
+    "merely fail to apply, it fails to PARSE on its own result id - measured on the Simple Magnets",
+    "overrides in #271 - and one bad recipe file leaves a single ERROR line in an otherwise green run."
+  ],
+  "type": "recompile:separating",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "input": "recompile:e_scrap",
+  "count": 1,
+  "ticks": 80,
+  "energy": 32,
+  "results": [
+    {
+      "item": "ae2:silicon",
+      "count": 1
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:plastic_scrap",
+      "count": 1
+    }
+  ]
+}
