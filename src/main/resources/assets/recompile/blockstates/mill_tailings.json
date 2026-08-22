@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "sorted=0": {
+      "model": "recompile:block/mill_tailings"
+    },
+    "sorted=1": {
+      "model": "recompile:block/mill_tailings"
+    },
+    "sorted=2": {
+      "model": "recompile:block/mill_tailings"
+    },
+    "sorted=3": {
+      "model": "recompile:block/mill_tailings"
+    },
+    "sorted=4": {
+      "model": "recompile:block/mill_tailings"
+    },
+    "sorted=5": {
+      "model": "recompile:block/mill_tailings"
+    }
+  }
+}

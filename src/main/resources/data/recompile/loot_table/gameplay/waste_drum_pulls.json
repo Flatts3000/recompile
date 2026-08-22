@@ -1,0 +1,53 @@
+{
+  "_comment": [
+    "A WASTE DRUM: what somebody sealed away, rather than what washed out of a heap (#285).",
+    "",
+    "This is where the consumer-scale finds live, and they are the reason the region is not a",
+    "science-fiction set piece: a dial clock, a smoke detector, welding rods - ordinary domestic",
+    "objects that really are mildly radioactive. Each passes 'would a person throw this away'.",
+    "",
+    "Uranium Glass is the rare one and is a COLLECTIBLE rather than a material (owner, 2026-08-22):",
+    "found whole, displayed on a pedestal, not processed. It is the only one of the four genuinely",
+    "collected in real life.",
+    "",
+    "Weights are first pass; #36 owns them."
+  ],
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:scrap_metal",
+          "weight": 60
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:radium_dial_clock",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:smoke_detector",
+          "weight": 30
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:thoriated_welding_rods",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:glass_shards",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:uranium_glass",
+          "weight": 8
+        }
+      ]
+    }
+  ]
+}

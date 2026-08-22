@@ -511,6 +511,33 @@ public final class RCItems {
     /** The loose burnt fraction inside that fill - the Nether's Stone Rubble. */
     public static final DeferredItem<BlockItem> SLAG_RUBBLE =
         ITEMS.registerSimpleBlockItem("slag_rubble", RCBlocks.SLAG_RUBBLE);
+
+    // ---------------- The radioactive dump (#285) ----------------
+
+    public static final DeferredItem<BlockItem> MILL_TAILINGS =
+        ITEMS.registerSimpleBlockItem("mill_tailings", RCBlocks.MILL_TAILINGS);
+    public static final DeferredItem<BlockItem> WASTE_DRUM =
+        ITEMS.registerSimpleBlockItem("waste_drum", RCBlocks.WASTE_DRUM);
+    public static final DeferredItem<BlockItem> STAINED_GROUND =
+        ITEMS.registerSimpleBlockItem("stained_ground", RCBlocks.STAINED_GROUND);
+    public static final DeferredItem<BlockItem> URANIUM_GLASS =
+        ITEMS.registerSimpleBlockItem("uranium_glass", RCBlocks.URANIUM_GLASS);
+
+    // The consumer-scale finds. All four are ordinary domestic objects that really are mildly
+    // radioactive, which is the point: they tie this region back to the household sprawl instead of
+    // making it a separate science-fiction place. Each passes "would a person throw this away".
+
+    /** Radium dial paint on a clock face, and the Radium Girls behind it. */
+    public static final DeferredItem<Item> RADIUM_DIAL_CLOCK =
+        ITEMS.registerItem("radium_dial_clock", Item::new);
+
+    /** An americium sealed source inside the most mundane object in the house. */
+    public static final DeferredItem<Item> SMOKE_DETECTOR =
+        ITEMS.registerItem("smoke_detector", Item::new);
+
+    /** Still sold, mildly radioactive, thrown away constantly. The most industrial of the four. */
+    public static final DeferredItem<Item> THORIATED_WELDING_RODS =
+        ITEMS.registerItem("thoriated_welding_rods", Item::new);
     /** Rubble: the demolition yard's pick-through stone-shard source. */
     public static final DeferredItem<BlockItem> PULVERIZER =
         ITEMS.registerSimpleBlockItem("pulverizer", RCBlocks.PULVERIZER);

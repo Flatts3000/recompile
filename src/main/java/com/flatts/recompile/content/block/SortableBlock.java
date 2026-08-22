@@ -14,6 +14,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import com.flatts.recompile.registry.RCItems;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -167,6 +168,53 @@ public abstract class SortableBlock extends FallingBlock {
     @Nullable
     protected abstract Item requiredTool();
 
+    /**
+     * A tool FAMILY, for when one item cannot express the gate.
+     *
+     * <p><b>Why this exists.</b> {@link #requiredTool()} names a single {@code Item}, which is exactly
+     * right for the Prybar and the Scrap Knife - there is one of each. There are <b>four</b>
+     * sledgehammers (copper, iron, diamond, netherite), so naming one would silently exclude three:
+     * a player holding a diamond sledgehammer would be told to fetch a copper one.
+     *
+     * <p><b>A variant with a family still declares a representative in {@link #requiredTool()}</b>, and
+     * that is deliberate rather than redundant. Viewers render an ITEM - Jade's tool hint takes
+     * {@link #sortTool()} and draws it - so a family with no representative would render as "sort by
+     * hand", which is wrong in the one direction that matters. The representative is the lowest tier,
+     * because that is the one a player is told to go and get.
+     *
+     * <p>The in-game nudge uses the family's own name where there is one, so it says "Sledgehammer"
+     * rather than naming a tier the gate does not actually require.
+     */
+    @Nullable
+    protected TagKey<Item> requiredToolFamily() {
+        return null;
+    }
+
+    /** Whether this variant needs anything at all in hand. */
+    protected final boolean requiresTool() {
+        return requiredTool() != null || requiredToolFamily() != null;
+    }
+
+    /** Whether a held stack opens this variant. */
+    protected final boolean isCorrectTool(ItemStack stack) {
+        Item single = requiredTool();
+        if (single != null && stack.is(single)) {
+            return true;
+        }
+        TagKey<Item> family = requiredToolFamily();
+        return family != null && stack.is(family);
+    }
+
+    /** What the "you need a tool" nudge should name: the family if there is one, else the item. */
+    protected final Component toolName() {
+        TagKey<Item> family = requiredToolFamily();
+        if (family != null) {
+            return Component.translatable(
+                "tool_family." + family.location().getNamespace() + "." + family.location().getPath());
+        }
+        return Component.translatable(requiredTool().getDescriptionId());
+    }
+
     // ---- read-only accessors for the Jade tooltip (compat.jade), which lives in
     // another package and cannot see the protected sort internals. ----
 
@@ -174,6 +222,23 @@ public abstract class SortableBlock extends FallingBlock {
     @Nullable
     public Item sortTool() {
         return requiredTool();
+    }
+
+    /**
+     * The tool FAMILY this variant accepts, or null if it names a single item (or none).
+     *
+     * <p>Public for the same reason {@link #sortTool()} is: the compat and test packages cannot see
+     * the protected internals. A viewer should keep drawing {@code sortTool()}, which is the
+     * representative - this is here so a check can ask what the gate actually is.
+     */
+    @Nullable
+    public TagKey<Item> sortToolFamily() {
+        return requiredToolFamily();
+    }
+
+    /** Whether a held stack opens this variant. Public mirror of the protected gate, for tests. */
+    public boolean acceptsTool(ItemStack stack) {
+        return isCorrectTool(stack);
     }
 
     /** Pulls taken so far, from the {@code sorted} blockstate (0 .. maxPulls-1). */
@@ -247,6 +312,17 @@ public abstract class SortableBlock extends FallingBlock {
         if (item == RCItems.SLAG_RUBBLE.get().asItem()) {
             return 7;
         }
+        // The radioactive dump (#285). Same standard as the rest: land inside the 2.0-2.4x band
+        // against the block's simulated hand average, rather than picking a number by eye.
+        // Tailings run a 3-6 window - wider than anything else here, because a spoil heap is bulk -
+        // for a hand average near 4.4, so 10 is 2.27x. The drum shares Stone Rubble's 2-4 window and
+        // therefore its 7.
+        if (item == RCItems.MILL_TAILINGS.get().asItem()) {
+            return 10;
+        }
+        if (item == RCItems.WASTE_DRUM.get().asItem()) {
+            return 7;
+        }
         return 0;
     }
 
@@ -277,7 +353,7 @@ public abstract class SortableBlock extends FallingBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hit) {
-        if (requiredTool() == null) {
+        if (!requiresTool()) {
             if (!takePull(player, ItemStack.EMPTY)) {
                 return InteractionResult.SUCCESS;
             }
@@ -289,8 +365,7 @@ public abstract class SortableBlock extends FallingBlock {
         // Needs a tool: nudge the player, don't consume the block.
         if (!level.isClientSide()) {
             player.sendSystemMessage(
-                Component.translatable("message.recompile.needs_tool",
-                    Component.translatable(requiredTool().getDescriptionId())));
+                Component.translatable("message.recompile.needs_tool", toolName()));
         }
         return InteractionResult.SUCCESS;
     }
@@ -298,8 +373,7 @@ public abstract class SortableBlock extends FallingBlock {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
-        Item tool = requiredTool();
-        if (tool != null && stack.is(tool)) {
+        if (isCorrectTool(stack)) {
             if (!takePull(player, stack)) {
                 return InteractionResult.SUCCESS;
             }

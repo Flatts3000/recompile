@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Dense enough that arriving is unmistakable, since V1 has no radiation and no detector - the",
+    "scatter and the finds carry the region's whole identity (spec section 8)."
+  ],
+  "feature": "recompile:radioactive_scatter",
+  "placement": [
+    {
+      "type": "minecraft:count",
+      "count": 14
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "WORLD_SURFACE_WG"
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

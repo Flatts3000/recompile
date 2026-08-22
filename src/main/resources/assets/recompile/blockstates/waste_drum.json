@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "sorted=0": {
+      "model": "recompile:block/waste_drum"
+    },
+    "sorted=1": {
+      "model": "recompile:block/waste_drum"
+    },
+    "sorted=2": {
+      "model": "recompile:block/waste_drum"
+    },
+    "sorted=3": {
+      "model": "recompile:block/waste_drum"
+    }
+  }
+}

@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "recompile:household_sprawl",
-    "recompile:demolition_yard"
+    "recompile:demolition_yard",
+    "recompile:radioactive_dump"
   ]
 }

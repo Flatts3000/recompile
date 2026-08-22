@@ -27,6 +27,9 @@ import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.MechanicalWasteBlock;
 import com.flatts.recompile.content.block.MoundGroundBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
+import com.flatts.recompile.content.block.MillTailingsBlock;
+import com.flatts.recompile.content.block.WasteDrumBlock;
+import com.flatts.recompile.content.block.StainedGroundBlock;
 import com.flatts.recompile.content.block.SlagRubbleBlock;
 import com.flatts.recompile.content.block.TechnoOrganicWasteBlock;
 import com.flatts.recompile.content.block.SeparatorPartBlock;
@@ -182,6 +185,70 @@ public final class RCBlocks {
      *
      * <p>Unlike the waste it obeys gravity, which is the whole distinction between terrain and spoil.
      */
+    // ---------------- The radioactive dump (#285) ----------------
+    // Three blocks: the bulk one you strip, the drum that says what the place is, and the stain that
+    // makes the ground read as contaminated. See docs/radioactive_dump_spec.md.
+
+    /** Mill Tailings: the bulk block, and the only uranium in the world. Falls; needs a sledgehammer. */
+    public static final DeferredBlock<MillTailingsBlock> MILL_TAILINGS = BLOCKS.registerBlock(
+        "mill_tailings",
+        MillTailingsBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.SAND)
+            .strength(0.7F)
+            .sound(SoundType.SAND)
+            .requiresCorrectToolForDrops()
+    );
+
+    /** A Waste Drum: rarer, better pulls, opened with a prybar. */
+    public static final DeferredBlock<WasteDrumBlock> WASTE_DRUM = BLOCKS.registerBlock(
+        "waste_drum",
+        WasteDrumBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_YELLOW)
+            .strength(1.2F)
+            .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
+    );
+
+    /**
+     * Stained Ground: dressing, no loot.
+     *
+     * <p>Coarse dirt's hardness, sound and shovel, with a stained face - the same relationship
+     * {@code MoundGround} has to coarse dirt. No {@code requiresCorrectToolForDrops}: it is dirt.
+     */
+    public static final DeferredBlock<StainedGroundBlock> STAINED_GROUND = BLOCKS.registerBlock(
+        "stained_ground",
+        StainedGroundBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_GREEN)
+            .strength(0.5F)
+            .sound(SoundType.GRAVEL)
+    );
+
+    /**
+     * Uranium Glass: a collectible, found whole (owner, 2026-08-22).
+     *
+     * <p><b>The only one of the region's four finds that is genuinely collected in real life</b>, which
+     * is what decided it. Vaseline glass is a collecting hobby, it fluoresces, and as a MATERIAL it
+     * would only have duplicated Mill Tailings' job. CLAUDE.md is explicit that a find may exist to be
+     * displayed rather than processed.
+     *
+     * <p>A placeable light-emitting block rather than an item trophy, which is what the Puzzle Cube
+     * already is - so it needs no voxel port, just a texture and a light level. It sits on a Display
+     * Pedestal like anything else.
+     */
+    public static final DeferredBlock<Block> URANIUM_GLASS = BLOCKS.registerBlock(
+        "uranium_glass",
+        Block::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_LIGHT_GREEN)
+            .strength(0.3F)
+            .sound(SoundType.GLASS)
+            .lightLevel(state -> 7)
+            .noOcclusion()
+    );
+
     public static final DeferredBlock<SlagRubbleBlock> SLAG_RUBBLE = BLOCKS.registerBlock(
         "slag_rubble",
         SlagRubbleBlock::new,

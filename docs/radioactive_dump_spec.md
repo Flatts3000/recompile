@@ -1,6 +1,6 @@
 # Radioactive Dump - region spec
 
-**Issue:** #285. **Status:** design, not implemented. **Owner decisions are dated.**
+**Issue:** #285. **Status:** V1 shipped 2026-08-22. **Owner decisions are dated.**
 
 The second frontier region, beyond the demolition yard. It exists because **Powah is unstartable in
 this world** - every non-circular route to `powah:uraninite` runs through an ore whose biome modifiers
@@ -132,9 +132,19 @@ block.
 
 ## 5. Finds
 
-**The requirement is `powah:uraninite`**, guarded with `neoforge:mod_loaded` like every other foreign
-id. Sixteen Powah recipes consume it and the entire energy tier is downstream; the reachability
-closure reaches 126 of 133 Powah items once the root exists.
+**The requirement is uraninite.** Sixteen Powah recipes consume it and the entire energy tier is
+downstream; the reachability closure reaches 126 of 133 Powah items once the root exists.
+
+**Shipped as a `minecraft:tag` entry over `#c:raw_materials/uraninite` with `expand: true`**, rather
+than a `neoforge:mod_loaded` guard. Naming `powah:uraninite_raw` directly would kill the whole pull
+table at parse when Powah is absent, because an item id resolves against the registry when the file is
+read; a `TagKey` does not. And `expand: true` is what makes an absent tag contribute **no entries at
+all** rather than one that wins rolls and hands back nothing - measured at 341 items from 400 rolls
+when flipped to `false`.
+
+**Raw rather than refined, deliberately:** the tag resolves to `powah:uraninite_raw`, and Powah's own
+`uraninite_from_raw` smelts it. Finding raw ore in tailings and processing it is what tailings *are* -
+spent rock that still has some uranium in it.
 
 **DECIDED (2026-08-22): all four consumer-scale objects ship in V1.** They are the reason this region
 is not a science-fiction set piece - household things in a household world, tying it back to the
@@ -256,13 +266,32 @@ means expressing the tier in Java; doing it on the break is data-only but gates 
 
 ---
 
-## 9. Open decisions
+## 9. Decisions, closed
 
-1. **Sledgehammer tier for tailings: copper or iron** (section 8.1). Copper keeps the regions parallel;
-   iron makes the yard a genuine prerequisite.
-2. **Is uranium glass a collectible or a material** (section 5)?
+**Both remaining questions were settled on 2026-08-22 and V1 is implemented.**
 
-Everything else in this spec is decided.
+1. **Copper tier**, not iron. The deciding argument is coherence with the onset: 1024 was chosen so a
+   player finds the dump while working the yard and reaches Powah before the Nether, and an iron gate
+   would push Powah *behind* the yard's full iron chain, fighting that. The regions stay parallel. The
+   tier lever remains available if playtesting says it is too soft - it is a one-line change now that
+   the family mechanism exists.
+2. **Uranium glass is a collectible**, not a material. It is the only one of the four genuinely
+   collected in real life, and as a material it would only have duplicated Mill Tailings' job. Shipped
+   as a placeable light-emitting block - which is what the Puzzle Cube already is - so it needed no
+   voxel port.
+
+### What shipped
+
+Three blocks, four finds, one biome at onset 1024, two pull streams, and one shared-code change:
+`SortableBlock` gained `requiredToolFamily()`, because the gate named a single `Item` and there are
+four sledgehammers. A variant with a family still declares a **representative** in `requiredTool()`,
+because Jade draws an item and a family alone would render as "sort by hand".
+
+Three tests, each mutation-tested: the tool family (reverting it fails on three of four tiers), the
+`expand: true` guard (flipping it gives 341 items from 400 rolls), and the region's onset ordering.
+
+**Verified with Powah installed** - `powah:uraninite_raw` drops from Mill Tailings, so the mod is
+startable. Powah needs `cloth_config` and `guideme` alongside it to load at all.
 
 ---
 

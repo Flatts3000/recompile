@@ -185,6 +185,19 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "binnable"));
 
     /**
+     * Every sledgehammer, as an ITEM tag, for gates that mean "the tool" rather than "that tool".
+     *
+     * <p>{@link #MINEABLE_WITH_SLEDGEHAMMER} is its block-side twin and answers a different question:
+     * that one governs BREAKING a block, this one governs what a player may hold to work it. Mill
+     * Tailings needs the second, because {@code SortableBlock}'s pull gate names an {@code Item} and
+     * there are four sledgehammers - naming one would silently exclude three.
+     *
+     * <p>Already shipped as JSON; declared here so Java can point at it rather than restate the list.
+     */
+    public static final TagKey<Item> SLEDGEHAMMER = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "sledgehammer"));
+
+    /**
      * The demolition yard's seven stone shards - what Sifting Rubble yields, and the crafting input for
      * the vanilla stone family. Already shipped as JSON; declared here so Java can assert against it.
      */
