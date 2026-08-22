@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
@@ -74,8 +75,18 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
 
                 // The stain goes UNDER the heap and one ring beyond it, so contamination is visible
                 // around the edge rather than only where blocks stand.
+                //
+                // ONLY OVER THE BIOME'S OWN GROUND, and that guard is load-bearing. The first version
+                // tested isSolidRender() and painted whatever it found, which is the region's most
+                // common case rather than an edge one: WORLD_SURFACE_WG is updated by every setBlock
+                // during decoration, so a later heap landing on an earlier one has its origin pushed
+                // up onto that heap - and its whole stain disc then converts the neighbour's MILL
+                // TAILINGS into dressing. That turns the region's only uranium block into a block
+                // with no loot at all, and buries a plate of stain mid-heap. Caught in review of
+                // #286.
                 BlockPos ground = origin.offset(dx, -1, dz);
-                if (level.getBlockState(ground).isSolidRender()) {
+                BlockState under = level.getBlockState(ground);
+                if (under.is(Blocks.COARSE_DIRT) || under.is(RCBlocks.STAINED_GROUND.get())) {
                     level.setBlock(ground, stain, 2);
                 }
                 if (column == 0) {

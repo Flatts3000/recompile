@@ -7,6 +7,7 @@
     "recompile:present",
     "recompile:gold_coin",
     "recompile:toy_car",
-    "minecraft:painting"
+    "minecraft:painting",
+    "recompile:uranium_glass"
   ]
 }

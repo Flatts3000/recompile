@@ -209,8 +209,11 @@ public abstract class SortableBlock extends FallingBlock {
     protected final Component toolName() {
         TagKey<Item> family = requiredToolFamily();
         if (family != null) {
+            // tool.<ns>.<path>, which RCHarvestGate.toolKey already uses for the dig nudge on these
+            // same blocks. A second key for the same word off the same tag path would drift in
+            // translation, and review of #286 caught the duplicate before it could.
             return Component.translatable(
-                "tool_family." + family.location().getNamespace() + "." + family.location().getPath());
+                "tool." + family.location().getNamespace() + "." + family.location().getPath());
         }
         return Component.translatable(requiredTool().getDescriptionId());
     }
@@ -234,6 +237,11 @@ public abstract class SortableBlock extends FallingBlock {
     @Nullable
     public TagKey<Item> sortToolFamily() {
         return requiredToolFamily();
+    }
+
+    /** The family's display name, for viewers. Public mirror of {@link #toolName()}. */
+    public Component toolFamilyName() {
+        return toolName();
     }
 
     /** Whether a held stack opens this variant. Public mirror of the protected gate, for tests. */
@@ -314,9 +322,14 @@ public abstract class SortableBlock extends FallingBlock {
         }
         // The radioactive dump (#285). Same standard as the rest: land inside the 2.0-2.4x band
         // against the block's simulated hand average, rather than picking a number by eye.
-        // Tailings run a 3-6 window - wider than anything else here, because a spoil heap is bulk -
-        // for a hand average near 4.4, so 10 is 2.27x. The drum shares Stone Rubble's 2-4 window and
-        // therefore its 7.
+        //
+        // Tailings run a 3-6 window - wider than anything else here, because a spoil heap is bulk.
+        // Over shouldCrumble that is 0.25/0.375/0.28125/0.09375 across pulls 3..6, so the hand
+        // average is 4.219 and 10 gives 2.37x. (Stated as 4.4 and 2.27x when written; the numbers
+        // were wrong and review of #286 caught them. The same formula reproduces stone rubble's
+        // documented 2.89, which is what makes it checkable.)
+        //
+        // The drum shares Stone Rubble's 2-4 window and therefore its 7.
         if (item == RCItems.MILL_TAILINGS.get().asItem()) {
             return 10;
         }

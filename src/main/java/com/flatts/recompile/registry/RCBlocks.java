@@ -185,6 +185,16 @@ public final class RCBlocks {
      *
      * <p>Unlike the waste it obeys gravity, which is the whole distinction between terrain and spoil.
      */
+    public static final DeferredBlock<SlagRubbleBlock> SLAG_RUBBLE = BLOCKS.registerBlock(
+        "slag_rubble",
+        SlagRubbleBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLACK)
+            .strength(0.8F)
+            .sound(SoundType.GRAVEL)
+            .requiresCorrectToolForDrops()
+    );
+
     // ---------------- The radioactive dump (#285) ----------------
     // Three blocks: the bulk one you strip, the drum that says what the place is, and the stain that
     // makes the ground read as contaminated. See docs/radioactive_dump_spec.md.
@@ -247,16 +257,6 @@ public final class RCBlocks {
             .sound(SoundType.GLASS)
             .lightLevel(state -> 7)
             .noOcclusion()
-    );
-
-    public static final DeferredBlock<SlagRubbleBlock> SLAG_RUBBLE = BLOCKS.registerBlock(
-        "slag_rubble",
-        SlagRubbleBlock::new,
-        () -> BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_BLACK)
-            .strength(0.8F)
-            .sound(SoundType.GRAVEL)
-            .requiresCorrectToolForDrops()
     );
 
     /**

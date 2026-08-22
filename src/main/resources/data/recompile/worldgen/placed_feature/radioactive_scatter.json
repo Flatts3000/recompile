@@ -1,13 +1,22 @@
 {
   "_comment": [
-    "Dense enough that arriving is unmistakable, since V1 has no radiation and no detector - the",
-    "scatter and the finds carry the region's whole identity (spec section 8)."
+    "COUNT 4, DERIVED RATHER THAN PICKED (corrected in review of #286).",
+    "",
+    "A heap is 5-11 wide, so a mean radius near 4 covers about 49 columns. At the count of 14 this",
+    "first shipped with, that is ~686 columns against a chunk's 256 - 2.7x COVERAGE, an unbroken",
+    "carpet with no clean ground anywhere. That defeats two things at once: the stain is meant to be",
+    "visible around a heap's rim, and this biome is in the encroachment tag precisely so grass is",
+    "CONTESTED on the clean ground - of which there would have been none.",
+    "",
+    "Every other scatter in this mod sits well under 1x: rubble_pile is 6 x ~21 = 0.49x,",
+    "mechanical_waste_pile is 2. Four heaps x 49 columns is 0.77x - denser than the yard's rubble,",
+    "which is right for the region whose identity the scatter has to carry, without becoming a floor."
   ],
   "feature": "recompile:radioactive_scatter",
   "placement": [
     {
       "type": "minecraft:count",
-      "count": 14
+      "count": 4
     },
     {
       "type": "minecraft:in_square"

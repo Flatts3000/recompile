@@ -3,12 +3,12 @@
   "temperature": 0.6,
   "downfall": 0.1,
   "effects": {
-    "fog_color": 9079434,
-    "sky_color": 10066329,
+    "fog_color": 10134379,
+    "sky_color": 11054212,
     "water_color": 5921370,
     "water_fog_color": 4210752,
-    "grass_color": 7302237,
-    "foliage_color": 7302237,
+    "grass_color": 9080646,
+    "foliage_color": 8160064,
     "mood_sound": {
       "sound": "minecraft:ambient.cave",
       "tick_delay": 6000,
@@ -114,6 +114,11 @@
     "",
     "HOSTILE SPAWNS ON, the same set as the yard (owner, 2026-08-22). Consistent with the only other",
     "frontier region, and it gives V1 some teeth while radiation is deferred to Mekanism - see section",
-    "6 of the spec for why there is no radiation here yet."
+    "6 of the spec for why there is no radiation here yet.",
+    "",
+    "EFFECTS ARE ITS OWN, not the yard's. They shipped byte-identical to demolition_yard's and review",
+    "of #286 caught it: the two frontier regions were indistinguishable at range, which undercuts the",
+    "one thing V1 has to do without radiation - make arriving unmistakable. A sallow yellow-green",
+    "haze against the yard's grey, with grass and foliage sickened to match the ground."
   ]
 }

@@ -56,9 +56,25 @@ final class RadioactiveDumpTests {
                 }
             }
 
-            helper.assertTrue(checked >= 4,
-                "expected at least the four sledgehammer tiers in #recompile:sledgehammer, found "
-                    + checked + " - an empty or missing tag makes every assertion below vacuous");
+            helper.assertTrue(checked > 0,
+                "#recompile:sledgehammer is empty or missing, which makes every assertion below "
+                    + "vacuous");
+
+            // THE TAG MUST HOLD EVERY SLEDGEHAMMER THE CODE DEFINES, not merely four of something.
+            // RCItems.SLEDGEHAMMERS is the canonical list (RCCreativeTabs already builds from it),
+            // and the tag is a second inventory of the same facts. Register a fifth tier in Java,
+            // forget the JSON, and it is silently excluded from this gate - the precise failure the
+            // family mechanism exists to prevent. Counting to four could not see that; review of
+            // #286 called it out.
+            var missing = new TreeSet<String>();
+            for (var tier : RCItems.SLEDGEHAMMERS) {
+                if (!new ItemStack(tier.get()).is(RCTags.SLEDGEHAMMER)) {
+                    missing.add(String.valueOf(BuiltInRegistries.ITEM.getKey(tier.get())));
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "these sledgehammers are registered in Java but absent from #recompile:sledgehammer, "
+                    + "so they do not open Mill Tailings: " + missing);
             helper.assertTrue(rejected.isEmpty(),
                 "these sledgehammers cannot open Mill Tailings, so a player holding one is told to "
                     + "fetch a different tier: " + rejected + ". The gate is a FAMILY; if it has gone "

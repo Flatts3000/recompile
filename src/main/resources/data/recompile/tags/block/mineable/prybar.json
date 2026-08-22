@@ -10,6 +10,7 @@
     "recompile:corrugated_metal",
     "recompile:corrugated_metal_slab",
     "recompile:corrugated_metal_stairs",
-    "recompile:corrugated_metal_wall"
+    "recompile:corrugated_metal_wall",
+    "recompile:waste_drum"
   ]
 }

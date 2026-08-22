@@ -30,12 +30,12 @@ public final class RCFeatures {
         FEATURES.register("mycelium_patch", MyceliumPatchFeature::new);
 
     /** Low piles of Rubble in the demolition yard - the bare-hand stone-shard source. */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> RUBBLE_PILE =
+        FEATURES.register("rubble_pile", RubblePileFeature::new);
+
     /** The radioactive dump's scatter: a tailings heap, its stain, and sometimes a drum (#285). */
     public static final Supplier<Feature<NoneFeatureConfiguration>> TAILINGS_HEAP =
         FEATURES.register("tailings_heap", TailingsHeapFeature::new);
-
-    public static final Supplier<Feature<NoneFeatureConfiguration>> RUBBLE_PILE =
-        FEATURES.register("rubble_pile", RubblePileFeature::new);
 
     /** Heaps of Mechanical Waste in the yard - the gem tier's found half (docs/gem_tier_spec.md). */
     public static final Supplier<Feature<NoneFeatureConfiguration>> MECHANICAL_WASTE_PILE =
