@@ -1,6 +1,6 @@
 # Radioactive Dump - region spec
 
-**Issue:** #285. **Status:** design, not implemented. **Owner decisions recorded here are dated.**
+**Issue:** #285. **Status:** design, not implemented. **Owner decisions are dated.**
 
 The second frontier region, beyond the demolition yard. It exists because **Powah is unstartable in
 this world** - every non-circular route to `powah:uraninite` runs through an ore whose biome modifiers
@@ -21,19 +21,24 @@ the only uranium in the world. You leave when you have stripped it, because **no
 
 ## 1. Placement
 
-A second entry in the `frontier` list of `world_preset/garbage.json`. Today that list holds exactly one:
+**DECIDED (2026-08-22): onset 1024.** A second entry in the `frontier` list of
+`world_preset/garbage.json`, which today holds exactly one:
 
 ```json
-{ "biome": "recompile:demolition_yard", "onset": 512 }
+{ "biome": "recompile:demolition_yard",  "onset": 512  }
+{ "biome": "recompile:radioactive_dump", "onset": 1024 }
 ```
 
 with `core_radius: 512`, `falloff: 256.0`, `household_floor: 0.2`, `noise_scale: 0.5`.
 
-- **OPEN: the onset number.** The yard sits at the core radius; this is one step further out. The
-  figure should be decided against how much of Powah is meant to be reachable before the Nether, not
-  picked for roundness.
-- **Placement is by distance gradient plus noise**, so there are **many** radioactive dumps in a world.
-  That matters given section 3: each deposit is finite, the world is not.
+Double the yard: **a short trip past somewhere the player already goes**, so they will stumble into it
+while working the yard rather than having to go looking. That makes Powah an early-mid unlock,
+reachable well before the Nether, and it removes the main risk of a distant region - that it is never
+found at all. It also sets up a deliberate tension with section 8: **you find the place before you can
+exploit it**, which turns the tool into a goal rather than a wall.
+
+Placement is by distance gradient plus noise, so a world holds **many** radioactive dumps. That matters
+given section 3: each deposit is finite, the world is not.
 
 **The generator is baked into `level.dat` at world creation**, so this only affects NEW worlds. Testing
 needs a fresh one, and `runClient`'s quickPlay world is not it - quickPlay creates a DEFAULT world that
@@ -44,15 +49,18 @@ silently ignores the preset. Use `runServer` with `level-type=recompile\:garbage
 ## 2. The biome
 
 - **Surface: unchanged coarse dirt**, as the yard is. Identity comes from what is scattered on top,
-  never from re-surfacing. The reclamation ladder and encroachment both ride on the coarse-dirt surface
-  rule, and re-surfacing would silently break the Grass Spreader.
-- **OPEN: hostile spawns.** The yard turned them on as a scoped introduction of the threat axis.
-  Repeating that is free; not repeating it needs a reason.
-- **OPEN: encroachment.** The yard is in `#recompile:encroaches`, and the reasoning for putting it
-  there is worth re-reading before deciding: the original exception was reversed in 2026-07-31 because
-  **the asymmetry was undiscoverable** - a player who learns "grass reverts unless you anchor it" in
-  the sprawl carries that rule here, watches it not happen, and reads the design as a bug. One rule
-  everywhere beat the tuning the exception bought. The same argument applies to this region.
+  never from re-surfacing: the reclamation ladder and encroachment both ride on the coarse-dirt surface
+  rule, and re-surfacing would silently break the Grass Spreader. Stained Ground (section 4) is the one
+  qualification and is deliberate.
+- **DECIDED (2026-08-22): hostile spawns ON, the same set as the yard** - zombie, skeleton, spider,
+  creeper; creature and other lists empty. Consistent with the only other frontier region, and it
+  gives V1 some teeth while radiation is deferred, which matters because V1 otherwise has no threat at
+  all.
+- **DECIDED (2026-08-22): in `#recompile:encroaches`.** Same as both existing biomes. The yard's
+  exception was reversed on 2026-07-31 for a reason that applies identically here: **the asymmetry was
+  undiscoverable.** A player who learns "grass reverts unless you anchor it" in the sprawl carries that
+  rule here, watches it not happen, and reads the design as a bug - which is exactly how it surfaced,
+  as a playtest report. One rule everywhere beat the tuning the exception bought.
 
 ---
 
@@ -69,70 +77,91 @@ regrow**. The rule was there and unstated:
 > The sprawl regrows because you live in it. The frontier does not, because you leave.
 
 **The consequence, accepted:** `powah:uraninite` is reactor *fuel*, a running cost rather than a
-one-time build cost, so a player will exhaust a deposit and have to travel to the next one. That is
-what uranium extraction actually is, and the noisy gradient means there is always a next one.
+one-time build cost, so a player exhausts a deposit and travels to the next. That is what uranium
+extraction is, and the noisy gradient means there is always a next one.
 
 **A note for V2**, not a commitment: once Mekanism is in, the renewable radioactive material is the
-**nuclear waste the player produces themselves**. You clear their dump, then you make your own. That
-resolves the finiteness question without ever making waste replenish itself.
+**nuclear waste the player produces themselves**. You clear their dump, then you make your own - which
+resolves finiteness without ever making waste replenish itself.
 
 ---
 
 ## 4. Blocks
 
-Every scatter block here should be a `SortableBlock`, which is the mod's pick-through loop and already
-has seven variants. A new one supplies five things: a `sorted` property, a pull table, a min/max
-crumble window, and a required tool. **No new mechanic is needed for V1.**
+**DECIDED (2026-08-22): three.** Two sortables and one dressing block. The yard has four features and
+three block families and cost an entire phase; this is deliberately smaller.
 
-The block is doing three jobs at once, and that is what makes the design tight: it **holds the loot**,
+A `SortableBlock` variant supplies five things - a `sorted` property, a pull table, a min/max crumble
+window, and a required tool - and there are already seven variants, so **no new mechanic is needed**
+(but see section 8 for the one change the tool gate does need).
+
+Each sortable does three jobs at once, and that is what makes the design tight: it **holds the loot**,
 it **will emit the dose** (section 6), and **clearing it removes both**.
 
-**Bulk - the biome's Garbage Block equivalent:**
+### 4.1 Mill Tailings (bulk)
 
-- **Mill Tailings.** Sandy uranium-processing waste, genuinely left in open heaps for decades (Moab,
-  Church Rock). Gravity-affected like every `SortableBlock`. This is the ground cover and the main
-  uraninite stream.
+Sandy uranium-processing waste, genuinely left in open heaps for decades - Moab, Church Rock. Gravity
+affected like every `SortableBlock`. This is the ground cover, the main uraninite stream, and the
+block the region's economy runs on.
 
-**Containers - the punctuation:**
+### 4.2 Waste Drum (punctuation)
 
-- **Waste Drum.** The 55-gallon steel drum, yellow with the trefoil. Low-level waste really is drummed.
-- **OPEN: a shielded container** - a lead pig or cask, as the rare one. Depends on whether lead exists
-  here, which today it does not; Mekanism brings it.
+The 55-gallon steel drum, yellow, trefoil stencilled on the side. Low-level waste really is drummed.
+Rarer than tailings, better pulls, and the object that says what the place is.
 
-**OPEN: how many block types V1 ships.** The yard has four features and three block families and cost
-an entire phase. This should be smaller, and deciding *how much* smaller up front is what stops it
-sprawling.
+### 4.3 Stained Ground (dressing, no loot)
+
+A discoloured patch where something leaked. No pull table, no drops - it exists so the ground the drums
+sit on reads as contaminated.
+
+**It is a SURFACE block, which is the one qualification to section 2, and it has a consequence worth
+deciding deliberately: it cannot be healed.** If it sits outside `#minecraft:substrate_overworld` then
+grass will never spread onto it and the Grass Spreader will not convert it.
+
+**That is proposed as correct rather than as a limitation.** Contamination that scrubs clean is not
+contamination, and there is precedent: `MoundGroundBlock` is deliberately kept out of
+`#minecraft:dirt`, because membership would reach `#encroachable` through `#substrate_overworld` and
+the junkyard would eat its own memory.
+
+It does mean the two ground types behave differently inside one biome: **grass is contested on the
+clean ground (section 2) and impossible on the stained patches.** Unlike the yard's reverted
+exception, this one is *discoverable* - the ground looks different, which is the whole point of the
+block.
 
 ---
 
 ## 5. Finds
 
 **The requirement is `powah:uraninite`**, guarded with `neoforge:mod_loaded` like every other foreign
-id. Sixteen Powah recipes consume it and the whole energy tier is downstream; the reachability closure
-reaches 126 of 133 Powah items once the root exists.
+id. Sixteen Powah recipes consume it and the entire energy tier is downstream; the reachability
+closure reaches 126 of 133 Powah items once the root exists.
 
-**Beyond that, the consumer-scale objects are the ones that matter most**, and they are the reason this
-region is not a science-fiction set piece:
+**DECIDED (2026-08-22): all four consumer-scale objects ship in V1.** They are the reason this region
+is not a science-fiction set piece - household things in a household world, tying it back to the
+sprawl instead of making it a separate place. All four pass *would a person throw this away* outright:
 
-- **Radium dial clock** - watch and clock faces painted with radium, and the Radium Girls behind them.
-- **Thoriated welding rods** - still sold, mildly radioactive, thrown away constantly.
-- **Americium smoke detector** - a genuine sealed source in a domestic object.
-- **Uranium glass** - collectible in real life, glows under UV. A natural fit for the collectibles
-  system, which exists for exactly this kind of object.
+| find | referent |
+|---|---|
+| **Radium dial clock** | Watch and clock faces painted with radium, and the Radium Girls behind them |
+| **Uranium glass** | Collectible in real life, glows under UV |
+| **Smoke detector** | An americium sealed source inside an utterly mundane object |
+| **Thoriated welding rods** | Still sold, mildly radioactive, thrown away constantly |
 
-They pass *would a person throw this away* outright, they are household things in a household world,
-and they tie the region back to the sprawl rather than making it a separate place.
+**OPEN: whether uranium glass is a collectible rather than a material.** The collectibles system exists
+for exactly this kind of found object - displayed on a pedestal rather than processed - and uranium
+glass is the only one of the four that is genuinely collected in real life. Deciding this decides
+whether it needs a display model or a teardown exit.
 
-**Orphan sources** - radiography cameras, teletherapy heads - are the dangerous version and the objects
-behind Goiânia and Ciudad Juárez, both of which were **scrapyards that melted a source into the metal
-supply**. Worth having somewhere, but they land better once radiation is real (section 6).
+**Orphan sources** - radiography cameras, teletherapy heads - are the dangerous version, and the
+objects behind Goiânia and Ciudad Juárez, both of which were **scrapyards that melted a source into
+the metal supply**. Deliberately held for V2: they land far better once radiation is real.
 
 ---
 
 ## 6. V2: radiation, via Mekanism (owner, 2026-08-21)
 
-**V1 ships no radiation at all.** Mekanism ships a complete radiation system - dose accumulation,
-Geiger counter, hazmat suit, poisoning - and building a parallel one now is work that gets deleted.
+**V1 ships no radiation at all.** Mekanism ships a complete system - dose accumulation, Geiger counter,
+hazmat suit, poisoning - and building a parallel one now is work that gets deleted.
 
 **The design, when it lands: the blocks are the sources.** Not a biome-wide debuff.
 
@@ -141,8 +170,8 @@ IRadiationManager.INSTANCE.radiate(Level, BlockPos, double);   // a drum, a tail
 IRadiationManager.INSTANCE.radiate(LivingEntity, double);      // direct dose
 ```
 
-This is what Mekanism's model is actually built for: `getRadiationSources()` is a table keyed by chunk
-and position, and sources are things placed in the world. **There is no data-driven or biome-wide
+This is what Mekanism's model is built for: `getRadiationSources()` is a table keyed by chunk and
+position, and sources are things placed in the world. **There is no data-driven or biome-wide
 radiation** - no biome tag, nothing a datapack can point at a region - so this needs our Java either
 way. Confirmed against `Mekanism-1.21.1-10.7.19.85`.
 
@@ -152,13 +181,16 @@ Why block-as-source is the better shape:
   cannot express.
 - It **recedes as you clear the dump**, which is the correct feeling for a mod about clearing dumps.
 - A **per-block dose is free** - a drum is hotter than tailings because it is a different `double`.
-- `IRadiationShielding` is a capability, so Mekanism's own hazmat suit works with no knowledge of ours.
+- `IRadiationShielding` is a capability, so Mekanism's hazmat suit works with no knowledge of ours.
 
 **Three things V1 must therefore NOT build**, because Mekanism supersedes each:
 
 1. **No Geiger counter.** Mekanism's reads *its* radiation, not ours.
 2. **No shielding or armour.** This mod has no armour system and should not gain one for this.
 3. **No damage mechanic.** See section 7.
+
+A shielded container - a lead pig or cask - is also held back, both because it belongs with radiation
+and because **lead does not exist in this world today**; Mekanism brings it.
 
 ---
 
@@ -175,34 +207,62 @@ rather than stacked. Two reasons recorded with it:
 
 So *radiation damages you unless you wear a suit* is a **reversal of a recorded decision**, not a
 default. Deferring the whole hazard to Mekanism keeps that ruling intact by construction rather than by
-argument - and when it does land, the cost is positional and recedes as you work, which is much closer
-to leachate's shape than a flat debuff would be.
+argument - and when it lands, the cost is positional and recedes as you work, which is much closer to
+leachate's shape than a flat debuff would be.
 
 ---
 
-## 8. What V1 is gated by, stated plainly
+## 8. Gating
 
-With no hazard until Mekanism, the gate is what the yard's is: **travel past the onset, plus a tool.**
-Nothing else stops a player stripping a deposit on arrival.
+**DECIDED (2026-08-22): Mill Tailings takes a sledgehammer; the Waste Drum takes a prybar.**
 
-That is acceptable but should be deliberate: **V1 is the easier trip**, and radiation arriving later
-*raises the cost of a place the player already knows*. That is a fine progression beat. What it means
-for V1 is that **the finds and the scatter are carrying the region's whole identity** - there is no
-danger to lean on - so they have to be interesting on their own.
+The drum half is free - the prybar already exists and Bulky Waste is opened with one. The tailings half
+carries two consequences that were **corrected after the decision**, and both change what it buys.
 
-**OPEN: the tool gate.** The prybar already exists and opening a drum with one is natural.
+### 8.1 It is a ladder gate, not a yard gate
+
+The option this was chosen from said the yard becomes a prerequisite. **That is wrong.** The lowest
+sledgehammer tier is `copper_sledgehammer` - one copper block and two sticks. Copper comes from Scrap
+Metal in `household_pulls`; sticks come from the Tree Nursery. Both are available at home.
+
+So a sledgehammer is gated by **the reclamation ladder**, which is exactly the gate the demolition yard
+already has: *"the frontier is gated by the reclamation ladder itself - its iron needs a sledgehammer,
+the sledgehammer needs sticks, sticks need trees."* The two frontier regions come out **parallel**, not
+sequential.
+
+That is still a real gate and a good one - it is strictly stronger than bare hands, and it means a
+player finds the dump at 1024 while working the yard and cannot strip it until the ladder is finished.
+
+**OPEN: copper tier or iron tier.** If sequencing is actually wanted, the lever is the **tier**, not the
+tool. Iron comes only from Steel Offcut, which drops only from the yard's Steel I-Beam - so requiring
+an **iron** sledgehammer would genuinely put the yard first. There is precedent for tier-gating with no
+Java: Ancient Sculk uses `#recompile:mineable/sledgehammer` for the type plus
+`#minecraft:needs_diamond_tool` for the tier, which works only because `RCItems.COPPER_TIER` is built
+on `INCORRECT_FOR_STONE_TOOL`.
+
+### 8.2 The mechanism cannot express "any sledgehammer" today
+
+`SortableBlock.requiredTool()` returns a **single `Item`**, and there are **four** sledgehammers -
+copper, iron, diamond, netherite. Naming one means the other three do not work.
+
+`tags/item/sledgehammer.json` already exists, so the fix is small: teach the pull gate to take a tag
+rather than an item, or add a tag-based sibling to `requiredTool()`. But it is **a change to a shared
+base class that seven blocks extend**, not the data-only choice the prybar would have been, and the
+tier question above rides on the same change.
+
+Note the tier gate and the pull gate are different mechanisms: `#minecraft:needs_iron_tool` governs
+**breaking** a block, while `requiredTool()` governs **picking through** it. Doing tiers on the pull
+means expressing the tier in Java; doing it on the break is data-only but gates the wrong verb.
 
 ---
 
-## 9. Open decisions, collected
+## 9. Open decisions
 
-1. The onset distance (section 1).
-2. Hostile spawns yes or no (section 2).
-3. Encroachment membership (section 2).
-4. How many block types V1 ships (section 4).
-5. Which consumer-scale finds make V1, and whether uranium glass is a collectible (section 5).
-6. The tool gate (section 8).
-7. Whether a shielded container waits for lead (section 4).
+1. **Sledgehammer tier for tailings: copper or iron** (section 8.1). Copper keeps the regions parallel;
+   iron makes the yard a genuine prerequisite.
+2. **Is uranium glass a collectible or a material** (section 5)?
+
+Everything else in this spec is decided.
 
 ---
 
@@ -212,6 +272,9 @@ danger to lean on - so they have to be interesting on their own.
   approval.
 - **`RegionBiomeSourceTests` exists** and asserts the gradient, so a second frontier entry has a place
   to be pinned.
+- **The pull gate change (8.2) needs its own test**, because it touches a base class seven blocks
+  extend and a regression there is silent - a variant that stops requiring its tool just becomes
+  bare-hand sortable.
 - **This is engine content, not a cross-mod stopgap.** The biome and its blocks belong here
   permanently; only the Powah item ids are foreign and need the usual guard. Unlike #268/#269 there is
   no move-back issue, because the region is ours.
