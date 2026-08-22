@@ -12,6 +12,10 @@
             {
               "biome": "recompile:demolition_yard",
               "onset": 512
+            },
+            {
+              "biome": "recompile:radioactive_dump",
+              "onset": 1024
             }
           ],
           "core_radius": 512,

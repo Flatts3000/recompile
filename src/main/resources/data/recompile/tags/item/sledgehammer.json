@@ -1,0 +1,19 @@
+{
+  "_comment": [
+    "EVERY SLEDGEHAMMER, as an item tag (#285).",
+    "",
+    "Its block-side twin, tags/block/mineable/sledgehammer.json, answers a different question:",
+    "that one governs BREAKING a block, this governs what a player may HOLD to pick through one.",
+    "",
+    "Mill Tailings needs this because SortableBlock's pull gate names a single Item and there are",
+    "four sledgehammers - naming one would tell a player holding a diamond sledgehammer to go and",
+    "fetch a copper one."
+  ],
+  "replace": false,
+  "values": [
+    "recompile:copper_sledgehammer",
+    "recompile:iron_sledgehammer",
+    "recompile:diamond_sledgehammer",
+    "recompile:netherite_sledgehammer"
+  ]
+}

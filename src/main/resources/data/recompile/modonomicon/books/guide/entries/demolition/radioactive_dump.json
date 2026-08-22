@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:demolition/radioactive_dump",
+  "category": "recompile:demolition",
+  "name": "book.recompile.guide.demolition.radioactive_dump.name",
+  "icon": {
+    "id": "recompile:waste_drum"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "parents": [
+    {
+      "entry": "recompile:demolition/trommel"
+    }
+  ],
+  "x": 6,
+  "y": 1
+}

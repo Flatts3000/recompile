@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "ground",
+  "sort_number": 1,
+  "show_title_separator": true,
+  "title": "book.recompile.guide.demolition.radioactive_dump.ground.title",
+  "text": "book.recompile.guide.demolition.radioactive_dump.ground.text"
+}

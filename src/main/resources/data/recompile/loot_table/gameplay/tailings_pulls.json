@@ -1,0 +1,65 @@
+{
+  "_comment": [
+    "MILL TAILINGS: the radioactive dump's bulk stream (#285).",
+    "",
+    "Tailings are what is left after uranium is extracted - sandy, low grade, and produced in",
+    "volumes too large to contain. So the stream is mostly spoil: sand, gravel, stone shards, with",
+    "the occasional piece of the plant that processed it.",
+    "",
+    "URANINITE ARRIVES AS A TAG ENTRY, and expand:true is load-bearing.",
+    "",
+    "It is Powah's item, so naming powah:uraninite_raw directly would kill this whole table at",
+    "parse when Powah is absent - an item id resolves against the registry when the file is read.",
+    "A TagKey does not resolve at parse time, so #c:raw_materials/uraninite is simply inert.",
+    "",
+    "expand:true makes a tag contribute ONE ENTRY PER MEMBER, so with Powah absent it contributes",
+    "NONE and this pool falls back to the five spoil entries with no dud roll. expand:false would",
+    "leave a single entry holding weight 55 that wins one roll in five and hands back nothing -",
+    "the silent empty pull that shipped in #276 and was caught in review of #277.",
+    "",
+    "RAW rather than refined, deliberately: c:raw_materials/uraninite is powah:uraninite_raw, and",
+    "Powah's own uraninite_from_raw smelts it. Finding raw ore in tailings and processing it is",
+    "what tailings ARE - the spent rock that still has some uranium left in it.",
+    "",
+    "Weights are first pass; #36 owns them."
+  ],
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:sand",
+          "weight": 90
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gravel",
+          "weight": 70
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:stone_shard",
+          "weight": 45
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:scrap_metal",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:thoriated_welding_rods",
+          "weight": 12
+        },
+        {
+          "type": "minecraft:tag",
+          "name": "c:raw_materials/uraninite",
+          "expand": true,
+          "weight": 55
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 {
   "values": [
     "recompile:reinforced_concrete",
-    "recompile:ancient_sculk"
+    "recompile:ancient_sculk",
+    "recompile:mill_tailings"
   ]
 }

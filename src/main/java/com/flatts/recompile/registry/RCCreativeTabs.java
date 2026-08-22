@@ -57,6 +57,15 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.STONE_RUBBLE.get());
                     output.accept(RCItems.TECHNO_ORGANIC_WASTE.get());
                     output.accept(RCItems.SLAG_RUBBLE.get());
+
+                    // The radioactive dump (#285)
+                    output.accept(RCItems.MILL_TAILINGS.get());
+                    output.accept(RCItems.WASTE_DRUM.get());
+                    output.accept(RCItems.STAINED_GROUND.get());
+                    output.accept(RCItems.URANIUM_GLASS.get());
+                    output.accept(RCItems.RADIUM_DIAL_CLOCK.get());
+                    output.accept(RCItems.SMOKE_DETECTOR.get());
+                    output.accept(RCItems.THORIATED_WELDING_RODS.get());
                     output.accept(RCItems.REINFORCED_CONCRETE.get());
                     output.accept(RCItems.STEEL_I_BEAM.get());
                     output.accept(RCItems.MECHANICAL_WASTE.get());

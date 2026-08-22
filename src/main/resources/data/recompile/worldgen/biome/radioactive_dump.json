@@ -1,0 +1,124 @@
+{
+  "has_precipitation": true,
+  "temperature": 0.6,
+  "downfall": 0.1,
+  "effects": {
+    "fog_color": 10134379,
+    "sky_color": 11054212,
+    "water_color": 5921370,
+    "water_fog_color": 4210752,
+    "grass_color": 9080646,
+    "foliage_color": 8160064,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    }
+  },
+  "spawners": {
+    "monster": [
+      {
+        "type": "minecraft:spider",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 100
+      },
+      {
+        "type": "minecraft:zombie",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 90
+      },
+      {
+        "type": "minecraft:zombie_villager",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 5
+      },
+      {
+        "type": "minecraft:zombie_horse",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 5
+      },
+      {
+        "type": "minecraft:skeleton",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 100
+      },
+      {
+        "type": "minecraft:creeper",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 100
+      },
+      {
+        "type": "minecraft:slime",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 100
+      },
+      {
+        "type": "minecraft:enderman",
+        "maxCount": 4,
+        "minCount": 1,
+        "weight": 10
+      },
+      {
+        "type": "minecraft:witch",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 5
+      }
+    ],
+    "creature": [],
+    "ambient": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "misc": [],
+    "underground_water_creature": [],
+    "axolotls": []
+  },
+  "spawn_costs": {},
+  "carvers": [],
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "recompile:radioactive_scatter"
+    ],
+    []
+  ],
+  "_comment": [
+    "THE RADIOACTIVE DUMP (#285), the second frontier region. Spec: docs/radioactive_dump_spec.md.",
+    "",
+    "Somewhere past the demolition yard, someone buried the things nobody would take. Not a crater and",
+    "not a science-fiction wasteland - a landfill with drums in it.",
+    "",
+    "It exists because Powah is unstartable in this world: every non-circular route to uraninite runs",
+    "through an ore whose biome modifiers gate on #minecraft:is_overworld, and this mod ships no entry",
+    "for that tag by owner ruling (2026-08-20). Rather than open that door, the material is FOUND.",
+    "",
+    "SURFACE UNCHANGED, as the yard's is. Identity comes from what is scattered on top, never from",
+    "re-surfacing: the reclamation ladder and encroachment both ride on the coarse-dirt surface rule.",
+    "Stained Ground is the one qualification and is placed as a feature rather than as a surface rule.",
+    "",
+    "HOSTILE SPAWNS ON, the same set as the yard (owner, 2026-08-22). Consistent with the only other",
+    "frontier region, and it gives V1 some teeth while radiation is deferred to Mekanism - see section",
+    "6 of the spec for why there is no radiation here yet.",
+    "",
+    "EFFECTS ARE ITS OWN, not the yard's. They shipped byte-identical to demolition_yard's and review",
+    "of #286 caught it: the two frontier regions were indistinguishable at range, which undercuts the",
+    "one thing V1 has to do without radiation - make arriving unmistakable. A sallow yellow-green",
+    "haze against the yard's grey, with grass and foliage sickened to match the ground."
+  ]
+}

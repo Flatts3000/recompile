@@ -37,8 +37,16 @@ public enum ToolHintProvider implements IBlockComponentProvider {
             tooltip.add(Component.translatable("jade.recompile.open_with",
                 Component.translatable(RCItems.PRYBAR.get().getDescriptionId())));
         } else if (tool != null) {
-            tooltip.add(Component.translatable("jade.recompile.salvage_with",
-                Component.translatable(tool.getDescriptionId())));
+            // THE FAMILY NAME WHERE THERE IS ONE, because this renders the tool's NAME as text rather
+            // than drawing an icon. Mill Tailings takes ANY sledgehammer and declares the copper one
+            // only as a representative, so naming the item here would read "Salvage with a Copper
+            // Sledgehammer" to a player holding a diamond one - the exact failure requiredToolFamily()
+            // was added to prevent, in a different viewer. Caught in review of #286.
+            Component name = block instanceof SortableBlock sortable
+                && sortable.sortToolFamily() != null
+                ? sortable.toolFamilyName()
+                : Component.translatable(tool.getDescriptionId());
+            tooltip.add(Component.translatable("jade.recompile.salvage_with", name));
         } else if (block instanceof SortableBlock) {
             tooltip.add(Component.translatable("jade.recompile.sort_by_hand"));
         }

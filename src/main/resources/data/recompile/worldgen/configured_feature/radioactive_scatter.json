@@ -1,0 +1,11 @@
+{
+  "_comment": [
+    "The dump's whole silhouette in one feature (#285): a tailings heap, the stain under and",
+    "around it, and sometimes a drum on top. All three of the region's blocks from one feature.",
+    "",
+    "A CUSTOM feature, like every other scatter in this mod. minecraft:random_patch was tried and",
+    "does not exist under that id in 26.1 - only minecraft:ore is used from vanilla here."
+  ],
+  "type": "recompile:tailings_heap",
+  "config": {}
+}

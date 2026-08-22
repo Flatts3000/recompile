@@ -2232,3 +2232,55 @@ prompt = "a full-bleed top-down Minecraft block face of a SQUARE rusted steel ac
 vanilla_ref = "block/iron_block"
 [surface.manhole.procedural]
 style = "manhole_cover"
+
+# ---------------- The radioactive dump (#285) ----------------
+
+[surface.mill_tailings]
+kind = "block"
+backend = "ai"
+size = 16
+# Spoil, not sand: uniform pale grey-buff grit with no bedding and no shells. It must read as a
+# processed waste heap rather than a beach, because it sits next to real sand in its own pull stream.
+prompt = "a seamless texture of pale grey-buff uranium mill tailings, fine uniform crushed rock grit, slightly damp and compacted, faint rust-orange staining in places, flat top-down view, gritty pixel art, 16x16 Minecraft block texture"
+
+[surface.waste_drum]
+kind = "block"
+backend = "ai"
+size = 16
+# The single most legible image of the whole idea, so the trefoil has to survive 16px: big, centred,
+# high contrast, and nothing else competing with it.
+prompt = "a seamless texture of the side of a battered yellow steel 55 gallon waste drum, a large bold black radiation trefoil stencilled in the centre, rust streaks and dents around it, ribbed steel bands top and bottom, flat side-on view, pixel art, 16x16 Minecraft block texture"
+
+[surface.stained_ground]
+kind = "block"
+backend = "ai"
+size = 16
+# A retint relationship to coarse dirt, the way mound_ground is: the same ground, unmistakably wrong.
+# Sickly green-yellow rather than dramatic, because it is dressing and sits under everything else.
+prompt = "a seamless texture of contaminated bare dirt, dark brown coarse soil discoloured with sickly yellow-green chemical staining and pale salt crusting, patchy and mottled, flat top-down view, gritty pixel art, 16x16 Minecraft block texture"
+
+[surface.uranium_glass]
+kind = "block"
+backend = "ai"
+size = 16
+# Vaseline glass: the colour IS the object. Translucent yellow-green with an internal glow, because
+# the block emits light.
+prompt = "a seamless texture of translucent uranium vaseline glass, glowing yellow-green, smooth pressed glass with soft internal luminance and subtle swirls, flat view, pixel art, 16x16 Minecraft block texture"
+
+[surface.radium_dial_clock]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small old alarm clock face with glowing pale green radium painted numerals and hands, cracked yellowed enamel dial, scuffed metal bezel, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.smoke_detector]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a round white plastic household smoke detector, discoloured and dusty, small vent slots and a test button, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.thoriated_welding_rods]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small bundle of grey metal welding rods tied together, one end tipped in red paint, slightly bent and tarnished, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"

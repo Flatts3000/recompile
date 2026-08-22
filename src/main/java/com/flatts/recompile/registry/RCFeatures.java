@@ -6,6 +6,7 @@ import com.flatts.recompile.content.worldgen.MechanicalWastePileFeature;
 import com.flatts.recompile.content.worldgen.MoundFeature;
 import com.flatts.recompile.content.worldgen.MyceliumPatchFeature;
 import com.flatts.recompile.content.worldgen.RubblePileFeature;
+import com.flatts.recompile.content.worldgen.TailingsHeapFeature;
 import com.flatts.recompile.content.worldgen.BuildingHuskFeature;
 import com.flatts.recompile.content.worldgen.SteelStackFeature;
 import java.util.function.Supplier;
@@ -31,6 +32,10 @@ public final class RCFeatures {
     /** Low piles of Rubble in the demolition yard - the bare-hand stone-shard source. */
     public static final Supplier<Feature<NoneFeatureConfiguration>> RUBBLE_PILE =
         FEATURES.register("rubble_pile", RubblePileFeature::new);
+
+    /** The radioactive dump's scatter: a tailings heap, its stain, and sometimes a drum (#285). */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> TAILINGS_HEAP =
+        FEATURES.register("tailings_heap", TailingsHeapFeature::new);
 
     /** Heaps of Mechanical Waste in the yard - the gem tier's found half (docs/gem_tier_spec.md). */
     public static final Supplier<Feature<NoneFeatureConfiguration>> MECHANICAL_WASTE_PILE =
