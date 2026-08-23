@@ -15,6 +15,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 
 /**
  * Proves the region system's load-bearing guarantee (demolition_yard_spec.md S1): <b>everything within
@@ -157,22 +158,19 @@ final class RegionBiomeSourceTests {
                 }
 
                 // WHERE A REGION IS THE ONLY ONE ELIGIBLE IT MUST DOMINATE; ELSEWHERE IT NEED ONLY BE
-                // PRESENT. Two thresholds rather than one, because a single "fair share" number
-                // cannot be both meaningful and correct.
+                // PRESENT, because how the eligible regions divide the frontier between them is
+                // every_frontier_region_gets_an_even_share's job rather than this one's.
                 //
-                // The pick is `(int)(pick * eligible)` over a NormalNoise, which is roughly Gaussian
-                // with a deviation near 1/3 - NOT uniform. Two regions split at the mean and come out
-                // near 50/50, but three cut at about +-1 sigma (16/68/16) and four at +-1.5 sigma
-                // (7/43/43/7). A "100/eligible, near enough" threshold would therefore go RED on a
-                // fourth region for a source behaving exactly as built. That skew is a real defect -
-                // a region's share depends on its POSITION in the preset array - and it is #290's to
-                // fix, not this test's to hide.
-                //
-                // But in the band where a region is alone, no pick happens at all, so the share is
-                // just the frontier probability and a strict threshold IS sound. That band is the one
-                // the old bug report was about, and measuring each region from ITS OWN onset is what
+                // In the band where a region is alone no pick happens at all, so its share is just
+                // the frontier probability and a strict threshold is sound. That band is the one the
+                // original bug report was about, and measuring each region from ITS OWN onset is what
                 // makes it reachable: taking a single floor across every entry left everything below
                 // the LAST region's onset sampled by nothing.
+                //
+                // (This comment used to argue that a fair-share threshold could not be used at all,
+                // because the pick noise is Gaussian and equal-width buckets gave the middle of the
+                // array 68% against the ends' 16%. #290 fixed that - the buckets are equal-AREA now -
+                // so the argument is gone and the sibling test asserts evenness directly.)
                 int hi = span;
                 for (RegionBiomeSource.FrontierEntry other : frontier) {
                     if (other.onset() > lo && other.onset() < hi) {
@@ -224,11 +222,17 @@ final class RegionBiomeSourceTests {
 
             var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
             Holder<Biome> household = biomes.getOrThrow(biomeKey("household_sprawl"));
+            // A VANILLA BIOME FOR THE FOURTH SLOT. This mod has four biomes and one of them is
+            // household_sprawl, and a registry hands back the SAME Holder for the same key - so using
+            // it here made entry 3 indistinguishable from a household result, and its measured share
+            // silently absorbed every household quart in the annulus (about 3 points, inside the
+            // tolerance only because the tolerance is loose). Nothing about this test needs the
+            // biomes to be this mod's; it needs four distinct holders.
             List<Holder<Biome>> pool = List.of(
                 biomes.getOrThrow(biomeKey("demolition_yard")),
                 biomes.getOrThrow(biomeKey("radioactive_dump")),
                 biomes.getOrThrow(biomeKey("compacted_depths")),
-                biomes.getOrThrow(biomeKey("household_sprawl")));
+                biomes.getOrThrow(Biomes.PLAINS));
 
             int lo = coreRadius + (int) falloff;
             int hi = lo + 1500;
@@ -243,9 +247,6 @@ final class RegionBiomeSourceTests {
                 int[] shares = new int[count];
                 int total = 0;
                 for (int i = 0; i < count; i++) {
-                    // Counted against the SOURCE's own answer per position rather than by comparing
-                    // holders, because the fourth pool entry is household_sprawl and would otherwise
-                    // be indistinguishable from a household result.
                     shares[i] = frontierPercent(source, frontier.get(i).biome(), lo, hi);
                     total += shares[i];
                 }
@@ -274,10 +275,34 @@ final class RegionBiomeSourceTests {
                 new RegionBiomeSource.FrontierEntry(pool.get(1), 0));
             RegionBiomeSource twoRegions = new RegionBiomeSource(household, pair,
                 coreRadius, falloff, floor, noiseScale, 2611L);
-            helper.assertTrue(twoRegions.pickCut(2) == 0.0,
-                "the two-region cut is at " + twoRegions.pickCut(2) + " rather than exactly 0.0, so "
-                    + "this change would move biome boundaries in worlds that already exist. The "
+            helper.assertTrue(twoRegions.pickCuts(2)[0] == 0.0,
+                "the two-region cut is at " + twoRegions.pickCuts(2)[0] + " rather than exactly 0.0, "
+                    + "so this change would move biome boundaries in worlds that already exist. The "
                     + "threshold sample must stay mirrored.");
+
+            // AND THE THRESHOLDS DO NOT DEPEND ON noise_scale. They are measured by sampling the
+            // noise, and the first version of that sampling strode in BLOCK units multiplied by the
+            // scale - so a pack setting a tiny noise_scale would have collapsed the number of
+            // independent draws, turned the quantiles into noise, and degraded the even split with
+            // nothing logged. Sampling in the noise's own units is what makes this hold.
+            //
+            // Asserted on the CUTS rather than on a share, because at a tiny scale the noise barely
+            // varies across any sampled annulus and one region legitimately wins everywhere - that is
+            // what "world-spanning blobs" means and it is not a defect to assert against.
+            List<RegionBiomeSource.FrontierEntry> three = List.of(
+                new RegionBiomeSource.FrontierEntry(pool.get(0), 0),
+                new RegionBiomeSource.FrontierEntry(pool.get(1), 0),
+                new RegionBiomeSource.FrontierEntry(pool.get(2), 0));
+            double[] atShipped = new RegionBiomeSource(household, three,
+                coreRadius, falloff, floor, noiseScale, 2611L).pickCuts(3);
+            double[] atTiny = new RegionBiomeSource(household, three,
+                coreRadius, falloff, floor, 0.01, 2611L).pickCuts(3);
+            helper.assertTrue(java.util.Arrays.equals(atShipped, atTiny),
+                "the measured thresholds differ between noise_scale " + noiseScale + " and 0.01 ("
+                    + java.util.Arrays.toString(atShipped) + " vs "
+                    + java.util.Arrays.toString(atTiny) + "). The sampling stride has gone back to "
+                    + "block units times the scale, so a pack with a small noise_scale gets quantiles "
+                    + "measured from a few dozen correlated draws.");
             helper.succeed();
         });
     }

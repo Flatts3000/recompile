@@ -83,7 +83,7 @@ public class RegionBiomeSource extends BiomeSource {
         NormalNoise.NoiseParameters params = new NormalNoise.NoiseParameters(-7, 1.0);
         this.blobNoise = NormalNoise.create(new XoroshiroRandomSource(seed), params);
         this.pickNoise = NormalNoise.create(new XoroshiroRandomSource(seed ^ 0x9E3779B97F4A7C15L), params);
-        this.thresholds = measureThresholds(this.pickNoise, noiseScale, this.frontier.size());
+        this.thresholds = measureThresholds(this.pickNoise, this.frontier.size());
     }
 
     /**
@@ -120,7 +120,7 @@ public class RegionBiomeSource extends BiomeSource {
      * sync with the constructor. Sampling costs a few thousand evaluations once per source rather than
      * anything per quart.
      */
-    private static double[][] measureThresholds(NormalNoise noise, double noiseScale, int regions) {
+    private static double[][] measureThresholds(NormalNoise noise, int regions) {
         int samples = 4096;
         // MIRRORED, so the sample is exactly symmetric about zero. Two things follow, and the second
         // is the reason: the quantiles come out symmetric like the noise itself, and the two-region
@@ -130,10 +130,19 @@ public class RegionBiomeSource extends BiomeSource {
         // instead would put the cut a hair off zero and shuffle a scattering of boundary cells for no
         // benefit at all.
         double[] values = new double[samples * 2];
-        // A coprime stride over a wide span, so the samples are spread across many wavelengths of the
-        // noise rather than marching in step with one.
+        // THE STRIDE IS IN THE NOISE'S OWN UNITS AND DOES NOT INVOLVE noiseScale. The noise is
+        // stationary, so its distribution is whatever a decorrelated sample says it is - but
+        // noise_scale is a pack-tunable codec field whose own comment contemplates "tiny values", and
+        // multiplying the stride by it made the number of INDEPENDENT draws proportional to it. At
+        // the shipped 0.5 that is thousands; at 0.01 it would be a few dozen, the measured quantiles
+        // would be noise, and the equal-area guarantee this method exists to provide would quietly
+        // degrade back toward an uneven split with nothing logged.
+        //
+        // One octave at firstOctave -7 means an input step of 128 is one lattice cell, so these
+        // strides are about 0.31 and 0.88 cells: far enough apart not to sample neighbours, and not
+        // in step with the lattice.
         for (int i = 0; i < samples; i++) {
-            double value = noise.getValue(i * 37 * noiseScale, 0.0, i * 101 * noiseScale);
+            double value = noise.getValue(i * 40.0, 0.0, i * 113.0);
             values[i * 2] = value;
             values[i * 2 + 1] = -value;
         }
@@ -156,10 +165,13 @@ public class RegionBiomeSource extends BiomeSource {
         return cuts;
     }
 
-    /** One measured cut point, so a test can prove the two-region split has not moved. */
-    public double pickCut(int eligible) {
-        double[] cuts = thresholds[eligible];
-        return cuts.length == 1 ? cuts[0] : Double.NaN;
+    /**
+     * The measured cut points for a given eligible count, so tests can prove two things that nothing
+     * else can see: that the two-region split has not moved off zero, and that the thresholds do not
+     * depend on {@code noise_scale}.
+     */
+    public double[] pickCuts(int eligible) {
+        return thresholds[eligible].clone();
     }
 
     @Override
