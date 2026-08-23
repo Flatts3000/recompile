@@ -62,6 +62,30 @@ silently ignores the preset. Use `runServer` with `level-type=recompile\:garbage
   rule here, watches it not happen, and reads the design as a bug - which is exactly how it surfaced,
   as a playtest report. One rule everywhere beat the tuning the exception bought.
 
+### 2.1 Atmosphere (owner, 2026-08-23)
+
+**DECIDED: windblown dust and a sallow haze. No ambient sound.**
+
+V1 ships no radiation, so the air is one of the few things carrying the region's identity, and the
+honest version of it is dust: radon and windblown fines off an uncovered impoundment are what the real
+remediation programmes are about. It is `minecraft:white_ash` at probability **0.025**, calibrated
+against vanilla's own four ambient-particle biomes (0.00625 soul sand valley, 0.01428 warped forest,
+0.025 crimson forest, 0.118 basalt deltas). The last of those is a blizzard and reads as weather
+rather than as a place.
+
+**No fog distance.** `visual/fog_start_distance` and `visual/fog_end_distance` exist and are tempting,
+and no vanilla biome sets either - the only distance vanilla touches is water fog, with a MULTIPLY
+modifier rather than an absolute. Pulling the horizon in on a region a player has to walk 1024 blocks
+to reach is a playability change dressed up as art.
+
+**A sound was considered and declined.** `audio/ambient_sounds` takes a `loop`, and the only sounds
+available without authoring audio are vanilla's - which are all nether or cave loops. One of those
+under an open overworld sky reads as a bug rather than as atmosphere.
+
+**The mechanism is `attributes`, not `effects`, and that is not a detail.** 26.1 split
+`BiomeSpecialEffects`; see CLAUDE.md's API-deltas section. Every biome in this mod had been shipping
+its fog and sky in the dead half.
+
 ---
 
 ## 3. Nothing here regrows (owner, 2026-08-22)
@@ -97,6 +121,31 @@ window, and a required tool - and there are already seven variants, so **no new 
 
 Each sortable does three jobs at once, and that is what makes the design tight: it **holds the loot**,
 it **will emit the dose** (section 6), and **clearing it removes both**.
+
+### 4.0 The shape they come in (owner, 2026-08-23)
+
+**DECIDED: one broad impoundment per ~4 chunks, not a field of mounds.**
+
+The first shape was 5-11 wide heaps at four per chunk and it was wrong in a way the numbers could not
+see: a census found tailings, stain and drums all in correct proportion, and a screenshot showed
+cupcakes with a candle on each. The tells were a one-block centre spire (which the drum was then
+perched on), a single sharp step for a side, and - at radius 2-3 - a literal plus sign for a
+silhouette.
+
+The reference is Moab and Church Rock: **one enormous engineered pile**, roughly 1:12 across to high,
+flat on top, with a pale turquoise decant pond and a barren stained ring. The flat top was never the
+problem; the scale was.
+
+So: radius 10-16, height 3-5, a skirt whose width is derived from the height at the angle of repose, a
+lobed outline from two sine harmonics, drums clustered at the **toe** rather than the summit, and a
+decant pond cut one block into the plateau. The pond is plain water tinted by the biome's
+`water_color` - deliberately **not** the mod's Leachate block, which is rain drained through refuse and
+sprawl-only by the 2026-08-05 ruling.
+
+**The pond was the trap.** At the first radius and height ranges the skirt ate almost the whole
+footprint, so only 26% of piles had a plateau big enough to hold one - and nothing failed, because a
+pile without a pond is a valid pile. A census of a real world finding zero water anywhere is what
+caught it. `a_decant_pond_is_not_a_coin_flip` pins the rate at 80% or better.
 
 ### 4.1 Mill Tailings (bulk)
 
