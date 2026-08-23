@@ -104,8 +104,10 @@ class BiomeEffectsPlacementTest {
         assertTrue(dir != null, "could not find the biome directory, so this test measured nothing");
 
         List<String> problems = new java.util.ArrayList<>();
+        int checked = 0;
         try (Stream<Path> files = Files.list(dir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).toList()) {
+                checked++;
                 JsonObject biome = read(file);
                 JsonObject attributes = biome.getAsJsonObject("attributes");
                 if (attributes == null) {
@@ -122,6 +124,7 @@ class BiomeEffectsPlacementTest {
                 }
             }
         }
+        assertTrue(checked > 0, "no biome files were read, so this test measured nothing");
         assertTrue(problems.isEmpty(), String.join("\n", problems));
     }
 

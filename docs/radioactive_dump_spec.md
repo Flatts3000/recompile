@@ -124,7 +124,7 @@ it **will emit the dose** (section 6), and **clearing it removes both**.
 
 ### 4.0 The shape they come in (owner, 2026-08-23)
 
-**DECIDED: one broad impoundment per ~4 chunks, not a field of mounds.**
+**DECIDED: one broad impoundment per ~3 chunks, not a field of mounds.**
 
 The first shape was 5-11 wide heaps at four per chunk and it was wrong in a way the numbers could not
 see: a census found tailings, stain and drums all in correct proportion, and a screenshot showed
@@ -136,9 +136,16 @@ The reference is Moab and Church Rock: **one enormous engineered pile**, roughly
 flat on top, with a pale turquoise decant pond and a barren stained ring. The flat top was never the
 problem; the scale was.
 
-So: radius 10-16, height 3-5, a skirt whose width is derived from the height at the angle of repose, a
+So: radius 9-12, height 3-4, a skirt whose width is derived from the height at the angle of repose, a
 lobed outline from two sine harmonics, drums clustered at the **toe** rather than the summit, and a
-decant pond cut one block into the plateau. The pond is plain water tinted by the biome's
+decant pond cut one block into the plateau.
+
+**The radius ceiling is an engine limit, not taste.** `ChunkStatus.FEATURES` carries
+`blockStateWriteRadius(1)` and `WorldGenRegion.ensureCanWrite` compares chunk coordinates against it,
+so a feature may only write 16 blocks from its origin in the worst case. The longest lobe plus the
+stain ring is `12 * 1.21 + 1 = 15.5`. A draft of this rewrite used radius 16 with drums thrown to 23;
+every block past the limit is silently rejected and logged at ERROR, and the pile comes out sheared
+flat along a chunk line. The pond is plain water tinted by the biome's
 `water_color` - deliberately **not** the mod's Leachate block, which is rain drained through refuse and
 sprawl-only by the 2026-08-05 ruling.
 
