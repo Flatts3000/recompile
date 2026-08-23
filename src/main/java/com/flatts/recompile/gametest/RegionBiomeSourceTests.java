@@ -203,6 +203,83 @@ final class RegionBiomeSourceTests {
                     + "household sprawl - the bug report this threshold exists to catch.");
             helper.succeed();
         });
+
+        // EVERY FRONTIER REGION GETS THE SAME SHARE, WHATEVER ITS POSITION IN THE ARRAY (#290).
+        //
+        // <p>The pick noise is a NormalNoise: roughly Gaussian, not uniform. Slicing it into
+        // equal-WIDTH buckets therefore handed the middle of the preset's array far more land than the
+        // ends - measured at about 16/68/16 for three regions and 7/43/43/7 for four, purely from
+        // array order. Two regions split near 50/50, which is why nothing surfaced: the mod ships
+        // exactly two.
+        //
+        // <p>So this test builds THREE and FOUR synthetic frontiers out of the biomes that exist, at a
+        // shared onset so every one of them is eligible everywhere it samples. It would have been
+        // green against the old code for the two-region case and red for both of these.
+        RCGameTests.test("every_frontier_region_gets_an_even_share", 1, helper -> {
+            String preset = readPreset();
+            int coreRadius = (int) presetValue(preset, "core_radius");
+            float falloff = (float) presetValue(preset, "falloff");
+            float floor = (float) presetValue(preset, "household_floor");
+            double noiseScale = presetValue(preset, "noise_scale");
+
+            var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
+            Holder<Biome> household = biomes.getOrThrow(biomeKey("household_sprawl"));
+            List<Holder<Biome>> pool = List.of(
+                biomes.getOrThrow(biomeKey("demolition_yard")),
+                biomes.getOrThrow(biomeKey("radioactive_dump")),
+                biomes.getOrThrow(biomeKey("compacted_depths")),
+                biomes.getOrThrow(biomeKey("household_sprawl")));
+
+            int lo = coreRadius + (int) falloff;
+            int hi = lo + 1500;
+            for (int count = 2; count <= 4; count++) {
+                List<RegionBiomeSource.FrontierEntry> frontier = new ArrayList<>();
+                for (int i = 0; i < count; i++) {
+                    frontier.add(new RegionBiomeSource.FrontierEntry(pool.get(i), 0));
+                }
+                RegionBiomeSource source = new RegionBiomeSource(household, frontier,
+                    coreRadius, falloff, floor, noiseScale, 2611L);
+
+                int[] shares = new int[count];
+                int total = 0;
+                for (int i = 0; i < count; i++) {
+                    // Counted against the SOURCE's own answer per position rather than by comparing
+                    // holders, because the fourth pool entry is household_sprawl and would otherwise
+                    // be indistinguishable from a household result.
+                    shares[i] = frontierPercent(source, frontier.get(i).biome(), lo, hi);
+                    total += shares[i];
+                }
+                if (total == 0) {
+                    helper.fail("no frontier at all with " + count + " regions");
+                }
+                for (int i = 0; i < count; i++) {
+                    int relative = shares[i] * 100 / total;
+                    int fair = 100 / count;
+                    helper.assertTrue(Math.abs(relative - fair) <= 12,
+                        "with " + count + " frontier regions, entry " + i + " of the array takes "
+                            + relative + "% of the frontier against a fair " + fair + "%. The pick "
+                            + "noise is Gaussian, so equal-WIDTH buckets give the middle of the array "
+                            + "far more land than the ends - a region's share must not depend on where "
+                            + "someone happened to append it in the preset. See #290.");
+                }
+            }
+
+            // AND THE TWO-REGION SPLIT IS BIT-FOR-BIT WHAT IT WAS, which is what makes #290 safe to
+            // land on a live save. The thresholds are measured from a MIRRORED sample, so with two
+            // regions the single cut is exactly 0.0 - the same place the old equal-width code cut.
+            // Assert it directly: if it ever drifts off zero, every existing world's frontier shuffles
+            // along its boundaries and nothing else would say so.
+            List<RegionBiomeSource.FrontierEntry> pair = List.of(
+                new RegionBiomeSource.FrontierEntry(pool.get(0), 0),
+                new RegionBiomeSource.FrontierEntry(pool.get(1), 0));
+            RegionBiomeSource twoRegions = new RegionBiomeSource(household, pair,
+                coreRadius, falloff, floor, noiseScale, 2611L);
+            helper.assertTrue(twoRegions.pickCut(2) == 0.0,
+                "the two-region cut is at " + twoRegions.pickCut(2) + " rather than exactly 0.0, so "
+                    + "this change would move biome boundaries in worlds that already exist. The "
+                    + "threshold sample must stay mirrored.");
+            helper.succeed();
+        });
     }
 
     /** The furthest onset in the list, so the sweep starts where every region is eligible. */
