@@ -39,11 +39,19 @@ import net.minecraft.world.level.biome.Biome;
  * <p><b>And it builds the source from EVERY frontier entry, which is the second thing that had to be
  * paid for.</b> It used to call {@code presetValue(preset, "onset")} - a regex that stops at the first
  * match - and hand the source a one-element list holding the demolition yard. So when the radioactive
- * dump shipped as a second frontier region (#285) the object under test never contained it: this file
- * stayed green, the dump's own tests checked the preset JSON's onset ordering and stayed green, and the
- * biome generated NOWHERE in a real world - measured over RCON at 0 hits from five origins spanning
- * 40,000 blocks. Every entry is read now, and every entry's share is asserted past its own onset, so a
+ * dump shipped as a second frontier region (#285) <b>the object under test never contained it</b>: this
+ * file stayed green while measuring a world with one frontier region in it, and the dump's own tests
+ * checked the preset JSON's onset ordering, which is true and says nothing about whether the source
+ * ever returns the biome. Every entry is read now, and every entry is sampled from its own onset, so a
  * third region is covered the day it is added to the preset.
+ *
+ * <p><b>The gap was in the coverage, not in the world.</b> Worth stating plainly, because the first
+ * draft of this javadoc claimed the biome "generated nowhere in a real world" on the strength of an
+ * RCON probe that found zero hits from five origins. That probe ran against a save created before the
+ * region existed, and a generator is baked in at world creation - so it measured a preset that predates
+ * the code. A census of a FRESH world puts the dump 1041 blocks out with thousands of blocks of it.
+ * The region system has never shipped broken; what shipped was a test that could not have noticed if it
+ * had.
  */
 final class RegionBiomeSourceTests {
 
@@ -130,32 +138,69 @@ final class RegionBiomeSourceTests {
             // The reachability guarantee, as a share rather than a boolean, FOR EVERY REGION. A player
             // who has walked past a region's onset must be finding it constantly, not eventually.
             //
-            // The threshold divides by the number of regions eligible out there, because they split the
-            // non-household share between them: one region alone owns most of the frontier, two own
-            // about half of it each. A flat 50% would go red the day a second region shipped for a
-            // perfectly correct reason, and a bare "> 0" is the boolean this test already learned not
-            // to trust.
-            int outer = Math.max(coreRadius + (int) falloff, maxOnset(frontier));
-            int span = outer + 1500;
+            // EACH REGION IS SAMPLED FROM ITS OWN ONSET, not from the furthest one. The first version
+            // of this took `max(falloff, maxOnset)` as a single floor for every entry, which quietly
+            // meant every region was measured over the identical annulus - and the band between the
+            // falloff and the LAST region's onset, where the earlier regions are alone and should own
+            // almost everything, was sampled by nothing at all. Push the demolition yard's onset out to
+            // 1200 and a player would walk 400 blocks of pure household past the falloff, which is the
+            // exact bug report the class javadoc cites, and that version stayed green.
+            int base = coreRadius + (int) falloff;
+            int span = Math.max(base, maxOnset(frontier)) + 1500;
             for (RegionBiomeSource.FrontierEntry entry : frontier) {
-                int lo = Math.max(outer, entry.onset());
+                int lo = Math.max(base, entry.onset());
                 int eligible = 0;
                 for (RegionBiomeSource.FrontierEntry other : frontier) {
                     if (other.onset() <= lo) {
                         eligible++;
                     }
                 }
-                int share = frontierPercent(source, entry.biome(), lo, span);
-                int need = 40 / eligible;
-                helper.assertTrue(share >= need,
-                    "past its onset (" + entry.onset() + ") the region "
+
+                // WHERE A REGION IS THE ONLY ONE ELIGIBLE IT MUST DOMINATE; ELSEWHERE IT NEED ONLY BE
+                // PRESENT. Two thresholds rather than one, because a single "fair share" number
+                // cannot be both meaningful and correct.
+                //
+                // The pick is `(int)(pick * eligible)` over a NormalNoise, which is roughly Gaussian
+                // with a deviation near 1/3 - NOT uniform. Two regions split at the mean and come out
+                // near 50/50, but three cut at about +-1 sigma (16/68/16) and four at +-1.5 sigma
+                // (7/43/43/7). A "100/eligible, near enough" threshold would therefore go RED on a
+                // fourth region for a source behaving exactly as built. That skew is a real defect -
+                // a region's share depends on its POSITION in the preset array - and it is #290's to
+                // fix, not this test's to hide.
+                //
+                // But in the band where a region is alone, no pick happens at all, so the share is
+                // just the frontier probability and a strict threshold IS sound. That band is the one
+                // the old bug report was about, and measuring each region from ITS OWN onset is what
+                // makes it reachable: taking a single floor across every entry left everything below
+                // the LAST region's onset sampled by nothing.
+                int hi = span;
+                for (RegionBiomeSource.FrontierEntry other : frontier) {
+                    if (other.onset() > lo && other.onset() < hi) {
+                        hi = other.onset();
+                    }
+                }
+                int alone = frontierPercent(source, entry.biome(), lo, hi);
+                int need = eligible == 1 ? 50 : 5;
+                helper.assertTrue(alone >= need,
+                    "between " + lo + " and " + hi + " blocks out - where " + eligible + " region(s) "
+                        + "are eligible - the region "
                         + entry.biome().unwrapKey().map(k -> k.identifier().toString()).orElse("?")
-                        + " is only " + share + "% of sampled locations between " + lo + " and " + span
-                        + " blocks out, against " + need + "% expected with " + eligible + " regions "
-                        + "eligible there. A share of 0 means it is declared in the preset and generates "
-                        + "NOWHERE - which is not something the preset JSON can tell you, and is exactly "
-                        + "what shipped while this test built the source from one frontier entry.");
+                        + " is only " + alone + "% of sampled locations, against " + need + "% needed. "
+                        + "A share of 0 means it is declared in the preset and generates NOWHERE, "
+                        + "which is not something the preset JSON can tell you.");
             }
+
+            // And the frontier as a whole still has to dominate out there, which is what the old
+            // single-region threshold was really measuring. Asserted on the union so it stays true
+            // however many regions there are and however the pick noise divides them between them.
+            int frontierShare = 0;
+            for (RegionBiomeSource.FrontierEntry entry : frontier) {
+                frontierShare += frontierPercent(source, entry.biome(), base, span);
+            }
+            helper.assertTrue(frontierShare >= 50,
+                "past the falloff the frontier regions together are only " + frontierShare + "% of "
+                    + "sampled locations, so a player out there is mostly still walking through "
+                    + "household sprawl - the bug report this threshold exists to catch.");
             helper.succeed();
         });
     }
