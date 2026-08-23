@@ -542,8 +542,22 @@ there) is the reference - this section is only what is specific to this repo. It
 wire protocol: a dev-only NeoForge jar and the `gamebridge` Python client, kept in one repo so they
 cannot drift.
 
-**Already wired here.** `./gradlew runClient` opens the devbridge socket on **8605** and boots straight
-into a world; `run/mods/devbridge-26.1.2-0.2.0.jar` is the mod half (`run/` is gitignored, so a fresh
+**Already wired here, but the world has to exist first.** Run `python tools/make_dev_world.py` once:
+it drives `runServer` to generate a world with **this mod's preset**, stops it over RCON, installs it
+at `run/saves/devworld` and sets `confirmedExperimentalSettings` in its `level.dat`. After that
+`./gradlew runClient` opens the devbridge socket on **8605** and boots straight into it.
+
+**Three separate things block that boot and NONE of them logs anything** (#289), which is why this
+paragraph is long. Quick play does not create a missing world - it shows a *"Could not find world with
+the provided identifier"* screen. A custom-preset world is flagged **experimental**, so the client
+stops on a *"Here be dragons!"* confirmation. And moddev **quotes any program argument containing a
+space** into `clientRunProgramArgs.txt`, so the old `'New World'` reached the game as `'"New World"'`
+and matched no directory. All three are screens or silent mismatches, so the only symptom is a client
+sitting at a menu with a socket that never opens; four debugging attempts and one wrong issue went by
+before anyone looked at the game window. Do not let the client create the world itself either - a world
+made through the GUI is a vanilla default one that ignores `recompile:garbage` silently.
+
+Also: `run/mods/devbridge-26.1.2-0.5.0.jar` is the mod half (`run/` is gitignored, so a fresh
 clone needs the jar from that repo's Releases).
 
 ```bash

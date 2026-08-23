@@ -69,7 +69,18 @@ neoForge {
             // Boot straight into a world instead of stopping at the title screen. Vanilla's own
             // launch argument, not a mod feature. `--args` on the Gradle task does NOT do this: the
             // moddev run treats it as a main class and the launch dies before Minecraft starts.
-            programArguments.addAll '--quickPlaySingleplayer', 'New World'
+            //
+            // THE WORLD MUST ALREADY EXIST, AND THE NAME MUST NOT CONTAIN A SPACE (#289). Quick play
+            // does not create a missing world - it shows a "Could not find world with the provided
+            // identifier" SCREEN, which logs nothing, so the symptom is a client that sits at a menu
+            // and a devbridge socket that never opens. And moddev quotes any argument containing a
+            // space into build/moddev/clientRunProgramArgs.txt, so 'New World' reached the game as
+            // '"New World"', quotes included, matching no directory on disk.
+            //
+            // `python tools/make_dev_world.py` builds this world with the mod's own generator. Do
+            // not let the client create it instead: a world made through the GUI is a vanilla
+            // default one that ignores recompile:garbage silently.
+            programArguments.addAll '--quickPlaySingleplayer', 'devworld'
             // Force the window size, because a screenshot IS the framebuffer: devbridge captures at
             // whatever the window happens to be, and the default gave 854x480 - unusable next to a
             // gallery of 1300px images. Fixed dimensions also mean every shot crops identically.
