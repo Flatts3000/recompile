@@ -17,13 +17,20 @@ server with `level-type` set, which is what this drives.
 
 What it does
 ------------
-1. Runs `./gradlew runServer`, which uses `run/server.properties` - already pinned to
-   `level-type=recompile\\:garbage` - until the server reports ready.
-2. Stops it over RCON, so the world is saved and `session.lock` released.
+1. Points `run/server.properties` at a level name **this script owns**, and deletes it first.
+2. Runs `./gradlew runServer` until RCON is up, then stops it over RCON so the world is flushed.
 3. Copies the result into `run/saves/<name>`, where the client looks.
 4. Sets `confirmedExperimentalSettings` in its `level.dat`, because a custom-preset world is flagged
-   experimental and the client will otherwise stop on a "Here be dragons!" modal - the third
-   silent, screen-only blocker in this same path.
+   experimental and the client will otherwise stop on a "Here be dragons!" modal - the third silent,
+   screen-only blocker in this same path.
+
+**It generates into its own directory and restores `server.properties` afterwards.** A server reboots
+an existing world rather than regenerating it, and the generator is baked into `level.dat` at creation
+- so reusing whatever `level-name` happens to point at would quietly install a copy of that world. In
+this repo that is `run/showcase`, the museum world `tools/verify_showcase.sh` builds, and on a fresh
+clone it is a vanilla-default `run/world`: exactly the thing this script's whole purpose is to avoid
+handing you. Review of #291 caught it; the first version only ever worked because the person testing it
+happened to delete the old world by hand every time.
 
 Usage
 -----
@@ -59,24 +66,69 @@ JDK = Path("C:/Program Files/Java/jdk-25")
 # The name build.gradle passes to --quickPlaySingleplayer. No spaces; see the module docstring.
 DEFAULT_NAME = "devworld"
 
-# Generating spawn on this flat preset takes seconds. The cap is a backstop for a first run that also
-# has to resolve dependencies and decompile Minecraft.
-TIMEOUT_SECONDS = 900
+# Time allowed for the SERVER to come up, measured from the moment it starts booting rather than from
+# the gradle invocation - a cold run has to resolve dependencies and decompile Minecraft first, and
+# charging that to the server's budget kills a build that was working.
+BUILD_TIMEOUT = 1800
+SERVER_TIMEOUT = 300
+BOOT_MARKER = "Starting minecraft server"
 
-# Any one of these means the server is up. Matching only one turns a working run into an unexplained
-# timeout, which is how the first version of this script failed.
-READY_MARKERS = ("For help, type", "RCON running on", 'Done (')
+# RCON SPECIFICALLY, not "Done (" or "For help, type". DedicatedServer.initServer logs those BEFORE it
+# creates the RCON listener, so treating them as ready races the socket and the first connect is
+# refused.
+READY_MARKER = "RCON running on"
 
 
 def properties() -> dict[str, str]:
     if not PROPERTIES.is_file():
-        sys.exit(f"{PROPERTIES} not found - run `./gradlew runServer` once to create it.")
+        sys.exit(f"{PROPERTIES} not found - run `./gradlew runServer` once to create it, then set "
+                 "level-type=recompile\\:garbage in it.")
     found = {}
     for line in PROPERTIES.read_text(encoding="utf-8", errors="replace").splitlines():
         if "=" in line and not line.startswith("#"):
             key, value = line.split("=", 1)
             found[key.strip()] = value.strip()
     return found
+
+
+def set_level_name(name: str) -> str:
+    """Point the server at `name`, returning whatever it was pointing at before."""
+    body = PROPERTIES.read_text(encoding="utf-8", errors="replace")
+    previous = "world"
+    out = []
+    seen = False
+    for line in body.splitlines():
+        if line.startswith("level-name="):
+            previous = line.split("=", 1)[1].strip()
+            out.append(f"level-name={name}")
+            seen = True
+        else:
+            out.append(line)
+    if not seen:
+        out.append(f"level-name={name}")
+    PROPERTIES.write_text("\n".join(out) + "\n", encoding="utf-8")
+    return previous
+
+
+def kill_tree(process: subprocess.Popen) -> None:
+    """Kill gradle AND the server it forked.
+
+    <p>Killing only the gradle process leaves the server JVM alive holding the world and ports 25565
+    and 25575, so the next run cannot start at all and the script's own port precheck tells the user to
+    "stop it first" with no way to do so short of Task Manager. The first version did exactly that on
+    three separate failure paths while carrying a comment warning against it.
+    """
+    if process.poll() is not None:
+        return
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+    else:
+        process.kill()
+    try:
+        process.wait(timeout=60)
+    except subprocess.TimeoutExpired:
+        pass
 
 
 def rcon(port: int, password: str, command: str) -> None:
@@ -87,15 +139,38 @@ def rcon(port: int, password: str, command: str) -> None:
 
     with socket.create_connection(("127.0.0.1", port), timeout=30) as sock:
         sock.sendall(pack(1, 3, password))
-        sock.recv(4096)
+        reply = sock.recv(4096)
+        # A REJECTED LOGIN ANSWERS WITH REQUEST ID -1 and is otherwise a perfectly normal packet. Not
+        # checking it means the `stop` below is never run, the wait times out three minutes later, and
+        # the script blames the server for not stopping.
+        if len(reply) >= 8 and struct.unpack("<i", reply[4:8])[0] == -1:
+            raise OSError("RCON rejected the password from server.properties")
         sock.sendall(pack(2, 2, command))
         sock.recv(4096)
 
 
-def generate(config: dict[str, str]) -> Path:
-    """Run the dedicated server until it is ready, stop it cleanly, and hand back the world."""
-    level = config.get("level-name", "world")
-    world = RUN / level
+def stop_server(port: int, password: str, process: subprocess.Popen) -> None:
+    """Ask the server to stop, retrying briefly, and fall back to killing the whole tree."""
+    for attempt in range(6):
+        try:
+            rcon(port, password, "stop")
+            break
+        except OSError as failed:
+            if attempt == 5:
+                print(f"could not reach RCON to stop the server ({failed}); killing it instead.",
+                      file=sys.stderr)
+                kill_tree(process)
+                return
+            time.sleep(2)
+    try:
+        process.wait(timeout=180)
+    except subprocess.TimeoutExpired:
+        print("the server did not exit after `stop`; killing it.", file=sys.stderr)
+        kill_tree(process)
+
+
+def generate(config: dict[str, str], name: str) -> Path:
+    """Run the dedicated server on a world this script owns, stop it, and hand the world back."""
     if "recompile" not in config.get("level-type", ""):
         sys.exit(f"{PROPERTIES} does not set level-type=recompile\\:garbage.\n"
                  "Without it the server generates a DEFAULT world and the preset is ignored "
@@ -103,11 +178,12 @@ def generate(config: dict[str, str]) -> Path:
     if config.get("enable-rcon") != "true" or not config.get("rcon.password"):
         sys.exit(f"{PROPERTIES} has no usable RCON, which is how this script stops the server.")
     port = int(config.get("rcon.port", "25575"))
+    password = config["rcon.password"]
 
     # A PORT CLASH IS THE MOST LIKELY FAILURE AND THE WORST-REPORTED ONE. A server left running from
     # an earlier session keeps 25565 and 25575, the new one dies with "Perhaps a server is already
-    # running on that port?", and gradle still says BUILD SUCCESSFUL. Better to say so up front than
-    # to let the caller read a green build as a green run.
+    # running on that port?", and gradle still says BUILD SUCCESSFUL because the JVM exits 0 after
+    # writing a crash report. Better to say so up front than to let a green build read as a green run.
     for busy in (int(config.get("server-port", "25565")), port):
         with socket.socket() as probe:
             probe.settimeout(2)
@@ -122,71 +198,68 @@ def generate(config: dict[str, str]) -> Path:
         env["JAVA_HOME"] = str(JDK)
     wrapper = REPO / ("gradlew.bat" if os.name == "nt" else "gradlew")
 
-    # OUTPUT GOES TO A FILE AND THE SERVER IS STOPPED OVER RCON, rather than reading its stdout and
-    # terminating the process. Two reasons, both paid for while writing this: terminate() kills the
-    # GRADLE process and leaves the forked server JVM running, which then holds the world so the next
-    # run cannot start at all; and driving it through a stdin pipe made the server exit in 11 seconds
-    # having logged nothing this could match.
-    # mkstemp hands back an OPEN descriptor as well as a path; leaving it open means the file
-    # cannot be deleted on Windows at the end of a perfectly successful run.
+    world = RUN / name
     handle, log_path = tempfile.mkstemp(prefix="make_dev_world_", suffix=".log")
-    os.close(handle)
+    os.close(handle)   # mkstemp leaves it OPEN, and Windows will not delete a file that still is
     log = Path(log_path)
-    print(f"generating {world} with the garbage preset (log: {log}) ...")
-    with log.open("w", encoding="utf-8") as sink:
-        process = subprocess.Popen([str(wrapper), "runServer", "--console=plain"],
-                                   cwd=REPO, env=env, stdout=sink, stderr=subprocess.STDOUT,
-                                   stdin=subprocess.DEVNULL)
-        started = time.monotonic()
-        ready = False
-        while time.monotonic() - started < TIMEOUT_SECONDS:
-            if process.poll() is not None:
-                break
-            body = log.read_text(encoding="utf-8", errors="replace")
-            if any(marker in body for marker in READY_MARKERS):
-                ready = True
-                break
-            time.sleep(2)
 
-        if not ready:
-            process.kill()
-            # THE SERVER'S OWN COMPLAINTS, not gradle's epilogue. A failed boot ends with twenty lines
-            # of deprecation notices and "BUILD SUCCESSFUL", because the JVM exits 0 after writing a
-            # crash report - so a plain tail shows a successful build and hides the cause completely.
-            # That is exactly how a port clash read as an unexplained 12-second exit.
-            lines = log.read_text(encoding="utf-8", errors="replace").splitlines()
-            complaints = [line for line in lines
-                          if "/ERROR]" in line or "/WARN]" in line or "/FATAL]" in line]
-            print("\n".join(complaints[-20:] or lines[-20:]), file=sys.stderr)
-            sys.exit("\nthe server never reported ready, so no world was generated. Its own error "
-                     "lines are above.")
-
-        print("server up; stopping it to flush the world ...")
-        try:
-            rcon(port, config["rcon.password"], "stop")
-        except OSError as failed:
-            process.kill()
-            sys.exit(f"could not reach RCON on {port} to stop the server: {failed}")
-        try:
-            process.wait(timeout=180)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            sys.exit("the server did not exit after `stop`.")
-
+    previous = set_level_name(name)
     try:
-        log.unlink(missing_ok=True)
-    except OSError:
-        pass   # a leftover log is not worth failing a good run over
+        if world.exists():
+            shutil.rmtree(world)   # ours to delete: the script chose this name
+        print(f"generating {world} with the garbage preset (log: {log}) ...")
+        with log.open("w", encoding="utf-8") as sink:
+            process = subprocess.Popen([str(wrapper), "runServer", "--console=plain"],
+                                       cwd=REPO, env=env, stdout=sink, stderr=subprocess.STDOUT,
+                                       stdin=subprocess.DEVNULL)
+            started = time.monotonic()
+            booted = None
+            ready = False
+            while True:
+                if process.poll() is not None:
+                    break
+                body = log.read_text(encoding="utf-8", errors="replace")
+                if READY_MARKER in body:
+                    ready = True
+                    break
+                if booted is None and BOOT_MARKER in body:
+                    booted = time.monotonic()
+                limit = SERVER_TIMEOUT if booted else BUILD_TIMEOUT
+                if time.monotonic() - (booted or started) > limit:
+                    break
+                time.sleep(2)
+
+            if not ready:
+                kill_tree(process)
+                # THE SERVER'S OWN COMPLAINTS, not the tail. A failed boot ends in twenty lines of
+                # deprecation notices and "BUILD SUCCESSFUL", because the JVM exits 0 after writing a
+                # crash report - so a plain tail shows a successful build and hides the cause. That is
+                # exactly how a port clash read as an unexplained 12-second exit.
+                lines = log.read_text(encoding="utf-8", errors="replace").splitlines()
+                complaints = [line for line in lines
+                              if "/ERROR]" in line or "/WARN]" in line or "/FATAL]" in line]
+                print("\n".join(complaints[-20:] or lines[-20:]), file=sys.stderr)
+                sys.exit("\nthe server never reported ready, so no world was generated. Its own "
+                         "error lines are above.")
+
+            print("server up; stopping it to flush the world ...")
+            stop_server(port, password, process)
+    finally:
+        set_level_name(previous)
+        try:
+            log.unlink(missing_ok=True)
+        except OSError:
+            pass   # a leftover log is not worth failing a good run over
 
     if not (world / "level.dat").is_file():
         sys.exit(f"the server ran but {world} has no level.dat.")
     return world
 
 
-# TAG_Byte, big-endian name length, then the name. Matching the tag header rather than the bare
-# string means this cannot hit the same characters appearing inside some other value.
-CONFIRM_FLAG = b"\x01" + len(b"confirmedExperimentalSettings").to_bytes(2, "big") \
-    + b"confirmedExperimentalSettings"
+# TAG_Byte, big-endian name length, then the name. Matching the tag header rather than the bare string
+# means this cannot hit the same characters appearing inside some other value.
+CONFIRM_NAME = b"confirmedExperimentalSettings"
+CONFIRM_FLAG = b"\x01" + len(CONFIRM_NAME).to_bytes(2, "big") + CONFIRM_NAME
 
 
 def confirm_experimental_settings(world: Path) -> bool:
@@ -198,18 +271,20 @@ def confirm_experimental_settings(world: Path) -> bool:
     fixing #289, after the missing world and the quoted name.
 
     <p>Patched at the byte level rather than through an NBT library, because this repo has no NBT
-    dependency for tooling and the tag is a single byte in a known header. Returns False if the tag is
-    not found, so a silent no-op cannot masquerade as success.
+    dependency for tooling and the tag is a single byte in a known header. Returns False rather than
+    raising if the tag is missing or truncated, and the caller treats that as a failure.
     """
-    raw = gzip.decompress(world.joinpath("level.dat").read_bytes())
+    level = world / "level.dat"
+    raw = gzip.decompress(level.read_bytes())
     at = raw.find(CONFIRM_FLAG)
     if at < 0:
         return False
     value = at + len(CONFIRM_FLAG)
+    if value >= len(raw):
+        return False   # truncated level.dat: a stack trace here would hide a clear failure
     if raw[value] == 1:
         return True
-    patched = raw[:value] + b"\x01" + raw[value + 1:]
-    world.joinpath("level.dat").write_bytes(gzip.compress(patched))
+    level.write_bytes(gzip.compress(raw[:value] + b"\x01" + raw[value + 1:]))
     return True
 
 
@@ -223,9 +298,6 @@ def install(world: Path, name: str) -> Path:
     # problem is the copy itself, since Windows raises WinError 33 on a handle the server may still
     # be closing and that takes the whole install down with it.
     shutil.copytree(world, target, ignore=shutil.ignore_patterns("session.lock"))
-    if not confirm_experimental_settings(target):
-        print("WARNING: could not find confirmedExperimentalSettings in level.dat, so the client "
-              "will stop on the 'Here be dragons!' modal and never load the world.", file=sys.stderr)
     return target
 
 
@@ -249,8 +321,16 @@ def main() -> int:
         print(f"{target} already exists; nothing to do (pass --force to rebuild).")
         return 0
 
-    world = generate(properties())
+    world = generate(properties(), args.name)
     installed = install(world, args.name)
+    if not confirm_experimental_settings(installed):
+        # NON-ZERO, because the client would sit on the "Here be dragons!" modal forever - the exact
+        # unattended hang this script exists to prevent. Printing a warning and returning 0 lets any
+        # wrapper read a pass while the thing is broken.
+        print(f"ERROR: no confirmedExperimentalSettings tag in {installed}/level.dat, so the client "
+              "will stop on the experimental-settings modal and never load the world.",
+              file=sys.stderr)
+        return 1
     regions = len(list(installed.rglob("*.mca")))
     print(f"installed {installed} ({regions} region files)")
     print("`./gradlew runClient` will now boot into it, and devbridge will open on 8605.")
