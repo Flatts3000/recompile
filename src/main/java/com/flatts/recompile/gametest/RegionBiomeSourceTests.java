@@ -4,6 +4,9 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.RegionBiomeSource;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +35,15 @@ import net.minecraft.world.level.biome.Biome;
  * demolition yard, which is exactly the failure a boolean cannot see. The share is now asserted per
  * distance band. (That report turned out to be an upgraded world keeping its pre-region biome source
  * from 0.2.0, not a generation bug - but the test could not have told anyone that.)
+ *
+ * <p><b>And it builds the source from EVERY frontier entry, which is the second thing that had to be
+ * paid for.</b> It used to call {@code presetValue(preset, "onset")} - a regex that stops at the first
+ * match - and hand the source a one-element list holding the demolition yard. So when the radioactive
+ * dump shipped as a second frontier region (#285) the object under test never contained it: this file
+ * stayed green, the dump's own tests checked the preset JSON's onset ordering and stayed green, and the
+ * biome generated NOWHERE in a real world - measured over RCON at 0 hits from five origins spanning
+ * 40,000 blocks. Every entry is read now, and every entry's share is asserted past its own onset, so a
+ * third region is covered the day it is added to the preset.
  */
 final class RegionBiomeSourceTests {
 
@@ -44,6 +56,13 @@ final class RegionBiomeSourceTests {
 
     private static ResourceKey<Biome> biomeKey(String path) {
         return ResourceKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, path));
+    }
+
+    /** The preset's biome_source block, parsed. */
+    private static JsonObject biomeSource(String json) {
+        return JsonParser.parseString(json).getAsJsonObject()
+            .getAsJsonObject("dimensions").getAsJsonObject("minecraft:overworld")
+            .getAsJsonObject("generator").getAsJsonObject("biome_source");
     }
 
     /** Pull a numeric field out of the preset's biome_source block. */
@@ -74,14 +93,25 @@ final class RegionBiomeSourceTests {
             float falloff = (float) presetValue(preset, "falloff");
             float floor = (float) presetValue(preset, "household_floor");
             double noiseScale = presetValue(preset, "noise_scale");
-            int onset = (int) presetValue(preset, "onset");
 
             var biomes = helper.getLevel().registryAccess().lookupOrThrow(Registries.BIOME);
             Holder<Biome> household = biomes.getOrThrow(biomeKey("household_sprawl"));
-            Holder<Biome> demolition = biomes.getOrThrow(biomeKey("demolition_yard"));
 
-            RegionBiomeSource source = new RegionBiomeSource(household,
-                List.of(new RegionBiomeSource.FrontierEntry(demolition, onset)),
+            // EVERY frontier entry, in the preset's own order. The order is load-bearing: the pick
+            // noise indexes into the eligible sub-list, so shuffling the array changes which region
+            // a given coordinate generates.
+            List<RegionBiomeSource.FrontierEntry> frontier = new ArrayList<>();
+            for (var raw : biomeSource(preset).getAsJsonArray("frontier")) {
+                JsonObject entry = raw.getAsJsonObject();
+                Identifier id = Identifier.parse(entry.get("biome").getAsString());
+                frontier.add(new RegionBiomeSource.FrontierEntry(
+                    biomes.getOrThrow(ResourceKey.create(Registries.BIOME, id)),
+                    entry.has("onset") ? entry.get("onset").getAsInt() : 0));
+            }
+            helper.assertTrue(!frontier.isEmpty(),
+                "the world preset declares no frontier regions at all, so everything below is vacuous");
+
+            RegionBiomeSource source = new RegionBiomeSource(household, frontier,
                 coreRadius, falloff, floor, noiseScale, 2611L);
 
             // The core guarantee: unconditional in code, asserted here so it stays that way.
@@ -97,15 +127,46 @@ final class RegionBiomeSourceTests {
                 }
             }
 
-            // The reachability guarantee, as a share rather than a boolean. A player who has walked past
-            // the falloff distance must be finding the yard constantly, not eventually.
-            int share = frontierPercent(source, demolition, coreRadius + (int) falloff, 2000);
-            helper.assertTrue(share >= 50,
-                "past the falloff distance the demolition yard is only " + share + "% of sampled "
-                    + "locations - a player travelling out there would struggle to find one, which is "
-                    + "exactly the bug report this threshold exists to catch");
+            // The reachability guarantee, as a share rather than a boolean, FOR EVERY REGION. A player
+            // who has walked past a region's onset must be finding it constantly, not eventually.
+            //
+            // The threshold divides by the number of regions eligible out there, because they split the
+            // non-household share between them: one region alone owns most of the frontier, two own
+            // about half of it each. A flat 50% would go red the day a second region shipped for a
+            // perfectly correct reason, and a bare "> 0" is the boolean this test already learned not
+            // to trust.
+            int outer = Math.max(coreRadius + (int) falloff, maxOnset(frontier));
+            int span = outer + 1500;
+            for (RegionBiomeSource.FrontierEntry entry : frontier) {
+                int lo = Math.max(outer, entry.onset());
+                int eligible = 0;
+                for (RegionBiomeSource.FrontierEntry other : frontier) {
+                    if (other.onset() <= lo) {
+                        eligible++;
+                    }
+                }
+                int share = frontierPercent(source, entry.biome(), lo, span);
+                int need = 40 / eligible;
+                helper.assertTrue(share >= need,
+                    "past its onset (" + entry.onset() + ") the region "
+                        + entry.biome().unwrapKey().map(k -> k.identifier().toString()).orElse("?")
+                        + " is only " + share + "% of sampled locations between " + lo + " and " + span
+                        + " blocks out, against " + need + "% expected with " + eligible + " regions "
+                        + "eligible there. A share of 0 means it is declared in the preset and generates "
+                        + "NOWHERE - which is not something the preset JSON can tell you, and is exactly "
+                        + "what shipped while this test built the source from one frontier entry.");
+            }
             helper.succeed();
         });
+    }
+
+    /** The furthest onset in the list, so the sweep starts where every region is eligible. */
+    private static int maxOnset(List<RegionBiomeSource.FrontierEntry> frontier) {
+        int max = 0;
+        for (RegionBiomeSource.FrontierEntry entry : frontier) {
+            max = Math.max(max, entry.onset());
+        }
+        return max;
     }
 
     /** Percentage of sampled locations in an annulus that generate as the frontier biome. */
