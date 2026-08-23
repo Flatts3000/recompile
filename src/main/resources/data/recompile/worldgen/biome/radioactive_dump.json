@@ -2,19 +2,31 @@
   "has_precipitation": true,
   "temperature": 0.6,
   "downfall": 0.1,
+  "attributes": {
+    "visual/fog_color": "#9AA36B",
+    "visual/sky_color": "#A8AC84",
+    "visual/water_fog_color": "#2C544D",
+    "audio/ambient_sounds": {
+      "mood": {
+        "sound": "minecraft:ambient.cave",
+        "tick_delay": 6000,
+        "block_search_extent": 8,
+        "offset": 2.0
+      }
+    },
+    "visual/ambient_particles": [
+      {
+        "particle": {
+          "type": "minecraft:white_ash"
+        },
+        "probability": 0.025
+      }
+    ]
+  },
   "effects": {
-    "fog_color": 10134379,
-    "sky_color": 11054212,
-    "water_color": 5921370,
-    "water_fog_color": 4210752,
+    "water_color": 5147776,
     "grass_color": 9080646,
-    "foliage_color": 8160064,
-    "mood_sound": {
-      "sound": "minecraft:ambient.cave",
-      "tick_delay": 6000,
-      "block_search_extent": 8,
-      "offset": 2.0
-    }
+    "foliage_color": 8160064
   },
   "spawners": {
     "monster": [
@@ -119,6 +131,22 @@
     "EFFECTS ARE ITS OWN, not the yard's. They shipped byte-identical to demolition_yard's and review",
     "of #286 caught it: the two frontier regions were indistinguishable at range, which undercuts the",
     "one thing V1 has to do without radiation - make arriving unmistakable. A sallow yellow-green",
-    "haze against the yard's grey, with grass and foliage sickened to match the ground."
+    "haze against the yard's grey, with grass and foliage sickened to match the ground.",
+    "",
+    "ATMOSPHERE (2026-08-23). Fog and sky live under 'attributes' because 26.1 split",
+    "BiomeSpecialEffects - it keeps only water/foliage/dry_foliage/grass colour and the grass modifier,",
+    "and everything else moved to the environment-attribute map. The values below were sitting in",
+    "'effects' since #286, where a record codec ignored them silently: they parsed, logged nothing and",
+    "rendered nothing, so half of the fix that was supposed to stop this biome looking exactly like the",
+    "demolition yard had never run.",
+    "",
+    "The dust is white_ash at 0.025, the rate vanilla gives crimson forest's spores. Basalt deltas runs",
+    "white_ash at 0.118 and that reads as weather rather than as a place.",
+    "",
+    "water_color is the decant pond and nothing else in this biome is wet. Tailings arrive as a slurry",
+    "and the process water sits on top of the impoundment; that pale turquoise is the single most",
+    "recognisable thing in a photograph of a uranium mill site. It is water rather than the mod's",
+    "Leachate block on purpose - leachate is rain drained through refuse, which is why it is sprawl-only",
+    "and why the yard was ruled to have none."
   ]
 }

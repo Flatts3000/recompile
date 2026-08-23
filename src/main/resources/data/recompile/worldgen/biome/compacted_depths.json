@@ -2,18 +2,22 @@
   "has_precipitation": false,
   "temperature": 2.0,
   "downfall": 0.0,
-  "effects": {
-    "sky_color": 4159204,
-    "fog_color": 2033721,
-    "water_color": 4159204,
-    "water_fog_color": 329011,
-    "ambient_sound": "minecraft:ambient.nether_wastes.loop",
-    "mood_sound": {
-      "sound": "minecraft:ambient.nether_wastes.mood",
-      "tick_delay": 6000,
-      "block_search_extent": 8,
-      "offset": 2.0
+  "attributes": {
+    "visual/fog_color": "#1F0839",
+    "visual/sky_color": "#3F76E4",
+    "visual/water_fog_color": "#050533",
+    "audio/ambient_sounds": {
+      "loop": "minecraft:ambient.nether_wastes.loop",
+      "mood": {
+        "sound": "minecraft:ambient.nether_wastes.mood",
+        "tick_delay": 6000,
+        "block_search_extent": 8,
+        "offset": 2.0
+      }
     }
+  },
+  "effects": {
+    "water_color": 4159204
   },
   "spawners": {
     "monster": [

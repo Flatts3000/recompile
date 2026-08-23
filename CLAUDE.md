@@ -386,6 +386,25 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - **`DirectionProperty` is gone.** Horizontal facing is `EnumProperty<Direction>` now (`BlockStateProperties.HORIZONTAL_FACING`); the old dedicated class does not exist, so 1.21-era snippets that declare one will not compile.
 - **`GameRules` moved to `net.minecraft.world.level.gamerules`**, and **every rule was renamed to snake_case** - not just the Java constants, the *command ids too*. `doTileDrops` is `block_drops` (`GameRules.BLOCK_DROPS`, a `GameRule<Boolean>`), `doDaylightCycle` is `advance_time`, `doWeatherCycle` is `advance_weather`. This bites in **datapack functions**, where the only symptom is the whole function refusing to load: `Incorrect argument for command at position 9: gamerule <--[HERE]`, which names the command and not the rule. Every 1.21-era snippet uses the old ids.
 - **A `DyeItem` no longer knows its colour.** 26.1 dropped the `DyeColor` constructor parameter, the `getDyeColor()` accessor, and the static `DyeItem.byColor(DyeColor)` that every 1.21-era snippet reaches for; the colour moved into item data. `DyeColor` itself is unchanged (still an enum, still 16 values, still `getName()`), so the mapping from colour to item is now the registry id - `BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(colour.getName() + "_dye"))`. Note that an id which resolves to nothing comes back as **AIR, not null**, so a typo fails as a content bug rather than an NPE (see `PrinterTests.upstreamOf`).
+- **`BiomeSpecialEffects` was SPLIT, and the half that moved fails silently.** In 26.1 the biome's
+  `effects` block holds `water_color`, `foliage_color`, `dry_foliage_color`, `grass_color` and
+  `grass_color_modifier` and **nothing else**. Fog, sky, water fog, ambient particles and every sound
+  moved to the new environment-attribute system under a **top-level `attributes`** map on the biome,
+  keyed by registered attribute id: `visual/fog_color`, `visual/sky_color`, `visual/water_fog_color`,
+  `visual/ambient_particles` (a LIST now), `audio/ambient_sounds` (which bundles `loop`, `mood` and
+  `additions`). Colours are `"#RRGGBB"` strings or bare ints. There are new dials with no 1.21
+  equivalent at all - `visual/fog_start_distance`, `visual/sky_fog_end_distance`, `visual/cloud_color`
+  - and a modifier form (`{"modifier": ..., "argument": ...}`) for multiplying a value rather than
+  overriding it, which is how vanilla shortens water fog in swamps.
+  **A record codec ignores keys it does not know**, so a `fog_color` left in `effects` parses, logs
+  nothing, and renders nothing. All four of this mod's biomes shipped that way for releases; #286
+  changed the two frontier regions' fog specifically so they would stop looking identical at range, and
+  only the grass and foliage half of that change ever ran. Nothing in-game names the problem - the
+  biome just quietly keeps the default. The `attributes` map itself IS validated (an unknown attribute
+  id is a hard registry error), so the failure is entirely on the `effects` side.
+  `BiomeEffectsPlacementTest` now fails the build on a moved key found in `effects`, and it caught a
+  fifth one - `ambient_sound` in the depths - on its first run.
+
 - **`#minecraft:dirt` is only three blocks now** (dirt, coarse dirt, rooted dirt) - it does *not* contain grass, podzol, mud or moss, so 1.20-era guides that use it as "the dirt family" are wrong. The union that still means "overworld ground" is **`#minecraft:substrate_overworld`** (`#dirt + #mud + #moss_blocks + #grass_blocks`). This fails *silently* - a tag reference resolves fine and simply matches less than you expect, so it surfaces as a mechanic quietly not firing on most of its intended targets (see `RCTags.ENCROACHABLE`).
 - `pack.mcmeta` uses the `min_format`/`max_format` range form (both `84`), not scalar `pack_format`.
 - `Player.displayClientMessage` is gone - use `player.sendSystemMessage(Component)`. `Item.getName()` (no-arg) is gone - use `Component.translatable(item.getDescriptionId())`.

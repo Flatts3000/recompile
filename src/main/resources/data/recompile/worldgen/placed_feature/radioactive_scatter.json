@@ -1,22 +1,31 @@
 {
   "_comment": [
-    "COUNT 4, DERIVED RATHER THAN PICKED (corrected in review of #286).",
+    "ONE IMPOUNDMENT PER THREE CHUNKS, DERIVED RATHER THAN PICKED (rewritten 2026-08-23).",
     "",
-    "A heap is 5-11 wide, so a mean radius near 4 covers about 49 columns. At the count of 14 this",
-    "first shipped with, that is ~686 columns against a chunk's 256 - 2.7x COVERAGE, an unbroken",
-    "carpet with no clean ground anywhere. That defeats two things at once: the stain is meant to be",
-    "visible around a heap's rim, and this biome is in the encroachment tag precisely so grass is",
-    "CONTESTED on the clean ground - of which there would have been none.",
+    "This shipped as count 4 per chunk over 5-11 wide heaps. The coverage arithmetic was right and the",
+    "result still read as a field of cupcakes with a drum on every summit - a screenshot found what the",
+    "census could not. The reference is Moab and Church Rock: ONE enormous engineered pile with a decant",
+    "pond on it, not dozens of small mounds.",
     "",
-    "Every other scatter in this mod sits well under 1x: rubble_pile is 6 x ~21 = 0.49x,",
-    "mechanical_waste_pile is 2. Four heaps x 49 columns is 0.77x - denser than the yard's rubble,",
-    "which is right for the region whose identity the scatter has to carry, without becoming a floor."
+    "So: radius 9-12 for a footprint near pi*10.5^2 = 346 columns, at one attempt per 3 chunks. That is",
+    "346 / (3 * 256) = 0.45x coverage against the old 0.77x, while each pile is roughly seven times the",
+    "area of an old one. Fewer, far bigger, and there is open stained ground between them again - which",
+    "the biome needs, because it is in the encroachment tag precisely so grass is CONTESTED on open",
+    "ground.",
+    "",
+    "THE RADIUS CEILING IS AN ENGINE LIMIT. ChunkStatus.FEATURES has blockStateWriteRadius(1), so a",
+    "feature may only write to its own chunk and the eight around it - 16 blocks from the origin in the",
+    "worst case. The longest lobe plus the stain ring is 12 * 1.21 + 1 = 15.5, so radius 12 is the most",
+    "this can be. A draft of this rewrite used 16 and would have logged an ERROR per rejected block and",
+    "sheared every pile along a chunk line.",
+    "",
+    "For comparison the other scatters: rubble_pile 6 x ~21 = 0.49x, mechanical_waste_pile 2."
   ],
   "feature": "recompile:radioactive_scatter",
   "placement": [
     {
-      "type": "minecraft:count",
-      "count": 4
+      "type": "minecraft:rarity_filter",
+      "chance": 3
     },
     {
       "type": "minecraft:in_square"
