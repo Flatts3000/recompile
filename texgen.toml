@@ -2300,3 +2300,20 @@ size = 16
 # A cage with the soul burned out of it. Empty is the readable part - a spawner with something inside
 # would look like a working one, and the item is defined by what it no longer holds.
 prompt = "a small dark iron cage with bent and snapped bars, hollow and empty inside, rusted and scorched, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.sequencer]
+kind = "block"
+backend = "ai"
+size = 16
+# A machine that READS rather than crushes: a lens and a lit readout, not a grinder. It has to sit
+# beside the Burner Generator without looking like it, so: same scrap-steel housing, different face.
+prompt = "the side of a small scrap-built laboratory machine, dark steel panel with a round glass lens in the centre lit pale amber from within, a narrow readout strip of tiny green lights, riveted edges, flat front-facing 16x16 Minecraft block texture, seamless, no perspective"
+
+[surface.sequencer_top]
+kind = "block"
+backend = "ai"
+size = 16
+reference = "sequencer"
+# Derived from the side so the two read as one object. Generating each face from its own prompt is
+# how a machine ends up looking like two different machines bolted together.
+prompt = "the top of a small scrap-built laboratory machine, dark steel plate with a recessed amber-lit slot and a few rivets, flat top-down 16x16 Minecraft block texture, seamless, no perspective"

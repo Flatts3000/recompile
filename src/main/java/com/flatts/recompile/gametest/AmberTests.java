@@ -146,6 +146,82 @@ final class AmberTests {
                     + "the table is far less varied than it declares: " + species);
             helper.succeed();
         });
+
+        // THE MACHINE ACTUALLY READS ONE, and refuses what it cannot.
+        //
+        // <p>Driven through the block entity's own tick rather than by placing a player at a screen,
+        // because the screen is the one layer GameTest cannot see - and the thing worth proving here
+        // is the state machine, not the pixels.
+        RCGameTests.test("the_sequencer_reads_a_stamped_amber_and_refuses_a_blank_one", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.SEQUENCER.get());
+            var machine = (com.flatts.recompile.content.block.entity.SequencerBlockEntity)
+                helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+            helper.assertTrue(machine != null, "the sequencer has no block entity");
+
+            // A BLANK PIECE IS REFUSED AT THE SLOT. That is the only place a player learns it before
+            // spending two hundred ticks of power discovering the output is empty.
+            ItemStack blank = new ItemStack(RCItems.AMBER.get());
+            helper.assertTrue(!machine.canPlaceItem(
+                    com.flatts.recompile.content.block.entity.SequencerBlockEntity.INPUT_SLOT, blank),
+                "an unstamped amber was accepted; it can never produce anything, so the slot is the "
+                    + "one place to say so");
+
+            ItemStack stamped = new ItemStack(RCItems.AMBER.get());
+            stamped.set(RCDataComponents.SPECIES.get(),
+                Identifier.fromNamespaceAndPath("minecraft", "cow"));
+            helper.assertTrue(machine.canPlaceItem(
+                    com.flatts.recompile.content.block.entity.SequencerBlockEntity.INPUT_SLOT, stamped),
+                "a stamped amber was refused by the input slot");
+
+            // NO POWER, NO PROGRESS. A machine that read amber for free would make the whole FE tier
+            // decorative, and nothing else in this file would notice.
+            machine.setItem(
+                com.flatts.recompile.content.block.entity.SequencerBlockEntity.INPUT_SLOT, stamped);
+            // A FULL READ'S WORTH OF TICKS, not a handful. Twenty ticks against a two-hundred-tick
+            // read cannot tell "no power" from "not enough time", so the assertion below passed
+            // against a machine with the energy check deleted - found by mutation, not by review.
+            for (int i = 0; i <= com.flatts.recompile.content.block.entity
+                    .SequencerBlockEntity.TICKS_PER_READ; i++) {
+                com.flatts.recompile.content.block.entity.SequencerBlockEntity.serverTick(
+                    helper.getLevel(), helper.absolutePos(pos),
+                    helper.getBlockState(pos), machine);
+            }
+            helper.assertTrue(machine.getItem(
+                    com.flatts.recompile.content.block.entity.SequencerBlockEntity.OUTPUT_SLOT)
+                    .isEmpty(),
+                "the sequencer produced a fragment with an empty battery");
+
+            // Fill it and run a whole read.
+            try (var transaction = net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {
+                machine.battery().insert(
+                    com.flatts.recompile.content.block.entity.SequencerBlockEntity.CAPACITY,
+                    transaction);
+                transaction.commit();
+            }
+            int ticks = com.flatts.recompile.content.block.entity.SequencerBlockEntity.TICKS_PER_READ;
+            for (int i = 0; i <= ticks; i++) {
+                com.flatts.recompile.content.block.entity.SequencerBlockEntity.serverTick(
+                    helper.getLevel(), helper.absolutePos(pos),
+                    helper.getBlockState(pos), machine);
+            }
+
+            ItemStack out = machine.getItem(
+                com.flatts.recompile.content.block.entity.SequencerBlockEntity.OUTPUT_SLOT);
+            helper.assertTrue(!out.isEmpty(),
+                "a full battery and " + ticks + " ticks produced no fragment");
+            helper.assertTrue(out.is(RCItems.IDEA_FRAGMENT.get()),
+                "the sequencer produced " + out + " rather than an Idea Fragment");
+            Identifier set = out.get(RCDataComponents.BLUEPRINT.get());
+            helper.assertTrue(set != null && set.getPath().endsWith("/cow"),
+                "the fragment names " + set + ", which does not carry the cow that was in the amber - "
+                    + "so four of these would assemble into the wrong blueprint, or none at all");
+            helper.assertTrue(machine.getItem(
+                    com.flatts.recompile.content.block.entity.SequencerBlockEntity.INPUT_SLOT)
+                    .isEmpty(),
+                "the amber survived being read, so one piece would produce fragments forever");
+            helper.succeed();
+        });
     }
 
     /** One bundled JSON as text, or null. */

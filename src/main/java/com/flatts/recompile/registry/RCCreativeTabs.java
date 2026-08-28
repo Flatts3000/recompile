@@ -142,6 +142,7 @@ public final class RCCreativeTabs {
 
                     // --- 8. Power ---
                     output.accept(RCItems.BURNER_GENERATOR.get());
+                    output.accept(RCItems.SEQUENCER.get());
 
                     // --- 9. Machines, in the order a base gets them ---
                     output.accept(RCItems.RAIN_COLLECTOR.get());

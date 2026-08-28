@@ -644,5 +644,7 @@
   "tooltip.recompile.amber.empty": "Clear, with nothing inside",
   "tooltip.recompile.amber.unknown": "Something unrecognisable",
   "tooltip.recompile.amber.species": "A trapped %s",
-  "blueprint.recompile.spawner": "Spawner Cage"
+  "blueprint.recompile.spawner": "Spawner Cage",
+  "block.recompile.sequencer": "Sequencer",
+  "container.recompile.sequencer": "Sequencer"
 }

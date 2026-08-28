@@ -756,6 +756,9 @@ public final class RCItems {
         props -> new net.minecraft.world.item.SpawnEggItem(
             props.spawnEgg(RCEntities.PIGEON.get())));
 
+    public static final DeferredItem<BlockItem> SEQUENCER =
+        ITEMS.registerSimpleBlockItem("sequencer", RCBlocks.SEQUENCER);
+
     public static final DeferredItem<BlockItem> BURNER_GENERATOR =
         ITEMS.registerSimpleBlockItem("burner_generator", RCBlocks.BURNER_GENERATOR);
     public static final DeferredItem<BlockItem> RAIN_COLLECTOR =

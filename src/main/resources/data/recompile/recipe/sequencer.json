@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": [
+    "Gem tier on purpose. The Sequencer is the only route to a spawn egg, and a spawn egg is the",
+    "only route to a working spawner, so this recipe is the second gate on that whole chain -",
+    "the first being four Broken Spawners out of the depths."
+  ],
+  "pattern": [
+    "SGS",
+    "CEC",
+    "SSS"
+  ],
+  "key": {
+    "S": "recompile:steel_offcut",
+    "G": "recompile:cullet_glass",
+    "C": "recompile:circuit_powder",
+    "E": "recompile:motor"
+  },
+  "result": {
+    "id": "recompile:sequencer",
+    "count": 1
+  }
+}

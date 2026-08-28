@@ -22,6 +22,7 @@ public final class RCMenuScreens {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(RCMenus.SCRAP_CRAFTING_STATION.get(), ScrapCraftingStationScreen::new);
         event.register(RCMenus.BURNER_GENERATOR.get(), BurnerGeneratorScreen::new);
+        event.register(RCMenus.SEQUENCER.get(), SequencerScreen::new);
         event.register(RCMenus.CUPOLA_FURNACE.get(), CupolaFurnaceScreen::new);
         event.register(RCMenus.SLAG_FURNACE.get(), SlagFurnaceScreen::new);
         event.register(RCMenus.SINTERING_KILN.get(), SinteringKilnScreen::new);

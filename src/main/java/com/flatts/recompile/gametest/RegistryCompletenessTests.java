@@ -666,6 +666,13 @@ final class RegistryCompletenessTests {
         // Manual-only by design, and the reason the Cupola is worth building. Exposing ANY handler -
         // even one that refuses - makes pipes visually connect, so it exposes none at all.
         "burn_barrel",
+        // The Sequencer (#294) is the "one precious thing at a time" machine, not an automation-tier
+        // one: amber arrives at about 1 in 700 pulls, so a player has a handful rather than a stack
+        // and a pipe would be feeding it nothing most of the time. Deliberately unlike the
+        // Hydroponics Bay, which exposes all three BECAUSE it is the automation tier - the two are
+        // both powered blocks with screens and that is where the resemblance stops. Revisit if
+        // playtest says otherwise; it is one registerBlockEntity call away.
+        "sequencer",
         // Items stay manual; only its water tank is automatable.
         "tree_nursery",
         // Holds one displayed item and is never hopper-fed - placing and taking is the interaction.

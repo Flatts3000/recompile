@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.menu.SequencerMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
 import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
@@ -34,6 +35,15 @@ public final class RCMenus {
             (id, inventory, buffer) -> new ScrapCraftingStationMenu(id, inventory, buffer.readBlockPos())));
 
     /** The Tree Nursery's menu (reclamation rung 4): the mod's second bespoke screen, for the species picker. */
+    /**
+     * The Sequencer's two slots and power meter (#294). The eighth custom screen, and the SAME
+     * exception as the Burner Generator's below: a machine that burns FE needs an energy bar, and no
+     * vanilla screen has one.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<SequencerMenu>> SEQUENCER =
+        MENUS.register("sequencer", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new SequencerMenu(id, inventory)));
+
     /** The Burner Generator's fuel row + power meter (#72). No vanilla screen has an energy bar. */
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerGeneratorMenu>> BURNER_GENERATOR =
         MENUS.register("burner_generator", () -> IMenuTypeExtension.create(

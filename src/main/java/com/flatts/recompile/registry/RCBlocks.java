@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.SequencerBlock;
 import com.flatts.recompile.content.block.ManholeBlock;
 import com.flatts.recompile.content.block.FilingCabinetBlock;
 import com.flatts.recompile.content.block.PulverizerCoreBlock;
@@ -593,6 +594,20 @@ public final class RCBlocks {
      * Burner Generator (#72): burns refuse into FE, the half of the power tier that works at night.
      * Fed by right-click, so it needs no screen and no menu.
      */
+    /**
+     * The Sequencer (#294): reads the creature out of a piece of Amber and hands back the idea of its
+     * spawn egg. A powered single block with a screen - a machine you put one precious thing into and
+     * watch, rather than a conveyor you feed and walk away from.
+     */
+    public static final DeferredBlock<SequencerBlock> SEQUENCER = BLOCKS.registerBlock(
+        "sequencer",
+        SequencerBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.5F)
+            .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops());
+
     public static final DeferredBlock<BurnerGeneratorBlock> BURNER_GENERATOR = BLOCKS.registerBlock(
         "burner_generator",
         BurnerGeneratorBlock::new,

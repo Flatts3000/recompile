@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.entity.SequencerBlockEntity;
 import com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity;
 import com.flatts.recompile.content.block.entity.CupolaFurnaceBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnBarrelBlockEntity;
@@ -78,6 +79,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "solar_panel",
             () -> new BlockEntityType<>(SolarPanelBlockEntity::new, RCBlocks.SOLAR_PANEL.get()));
+
+    /** The Sequencer's amber slot, fragment slot and power buffer (#294). */
+    public static final Supplier<BlockEntityType<SequencerBlockEntity>> SEQUENCER =
+        BLOCK_ENTITIES.register(
+            "sequencer",
+            () -> new BlockEntityType<>(SequencerBlockEntity::new, RCBlocks.SEQUENCER.get()));
 
     /** The Burner Generator's burn timer and buffer (#72). No inventory - it is fed by right-click. */
     public static final Supplier<BlockEntityType<BurnerGeneratorBlockEntity>> BURNER_GENERATOR =
@@ -201,6 +208,14 @@ public final class RCBlockEntities {
         event.registerBlockEntity(
             Capabilities.Energy.BLOCK,
             HYDROPONICS_BAY.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
+        // The Sequencer takes power and nothing else, INSERT-only like every other consumer here.
+        // No item capability and no Container exposure on purpose: this is a machine you stand at, so
+        // there is nothing for a pipe to be reaching into.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            SEQUENCER.get(),
             (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
 
         // The Separator takes power and nothing else. INSERT-only, like the Bay: it is a consumer.
