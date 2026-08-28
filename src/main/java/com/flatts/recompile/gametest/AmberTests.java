@@ -147,6 +147,50 @@ final class AmberTests {
             helper.succeed();
         });
 
+        // THE SPAWNER RECIPE HAS TO PRODUCE THE ORDINARY SPAWNER, AND A PLACEABLE ONE.
+        //
+        // <p>A spawner is a BLOCK; it has a block item only because `Items.SPAWNER =
+        // registerBlock(Blocks.SPAWNER)`, which is what lets a recipe name it at all.
+        //
+        // <p><b>This is NOT guarding against a typo.</b> That was the first justification written here
+        // and it is wrong, measured: pointing the result at `minecraft:spawnr` fails the recipe codec
+        // at load with "Unknown registry key", loudly, before anything ships. What it guards is a swap
+        // to an id that is VALID and wrong - and `minecraft:trial_spawner` is exactly that trap. It
+        // parses, it is a spawner to look at, and `TrialSpawnerBlockEntity` also implements
+        // {@code Spawner}, so a spawn egg retypes it just the same and the chain appears to work. It
+        // is a completely different machine: one-shot, ejects its loot, resets itself, and cannot be
+        // taken away again. A player would earn the blueprint over four Broken Spawners and get
+        // something that behaves nothing like what the guidebook describes.
+        //
+        // <p>The BlockItem assertion covers the other half: everything past this point is "place it,
+        // then retype it", so a result that could not be placed would break two steps later and a
+        // long way from here.
+        RCGameTests.test("the_spawner_blueprint_yields_a_placeable_spawner", 20, helper -> {
+            var found = new java.util.ArrayList<
+                com.flatts.recompile.content.recipe.BlueprintCraftingRecipe>();
+            for (var holder : helper.getLevel().recipeAccess().recipeMap()
+                    .byType(com.flatts.recompile.registry.RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                if (holder.value().blueprint().equals(
+                        com.flatts.recompile.content.item.BlueprintItem.SPAWNER)) {
+                    found.add(holder.value());
+                }
+            }
+            helper.assertTrue(found.size() == 1,
+                "expected exactly one recipe for the Spawner Cage blueprint, found " + found.size());
+
+            var result = found.get(0).result().item();
+            helper.assertTrue(result != net.minecraft.world.item.Items.AIR,
+                "the Spawner Cage recipe produces AIR, which is what an unresolvable item id becomes - "
+                    + "the blueprint would be earned and craft nothing");
+            helper.assertTrue(result == net.minecraft.world.item.Items.SPAWNER,
+                "the Spawner Cage recipe produces " + result + " rather than minecraft:spawner");
+            helper.assertTrue(result instanceof net.minecraft.world.item.BlockItem block
+                    && block.getBlock() == net.minecraft.world.level.block.Blocks.SPAWNER,
+                "the result is not the spawner's block item, so it cannot be placed - and placing it "
+                    + "is the whole point, since a spawn egg retypes it afterwards");
+            helper.succeed();
+        });
+
         // THE MACHINE ACTUALLY READS ONE, and refuses what it cannot.
         //
         // <p>Driven through the block entity's own tick rather than by placing a player at a screen,
