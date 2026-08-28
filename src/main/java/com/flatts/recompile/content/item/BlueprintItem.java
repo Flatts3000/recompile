@@ -78,8 +78,24 @@ public class BlueprintItem extends Item {
 
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
-        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE);
+        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
+            SPAWNER);
     }
+
+    /**
+     * How a spawner cage is built (#294), learned from a Broken Spawner found in the depths.
+     *
+     * <p><b>The cage only, never the creature.</b> What goes in one comes from Amber, up in the
+     * overworld, and the split is the design: neither half is usable alone, so the chain needs both
+     * regions and cannot be short-circuited from either end.
+     *
+     * <p>It is also the first blueprint whose result is a <b>vanilla</b> block. Everything the mod
+     * gated behind a sheet until now was its own, which made {@code a_blueprint_result_has_no_other_route}
+     * cheap to satisfy; here the guard is doing real work, because {@code minecraft:spawner} is an
+     * item the player must not reach any other way.
+     */
+    public static final Identifier SPAWNER =
+        Identifier.fromNamespaceAndPath("recompile", "spawner");
 
     /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
     public static final Identifier CLEAN_MATTRESS =

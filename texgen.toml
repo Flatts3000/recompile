@@ -2284,3 +2284,19 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "a small bundle of grey metal welding rods tied together, one end tipped in red paint, slightly bent and tarnished, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.amber]
+kind = "item"
+backend = "ai"
+size = 16
+# The whole point is the inclusion: a piece of clear amber reads as an orange pebble and says nothing.
+# The dark speck has to survive 16px, so it wants to be one clear silhouette rather than fine legs.
+prompt = "a rounded translucent golden-orange amber gemstone with a single small dark insect clearly trapped inside it, glossy resin, warm honey colour, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.broken_spawner]
+kind = "item"
+backend = "ai"
+size = 16
+# A cage with the soul burned out of it. Empty is the readable part - a spawner with something inside
+# would look like a working one, and the item is defined by what it no longer holds.
+prompt = "a small dark iron cage with bent and snapped bars, hollow and empty inside, rusted and scorched, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"

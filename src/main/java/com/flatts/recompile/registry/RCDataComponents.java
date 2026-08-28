@@ -75,6 +75,27 @@ public final class RCDataComponents {
      * nothing uses, is inert rather than broken - a datapack that removes a recipe must not turn every
      * blueprint a player is carrying into a crash.
      */
+    /**
+     * Which creature is trapped in a piece of Amber (#294), as an entity-type {@link Identifier}.
+     *
+     * <p><b>Stamped when the amber is found, not when it is read.</b> The alternative was the fridge's
+     * component lottery - a teardown pool that draws the outcome and teaches whatever it drew - and it
+     * is cheaper, because it is pure data. It was not taken: a stamped amber is a thing a player can
+     * look at, sort, hoard and trade, and an unstamped one is a lottery ticket. Four fragments of the
+     * SAME species make an egg, so knowing which ones you have is most of the mechanic.
+     *
+     * <p>An {@link Identifier} rather than a {@code Holder<EntityType<?>>} because a component has to
+     * round-trip through a loot table, and a datapack naming an entity from a mod that is not
+     * installed must not take the loot table down at parse. An id that resolves to nothing is handled
+     * where it is read instead.
+     */
+    public static final Supplier<DataComponentType<Identifier>> SPECIES =
+        DATA_COMPONENTS.register("species",
+            () -> DataComponentType.<Identifier>builder()
+                .persistent(Identifier.CODEC)
+                .networkSynchronized(Identifier.STREAM_CODEC)
+                .build());
+
     public static final Supplier<DataComponentType<Identifier>> BLUEPRINT =
         DATA_COMPONENTS.register("blueprint",
             () -> DataComponentType.<Identifier>builder()

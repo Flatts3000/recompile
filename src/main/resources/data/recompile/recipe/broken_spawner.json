@@ -1,0 +1,42 @@
+{
+  "type": "recompile:teardown",
+  "_comment": [
+    "THE CAGE, NOT THE CREATURE. Tearing this down teaches how a spawner is built; it does not",
+    "tell you what to put in one. That comes from Amber, up in the overworld, so the chain needs",
+    "both regions and neither half is a shortcut past the other.",
+    "",
+    "scraps_required 4 is the shipped default (FragmentAssemblyRecipe.DEFAULT_REQUIRED), stated",
+    "here rather than inherited so the cost of a spawner is visible in the file that sets it."
+  ],
+  "input": "recompile:broken_spawner",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 200,
+  "pools": [
+    {
+      "_comment": "A spawner cage is iron bars and burnt-out soul residue.",
+      "rolls": 6,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 6
+        },
+        {
+          "item": "recompile:rebar",
+          "weight": 3
+        },
+        {
+          "item": "recompile:e_scrap",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:spawner",
+      "chance": 1.0,
+      "scraps_required": 4
+    }
+  ]
+}

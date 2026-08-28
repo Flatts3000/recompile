@@ -186,6 +186,401 @@
           "weight": 1
         }
       ]
+    },
+    {
+      "_comment": [
+        "AMBER, ABOUT 1 IN 700 PULLS. Derived on #294 rather than picked: a spawn egg",
+        "needs four fragments of ONE species, so the cost is four-of-a-kind - a median of 16",
+        "ambers against this weighting, or 63 if the table were flat. That multiplier is why the",
+        "weights below are not uniform and why they are the real balance lever here.",
+        "",
+        "Anchors from tools/rate_report.py: bucket 1 in 2,500 (33 min), collectible 1 in 480,077",
+        "(107 h). This lands a first egg near 2-3 hours of sorting."
+      ],
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 40,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:cow"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 40,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:pig"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 36,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:sheep"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 36,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:chicken"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 20,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:rabbit"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 16,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:horse"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:donkey"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 14,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:goat"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:llama"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:fox"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 12,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:wolf"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:cat"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:parrot"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:frog"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:turtle"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:panda"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:polar_bear"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:mooshroom"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:bee"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:axolotl"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:cod"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:salmon"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:squid"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:bat"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:ocelot"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:camel"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:sniffer"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:villager"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:amber",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "recompile:species": "minecraft:blaze"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 239757
+        }
+      ]
     }
   ]
 }

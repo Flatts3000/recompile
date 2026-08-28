@@ -97,6 +97,11 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.WORN_FORGING_DIE.get());
                     output.accept(RCItems.ANCIENT_SCULK.get());
                     output.accept(RCItems.SCULK_POWDER.get());
+                    // Both #294 finds sit beside the depths scrap: the Broken Spawner is found there,
+                    // and Amber is beside it because the two are one chain even though the amber
+                    // itself comes out of household garbage.
+                    output.accept(RCItems.BROKEN_SPAWNER.get());
+                    output.accept(RCItems.AMBER.get());
                     RCItems.NETHER_SHARDS.forEach(shard -> output.accept(shard.get()));
                     RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
                     output.accept(RCItems.CIRCUIT_POWDER.get());

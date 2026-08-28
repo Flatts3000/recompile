@@ -638,5 +638,11 @@
   "book.recompile.guide.demolition.radioactive_dump.intro.title": "Further Out",
   "book.recompile.guide.demolition.radioactive_dump.intro.text": "Keep going past the demolition yard and the ground turns sallow. Somebody buried the things nobody would take out here: heaps of mill tailings, steel drums with a trefoil stencilled on the side, and the ordinary household objects that were quietly radioactive all along.\n\n\\\n\\\nTailings take a sledgehammer, any of them. The drums take a prybar, the way bulky waste does.\n\n\\\n\\\nYou will probably find the place before you can work it. That is the shape of the trip: the walk is easy and the tool is not.",
   "book.recompile.guide.demolition.radioactive_dump.ground.title": "What It Leaves",
-  "book.recompile.guide.demolition.radioactive_dump.ground.text": "The stained ground under the heaps does not come back. Grass will not spread onto it and the spreader will not take it, so a patch you find stained stays stained. Everything around it behaves as it does at home.\n\n\\\n\\\nThe heaps do not come back either. Strip a dump and it is stripped - there is no mound memory out here the way there is under the sprawl. There are other dumps."
+  "book.recompile.guide.demolition.radioactive_dump.ground.text": "The stained ground under the heaps does not come back. Grass will not spread onto it and the spreader will not take it, so a patch you find stained stays stained. Everything around it behaves as it does at home.\n\n\\\n\\\nThe heaps do not come back either. Strip a dump and it is stripped - there is no mound memory out here the way there is under the sprawl. There are other dumps.",
+  "item.recompile.amber": "Amber",
+  "item.recompile.broken_spawner": "Broken Spawner",
+  "tooltip.recompile.amber.empty": "Clear, with nothing inside",
+  "tooltip.recompile.amber.unknown": "Something unrecognisable",
+  "tooltip.recompile.amber.species": "A trapped %s",
+  "blueprint.recompile.spawner": "Spawner Cage"
 }
