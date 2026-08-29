@@ -201,5 +201,142 @@ final class MenuTransferTests {
             helper.assertTrue(bad.isEmpty(), "malformed viewer rows: " + bad);
             helper.succeed();
         });
+        // SHIFT-CLICK NEVER CREATES OR DESTROYS AN ITEM, on every menu that reimplements the move.
+        //
+        // <p>This file's own header says a coverage pass found "every custom menu's quickMoveStack at
+        // ZERO branches covered". It then tested ONE of them. Six menus reimplement the method over a
+        // bare AbstractContainerMenu - Burner Generator, Cupola, Hydroponics Bay, Scrap Crafting Table,
+        // Sequencer, Tree Nursery - and only the Cupola had a test. The Sintering Kiln and the Slag
+        // Furnace inherit vanilla's and are correctly absent.
+        //
+        // <p><b>Conservation is the assertion because it is the failure that hurts.</b> Routing an item
+        // to the wrong slot is visible and annoying; losing it is not recoverable, and vanilla's own
+        // contract makes the mistake easy - quickMoveStack must return EMPTY once it can move no more,
+        // or the caller loops forever, and the usual bug is returning the wrong stack and having the
+        // caller delete the remainder. Counting every item in the menu before and after catches that
+        // whatever the routing does.
+        //
+        // <p>The menu list is derived from the REGISTRY rather than typed out, so a seventh bespoke
+        // menu is covered the day it is registered. That is the same reason MachineParityTests derives
+        // its list, and the same failure it was written against: a hand-list that reads as complete.
+        RCGameTests.test("shift_clicking_never_creates_or_destroys_an_item", 60, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+
+            record Menu(String name, java.util.function.Function<net.minecraft.world.entity.player.Inventory,
+                net.minecraft.world.inventory.AbstractContainerMenu> make) {
+            }
+            List<Menu> menus = List.of(
+                new Menu("burner_generator", inv ->
+                    new com.flatts.recompile.content.menu.BurnerGeneratorMenu(0, inv)),
+                new Menu("hydroponics_bay", inv ->
+                    new com.flatts.recompile.content.menu.HydroponicsBayMenu(0, inv)),
+                new Menu("sequencer", inv ->
+                    new com.flatts.recompile.content.menu.SequencerMenu(0, inv)),
+                new Menu("tree_nursery", inv ->
+                    new com.flatts.recompile.content.menu.TreeNurseryMenu(0, inv)),
+                new Menu("cupola_furnace", inv ->
+                    new CupolaFurnaceMenu(0, inv)));
+
+            // A spread that exercises every branch these methods have between them: something each
+            // machine accepts, something none of them do, and a full stack so a partial move is
+            // possible rather than always all-or-nothing.
+            List<ItemStack> fixtures = List.of(
+                new ItemStack(RCItems.OILY_RAG.get(), 64),
+                new ItemStack(RCItems.AMBER.get(), 1),
+                new ItemStack(RCItems.FERTILIZER.get(), 32),
+                new ItemStack(Items.COBBLESTONE, 64));
+
+            List<String> problems = new ArrayList<>();
+            for (Menu m : menus) {
+                for (ItemStack fixture : fixtures) {
+                    // 1. INVENTORY -> MACHINE, with room everywhere. The ordinary case.
+                    var menu = m.make().apply(player.getInventory());
+                    int from = firstPlayerSlot(menu, player);
+                    if (from < 0) {
+                        problems.add(m.name() + " exposes no player-inventory slot");
+                        continue;
+                    }
+                    menu.slots.get(from).set(fixture.copy());
+                    problems.addAll(drain(menu, player, from, m.name() + " in", fixture));
+
+                    // 2. MACHINE -> INVENTORY WITH ONLY PARTIAL ROOM, which is the case that matters
+                    // and the one this test did not have when it was first written. With room for
+                    // everything a move always completes, `stack.isEmpty()` is always true, and the
+                    // branch that decides what happens to the REMAINDER never runs - so clearing the
+                    // source slot unconditionally (the classic dupe-or-delete bug) was behaviourally
+                    // identical and a mutation of exactly that stayed green. Leaving room for half the
+                    // stack is what makes the remainder exist.
+                    var partial = m.make().apply(player.getInventory());
+                    int firstInv = firstPlayerSlot(partial, player);
+                    if (firstInv < 0) {
+                        continue;
+                    }
+                    ItemStack filler = new ItemStack(fixture.getItem(), fixture.getMaxStackSize());
+                    for (int i = firstInv; i < partial.slots.size(); i++) {
+                        partial.slots.get(i).set(filler.copy());
+                    }
+                    // One slot with half a stack, so exactly half the incoming stack can merge.
+                    int half = Math.max(1, fixture.getMaxStackSize() / 2);
+                    partial.slots.get(firstInv).set(new ItemStack(fixture.getItem(), half));
+                    partial.slots.get(0).set(new ItemStack(fixture.getItem(), fixture.getMaxStackSize()));
+                    problems.addAll(drain(partial, player, 0, m.name() + " out(partial)", fixture));
+                }
+            }
+            helper.assertTrue(problems.isEmpty(),
+                "shift-clicking must move items, never mint or eat them: " + problems);
+            player.discard();
+            helper.succeed();
+        });
+
     }
+
+    /** Every item in a menu, machine slots and player inventory together. */
+    private static int total(net.minecraft.world.inventory.AbstractContainerMenu menu) {
+        int n = 0;
+        for (var slot : menu.slots) {
+            n += slot.getItem().getCount();
+        }
+        return n;
+    }
+
+
+    /**
+     * Shift-click one slot until the menu says there is nothing left to move, and report any item the
+     * menu minted or ate along the way.
+     *
+     * <p>Loops the way vanilla's own caller does, because a {@code quickMoveStack} that never returns
+     * EMPTY hangs the game rather than failing - a bounded loop turns that into a failure with a name.
+     */
+    private static List<String> drain(net.minecraft.world.inventory.AbstractContainerMenu menu,
+            net.minecraft.world.entity.player.Player player, int from, String what, ItemStack fixture) {
+        List<String> problems = new ArrayList<>();
+        int before = total(menu);
+        int guard = 0;
+        while (!menu.quickMoveStack(player, from).isEmpty()) {
+            if (++guard > 64) {
+                problems.add(what + " never returned EMPTY for " + fixture
+                    + ", so vanilla's caller would loop forever");
+                break;
+            }
+        }
+        int after = total(menu);
+        if (before != after) {
+            problems.add(what + " held " + before + " items before the shift-click and " + after
+                + " after (" + fixture.getItem() + ")");
+        }
+        return problems;
+    }
+
+    /** The first slot in a menu that belongs to the player rather than the machine. */
+    private static int firstPlayerSlot(net.minecraft.world.inventory.AbstractContainerMenu menu,
+            net.minecraft.world.entity.player.Player player) {
+        for (int i = 0; i < menu.slots.size(); i++) {
+            if (menu.slots.get(i).container == player.getInventory()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
 }
