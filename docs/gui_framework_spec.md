@@ -1,6 +1,6 @@
 # GUI framework spec
 
-**Status: built and shipped** (2026-08-08, issue #164). All four screens run on it. Owner call the
+**Status: built and shipped** (2026-08-08, issue #164). All eight screens run on it. Owner call the
 same day: a real GUI framework is the thing holding back several features, because a high-quality
 screen was expensive enough that the honest answer was usually "don't build one".
 
@@ -26,7 +26,7 @@ minimum". Their cost:
 | Burner Generator | 149 | 153 |
 | Hydroponics Bay | 134 | 199 |
 
-**2032 lines for four screens**, and the count is misleading in the wrong direction: most of what a
+**2032 lines for the four screens it launched with** (eight today), and the count is misleading in the wrong direction: most of what a
 new screen costs is not in these files at all, it is in re-learning how any of it works.
 
 Three costs repeat every time.
@@ -119,7 +119,7 @@ Derived from what the four existing screens actually need, not invented:
 | `Picker(items)` | Tree Nursery | species selection |
 | `Label` | several | text, with vanilla's shadow conventions |
 
-**Gauges are the load-bearing addition.** The recorded reason all four screens exist is that energy
+**Gauges are the load-bearing addition.** The recorded reason these screens exist is that energy
 bars, tank gauges and pickers have no vanilla screen to borrow. A framework that ships a good gauge
 removes the *reason* most of these screens were bespoke.
 
@@ -137,7 +137,7 @@ licence to add a PNG.
 
 ## 7. Acceptance criteria
 
-**The four existing screens are the requirements document.** The framework is done when all four are
+**The screens that existed when it was written are the requirements document.** The framework was done when all four were
 reimplemented on it and:
 
 1. Every one is **shorter** than it is today, screen and menu combined.
@@ -187,7 +187,7 @@ We did not adopt it, for three reasons in increasing order of how hard they are 
 
 1. **It needs mixins.** `BaseOwoContainerScreen` imports `owo.mixin.ui.SlotAccessor` and
    `OwoSlotExtension`; it mutates `Slot.x`/`Slot.y` and injects a disabled-override field. This mod
-   deliberately has no mixins, and taking on a mixin toolchain to lay out four screens is a large
+   deliberately has no mixins, and taking on a mixin toolchain to lay out a handful of screens is a large
    change to pay for a cosmetic subsystem.
 2. **Its layout is client-side by design, so it cannot fix the defect we have.** owo's
    `slotAsComponent(int)` "will always move the linked slot to where the component gets placed by the
@@ -241,7 +241,7 @@ It is now the only class in the mod permitted to know a render pipeline or an at
 
 ## 11. What it found on the way in
 
-Converting the four screens was also an audit, and it turned up four live defects that no test could
+Converting the original four screens was also an audit, and it turned up four live defects that no test could
 have seen before:
 
 - **The Tree Nursery's screen declared `FERT_X = 44` while its menu independently passed `44` to a
@@ -261,3 +261,11 @@ referencing `TreeNurseryMenu.LAYOUT` eagerly pulled in `TreeNurseryBlockEntity`,
 `FluidResource.of(Fluids.WATER)` throws *"Components not bound yet"* - and the whole mod fails to
 load. The list holds suppliers now, which is what the previous version was accidentally doing by
 holding only factories.
+
+## Changelog
+
+- **2026-08-29** - Count corrected from four to eight during a SCRUB. The spec said "all four screens
+  run on it" in six places while the Cupola, Slag Furnace, Sintering Kiln and Sequencer had all shipped
+  on it since. Where the number was load-bearing about the ORIGINAL scope (the 2032-line figure, the
+  requirements-document argument) it is now said in the past tense rather than restated as a present
+  fact, because those sentences were true when written and only the tense was wrong.

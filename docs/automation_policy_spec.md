@@ -69,6 +69,7 @@ Separator's four, and only an audit found it.
 | **Scrap Bin** | custom `ResourceHandler` | in + out | in + out | **Deliberate departure.** Gated to its bound material. Extraction added 2026-07-31, reversing P2.9's "hopper in, no out". Draining to empty **keeps the binding**, or a pipe would silently un-type a bin and the next unrelated insert would re-bind it, quietly scrambling a sorted wall. |
 | **Burn Barrel** | `AbstractFurnaceBlockEntity` | **none** | **none** | **The exception, and it is load-bearing** (owner call, 2026-07-31). Manual-only is why the Cupola is worth building - "unlike the barrel it takes hoppers" is its stated selling point. Empty `getSlotsForFace` closes the Container path; registering **no capability at all** closes the pipe path *and* stops pipes from connecting. |
 | **Tree Nursery** | `WorldlyContainer` | **none** | **none** | Items are manual by design; only its **water tank** is exposed (`Capabilities.Fluid.BLOCK`), so a pipe from a Rain Collector can fill it. Closed on both doors, correctly. |
+| **Sequencer** | `WorldlyContainer` | **none** | **none** | Manual-only by design (#294): the "one precious thing at a time" machine, not an automation-tier one. Amber arrives at about 1 in 700 pulls, so a pipe would be feeding it nothing most of the time. **Energy IS exposed** (`Capabilities.Energy.BLOCK`, insert-only), because it has to be charged. It shipped closed on the capability door and OPEN on the Container one - a plain `Container`, which `HopperBlockEntity.getContainerAt` takes directly - so a hopper underneath pulled the amber out mid-read. Caught in review, fixed to `WorldlyContainer` with no slots on any face, the Tree Nursery's shape exactly. |
 | **Rain Collector** | plain `BlockEntity` | n/a | fluid only | Its tank is the point; it holds no items. |
 | **Display Pedestal** | plain `BlockEntity` | **none** | **none** | Holds one item and is **never hopper-fed** by design - placing and taking is the interaction. |
 | **Compost Heap**, **Recompile Workbench**, **Scrap Crafting Table** | plain `BlockEntity` | n/a | n/a | Not `Container`s. Nothing to expose. |
@@ -109,6 +110,14 @@ satisfy the sweep and still get its faces wrong.
 5. **Test the null side.** Not just `Direction.values()`.
 
 ## Changelog
+
+- **2026-08-29** - The Sequencer (#294) added a row, and the reason it is worth reading is that it was
+  wrong when it shipped. Declaring no item capability closes the pipe door and leaves the Container
+  door wide open, because a hopper never consults the capability. The guard that polices this table in
+  executable form (`every_container_block_declares_its_automation`) only checked the capability half,
+  which is why its own javadoc said "hoppers travel the vanilla Container path and never consult the
+  capability" while testing the other one. It now proves every block listed here as manual-only is shut
+  to hoppers as well.
 
 - **2026-07-31** - Power tier (#72) added two energy-only rows. Neither generator holds items, so neither
   exposes an item capability; the Burner is fed by hand.
