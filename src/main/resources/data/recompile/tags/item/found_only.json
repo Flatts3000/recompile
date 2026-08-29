@@ -28,6 +28,7 @@
     "recompile:avocado",
     "recompile:present",
     "recompile:gold_coin",
-    "recompile:toy_car"
+    "recompile:toy_car",
+    "recompile:turpentine"
   ]
 }

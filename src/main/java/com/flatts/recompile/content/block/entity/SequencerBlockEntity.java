@@ -50,7 +50,17 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
-    public static final int SLOT_COUNT = 2;
+    /**
+     * Where the read amber ends up (#231).
+     *
+     * <p>A byproduct slot, the Cupola's shape: a machine that hands back two things cannot say so with
+     * one output. Reading used to DESTROY the amber, and the owner ruling that opened the resin chain
+     * turned that into the chain's own input - the husk left after the creature is taken out is the
+     * inert body, and turpentine supplies the volatile fraction fossilisation drove off. Keeping it
+     * here rather than consuming a second whole amber is what stops resin taxing the spawn-egg rates.
+     */
+    public static final int HUSK_SLOT = 2;
+    public static final int SLOT_COUNT = 3;
 
     /** Big enough that a solar panel can fill it between reads rather than gating every single one. */
     public static final int CAPACITY = 20_000;
@@ -151,10 +161,17 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
             return false;
         }
         ItemStack out = this.items.get(OUTPUT_SLOT);
-        if (out.isEmpty()) {
-            return true;
+        if (!out.isEmpty()
+                && !(ItemStack.isSameItemSameComponents(out, made)
+                    && out.getCount() < out.getMaxStackSize())) {
+            return false;
         }
-        return ItemStack.isSameItemSameComponents(out, made) && out.getCount() < out.getMaxStackSize();
+        // AND THE HUSK HAS SOMEWHERE TO GO. Without this the machine would keep reading with a full
+        // byproduct slot and quietly destroy every husk after the first, which is the resin chain's
+        // only input disappearing with nothing said. The Cupola learned the same lesson about slag.
+        ItemStack husk = this.items.get(HUSK_SLOT);
+        return husk.isEmpty()
+            || (husk.is(RCItems.SPENT_AMBER.get()) && husk.getCount() < husk.getMaxStackSize());
     }
 
     private void finish(ItemStack input) {
@@ -164,6 +181,12 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
             this.items.set(OUTPUT_SLOT, made);
         } else {
             out.grow(1);
+        }
+        ItemStack husk = this.items.get(HUSK_SLOT);
+        if (husk.isEmpty()) {
+            this.items.set(HUSK_SLOT, new ItemStack(RCItems.SPENT_AMBER.get()));
+        } else {
+            husk.grow(1);
         }
         input.shrink(1);
     }

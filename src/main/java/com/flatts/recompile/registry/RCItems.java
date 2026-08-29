@@ -240,6 +240,38 @@ public final class RCItems {
     public static final DeferredItem<Item> AMBER = ITEMS.registerItem("amber", AmberItem::new);
 
     /**
+     * What the Sequencer leaves after it has read the creature out (#231).
+     *
+     * <p><b>The inert body of the resin chain, and the reason the chain does not tax the spawn eggs.</b>
+     * Reading an amber used to destroy it. It now hands the husk back, so the two things a piece of
+     * amber is good for compose rather than compete for the same drop: you take the DNA out, and what
+     * is left is the material. Every amber in both pull streams is stamped, so without this a clump of
+     * resin would cost a spawn egg's worth of sequencing.
+     *
+     * <p>Useless on its own, exactly like Grog. Amber is polymerised and cross-linked and cannot be
+     * softened back into fresh sap - the fired-clay problem verbatim, which this mod refused once
+     * already. {@link #TURPENTINE} is what makes it workable, because turpentine IS the volatile
+     * terpene fraction that fossilisation drove off. The pair does not reverse anything; it puts back
+     * the one thing that left.
+     */
+    public static final DeferredItem<Item> SPENT_AMBER = ITEMS.registerItem("spent_amber", Item::new);
+
+    /**
+     * A half-used tin of turpentine (#231, owner 2026-08-29).
+     *
+     * <p><b>Found, never made</b>, and it passes the P2.11 test without argument: a tin of solvent
+     * going off in a shed is exactly what a person throws away. It is in {@code #recompile:found_only}
+     * and {@code FoundNotCraftedTests} holds both halves of that - no recipe may make one, and it must
+     * have a loot table that does.
+     *
+     * <p>It exists to answer the one question that blocked #231 for eleven days: option A needed
+     * something to supply what fossilisation removed, and nothing in the material set fit. Turpentine
+     * is distilled from pine resin, so it is not a stand-in for the missing fraction, it is that
+     * fraction.
+     */
+    public static final DeferredItem<Item> TURPENTINE = ITEMS.registerItem("turpentine", Item::new);
+
+    /**
      * A spawner cage with the soul burned out of it (#294). Tear it down at the Workbench to learn how
      * the cage was made; the creature to put in it comes from Amber.
      *
