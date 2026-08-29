@@ -3,6 +3,7 @@ package com.flatts.recompile.compat;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCDataComponents;
+import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -145,6 +146,69 @@ public final class SortingData {
 
     /** The Hydroponics Bay's seedling lottery: which plant an Unknown Seedling turns out to be. */
     public static final String SEEDLING = "/data/recompile/loot_table/gameplay/hydroponics_seedling.json";
+
+    /**
+     * Every species the pull streams can stamp onto a piece of Amber (#294), in table order.
+     *
+     * <p>Read from the bundled loot JSON for the same reason everything else in this class is: loot
+     * tables are not client-synced, and JEI needs this on the client to build one sequencing page and
+     * one spawn-egg page per creature. Listing them in Java instead would be a second source of truth
+     * for the one thing the tables already say.
+     */
+    public static List<Identifier> amberSpecies() {
+        List<Identifier> species = new ArrayList<>();
+        java.util.Set<Item> stripped = strippedItems();
+        for (String table : List.of(HOUSEHOLD, BAG)) {
+            // The same three checks every other reader in this class makes, and it shipped without
+            // them. A table whose conditions do not hold is not loaded by the game, so listing its
+            // species puts creatures in JEI that no player can find; a strip modifier deleting amber
+            // does the same thing one layer down; and reading a `recompile:species` component off an
+            // entry that is not amber, or off a function that is not set_components, would invent one.
+            // None of those is hypothetical here - #276 and #277 are exactly this shape.
+            if (!conditionsHold(table)) {
+                continue;
+            }
+            JsonObject root = json(table);
+            if (root == null || !root.has("pools")) {
+                continue;
+            }
+            for (JsonElement rawPool : root.getAsJsonArray("pools")) {
+                JsonObject pool = rawPool.getAsJsonObject();
+                if (!pool.has("entries")) {
+                    continue;
+                }
+                for (JsonElement rawEntry : pool.getAsJsonArray("entries")) {
+                    JsonObject entry = rawEntry.getAsJsonObject();
+                    if (!entry.has("name") || !entry.has("functions")) {
+                        continue;
+                    }
+                    Item item = BuiltInRegistries.ITEM.getValue(
+                        Identifier.parse(entry.get("name").getAsString()));
+                    if (item != RCItems.AMBER.get() || stripped.contains(item)) {
+                        continue;
+                    }
+                    for (JsonElement rawFn : entry.getAsJsonArray("functions")) {
+                        JsonObject fn = rawFn.getAsJsonObject();
+                        if (!fn.has("function")
+                                || !"minecraft:set_components".equals(fn.get("function").getAsString())
+                                || !fn.has("components")) {
+                            continue;
+                        }
+                        JsonObject components = fn.getAsJsonObject("components");
+                        if (!components.has("recompile:species")) {
+                            continue;
+                        }
+                        Identifier id =
+                            Identifier.tryParse(components.get("recompile:species").getAsString());
+                        if (id != null && !species.contains(id)) {
+                            species.add(id);
+                        }
+                    }
+                }
+            }
+        }
+        return List.copyOf(species);
+    }
 
     /** One possible output and how likely it is (0..1). */
     public record Weighted(ItemStack stack, float chance) {}

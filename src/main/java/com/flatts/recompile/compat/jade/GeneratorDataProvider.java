@@ -2,6 +2,7 @@ package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
+import com.flatts.recompile.content.block.entity.SequencerBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
@@ -39,6 +40,18 @@ public enum GeneratorDataProvider implements IServerDataProvider<BlockAccessor> 
             data.putInt("capacity", BurnerGeneratorBlockEntity.CAPACITY);
             data.putInt("rate", generator.isLit() ? BurnerGeneratorBlockEntity.FE_PER_TICK : 0);
             data.putInt("burn", generator.burnTime());
+        } else if (accessor.getBlockEntity() instanceof SequencerBlockEntity sequencer) {
+            // A CONSUMER, on the same wire. The Sequencer is the first powered block that is neither a
+            // generator nor a multiblock core, so neither existing provider covered it: the generator
+            // pair reports production and MachineStatusProvider is gated on MultiblockCoreBlock. Rather
+            // than a third pair that would say the same three things, it rides this one and flags
+            // itself, and the component provider swaps the verb.
+            data.putBoolean("consumer", true);
+            data.putInt("stored", sequencer.battery().getAmountAsInt());
+            data.putInt("capacity", SequencerBlockEntity.CAPACITY);
+            data.putInt("rate", sequencer.isReading() ? SequencerBlockEntity.ENERGY_PER_TICK : 0);
+            data.putInt("progress", sequencer.progress());
+            data.putInt("duration", SequencerBlockEntity.TICKS_PER_READ);
         }
     }
 

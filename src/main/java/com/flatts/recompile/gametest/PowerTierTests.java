@@ -225,6 +225,10 @@ final class PowerTierTests {
             for (String key : List.of(
                     "jade.recompile.energy_stored", "jade.recompile.energy_rate",
                     "jade.recompile.energy_idle", "jade.recompile.burn_remaining",
+                    // The consumer half (#294). Same provider, different verb: a machine that is
+                    // "Generating 24 FE/t" while eating power reads as a bug in the mod.
+                    "jade.recompile.energy_draw", "jade.recompile.energy_stopped",
+                    "jade.recompile.reading",
                     "tooltip.recompile.energy_stored",
                     "tooltip.recompile.generator_generating",
                     "tooltip.recompile.generator_buffer_full",

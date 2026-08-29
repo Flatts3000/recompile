@@ -52,9 +52,38 @@ public final class BlueprintData {
         return cached;
     }
 
-    private static Entry read(JsonObject recipe) {
+    /**
+     * The shipped spawn-egg vessel's grid, or empty if it cannot be read (#294).
+     *
+     * <p>Same reason as {@link #all()}: read from the bundled FILES rather than the recipe manager,
+     * because JEI builds its categories on its own schedule and a snapshot taken then can be empty.
+     * The recipe has no {@code result} field to parse - the egg comes from the sheet in the grid - so
+     * this returns the pattern alone and the category pairs it with a species.
+     */
+    public static synchronized java.util.Optional<net.minecraft.world.item.crafting.ShapedRecipePattern>
+            spawnEggPattern() {
+        for (JsonObject recipe : RecipeFiles.ofType("recompile:spawn_egg_crafting")) {
+            Grid grid = grid(recipe);
+            if (grid != null) {
+                return java.util.Optional.of(new net.minecraft.world.item.crafting.ShapedRecipePattern(
+                    grid.width(), grid.height(), grid.ingredients(), java.util.Optional.empty()));
+            }
+        }
+        return java.util.Optional.empty();
+    }
+
+    /** A parsed pattern: the shape, with no opinion about what it produces. */
+    private record Grid(List<java.util.Optional<Ingredient>> ingredients, int width, int height) {}
+
+    /**
+     * The {@code key} + {@code pattern} half of any shaped recipe JSON.
+     *
+     * <p>Factored out of {@link #read} when the spawn-egg vessel needed the same parse without a
+     * {@code result}. Two copies of this walk would drift the first time a pattern edge case turned
+     * up, and the symptom would be a JEI page drawn from a grid nothing matches.
+     */
+    private static Grid grid(JsonObject recipe) {
         try {
-            Identifier blueprint = Identifier.parse(recipe.get("blueprint").getAsString());
             JsonObject keys = recipe.getAsJsonObject("key");
             List<String> rows = new ArrayList<>();
             for (JsonElement row : recipe.getAsJsonArray("pattern")) {
@@ -79,6 +108,22 @@ public final class BlueprintData {
                     ingredients.add(java.util.Optional.of(ingredient));
                 }
             }
+            return new Grid(List.copyOf(ingredients), width, rows.size());
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static Entry read(JsonObject recipe) {
+        try {
+            Identifier blueprint = Identifier.parse(recipe.get("blueprint").getAsString());
+            Grid parsed = grid(recipe);
+            if (parsed == null) {
+                return null;
+            }
+            List<java.util.Optional<Ingredient>> ingredients = parsed.ingredients();
+            int width = parsed.width();
+            List<String> rows = java.util.Collections.nCopies(parsed.height(), "");
             JsonObject result = recipe.getAsJsonObject("result");
             Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(result.get("item").getAsString()));
             int count = result.has("count") ? result.get("count").getAsInt() : 1;

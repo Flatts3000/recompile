@@ -63,7 +63,7 @@ item in a hand.
 
 ## Recipes
 
-Six public recipe types. A pack writes these the way it writes a vanilla one, in
+Seven public recipe types. A pack writes these the way it writes a vanilla one, in
 `data/<pack>/recipe/`:
 
 | Type | Shape |
@@ -74,8 +74,22 @@ Six public recipe types. A pack writes these the way it writes a vanilla one, in
 | `recompile:vitrifying` | vanilla's cooking schema; the Slag Furnace |
 | `recompile:sintering` | vanilla's cooking schema; the Sintering Kiln |
 | `recompile:blueprint_crafting` | a grid recipe gated on holding a Blueprint |
+| `recompile:spawn_egg_crafting` | a grid recipe whose result is read off a Blueprint IN the grid |
 
 `docs/teardown_schema_spec.md` is the reference for the first one and is treated as public API.
+
+**`spawn_egg_crafting` is the odd one and the reason it exists is worth knowing before copying it.**
+It has no `result` field at all: the result is computed from the Blueprint sitting in the grid, whose
+set is `recompile:spawn_egg/<namespace>/<path>` and whose species must have a `<path>_spawn_egg` item.
+So one recipe covers every creature, including ones from mods this pack has never heard of, and a pack
+extends the set by adding amber to a pull stream rather than by writing recipes.
+
+It could not be a `blueprint_crafting` recipe. That schema names one set per recipe, so a per-species
+family means one recipe per species sharing a single 3x3 arrangement - and the Scrap Crafting Table
+resolves a blueprint recipe by taking the first whose sheet is within reach, so a player holding two
+sheets would get whichever iterated first. The sheet has to be IN the grid for the player to name which
+one they mean, which is also why this is the only recipe in the mod where a Blueprint is an input. It
+is not consumed: the table's result slot puts it back, gated on a spawn-egg recipe having matched.
 
 **One rule binds all of them:** on the three GUI-less machines - Trommel, Separator, Pulverizer - a
 recipe must not consume more than one input (owner, 2026-08-19). Those machines have no screen and are

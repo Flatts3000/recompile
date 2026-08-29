@@ -54,29 +54,12 @@ final class AmberTests {
         // "Something unrecognisable" forever. Nothing else in the build has an opinion about it.
         RCGameTests.test("every_amber_species_is_a_real_entity", 20, helper -> {
             var unknown = new TreeSet<String>();
-            int checked = 0;
-            for (String path : POOLS) {
-                String body = read(path);
-                helper.assertTrue(body != null, "could not read " + path + " off the classpath");
-                for (JsonElement rawPool : JsonParser.parseString(body).getAsJsonObject()
-                        .getAsJsonArray("pools")) {
-                    for (JsonElement rawEntry : rawPool.getAsJsonObject().getAsJsonArray("entries")) {
-                        JsonObject entry = rawEntry.getAsJsonObject();
-                        if (!"recompile:amber".equals(
-                                entry.has("name") ? entry.get("name").getAsString() : "")) {
-                            continue;
-                        }
-                        for (JsonElement rawFunction : entry.getAsJsonArray("functions")) {
-                            JsonObject components = rawFunction.getAsJsonObject()
-                                .getAsJsonObject("components");
-                            String species = components.get("recompile:species").getAsString();
-                            checked++;
-                            if (BuiltInRegistries.ENTITY_TYPE
-                                    .getOptional(Identifier.parse(species)).isEmpty()) {
-                                unknown.add(species);
-                            }
-                        }
-                    }
+            var found = speciesInPullStreams(helper);
+            int checked = found.size();
+            for (String species : found) {
+                if (BuiltInRegistries.ENTITY_TYPE
+                        .getOptional(Identifier.parse(species)).isEmpty()) {
+                    unknown.add(species);
                 }
             }
             helper.assertTrue(checked > 0,
@@ -227,6 +210,272 @@ final class AmberTests {
             helper.assertTrue(cow.contains("Cow"),
                 "the spawn-egg blueprint name rendered as \"" + cow + "\", which does not name the "
                     + "creature - every species' sheet would read alike");
+
+            // THE FRAGMENT NAMES ITS CREATURE TOO, and this is the surface a player actually sorts by:
+            // fragments for different species do not stack, so telling four cow fragments from three
+            // cow and one pig is the whole mechanic. It shipped reading the raw set id, because the
+            // computed name was written for the SHEET and IdeaFragmentItem kept its own copy of the
+            // key derivation. One method now, asked by both.
+            Identifier set = Identifier.fromNamespaceAndPath("recompile",
+                com.flatts.recompile.content.item.BlueprintItem.SPAWN_EGG_PREFIX + "minecraft/cow");
+            String fragmentName = com.flatts.recompile.content.item.BlueprintItem.setName(set)
+                .getString();
+            helper.assertTrue(fragmentName.contains("Cow"),
+                "a fragment toward a cow reads \"" + fragmentName + "\" rather than naming the cow");
+            helper.assertTrue(!fragmentName.contains(":") && !fragmentName.contains("/"),
+                "a fragment reads \"" + fragmentName + "\", which is a raw id rather than a name - "
+                    + "the one surface in this chain a player uses to tell four of a kind apart");
+            helper.succeed();
+        });
+
+        // THE EGG RECIPE READS THE SHEET IN THE GRID, and only a sheet that names a real creature.
+        //
+        // <p>Driven through the recipe rather than through a menu because the recipe is where the
+        // decision lives; the menu's job (putting the sheet back) is proven separately below.
+        RCGameTests.test("a_spawn_egg_blueprint_makes_that_species_egg", 20, helper -> {
+            var level = helper.getLevel();
+            var recipes = new ArrayList<
+                com.flatts.recompile.content.recipe.SpawnEggCraftingRecipe>();
+            for (var holder : level.recipeAccess().recipeMap()
+                    .byType(com.flatts.recompile.registry.RCRecipeTypes.SPAWN_EGG_CRAFTING.get())) {
+                recipes.add(holder.value());
+            }
+            helper.assertTrue(recipes.size() == 1,
+                "expected exactly one spawn_egg_crafting recipe, found " + recipes.size()
+                    + " - the whole point of the type is that one recipe covers every creature");
+            var recipe = recipes.get(0);
+
+            helper.assertTrue(
+                recipe.assemble(gridWith(sheetFor("minecraft:cow"))).is(
+                    net.minecraft.world.item.Items.COW_SPAWN_EGG),
+                "a cow sheet must make a cow spawn egg");
+            helper.assertTrue(
+                recipe.assemble(gridWith(sheetFor("minecraft:bee"))).is(
+                    net.minecraft.world.item.Items.BEE_SPAWN_EGG),
+                "and a bee sheet a bee one - the species comes from the sheet, not the recipe");
+
+            // EVERY SPECIES THE AMBER CAN NAME HAS TO WORK. A pool entry whose creature has no spawn
+            // egg is a sheet a player earns over four ambers and can never spend, and nothing else in
+            // this file would notice: the loot test only asks that the entity exists.
+            List<String> unmakeable = new ArrayList<>();
+            for (String id : speciesInPullStreams(helper)) {
+                if (recipe.assemble(gridWith(sheetFor(id))).isEmpty()) {
+                    unmakeable.add(id);
+                }
+            }
+            helper.assertTrue(unmakeable.isEmpty(),
+                "these species can be found in amber but have no spawn egg to craft, so their sheets "
+                    + "are dead ends: " + unmakeable);
+            helper.succeed();
+        });
+
+        // THE THINGS THAT MUST NOT MAKE AN EGG. Each of these would otherwise show a result the player
+        // cannot explain, and the two-sheet case is the exact non-determinism this recipe type exists
+        // to avoid - the reason it is not 29 blueprint_crafting recipes.
+        RCGameTests.test("only_one_real_spawn_egg_sheet_makes_an_egg", 20, helper -> {
+            var level = helper.getLevel();
+            var recipe = level.recipeAccess().recipeMap()
+                .byType(com.flatts.recompile.registry.RCRecipeTypes.SPAWN_EGG_CRAFTING.get())
+                .iterator().next().value();
+
+            helper.assertTrue(recipe.assemble(gridWith(
+                    new ItemStack(RCItems.BLUEPRINT.get()))).isEmpty(),
+                "a BLANK blueprint must make nothing");
+            helper.assertTrue(recipe.assemble(gridWith(com.flatts.recompile.content.item.BlueprintItem
+                    .of(RCItems.BLUEPRINT.get(),
+                        com.flatts.recompile.content.item.BlueprintItem.CLEAN_MATTRESS))).isEmpty(),
+                "and so must a sheet for something that is not a creature at all");
+            helper.assertTrue(recipe.assemble(gridWith(sheetFor("minecraft:not_a_mob"))).isEmpty(),
+                "a species that does not exist must make nothing rather than an empty stack the table "
+                    + "would show as a blank result");
+            helper.assertTrue(recipe.assemble(gridWith(sheetFor("minecraft:arrow"))).isEmpty(),
+                "and an entity that exists but has no spawn egg must make nothing either");
+
+            helper.assertTrue(recipe.assemble(twoSheets()).isEmpty(),
+                "two different sheets is an ambiguous request, and picking one would be exactly the "
+                    + "coin-flip this recipe type was written to avoid");
+            helper.succeed();
+        });
+
+        // THE SHEET SURVIVES MAKING THE EGG, which is the whole reason it is allowed in the grid.
+        //
+        // <p>This is the one place in the mod where a Blueprint is an INPUT, and vanilla's ResultSlot
+        // decrements every occupied grid slot on take. Without the table's own result slot the sheet
+        // would be eaten by the first egg it made and four ambers of one species would buy exactly
+        // one, which is not a gate, it is a tax. Driven through the real menu because the bug would
+        // live in the menu: the recipe is perfectly correct either way.
+        RCGameTests.test("the_spawn_egg_sheet_is_not_consumed_by_the_egg", 40, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+            var pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.SCRAP_CRAFTING_TABLE.get());
+            var menu = new com.flatts.recompile.content.menu.ScrapCraftingStationMenu(
+                1, player.getInventory(), helper.getLevel(), helper.absolutePos(pos));
+
+            // The shipped pattern: " G ", "GBG", " R ".
+            ItemStack sheet = sheetFor("minecraft:cow");
+            menu.getSlot(2).set(new ItemStack(RCItems.GLASS_SHARDS.get()));
+            menu.getSlot(4).set(new ItemStack(RCItems.GLASS_SHARDS.get()));
+            menu.getSlot(5).set(sheet);
+            menu.getSlot(6).set(new ItemStack(RCItems.GLASS_SHARDS.get()));
+            menu.getSlot(8).set(new ItemStack(RCItems.RENDERED_ORGANICS.get()));
+            menu.slotsChanged(null);
+
+            ItemStack result = menu.getSlot(0).getItem();
+            helper.assertTrue(result.is(net.minecraft.world.item.Items.COW_SPAWN_EGG),
+                "the table showed " + result + " rather than a cow spawn egg, so the grid or the "
+                    + "recipe pattern has moved out from under this test");
+
+            menu.getSlot(0).onTake(player, result.copy());
+
+            // THE SHEET IS STILL THERE.
+            ItemStack after = menu.getSlot(5).getItem();
+            helper.assertTrue(after.is(RCItems.BLUEPRINT.get()),
+                "the sheet was consumed making the egg - a blueprint is knowledge, and this is the "
+                    + "only recipe that could ever spend one");
+            helper.assertTrue(sheetFor("minecraft:cow").getComponents().equals(after.getComponents()),
+                "the sheet came back BLANK, which is worse than losing it: the player still holds a "
+                    + "blueprint and has silently lost the species they earned");
+
+            // AND THE VESSEL IS SPENT. A rule that put everything back would be a duplicator, so the
+            // other half is asserted in the same breath rather than assumed.
+            helper.assertTrue(menu.getSlot(2).getItem().isEmpty()
+                    && menu.getSlot(8).getItem().isEmpty(),
+                "the glass and the organics were not consumed, so the egg costs nothing but the sheet");
+            player.discard();
+            helper.succeed();
+        });
+
+        // NOTHING ELSE MAKES A SPAWN EGG. The mirror of a_blueprint_result_has_no_other_route, which
+        // cannot cover these: it reads the gated set out of the blueprint_crafting recipes, and a
+        // spawn egg comes from a type of its own. Vanilla ships no spawn-egg recipe, so the gate holds
+        // today by luck rather than by design - which is exactly the kind of thing that stops being
+        // true when a pack is added and nobody notices.
+        RCGameTests.test("a_spawn_egg_has_no_route_that_is_not_the_sheet", 20, helper -> {
+            var level = helper.getLevel();
+            List<String> leaks = new ArrayList<>();
+            int swept = 0;
+            for (var holder : level.recipeAccess().recipeMap().values()) {
+                swept++;
+                if (holder.value().getType()
+                        == com.flatts.recompile.registry.RCRecipeTypes.SPAWN_EGG_CRAFTING.get()) {
+                    continue;   // the sanctioned route
+                }
+                for (var display : holder.value().display()) {
+                    for (var stack : display.result().resolveForStacks(
+                            net.minecraft.world.item.crafting.display.SlotDisplayContext.fromLevel(level))) {
+                        if (stack.getItem() instanceof net.minecraft.world.item.SpawnEggItem) {
+                            leaks.add(holder.id() + " -> " + stack);
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(swept > 100,
+                "only " + swept + " recipes were swept - the sweep is broken, so this would pass "
+                    + "against any recipe that made a spawn egg");
+            helper.assertTrue(leaks.isEmpty(),
+                "these make a spawn egg without the sheet, so the amber chain is not the only route: "
+                    + leaks);
+            helper.succeed();
+        });
+
+        // THE WHOLE CHAIN, END TO END, in the order a player would walk it. Each step is covered
+        // separately above; this is the one that would catch two correct halves that do not join -
+        // a fragment the assembly recipe cannot read, or a set id the egg recipe parses differently
+        // from the one the machine stamps.
+        RCGameTests.test("amber_becomes_a_spawn_egg", 60, helper -> {
+            var level = helper.getLevel();
+            var pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.SEQUENCER.get());
+            var machine = (com.flatts.recompile.content.block.entity.SequencerBlockEntity)
+                level.getBlockEntity(helper.absolutePos(pos));
+
+            // 1. A stamped amber, read by the machine.
+            ItemStack amber = new ItemStack(RCItems.AMBER.get());
+            amber.set(RCDataComponents.SPECIES.get(),
+                Identifier.fromNamespaceAndPath("minecraft", "cow"));
+            ItemStack fragment = com.flatts.recompile.content.block.entity.SequencerBlockEntity
+                .fragmentFor(amber);
+            helper.assertTrue(!fragment.isEmpty(), "the sequencer produced no fragment for a cow");
+
+            // 2. Four of them assemble into the sheet. Asked of the live recipe manager rather than
+            // constructed by hand, because "does the generic assembly recipe accept a set the machine
+            // invented" is precisely the join being tested.
+            Identifier set = fragment.get(RCDataComponents.BLUEPRINT.get());
+            helper.assertTrue(set != null, "the fragment names no blueprint set");
+            int required = com.flatts.recompile.content.recipe.FragmentAssemblyRecipe
+                .requiredFor(level, set);
+            List<ItemStack> cells = new ArrayList<>();
+            for (int i = 0; i < required; i++) {
+                cells.add(fragment.copy());
+            }
+            var assembly = level.recipeAccess()
+                .getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,
+                    net.minecraft.world.item.crafting.CraftingInput.of(required, 1, cells), level);
+            helper.assertTrue(assembly.isPresent(),
+                required + " fragments toward " + set + " assembled into nothing");
+            ItemStack sheet = assembly.get().value().assemble(
+                net.minecraft.world.item.crafting.CraftingInput.of(required, 1, cells));
+            helper.assertTrue(sheet.is(RCItems.BLUEPRINT.get()),
+                "the fragments made " + sheet + " rather than a Blueprint");
+            helper.assertTrue(set.equals(sheet.get(RCDataComponents.BLUEPRINT.get())),
+                "the sheet names " + sheet.get(RCDataComponents.BLUEPRINT.get()) + " rather than "
+                    + set + ", so the machine and the assembly disagree about the set");
+
+            // 3. And that sheet makes the egg for the creature the amber held.
+            var recipe = level.recipeAccess().recipeMap()
+                .byType(com.flatts.recompile.registry.RCRecipeTypes.SPAWN_EGG_CRAFTING.get())
+                .iterator().next().value();
+            ItemStack egg = recipe.assemble(gridWith(sheet));
+            helper.assertTrue(egg.is(net.minecraft.world.item.Items.COW_SPAWN_EGG),
+                "the chain ended in " + egg + " rather than a cow spawn egg - a cow went into the "
+                    + "amber and something else came out the far end");
+            helper.succeed();
+        });
+
+        // WHAT JEI WILL DRAW, checked here because the categories themselves are client-only.
+        //
+        // <p>Both halves of this chain are invisible to JEI on its own: sequencing has no recipe object
+        // at all, and the egg has exactly one recipe whose result is computed from the sheet. So the
+        // pages are built from bundled data, and this asserts that data is there and agrees with the
+        // world - an empty category is not an error, it is a mechanic the player cannot look up with
+        // nothing anywhere saying why.
+        //
+        // <p><b>What it does NOT catch, stated because it looks like it should.</b> The viewer's parser
+        // and this test's parser read the same two files, so deleting an amber entry moves both and
+        // this stays green - measured, not assumed. What it does catch is the two parsers disagreeing,
+        // which is a real risk since they are independently written; truncating the viewer's list by
+        // one drives it red. It also cannot tell whether the viewer reads BOTH pull streams, because
+        // the two carry identical species sets: dropping bag_pulls from the viewer changes nothing
+        // observable. If they ever diverge, this needs a case that only one table can satisfy.
+        RCGameTests.test("the_amber_chain_can_be_drawn_by_a_viewer", 20, helper -> {
+            var species = com.flatts.recompile.compat.SortingData.amberSpecies();
+            var fromTables = speciesInPullStreams(helper);
+            helper.assertTrue(species.size() == fromTables.size(),
+                "the viewer sees " + species.size() + " species and the pull streams carry "
+                    + fromTables.size() + " - JEI would list a different set of creatures from the "
+                    + "ones a player can actually find");
+            for (Identifier id : species) {
+                helper.assertTrue(fromTables.contains(id.toString()),
+                    "the viewer would show " + id + ", which no pull stream can produce");
+            }
+
+            var vessel = com.flatts.recompile.compat.BlueprintData.spawnEggPattern();
+            helper.assertTrue(vessel.isPresent(),
+                "the spawn-egg vessel could not be read out of the bundled recipe, so its JEI category "
+                    + "would be empty and the only route to an egg would be undiscoverable");
+
+            // The drawn grid must be the grid that works. Reading the file and matching are separate
+            // code paths, and a page showing an arrangement the table refuses is worse than no page.
+            var live = helper.getLevel().recipeAccess().recipeMap()
+                .byType(com.flatts.recompile.registry.RCRecipeTypes.SPAWN_EGG_CRAFTING.get())
+                .iterator().next().value();
+            helper.assertTrue(
+                vessel.get().width() == live.pattern().width()
+                    && vessel.get().height() == live.pattern().height(),
+                "the vessel JEI draws is " + vessel.get().width() + "x" + vessel.get().height()
+                    + " and the one the table runs is " + live.pattern().width() + "x"
+                    + live.pattern().height());
             helper.succeed();
         });
 
@@ -305,6 +554,78 @@ final class AmberTests {
                 "the amber survived being read, so one piece would produce fragments forever");
             helper.succeed();
         });
+    }
+
+
+
+    /**
+     * Every species the two pull streams can stamp onto a piece of amber.
+     *
+     * <p>Read out of the bundled loot JSON rather than listed in Java, so the tables stay the single
+     * source of truth. Two tests need it: one asks that each names a real entity, the other that each
+     * has a spawn egg to craft - a species that fails either is a sheet a player earns over four
+     * ambers and can never spend.
+     */
+    private static java.util.SortedSet<String> speciesInPullStreams(
+            net.minecraft.gametest.framework.GameTestHelper helper) {
+        var species = new TreeSet<String>();
+        for (String path : POOLS) {
+            String body = read(path);
+            helper.assertTrue(body != null, "could not read " + path + " off the classpath");
+            for (JsonElement rawPool : JsonParser.parseString(body).getAsJsonObject()
+                    .getAsJsonArray("pools")) {
+                for (JsonElement rawEntry : rawPool.getAsJsonObject().getAsJsonArray("entries")) {
+                    JsonObject entry = rawEntry.getAsJsonObject();
+                    if (!"recompile:amber".equals(
+                            entry.has("name") ? entry.get("name").getAsString() : "")) {
+                        continue;
+                    }
+                    for (JsonElement rawFunction : entry.getAsJsonArray("functions")) {
+                        JsonObject components = rawFunction.getAsJsonObject()
+                            .getAsJsonObject("components");
+                        species.add(components.get("recompile:species").getAsString());
+                    }
+                }
+            }
+        }
+        return species;
+    }
+
+    /** A Blueprint stack naming a species' spawn-egg set. */
+    private static ItemStack sheetFor(String species) {
+        return com.flatts.recompile.content.item.BlueprintItem.of(RCItems.BLUEPRINT.get(),
+            Identifier.fromNamespaceAndPath("recompile",
+                com.flatts.recompile.content.item.BlueprintItem.SPAWN_EGG_PREFIX
+                    + species.replace(':', '/')));
+    }
+
+    /**
+     * The shipped recipe's grid with one sheet in the middle.
+     *
+     * <p><b>The ingredients are hardcoded and that is deliberate, not an oversight.</b> These tests ask
+     * the recipe for its RESULT, and {@code assemble} reads the sheet out of whatever it is handed
+     * rather than re-checking the arrangement - so the shape here is irrelevant to what they measure.
+     * {@code matches} is what cares about the grid, and
+     * {@code the_spawn_egg_sheet_is_not_consumed_by_the_egg} exercises the real one through the real
+     * menu. (An earlier version of this comment claimed the grid was read from the recipe file. It
+     * never was, and a javadoc describing protection that does not exist is worse than none, because
+     * it stops the next person looking.)
+     */
+    private static net.minecraft.world.item.crafting.CraftingInput gridWith(ItemStack sheet) {
+        List<ItemStack> cells = new ArrayList<>();
+        cells.add(new ItemStack(RCItems.GLASS_SHARDS.get()));
+        cells.add(sheet);
+        cells.add(new ItemStack(RCItems.RENDERED_ORGANICS.get()));
+        // 1x3 is enough: the recipe is asked for its RESULT here, and assemble() reads the sheet out
+        // of whatever it is given rather than re-checking the arrangement. matches() is what cares
+        // about shape, and the bench test below is where the real grid is exercised.
+        return net.minecraft.world.item.crafting.CraftingInput.of(1, 3, cells);
+    }
+
+    /** Two different sheets in one grid. */
+    private static net.minecraft.world.item.crafting.CraftingInput twoSheets() {
+        return net.minecraft.world.item.crafting.CraftingInput.of(1, 2,
+            List.of(sheetFor("minecraft:cow"), sheetFor("minecraft:pig")));
     }
 
     /** One bundled JSON as text, or null. */

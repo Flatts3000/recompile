@@ -66,10 +66,11 @@ public class IdeaFragmentItem extends Item {
                 .withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
-        String key = "blueprint." + set.getNamespace() + "." + set.getPath();
-        Component name = Component.translatable(key);
+        // Asked of BlueprintItem rather than derived again here. Two copies of this drifted the moment
+        // the spawn-egg family arrived: that set is one PER CREATURE, so its name has to be computed
+        // from the mob and no hand-written lang key can exist for it.
         tooltip.accept(Component.translatable("tooltip.recompile.fragment_towards",
-                name.getString().equals(key) ? Component.literal(set.toString()) : name)
+                com.flatts.recompile.content.item.BlueprintItem.setName(set))
             .withStyle(ChatFormatting.DARK_AQUA));
         // How many it takes. Without this the item names a goal and gives no way to know how far off
         // it is, which is the question a player asks the moment they hold the first one. Read from the
