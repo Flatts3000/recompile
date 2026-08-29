@@ -147,6 +147,52 @@ public final class SortingData {
     public static final String SEEDLING = "/data/recompile/loot_table/gameplay/hydroponics_seedling.json";
 
     /** One possible output and how likely it is (0..1). */
+    /**
+     * Every species the pull streams can stamp onto a piece of Amber (#294), in table order.
+     *
+     * <p>Read from the bundled loot JSON for the same reason everything else in this class is: loot
+     * tables are not client-synced, and JEI needs this on the client to build one sequencing page and
+     * one spawn-egg page per creature. Listing them in Java instead would be a second source of truth
+     * for the one thing the tables already say.
+     */
+    public static List<Identifier> amberSpecies() {
+        List<Identifier> species = new ArrayList<>();
+        for (String table : List.of(HOUSEHOLD, BAG)) {
+            JsonObject root = json(table);
+            if (root == null || !root.has("pools")) {
+                continue;
+            }
+            for (JsonElement rawPool : root.getAsJsonArray("pools")) {
+                JsonObject pool = rawPool.getAsJsonObject();
+                if (!pool.has("entries")) {
+                    continue;
+                }
+                for (JsonElement rawEntry : pool.getAsJsonArray("entries")) {
+                    JsonObject entry = rawEntry.getAsJsonObject();
+                    if (!entry.has("name") || !entry.has("functions")) {
+                        continue;
+                    }
+                    for (JsonElement rawFn : entry.getAsJsonArray("functions")) {
+                        JsonObject fn = rawFn.getAsJsonObject();
+                        if (!fn.has("components")) {
+                            continue;
+                        }
+                        JsonObject components = fn.getAsJsonObject("components");
+                        if (!components.has("recompile:species")) {
+                            continue;
+                        }
+                        Identifier id =
+                            Identifier.tryParse(components.get("recompile:species").getAsString());
+                        if (id != null && !species.contains(id)) {
+                            species.add(id);
+                        }
+                    }
+                }
+            }
+        }
+        return List.copyOf(species);
+    }
+
     public record Weighted(ItemStack stack, float chance) {}
 
     private SortingData() {

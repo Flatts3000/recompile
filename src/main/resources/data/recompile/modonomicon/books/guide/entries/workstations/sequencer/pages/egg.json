@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "egg",
+  "sort_number": 1,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.workstations.sequencer.egg.text",
+  "title": "book.recompile.guide.workstations.sequencer.egg.title"
+}

@@ -37,11 +37,24 @@ public enum GeneratorProvider implements IBlockComponentProvider {
         int capacity = data.getIntOr("capacity", 0);
         int rate = data.getIntOr("rate", 0);
 
+        boolean consumer = data.getBooleanOr("consumer", false);
         tooltip.add(Component.translatable("jade.recompile.energy_stored", format(stored), format(capacity)));
         if (rate > 0) {
-            tooltip.add(Component.translatable("jade.recompile.energy_rate", rate));
+            tooltip.add(Component.translatable(
+                consumer ? "jade.recompile.energy_draw" : "jade.recompile.energy_rate", rate));
         } else {
-            tooltip.add(Component.translatable("jade.recompile.energy_idle"));
+            tooltip.add(Component.translatable(
+                consumer ? "jade.recompile.energy_stopped" : "jade.recompile.energy_idle"));
+        }
+        // "Reading" answers a different question from "using power": a machine can be drawing FE and
+        // still be halfway through, and the number a player wants is how much longer.
+        if (data.contains("duration")) {
+            int progress = data.getIntOr("progress", 0);
+            int duration = data.getIntOr("duration", 1);
+            if (progress > 0) {
+                tooltip.add(Component.translatable("jade.recompile.reading",
+                    Math.min(99, progress * 100 / Math.max(1, duration))));
+            }
         }
         // Only the Burner sends this, so its absence is what distinguishes the two without a type check.
         if (data.contains("burn")) {

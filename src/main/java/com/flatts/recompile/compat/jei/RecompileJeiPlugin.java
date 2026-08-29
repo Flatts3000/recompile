@@ -49,6 +49,15 @@ public class RecompileJeiPlugin implements IModPlugin {
 
     static final RecipeType<SalvageRecipe> SORTING =
         RecipeType.create(Recompile.MOD_ID, "sorting", SalvageRecipe.class);
+    /**
+     * Reading a creature out of amber (#294): a NON-RECIPE mechanic, so JEI can find nothing on its
+     * own. Reuses the salvage shape because it is exactly one input and one certain output.
+     */
+    static final RecipeType<SalvageRecipe> SEQUENCING =
+        RecipeType.create(Recompile.MOD_ID, "sequencing", SalvageRecipe.class);
+    /** The vessel a spawn egg is built in, one page per creature (#294). */
+    static final RecipeType<SpawnEggCategory.Entry> SPAWN_EGG =
+        RecipeType.create(Recompile.MOD_ID, "spawn_egg", SpawnEggCategory.Entry.class);
     static final RecipeType<SalvageRecipe> CUTTING =
         RecipeType.create(Recompile.MOD_ID, "cutting", SalvageRecipe.class);
     /**
@@ -173,6 +182,11 @@ public class RecompileJeiPlugin implements IModPlugin {
         // grows cannot outgrow its own panel. The alternative - a number written here - is what let the
         // seedling lottery draw its third row through the bottom of the box.
         registration.addRecipeCategories(
+            // One certain output, so no odds column: a stamped amber always reads as its own species.
+            new SalvageCategory(SEQUENCING, Component.translatable("jei.recompile.sequencing"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.AMBER.get())), false, 1),
+            new SpawnEggCategory(SPAWN_EGG, Component.translatable("jei.recompile.spawn_egg"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
             new SalvageCategory(SORTING, Component.translatable("jei.recompile.sorting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true,
                 widest(SortingData.HOUSEHOLD, SortingData.BAG, SortingData.RUBBLE)),
@@ -230,6 +244,39 @@ public class RecompileJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
+        // THE AMBER CHAIN (#294), and both halves need a category for the same reason: JEI can only
+        // find recipe objects. Sequencing has none at all - it is a machine reading a component - and
+        // the egg has exactly ONE recipe whose result is computed, which as a page would show a blank
+        // sheet making a generic egg. So both are built here, one entry per species, off the same
+        // bundled loot JSON the rate census reads.
+        List<SalvageRecipe> sequencing = new ArrayList<>();
+        List<SpawnEggCategory.Entry> eggs = new ArrayList<>();
+        // The vessel's grid comes from the bundled file, not the recipe manager - same reason the
+        // blueprint pages do: JEI builds on its own schedule and a snapshot taken here can be empty,
+        // which shows up as a category with no pages and nothing saying why.
+        var vessel = com.flatts.recompile.compat.BlueprintData.spawnEggPattern()
+            .map(com.flatts.recompile.content.recipe.SpawnEggCraftingRecipe::new);
+        for (Identifier species : SortingData.amberSpecies()) {
+            ItemStack amber = new ItemStack(RCItems.AMBER.get());
+            amber.set(com.flatts.recompile.registry.RCDataComponents.SPECIES.get(), species);
+            ItemStack fragment = com.flatts.recompile.content.block.entity.SequencerBlockEntity
+                .fragmentFor(amber);
+            if (fragment.isEmpty()) {
+                continue;
+            }
+            sequencing.add(new SalvageRecipe(amber,
+                List.of(new SortingData.Weighted(fragment, 1.0F))));
+
+            var egg = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(
+                Identifier.fromNamespaceAndPath(species.getNamespace(),
+                    species.getPath() + "_spawn_egg"));
+            if (egg != net.minecraft.world.item.Items.AIR && vessel.isPresent()) {
+                eggs.add(new SpawnEggCategory.Entry(vessel.get(), species, new ItemStack(egg)));
+            }
+        }
+        registration.addRecipes(SEQUENCING, sequencing);
+        registration.addRecipes(SPAWN_EGG, eggs);
+
         // Mechanical Waste was missing here for its whole life, and the symptom was subtle: clicking
         // Magnet Scrap in JEI showed NOTHING AT ALL. Its only source is this stream, block drops are
         // invisible to JEI, and no recipe makes it - so the panel was simply empty, which reads as a
@@ -558,6 +605,8 @@ public class RecompileJeiPlugin implements IModPlugin {
         // vanilla table they can never make.
         registration.addCraftingStation(RecipeTypes.CRAFTING, RCItems.SCRAP_CRAFTING_TABLE.get());
 
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SEQUENCER.get()), SEQUENCING);
+        registration.addRecipeCatalyst(new ItemStack(RCItems.SCRAP_CRAFTING_TABLE.get()), SPAWN_EGG);
         registration.addRecipeCatalyst(new ItemStack(RCItems.SORTING_TARP.get()), SORTING);
         // THE TROMMEL, not the Separator (#187). The Separator sorted at exactly the tarp's rate and
         // was listed here for it; it has one verb now and sorting moved to the machine that can make

@@ -647,5 +647,16 @@
   "blueprint.recompile.spawner": "Spawner Cage",
   "block.recompile.sequencer": "Sequencer",
   "container.recompile.sequencer": "Sequencer",
-  "blueprint.recompile.spawn_egg": "%s Spawn Egg"
+  "blueprint.recompile.spawn_egg": "%s Spawn Egg",
+  "jade.recompile.energy_draw": "Using %s FE/t",
+  "jade.recompile.energy_stopped": "Not running",
+  "jade.recompile.reading": "Reading: %s%%",
+  "jei.recompile.sequencing": "Sequencing",
+  "jei.recompile.spawn_egg": "Spawn Egg Vessel",
+  "jei.recompile.spawn_egg.sheet_kept": "Not consumed",
+  "book.recompile.guide.workstations.sequencer.name": "The Sequencer",
+  "book.recompile.guide.workstations.sequencer.intro.title": "Reading what is in the amber",
+  "book.recompile.guide.workstations.sequencer.intro.text": "Amber turns up in household waste with something small caught inside it. Hold a piece and it will tell you what it is, if it is anything you would recognise.\n\n\\\n\\\nA Teardown Workbench cannot get it out. That bench takes things apart with hand tools, and what is in the amber is not a part. The Sequencer is a powered block instead: feed it FE and a piece of stamped amber and it reads the creature out, leaving an Idea Fragment that names it. The amber does not survive.\n\n\\\n\\\nIt takes one piece at a time and nothing can pipe into it or pull out of it - you stand at it. Jade will show you what it is holding, what it is drawing, and how far through it is.",
+  "book.recompile.guide.workstations.sequencer.egg.title": "Making the egg",
+  "book.recompile.guide.workstations.sequencer.egg.text": "Four fragments of the same creature craft into a Blueprint, the way any four fragments do. Fragments for different creatures will not stack together, so getting four to match is most of the work.\n\n\\\n\\\nThat sheet is the only thing that says which egg you want, which makes this the one recipe in the game where a Blueprint goes into the grid rather than into your pocket. Lay it in the middle at the Scrap Crafting Table with Glass Shards around it and Rendered Organics beneath, and you get the spawn egg for whatever was in the resin.\n\n\\\n\\\nThe sheet is not spent. It comes back out of the grid, and it will make that egg again for as long as you can find the glass. Nothing else in the world makes a spawn egg."
 }

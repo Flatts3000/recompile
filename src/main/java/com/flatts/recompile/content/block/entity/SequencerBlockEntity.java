@@ -71,6 +71,24 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
         return this.battery;
     }
 
+    /** How far through the current read, in ticks. Read by Jade; the screen uses the ContainerData. */
+    public int progress() {
+        return this.progress;
+    }
+
+    /**
+     * Whether it is actually reading right now.
+     *
+     * <p>Not "has an amber in it" and not "has power": both can be true while the output slot is full,
+     * and a tooltip that says a stalled machine is running is worse than one that says nothing. Same
+     * predicate the ticker uses, so the two cannot disagree.
+     */
+    public boolean isReading() {
+        ItemStack input = this.items.get(INPUT_SLOT);
+        return canSequence(input) && canAcceptOutput(input)
+            && this.battery.getAmountAsInt() >= ENERGY_PER_TICK;
+    }
+
     /**
      * Whether a stack is something this machine can read.
      *

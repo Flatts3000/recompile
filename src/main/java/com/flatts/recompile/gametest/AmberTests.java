@@ -418,6 +418,52 @@ final class AmberTests {
             helper.succeed();
         });
 
+        // WHAT JEI WILL DRAW, checked here because the categories themselves are client-only.
+        //
+        // <p>Both halves of this chain are invisible to JEI on its own: sequencing has no recipe object
+        // at all, and the egg has exactly one recipe whose result is computed from the sheet. So the
+        // pages are built from bundled data, and this asserts that data is there and agrees with the
+        // world - an empty category is not an error, it is a mechanic the player cannot look up with
+        // nothing anywhere saying why.
+        //
+        // <p><b>What it does NOT catch, stated because it looks like it should.</b> The viewer's parser
+        // and this test's parser read the same two files, so deleting an amber entry moves both and
+        // this stays green - measured, not assumed. What it does catch is the two parsers disagreeing,
+        // which is a real risk since they are independently written; truncating the viewer's list by
+        // one drives it red. It also cannot tell whether the viewer reads BOTH pull streams, because
+        // the two carry identical species sets: dropping bag_pulls from the viewer changes nothing
+        // observable. If they ever diverge, this needs a case that only one table can satisfy.
+        RCGameTests.test("the_amber_chain_can_be_drawn_by_a_viewer", 20, helper -> {
+            var species = com.flatts.recompile.compat.SortingData.amberSpecies();
+            var fromTables = speciesInPullStreams(helper);
+            helper.assertTrue(species.size() == fromTables.size(),
+                "the viewer sees " + species.size() + " species and the pull streams carry "
+                    + fromTables.size() + " - JEI would list a different set of creatures from the "
+                    + "ones a player can actually find");
+            for (Identifier id : species) {
+                helper.assertTrue(fromTables.contains(id.toString()),
+                    "the viewer would show " + id + ", which no pull stream can produce");
+            }
+
+            var vessel = com.flatts.recompile.compat.BlueprintData.spawnEggPattern();
+            helper.assertTrue(vessel.isPresent(),
+                "the spawn-egg vessel could not be read out of the bundled recipe, so its JEI category "
+                    + "would be empty and the only route to an egg would be undiscoverable");
+
+            // The drawn grid must be the grid that works. Reading the file and matching are separate
+            // code paths, and a page showing an arrangement the table refuses is worse than no page.
+            var live = helper.getLevel().recipeAccess().recipeMap()
+                .byType(com.flatts.recompile.registry.RCRecipeTypes.SPAWN_EGG_CRAFTING.get())
+                .iterator().next().value();
+            helper.assertTrue(
+                vessel.get().width() == live.pattern().width()
+                    && vessel.get().height() == live.pattern().height(),
+                "the vessel JEI draws is " + vessel.get().width() + "x" + vessel.get().height()
+                    + " and the one the table runs is " + live.pattern().width() + "x"
+                    + live.pattern().height());
+            helper.succeed();
+        });
+
         // THE MACHINE ACTUALLY READS ONE, and refuses what it cannot.
         //
         // <p>Driven through the block entity's own tick rather than by placing a player at a screen,
