@@ -79,6 +79,7 @@ public final class RCGameTests {
         Ae2SourcingTests.register();
         RadioactiveDumpTests.register();
         AmberTests.register();
+        ResinTests.register();
         EnderIoFindsTests.register();
         JadeDataTests.register();
         FoundToolTests.register();

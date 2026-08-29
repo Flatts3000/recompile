@@ -102,6 +102,8 @@ public final class RCCreativeTabs {
                     // itself comes out of household garbage.
                     output.accept(RCItems.BROKEN_SPAWNER.get());
                     output.accept(RCItems.AMBER.get());
+                    output.accept(RCItems.SPENT_AMBER.get());
+                    output.accept(RCItems.TURPENTINE.get());
                     RCItems.NETHER_SHARDS.forEach(shard -> output.accept(shard.get()));
                     RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
                     output.accept(RCItems.CIRCUIT_POWDER.get());

@@ -1,0 +1,21 @@
+{
+  "__comment": [
+    "THE TWO HALVES, USELESS APART (#231). Amber is polymerised and cross-linked and cannot be",
+    "softened back into fresh sap - the fired-clay problem verbatim, which this mod refused once",
+    "already when crushed pottery became Grog rather than clay. So this does not reverse anything.",
+    "Turpentine IS the volatile terpene fraction distilled off pine resin, which is exactly what",
+    "fossilisation drove out of the amber, and putting it back is what makes the husk workable.",
+    "Spent Amber comes only from the Sequencer and Turpentine only from the dump, so neither half",
+    "is craftable and the pair cannot be short-circuited."
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "recompile:spent_amber",
+    "recompile:turpentine"
+  ],
+  "result": {
+    "id": "minecraft:resin_clump",
+    "count": 1
+  }
+}

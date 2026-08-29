@@ -88,6 +88,11 @@
           "type": "minecraft:item",
           "name": "minecraft:heart_pottery_sherd",
           "weight": 12
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:turpentine",
+          "weight": 6
         }
       ]
     },

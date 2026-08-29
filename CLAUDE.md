@@ -264,6 +264,21 @@ Pulverizer shipped with zero Jade providers against the Separator's four.
   plasticity has to come from the bentonite in cat litter. The two halves are useless apart. It
   unlocks 43 vanilla items, and it needed a source added for sherds: this world has no archaeology, so
   they were unobtainable and the whole chain was a dead end until one entered `household_pulls`.
+- **Resin** (#231, owner 2026-08-29): Amber -> Sequencer -> **Spent Amber** + a fragment; Spent Amber
+  + **Turpentine** (found) -> `resin_clump` (grid), and all nine resin items hang off the clump.
+  **This is the clay chain's argument applied a second time, and it had to be.** Amber is polymerised
+  and cross-linked, so softening it back into fresh sap is the fired-clay problem verbatim - the trade
+  refused above. Turpentine is not a stand-in for the missing fraction, it IS that fraction: it is
+  distilled from pine resin, which is exactly what fossilisation drove off. So the pair puts back the
+  one thing that left rather than reversing anything, and neither half does a thing alone.
+  **The husk is why the two amber chains compose instead of competing.** Every amber in both pull
+  streams is stamped, so reading one for a spawn egg used to destroy the only material a resin clump
+  could be made from; the Sequencer now hands the emptied body back in a byproduct slot (the Cupola's
+  shape, for the Cupola's reason - a machine that returns two things cannot say so with one output).
+  Vanilla's own clump recipe consumes a `resin_block` and `creaking_heart` consumes the resin it is the
+  source of, so both look like ways in and are self-referential;
+  `the_resin_family_has_a_non_circular_entry_point` asserts a real entry exists rather than that a
+  recipe exists, which is a distinction the first version of that test got wrong and passed anyway.
 
 **A machine comes back however you break it** (owner, 2026-08-16, #195). No multiblock core declares
 `requiresCorrectToolForDrops`: the gate was opt-out, because breaking the CORE with the wrong tool

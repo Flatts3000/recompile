@@ -184,7 +184,7 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipeCategories(
             // One certain output, so no odds column: a stamped amber always reads as its own species.
             new SalvageCategory(SEQUENCING, Component.translatable("jei.recompile.sequencing"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.AMBER.get())), false, 1),
+                gui.createDrawableItemStack(new ItemStack(RCItems.AMBER.get())), false, 2),
             new SpawnEggCategory(SPAWN_EGG, Component.translatable("jei.recompile.spawn_egg"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
             new SalvageCategory(SORTING, Component.translatable("jei.recompile.sorting"),
@@ -264,8 +264,14 @@ public class RecompileJeiPlugin implements IModPlugin {
             if (fragment.isEmpty()) {
                 continue;
             }
-            sequencing.add(new SalvageRecipe(amber,
-                List.of(new SortingData.Weighted(fragment, 1.0F))));
+            // BOTH outputs. Spent Amber is in no loot table and is the result of no recipe, so if this
+            // page does not show it, clicking one in JEI shows nothing at all on the "produced by" side
+            // while recompile:resin_clump lists it as a required ingredient - which reads as a broken
+            // item rather than a missing entry. That is the exact symptom recorded twenty lines below
+            // about Magnet Scrap, and the reason #243 gave the Cupola a category of its own for slag.
+            sequencing.add(new SalvageRecipe(amber, List.of(
+                new SortingData.Weighted(fragment, 1.0F),
+                new SortingData.Weighted(new ItemStack(RCItems.SPENT_AMBER.get()), 1.0F))));
 
             var egg = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(
                 Identifier.fromNamespaceAndPath(species.getNamespace(),

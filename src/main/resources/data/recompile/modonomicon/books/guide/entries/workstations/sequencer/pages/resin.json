@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "resin",
+  "sort_number": 2,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.workstations.sequencer.resin.text",
+  "title": "book.recompile.guide.workstations.sequencer.resin.title"
+}

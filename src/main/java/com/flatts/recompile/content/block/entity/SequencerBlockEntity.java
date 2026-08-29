@@ -50,7 +50,17 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
-    public static final int SLOT_COUNT = 2;
+    /**
+     * Where the read amber ends up (#231).
+     *
+     * <p>A byproduct slot, the Cupola's shape: a machine that hands back two things cannot say so with
+     * one output. Reading used to DESTROY the amber, and the owner ruling that opened the resin chain
+     * turned that into the chain's own input - the husk left after the creature is taken out is the
+     * inert body, and turpentine supplies the volatile fraction fossilisation drove off. Keeping it
+     * here rather than consuming a second whole amber is what stops resin taxing the spawn-egg rates.
+     */
+    public static final int HUSK_SLOT = 2;
+    public static final int SLOT_COUNT = 3;
 
     /** Big enough that a solar panel can fill it between reads rather than gating every single one. */
     public static final int CAPACITY = 20_000;
@@ -62,6 +72,16 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final SimpleEnergyHandler battery = new SimpleEnergyHandler(CAPACITY, CAPACITY, CAPACITY);
     private int progress;
+
+    /**
+     * Husks read but not yet handed over, because the byproduct slot had no room.
+     *
+     * <p>Serialised, so a machine broken and replaced does not forget what it owes. This is the
+     * Cupola's {@code smeltsSinceSlag} pattern and exists for the same reason: it is what lets a full
+     * byproduct slot cost the player nothing instead of stalling a machine whose only visible state is
+     * a progress bar.
+     */
+    private int huskDebt;
 
     public SequencerBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.SEQUENCER.get(), pos, state);
@@ -102,6 +122,12 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
 
     public static void serverTick(Level level, BlockPos pos, BlockState state,
             SequencerBlockEntity machine) {
+        // Pay first, so emptying a full byproduct slot settles the debt on the next tick rather than
+        // waiting for another amber to be read.
+        if (machine.huskDebt > 0) {
+            machine.payHusk();
+            machine.setChanged();
+        }
         ItemStack input = machine.items.get(INPUT_SLOT);
         if (!canSequence(input) || !machine.canAcceptOutput(input)) {
             // Reset rather than hold. A half-read amber that was taken back out has taught nothing,
@@ -150,11 +176,37 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
         if (made.isEmpty()) {
             return false;
         }
+        // THE HUSK DOES NOT GATE THIS, and the first version of it did - which was the Cupola's own
+        // reverted mistake, cited as if it were the precedent. CupolaFurnaceBlock.getTicker says why in
+        // as many words: holding froze the machine in a state that looked exactly like working, and it
+        // bought nothing, because the byproduct rides a counter and a full slot loses none of it. The
+        // read proceeds; the husk waits. See {@link #payHusk}.
         ItemStack out = this.items.get(OUTPUT_SLOT);
-        if (out.isEmpty()) {
-            return true;
+        return out.isEmpty()
+            || (ItemStack.isSameItemSameComponents(out, made)
+                && out.getCount() < out.getMaxStackSize());
+    }
+
+    /**
+     * Hand over as many owed husks as there is room for.
+     *
+     * <p>The debt is what makes a full byproduct slot cost nothing. Called on finishing a read and
+     * again every tick, so emptying the slot pays out what accumulated while it was full rather than
+     * requiring another amber to trigger it.
+     */
+    private void payHusk() {
+        while (this.huskDebt > 0) {
+            ItemStack husk = this.items.get(HUSK_SLOT);
+            if (husk.isEmpty()) {
+                this.items.set(HUSK_SLOT, new ItemStack(RCItems.SPENT_AMBER.get()));
+            } else if (husk.is(RCItems.SPENT_AMBER.get())
+                    && husk.getCount() < husk.getMaxStackSize()) {
+                husk.grow(1);
+            } else {
+                return;   // no room, or something else is sitting there. The debt keeps.
+            }
+            this.huskDebt--;
         }
-        return ItemStack.isSameItemSameComponents(out, made) && out.getCount() < out.getMaxStackSize();
     }
 
     private void finish(ItemStack input) {
@@ -165,6 +217,8 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
         } else {
             out.grow(1);
         }
+        this.huskDebt++;
+        this.payHusk();
         input.shrink(1);
     }
 
@@ -210,6 +264,7 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
         super.saveAdditional(output);
         ContainerHelper.saveAllItems(output, this.items);
         output.putInt("progress", this.progress);
+        output.putInt("husk_debt", this.huskDebt);
         this.battery.serialize(output.child("battery"));
     }
 
@@ -219,6 +274,7 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
         this.items.clear();
         ContainerHelper.loadAllItems(input, this.items);
         this.progress = input.getIntOr("progress", 0);
+        this.huskDebt = input.getIntOr("husk_debt", 0);
         input.child("battery").ifPresent(this.battery::deserialize);
     }
 

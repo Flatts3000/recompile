@@ -34,6 +34,10 @@ public class SequencerMenu extends AbstractContainerMenu {
         .slotRow("amber", 1, 56, 35)
         .arrow("progress", 79, 34)
         .slotRow("fragment", 1, 116, 35)
+        // The husk, beside the fragment rather than under it, which is where the Cupola puts its slag.
+        // A machine handing back two things needs two outputs, and putting the byproduct in line with
+        // the result is what makes it read as a second output rather than as an input nobody explained.
+        .slot("husk", 140, 35)
         .playerInventory(84)
         .build();
 
@@ -71,6 +75,13 @@ public class SequencerMenu extends AbstractContainerMenu {
                     return false;   // output only; nothing goes in here by hand
                 }
             }));
+        var husk = LAYOUT.rect("husk");
+        this.addSlot(new Slot(container, SequencerBlockEntity.HUSK_SLOT, husk.x(), husk.y()) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return false;   // an output. 26.1's Slot.mayPlace is true by default, so this is needed
+            }
+        });
         LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
         this.addDataSlots(data);
     }
@@ -110,6 +121,8 @@ public class SequencerMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
         if (index < INV_START) {
+            // Every machine slot empties into the player, husk included - it is a byproduct to collect,
+            // not something to feed back in.
             if (!this.moveItemStackTo(stack, INV_START, INV_END, true)) {
                 return ItemStack.EMPTY;
             }
