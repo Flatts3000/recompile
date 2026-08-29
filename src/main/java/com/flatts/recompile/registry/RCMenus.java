@@ -34,7 +34,6 @@ public final class RCMenus {
         MENUS.register("scrap_crafting_station", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new ScrapCraftingStationMenu(id, inventory, buffer.readBlockPos())));
 
-    /** The Tree Nursery's menu (reclamation rung 4): the mod's second bespoke screen, for the species picker. */
     /**
      * The Sequencer's two slots and power meter (#294). The eighth custom screen, and the SAME
      * exception as the Burner Generator's below: a machine that burns FE needs an energy bar, and no
@@ -85,6 +84,7 @@ public final class RCMenus {
         MENUS.register("hydroponics_bay", () -> IMenuTypeExtension.create(
             (containerId, inventory, buf) -> new HydroponicsBayMenu(containerId, inventory)));
 
+    /** The Tree Nursery's menu (reclamation rung 4): the mod's second bespoke screen, for the species picker. */
     public static final DeferredHolder<MenuType<?>, MenuType<TreeNurseryMenu>> TREE_NURSERY =
         MENUS.register("tree_nursery", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new TreeNurseryMenu(id, inventory)));

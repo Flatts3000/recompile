@@ -646,5 +646,6 @@
   "tooltip.recompile.amber.species": "A trapped %s",
   "blueprint.recompile.spawner": "Spawner Cage",
   "block.recompile.sequencer": "Sequencer",
-  "container.recompile.sequencer": "Sequencer"
+  "container.recompile.sequencer": "Sequencer",
+  "blueprint.recompile.spawn_egg": "%s Spawn Egg"
 }

@@ -1,7 +1,8 @@
 package com.flatts.recompile.compat;
+
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SortableBlock;
-
+import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCTags;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -490,6 +491,19 @@ public final class SortingData {
             if (components.has("minecraft:painting/variant")) {
                 paintingVariant(registries, components.get("minecraft:painting/variant").getAsString())
                     .ifPresent(v -> stack.set(DataComponents.PAINTING_VARIANT, v));
+            }
+            // Amber (#294) is the same shape as the paintings above and arrived four years' worth of
+            // entries deeper: 29 pieces in household_pulls distinguished ONLY by which creature is in
+            // them. Skipping the component made the Sorting category show 29 anonymous Amber rows at
+            // 0.014% each, which is technically the right item and tells a player nothing about the
+            // one thing they came to look up. A plain Identifier, so it reads straight back out of
+            // JSON with no registry.
+            if (components.has("recompile:species")) {
+                Identifier species =
+                    Identifier.tryParse(components.get("recompile:species").getAsString());
+                if (species != null) {
+                    stack.set(RCDataComponents.SPECIES.get(), species);
+                }
             }
         }
         return stack;

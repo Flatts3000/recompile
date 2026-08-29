@@ -9,11 +9,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
@@ -188,6 +190,43 @@ final class AmberTests {
                     && block.getBlock() == net.minecraft.world.level.block.Blocks.SPAWNER,
                 "the result is not the spawner's block item, so it cannot be placed - and placing it "
                     + "is the whole point, since a spawn egg retypes it afterwards");
+            helper.succeed();
+        });
+
+        // EVERY TOOLTIP LINE THIS CHAIN CAN PRINT IS ACTUALLY TRANSLATED.
+        //
+        // <p>A missing key renders as the key itself, which reads to a player as a typo rather than as
+        // a bug, and it only shows in a client that neither test layer runs. AmberItem.tooltipKeys()
+        // existed with a javadoc promising exactly this test and nothing called it, so the javadoc was
+        // describing coverage that did not exist - which is worse than no javadoc, because it stops
+        // the next person looking.
+        //
+        // <p>The blueprint key is here rather than in BlueprintTests because it is the one the spawn
+        // egg family needs and it takes a %s: the set is one PER ENTITY TYPE, so its name is computed
+        // from the mob rather than written out, and a key that lost its placeholder would silently
+        // drop the species from the sheet.
+        RCGameTests.test("every_amber_tooltip_line_is_translated", 20, helper -> {
+            List<String> missing = new ArrayList<>();
+            List<String> keys = new ArrayList<>(
+                com.flatts.recompile.content.item.AmberItem.tooltipKeys());
+            keys.add("blueprint.recompile.spawn_egg");
+            keys.add("container.recompile.sequencer");
+            for (String key : keys) {
+                if (Component.translatable(key).getString().equals(key)) {
+                    missing.add(key);
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "these keys render as their own name, so they are missing from en_us.json: " + missing);
+
+            // The computed name has to actually name the creature. A key without its %s renders
+            // "Spawn Egg" for every mob in the game and the sheets become indistinguishable, which is
+            // the paintings bug again one layer up.
+            String cow = Component.translatable("blueprint.recompile.spawn_egg",
+                Component.translatable("entity.minecraft.cow")).getString();
+            helper.assertTrue(cow.contains("Cow"),
+                "the spawn-egg blueprint name rendered as \"" + cow + "\", which does not name the "
+                    + "creature - every species' sheet would read alike");
             helper.succeed();
         });
 

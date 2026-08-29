@@ -9,8 +9,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -23,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Reads the creature out of a piece of Amber (#294).
@@ -43,7 +46,7 @@ import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
  * Its parity is with the Burner Generator and the Hydroponics Bay, which are the other two powered
  * blocks that own a screen.
  */
-public class SequencerBlockEntity extends BlockEntity implements Container, MenuProvider {
+public class SequencerBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -119,7 +122,8 @@ public class SequencerBlockEntity extends BlockEntity implements Container, Menu
         // blueprint recipe, and nothing here changes.
         fragment.set(RCDataComponents.BLUEPRINT.get(),
             Identifier.fromNamespaceAndPath("recompile",
-                "spawn_egg/" + species.getNamespace() + "/" + species.getPath()));
+                com.flatts.recompile.content.item.BlueprintItem.SPAWN_EGG_PREFIX
+                    + species.getNamespace() + "/" + species.getPath()));
         return fragment;
     }
 
@@ -234,6 +238,36 @@ public class SequencerBlockEntity extends BlockEntity implements Container, Menu
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
         return slot == INPUT_SLOT && canSequence(stack);
+    }
+
+    // WORLDLYCONTAINER, AND THE EMPTY FACE ARRAY IS THE WHOLE REASON.
+    //
+    // <p>A hopper does NOT travel the capability path - {@code HopperBlockEntity.getContainerAt} finds
+    // any {@code Container} block entity directly, which is a thing this mod relies on elsewhere (the
+    // Trommel and the Separator both drain a container parked on them that way). So declaring no item
+    // capability, as this machine does, closes the door to pipes and leaves it wide open to a hopper:
+    // one placed underneath would pull the amber straight out of the input slot mid-read, resetting
+    // progress and losing the FE already spent on it.
+    //
+    // <p>It shipped that way and was caught in review. Insertion was never the hole - {@code
+    // canPlaceItem} gates that - extraction was, which is why "I tried putting things in and it
+    // refused" is not evidence here. Same fix and same reason as {@code TreeNurseryBlockEntity}, the
+    // other manual-only machine with a screen.
+    private static final int[] NO_SLOTS = new int[0];
+
+    @Override
+    public int[] getSlotsForFace(Direction side) {
+        return NO_SLOTS;
+    }
+
+    @Override
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
+        return false;
+    }
+
+    @Override
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
+        return false;
     }
 
     @Override
