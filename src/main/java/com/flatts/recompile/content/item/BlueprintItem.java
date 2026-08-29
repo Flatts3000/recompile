@@ -74,7 +74,13 @@ public class BlueprintItem extends Item {
     }
 
     /**
-     * What a blueprint set is called on the sheet.
+     * What a blueprint set is called, on the sheet AND on the fragments that lead to it.
+     *
+     * <p><b>Public because the fragment needs the same answer.</b> It shipped private, so
+     * {@code IdeaFragmentItem} had its own copy of the key derivation with no spawn-egg branch and a
+     * fragment read "Idea about recompile:spawn_egg/minecraft/cow" while the sheet it assembles into
+     * read "Cow Spawn Egg". That is the surface a player sorts by - fragments for different creatures
+     * do not stack, so telling them apart IS the mechanic - and it was the last raw id in the chain.
      *
      * <p>Hand-written lang keys work for the sets the mod ships one by one. They cannot work for the
      * spawn-egg family (#294), which is one set PER ENTITY TYPE - every vanilla mob, plus whatever any
@@ -83,7 +89,7 @@ public class BlueprintItem extends Item {
      * missing translation, it is a set whose name has to be COMPUTED, so it is computed here from the
      * entity type's own display name and stays right for a mob this mod has never heard of.
      */
-    private static Component setName(Identifier set) {
+    public static Component setName(Identifier set) {
         String path = set.getPath();
         if (path.startsWith(SPAWN_EGG_PREFIX)) {
             String rest = path.substring(SPAWN_EGG_PREFIX.length());

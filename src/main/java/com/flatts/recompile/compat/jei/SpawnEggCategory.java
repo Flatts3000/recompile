@@ -42,7 +42,10 @@ public class SpawnEggCategory implements IRecipeCategory<SpawnEggCategory.Entry>
     private static final int PAD = 4;
     private static final int GRID = 3;
     private static final int GAP = 8;
-    private static final int RESULT_X = PAD + GRID * SLOT + GAP + SLOT;
+    // No trailing + SLOT, unlike BlueprintCraftingCategory. There the extra column reserved the
+    // standalone sheet slot at SHEET_X; here the sheet is IN the grid, so copying the constant left a
+    // dead 18px gap between the grid and the result with nothing drawn in it.
+    private static final int RESULT_X = PAD + GRID * SLOT + GAP;
 
     private final RecipeType<Entry> type;
     private final Component title;

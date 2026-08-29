@@ -197,6 +197,7 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
                 result = assembled;
             }
             castMenu(menu).needsBlueprint.set(0);
+            castMenu(menu).spawnEggResult = false;
         } else {
             // Blueprint recipes (#95), looked up only when nothing ordinary matched. This is the second
             // half of the gate and the half a Recipe cannot do itself: a recipe sees its own input and
@@ -236,10 +237,12 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
                 .recipeMap().byType(RCRecipeTypes.SPAWN_EGG_CRAFTING.get())) {
             if (holder.value().matches(input, level)) {
                 menu.needsBlueprint.set(0);
+                menu.spawnEggResult = true;
                 return holder.value().assemble(input);
             }
         }
 
+        menu.spawnEggResult = false;
         boolean matchedButLocked = false;
         for (RecipeHolder<BlueprintCraftingRecipe> holder : level.getServer().getRecipeManager()
                 .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
@@ -277,21 +280,24 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
      * Nothing else consumes one today, but a rule of "blueprints are never consumed here" would become
      * an item duplicator the day a recipe legitimately spends one.
      */
-    private static final class SheetPreservingResultSlot extends ResultSlot {
+    private final class SheetPreservingResultSlot extends ResultSlot {
         private final CraftingContainer grid;
-        private final Player taker;
 
         private SheetPreservingResultSlot(Player player, CraftingContainer grid,
                 net.minecraft.world.Container out, int x, int y) {
             super(player, grid, out, 0, x, y);
             this.grid = grid;
-            this.taker = player;
+        }
+
+        /** The menu that owns this slot, so the flag set when the result was SHOWN is the one read. */
+        private ScrapCraftingStationMenu menu() {
+            return ScrapCraftingStationMenu.this;
         }
 
         @Override
         public void onTake(Player player, ItemStack stack) {
             java.util.Map<Integer, ItemStack> sheets = new java.util.HashMap<>();
-            if (spawnEggMatched()) {
+            if (menu().spawnEggResult) {
                 for (int i = 0; i < grid.getContainerSize(); i++) {
                     ItemStack held = grid.getItem(i);
                     if (held.is(RCItems.BLUEPRINT.get())) {
@@ -310,22 +316,24 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
             });
         }
 
-        /** Whether the grid as it stands is a spawn-egg craft. Asked BEFORE the take consumes it. */
-        private boolean spawnEggMatched() {
-            Level level = taker.level();
-            if (level.getServer() == null) {
-                return false;
-            }
-            CraftingInput input = grid.asCraftInput();
-            for (RecipeHolder<SpawnEggCraftingRecipe> holder : level.getServer().getRecipeManager()
-                    .recipeMap().byType(RCRecipeTypes.SPAWN_EGG_CRAFTING.get())) {
-                if (holder.value().matches(input, level)) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
+
+    /**
+     * Whether the result currently SHOWN came from a spawn-egg recipe.
+     *
+     * <p>The sheet-preserving slot used to re-ask "would a spawn-egg recipe match this grid" at take
+     * time, which is a different question and one step short of the gate. {@code
+     * slotChangedCraftingGrid} resolves {@code RecipeType.CRAFTING} FIRST and only falls through to
+     * the blueprint path, so the two can disagree: a vanilla shapeless recipe consuming a Blueprint
+     * and the same vessel ingredients would win the result while the slot still handed the sheet back
+     * free. Nothing in the mod triggers it - only {@code spawn_egg.json} names a Blueprint as an
+     * ingredient - but that is a fact about today's content, and the gate is supposed to be a fact
+     * about the code.
+     *
+     * <p>Set where the result is decided and read where it is taken, so the two cannot come apart.
+     * Server-side only; it is never synced because only the take path reads it.
+     */
+    private boolean spawnEggResult;
 
     /** Whether the grid matches a blueprint recipe the player cannot currently run. */
     public boolean needsBlueprint() {

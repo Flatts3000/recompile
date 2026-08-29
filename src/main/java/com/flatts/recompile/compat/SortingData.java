@@ -3,6 +3,7 @@ package com.flatts.recompile.compat;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCDataComponents;
+import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -146,7 +147,6 @@ public final class SortingData {
     /** The Hydroponics Bay's seedling lottery: which plant an Unknown Seedling turns out to be. */
     public static final String SEEDLING = "/data/recompile/loot_table/gameplay/hydroponics_seedling.json";
 
-    /** One possible output and how likely it is (0..1). */
     /**
      * Every species the pull streams can stamp onto a piece of Amber (#294), in table order.
      *
@@ -157,7 +157,17 @@ public final class SortingData {
      */
     public static List<Identifier> amberSpecies() {
         List<Identifier> species = new ArrayList<>();
+        java.util.Set<Item> stripped = strippedItems();
         for (String table : List.of(HOUSEHOLD, BAG)) {
+            // The same three checks every other reader in this class makes, and it shipped without
+            // them. A table whose conditions do not hold is not loaded by the game, so listing its
+            // species puts creatures in JEI that no player can find; a strip modifier deleting amber
+            // does the same thing one layer down; and reading a `recompile:species` component off an
+            // entry that is not amber, or off a function that is not set_components, would invent one.
+            // None of those is hypothetical here - #276 and #277 are exactly this shape.
+            if (!conditionsHold(table)) {
+                continue;
+            }
             JsonObject root = json(table);
             if (root == null || !root.has("pools")) {
                 continue;
@@ -172,9 +182,16 @@ public final class SortingData {
                     if (!entry.has("name") || !entry.has("functions")) {
                         continue;
                     }
+                    Item item = BuiltInRegistries.ITEM.getValue(
+                        Identifier.parse(entry.get("name").getAsString()));
+                    if (item != RCItems.AMBER.get() || stripped.contains(item)) {
+                        continue;
+                    }
                     for (JsonElement rawFn : entry.getAsJsonArray("functions")) {
                         JsonObject fn = rawFn.getAsJsonObject();
-                        if (!fn.has("components")) {
+                        if (!fn.has("function")
+                                || !"minecraft:set_components".equals(fn.get("function").getAsString())
+                                || !fn.has("components")) {
                             continue;
                         }
                         JsonObject components = fn.getAsJsonObject("components");
@@ -193,6 +210,7 @@ public final class SortingData {
         return List.copyOf(species);
     }
 
+    /** One possible output and how likely it is (0..1). */
     public record Weighted(ItemStack stack, float chance) {}
 
     private SortingData() {

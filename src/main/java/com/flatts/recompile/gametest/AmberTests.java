@@ -210,6 +210,21 @@ final class AmberTests {
             helper.assertTrue(cow.contains("Cow"),
                 "the spawn-egg blueprint name rendered as \"" + cow + "\", which does not name the "
                     + "creature - every species' sheet would read alike");
+
+            // THE FRAGMENT NAMES ITS CREATURE TOO, and this is the surface a player actually sorts by:
+            // fragments for different species do not stack, so telling four cow fragments from three
+            // cow and one pig is the whole mechanic. It shipped reading the raw set id, because the
+            // computed name was written for the SHEET and IdeaFragmentItem kept its own copy of the
+            // key derivation. One method now, asked by both.
+            Identifier set = Identifier.fromNamespaceAndPath("recompile",
+                com.flatts.recompile.content.item.BlueprintItem.SPAWN_EGG_PREFIX + "minecraft/cow");
+            String fragmentName = com.flatts.recompile.content.item.BlueprintItem.setName(set)
+                .getString();
+            helper.assertTrue(fragmentName.contains("Cow"),
+                "a fragment toward a cow reads \"" + fragmentName + "\" rather than naming the cow");
+            helper.assertTrue(!fragmentName.contains(":") && !fragmentName.contains("/"),
+                "a fragment reads \"" + fragmentName + "\", which is a raw id rather than a name - "
+                    + "the one surface in this chain a player uses to tell four of a kind apart");
             helper.succeed();
         });
 
@@ -587,8 +602,14 @@ final class AmberTests {
     /**
      * The shipped recipe's grid with one sheet in the middle.
      *
-     * <p>Built from the recipe file's own pattern rather than typed out here, so changing the vessel
-     * ingredients does not silently make these tests assert against a grid nothing matches.
+     * <p><b>The ingredients are hardcoded and that is deliberate, not an oversight.</b> These tests ask
+     * the recipe for its RESULT, and {@code assemble} reads the sheet out of whatever it is handed
+     * rather than re-checking the arrangement - so the shape here is irrelevant to what they measure.
+     * {@code matches} is what cares about the grid, and
+     * {@code the_spawn_egg_sheet_is_not_consumed_by_the_egg} exercises the real one through the real
+     * menu. (An earlier version of this comment claimed the grid was read from the recipe file. It
+     * never was, and a javadoc describing protection that does not exist is worse than none, because
+     * it stops the next person looking.)
      */
     private static net.minecraft.world.item.crafting.CraftingInput gridWith(ItemStack sheet) {
         List<ItemStack> cells = new ArrayList<>();
