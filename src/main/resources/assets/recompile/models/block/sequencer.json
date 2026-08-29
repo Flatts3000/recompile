@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "recompile:block/sequencer_top",
+    "bottom": "recompile:block/sequencer_top",
+    "side": "recompile:block/sequencer"
+  }
+}

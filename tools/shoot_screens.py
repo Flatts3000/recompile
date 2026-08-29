@@ -51,6 +51,12 @@ SCREENS = [
     # it left AbstractFurnaceMenu behind for its slag slot and draws vanilla's chrome by hand.
     ("cupola_furnace", "recompile:cupola_furnace"),
     ("slag_furnace", "recompile:slag_furnace"),
+    ("sintering_kiln", "recompile:sintering_kiln"),
+    # The Sequencer (#294). Powered, so its screen has a power gauge and a progress arrow, and both
+    # are exactly the kind of thing that passes every test layer while being drawn backwards:
+    # MenuLayoutTests measures slot geometry and cannot see a pixel. It was missing from this list
+    # when it shipped, along with the Kiln above.
+    ("sequencer", "recompile:sequencer"),
 ]
 
 FOCUS_PS = """

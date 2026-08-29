@@ -78,6 +78,7 @@ public final class RCGameTests {
         MenuTransferTests.register();
         Ae2SourcingTests.register();
         RadioactiveDumpTests.register();
+        AmberTests.register();
         EnderIoFindsTests.register();
         JadeDataTests.register();
         FoundToolTests.register();

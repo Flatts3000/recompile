@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.SequencerBlock;
 import com.flatts.recompile.content.block.ManholeBlock;
 import com.flatts.recompile.content.block.FilingCabinetBlock;
 import com.flatts.recompile.content.block.PulverizerCoreBlock;
@@ -588,6 +589,26 @@ public final class RCBlocks {
             // which ate their Burn Barrel to build.
             .sound(SoundType.STONE)
             .lightLevel(state -> state.getValue(AbstractFurnaceBlock.LIT) ? 13 : 0));
+
+    /**
+     * The Sequencer (#294): reads the creature out of a piece of Amber and hands back the idea of its
+     * spawn egg. A powered single block with a screen - a machine you put one precious thing into and
+     * watch, rather than a conveyor you feed and walk away from.
+     *
+     * <p><b>NO requiresCorrectToolForDrops</b>, for the reason spelled out on the Cupola above: this
+     * block is named in no mineable tag at all, so "correct tool" resolves to NO tool existing and the
+     * machine is destroyed by every pickaxe equally. It shipped with the flag on and was caught in
+     * review - the same trap for the fourth time, which is why
+     * {@code every_machine_block_comes_back_when_it_is_broken} now sweeps for it rather than trusting
+     * the next person to read this paragraph.
+     */
+    public static final DeferredBlock<SequencerBlock> SEQUENCER = BLOCKS.registerBlock(
+        "sequencer",
+        SequencerBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.5F)
+            .sound(SoundType.METAL));
 
     /**
      * Burner Generator (#72): burns refuse into FE, the half of the power tier that works at night.

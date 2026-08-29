@@ -84,6 +84,25 @@
           "weight": 2
         }
       ]
+    },
+    {
+      "_comment": [
+        "BROKEN SPAWNER, ABOUT 1 IN 2,000. You need four to learn the cage and then never another,",
+        "so this is a one-time cost rather than a supply line - which is what lets it be rare enough",
+        "to make the trip down feel like the point."
+      ],
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:broken_spawner",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 1999
+        }
+      ]
     }
   ]
 }

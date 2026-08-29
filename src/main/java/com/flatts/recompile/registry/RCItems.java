@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.AnimalBaitBlock.Diet;
+import com.flatts.recompile.content.item.AmberItem;
 import com.flatts.recompile.content.item.AnimalBaitItem;
 import com.flatts.recompile.content.item.CuttingTorchItem;
 import com.flatts.recompile.content.item.FertilizerItem;
@@ -224,6 +225,31 @@ public final class RCItems {
      * other thing in this world that came out of the deep dark.
      */
     public static final DeferredItem<Item> SCULK_POWDER = ITEMS.registerItem("sculk_powder", Item::new);
+
+    /**
+     * Fossilised tree resin with something trapped in it (#294). The entry point to the whole spawner
+     * chain, and the reason this mod has a use for a creature that died before the dump existed.
+     *
+     * <p><b>Found in the ordinary garbage rather than in the depths</b>, and that is pacing rather
+     * than geology. The Broken Spawner is down below, so an amber found up top is a reason to make
+     * the trip; put both in the same place and the chain has no early hook at all.
+     *
+     * <p>Carries {@link RCDataComponents#SPECIES}. A piece with no species is inert and says so - see
+     * {@link com.flatts.recompile.content.item.AmberItem}.
+     */
+    public static final DeferredItem<Item> AMBER = ITEMS.registerItem("amber", AmberItem::new);
+
+    /**
+     * A spawner cage with the soul burned out of it (#294). Tear it down at the Workbench to learn how
+     * the cage was made; the creature to put in it comes from Amber.
+     *
+     * <p><b>This mod's own item, not Ender IO's.</b> Ender IO ships {@code enderio:broken_spawner} and
+     * it was the obvious candidate, but this mod never REQUIRES another mod - and Ender IO's feeds its
+     * Powered Spawner rather than repairing a vanilla one, so building on it would mean adopting that
+     * ecosystem instead of the vanilla retype this chain is made of. Both can be installed at once.
+     */
+    public static final DeferredItem<Item> BROKEN_SPAWNER =
+        ITEMS.registerItem("broken_spawner", Item::new);
 
     /** The depths' scrap in creative-tab order. */
     public static final List<DeferredItem<Item>> DEPTHS_SCRAP = List.of(
@@ -729,6 +755,9 @@ public final class RCItems {
         "pigeon_spawn_egg",
         props -> new net.minecraft.world.item.SpawnEggItem(
             props.spawnEgg(RCEntities.PIGEON.get())));
+
+    public static final DeferredItem<BlockItem> SEQUENCER =
+        ITEMS.registerSimpleBlockItem("sequencer", RCBlocks.SEQUENCER);
 
     public static final DeferredItem<BlockItem> BURNER_GENERATOR =
         ITEMS.registerSimpleBlockItem("burner_generator", RCBlocks.BURNER_GENERATOR);

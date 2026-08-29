@@ -82,6 +82,8 @@ final class MenuLayoutTests {
      * does not, so the next one cannot be forgotten quietly.
      */
     private static final List<Screen> SCREENS = List.of(
+        new Screen("sequencer", () -> com.flatts.recompile.content.menu.SequencerMenu.LAYOUT,
+            inv -> new com.flatts.recompile.content.menu.SequencerMenu(0, inv)),
         new Screen("burner_generator", () -> BurnerGeneratorMenu.LAYOUT,
             inv -> new BurnerGeneratorMenu(0, inv)),
         new Screen("hydroponics_bay", () -> HydroponicsBayMenu.LAYOUT,
@@ -204,7 +206,8 @@ final class MenuLayoutTests {
             List<Class<?>> candidates = List.of(
                     CupolaFurnaceMenu.class, SlagFurnaceMenu.class, BurnerGeneratorMenu.class,
                     HydroponicsBayMenu.class, TreeNurseryMenu.class, ScrapCraftingStationMenu.class,
-                    com.flatts.recompile.content.menu.SinteringKilnMenu.class);
+                    com.flatts.recompile.content.menu.SinteringKilnMenu.class,
+                    com.flatts.recompile.content.menu.SequencerMenu.class);
             int registered = com.flatts.recompile.registry.RCMenus.MENUS.getEntries().size();
             helper.assertTrue(candidates.size() >= registered,
                 "this sweep considers " + candidates.size() + " menu classes while " + registered

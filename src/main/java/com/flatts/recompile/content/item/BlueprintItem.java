@@ -70,16 +70,65 @@ public class BlueprintItem extends Item {
                 .withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
+        tooltip.accept(setName(set).copy().withStyle(ChatFormatting.AQUA));
+    }
+
+    /**
+     * What a blueprint set is called on the sheet.
+     *
+     * <p>Hand-written lang keys work for the sets the mod ships one by one. They cannot work for the
+     * spawn-egg family (#294), which is one set PER ENTITY TYPE - every vanilla mob, plus whatever any
+     * installed mod adds - so there is no list to write keys against and the raw-id fallback would have
+     * a player holding a sheet that reads {@code recompile:spawn_egg/minecraft/cow}. That is not a
+     * missing translation, it is a set whose name has to be COMPUTED, so it is computed here from the
+     * entity type's own display name and stays right for a mob this mod has never heard of.
+     */
+    private static Component setName(Identifier set) {
+        String path = set.getPath();
+        if (path.startsWith(SPAWN_EGG_PREFIX)) {
+            String rest = path.substring(SPAWN_EGG_PREFIX.length());
+            int slash = rest.indexOf('/');
+            if (slash > 0) {
+                Identifier species =
+                    Identifier.fromNamespaceAndPath(rest.substring(0, slash), rest.substring(slash + 1));
+                // An id naming a mob from a mod that is not installed resolves to nothing rather than
+                // to null, so this degrades to the id instead of throwing - the same contract
+                // RCDataComponents.SPECIES is documented against.
+                var type = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getOptional(species);
+                if (type.isPresent()) {
+                    return Component.translatable("blueprint.recompile.spawn_egg",
+                        Component.translatable(type.get().getDescriptionId()));
+                }
+            }
+        }
         String key = "blueprint." + set.getNamespace() + "." + set.getPath();
         Component name = Component.translatable(key);
-        tooltip.accept((name.getString().equals(key) ? Component.literal(set.toString()) : name)
-            .copy().withStyle(ChatFormatting.AQUA));
+        return name.getString().equals(key) ? Component.literal(set.toString()) : name;
     }
+
+    /** The path prefix {@code SequencerBlockEntity.fragmentFor} stamps onto a species' set. */
+    public static final String SPAWN_EGG_PREFIX = "spawn_egg/";
 
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
-        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE);
+        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
+            SPAWNER);
     }
+
+    /**
+     * How a spawner cage is built (#294), learned from a Broken Spawner found in the depths.
+     *
+     * <p><b>The cage only, never the creature.</b> What goes in one comes from Amber, up in the
+     * overworld, and the split is the design: neither half is usable alone, so the chain needs both
+     * regions and cannot be short-circuited from either end.
+     *
+     * <p>It is also the first blueprint whose result is a <b>vanilla</b> block. Everything the mod
+     * gated behind a sheet until now was its own, which made {@code a_blueprint_result_has_no_other_route}
+     * cheap to satisfy; here the guard is doing real work, because {@code minecraft:spawner} is an
+     * item the player must not reach any other way.
+     */
+    public static final Identifier SPAWNER =
+        Identifier.fromNamespaceAndPath("recompile", "spawner");
 
     /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
     public static final Identifier CLEAN_MATTRESS =

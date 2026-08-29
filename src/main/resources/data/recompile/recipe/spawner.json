@@ -1,0 +1,25 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "_comment": [
+    "THE ENTIRE BALANCE OF #294 LIVES IN THESE INGREDIENTS. The blueprint is permanent, so four",
+    "Broken Spawners buy spawners forever and there is no second lever - see the note on #36.",
+    "",
+    "First pass, deliberately expensive: a cage of rebar around soul sand, with the sculk that",
+    "listens for something to be born. Every ingredient is depths-side or reclamation-side, so a",
+    "spawner cannot be assembled from household garbage alone."
+  ],
+  "blueprint": "recompile:spawner",
+  "key": {
+    "R": "recompile:rebar",
+    "S": "minecraft:soul_sand",
+    "C": "minecraft:sculk_catalyst"
+  },
+  "pattern": [
+    "RSR",
+    "SCS",
+    "RSR"
+  ],
+  "result": {
+    "item": "minecraft:spawner"
+  }
+}

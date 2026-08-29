@@ -379,6 +379,48 @@ final class RegistryCompletenessTests {
             helper.succeed();
         });
 
+        // A TOOL GATE WITH NO MINEABLE TAG DESTROYS THE BLOCK, and nothing about it looks wrong.
+        //
+        // <p>`requiresCorrectToolForDrops` means "drop only for the correct tool", and the correct tool
+        // is decided by the mineable tags the block is in. Name the block in NO mineable tag and there
+        // IS no correct tool: `ItemStack.isCorrectToolForDrops` is false for a netherite pickaxe and a
+        // bare hand alike, `destroyBlock` never reaches `playerDestroy`, and the machine a player spent
+        // a Motor and four steel offcuts on evaporates when they break it to move it.
+        //
+        // <p>This has now been the same mistake four times. The Cupola, the Slag Furnace and the
+        // Sintering Kiln each carry a paragraph warning about it, #195 closed it framework-wide for
+        // multiblock cores, and the Sequencer still shipped with the flag on - because
+        // `every_multiblock_core_comes_back_however_it_is_broken` sweeps `MultiblockCoreBlock` and a
+        // single block is not one. A comment that has to be read four times is not a guard.
+        RCGameTests.test("every_machine_block_comes_back_when_it_is_broken", 20, helper -> {
+            List<String> unbreakable = new ArrayList<>();
+            int gated = 0;
+            for (Block block : BuiltInRegistries.BLOCK) {
+                Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+                if (id == null || !Recompile.MOD_ID.equals(id.getNamespace())) {
+                    continue;
+                }
+                net.minecraft.world.level.block.state.BlockState state = block.defaultBlockState();
+                if (!state.requiresCorrectToolForDrops()) {
+                    continue;
+                }
+                gated++;
+                // 26.1 has no BlockState.getTags(); the tags live on the registry holder.
+                boolean mineable = block.builtInRegistryHolder().tags()
+                    .anyMatch(tag -> tag.location().getPath().startsWith("mineable/"));
+                if (!mineable) {
+                    unbreakable.add(id.getPath());
+                }
+            }
+            helper.assertTrue(gated > 3,
+                "only " + gated + " tool-gated blocks were found - discovery is broken, so this test "
+                    + "would pass against any block that gates on a tool nobody can hold");
+            report(helper, unbreakable,
+                "blocks that gate drops on the correct tool while being in no mineable tag, so NO tool "
+                    + "is correct and breaking them destroys them");
+            helper.succeed();
+        });
+
         RCGameTests.test("every_texture_a_model_names_exists", 20, helper -> {
             checkModelTexturesExist(helper);
             helper.succeed();
@@ -666,6 +708,13 @@ final class RegistryCompletenessTests {
         // Manual-only by design, and the reason the Cupola is worth building. Exposing ANY handler -
         // even one that refuses - makes pipes visually connect, so it exposes none at all.
         "burn_barrel",
+        // The Sequencer (#294) is the "one precious thing at a time" machine, not an automation-tier
+        // one: amber arrives at about 1 in 700 pulls, so a player has a handful rather than a stack
+        // and a pipe would be feeding it nothing most of the time. Deliberately unlike the
+        // Hydroponics Bay, which exposes all three BECAUSE it is the automation tier - the two are
+        // both powered blocks with screens and that is where the resemblance stops. Revisit if
+        // playtest says otherwise; it is one registerBlockEntity call away.
+        "sequencer",
         // Items stay manual; only its water tank is automatable.
         "tree_nursery",
         // Holds one displayed item and is never hopper-fed - placing and taking is the interaction.
@@ -683,6 +732,7 @@ final class RegistryCompletenessTests {
     private static void checkContainersDeclareCapabilities(GameTestHelper helper) {
         net.minecraft.server.level.ServerLevel level = helper.getLevel();
         List<String> undeclared = new ArrayList<>();
+        List<String> hopperReachable = new ArrayList<>();
         int containers = 0;
         for (var type : BuiltInRegistries.BLOCK_ENTITY_TYPE) {
             Identifier typeId = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(type);
@@ -702,6 +752,28 @@ final class RegistryCompletenessTests {
                     }
                     containers++;
                     if (NO_ITEM_CAPABILITY.contains(id.getPath())) {
+                        // A BLOCK ON THAT LIST HAS TO BE CLOSED TO HOPPERS TOO, and declaring no
+                        // capability does not close it. This method's own javadoc says why: a hopper
+                        // never consults the capability, it calls HopperBlockEntity.getContainerAt and
+                        // takes the Container directly. So the list said "manual-only" while the
+                        // Sequencer shipped as a plain Container that a hopper under it could empty
+                        // mid-read, and the guard that was supposed to police exactly this policy
+                        // checked the other half of it. Caught in review, not here.
+                        //
+                        // WorldlyContainer with no slots on any face is the only shape that shuts it,
+                        // and it is what the Burn Barrel and the Tree Nursery already do.
+                        var be = level.getBlockEntity(pos);
+                        if (!(be instanceof net.minecraft.world.WorldlyContainer worldly)) {
+                            hopperReachable.add(id.getPath() + " (plain Container, so a hopper reaches "
+                                + "every slot)");
+                            continue;
+                        }
+                        for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+                            if (worldly.getSlotsForFace(side).length > 0) {
+                                hopperReachable.add(id.getPath() + " (exposes slots on " + side + ")");
+                                break;
+                            }
+                        }
                         continue;
                     }
                     boolean exposed = false;
@@ -727,6 +799,9 @@ final class RegistryCompletenessTests {
                 + "would pass against any missing capability");
         report(helper, undeclared,
             "blocks that hold items but expose no item capability, so no pipe can reach them");
+        report(helper, hopperReachable,
+            "blocks listed as manual-only that a hopper can still reach - closing the capability door "
+                + "does not close the Container one");
     }
 
     /** Every {@code "model": "recompile:..."} in a blockstate or client item definition. */
