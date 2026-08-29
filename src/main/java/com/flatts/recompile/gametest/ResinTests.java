@@ -74,22 +74,29 @@ final class ResinTests {
             helper.succeed();
         });
 
-        // A FULL HUSK SLOT STOPS THE MACHINE rather than deleting husks. The Cupola learned this about
-        // slag: a byproduct with nowhere to go is silently destroyed unless the run condition checks
-        // for room, and the symptom is a chain input that quietly never accumulates.
-        RCGameTests.test("a_full_husk_slot_stops_the_read", 60, helper -> {
+        // A FULL HUSK SLOT COSTS NOTHING, which is the opposite of what this test asserted first.
+        //
+        // <p><b>The first version pinned a design this repo had already reverted, and cited it as the
+        // precedent.</b> It made a full byproduct slot stop the read, "the Cupola's lesson about slag".
+        // CupolaFurnaceBlock.getTicker says the reverse in as many words: the hold was tried, it froze
+        // the machine mid-burn in a state that looked exactly like working, and it bought nothing,
+        // because rakeSlag carries its remainder on a counter and a full slot loses no slag at all.
+        //
+        // <p>So the Sequencer owes husks rather than stalling for them. Two things have to hold and
+        // both are asserted here, because either alone is satisfiable by a bug: the read must keep
+        // going, and no husk may be lost while the slot is full.
+        RCGameTests.test("a_full_husk_slot_costs_nothing", 80, helper -> {
             var level = helper.getLevel();
             var pos = new BlockPos(1, 1, 1);
             helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.SEQUENCER.get());
             var machine = (SequencerBlockEntity) level.getBlockEntity(helper.absolutePos(pos));
 
-            ItemStack amber = new ItemStack(RCItems.AMBER.get(), 4);
+            ItemStack amber = new ItemStack(RCItems.AMBER.get(), 2);
             amber.set(RCDataComponents.SPECIES.get(),
                 Identifier.fromNamespaceAndPath("minecraft", "cow"));
             machine.setItem(SequencerBlockEntity.INPUT_SLOT, amber);
-            ItemStack full = new ItemStack(RCItems.SPENT_AMBER.get());
-            full.setCount(full.getMaxStackSize());
-            machine.setItem(SequencerBlockEntity.HUSK_SLOT, full);
+            // Something ELSE in the byproduct slot, so it is not merely full but unusable.
+            machine.setItem(SequencerBlockEntity.HUSK_SLOT, new ItemStack(RCItems.JUNK.get()));
             try (var tx = net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {
                 machine.battery().insert(SequencerBlockEntity.CAPACITY, tx);
                 tx.commit();
@@ -99,9 +106,22 @@ final class ResinTests {
                     helper.getBlockState(pos), machine);
             }
 
-            helper.assertTrue(machine.getItem(SequencerBlockEntity.INPUT_SLOT).getCount() == 4,
-                "the machine read an amber with nowhere to put the husk, so the husk was destroyed and "
-                    + "the amber spent for nothing");
+            helper.assertTrue(machine.getItem(SequencerBlockEntity.INPUT_SLOT).getCount() == 1,
+                "the read did not happen with a blocked byproduct slot, so the machine stalls for a "
+                    + "slot the player may not care about - the Cupola's reverted mistake");
+            helper.assertTrue(machine.getItem(SequencerBlockEntity.OUTPUT_SLOT)
+                    .is(RCItems.IDEA_FRAGMENT.get()),
+                "and the fragment must still come out, which is what the player is actually watching");
+
+            // NOW CLEAR IT. The husk owed while the slot was blocked has to arrive, or the debt is
+            // decoration and the resin chain silently loses an input every time the slot fills.
+            machine.setItem(SequencerBlockEntity.HUSK_SLOT, ItemStack.EMPTY);
+            SequencerBlockEntity.serverTick(level, helper.absolutePos(pos),
+                helper.getBlockState(pos), machine);
+            ItemStack paid = machine.getItem(SequencerBlockEntity.HUSK_SLOT);
+            helper.assertTrue(paid.is(RCItems.SPENT_AMBER.get()) && paid.getCount() == 1,
+                "clearing the slot paid back " + paid + " rather than the one husk owed, so a read "
+                    + "taken while it was blocked lost its Spent Amber for good");
             helper.succeed();
         });
 
@@ -185,6 +205,35 @@ final class ResinTests {
                 "nothing makes a resin_clump out of anything but resin. Vanilla's own recipe consumes a "
                     + "resin_block, so without an outside source the whole family is unreachable and "
                     + "the nine items in #231 are still dead");
+
+            // AND THE REST OF THE FAMILY REALLY DOES HANG OFF THE CLUMP. The comment above claimed this
+            // was asserted and it was not - the fifth comment in two days describing coverage that did
+            // not exist. Without it, dropping the creaking_heart or brick route would leave this green
+            // while the entry point kept working, which is the shape of every stale-list bug here.
+            List<String> orphans = new ArrayList<>();
+            for (String name : FAMILY) {
+                Item item = resin(name);
+                if (item == resin("resin_clump")) {
+                    continue;   // the entry point itself, checked above
+                }
+                boolean made = false;
+                for (var holder : level.recipeAccess().recipeMap().values()) {
+                    for (var display : holder.value().display()) {
+                        for (var stack : display.result().resolveForStacks(
+                                net.minecraft.world.item.crafting.display.SlotDisplayContext
+                                    .fromLevel(level))) {
+                            if (stack.is(item)) {
+                                made = true;
+                            }
+                        }
+                    }
+                }
+                if (!made) {
+                    orphans.add(name);
+                }
+            }
+            helper.assertTrue(orphans.isEmpty(),
+                "these hang off nothing, so opening the clump does not open them: " + orphans);
             helper.succeed();
         });
     }
