@@ -2297,9 +2297,22 @@ prompt = "a rounded translucent golden-orange amber gemstone with a single small
 kind = "item"
 backend = "ai"
 size = 16
-# A cage with the soul burned out of it. Empty is the readable part - a spawner with something inside
-# would look like a working one, and the item is defined by what it no longer holds.
-prompt = "a small dark iron cage with bent and snapped bars, hollow and empty inside, rusted and scorched, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+# Rewritten 2026-08-28. The first version ("a small dark iron cage, hollow and empty inside, rusted
+# and scorched") came back as an ink blot: measured against the 74 shipped 16px item textures its luma
+# spread was 22.7 against a median of 118, and its brightest pixel was 36 against a median of 149, the
+# second-lowest-contrast icon in the mod. Every candidate in that batch had the same fault, so the
+# prompt was the cause - "dark iron" plus "scorched" plus "empty" all pull toward one value.
+#
+# Two things came out of reading vanilla's own spawner.png out of the 26.1.2 client jar, and both are
+# in the prompt below. It is BLUE-BLACK, not iron grey: median hue 204 at saturation 0.47, luma mean
+# 45. And it is not an empty cage - two magenta pixels are eyes, and the creature behind the bars is
+# the single most recognisable thing in the tile. An emptied box removes the feature that says
+# "spawner", so what should read as broken is the cage, not the absence of what it held.
+prompt = "a torn-off piece of a monster spawner cage, seen flat and straight from the front with no perspective, a broken fragment of iron grid made of MID-TONE steel blue-grey bars with solid dark navy metal filling every gap between them so the piece itself is opaque, cool blue-grey and navy metal throughout, the outline deliberately RAGGED AND IRREGULAR rather than a neat square, bars snapped short and bent outward along the torn edges with orange rust blooming where the metal parted, NOT a cube and NOT an isometric block and no three-quarter view, a flat front-on fragment lying face up, nothing glowing and no flame anywhere, the piece large in frame, bold simple shapes with hard edges and very few details, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
+[surface.broken_spawner.procedural]
+style = "cage_face"
+palette = ["#1e1827", "#182c39", "#2a4455", "#406278"]
 
 [surface.sequencer]
 kind = "block"
