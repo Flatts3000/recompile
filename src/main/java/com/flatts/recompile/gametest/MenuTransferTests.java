@@ -204,88 +204,160 @@ final class MenuTransferTests {
         // SHIFT-CLICK NEVER CREATES OR DESTROYS AN ITEM, on every menu that reimplements the move.
         //
         // <p>This file's own header says a coverage pass found "every custom menu's quickMoveStack at
-        // ZERO branches covered". It then tested ONE of them. Six menus reimplement the method over a
-        // bare AbstractContainerMenu - Burner Generator, Cupola, Hydroponics Bay, Scrap Crafting Table,
-        // Sequencer, Tree Nursery - and only the Cupola had a test. The Sintering Kiln and the Slag
-        // Furnace inherit vanilla's and are correctly absent.
+        // ZERO branches covered". It then tested ONE of them.
         //
         // <p><b>Conservation is the assertion because it is the failure that hurts.</b> Routing an item
         // to the wrong slot is visible and annoying; losing it is not recoverable, and vanilla's own
         // contract makes the mistake easy - quickMoveStack must return EMPTY once it can move no more,
-        // or the caller loops forever, and the usual bug is returning the wrong stack and having the
-        // caller delete the remainder. Counting every item in the menu before and after catches that
-        // whatever the routing does.
+        // or the caller loops forever, and the usual bug is clearing the source slot when only part of
+        // the stack actually moved.
         //
-        // <p>The menu list is derived from the REGISTRY rather than typed out, so a seventh bespoke
-        // menu is covered the day it is registered. That is the same reason MachineParityTests derives
-        // its list, and the same failure it was written against: a hand-list that reads as complete.
-        RCGameTests.test("shift_clicking_never_creates_or_destroys_an_item", 60, helper -> {
+        // <p><b>Every case asserts it MOVED something, and that is the load-bearing half.</b> Two
+        // earlier versions of this test were vacuous in two different ways and both passed. The first
+        // never created a remainder, so the branch deciding the remainder's fate never ran. The second
+        // fed each machine an item it does not accept - a bare UNSTAMPED Amber to the Sequencer, none
+        // of the sixteen hydroponic crops to the Bay - so the player-to-machine half returned EMPTY on
+        // the first call and before == after held because nothing happened at all. A conservation check
+        // over a no-op is always green. So each menu now names an item its own predicate really takes,
+        // and the test fails if that item does not land in a machine slot.
+        RCGameTests.test("shift_clicking_never_creates_or_destroys_an_item", 80, helper -> {
             var player = helper.makeMockServerPlayerInLevel();
             player.setGameMode(GameType.SURVIVAL);
 
             record Menu(String name, java.util.function.Function<net.minecraft.world.entity.player.Inventory,
-                net.minecraft.world.inventory.AbstractContainerMenu> make) {
+                net.minecraft.world.inventory.AbstractContainerMenu> make, ItemStack accepted) {
             }
+            ItemStack stampedAmber = new ItemStack(RCItems.AMBER.get(), 16);
+            stampedAmber.set(com.flatts.recompile.registry.RCDataComponents.SPECIES.get(),
+                net.minecraft.resources.Identifier.fromNamespaceAndPath("minecraft", "cow"));
+
+            // `accepted` is an item the machine's own predicate really takes, read off that predicate
+            // rather than guessed: the Bay wants an Unknown Seedling or a #recompile:hydroponic crop,
+            // the Sequencer wants amber that is STAMPED, the Burner wants something in the
+            // furnace_fuels map, the nursery routes Fertilizer to a slot of its own.
             List<Menu> menus = List.of(
                 new Menu("burner_generator", inv ->
-                    new com.flatts.recompile.content.menu.BurnerGeneratorMenu(0, inv)),
+                    new com.flatts.recompile.content.menu.BurnerGeneratorMenu(0, inv),
+                    new ItemStack(RCItems.OILY_RAG.get(), 64)),
                 new Menu("hydroponics_bay", inv ->
-                    new com.flatts.recompile.content.menu.HydroponicsBayMenu(0, inv)),
+                    new com.flatts.recompile.content.menu.HydroponicsBayMenu(0, inv),
+                    new ItemStack(RCItems.UNKNOWN_SEEDLING.get(), 16)),
                 new Menu("sequencer", inv ->
-                    new com.flatts.recompile.content.menu.SequencerMenu(0, inv)),
+                    new com.flatts.recompile.content.menu.SequencerMenu(0, inv), stampedAmber),
                 new Menu("tree_nursery", inv ->
-                    new com.flatts.recompile.content.menu.TreeNurseryMenu(0, inv)),
+                    new com.flatts.recompile.content.menu.TreeNurseryMenu(0, inv),
+                    new ItemStack(RCItems.FERTILIZER.get(), 32)),
                 new Menu("cupola_furnace", inv ->
-                    new CupolaFurnaceMenu(0, inv)));
-
-            // A spread that exercises every branch these methods have between them: something each
-            // machine accepts, something none of them do, and a full stack so a partial move is
-            // possible rather than always all-or-nothing.
-            List<ItemStack> fixtures = List.of(
-                new ItemStack(RCItems.OILY_RAG.get(), 64),
-                new ItemStack(RCItems.AMBER.get(), 1),
-                new ItemStack(RCItems.FERTILIZER.get(), 32),
-                new ItemStack(Items.COBBLESTONE, 64));
+                    new CupolaFurnaceMenu(0, inv),
+                    new ItemStack(RCItems.SCRAP_METAL.get(), 64)));
 
             List<String> problems = new ArrayList<>();
             for (Menu m : menus) {
-                for (ItemStack fixture : fixtures) {
-                    // 1. INVENTORY -> MACHINE, with room everywhere. The ordinary case.
-                    var menu = m.make().apply(player.getInventory());
-                    int from = firstPlayerSlot(menu, player);
-                    if (from < 0) {
-                        problems.add(m.name() + " exposes no player-inventory slot");
-                        continue;
-                    }
-                    menu.slots.get(from).set(fixture.copy());
-                    problems.addAll(drain(menu, player, from, m.name() + " in", fixture));
+                // 1. INVENTORY -> MACHINE, room everywhere, using something it accepts.
+                //
+                // The inventory is cleared FIRST. It is the mock player's real one and scenario 2 packs
+                // all 36 slots, so without this every menu after the first ran against a full backpack:
+                // the fallback shuffle had nowhere to go, quickMoveStack returned EMPTY at once, and
+                // the conservation check passed over a no-op again.
+                player.getInventory().clearContent();
+                var menu = m.make().apply(player.getInventory());
+                int from = firstPlayerSlot(menu, player);
+                if (from < 0) {
+                    problems.add(m.name() + " exposes no player-inventory slot");
+                    continue;
+                }
+                menu.slots.get(from).set(m.accepted().copy());
+                problems.addAll(drain(menu, player, from, m.name() + " in", m.accepted()));
+                if (machineHeld(menu, player) == 0) {
+                    problems.add(m.name() + " took none of the " + m.accepted().getItem()
+                        + " it is supposed to accept, so its player-to-machine branch never ran and "
+                        + "the conservation check measured a no-op");
+                }
 
-                    // 2. MACHINE -> INVENTORY WITH ONLY PARTIAL ROOM, which is the case that matters
-                    // and the one this test did not have when it was first written. With room for
-                    // everything a move always completes, `stack.isEmpty()` is always true, and the
-                    // branch that decides what happens to the REMAINDER never runs - so clearing the
-                    // source slot unconditionally (the classic dupe-or-delete bug) was behaviourally
-                    // identical and a mutation of exactly that stayed green. Leaving room for half the
-                    // stack is what makes the remainder exist.
+                // 2. MACHINE -> INVENTORY WITH ONLY PARTIAL ROOM, which is the case that matters: with
+                // room for everything a move always completes, so the branch deciding the REMAINDER's
+                // fate never runs and clearing the source slot unconditionally is indistinguishable.
+                for (ItemStack fixture : List.of(m.accepted(), new ItemStack(Items.COBBLESTONE, 64))) {
+                    player.getInventory().clearContent();
                     var partial = m.make().apply(player.getInventory());
                     int firstInv = firstPlayerSlot(partial, player);
-                    if (firstInv < 0) {
+                    if (firstInv < 0 || partial.slots.get(0).container == player.getInventory()) {
+                        problems.add(m.name() + " has no machine slot at index 0, so this case would "
+                            + "silently be a player-to-player move under a machine's name");
                         continue;
                     }
-                    ItemStack filler = new ItemStack(fixture.getItem(), fixture.getMaxStackSize());
-                    for (int i = firstInv; i < partial.slots.size(); i++) {
-                        partial.slots.get(i).set(filler.copy());
+                    int max = fixture.getMaxStackSize();
+                    if (max < 2) {
+                        problems.add(m.name() + " fixture " + fixture.getItem() + " does not stack, so "
+                            + "no remainder can exist and this case would be vacuous");
+                        continue;
                     }
-                    // One slot with half a stack, so exactly half the incoming stack can merge.
-                    int half = Math.max(1, fixture.getMaxStackSize() / 2);
-                    partial.slots.get(firstInv).set(new ItemStack(fixture.getItem(), half));
-                    partial.slots.get(0).set(new ItemStack(fixture.getItem(), fixture.getMaxStackSize()));
+                    for (int i = firstInv; i < partial.slots.size(); i++) {
+                        partial.slots.get(i).set(new ItemStack(fixture.getItem(), max));
+                    }
+                    partial.slots.get(firstInv).set(new ItemStack(fixture.getItem(), max / 2));
+                    partial.slots.get(0).set(new ItemStack(fixture.getItem(), max));
                     problems.addAll(drain(partial, player, 0, m.name() + " out(partial)", fixture));
+                    if (partial.slots.get(firstInv).getItem().getCount() != max) {
+                        problems.add(m.name() + " filled none of the gap left for it with "
+                            + fixture.getItem() + ", so no remainder was ever produced and the case "
+                            + "this scenario exists for did not run");
+                    }
                 }
             }
             helper.assertTrue(problems.isEmpty(),
                 "shift-clicking must move items, never mint or eat them: " + problems);
             player.discard();
+            helper.succeed();
+        });
+
+        // AND THE LIST ABOVE IS COMPLETE, which is checked rather than claimed.
+        //
+        // <p>The sweep is a hand-written list because these menus cannot all be built from a MenuType
+        // alone - the Scrap Crafting Table's factory reads a BlockPos off the open packet. An earlier
+        // version of this file said the list was "derived from the REGISTRY", which was simply untrue,
+        // and a hand list that reads as complete is this repo's most repeated failure: the
+        // scrap_connectable tag went stale five separate times, each caught by review rather than by
+        // the person editing it.
+        //
+        // <p>So it is checked. Every menu class that declares its OWN quickMoveStack must be in the
+        // sweep or named here with a reason, and a seventh bespoke menu fails this the day it is
+        // written. The Sintering Kiln and Slag Furnace inherit vanilla's and are skipped automatically
+        // rather than by being listed, which is the difference between a guard and a second hand-list.
+        RCGameTests.test("every_bespoke_menu_transfer_is_covered", 20, helper -> {
+            java.util.Set<String> covered = java.util.Set.of(
+                "BurnerGeneratorMenu", "HydroponicsBayMenu", "SequencerMenu", "TreeNurseryMenu",
+                "CupolaFurnaceMenu");
+            java.util.Map<String, String> excused = java.util.Map.of(
+                "ScrapCraftingStationMenu",
+                "its result path calls player.drop, so it deliberately moves items OUT of the menu's "
+                    + "slot set and a conservation check over slots is the wrong instrument for it. "
+                    + "Its result-slot behaviour is pinned by CraftingTableTests."
+                    + "one_shift_click_crafts_one_batch_not_the_whole_network");
+
+            List<String> uncovered = new ArrayList<>();
+            List<Class<?>> found = menuClasses();
+            helper.assertTrue(found.size() >= 6,
+                "only " + found.size() + " menu classes were found - discovery is broken, so this "
+                    + "would pass against any menu that was never tested");
+            for (Class<?> c : found) {
+                boolean own = false;
+                for (var method : c.getDeclaredMethods()) {
+                    if (method.getName().equals("quickMoveStack")) {
+                        own = true;
+                        break;
+                    }
+                }
+                if (!own) {
+                    continue;   // inherits vanilla's, so there is nothing of ours to pin
+                }
+                String name = c.getSimpleName();
+                if (!covered.contains(name) && !excused.containsKey(name)) {
+                    uncovered.add(name);
+                }
+            }
+            helper.assertTrue(uncovered.isEmpty(),
+                "these menus reimplement quickMoveStack and nothing pins it: " + uncovered);
             helper.succeed();
         });
 
@@ -337,6 +409,52 @@ final class MenuTransferTests {
             }
         }
         return -1;
+    }
+
+
+    /** How many items a menu's MACHINE slots hold, ignoring the player's own. */
+    private static int machineHeld(net.minecraft.world.inventory.AbstractContainerMenu menu,
+            net.minecraft.world.entity.player.Player player) {
+        int n = 0;
+        for (var slot : menu.slots) {
+            if (slot.container != player.getInventory()) {
+                n += slot.getItem().getCount();
+            }
+        }
+        return n;
+    }
+
+    /**
+     * Every menu class this mod ships, read off {@code RCMenus}' own field types.
+     *
+     * <p><b>Derived, not listed.</b> A second hand-written list here would have exactly the fault this
+     * test exists to catch. {@code RCMenus} declares each menu as
+     * {@code DeferredHolder<MenuType<?>, MenuType<XMenu>>} and registering there is not optional - a
+     * menu that is not in that class does not exist - so the concrete type is readable off the field's
+     * generic signature and nothing can be added without appearing here.
+     *
+     * <p>Generic type arguments survive in the class file for FIELDS (they are erased from values, not
+     * from declarations), which is what makes this work at all; the same trick on a local variable
+     * would return nothing.
+     */
+    private static List<Class<?>> menuClasses() {
+        List<Class<?>> classes = new ArrayList<>();
+        for (var field : com.flatts.recompile.registry.RCMenus.class.getDeclaredFields()) {
+            java.lang.reflect.Type generic = field.getGenericType();
+            if (!(generic instanceof java.lang.reflect.ParameterizedType holder)) {
+                continue;
+            }
+            java.lang.reflect.Type[] args = holder.getActualTypeArguments();
+            if (args.length < 2
+                    || !(args[1] instanceof java.lang.reflect.ParameterizedType menuType)) {
+                continue;
+            }
+            java.lang.reflect.Type[] inner = menuType.getActualTypeArguments();
+            if (inner.length == 1 && inner[0] instanceof Class<?> c) {
+                classes.add(c);
+            }
+        }
+        return classes;
     }
 
 }
