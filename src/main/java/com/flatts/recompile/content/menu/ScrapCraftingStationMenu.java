@@ -8,6 +8,7 @@ import com.flatts.recompile.gui.Rect;
 import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.network.ScrapNetworkContentsPayload;
 import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCMenus;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import com.flatts.recompile.content.recipe.BlueprintAccess;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
+import com.flatts.recompile.content.recipe.SpawnEggCraftingRecipe;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -158,7 +160,7 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
 
         this.addDataSlot(this.needsBlueprint);
         Rect result = LAYOUT.rect("result");
-        this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0,
+        this.addSlot(new SheetPreservingResultSlot(inventory.player, this.craftSlots, this.resultSlots,
             result.x(), result.y()));
         LAYOUT.forEachSlot("crafting",
             (index, x, y) -> this.addSlot(new Slot(this.craftSlots, index, x, y)));
@@ -222,6 +224,22 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
      */
     private static ItemStack blueprintResult(Level level, Player player, CraftingInput input,
             net.minecraft.core.BlockPos tablePos, ScrapCraftingStationMenu menu) {
+        // THE SPAWN EGG IS ASKED FIRST, and it is the one recipe here whose sheet is IN the grid.
+        //
+        // <p>It cannot be a blueprint_crafting recipe: a spawn egg needs one blueprint set per species,
+        // and 29 recipes sharing one arrangement would resolve to whichever iterated first (see
+        // SpawnEggCraftingRecipe). So the player names the species by laying the sheet in the grid, and
+        // there is nothing for BlueprintAccess to look up - holding the sheet is not the question when
+        // the sheet is right there. It is checked before the loop below because its pattern contains a
+        // Blueprint item, which no other recipe's does, so it can never shadow one of them.
+        for (RecipeHolder<SpawnEggCraftingRecipe> holder : level.getServer().getRecipeManager()
+                .recipeMap().byType(RCRecipeTypes.SPAWN_EGG_CRAFTING.get())) {
+            if (holder.value().matches(input, level)) {
+                menu.needsBlueprint.set(0);
+                return holder.value().assemble(input);
+            }
+        }
+
         boolean matchedButLocked = false;
         for (RecipeHolder<BlueprintCraftingRecipe> holder : level.getServer().getRecipeManager()
                 .recipeMap().byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
@@ -238,6 +256,75 @@ public class ScrapCraftingStationMenu extends AbstractContainerMenu {
         }
         menu.needsBlueprint.set(matchedButLocked ? 1 : 0);
         return ItemStack.EMPTY;
+    }
+
+    /**
+     * The result slot, plus the one rule that keeps a Blueprint knowledge rather than a material.
+     *
+     * <p>{@code spawn_egg_crafting} is the only recipe in the mod that puts a Blueprint in the grid,
+     * because it is the only one where the player has to name WHICH of many sets they mean (see
+     * {@link SpawnEggCraftingRecipe}). Vanilla's {@link ResultSlot} decrements every occupied grid slot
+     * by one on take, so without this the sheet would be eaten by the egg it made, and four ambers of
+     * one species would buy exactly one.
+     *
+     * <p><b>Recipe-level remainders are not available here.</b> In 26.1 {@code
+     * ResultSlot.getRemainingItems} is private and resolves {@code RecipeType.CRAFTING} only, so a
+     * custom type cannot supply one. The item-level {@code craftRemainder} is worse than useless for
+     * this: it hands back {@code new ItemStack(item)}, which would return a BLANK blueprint and quietly
+     * destroy the set the player earned.
+     *
+     * <p>Restoring is gated on a spawn-egg recipe having matched, not on "a blueprint was in the grid".
+     * Nothing else consumes one today, but a rule of "blueprints are never consumed here" would become
+     * an item duplicator the day a recipe legitimately spends one.
+     */
+    private static final class SheetPreservingResultSlot extends ResultSlot {
+        private final CraftingContainer grid;
+        private final Player taker;
+
+        private SheetPreservingResultSlot(Player player, CraftingContainer grid,
+                net.minecraft.world.Container out, int x, int y) {
+            super(player, grid, out, 0, x, y);
+            this.grid = grid;
+            this.taker = player;
+        }
+
+        @Override
+        public void onTake(Player player, ItemStack stack) {
+            java.util.Map<Integer, ItemStack> sheets = new java.util.HashMap<>();
+            if (spawnEggMatched()) {
+                for (int i = 0; i < grid.getContainerSize(); i++) {
+                    ItemStack held = grid.getItem(i);
+                    if (held.is(RCItems.BLUEPRINT.get())) {
+                        sheets.put(i, held.copy());
+                    }
+                }
+            }
+            super.onTake(player, stack);
+            // Blueprints do not stack, so a consumed one leaves the slot empty. Only refill an empty
+            // slot: anything else means the take did not go the way this assumed, and putting a second
+            // sheet on top of a surviving one is how a preservation rule becomes a dupe.
+            sheets.forEach((index, sheet) -> {
+                if (grid.getItem(index).isEmpty()) {
+                    grid.setItem(index, sheet);
+                }
+            });
+        }
+
+        /** Whether the grid as it stands is a spawn-egg craft. Asked BEFORE the take consumes it. */
+        private boolean spawnEggMatched() {
+            Level level = taker.level();
+            if (level.getServer() == null) {
+                return false;
+            }
+            CraftingInput input = grid.asCraftInput();
+            for (RecipeHolder<SpawnEggCraftingRecipe> holder : level.getServer().getRecipeManager()
+                    .recipeMap().byType(RCRecipeTypes.SPAWN_EGG_CRAFTING.get())) {
+                if (holder.value().matches(input, level)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /** Whether the grid matches a blueprint recipe the player cannot currently run. */

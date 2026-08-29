@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
+import com.flatts.recompile.content.recipe.SpawnEggCraftingRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
 import com.flatts.recompile.content.recipe.PulverizingRecipe;
 import com.flatts.recompile.content.recipe.SinteringRecipe;
@@ -51,6 +52,24 @@ public final class RCRecipeTypes {
         RECIPE_SERIALIZERS.register("blueprint_crafting",
             () -> new RecipeSerializer<>(BlueprintCraftingRecipe.CODEC,
                 BlueprintCraftingRecipe.STREAM_CODEC));
+
+    /**
+     * A vessel built around a Blueprint, which decides what comes out of it (#294).
+     *
+     * <p>Its own type rather than a {@code blueprint_crafting} recipe per species, because a spawn egg
+     * needs one blueprint SET PER SPECIES and 29 recipes sharing one 3x3 arrangement collide: the
+     * bench takes the first whose sheet is reachable, so a player holding two sheets gets whichever
+     * iterated first. The sheet goes in the grid so the player names the species, and comes straight
+     * back out again - see {@link SpawnEggCraftingRecipe}.
+     */
+    public static final Supplier<RecipeType<SpawnEggCraftingRecipe>> SPAWN_EGG_CRAFTING =
+        RECIPE_TYPES.register("spawn_egg_crafting", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "spawn_egg_crafting")));
+
+    public static final Supplier<RecipeSerializer<SpawnEggCraftingRecipe>> SPAWN_EGG_CRAFTING_SERIALIZER =
+        RECIPE_SERIALIZERS.register("spawn_egg_crafting",
+            () -> new RecipeSerializer<>(SpawnEggCraftingRecipe.CODEC,
+                SpawnEggCraftingRecipe.STREAM_CODEC));
 
     /**
      * Fragments into a sheet (#95). A SPECIAL crafting recipe, not a type of its own: it has to be

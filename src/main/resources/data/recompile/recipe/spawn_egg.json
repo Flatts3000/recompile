@@ -1,0 +1,13 @@
+{
+  "type": "recompile:spawn_egg_crafting",
+  "key": {
+    "B": "recompile:blueprint",
+    "G": "recompile:glass_shards",
+    "R": "recompile:rendered_organics"
+  },
+  "pattern": [
+    " G ",
+    "GBG",
+    " R "
+  ]
+}
