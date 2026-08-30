@@ -2303,12 +2303,17 @@ prompt = "a broken-off shard of fossil amber shaped like an uneven teardrop, wid
 kind = "item"
 backend = "ai"
 size = 16
-# The husk (#231). It must read as the SAME OBJECT as amber, minus what was taken out - so it derives
-# from the amber art rather than being generated blind, the way tin_can_open derives from tin_can.
-# Generating each state from its own prompt makes them drift into two different stones.
-reference = "amber"
-prompt = "keep this exact amber gemstone unchanged - same shape, same size, same position, same warm honey colour - and change only two things: the insect trapped inside is GONE, leaving a small hollow void where it was, and the stone is duller and cloudier than before, its gloss faded. Plain transparent background, no scene"
-
+# The husk (#231). CRUSHED, not hollowed (owner, 2026-08-30): the Sequencer has to break the stone up
+# to get the DNA out, so what comes back is fragments rather than an intact amber with a cavity in it.
+#
+# THAT RULING ALSO REMOVED A `reference`, and the reason is worth keeping. It used to derive from the
+# amber art via images.edit, on the tin_can_open rule that two states of ONE object must not be
+# generated apart or they drift into two different objects. Crushed amber is not the same object in a
+# different state - it is that object destroyed - so there is no silhouette left to hold onto. The
+# derived form was also the half that would not generate: it returned blanks (3 of 5 discarded on the
+# first run, 5 of 5 on the second), because a prompt whose whole content is "the subject is gone" is
+# an instruction to erase, and erasing is what it did.
+prompt = "a small heap of crushed amber: a scatter of angular broken chips and coarse grit in dull greyed ochre and faded honey brown, the gloss gone out of it, piled into a low uneven mound with a ragged outline, clearly SHATTERED fragments rather than one whole stone, nothing trapped inside and no insect anywhere. Plain transparent background, no scene"
 [surface.turpentine]
 kind = "item"
 backend = "ai"
