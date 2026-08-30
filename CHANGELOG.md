@@ -1,5 +1,97 @@
 # Changelog
 
+## v0.15.0
+
+**Two mods that could not be started in this world now can, the plain gained a second frontier region,
+and there are spawn eggs for the first time.** v0.14.0 went after the vanilla items no ancient city
+could hand you. This one goes after the living things: a world with no animals in it, and two of the
+pack's biggest mods sitting on materials that never generate here.
+
+### Amber, and the only spawn eggs in the game
+
+- **Amber turns up in household waste with an insect in it**, about one pull in nine hundred, and the
+  insect is carrying the blood of whatever it last fed on. Hold a piece and it names the creature.
+- **The Sequencer reads it out.** A powered block with a screen: feed it a stamped piece and it hands
+  back an Idea Fragment naming that creature. A Teardown Workbench cannot do it, because what is in the
+  amber is not a part.
+- **Four fragments of the same creature make a Blueprint, and that sheet makes the egg.** Lay it in the
+  middle at the Scrap Crafting Table with Glass Shards around it and Rendered Organics beneath. It is
+  the one recipe in the game where a Blueprint goes into the grid rather than into your pocket, and the
+  sheet comes back out of it - it will make that egg again for as long as you can find glass.
+- **Nothing else in this world produces a spawn egg.** A plain with no mobs on it stays that way until
+  you go and find one in the rubbish.
+
+### Spent Amber, and the only resin there is
+
+- **The stone does not survive being read.** Breaking it up is how you reach what is inside, so what
+  comes out beside the fragment is a heap of dull chips.
+- **Turpentine puts back the part that left.** Amber is pine resin with the volatiles driven off over
+  millions of years, and turpentine is distilled from pine resin - it is that missing fraction rather
+  than a substitute for it. One heap of chips and one tin, at any bench, make a lump of fresh resin.
+- **Neither half does anything alone**, and that is the point. Vanilla's own resin recipes are circular:
+  a clump costs a resin block, and a creaking heart costs the resin it is the source of. This is the
+  only way into the family, and all nine resin items hang off it.
+
+### The radioactive dump, the second frontier region
+
+- **Powah was unstartable here.** Every non-circular route to its uraninite runs through an ore whose
+  biome modifiers gate on a tag this world deliberately ships no entry for. Rather than open that door
+  to every mod at once, the material is found, in a region we place ourselves.
+- **A landfill with drums in it**, at onset 1024 - double the demolition yard, so it is a real journey.
+  Mill tailings in open heaps, steel drums with a trefoil on the side, and the ordinary domestic
+  radioactive objects that genuinely do end up in refuse.
+- **The tailings are an impoundment, not a heap.** The first pass built 5 to 11 wide mounds and a block
+  census said the proportions were right; a screenshot said cupcakes with a candle on each, and the
+  screenshot was right. They are now one enormous engineered pile after Moab and Church Rock: radius 10
+  to 16, flat on top, with a pale turquoise decant pond and a barren stained ring.
+- **No radiation yet.** That is deferred to Mekanism; hostile spawns are on, the same set as the yard.
+
+### Applied Energistics 2 is playable
+
+- **The presses were half the answer and shipped as if they were all of it.** v0.14.0 put the four
+  Inscriber presses in the sewer sump, which gave you an Inscriber and nothing to put in it: every one
+  of AE2's 364 items traces back to certus quartz, and certus comes only from meteorites, which do not
+  fall here.
+- **Four routes now, none of them a find.** Silicon separates out of E-Scrap, certus out of the
+  demolition yard's granite, fluix likewise, and Sky Stone Shards ride the slag rubble stream. A
+  playthrough wants four to eight stacks each of certus and fluix, and only a machine produces at that
+  scale.
+- Separating silicon out of E-Scrap also decouples the tree: AE2 smelts silicon from certus dust, so
+  certus used to bottleneck everything rather than only the things that need a crystal.
+
+### Breeze Rods
+
+- **No breeze can spawn in this world.** A Breeze Rod drops only from a Breeze, a Breeze only from a
+  trial spawner in a trial chamber, and this world opts into three structures: nether fortress, bastion
+  remnant, and its own sewer.
+- **Four gunpowder press into a Propellant Briquette, and the Sintering Kiln fires it into a rod.**
+  Vanilla's one rod to four wind charges does the rest, so a wind charge costs one gunpowder.
+
+### Ender IO
+
+- **Grains of Infinity turn up in Mechanical Waste.**
+- **Its SAG Mill no longer grinds a blaze rod back into four powder.** This mod's chain runs the other
+  way - four powder press into a briquette and the kiln fires it into one rod - so that recipe alone
+  made the round trip break even, and with a vibrant alloy grinding ball it returned seven powder for
+  four. Blaze rods gate brewing here.
+
+### Fixes
+
+- **A frontier region's share of the world depended on its array position.** The picker sliced a bell
+  curve into equal-width buckets, so three regions came out 16/68/16 and four came out 7/43/43/7.
+  Appending a region rather than inserting it silently made it the rarest thing in the game, for a
+  reason nobody reading the preset could have guessed.
+- **The sorting page showed twenty-nine ambers.** Every species is its own loot entry, so JEI drew 29
+  identical orange slots and buried the twelve materials above them - while the number you actually
+  care about, how often amber turns up at all, was split 29 ways and never shown. One slot now, at the
+  real combined rate, cycling every species.
+- **Amber said "A trapped Turtle."** It is the insect that is trapped; the turtle is DNA.
+- **The Sequencer had two textures and no facing**, so its lens was on all four sides and its underside
+  was a copy of its lid. It has four faces now and turns to face you when placed.
+- **The radioactive dump's fog never rendered**, along with three other biomes' - 26.1 moved fog, sky
+  and ambient sound out of the biome's effects block, and a key left behind there parses fine and does
+  nothing. The two frontier regions look different at range now, which was the point of setting it.
+
 ## v0.14.0
 
 **The deep dark comes to the Nether, and two mods that could not be played here now can.** v0.13.0

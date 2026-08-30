@@ -508,17 +508,26 @@ Ender IO present** because it registers a payload the headless harness refuses (
 enderio:powered_spawner_soul may not be sent to the client`), which breaks every test using a mock
 player. Filter those before reading a red run as a regression.
 
-- **AE2's four Inscriber presses** are a pool on `chests/sump.json`, plus a lang override correcting
-  AE2's own tooltip. **This unblocks one of AE2's two gates and not both** (#276): 330 of its 364 items
-  have a recipe, and everything traces back to `certus_quartz_crystal`, whose only non-circular source
-  is a `quartz_cluster` - which drops only from budding blocks, which generate only inside a meteorite.
-  AE2's entire worldgen is `structure/meteorite.json` and no AE2 chest table carries certus. So the
-  presses give a player an Inscriber and nothing to put in it. AE2 is otherwise unstartable here: its tree hangs off Sky Stone, Sky Stone comes
-  from meteorites, and meteorites gate on `#minecraft:is_overworld` - which this mod ships **no entry
-  for, by owner ruling 2026-08-20**. Adding that tag would fix AE2 and every other mod keyed on it at
-  once, and that breadth is the objection: it admits anything gating worldgen on it, sight-unseen, into
-  a closed economy. Reopen only if a vanilla mechanic turns out to be silently not firing, or if enough
-  mods are blocked that per-mod handoffs stop scaling.
+- **AE2 is playable here, and it takes both halves to be so.** The **four Inscriber presses** are a
+  pool on `chests/sump.json` plus a lang override correcting AE2's own tooltip - that was #270, and it
+  cleared ONE of two gates while being reported as clearing both (#276). The second gate is the
+  materials: 330 of AE2's 364 items have a recipe and everything traces back to
+  `certus_quartz_crystal`, whose only non-circular source is a `quartz_cluster`, which drops only from
+  budding blocks, which generate only inside a meteorite. AE2's entire worldgen is
+  `structure/meteorite.json`, no AE2 chest table carries certus, and so the presses gave a player an
+  Inscriber and nothing to put in it.
+  **#277 closed it with four routes, none of them a find**: silicon separates out of E-Scrap, certus
+  out of the demolition yard's granite, fluix likewise, and Sky Stone Shards ride the slag rubble
+  stream. Manufacture rather than a drop because the owner puts a playthrough at 4 to 8 stacks each of
+  certus and fluix, and only a machine produces at that scale. *(This entry said "unstartable" for a
+  fortnight after the thing that started it had shipped - it was written for the #270 state and #277
+  never came back to it.)*
+  **No meteorites, and that ruling stands.** Meteorites gate on `#minecraft:is_overworld` and this mod
+  ships **no entry for it, by owner ruling 2026-08-20**. Adding the tag would fix AE2 and every other
+  mod keyed on it at once, and that breadth is the objection: it admits anything gating worldgen on it,
+  sight-unseen, into a closed economy. Reopen only if a vanilla mechanic turns out to be silently not
+  firing, or if enough mods are blocked that per-mod handoffs stop scaling. The sourcing routes are
+  what made that ruling affordable.
 - **Simple Magnets' four recipes** are overridden onto Magnet Scrap at that mod's own recipe ids.
 
 Three traps live here, all measured rather than reasoned about:
