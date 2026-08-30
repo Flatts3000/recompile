@@ -13,7 +13,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.Holder;
 import org.jspecify.annotations.Nullable;
@@ -210,8 +212,20 @@ public final class SortingData {
         return List.copyOf(species);
     }
 
-    /** One possible output and how likely it is (0..1). */
-    public record Weighted(ItemStack stack, float chance) {}
+    /**
+     * One possible output and how likely it is (0..1).
+     *
+     * <p>{@code variants} is normally just {@code [stack]}. It is longer only where
+     * {@link #visibleOutputs} has collapsed a run of entries that are the same object wearing
+     * different data - the 29 species of Amber - into a single slot for JEI to cycle, the way a tag
+     * input already cycles its accepted items. {@code stack} stays a single representative so every
+     * existing {@code .stack().is(...)} check reads the same as before.
+     */
+    public record Weighted(ItemStack stack, float chance, List<ItemStack> variants) {
+        public Weighted(ItemStack stack, float chance) {
+            this(stack, chance, List.of(stack));
+        }
+    }
 
     private SortingData() {
     }
@@ -284,6 +298,51 @@ public final class SortingData {
             if (!weighted.stack().is(RCTags.UNDISCOVERABLE)) {
                 out.add(weighted);
             }
+        }
+        return collapseStamped(out);
+    }
+
+    /**
+     * Merge entries that are the same ITEM differing only by which creature is stamped on them.
+     *
+     * <p><b>29 ambers is not 29 things to find.</b> Every species is its own loot entry, so a sorting
+     * page drew 29 identical orange slots that filled the category and buried the twelve materials
+     * above them. What the player is deciding from is one number - how often amber turns up at all -
+     * and that number was the one thing the page did not show, because it was split 29 ways.
+     *
+     * <p>So they collapse to one slot carrying the summed chance, with every species kept as a cycling
+     * variant. Nothing is hidden and no tooltip lies: the slot rotates through the real stamped stacks,
+     * each naming its own creature. Stripping the component instead would have been the smaller change
+     * and a false one - an Amber with no species reads "Clear, with nothing inside", and no amber the
+     * pull streams produce is empty.
+     *
+     * <p>Keyed on the component rather than on the item, so this is not a rule about Amber: anything
+     * stamped the same way collapses the same way the day it is added.
+     *
+     * <p>Presentation only. {@link #outputs} still reports every entry, which is what the reachability
+     * GameTests measure and what {@link #species} reads to build the Sequencer's list.
+     */
+    private static List<Weighted> collapseStamped(List<Weighted> entries) {
+        List<Weighted> out = new ArrayList<>();
+        Map<Item, Integer> firstSeen = new HashMap<>();
+        for (Weighted weighted : entries) {
+            if (weighted.stack().get(RCDataComponents.SPECIES.get()) == null) {
+                out.add(weighted);
+                continue;
+            }
+            Integer at = firstSeen.get(weighted.stack().getItem());
+            if (at == null) {
+                firstSeen.put(weighted.stack().getItem(), out.size());
+                List<ItemStack> variants = new ArrayList<>();
+                variants.add(weighted.stack());
+                out.add(new Weighted(weighted.stack(), weighted.chance(), variants));
+                continue;
+            }
+            Weighted merged = out.get(at);
+            // The list is the live one built above, so appending here grows that slot's cycle.
+            merged.variants().add(weighted.stack());
+            out.set(at, new Weighted(merged.stack(), merged.chance() + weighted.chance(),
+                merged.variants()));
         }
         return out;
     }

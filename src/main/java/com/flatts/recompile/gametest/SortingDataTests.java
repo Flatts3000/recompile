@@ -169,17 +169,76 @@ final class SortingDataTests {
                     problems.add(table + " contains no tagged treasure at all - either the tag is empty "
                         + "or the loot tables stopped dropping it, and this test then proves nothing");
                 }
+                // THE FILTER MUST REMOVE TAGGED TREASURE AND NOTHING ELSE. That used to be a count -
+                // shown.size() == all.size() - hidden - and it stopped being able to say it once
+                // visibleOutputs also COLLAPSED the 29 stamped ambers into one cycling slot. 33 fewer
+                // entries against 5 tagged items is now correct rather than a bug, and the count has
+                // no way to tell those apart.
+                //
+                // Comparing the set of ITEMS says the same thing and survives the merge, because a
+                // collapsed entry keeps every stack it absorbed as a variant. It is also strictly
+                // stronger than the loop it replaces: treasure hiding in a variant rather than in the
+                // representative stack would have walked straight past the old check.
+                java.util.Set<net.minecraft.world.item.Item> shownItems = new java.util.HashSet<>();
                 for (var weighted : shown) {
-                    if (weighted.stack().is(com.flatts.recompile.registry.RCTags.UNDISCOVERABLE)) {
-                        problems.add(table + " still shows " + weighted.stack().getItem());
+                    for (var stack : weighted.variants()) {
+                        shownItems.add(stack.getItem());
                     }
                 }
-                if (shown.size() != all.size() - hidden) {
-                    problems.add(table + " hid " + (all.size() - shown.size()) + " entries but only "
-                        + hidden + " are tagged - the filter is removing something else");
+                for (var weighted : all) {
+                    boolean treasure =
+                        weighted.stack().is(com.flatts.recompile.registry.RCTags.UNDISCOVERABLE);
+                    if (treasure && shownItems.contains(weighted.stack().getItem())) {
+                        problems.add(table + " still shows " + weighted.stack().getItem());
+                    }
+                    if (!treasure && !shownItems.contains(weighted.stack().getItem())) {
+                        problems.add(table + " dropped " + weighted.stack().getItem() + ", which is "
+                            + "not tagged treasure - the filter is removing something else");
+                    }
                 }
             }
             helper.assertTrue(problems.isEmpty(), "collectible spoiler check: " + problems);
+            helper.succeed();
+        });
+
+        // ONE AMBER SLOT, NOT TWENTY-NINE. Every species is its own loot entry, so a sorting page drew
+        // 29 identical orange slots that filled the category and buried the twelve materials above
+        // them - and the one number the player is actually deciding from, how often amber turns up at
+        // all, was the one thing the page could not show, because it was split 29 ways.
+        //
+        // Both halves are asserted because either alone passes on a bug. Collapsing to one slot while
+        // dropping the summed chance would advertise amber as 29 times rarer than it is; keeping the
+        // chance while losing the variants would leave a single slot claiming to be a cow every time.
+        RCGameTests.test("a_sorting_page_shows_one_amber_not_every_species", 20, helper -> {
+            var amber = com.flatts.recompile.registry.RCItems.AMBER.get();
+            for (String table : List.of(SortingData.HOUSEHOLD, SortingData.BAG)) {
+                var all = SortingData.outputs(table).stream()
+                    .filter(w -> w.stack().is(amber)).toList();
+                var shown = SortingData.visibleOutputs(table).stream()
+                    .filter(w -> w.stack().is(amber)).toList();
+
+                helper.assertTrue(all.size() > 5,
+                    table + " has only " + all.size() + " amber entries, so this test would pass "
+                        + "without the collapse doing anything");
+                helper.assertTrue(shown.size() == 1,
+                    table + " shows " + shown.size() + " amber slots rather than one - the stamped "
+                        + "species are supposed to merge into a single cycling entry");
+
+                var slot = shown.getFirst();
+                helper.assertTrue(slot.variants().size() == all.size(),
+                    "the one amber slot cycles " + slot.variants().size() + " stacks but " + table
+                        + " can stamp " + all.size() + " species - a species that is findable and "
+                        + "never shown is exactly what a player would go looking for");
+
+                float summed = 0.0f;
+                for (var weighted : all) {
+                    summed += weighted.chance();
+                }
+                helper.assertTrue(Math.abs(slot.chance() - summed) < 1.0e-5f,
+                    "the collapsed slot advertises " + slot.chance() + " but the entries total "
+                        + summed + ". Showing one species' odds on a slot that stands for all of them "
+                        + "understates amber by the number of creatures in the game");
+            }
             helper.succeed();
         });
 

@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
       "model": "recompile:block/sequencer"
+    },
+    "facing=east": {
+      "model": "recompile:block/sequencer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "recompile:block/sequencer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "recompile:block/sequencer",
+      "y": 270
     }
   }
 }

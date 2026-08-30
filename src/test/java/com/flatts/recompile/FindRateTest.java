@@ -300,4 +300,25 @@ class FindRateTest {
             "junk should come out of better than one pull in four - this file is about rare things "
                 + "being rare, and it would be easy to fix that by making everything rare");
     }
+
+    @Test
+    @DisplayName("a roach costs about one pull per mound, which is what the config claims it does")
+    void roachesAreAboutOnePerMound() {
+        // THE COMMENT ON THIS NUMBER PROMISED A TEST THAT DID NOT EXIST. RCConfig says "RoachRateTest
+        // holds that arithmetic so a future retune cannot drift from its own stated intent the way
+        // this one did" - and no RoachRateTest was ever written, in this or any other file. The drift
+        // it was meant to prevent is exactly the drift that produced it: the rate was set as "one per
+        // 128 blocks", which is two and a half roaches per mound, because nobody converted the unit.
+        //
+        // It belongs here rather than in a file of its own, because the conversion needs
+        // pullsPerMound() and that is what this class already computes from MoundFeature.
+        double perMound = pullsPerMound() / RCConfig.ROACH_CHANCE_DENOMINATOR.getDefault();
+        assertTrue(perMound > 0.4 && perMound < 2.0,
+            "the roach rate is meant to work out at about one per mound (owner, 2026-08-11), and this "
+                + "denominator gives " + String.format("%.2f", perMound) + ". Both edges of that band "
+                + "are a real failure: many per mound is an encounter every time you quarry a third "
+                + "of one, each costing a pull, which is the 320 this was retuned away from; far "
+                + "below one and roaches stop being the earliest renewable food, which is the job "
+                + "they are actually doing");
+    }
 }

@@ -87,7 +87,10 @@ public class SalvageCategory implements IRecipeCategory<SalvageRecipe> {
             SortingData.Weighted out = outputs.get(i);
             int x = startX + (i % COLS) * SLOT;
             int y = PAD + (i / COLS) * SLOT;
-            IRecipeSlotBuilder slot = builder.addOutputSlot(x, y).addItemStack(out.stack());
+            // addItemStacks for the same reason the input slot above uses it: a collapsed
+            // entry (the 29 stamped ambers) is one slot that cycles its variants. An ordinary
+            // output is a one-element list and draws exactly as before.
+            IRecipeSlotBuilder slot = builder.addOutputSlot(x, y).addItemStacks(out.variants());
             if (showChance && out.chance() < 1.0f) {
                 float chance = out.chance();
                 slot.addRichTooltipCallback((view, tooltip) ->

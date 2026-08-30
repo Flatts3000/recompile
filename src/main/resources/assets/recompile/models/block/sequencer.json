@@ -1,8 +1,9 @@
 {
-  "parent": "minecraft:block/cube_bottom_top",
+  "parent": "minecraft:block/orientable_with_bottom",
   "textures": {
     "top": "recompile:block/sequencer_top",
-    "bottom": "recompile:block/sequencer_top",
-    "side": "recompile:block/sequencer"
+    "bottom": "recompile:block/sequencer_bottom",
+    "front": "recompile:block/sequencer_front",
+    "side": "recompile:block/sequencer_side"
   }
 }
