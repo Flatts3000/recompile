@@ -311,10 +311,15 @@ public final class SortingData {
      * and that number was the one thing the page did not show, because it was split 29 ways.
      *
      * <p>So they collapse to one slot carrying the summed chance, with every species kept as a cycling
-     * variant. Nothing is hidden and no tooltip lies: the slot rotates through the real stamped stacks,
-     * each naming its own creature. Stripping the component instead would have been the smaller change
-     * and a false one - an Amber with no species reads "Clear, with nothing inside", and no amber the
-     * pull streams produce is empty.
+     * variant. Nothing is hidden: the slot rotates through the real stamped stacks, each naming its own
+     * creature. Stripping the component instead would have been the smaller change and a false one - an
+     * Amber with no species reads "Clear, with nothing inside", and no amber the pull streams produce
+     * is empty.
+     *
+     * <p><b>The summed chance needs a label that says so</b>, which is the one way this can still
+     * mislead and did. One tooltip callback serves all 29 cycling stacks, so an aggregate rate sat
+     * under a single named species claiming to be that species' odds. {@code SalvageCategory} switches
+     * to {@code jei.recompile.chance_any} when a slot has more than one variant.
      *
      * <p>Keyed on the component rather than on the item, so this is not a rule about Amber: anything
      * stamped the same way collapses the same way the day it is added.

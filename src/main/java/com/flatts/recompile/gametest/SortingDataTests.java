@@ -175,10 +175,16 @@ final class SortingDataTests {
                 // entries against 5 tagged items is now correct rather than a bug, and the count has
                 // no way to tell those apart.
                 //
-                // Comparing the set of ITEMS says the same thing and survives the merge, because a
-                // collapsed entry keeps every stack it absorbed as a variant. It is also strictly
-                // stronger than the loop it replaces: treasure hiding in a variant rather than in the
-                // representative stack would have walked straight past the old check.
+                // Comparing the set of ITEMS survives the merge, because a collapsed entry keeps
+                // every stack it absorbed as a variant, and it catches something the old loop could
+                // not: treasure hiding in a variant rather than in the representative stack.
+                //
+                // It is NOT a replacement for the count, though, and this comment claimed it was.
+                // A set cannot see duplicates - drop one of two separate `string` entries in
+                // different pools and the item set is identical, the test stays green, and JEI
+                // quietly understates that item. So the count identity is kept, restated to allow
+                // for the merge: every collapsed slot accounts for exactly variants() - 1 of the
+                // entries that disappeared, and nothing else may.
                 java.util.Set<net.minecraft.world.item.Item> shownItems = new java.util.HashSet<>();
                 for (var weighted : shown) {
                     for (var stack : weighted.variants()) {
@@ -195,6 +201,17 @@ final class SortingDataTests {
                         problems.add(table + " dropped " + weighted.stack().getItem() + ", which is "
                             + "not tagged treasure - the filter is removing something else");
                     }
+                }
+
+                long merged = 0;
+                for (var weighted : shown) {
+                    merged += weighted.variants().size() - 1;
+                }
+                if (shown.size() != all.size() - hidden - merged) {
+                    problems.add(table + " has " + shown.size() + " visible entries, but " + all.size()
+                        + " outputs minus " + hidden + " tagged minus " + merged + " merged into a "
+                        + "cycling slot is " + (all.size() - hidden - merged) + ". Something is being "
+                        + "removed that is neither treasure nor a collapsed duplicate");
                 }
             }
             helper.assertTrue(problems.isEmpty(), "collectible spoiler check: " + problems);
