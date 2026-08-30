@@ -191,8 +191,10 @@ public final class RCConfig {
                 "you quarry a third of one, each costing a pull. Retuned to 800 on playtest feedback",
                 "(owner, 2026-08-11), which is about one roach per mound.",
                 "",
-                "RoachRateTest holds that arithmetic so a future retune cannot drift from its own",
-                "stated intent the way this one did.")
+                "FindRateTest.roachesAreAboutOnePerMound holds that arithmetic so a future retune",
+                "cannot drift from its own stated intent the way this one did. That sentence named a",
+                "RoachRateTest for a fortnight and no such file was ever written, so the arithmetic",
+                "this comment claimed was pinned was not pinned by anything.")
             .defineInRange("roachChanceDenominator", 800, 2, 10_000);
         PIGEON_FORAGE_ENABLED = builder
             .comment("Whether pigeons peck at nearby garbage piles and occasionally pull something out.")

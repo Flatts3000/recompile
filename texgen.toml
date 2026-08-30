@@ -2291,18 +2291,29 @@ backend = "ai"
 size = 16
 # The whole point is the inclusion: a piece of clear amber reads as an orange pebble and says nothing.
 # The dark speck has to survive 16px, so it wants to be one clear silhouette rather than fine legs.
-prompt = "a rounded translucent golden-orange amber gemstone with a single small dark insect clearly trapped inside it, glossy resin, warm honey colour, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+#
+# TWO THINGS THE FIRST VERSION GOT WRONG, both visible at game size rather than on the review page.
+# It asked for a "rounded gemstone", which came back symmetrical and read as an orange coin - real
+# amber is a lump, and the uneven silhouette is most of what identifies it. And it asked for a "small"
+# insect, which at 16px is three or four pixels and mushes into the body; the inclusion has to be a
+# bold dark mass taking up a real fraction of the stone or there is nothing to see.
+prompt = "a broken-off shard of fossil amber shaped like an uneven teardrop, wider and heavier at the bottom and tapering to a blunt point at the top left, with a chipped straight edge down one side - an off-centre asymmetric silhouette, definitely NOT a circle, NOT a disc and NOT a symmetrical cut gem. Glowing warm honey-orange translucent resin, pale yellow highlight down the left edge, deep red-brown shadow at the bottom right. Trapped inside and clearly visible: one big near-black beetle silhouette filling about a third of the shard, a fat oval body with two wings angled off it. Plain transparent background, no scene"
 
 [surface.spent_amber]
 kind = "item"
 backend = "ai"
 size = 16
-# The husk (#231). It must read as the SAME OBJECT as amber, minus what was taken out - so it derives
-# from the amber art rather than being generated blind, the way tin_can_open derives from tin_can.
-# Generating each state from its own prompt makes them drift into two different stones.
-reference = "amber"
-prompt = "keep this exact amber gemstone unchanged - same shape, same size, same position, same warm honey colour - and change only two things: the insect trapped inside is GONE, leaving a small hollow void where it was, and the stone is duller and cloudier than before, its gloss faded. Plain transparent background, no scene"
-
+# The husk (#231). CRUSHED, not hollowed (owner, 2026-08-30): the Sequencer has to break the stone up
+# to get the DNA out, so what comes back is fragments rather than an intact amber with a cavity in it.
+#
+# THAT RULING ALSO REMOVED A `reference`, and the reason is worth keeping. It used to derive from the
+# amber art via images.edit, on the tin_can_open rule that two states of ONE object must not be
+# generated apart or they drift into two different objects. Crushed amber is not the same object in a
+# different state - it is that object destroyed - so there is no silhouette left to hold onto. The
+# derived form was also the half that would not generate: it returned blanks (3 of 5 discarded on the
+# first run, 5 of 5 on the second), because a prompt whose whole content is "the subject is gone" is
+# an instruction to erase, and erasing is what it did.
+prompt = "a small heap of crushed amber: a scatter of angular broken chips and coarse grit in dull greyed ochre and faded honey brown, the gloss gone out of it, piled into a low uneven mound with a ragged outline, clearly SHATTERED fragments rather than one whole stone, nothing trapped inside and no insect anywhere. Plain transparent background, no scene"
 [surface.turpentine]
 kind = "item"
 backend = "ai"
@@ -2334,18 +2345,20 @@ style = "cage_face"
 palette = ["#1e1827", "#182c39", "#2a4455", "#406278"]
 
 [surface.sequencer]
-kind = "block"
+kind = "block_multiface"
 backend = "ai"
 size = 16
+faces = ["front", "side", "top", "bottom"]
 # A machine that READS rather than crushes: a lens and a lit readout, not a grinder. It has to sit
 # beside the Burner Generator without looking like it, so: same scrap-steel housing, different face.
-prompt = "the side of a small scrap-built laboratory machine, dark steel panel with a round glass lens in the centre lit pale amber from within, a narrow readout strip of tiny green lights, riveted edges, flat front-facing 16x16 Minecraft block texture, seamless, no perspective"
-
-[surface.sequencer_top]
-kind = "block"
-backend = "ai"
-size = 16
-reference = "sequencer"
-# Derived from the side so the two read as one object. Generating each face from its own prompt is
-# how a machine ends up looking like two different machines bolted together.
-prompt = "the top of a small scrap-built laboratory machine, dark steel plate with a recessed amber-lit slot and a few rivets, flat top-down 16x16 Minecraft block texture, seamless, no perspective"
+#
+# FOUR FACES, because it shipped with two and read as a crate. The block had no FACING at all, so the
+# lens sat on all four sides and the bottom was a second copy of the top - a machine you cannot orient
+# reads as scenery rather than as something you feed. The shared material language ("dark scrap steel,
+# riveted edges") is what keeps four separately generated faces looking like one object; that is the
+# job `reference` used to do when the top was derived from the side.
+[surface.sequencer.prompt]
+front = "a full-bleed Minecraft block face of a scrap-built laboratory reader: dark riveted steel panel with one large round glass lens centred on it lit pale amber from within, and a narrow horizontal readout strip of tiny green lights below the lens, bold and simple, high contrast"
+side = "a full-bleed Minecraft block face of a plain dark riveted steel machine panel: flat scrap steel with a bolt at each corner, one thick cable conduit running vertically down one side, faint rust streaks, deliberately plainer than the front, with NO lens and NO lights"
+top = "a full-bleed top-down Minecraft block face of a dark scrap steel machine lid: a recessed rectangular slot in the centre glowing warm amber from inside, riveted plate all around it, a few grime smudges, bold and simple"
+bottom = "a full-bleed Minecraft block face of a plain heavy scrap steel base plate: flat dark grey metal, one large bolt in each corner, oil stains and grime, deliberately plain and uncluttered"

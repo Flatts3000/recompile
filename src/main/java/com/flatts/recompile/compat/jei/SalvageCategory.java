@@ -87,11 +87,24 @@ public class SalvageCategory implements IRecipeCategory<SalvageRecipe> {
             SortingData.Weighted out = outputs.get(i);
             int x = startX + (i % COLS) * SLOT;
             int y = PAD + (i / COLS) * SLOT;
-            IRecipeSlotBuilder slot = builder.addOutputSlot(x, y).addItemStack(out.stack());
+            // addItemStacks for the same reason the input slot above uses it: a collapsed
+            // entry (the 29 stamped ambers) is one slot that cycles its variants. An ordinary
+            // output is a one-element list and draws exactly as before.
+            IRecipeSlotBuilder slot = builder.addOutputSlot(x, y).addItemStacks(out.variants());
             if (showChance && out.chance() < 1.0f) {
                 float chance = out.chance();
+                // A COLLAPSED SLOT NEEDS A DIFFERENT LABEL, not a different number. Its chance is the
+                // sum across every stamped species, which is the figure worth showing - how often
+                // amber turns up at all is the decision, and splitting it 29 ways is what the collapse
+                // exists to undo. But one callback serves all 29 cycling stacks, so "0.1% chance" sat
+                // under "Trapped Ghast DNA" claiming to be that ghast's odds when it is amber's.
+                // Naming what the number covers is the honest fix; per-species odds would be right
+                // and useless.
+                String key = out.variants().size() > 1
+                    ? "jei.recompile.chance_any"
+                    : "jei.recompile.chance";
                 slot.addRichTooltipCallback((view, tooltip) ->
-                    tooltip.add(Component.translatable("jei.recompile.chance",
+                    tooltip.add(Component.translatable(key,
                         String.format("%.1f", chance * 100.0f))));
             }
         }
