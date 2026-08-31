@@ -1,57 +1,50 @@
 package com.flatts.recompile.content.block;
 
-import com.flatts.recompile.Recompile;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.storage.loot.LootTable;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.FallingBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * A pile of flattened boxes (#309): surface litter that comes apart into cardboard.
+ * A pile of flattened boxes (#309): surface litter that breaks into cardboard.
  *
  * <p><b>Cardboard is found as a PILE rather than as a pull-stream entry</b> (owner, 2026-08-31).
- * The first version of this made {@code recompile:cardboard} a weighted entry in
- * {@code household_pulls}, which works and is invisible: you would occasionally get cardboard out of
- * a garbage block and never see any in the world. A dump full of boxes should look like a dump full
- * of boxes. So it is its own block, it generates on mound surfaces the way the trash bag does, and
- * taking one apart is where the material comes from.
+ * The first version made {@code recompile:cardboard} a weighted entry in {@code household_pulls},
+ * which works and is invisible: you would occasionally get cardboard out of a garbage block and
+ * never see any in a dump that is supposed to be full of boxes. A dump full of boxes should look
+ * like one.
  *
- * <p><b>That also puts the cost somewhere honest.</b> A weighted entry makes every other entry in
- * the stream rarer, which is a change to seven unrelated drop rates paid for by one new material.
- * A pile takes mound CELLS instead, so what it competes with is the number of garbage blocks in a
- * mound - visible in the world, and the thing {@code FindRateTest} already measures every household
- * rate against.
+ * <p><b>And you just break it</b> (owner, 2026-08-31: "I think it should drop cardboard when broken
+ * by hand", and separately that it should be neither a sortable nor a teardown). Two richer designs
+ * were built and rejected in turn, and the reasons are worth keeping because both looked right:
  *
- * <p><b>Bare hands, like the bag and unlike the bale.</b> Flattened cardboard is the one thing in a
- * dump that genuinely needs no tool, and the whole point of this family is that it asks for nothing
- * (see {@code RCBlocks.cardboardProps}). A tool gate here would be the one step that undoes it.
+ * <ul>
+ *   <li><b>Not a {@link SortableBlock}.</b> It shipped as one for an afternoon, and Jade named the
+ *       problem out loud: the tooltip read <i>"Sort by hand"</i>. Sorting is the verb for an opaque
+ *       block whose contents are a surprise you reveal one pull at a time. A stack of flattened
+ *       boxes is not opaque and holds no surprise - you can see exactly what it is - so making the
+ *       player right-click it three times is ceremony charging for nothing.
+ *   <li><b>Not a teardown either.</b> A {@code recompile:teardown} recipe is the mod's signature
+ *       mechanic and the obvious home for "take a thing apart", and it would have put cardboard
+ *       behind the Recompile Workbench. The Workbench is cheap - three scrap metal and four rebar -
+ *       but cheap is not free, and this family exists to be the one a player can use before they
+ *       have built anything at all.
+ * </ul>
  *
- * <p>2 to 3 pulls, so a pile is worth roughly one Cardboard Block, which is the rate that makes
- * "clear the boxes off a mound, build a wall" a thing you can actually do on the first day.
+ * <p>What is left is the plainest thing in the mod, which is the point: walk up, break it, get
+ * cardboard. No tool, no station, no state. That is also why this class is nearly empty - it is a
+ * {@link FallingBlock} and nothing else, and everything interesting about it is in its loot table
+ * and in {@code MoundFeature}.
  *
- * @see SortableBlock
+ * <p><b>Its drop is cardboard, not itself</b>, which makes the block unobtainable in survival - the
+ * Bulky Waste arrangement exactly, and registered with an item form for the same reason: so a
+ * builder can place one in creative.
+ *
+ * <p>Obeys gravity like the rest of the garbage (P0.3), so mounds still slump when quarried around
+ * it.
  */
-public class CardboardPileBlock extends SortableBlock {
-
-    private static final int MIN_PULLS = 2;
-    private static final int MAX_PULLS = 3;
-
-    public static final IntegerProperty SORTED = IntegerProperty.create("sorted", 0, MAX_PULLS - 1);
-
-    /**
-     * Its own stream, not the bag's.
-     *
-     * <p>A pile of boxes is not a bag of household refuse, and pointing it at {@code bag_pulls}
-     * would have been the cheap way to skip writing a table. It would also mean the block that
-     * exists to be a cardboard source hands back cardboard no more often than anything else does.
-     */
-    public static final ResourceKey<LootTable> CARDBOARD_PULLS = ResourceKey.create(
-        Registries.LOOT_TABLE,
-        Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "gameplay/cardboard_pulls"));
+public class CardboardPileBlock extends FallingBlock {
 
     public static final MapCodec<CardboardPileBlock> CODEC = simpleCodec(CardboardPileBlock::new);
 
@@ -64,29 +57,9 @@ public class CardboardPileBlock extends SortableBlock {
         return CODEC;
     }
 
+    /** The colour of the dust it trails while falling - its map colour, as Bulky Waste does. */
     @Override
-    protected IntegerProperty sortedProperty() {
-        return SORTED;
-    }
-
-    @Override
-    protected ResourceKey<LootTable> pullTable() {
-        return CARDBOARD_PULLS;
-    }
-
-    @Override
-    protected int minPulls() {
-        return MIN_PULLS;
-    }
-
-    @Override
-    protected int maxPulls() {
-        return MAX_PULLS;
-    }
-
-    @Override
-    @Nullable
-    protected Item requiredTool() {
-        return null;
+    public int getDustColor(BlockState state, BlockGetter level, BlockPos pos) {
+        return state.getMapColor(level, pos).col;
     }
 }

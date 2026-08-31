@@ -82,28 +82,45 @@ final class BuildingBlockTests {
                 "four cardboard in a 2x2 does not make a Cardboard Block at an ordinary bench, so the "
                     + "one building family that is meant to need nothing now needs something");
 
-            // AND IT COMES OUT OF THE GROUND. A recipe whose ingredient cannot be reached is gated
-            // just as hard as one behind a blueprint, and the ingredient here comes from a block:
-            // pick apart a Cardboard Pile. Both halves are data - the pile's pull table, and the
-            // worldgen chance that puts piles on mounds at all - so both can be moved without
-            // touching a line of Java. This asserts the table; FindRateTest asserts the chance.
-            boolean fromThePile = com.flatts.recompile.compat.SortingData
-                .outputs(com.flatts.recompile.compat.SortingData.pathFor(
-                    com.flatts.recompile.content.block.CardboardPileBlock.CARDBOARD_PULLS))
-                .stream().anyMatch(w -> w.stack().is(RCItems.CARDBOARD.get()));
-            helper.assertTrue(fromThePile,
-                "the Cardboard Pile's own pull stream yields no cardboard, so the block that exists "
-                    + "to be the source of the material is not one");
-
-            // AND THE VIEWERS CAN SEE IT. sortingSources() is derived from the registry, so a new
-            // sortable is covered the day it is registered - but a pile whose pull table failed to
-            // resolve would drop out of that list silently, and clicking cardboard in JEI would show
-            // an empty panel, which reads as a broken item rather than a missing page.
-            boolean inJei = com.flatts.recompile.compat.SortingData.sortingSources().stream()
-                .anyMatch(src -> src.block() == RCBlocks.CARDBOARD_PILE.get());
-            helper.assertTrue(inJei,
-                "the Cardboard Pile is not a sorting source, so JEI has nothing to show for cardboard");
             helper.succeed();
+        });
+
+        // BREAKING A PILE BY HAND IS THE WHOLE SOURCE OF CARDBOARD, so it is worth a test of its own
+        // rather than a clause in the one above.
+        //
+        // The block was a SortableBlock for an afternoon and a teardown recipe for less than that.
+        // Both are gone, and what replaced them has no code behind it at all: a plain FallingBlock
+        // and a loot table. That is a good design and a quiet one - the loot table could be pointed
+        // at the pile itself, or at junk, or lose its set_count, and nothing else in this repo would
+        // notice. RegistryCompletenessTests only asks that a loot table EXISTS.
+        //
+        // destroyBlock with dropBlock=true, because GameTestHelper.destroyBlock passes false and
+        // runs no loot table at all - a version of this test using the helper asserts nothing.
+        RCGameTests.test("a_cardboard_pile_breaks_into_cardboard", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.CARDBOARD_PILE.get());
+            helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
+            helper.assertBlockPresent(Blocks.AIR, pos);
+            // COUNTED BY HAND, because the drop is a 3-5 range and GameTestHelper only offers an
+            // exact-count assertion. At least three, since a pile is meant to be worth about one
+            // Cardboard Block (four) and a single sheet would make the piles litter you walk past.
+            helper.succeedWhen(() -> {
+                net.minecraft.world.phys.Vec3 at = net.minecraft.world.phys.Vec3
+                    .atCenterOf(helper.absolutePos(pos));
+                int cardboard = 0;
+                for (var entity : helper.getLevel().getEntitiesOfClass(
+                        net.minecraft.world.entity.item.ItemEntity.class,
+                        new net.minecraft.world.phys.AABB(at, at).inflate(3.0))) {
+                    if (entity.getItem().is(RCItems.CARDBOARD.get())) {
+                        cardboard += entity.getItem().getCount();
+                    }
+                }
+                helper.assertTrue(cardboard >= 3,
+                    "breaking a Cardboard Pile by hand dropped " + cardboard + " cardboard. It is "
+                        + "meant to be worth about one Cardboard Block, which is four - and this is "
+                        + "the only source of the material in the game, so a table pointing anywhere "
+                        + "else leaves the whole building family unreachable");
+            });
         });
 
         // AND WORLDGEN ACTUALLY PLACES THEM, which is the half no amount of recipe checking reaches.
