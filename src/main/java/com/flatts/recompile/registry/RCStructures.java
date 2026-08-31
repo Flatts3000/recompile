@@ -4,6 +4,8 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.sewer.SewerPieces;
 import com.flatts.recompile.content.worldgen.tower.CoolingTowerPiece;
 import com.flatts.recompile.content.worldgen.tower.CoolingTowerStructure;
+import com.flatts.recompile.content.worldgen.tower.SmokestackPiece;
+import com.flatts.recompile.content.worldgen.tower.SmokestackStructure;
 import com.flatts.recompile.content.worldgen.sewer.SewerStructure;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -45,6 +47,19 @@ public final class RCStructures {
     public static final Supplier<StructurePieceType> COOLING_TOWER_SHELL =
         PIECE_TYPES.register("cooling_tower_shell",
             () -> (StructurePieceType.ContextlessType) CoolingTowerPiece::new);
+
+    /**
+     * Brick smokestacks (#308). Named by {@code data/recompile/worldgen/structure/smokestack.json}.
+     *
+     * <p>The demolition yard's skyline, and the counterpart to the cooling tower: shorter, in brick,
+     * and several to a region rather than one every few thousand blocks.
+     */
+    public static final Supplier<StructureType<SmokestackStructure>> SMOKESTACK =
+        STRUCTURE_TYPES.register("smokestack", () -> () -> SmokestackStructure.CODEC);
+
+    public static final Supplier<StructurePieceType> SMOKESTACK_PIECE =
+        PIECE_TYPES.register("smokestack",
+            () -> (StructurePieceType.ContextlessType) SmokestackPiece::new);
 
     /** The sewer itself. Named by {@code data/recompile/worldgen/structure/sewer.json}. */
     public static final Supplier<StructureType<SewerStructure>> SEWER =
