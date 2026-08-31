@@ -2,6 +2,8 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.sewer.SewerPieces;
+import com.flatts.recompile.content.worldgen.tower.CoolingTowerPiece;
+import com.flatts.recompile.content.worldgen.tower.CoolingTowerStructure;
 import com.flatts.recompile.content.worldgen.sewer.SewerStructure;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -30,6 +32,19 @@ public final class RCStructures {
 
     public static final DeferredRegister<StructurePieceType> PIECE_TYPES =
         DeferredRegister.create(Registries.STRUCTURE_PIECE, Recompile.MOD_ID);
+
+    /**
+     * The cooling tower (#307). Named by {@code data/recompile/worldgen/structure/cooling_tower.json}.
+     *
+     * <p>A surface landmark rather than a dungeon: one piece, no loot, and its whole job is being
+     * visible from the next region.
+     */
+    public static final Supplier<StructureType<CoolingTowerStructure>> COOLING_TOWER =
+        STRUCTURE_TYPES.register("cooling_tower", () -> () -> CoolingTowerStructure.CODEC);
+
+    public static final Supplier<StructurePieceType> COOLING_TOWER_SHELL =
+        PIECE_TYPES.register("cooling_tower_shell",
+            () -> (StructurePieceType.ContextlessType) CoolingTowerPiece::new);
 
     /** The sewer itself. Named by {@code data/recompile/worldgen/structure/sewer.json}. */
     public static final Supplier<StructureType<SewerStructure>> SEWER =

@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 30716,
+    "spacing": 40,
+    "separation": 20
+  },
+  "structures": [
+    {
+      "structure": "recompile:cooling_tower",
+      "weight": 1
+    }
+  ]
+}
