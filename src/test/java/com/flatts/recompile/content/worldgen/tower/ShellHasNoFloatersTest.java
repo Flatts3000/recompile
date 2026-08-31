@@ -3,8 +3,7 @@ package com.flatts.recompile.content.worldgen.tower;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayDeque;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,81 +21,86 @@ import org.junit.jupiter.api.Test;
  * column can fall inside the band at one layer and outside it at the next. That is geometry, not
  * weathering, and no test of the erosion rule can see it.
  *
- * <p>So this builds the shell the way {@code postProcess} does and asks the only question that matters:
- * <b>is any block touching nothing?</b>
+ * <p><b>And "touching nothing" was still the wrong question.</b> The first fix refused to place a block
+ * whose six neighbours were all empty, which lets a detached PAIR through - two blocks holding each
+ * other, floating clear of the tower - and a test asking whether anything touches nothing cannot see
+ * them either. The owner could, from the ground.
+ *
+ * <p>The property is connectivity: <b>every block must trace back to the bottom course.</b> That is what
+ * the piece enforces with a flood fill, and what this measures.
  */
 class ShellHasNoFloatersTest {
 
-    private static long key(int x, int y, int z) {
-        return ((long) (x + 512) << 40) | ((long) (y + 512) << 20) | (z + 512);
-    }
-
-    /** The shell of one tower, built through the piece's own occupancy rule. */
-    private static Set<Long> shell(int height, double baseRadius) {
-        Set<Long> blocks = new HashSet<>();
-        // The tear is disabled - it is a deliberate hole, and its edges are held by the rest of the
-        // ring. Everything else is the piece's own predicate, so this measures the real shape.
-        for (int t = 0; t < height; t++) {
-            int span = (int) Math.ceil(baseRadius) + 1;
-            for (int dx = -span; dx <= span; dx++) {
-                for (int dz = -span; dz <= span; dz++) {
-                    if (!CoolingTowerPiece.occupied(t, height, baseRadius, dx, dz, 0, 0, 0,
-                            0, -1, -1, -1)) {
-                        continue;
-                    }
-                    // The piece refuses to place a block whose six neighbours are all empty, so the
-                    // set under test has to be filtered the same way - otherwise this measures a shape
-                    // that is never written.
-                    if (touches(t, height, baseRadius, dx, dz)) {
-                        blocks.add(key(dx, t, dz));
-                    }
-                }
-            }
-        }
-        return blocks;
-    }
-
-    private static boolean touches(int t, int height, double baseRadius, int dx, int dz) {
-        int[][] around = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
-        for (int[] step : around) {
-            if (CoolingTowerPiece.occupied(t + step[1], height, baseRadius, dx + step[0], dz + step[2],
-                    0, 0, 0, 0, -1, -1, -1)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Test
-    @DisplayName("no block of the shell is touching nothing")
-    void nothingIsIsolated() {
+    @DisplayName("the flood fill removes the detached blocks without eating the tower")
+    void theFillIsLoadBearingAndNotOverzealous() {
         int[][] sizes = {{62, 15}, {68, 16}, {76, 18}};
         for (int[] size : sizes) {
             int height = size[0];
             double baseRadius = size[1];
-            Set<Long> blocks = shell(height, baseRadius);
-            assertTrue(blocks.size() > 2000, "the shell should be substantial; found " + blocks.size());
+            int span = (int) Math.ceil(baseRadius) + 1;
+            int width = 2 * span + 1;
 
-            int isolated = 0;
+            boolean[] solid = new boolean[width * width * height];
+            int total = 0;
             for (int t = 0; t < height; t++) {
-                int span = (int) Math.ceil(baseRadius) + 1;
                 for (int dx = -span; dx <= span; dx++) {
                     for (int dz = -span; dz <= span; dz++) {
-                        if (!blocks.contains(key(dx, t, dz))) {
-                            continue;
-                        }
-                        boolean touching =
-                            blocks.contains(key(dx + 1, t, dz)) || blocks.contains(key(dx - 1, t, dz))
-                            || blocks.contains(key(dx, t, dz + 1)) || blocks.contains(key(dx, t, dz - 1))
-                            || blocks.contains(key(dx, t + 1, dz)) || blocks.contains(key(dx, t - 1, dz));
-                        if (!touching) {
-                            isolated++;
+                        if (CoolingTowerPiece.occupied(t, height, baseRadius, dx, dz, 0, 0, 0,
+                                0, -1, -1, -1)) {
+                            solid[CoolingTowerPiece.index(dx + span, t, dz + span, width)] = true;
+                            total++;
                         }
                     }
                 }
             }
-            assertEquals(0, isolated,
-                "tower " + height + "x" + baseRadius + " left " + isolated + " blocks touching nothing");
+            assertTrue(total > 2000, "the shell should be substantial; found " + total);
+
+            boolean[] rooted = new boolean[solid.length];
+            ArrayDeque<int[]> queue = new ArrayDeque<>();
+            for (int dx = -span; dx <= span; dx++) {
+                for (int dz = -span; dz <= span; dz++) {
+                    int at = CoolingTowerPiece.index(dx + span, 0, dz + span, width);
+                    if (solid[at]) {
+                        rooted[at] = true;
+                        queue.add(new int[] {dx + span, 0, dz + span});
+                    }
+                }
+            }
+            int[][] steps = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
+            int reached = queue.size();
+            while (!queue.isEmpty()) {
+                int[] cell = queue.poll();
+                for (int[] step : steps) {
+                    int nx = cell[0] + step[0];
+                    int ny = cell[1] + step[1];
+                    int nz = cell[2] + step[2];
+                    if (nx < 0 || nz < 0 || nx >= width || nz >= width || ny < 0 || ny >= height) {
+                        continue;
+                    }
+                    int at = CoolingTowerPiece.index(nx, ny, nz, width);
+                    if (solid[at] && !rooted[at]) {
+                        rooted[at] = true;
+                        reached++;
+                        queue.add(new int[] {nx, ny, nz});
+                    }
+                }
+            }
+
+            int detached = total - reached;
+
+            // THE FILL IS LOAD-BEARING. The raw geometry really does leave blocks that cannot reach the
+            // ground - 29 of 4391 on the 62 tall tower when this was written - because the wall leans
+            // and the radius sweeps past a column for a single layer. They come in clumps, which is why
+            // the previous test, asking only whether a block touched anything, found two of them and
+            // the owner found the rest by looking at the sky.
+            assertTrue(detached > 0, "the raw geometry no longer detaches anything at " + height + "x"
+                + baseRadius + ", so the flood fill may be dead code - check before deleting it");
+
+            // AND IT MUST NOT EAT THE TOWER. A fill seeded or stepped wrongly would quietly discard
+            // most of the shell, and the structure would still generate, just much less of it.
+            assertTrue(reached > total * 0.99, "the fill kept only " + reached + " of " + total
+                + " blocks, which is not a weathered rim, it is a broken tower");
         }
     }
 }

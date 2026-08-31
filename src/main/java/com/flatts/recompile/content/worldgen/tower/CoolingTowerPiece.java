@@ -111,30 +111,76 @@ public class CoolingTowerPiece extends StructurePiece {
         int tearBottom = (int) (height * (0.22 + shape.nextDouble() * 0.12));
         int tearTop = tearBottom + 6 + shape.nextInt(6);
 
+        // BUILD THE WHOLE SHELL, THEN KEEP ONLY WHAT IS CONNECTED TO THE GROUND.
+        //
+        // Asking whether a block has a neighbour is not enough, and that was the previous attempt: two
+        // blocks holding each other pass it while floating clear of everything, and a test that asks
+        // "is anything touching nothing" cannot see them either. What is actually wanted is that every
+        // block traces back to the bottom course.
+        //
+        // Support from below alone would be wrong in the other direction: the tear is a hole in a wall,
+        // and the wall above it hangs off the ring to either side rather than off anything underneath.
+        // So this is a flood fill through faces, seeded from the ground layer.
+        int span = (int) Math.ceil(baseRadius) + 1;
+        int width = 2 * span + 1;
+        boolean[] solid = new boolean[width * width * height];
         for (int t = 0; t < height; t++) {
-            int y = baseY + t;
-            double r = radiusAt(t, height, baseRadius);
-            double slope = Math.abs(radiusAt(t + 1, height, baseRadius) - r);
-            double tolerance = 0.5 + slope / 2.0;
-            int span = (int) Math.ceil(baseRadius) + 1;
-
             for (int dx = -span; dx <= span; dx++) {
                 for (int dz = -span; dz <= span; dz++) {
-                    double d = Math.sqrt(dx * dx + dz * dz);
-                    if (Math.abs(d - r) > tolerance) {
-                        continue;
+                    if (occupied(t, height, baseRadius, dx, dz, cx, cz, baseY,
+                            tearAngle, tearSpan, tearBottom, tearTop)) {
+                        solid[index(dx + span, t, dz + span, width)] = true;
                     }
-                    if (!standsHere(t, height, dx, dz, tearAngle, tearSpan, tearBottom, tearTop,
-                            cx + dx, y, cz + dz)) {
-                        continue;
+                }
+            }
+        }
+
+        boolean[] rooted = new boolean[solid.length];
+        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+        for (int dx = -span; dx <= span; dx++) {
+            for (int dz = -span; dz <= span; dz++) {
+                int at = index(dx + span, 0, dz + span, width);
+                if (solid[at]) {
+                    rooted[at] = true;
+                    queue.add(new int[] {dx + span, 0, dz + span});
+                }
+            }
+        }
+        int[][] steps = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
+        while (!queue.isEmpty()) {
+            int[] cell = queue.poll();
+            for (int[] step : steps) {
+                int nx = cell[0] + step[0];
+                int ny = cell[1] + step[1];
+                int nz = cell[2] + step[2];
+                if (nx < 0 || nz < 0 || nx >= width || nz >= width || ny < 0 || ny >= height) {
+                    continue;
+                }
+                int at = index(nx, ny, nz, width);
+                if (solid[at] && !rooted[at]) {
+                    rooted[at] = true;
+                    queue.add(new int[] {nx, ny, nz});
+                }
+            }
+        }
+
+        for (int t = 0; t < height; t++) {
+            int y = baseY + t;
+            for (int dx = -span; dx <= span; dx++) {
+                for (int dz = -span; dz <= span; dz++) {
+                    if (rooted[index(dx + span, t, dz + span, width)]) {
+                        put(level, limit, cx + dx, y, cz + dz, shell);
                     }
-                    put(level, limit, cx + dx, y, cz + dz, shell);
                 }
             }
         }
 
         clearInterior(level, limit, cx, cz, baseY, height, baseRadius);
         silt(level, limit, cx, cz, baseY, baseRadius);
+    }
+
+    static int index(int x, int t, int z, int width) {
+        return (t * width + x) * width + z;
     }
 
     /** Whether the shell stands at this column and layer, band test and all. */
@@ -150,19 +196,6 @@ public class CoolingTowerPiece extends StructurePiece {
         }
         return standsHere(t, height, dx, dz, tearAngle, tearSpan, tearBottom, tearTop,
             cx + dx, baseY + t, cz + dz);
-    }
-
-    /** Whether any of the six face neighbours is also shell. */
-    private static boolean touchesSomething(int t, int height, double baseRadius, int dx, int dz,
-            int cx, int cz, int baseY, double tearAngle, double tearSpan, int tearBottom, int tearTop) {
-        int[][] around = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
-        for (int[] step : around) {
-            if (occupied(t + step[1], height, baseRadius, dx + step[0], dz + step[2], cx, cz, baseY,
-                    tearAngle, tearSpan, tearBottom, tearTop)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
