@@ -79,6 +79,12 @@ class ShellHasNoFloatersTest {
 
             // AND IT MUST NOT EAT THE TOWER. A fill seeded or stepped wrongly would quietly discard
             // most of the shell, and the structure would still generate, just much less of it.
+            //
+            // THE MARGIN HERE IS THIN AND THAT IS DELIBERATE. A sweep of about 3,500 towers across
+            // every height, tear angle, span and band the generator can roll put the worst kept
+            // fraction at 0.99305 - three tenths of a point above this line. So a change that discards
+            // even one percent more of the shell trips it, which is the point; if you are here because
+            // it went red, look at what the geometry now does before reaching for the threshold.
             assertTrue(reached > total * 0.99, "the fill kept only " + reached + " of " + total
                 + " blocks, which is not a weathered rim, it is a broken tower");
         }
