@@ -145,7 +145,10 @@ public class CoolingTowerPiece extends StructurePiece {
         // break and leave them burning; over the minutes a mob actually lives near a player that never
         // arrives, and it keeps an unbreakable item out of the player's hands. One component makes it
         // permanent if that turns out to be wrong.
-        Spawners.place(level, limit, new BlockPos(cx, baseY + 1, cz), "minecraft:parched", true);
+        //
+        // The basin is open, so the default spawn range of 4 is right here - unlike the chimney's.
+        Spawners.place(level, limit, new BlockPos(cx, baseY + 1, cz), "minecraft:parched", 4,
+            "recompile:equipment/sun_cap");
 
     }
 

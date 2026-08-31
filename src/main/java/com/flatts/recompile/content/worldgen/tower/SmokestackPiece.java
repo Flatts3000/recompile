@@ -179,8 +179,12 @@ public class SmokestackPiece extends StructurePiece {
             // NO HAT, unlike the tower's. A husk is the zombie that does not burn: Husk.isSunSensitive
             // returns false, so a leather cap on one would be cargo-culted from the other structure and
             // would do nothing. It is also sealed in the dark regardless.
+            //
+            // SPAWN RANGE 1, NOT THE DEFAULT 4. The flue is about two and a half blocks across, and at
+            // range 4 most spawns that succeed land in the open outside the brick - so an untouched
+            // chimney would drip husks onto the yard, which is the exact opposite of sealed.
             Spawners.place(level, limit, new BlockPos(this.footX, baseY + 1, this.footZ),
-                "minecraft:husk", false);
+                "minecraft:husk", 1, null);
         }
     }
 
