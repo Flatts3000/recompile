@@ -125,6 +125,12 @@ backend = "ai"
 size = 16
 prompt = "a tangle of frayed tan cloth and fiber scrap with loose threads, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+[surface.cardboard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a folded flat sheet of corrugated cardboard, plain warm kraft brown with a visible fluted edge and one soft crease, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.e_scrap]
 kind = "item"
 backend = "ai"
@@ -307,6 +313,12 @@ kind = "block"
 backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face of corrugated galvanized metal roofing, regular vertical wavy ridges evenly spaced, weathered zinc-grey with rust streaks and dents, iconic shanty roofing"
+
+[surface.cardboard_block]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face of stacked flattened cardboard seen edge-on, warm kraft brown, horizontal layers with the fluting visible as a fine ribbed band along each layer, dry and slightly scuffed, no printing or logos"
 
 [surface.plastic_panel]
 kind = "block"

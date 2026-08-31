@@ -1258,6 +1258,17 @@ public final class RCBlocks {
     public static final DeferredBlock<WallBlock> CORRUGATED_METAL_WALL = BLOCKS.registerBlock(
         "corrugated_metal_wall", WallBlock::new, RCBlocks::metalBuildProps);
 
+    public static final DeferredBlock<Block> CARDBOARD_BLOCK = BLOCKS.registerBlock(
+        "cardboard_block", Block::new, RCBlocks::cardboardProps);
+    public static final DeferredBlock<SlabBlock> CARDBOARD_SLAB = BLOCKS.registerBlock(
+        "cardboard_slab", SlabBlock::new, RCBlocks::cardboardProps);
+    public static final DeferredBlock<StairBlock> CARDBOARD_STAIRS = BLOCKS.registerBlock(
+        "cardboard_stairs",
+        props -> new StairBlock(CARDBOARD_BLOCK.get().defaultBlockState(), props),
+        RCBlocks::cardboardProps);
+    public static final DeferredBlock<WallBlock> CARDBOARD_WALL = BLOCKS.registerBlock(
+        "cardboard_wall", WallBlock::new, RCBlocks::cardboardProps);
+
     public static final DeferredBlock<Block> PLASTIC_PANEL = BLOCKS.registerBlock(
         "plastic_panel", Block::new, RCBlocks::plasticBuildProps);
     public static final DeferredBlock<SlabBlock> PLASTIC_PANEL_SLAB = BLOCKS.registerBlock(
@@ -1310,6 +1321,32 @@ public final class RCBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
             .strength(1.0F)
             .sound(SoundType.WOOL);
+    }
+
+    /**
+     * Flattened cardboard - the softest thing you can build a wall out of, and the point of it.
+     *
+     * <p><b>The weakest of the five families on purpose (#309).</b> This world gates the ladder, the
+     * machines and the frontier, so a new player has nothing to simply make a shape out of; cardboard
+     * is abundant from the first mound and asks for nothing. Being unremarkable is the whole feature,
+     * so it gets no tool gate, no {@code requiresCorrectToolForDrops} and the lowest strength of the
+     * five - under a second by hand.
+     *
+     * <p><b>It does not fail in rain, and that is a decision rather than an omission</b> (owner,
+     * 2026-08-30). The pitch had cardboard collapsing in the weather, which was the interesting half.
+     * It was cut because the mod's public copy promises that placed blocks never erode, and a wall
+     * that dissolves overnight reads as the world eating a base however carefully it is framed.
+     *
+     * <p>{@code SoundType.WOOD} over {@code WOOL}: cardboard is dry pulp and it cracks. Wool is the
+     * plastic panel's, and two soft families sharing a sound would make them harder to tell apart by
+     * ear than they already are by eye.
+     */
+    private static BlockBehaviour.Properties cardboardProps() {
+        return BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_ORANGE)
+            .strength(0.6F)
+            .sound(SoundType.WOOD)
+            .ignitedByLava();
     }
 
     /** Vanilla-torch physics: no collision, instant break, full light, destroyed when pushed. */

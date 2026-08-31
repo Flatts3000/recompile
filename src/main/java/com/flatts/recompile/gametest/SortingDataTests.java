@@ -111,10 +111,20 @@ final class SortingDataTests {
             helper.assertTrue(Math.abs(sum - 1.0f) < 0.01f,
                 "one pool's chances should sum to ~1, got " + sum);
 
+            // JUNK IS THE COMMONEST THING IN THE STREAM, asserted as a comparison rather than as a
+            // number. This was `chance() > 0.3f`, which is a share rather than a property: adding any
+            // common material to the pool moves every other share down, so the threshold failed the
+            // first time one was added (cardboard, #309) even though junk was still twice the size of
+            // anything else. A ranking survives a retune; a percentage does not, and #36 is a whole
+            // pass of retunes waiting to happen.
             SortingData.Weighted junk = out.stream()
                 .filter(w -> w.stack().is(RCItems.JUNK.get())).findFirst().orElse(null);
-            helper.assertTrue(junk != null && junk.chance() > 0.3f,
-                "junk (weight 200) should dominate the household pull");
+            helper.assertTrue(junk != null, "junk should be in the household pull at all");
+            SortingData.Weighted biggest = out.stream()
+                .max(java.util.Comparator.comparing(SortingData.Weighted::chance)).orElse(null);
+            helper.assertTrue(biggest != null && biggest.stack().is(RCItems.JUNK.get()),
+                "junk should be the commonest thing in the household pull; "
+                    + (biggest == null ? "nothing" : biggest.stack().getItem().toString()) + " is");
             SortingData.Weighted tin = out.stream()
                 .filter(w -> w.stack().is(RCItems.TIN_CAN.get())).findFirst().orElse(null);
             helper.assertTrue(tin != null,

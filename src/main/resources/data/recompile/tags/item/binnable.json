@@ -8,6 +8,7 @@
     "recompile:fiber_scrap",
     "recompile:e_scrap",
     "recompile:junk",
+    "recompile:cardboard",
     "#recompile:stone_shards",
     "#recompile:nether_shards",
     "recompile:fused_circuitry",

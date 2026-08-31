@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "recompile:block/cardboard_slab"
+    },
+    "type=double": {
+      "model": "recompile:block/cardboard_block"
+    },
+    "type=top": {
+      "model": "recompile:block/cardboard_slab_top"
+    }
+  }
+}

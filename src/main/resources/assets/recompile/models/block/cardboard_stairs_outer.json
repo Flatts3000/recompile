@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "recompile:block/cardboard_block",
+    "side": "recompile:block/cardboard_block",
+    "top": "recompile:block/cardboard_block"
+  }
+}
