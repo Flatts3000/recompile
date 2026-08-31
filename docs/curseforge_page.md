@@ -38,9 +38,28 @@ recovered masterworks and a shelf of found objects. See
 
 ---
 
+---
+
+## Images
+
+**The description carries images now, and it did not before.** Eighteen screenshots sat in the
+gallery tab while the description was an unbroken wall of text - which is the half of a CurseForge
+page a judge or a browsing player actually reads. The gallery is a tab you have to click.
+
+They are served from this repo rather than from CurseForge's own CDN, because a gallery upload's URL
+is only knowable after the upload and cannot be written down here in advance:
+
+    https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/<file>
+
+The directory name has a space in it, so the URL needs `%20`. **An image added to the description
+must be committed and pushed before the link resolves** - an unpushed file renders as a broken image
+on a live page.
+
 <!-- PASTE MARKER - everything below this line goes in the CurseForge Description field, as-is -->
 
 # Recompile
+
+![The starting biome. Coarse dirt under mounds of garbage, horizon to horizon.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/01-garbage-world.jpg)
 
 **Something lived here before the landfill.** The ground is coarse dirt under mounds of garbage.
 There is no ore, no trees and no water anywhere, and the only things left of the world that came
@@ -56,6 +75,8 @@ The garbage world is a preset you select at world creation.
 
 ## What comes back out
 
+![Bulky Waste opened with a Prybar: a washing machine, a printer, a filing cabinet.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/06-bulky-waste-finds.png)
+
 Bulky Waste is the buried find. Pry one open with a Prybar and you get something intact rather than a
 material: a Dirty Mattress, a Washing Machine, a Filing Cabinet, a Printer, a Broken Hydroponics Bay,
 or about one time in ten something out of a rarer pool.
@@ -70,7 +91,11 @@ or about one time in ten something out of a rarer pool.
 
 None of these appear in JEI's salvage categories. Finding one is meant to be a surprise.
 
+![Recovered paintings over Display Pedestals holding found objects.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/02-museum.png)
+
 ## Picking through
+
+![Scrap Bins bound to a material each, with barrels for the overflow.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/05-scrap-bins-and-barrels.png)
 
 Right-click a Block of Garbage, a bag, or Bulky Waste to pull items out of it. Sorting by hand
 crumbles the block after a few pulls. A Sorting Tarp removes the crumbling, and later machines sort
@@ -101,6 +126,8 @@ the teardown tree without a mod release.
 
 ## Machines
 
+![The machine tier, built from components stacked on a core.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/03-machine-wall.png)
+
 Multiblocks are built by placing a core and stacking components on it. They form in place. No
 machine GUIs and no BlockEntity for the structure.
 
@@ -117,6 +144,7 @@ machine GUIs and no BlockEntity for the structure.
 | Separator | Divides a mixed feed into several materials plus a byproduct. Spent Abrasive into diamond, slag into concrete powder, circuitry into quartz. |
 | Pulverizer | Reduces something to a finer form. E-Scrap to circuit powder for gold, phosphor to glowstone, slag to fertilizer. |
 | Slag Furnace | Vitrifies slag into obsidian, one lump to a block. The only obsidian in this world. Runs on fuel, not power. |
+| Sequencer | Reads a piece of amber for the creature inside it and hands back an Idea Fragment toward that spawn egg, plus the emptied amber. The only machine here that changes nothing about the material it processes. Runs on power. |
 | Sintering Kiln | Fires a pressed powder until the grains fuse. The only machine that puts a material back together rather than taking it apart. Four blaze powder press into a briquette; the kiln turns it into a blaze rod, and that is a brewing stand. |
 
 Three of those - Trommel, Separator, Pulverizer - have **no GUI and no inventory anything can reach
@@ -128,6 +156,8 @@ The Scrap Network is a cluster: Scrap Bins each bound to one material, plus barr
 joined by placing them touching each other.
 
 ## Reclamation and erosion
+
+![Ground healed back to grass, with the dump still standing behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/07-machines-on-reclaimed-grass.png)
 
 Grass does not spread on this world, and dirt, podzol, mud, and moss revert to coarse dirt at the
 frontier. The reclamation ladder determines what survives:
@@ -152,6 +182,10 @@ Erosion rules:
 
 Brick tunnels running with leachate, the first place in this world that was built rather than dumped.
 
+![A sewer run: leachate down the middle, dry brick either side, silt in the corners.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/14-sewer-corridor.png)
+
+![The sump. Standing leachate, no lamp, and a drowned spawner on the walkway.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/15-sewer-sump.png)
+
 - The way in is a **manhole**: a square of pale concrete set flush in the ground with a rusted plate
   in the middle. The plate comes up with a Prybar and nothing else.
 - Corridors, junctions and stairwells branching from one chamber and running downhill, with a leachate
@@ -166,6 +200,31 @@ Brick tunnels running with leachate, the first place in this world that was buil
   have.
 - An **echo shard** in a crate settled in the sump silt, one per sewer, and the only one anywhere.
 - **Leachate can drown you.** It does no damage on contact and still leaves you hungry.
+
+## The radioactive dump
+
+![Tailings impoundments with their decant ponds, drums clustered at the toe](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/17-radioactive-dump.png)
+
+The second frontier region, out past the demolition yard at twice the distance. Somebody buried the
+things nobody would take.
+
+- **Mill tailings in open impoundments**, one big engineered pile every few chunks, flat on top with a
+  pale turquoise decant pond cut into it and a barren stained ring around the toe. They take a
+  sledgehammer, any tier.
+- **Waste drums**, yellow with a trefoil on the side, clustered at the foot of each pile. A Prybar
+  opens one, the same way it opens Bulky Waste.
+- **Stained ground cannot be healed.** Grass will not spread onto it and the Grass Spreader will not
+  take it, so a patch you find stained stays stained.
+- **Nothing here regrows.** The sprawl regrows because you live in it; a frontier does not, because
+  you leave. There are other dumps.
+- **The household objects that were quietly radioactive the whole time** turn up in the drums: a
+  radium dial clock, a smoke detector, thoriated welding rods, and uranium glass, which is a
+  collectible rather than a material and goes on a pedestal.
+- **No radiation yet.** Hostile spawns are on in the meantime, the same set as the yard.
+- **Powah, if you have it.** Its whole energy tier hangs off uraninite, which comes from an ore that
+  cannot generate in this world, so the mod could not be started here at all. The tailings carry it.
+
+![Mill tailings, waste drums and uranium glass on stained ground, with the four finds behind](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/18-radioactive-museum.png)
 
 ## The compacted depths
 
@@ -203,6 +262,12 @@ The overworld is a dump you clear. The Nether is a dump you mine.
   emeralds. Weakness can be brewed or thrown at you by a witch, which spawns out here at the same
   rarity; the golden apple is the part that costs, since gold is ground-up circuit boards blasted in a
   Cupola and the apple wants an oak.
+- **Spawn eggs, out of amber.** Nothing breeds in the starting biome and there is nothing to buy an
+  egg from. Amber turns up in the pull streams already stamped with the creature caught in it, so
+  sorting a pile by what is inside it is the mechanic. The Sequencer reads one; four fragments of the
+  same species make that species' Blueprint, and the Scrap Crafting Table turns the sheet into the egg
+  and hands the sheet back. The amber comes out spent rather than consumed, and spent amber plus
+  turpentine is the only way into the resin family - vanilla's own resin recipes all need resin first.
 - **Netherite** - the scrap is in the depths, and a Worn Forging Die found down there teaches the
   smithing pattern vanilla will only sell you out of a bastion chest.
 - **Guidebook** - in-game, via Modonomicon. Multiblock entries have 3D pages that project the build
@@ -226,8 +291,8 @@ Alpha, in active development.
 - **Mound regrowth needs a new world.** Quarried mounds grow back, but the memory of what a mound
   was is written into the ground when the world generates, so a save made before this update has
   none and its mounds stay finite.
-- **Two overworld regions.** The distance-banded region system is in and the demolition yard is its
-  first frontier region; the scrapyard and e-waste regions are not.
+- **Two of the planned overworld regions.** The distance-banded region system is in, with the
+  demolition yard at 512 and the radioactive dump at 1024; the scrapyard and e-waste regions are not.
 - **The compacted depths need a new world.** A dimension's generator is written into a save when the
   world is made, so an existing world keeps whatever Nether it already had. Ancient Sculk arrived after
   the depths did and follows the same rule, so a world made before this update will not have seams in
