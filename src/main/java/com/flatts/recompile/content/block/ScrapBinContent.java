@@ -26,6 +26,11 @@ public enum ScrapBinContent implements StringRepresentable {
     FIBER_SCRAP("fiber_scrap", 0xB8A57E),
     E_SCRAP("e_scrap", 0x3E7A4E),
     JUNK("junk", 0x7A6E5C),
+    // Cardboard (#309). Its item art is far brighter than the other base materials, so the
+    // usual "lift the item mean" derivation blew out to white; this is the item hue held at
+    // the same lightness band as its siblings instead. It has to read apart from FIBER_SCRAP
+    // above all - both are tans - and it does so on saturation, being the orange one.
+    CARDBOARD("cardboard", 0xC08A4E),
     // The demolition yard's shards, one content each. They are tinted to read apart at 16px by
     // design (see texgen.toml), so collapsing them to a single stone look would throw away a
     // distinction the art deliberately makes - granite bins look like granite. Colours are the

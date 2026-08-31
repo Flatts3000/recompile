@@ -125,6 +125,12 @@ backend = "ai"
 size = 16
 prompt = "a tangle of frayed tan cloth and fiber scrap with loose threads, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+[surface.cardboard]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a folded flat sheet of corrugated cardboard, plain warm kraft brown with a visible fluted edge and one soft crease, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.e_scrap]
 kind = "item"
 backend = "ai"
@@ -307,6 +313,25 @@ kind = "block"
 backend = "ai"
 size = 16
 prompt = "a full-bleed Minecraft block face of corrugated galvanized metal roofing, regular vertical wavy ridges evenly spaced, weathered zinc-grey with rust streaks and dents, iconic shanty roofing"
+
+[surface.cardboard_block]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face of a dense pressed cardboard panel, uniform warm kraft brown board with a fine flecked recycled-pulp speckle all over, one shallow horizontal seam near the middle and squared-off compressed edges, matte and manufactured, no plank grain, no printing"
+
+# The world block cardboard comes from. Two faces: looking DOWN at a heap you see box tops
+# and open flaps; from the SIDE you see the stacked flattened edges. Deliberately loose and
+# untidy, because the crafted cardboard_block above is the tidy one and the pair has to read
+# as raw material next to finished material.
+[surface.cardboard_pile]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["top", "side"]
+[surface.cardboard_pile.prompt]
+top = "a full-bleed top-down Minecraft block face of a heap of collapsed cardboard boxes, overlapping kraft-brown flaps at odd angles with dark gaps between them, torn edges and packing tape stripes, untidy discarded pile"
+side = "a full-bleed Minecraft block face of the side of a heap of flattened cardboard boxes, uneven stacked layers of kraft brown board of differing thickness, edges sticking out at slight angles, one crushed corner and a strip of tape, scruffy"
 
 [surface.plastic_panel]
 kind = "block"

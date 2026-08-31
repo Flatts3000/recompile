@@ -111,10 +111,25 @@ final class SortingDataTests {
             helper.assertTrue(Math.abs(sum - 1.0f) < 0.01f,
                 "one pool's chances should sum to ~1, got " + sum);
 
+            // JUNK IS THE COMMONEST THING IN THE STREAM, asserted as a comparison rather than as a
+            // number.
+            //
+            // THE HISTORY MATTERS BECAUSE IT NEARLY MISLEADS. This was `chance() > 0.3f`, and it went
+            // red during #309 when cardboard was briefly a weighted entry here. Cardboard ended up
+            // somewhere else entirely - it is a block you break now - so household_pulls is back to
+            // what it was and the old threshold would pass again. The change is kept anyway, on its
+            // own merits rather than on that near miss: junk sits at 200/646 = 0.3096, which is three
+            // percent above a floor of 0.3, so ANY common material added to this pool trips it while
+            // junk is still twice the size of everything else. A share is not a property. A ranking
+            // survives a retune and #36 is a whole pass of retunes waiting to happen.
             SortingData.Weighted junk = out.stream()
                 .filter(w -> w.stack().is(RCItems.JUNK.get())).findFirst().orElse(null);
-            helper.assertTrue(junk != null && junk.chance() > 0.3f,
-                "junk (weight 200) should dominate the household pull");
+            helper.assertTrue(junk != null, "junk should be in the household pull at all");
+            SortingData.Weighted biggest = out.stream()
+                .max(java.util.Comparator.comparing(SortingData.Weighted::chance)).orElse(null);
+            helper.assertTrue(biggest != null && biggest.stack().is(RCItems.JUNK.get()),
+                "junk should be the commonest thing in the household pull; "
+                    + (biggest == null ? "nothing" : biggest.stack().getItem().toString()) + " is");
             SortingData.Weighted tin = out.stream()
                 .filter(w -> w.stack().is(RCItems.TIN_CAN.get())).findFirst().orElse(null);
             helper.assertTrue(tin != null,

@@ -73,9 +73,29 @@ public final class RCItems {
     public static final DeferredItem<Item> E_SCRAP = ITEMS.registerItem("e_scrap", Item::new);
     public static final DeferredItem<Item> JUNK = ITEMS.registerItem("junk", Item::new);
 
-    /** The seven base materials in canonical order (creative tab + docs use this). */
+    /**
+     * Cardboard: the paper fibre, kept separate from {@link #FIBER_SCRAP}, which is the cloth one.
+     *
+     * <p><b>Its own material rather than a derivative</b> (#309). Deriving it from fiber scrap would
+     * make the two harder to tell apart than the shared compost route already does, and cardboard is
+     * the single commonest thing in household waste - it should come out of the mound, not out of
+     * something else that came out of the mound.
+     *
+     * <p><b>Found, not crafted, like all seven of its siblings.</b> An earlier draft of this comment
+     * claimed the opposite - that building materials stay craftable - which is contradicted by every
+     * other base material in the game: junk, scrap metal, rebar, plastic scrap, glass shards, fiber
+     * scrap, organic muck and e-scrap are all in {@code #recompile:found_only}. Cardboard is too, and
+     * the source is {@link com.flatts.recompile.content.block.CardboardPileBlock}. What P2.11's rule
+     * actually permits is the BLOCK family being craftable from the material, which it is.
+     *
+     * <p>That the paper form ({@code minecraft:paper}) is in the same tag is consistent rather than
+     * a coincidence: a sheet of writing paper is a product, a flattened box is stock.
+     */
+    public static final DeferredItem<Item> CARDBOARD = ITEMS.registerItem("cardboard", Item::new);
+
+    /** The eight base materials in canonical order (creative tab + docs use this). */
     public static final List<DeferredItem<Item>> BASE_MATERIALS = List.of(
-        SCRAP_METAL, PLASTIC_SCRAP, GLASS_SHARDS, ORGANIC_MUCK, FIBER_SCRAP, E_SCRAP, JUNK);
+        SCRAP_METAL, PLASTIC_SCRAP, GLASS_SHARDS, ORGANIC_MUCK, FIBER_SCRAP, E_SCRAP, JUNK, CARDBOARD);
 
     // ---------------- Demolition yard: stone shards (frontier) ----------------
     // Sifted out of Rubble (one per vanilla stone type), assembled back into their stone block at the
@@ -695,6 +715,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
     public static final DeferredItem<BlockItem> COMPACTED_BALE =
         ITEMS.registerSimpleBlockItem("compacted_bale", RCBlocks.COMPACTED_BALE);
+    public static final DeferredItem<BlockItem> CARDBOARD_PILE =
+        ITEMS.registerSimpleBlockItem("cardboard_pile", RCBlocks.CARDBOARD_PILE);
     /**
      * Bulky Waste (P1.11). Registered so creative can place it; it is unobtainable in
      * survival, because breaking the block yields the <em>find</em> rather than itself,
@@ -890,7 +912,7 @@ public final class RCItems {
 
     /** The garbage-block family in creative-tab order. */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(
-        GARBAGE_BLOCK, TRASH_BAG, COMPACTED_BALE, BULKY_WASTE);
+        GARBAGE_BLOCK, TRASH_BAG, CARDBOARD_PILE, COMPACTED_BALE, BULKY_WASTE);
 
     // ---------------- Building blocks (P1.12): the deliberate shelter tier ----------------
     // Refined from scrap into blocks you would choose to build a home from. Full kit per
@@ -927,6 +949,15 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("plastic_panel_stairs", RCBlocks.PLASTIC_PANEL_STAIRS);
     public static final DeferredItem<BlockItem> PLASTIC_PANEL_WALL =
         ITEMS.registerSimpleBlockItem("plastic_panel_wall", RCBlocks.PLASTIC_PANEL_WALL);
+    public static final DeferredItem<BlockItem> CARDBOARD_BLOCK =
+        ITEMS.registerSimpleBlockItem("cardboard_block", RCBlocks.CARDBOARD_BLOCK);
+    public static final DeferredItem<BlockItem> CARDBOARD_SLAB =
+        ITEMS.registerSimpleBlockItem("cardboard_slab", RCBlocks.CARDBOARD_SLAB);
+    public static final DeferredItem<BlockItem> CARDBOARD_STAIRS =
+        ITEMS.registerSimpleBlockItem("cardboard_stairs", RCBlocks.CARDBOARD_STAIRS);
+    public static final DeferredItem<BlockItem> CARDBOARD_WALL =
+        ITEMS.registerSimpleBlockItem("cardboard_wall", RCBlocks.CARDBOARD_WALL);
+
     public static final DeferredItem<BlockItem> CULLET_GLASS =
         ITEMS.registerSimpleBlockItem("cullet_glass", RCBlocks.CULLET_GLASS);
     public static final DeferredItem<BlockItem> CULLET_GLASS_PANE =
@@ -938,6 +969,7 @@ public final class RCItems {
         SCRAP_PLATING, SCRAP_PLATING_SLAB, SCRAP_PLATING_STAIRS, SCRAP_PLATING_WALL,
         CORRUGATED_METAL, CORRUGATED_METAL_SLAB, CORRUGATED_METAL_STAIRS, CORRUGATED_METAL_WALL,
         PLASTIC_PANEL, PLASTIC_PANEL_SLAB, PLASTIC_PANEL_STAIRS, PLASTIC_PANEL_WALL,
+        CARDBOARD_BLOCK, CARDBOARD_SLAB, CARDBOARD_STAIRS, CARDBOARD_WALL,
         CULLET_GLASS, CULLET_GLASS_PANE);
 
     private RCItems() {

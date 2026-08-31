@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "recompile:block/cardboard_block"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###"
+  ],
+  "key": {
+    "#": "recompile:cardboard_block"
+  },
+  "result": {
+    "id": "recompile:cardboard_slab",
+    "count": 6
+  }
+}

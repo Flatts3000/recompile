@@ -141,11 +141,16 @@ class FindRateTest {
                 int column = (int) Math.round(height * (1.0 - dist / radius));
                 boolean core = dist < radius * 0.4;
                 for (int dy = 0; dy <= column; dy++) {
-                    double notABag = 1.0 - (dy == column ? MoundFeature.SURFACE_BAG_CHANCE : 0.0);
+                    // SURFACE_NON_GARBAGE, not SURFACE_BAG_CHANCE: the surface holds bags AND
+                    // cardboard piles now, and reading only the bag share would count every
+                    // cardboard cell as garbage and report every household find as commoner
+                    // than it is. MoundFeature owns the sum so this cannot drift again.
+                    double notLitter = 1.0
+                        - (dy == column ? MoundFeature.SURFACE_NON_GARBAGE : 0.0);
                     garbage += (core && dy <= column * 0.5)
-                        ? notABag * (1.0 - (MoundFeature.CORE_BULKY_WASTE_CHANCE
+                        ? notLitter * (1.0 - (MoundFeature.CORE_BULKY_WASTE_CHANCE
                             + MoundFeature.CORE_BALE_CHANCE))
-                        : notABag;
+                        : notLitter;
                 }
             }
         }
@@ -320,5 +325,115 @@ class FindRateTest {
                 + "of one, each costing a pull, which is the 320 this was retuned away from; far "
                 + "below one and roaches stop being the earliest renewable food, which is the job "
                 + "they are actually doing");
+    }
+
+    /** What one Cardboard Pile drops, from {@code loot_table/blocks/cardboard_pile.json} itself. */
+    private static double averageCardboardPerPile() throws IOException {
+        JsonObject table;
+        try (InputStream in = FindRateTest.class.getResourceAsStream(
+                "/data/recompile/loot_table/blocks/cardboard_pile.json")) {
+            assertTrue(in != null, "cardboard_pile.json is not on the classpath");
+            table = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+                .getAsJsonObject();
+        }
+        double total = 0.0;
+        for (JsonElement poolElement : table.getAsJsonArray("pools")) {
+            for (JsonElement entryElement : poolElement.getAsJsonObject().getAsJsonArray("entries")) {
+                JsonObject entry = entryElement.getAsJsonObject();
+                if (!"recompile:cardboard".equals(entry.get("name").getAsString())) {
+                    continue;
+                }
+                // Default 1, so a table that loses its set_count reads as 1 rather than blowing up -
+                // and 1 is exactly the change this assertion has to catch.
+                double count = 1.0;
+                if (entry.has("functions")) {
+                    for (JsonElement fn : entry.getAsJsonArray("functions")) {
+                        JsonObject function = fn.getAsJsonObject();
+                        if ("minecraft:set_count".equals(function.get("function").getAsString())) {
+                            JsonObject range = function.getAsJsonObject("count");
+                            count = (range.get("min").getAsDouble()
+                                + range.get("max").getAsDouble()) / 2.0;
+                        }
+                    }
+                }
+                total += count;
+            }
+        }
+        return total;
+    }
+
+    /** Surface cells in one mound of this size - one per column, which is where litter goes. */
+    private static double surfaceCellsIn(int width) {
+        double radius = width / 2.0;
+        int r = (int) Math.floor(radius);
+        double cells = 0.0;
+        for (int dx = -r; dx <= r; dx++) {
+            for (int dz = -r; dz <= r; dz++) {
+                if (Math.hypot(dx, dz) <= radius) {
+                    cells += 1.0;
+                }
+            }
+        }
+        return cells;
+    }
+
+    private static double averageCardboardPilesPerMound() {
+        double total = 0.0;
+        int cases = 0;
+        for (int width = MoundFeature.MIN_WIDTH; width <= MoundFeature.MAX_WIDTH; width++) {
+            // Height does not change how many COLUMNS a mound has, only how tall they are, and litter
+            // sits on the top of each column - so the surface count is a function of width alone.
+            total += surfaceCellsIn(width) * MoundFeature.SURFACE_CARDBOARD_CHANCE;
+            cases++;
+        }
+        return total / cases;
+    }
+
+    @Test
+    @DisplayName("cardboard is early because there is cardboard on every mound, not because of a recipe")
+    void cardboardIsActuallyEarly() throws IOException {
+        // WHAT MAKES THE FAMILY WORK IS A NUMBER IN WORLDGEN, which is the whole reason this test
+        // exists. #309's building family is meant to be the one a new player can use immediately.
+        // Nothing in the recipes or the tags enforces that; it is enforced by there being piles of
+        // boxes lying on the mound in front of them. Set SURFACE_CARDBOARD_CHANCE to 0.005 and every
+        // other test in the repo still passes while the family quietly becomes late-game.
+        double piles = averageCardboardPilesPerMound();
+        assertTrue(piles > 2.0,
+            "an average mound carries " + String.format("%.1f", piles) + " cardboard piles, which is "
+                + "not enough for a player to meet cardboard before they have crafted anything - and "
+                + "that is the only thing making this building family the early one");
+
+        // AND A CEILING, because the first number shipped was over it. 0.10 put about 8 piles on an
+        // average mound and nearly 18 on a big one, and the owner called it on sight from a single
+        // screenshot: "that's way too much cardboard". A background material that covers a tenth of
+        // every mound's surface is not a background material. Both edges are now written down, so
+        // the next retune has the band rather than one bound and a memory.
+        assertTrue(piles < 8.0,
+            "an average mound carries " + String.format("%.1f", piles) + " cardboard piles. Past "
+                + "about half a dozen the mounds stop reading as garbage with boxes on them and "
+                + "start reading as boxes, which is the failure this ceiling exists for");
+
+        // AND IT MUST NOT EAT THE DUMP. Surface litter takes the cells garbage blocks would have had,
+        // so every pile is a Block of Garbage that is not there, and every household rate this file
+        // measures is quoted per pull of those. Same dial, other edge.
+        assertTrue(MoundFeature.SURFACE_NON_GARBAGE < 0.5F,
+            "surface litter is " + String.format("%.0f%%", MoundFeature.SURFACE_NON_GARBAGE * 100)
+                + " of every mound's outer shell. Past about half these stop reading as heaps of "
+                + "garbage with litter on them and start reading as heaps of litter, and every "
+                + "household find rate in this file moves with it");
+
+        // ONE PILE IS ABOUT ONE BLOCK, the rate that makes clearing the boxes off a mound feel like
+        // it built you something.
+        //
+        // READ OFF THE SHIPPED LOOT TABLE, and the first version of this was not. It was
+        // `2.5 * (200.0 / 260.0) * 2.0` - three literals, no reference to anything the game loads,
+        // describing a pull stream that had already been deleted. It evaluated to 3.85 forever, so
+        // the assertion around it could not fail: set the table's count to a flat 1 and it stayed
+        // green while the family's economy became a quarter of what the comment claimed.
+        double cardboardPerPile = averageCardboardPerPile();
+        assertTrue(cardboardPerPile > 3.0 && cardboardPerPile < 6.0,
+            "a pile yields " + String.format("%.1f", cardboardPerPile) + " cardboard against the four "
+                + "a Cardboard Block costs. Far under and the piles are litter you walk past; far "
+                + "over and one pile is a stack of walls");
     }
 }
