@@ -9,6 +9,7 @@ import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -157,6 +158,7 @@ public class SmokestackPiece extends StructurePiece {
             drawFelled(level, limit, this.footX, this.footZ, baseY, height);
         } else {
             drawStanding(level, limit, this.footX, this.footZ, baseY, height, 0, height);
+            light(level, limit, this.footX, this.footZ, baseY, height);
         }
     }
 
@@ -184,6 +186,33 @@ public class SmokestackPiece extends StructurePiece {
                 }
             }
         }
+    }
+
+    /**
+     * Something still burning at the top, which is the point of the whole structure.
+     *
+     * <p><b>It is not realistic and it is deliberate</b> (owner, 2026-08-31). An abandoned stack does
+     * not smoke. But this world is a flat brown plain of things nobody wanted, and a plume on the
+     * horizon is the one cheap signal that says somebody is still out here - it gives the dump life in
+     * a way no amount of rubble does. A felled stack gets nothing, so standing and fallen read as alive
+     * and dead rather than as two shapes.
+     *
+     * <p><b>A campfire with {@code SIGNAL_FIRE} set, and no hay bale under it.</b> Vanilla makes the
+     * tall twenty-four block plume by putting a campfire on a hay block, but the height is driven by
+     * the blockstate rather than by what is beneath it at render time - so setting the property
+     * directly gets the same plume without burying a hay bale in the flue. That matters: a hay bale is
+     * nine wheat, and #308's decision is that these hold nothing. A free crop inside a landmark that
+     * pays nothing would be exactly the payout that decision rules out.
+     *
+     * <p>It sits down inside the flue rather than on the rim, so the source is out of sight and only
+     * the smoke shows. The centre column is always clear: the wall is drawn as a ring, and at the top
+     * radius only the exact centre falls inside it.
+     */
+    private void light(WorldGenLevel level, BoundingBox limit, int cx, int cz, int baseY, int height) {
+        BlockState fire = Blocks.CAMPFIRE.defaultBlockState()
+            .setValue(CampfireBlock.LIT, true)
+            .setValue(CampfireBlock.SIGNAL_FIRE, true);
+        put(level, limit, cx, baseY + height - 1 - RAGGED_ROWS - 1, cz, fire);
     }
 
     /**
