@@ -58,7 +58,7 @@ public class CoolingTowerPiece extends StructurePiece {
     private static final int LEG_HEIGHT = 6;
 
     /** How many rows at the top are eaten away. */
-    private static final int RAGGED_ROWS = 6;
+    static final int RAGGED_ROWS = 6;
 
     /** How far up the interior is cleared. Mounds are a few blocks tall; above that it is already air. */
     private static final int CLEAR_HEIGHT = 10;
@@ -176,8 +176,31 @@ public class CoolingTowerPiece extends StructurePiece {
         // THE RAGGED TOP. Weathering eats the rim, and more of it the higher you go.
         int fromTop = height - 1 - t;
         if (fromTop < RAGGED_ROWS) {
-            double bite = (RAGGED_ROWS - fromTop) / (double) (RAGGED_ROWS + 1);
-            return hash(worldX, worldY, worldZ) > bite;
+            return rimSurvives(worldX, worldY, worldZ, fromTop);
+        }
+        return true;
+    }
+
+    /**
+     * Whether a block in the weathered rim is still there, <b>and whether everything under it is</b>.
+     *
+     * <p><b>Erosion has to be monotonic up the column or the rim floats.</b> Rolling each block
+     * independently gave a top row where only one block in seven survived, so the rim came out as
+     * confetti - and it left blocks with no neighbour at all, hanging over the tower. That is a
+     * particularly bad failure here, because this structure is nothing but its silhouette.
+     *
+     * <p>So a rim block stands only if the one below it stands. Weather eats a chimney from the top
+     * down and cannot leave a brick in the air, and the loop is bounded by {@link #RAGGED_ROWS}.
+     *
+     * <p>The top row is also eaten less hard than it was: the numerator loses one, so it erodes about
+     * seventy percent rather than eighty-six. Ragged, not dissolved.
+     */
+    static boolean rimSurvives(int x, int y, int z, int fromTop) {
+        for (int f = RAGGED_ROWS - 1; f >= fromTop; f--) {
+            double bite = (RAGGED_ROWS - f - 1) / (double) (RAGGED_ROWS + 1);
+            if (hash(x, y - (f - fromTop), z) <= bite) {
+                return false;
+            }
         }
         return true;
     }

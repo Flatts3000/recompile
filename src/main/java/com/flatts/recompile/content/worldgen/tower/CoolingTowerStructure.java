@@ -17,6 +17,20 @@ import net.minecraft.world.level.levelgen.structure.StructureType;
  * rule does not reach it. What it gives is a destination and evidence that somebody was here, and a
  * chest in the bottom would turn it back into a dungeon with a good silhouette.
  *
+ * <p><b>It generates in {@code top_layer_modification}, not {@code surface_structures}, and that is
+ * load-bearing.</b> {@code applyBiomeDecoration} runs each decoration step in order, placing that
+ * step's structures before its features, and this biome's {@code radioactive_scatter} sits at
+ * {@code vegetal_decoration} - five steps later. Writing the shell first raises
+ * {@code WORLD_SURFACE_WG}, which is the heightmap the scatter places against, so the tailings
+ * feature would site an impoundment on the rim seventy blocks up. Its own ground search only looks
+ * eight blocks down, so it would build the slab and its pond in mid-air rather than give up - which is
+ * exactly the floating-ring failure that feature's comments already warn about. An origin landing
+ * inside the cleared interior would have put Mill Tailings in the middle of a landmark whose whole
+ * point is that it pays nothing.
+ *
+ * <p>Running last instead means the scatter samples the ground before the tower exists, and the shell
+ * then overwrites whatever it placed. Same result for every other feature the tower cuts through.
+ *
  * <p><b>Why a structure and not a feature.</b> {@code ChunkStatus.FEATURES} carries
  * {@code blockStateWriteRadius(1)}, so a feature may only write 16 blocks from its origin in the worst
  * case - the same limit that capped the tailings impoundment at radius 12. This is over thirty across
