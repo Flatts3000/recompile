@@ -3,7 +3,7 @@
     python tools/prepare_gallery.py museum machine_wall
 
 Reads `run/screenshots/<scene>.png` (whatever `shoot_scenes.py` last took) and writes the numbered
-files in `docs/cf image gallery/`. The raw captures stay where they are: `_originals/` in that folder
+files in `docs/cf_image_gallery/`. The raw captures stay where they are: `_originals/` in that folder
 is deliberately untracked, and `run/` is gitignored, so this is the step that puts an image *in the
 project* rather than in a scratch directory.
 
@@ -37,7 +37,7 @@ from PIL import Image
 
 REPO = Path(__file__).parent.parent
 SHOTS = REPO / "run" / "screenshots"
-GALLERY = REPO / "docs" / "cf image gallery"
+GALLERY = REPO / "docs" / "cf_image_gallery"
 
 LIMIT = 2 * 1024 * 1024   # CurseForge's per-image ceiling
 

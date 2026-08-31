@@ -24,7 +24,7 @@ because every scene you name is re-cropped and re-encoded whether or not its cap
 rewrite is rarely what you meant. If the numbers ever drift out of step with the gallery again, the
 tool refuses to write into a slot another file holds and names the file holding it.
 
-Output lands in `docs/cf image gallery/`, numbered into the gallery's upload order.
+Output lands in `docs/cf_image_gallery/`, numbered into the gallery's upload order.
 
 **The order was an argument** - theme first, because Theme Fit is the pillar this entry is weakest on
 and a judge skims the strip before reading a word, and
