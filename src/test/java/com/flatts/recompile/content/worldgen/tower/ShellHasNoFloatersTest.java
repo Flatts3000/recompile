@@ -1,10 +1,7 @@
 package com.flatts.recompile.content.worldgen.tower;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,81 +19,74 @@ import org.junit.jupiter.api.Test;
  * column can fall inside the band at one layer and outside it at the next. That is geometry, not
  * weathering, and no test of the erosion rule can see it.
  *
- * <p>So this builds the shell the way {@code postProcess} does and asks the only question that matters:
- * <b>is any block touching nothing?</b>
+ * <p><b>And "touching nothing" was still the wrong question.</b> The first fix refused to place a block
+ * whose six neighbours were all empty, which lets a detached PAIR through - two blocks holding each
+ * other, floating clear of the tower - and a test asking whether anything touches nothing cannot see
+ * them either. The owner could, from the ground.
+ *
+ * <p>The property is connectivity: <b>every block must trace back to the bottom course.</b> The piece
+ * enforces that with a flood fill, and this <b>calls that fill</b> rather than reimplementing it - a
+ * test that copies the algorithm it is checking is the same dead-code trap all over again.
  */
 class ShellHasNoFloatersTest {
 
-    private static long key(int x, int y, int z) {
-        return ((long) (x + 512) << 40) | ((long) (y + 512) << 20) | (z + 512);
-    }
-
-    /** The shell of one tower, built through the piece's own occupancy rule. */
-    private static Set<Long> shell(int height, double baseRadius) {
-        Set<Long> blocks = new HashSet<>();
-        // The tear is disabled - it is a deliberate hole, and its edges are held by the rest of the
-        // ring. Everything else is the piece's own predicate, so this measures the real shape.
-        for (int t = 0; t < height; t++) {
-            int span = (int) Math.ceil(baseRadius) + 1;
-            for (int dx = -span; dx <= span; dx++) {
-                for (int dz = -span; dz <= span; dz++) {
-                    if (!CoolingTowerPiece.occupied(t, height, baseRadius, dx, dz, 0, 0, 0,
-                            0, -1, -1, -1)) {
-                        continue;
-                    }
-                    // The piece refuses to place a block whose six neighbours are all empty, so the
-                    // set under test has to be filtered the same way - otherwise this measures a shape
-                    // that is never written.
-                    if (touches(t, height, baseRadius, dx, dz)) {
-                        blocks.add(key(dx, t, dz));
-                    }
-                }
-            }
-        }
-        return blocks;
-    }
-
-    private static boolean touches(int t, int height, double baseRadius, int dx, int dz) {
-        int[][] around = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
-        for (int[] step : around) {
-            if (CoolingTowerPiece.occupied(t + step[1], height, baseRadius, dx + step[0], dz + step[2],
-                    0, 0, 0, 0, -1, -1, -1)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Test
-    @DisplayName("no block of the shell is touching nothing")
-    void nothingIsIsolated() {
+    @DisplayName("the flood fill removes the detached blocks without eating the tower")
+    void theFillIsLoadBearingAndNotOverzealous() {
         int[][] sizes = {{62, 15}, {68, 16}, {76, 18}};
         for (int[] size : sizes) {
             int height = size[0];
             double baseRadius = size[1];
-            Set<Long> blocks = shell(height, baseRadius);
-            assertTrue(blocks.size() > 2000, "the shell should be substantial; found " + blocks.size());
+            int span = (int) Math.ceil(baseRadius) + 1;
+            int width = 2 * span + 1;
 
-            int isolated = 0;
+            // The raw shape, from the piece's own occupancy rule.
+            int total = 0;
             for (int t = 0; t < height; t++) {
-                int span = (int) Math.ceil(baseRadius) + 1;
                 for (int dx = -span; dx <= span; dx++) {
                     for (int dz = -span; dz <= span; dz++) {
-                        if (!blocks.contains(key(dx, t, dz))) {
-                            continue;
-                        }
-                        boolean touching =
-                            blocks.contains(key(dx + 1, t, dz)) || blocks.contains(key(dx - 1, t, dz))
-                            || blocks.contains(key(dx, t, dz + 1)) || blocks.contains(key(dx, t, dz - 1))
-                            || blocks.contains(key(dx, t + 1, dz)) || blocks.contains(key(dx, t - 1, dz));
-                        if (!touching) {
-                            isolated++;
+                        if (CoolingTowerPiece.occupied(t, height, baseRadius, dx, dz, 0, 0, 0,
+                                0, -1, -1, -1)) {
+                            total++;
                         }
                     }
                 }
             }
-            assertEquals(0, isolated,
-                "tower " + height + "x" + baseRadius + " left " + isolated + " blocks touching nothing");
+            assertTrue(total > 2000, "the shell should be substantial; found " + total);
+
+            // AND WHAT THE PIECE ACTUALLY PLACES - the production fill, called rather than copied. A
+            // test that reimplements the algorithm it is checking passes just as happily when the
+            // real one is seeded from the wrong end, which is how the previous fix survived as dead
+            // code.
+            boolean[] rooted = CoolingTowerPiece.rooted(height, baseRadius, 0, 0, 0,
+                0, -1, -1, -1, span);
+            int reached = 0;
+            for (boolean kept : rooted) {
+                if (kept) {
+                    reached++;
+                }
+            }
+
+            int detached = total - reached;
+
+            // THE FILL IS LOAD-BEARING. The raw geometry really does leave blocks that cannot reach the
+            // ground - 29 of 4391 on the 62 tall tower when this was written - because the wall leans
+            // and the radius sweeps past a column for a single layer. They come in clumps, which is why
+            // the previous test, asking only whether a block touched anything, found two of them and
+            // the owner found the rest by looking at the sky.
+            assertTrue(detached > 0, "the raw geometry no longer detaches anything at " + height + "x"
+                + baseRadius + ", so the flood fill may be dead code - check before deleting it");
+
+            // AND IT MUST NOT EAT THE TOWER. A fill seeded or stepped wrongly would quietly discard
+            // most of the shell, and the structure would still generate, just much less of it.
+            //
+            // THE MARGIN HERE IS THIN AND THAT IS DELIBERATE. A sweep of about 3,500 towers across
+            // every height, tear angle, span and band the generator can roll put the worst kept
+            // fraction at 0.99305 - three tenths of a point above this line. So a change that discards
+            // even one percent more of the shell trips it, which is the point; if you are here because
+            // it went red, look at what the geometry now does before reaching for the threshold.
+            assertTrue(reached > total * 0.99, "the fill kept only " + reached + " of " + total
+                + " blocks, which is not a weathered rim, it is a broken tower");
         }
     }
 }

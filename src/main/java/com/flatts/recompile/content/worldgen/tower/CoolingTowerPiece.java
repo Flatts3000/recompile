@@ -111,30 +111,127 @@ public class CoolingTowerPiece extends StructurePiece {
         int tearBottom = (int) (height * (0.22 + shape.nextDouble() * 0.12));
         int tearTop = tearBottom + 6 + shape.nextInt(6);
 
+        // BUILD THE WHOLE SHELL, THEN KEEP ONLY WHAT IS CONNECTED TO THE GROUND. See rooted().
+        int span = (int) Math.ceil(baseRadius) + 1;
+        int width = 2 * span + 1;
+        boolean[] rooted = rooted(height, baseRadius, cx, cz, baseY,
+            tearAngle, tearSpan, tearBottom, tearTop, span);
+
         for (int t = 0; t < height; t++) {
             int y = baseY + t;
-            double r = radiusAt(t, height, baseRadius);
-            double slope = Math.abs(radiusAt(t + 1, height, baseRadius) - r);
-            double tolerance = 0.5 + slope / 2.0;
-            int span = (int) Math.ceil(baseRadius) + 1;
-
             for (int dx = -span; dx <= span; dx++) {
                 for (int dz = -span; dz <= span; dz++) {
-                    double d = Math.sqrt(dx * dx + dz * dz);
-                    if (Math.abs(d - r) > tolerance) {
-                        continue;
+                    if (rooted[index(dx + span, t, dz + span, width)]) {
+                        put(level, limit, cx + dx, y, cz + dz, shell);
                     }
-                    if (!standsHere(t, height, dx, dz, tearAngle, tearSpan, tearBottom, tearTop,
-                            cx + dx, y, cz + dz)) {
-                        continue;
-                    }
-                    put(level, limit, cx + dx, y, cz + dz, shell);
                 }
             }
         }
 
         clearInterior(level, limit, cx, cz, baseY, height, baseRadius);
         silt(level, limit, cx, cz, baseY, baseRadius);
+    }
+
+    /** The band test on its own, so the layer radius can be hoisted out of the column loops. */
+    private static boolean inBand(double r, double slope, int dx, int dz) {
+        return Math.abs(Math.sqrt(dx * dx + dz * dz) - r) <= 0.5 + slope / 2.0;
+    }
+
+    /**
+     * The shell, with everything that cannot reach the ground removed.
+     *
+     * <p><b>Extracted so the test can call it rather than reimplement it.</b> The previous attempt at
+     * this fix was dead code that nobody noticed, and a test that copies the algorithm it is checking
+     * has the same failure waiting in it: seed this from the top instead of the bottom and a copied
+     * test still passes while the tower generates as a stump.
+     *
+     * <p><b>Why a fill and not a support rule.</b> Asking whether a block has a neighbour lets a
+     * detached pair through - two blocks holding each other in the sky. Asking whether it has support
+     * below is wrong in the other direction, because the tear is a hole in a wall and the courses above
+     * it hang off the ring to either side. Connectivity to the bottom course is the property that is
+     * actually wanted.
+     *
+     * <p>The layer radius is computed once per layer, not once per cell. Doing it per cell put a
+     * {@code Math.pow} and two {@code Math.sqrt} inside a triple loop, on the worldgen thread, for
+     * every chunk the piece overlaps.
+     */
+    static boolean[] rooted(int height, double baseRadius, int cx, int cz, int baseY,
+            double tearAngle, double tearSpan, int tearBottom, int tearTop, int span) {
+        int width = 2 * span + 1;
+        double[] radius = new double[height + 1];
+        for (int t = 0; t <= height; t++) {
+            radius[t] = radiusAt(t, height, baseRadius);
+        }
+
+        boolean[] solid = new boolean[width * width * height];
+        for (int t = 0; t < height; t++) {
+            double r = radius[t];
+            double slope = Math.abs(radius[t + 1] - r);
+            for (int dx = -span; dx <= span; dx++) {
+                for (int dz = -span; dz <= span; dz++) {
+                    if (inBand(r, slope, dx, dz)
+                            && standsHere(t, height, dx, dz, tearAngle, tearSpan, tearBottom, tearTop,
+                                cx + dx, baseY + t, cz + dz)) {
+                        solid[index(dx + span, t, dz + span, width)] = true;
+                    }
+                }
+            }
+        }
+
+        boolean[] rooted = new boolean[solid.length];
+        // The queue holds flat indices rather than coordinate arrays: a three-int allocation per push
+        // is thousands of short-lived objects per chunk, for a number that is already computed.
+        int[] queue = new int[solid.length];
+        int head = 0;
+        int tail = 0;
+        for (int dx = -span; dx <= span; dx++) {
+            for (int dz = -span; dz <= span; dz++) {
+                int at = index(dx + span, 0, dz + span, width);
+                if (solid[at]) {
+                    rooted[at] = true;
+                    queue[tail++] = at;
+                }
+            }
+        }
+        int layer = width * width;
+        while (head < tail) {
+            int at = queue[head++];
+            int t = at / layer;
+            int rest = at % layer;
+            int x = rest / width;
+            int z = rest % width;
+            if (x + 1 < width) {
+                tail = visit(solid, rooted, queue, tail, index(x + 1, t, z, width));
+            }
+            if (x > 0) {
+                tail = visit(solid, rooted, queue, tail, index(x - 1, t, z, width));
+            }
+            if (z + 1 < width) {
+                tail = visit(solid, rooted, queue, tail, index(x, t, z + 1, width));
+            }
+            if (z > 0) {
+                tail = visit(solid, rooted, queue, tail, index(x, t, z - 1, width));
+            }
+            if (t + 1 < height) {
+                tail = visit(solid, rooted, queue, tail, index(x, t + 1, z, width));
+            }
+            if (t > 0) {
+                tail = visit(solid, rooted, queue, tail, index(x, t - 1, z, width));
+            }
+        }
+        return rooted;
+    }
+
+    private static int visit(boolean[] solid, boolean[] rooted, int[] queue, int tail, int at) {
+        if (solid[at] && !rooted[at]) {
+            rooted[at] = true;
+            queue[tail++] = at;
+        }
+        return tail;
+    }
+
+    static int index(int x, int t, int z, int width) {
+        return (t * width + x) * width + z;
     }
 
     /** Whether the shell stands at this column and layer, band test and all. */
@@ -144,25 +241,11 @@ public class CoolingTowerPiece extends StructurePiece {
             return false;
         }
         double r = radiusAt(t, height, baseRadius);
-        double slope = Math.abs(radiusAt(t + 1, height, baseRadius) - r);
-        if (Math.abs(Math.sqrt(dx * dx + dz * dz) - r) > 0.5 + slope / 2.0) {
+        if (!inBand(r, Math.abs(radiusAt(t + 1, height, baseRadius) - r), dx, dz)) {
             return false;
         }
         return standsHere(t, height, dx, dz, tearAngle, tearSpan, tearBottom, tearTop,
             cx + dx, baseY + t, cz + dz);
-    }
-
-    /** Whether any of the six face neighbours is also shell. */
-    private static boolean touchesSomething(int t, int height, double baseRadius, int dx, int dz,
-            int cx, int cz, int baseY, double tearAngle, double tearSpan, int tearBottom, int tearTop) {
-        int[][] around = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
-        for (int[] step : around) {
-            if (occupied(t + step[1], height, baseRadius, dx + step[0], dz + step[2], cx, cz, baseY,
-                    tearAngle, tearSpan, tearBottom, tearTop)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

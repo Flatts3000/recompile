@@ -61,11 +61,16 @@ page a judge or a browsing player actually reads. The gallery is a tab you have 
 They are served from this repo rather than from CurseForge's own CDN, because a gallery upload's URL
 is only knowable after the upload and cannot be written down here in advance:
 
-    https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/<file>
+    https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/<file>
 
-The directory name has a space in it, so the URL needs `%20`. **An image added to the description
-must be committed and pushed before the link resolves** - an unpushed file renders as a broken image
-on a live page.
+**The folder is `cf_image_gallery`, with no spaces, and that is the whole reason it was renamed.** It
+used to be `cf image gallery`, so every URL here carried `%20`. CurseForge decodes that back to a
+literal space before rendering, and markdown ends a URL at the first whitespace - so every image on the
+live page broke, showing the alt text and a half-link. A path with no spaces cannot be mangled by
+anything downstream.
+
+**An image added to the description must be committed and pushed before its link resolves** - an
+unpushed file renders as a broken image on a live page.
 
 <!-- PASTE MARKER - everything below this line goes in the CurseForge Description field, as-is -->
 
@@ -77,7 +82,7 @@ crumbles after a few pulls.
 
 ## The recipes went in the bin too
 
-![Bulky waste opened with a prybar: a washing machine, a printer, a filing cabinet.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/06-bulky-waste-finds.png)
+![Bulky waste opened with a prybar: a washing machine, a printer, a filing cabinet.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/06-bulky-waste-finds.png)
 
 Buried in the mounds are whole objects. A prybar opens one and you get a washing machine, a printer, a
 filing cabinet.
@@ -89,7 +94,7 @@ The materials are the easy part. What you are actually recovering is how the thi
 
 ## Sorting is the job
 
-![Scrap bins, each bound to one material, with barrels for the overflow.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/05-scrap-bins-and-barrels.png)
+![Scrap bins, each bound to one material, with barrels for the overflow.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/05-scrap-bins-and-barrels.png)
 
 A bin takes the first thing you put in it and nothing else after that. Stand a few side by side and
 everything you sort goes where it belongs.
@@ -98,7 +103,7 @@ Later you throw the garbage at a machine and walk away, and it is sorted when yo
 
 ## Ground you can stand on
 
-![Grass spreading back, with the dump still standing behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/07-machines-on-reclaimed-grass.png)
+![Grass spreading back, with the dump still standing behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/07-machines-on-reclaimed-grass.png)
 
 Grass does not grow here. A Grass Spreader puts it down, and it goes back to coarse dirt at the edges
 unless something holds the line: plants, then wet farmland, then trees.
@@ -111,7 +116,7 @@ turns up depends on the bait and on what is growing around it.
 
 ## Down the manhole
 
-![A sewer run. Leachate down the middle, dry brick either side, silt in the corners.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/14-sewer-corridor.png)
+![A sewer run. Leachate down the middle, dry brick either side, silt in the corners.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/14-sewer-corridor.png)
 
 A square of pale concrete with a rusted plate in it. The plate comes up with a prybar, and there is a
 ladder under it.
@@ -119,7 +124,7 @@ ladder under it.
 Brick corridors with a channel of leachate down the middle. Mushrooms in the damp, silt in the
 corners, mossy brick at the waterline. The rooms are lit. The corridors are not.
 
-![The sump: standing leachate, no lamp, and a drowned spawner on the walkway.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/15-sewer-sump.png)
+![The sump: standing leachate, no lamp, and a drowned spawner on the walkway.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/15-sewer-sump.png)
 
 Every channel runs downhill to the same room. Leachate deep enough to go over your head, no lamp, and
 a drowned spawner on the walkway. There is an echo shard in the silt at the bottom of every sewer, and
@@ -129,13 +134,13 @@ Turtles and frogs live down there, in rooms of sand and mud off the corridors.
 
 ## Out past the yard
 
-![Tailings impoundments with decant ponds, drums at the toe.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/17-radioactive-dump.png)
+![Tailings impoundments with decant ponds, drums at the toe.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/17-radioactive-dump.png)
 
 Keep going past the demolition yard and the ground turns sallow. Somebody buried the things nobody
 would take: mill tailings in flat-topped heaps, steel drums with the radiation symbol stencilled on them, and the
 household objects that were quietly radioactive the whole time.
 
-![Mill tailings, waste drums and uranium glass, with the finds behind.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/18-radioactive-museum.png)
+![Mill tailings, waste drums and uranium glass, with the finds behind.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/18-radioactive-museum.png)
 
 A radium dial clock. A smoke detector. Thoriated welding rods. Uranium glass.
 
@@ -151,7 +156,7 @@ slag your own furnace rakes off.
 
 ## Machines
 
-![The machine tier, built by stacking components on a core.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/03-machine-wall.png)
+![The machine tier, built by stacking components on a core.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/03-machine-wall.png)
 
 The machines are multiblocks. You place a core, stack parts on it, and it forms where it stands.
 
@@ -160,7 +165,7 @@ solid. A cupola melts scrap down into iron, and rakes off slag while it does.
 
 ## Things worth finding
 
-![Recovered paintings over pedestals holding found objects.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/02-museum.png)
+![Recovered paintings over pedestals holding found objects.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/02-museum.png)
 
 You can pull a Van Gogh out of a bin bag. Six real paintings are down there, and the one you find is
 the one that goes on your wall. A puzzle cube in nine pieces, never together. A toy car, a gold coin,
