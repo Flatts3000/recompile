@@ -51,6 +51,9 @@ recovered masterworks and a shelf of found objects. See
 
 ## Images
 
+**No title and no hero image.** CurseForge puts the project name and the gallery carousel directly
+above the description, so both were being shown twice. The page opens on the first line of prose.
+
 **The description carries images now, and it did not before.** Eighteen screenshots sat in the
 gallery tab while the description was an unbroken wall of text - which is the half of a CurseForge
 page a judge or a browsing player actually reads. The gallery is a tab you have to click.
@@ -65,10 +68,6 @@ must be committed and pushed before the link resolves** - an unpushed file rende
 on a live page.
 
 <!-- PASTE MARKER - everything below this line goes in the CurseForge Description field, as-is -->
-
-# Recompile
-
-![Coarse dirt under mounds of garbage, horizon to horizon.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/01-garbage-world.jpg)
 
 There is no ore, no trees and no water. The ground is coarse dirt, and everything standing on it was
 thrown away by somebody who lived here first.
