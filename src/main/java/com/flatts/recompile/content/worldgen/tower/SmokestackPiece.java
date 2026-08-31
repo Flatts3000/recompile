@@ -41,9 +41,17 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSeriali
  *
  * <p>It also has a husk spawner at the foot, and that one is not small. It reaches past the brick on
  * purpose, so walking by a chimney is an encounter rather than scenery. Vanilla husks drop iron on a
- * player kill, so the husk loot table is overridden here without that pool - an unlimited iron farm at
- * a chimney would route around the Cupola, which is the mod's iron gate, and #91 is on record as a
- * gate that died exactly that way.
+ * player kill, so the husk loot table is overridden here without that pool: this mod PLACES this
+ * spawner, at a fixed point, in unlimited supply, and #91 is on record as an iron gate that died to a
+ * route nobody had costed.
+ *
+ * <p><b>That closes what this structure adds and no more, and the difference matters.</b> It is not a
+ * guarantee that iron cannot be farmed from mobs in the demolition yard, and reading it as one would be
+ * wrong twice. The yard's biome already lists {@code minecraft:zombie} at weight 90 with its vanilla
+ * table intact, so natural spawns drop iron there today and did before this structure existed. And a
+ * husk submerged for 300 ticks converts to a zombie ({@code Husk.doUnderWaterConversion}), which is the
+ * override walked around with a bucket. Whether the vanilla mob economy should be gated at all is a
+ * design question rather than a defect in this piece, and it is filed rather than decided here (#318).
  *
  * <p>Everything is derived from the bounding box, for the reason {@link CoolingTowerPiece} gives: a
  * piece is stored as its box and rebuilt from it, so a shape held in a field comes back wrong.
@@ -184,9 +192,10 @@ public class SmokestackPiece extends StructurePiece {
             // range of 4 reaches past the flue, so passing a chimney at any hour puts husks around
             // you. The spawner needs no line of sight - it only measures distance to the player.
             //
-            // NO HAT, unlike the tower's. A husk is the zombie that does not burn: Husk.isSunSensitive
-            // returns false, so a leather cap on one would be cargo-culted from the other structure and
-            // would do nothing. It is also sealed in the dark regardless.
+            // NO HAT, unlike the tower's, and the reason is the mob rather than the building. A husk
+            // is the zombie that does not burn: Husk.isSunSensitive returns false, so a leather cap on
+            // one would be cargo-culted from the other structure and would do nothing. That holds out
+            // in the open, which is where the range of 4 puts most of them.
             Spawners.place(level, limit, new BlockPos(this.footX, baseY + 1, this.footZ),
                 "minecraft:husk", 4, null);
         }

@@ -54,13 +54,21 @@ final class Spawners {
      *                   picks its ranged goal. A Parched configured that way spawns empty-handed and
      *                   punches. The SpawnData field is applied after finalization instead, so it gets
      *                   both.
-     *                   <p><b>The table must not touch the item's equippable component.</b> A leather
-     *                   helmet already carries a complete one, and Mob.equip reads it to decide which
-     *                   slot the roll goes in. Writing a partial {@code equippable} through
-     *                   {@code set_components} - even one naming the right slot - replaces the real
-     *                   component, the slot lookup stops recognising it as headgear, and the cap ends
-     *                   up carried rather than worn. The mob then burns with the hat in its inventory,
-     *                   which is what shipped. Vanilla's own equipment tables only ever set trim.
+     *                   <p><b>The table must never drop the item's {@code asset_id}, and the reason is
+     *                   not the one it looks like.</b> This shipped with a {@code set_components}
+     *                   writing {@code equippable: {slot: head}} onto the leather helmet, and it was
+     *                   reported as the mob not wearing the hat. It was wearing it.
+     *                   {@code set_components} REPLACES a component rather than merging into it, and
+     *                   {@code Equippable.CODEC} makes {@code slot} its only required field - so the
+     *                   partial decoded cleanly, {@code EquipmentUser.resolveSlot} read
+     *                   {@code equippable.slot()} and put the cap in HEAD, and {@code Mob.burnUndead},
+     *                   which only asks whether the HEAD slot is empty, left them unlit. What the
+     *                   replacement destroyed is {@code assetId}, which is optional and is the only
+     *                   thing the armour layer renders from: the cap was worn, working, and invisible,
+     *                   which from the ground is indistinguishable from not being worn at all.
+     *                   <p>So the rule is not "leave equippable alone" - vanilla's own equipment tables
+     *                   use {@code set_components} for trim. It is that a partial equippable must carry
+     *                   {@code asset_id}, and the cheapest way to carry it is not to write one.
      */
     static void place(WorldGenLevel level, BoundingBox limit, BlockPos pos, String entityId,
             int spawnRange, String equipment) {
@@ -93,9 +101,13 @@ final class Spawners {
         //
         // An empty custom_spawn_rules is the whole fix: both limits default to the full 0..15 range.
         // Its presence is what matters - BaseSpawner uses it INSTEAD of
-        // SpawnPlacements.checkSpawnRules, so the light test is gone rather than widened. Note that
-        // takes the ground check with it, and noCollision is all that remains; a mob can appear in the
-        // air and drop, which in a dump is fine.
+        // SpawnPlacements.checkSpawnRules, so the light test is gone rather than widened.
+        //
+        // AND IT COSTS NOTHING ELSE, which is worth stating because the obvious worry is that
+        // replacing the whole predicate also drops the ground check. It does not: the predicate for a
+        // monster ends in Mob.checkMobSpawnRules, whose first clause is
+        // `EntitySpawnReason.isSpawner(spawnReason) ||` - so no spawner in the game has ever applied a
+        // ground check, and there was nothing there to lose. Light is the entire difference.
         spawnData.put("custom_spawn_rules", new CompoundTag());
         if (equipment != null) {
             CompoundTag chances = new CompoundTag();
