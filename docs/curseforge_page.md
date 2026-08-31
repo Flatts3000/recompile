@@ -101,7 +101,7 @@ Later you throw the garbage at a machine and walk away, and it is sorted when yo
 
 ![Grass spreading back, with the dump still standing behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/07-machines-on-reclaimed-grass.png)
 
-Grass does not grow here. A Grass Spreader puts it down, and the dump takes it back at the edges
+Grass does not grow here. A Grass Spreader puts it down, and it goes back to coarse dirt at the edges
 unless something holds the line: plants, then wet farmland, then trees.
 
 Trees hold it permanently. Getting a tree means a Tree Nursery, because no sapling can be found
