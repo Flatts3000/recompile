@@ -69,6 +69,9 @@ public class FencedCompoundFeature extends Feature<NoneFeatureConfiguration> {
     /** How many compounds were the kind somebody meant to keep people out of. */
     private static final float BARBED = 0.35F;
 
+    /** How much height variation the footprint may have before it is a hill rather than a yard. */
+    private static final int MAX_RELIEF = 3;
+
     public FencedCompoundFeature() {
         super(NoneFeatureConfiguration.CODEC);
     }
@@ -90,6 +93,21 @@ public class FencedCompoundFeature extends Feature<NoneFeatureConfiguration> {
         Direction gapSide = Direction.Plane.HORIZONTAL.getRandomDirection(random);
         int gapAt = random.nextInt(Math.max(1, (gapSide.getAxis() == Direction.Axis.X ? depth : width) - 3));
         int gapWidth = 2 + random.nextInt(2);
+
+        // FLAT GROUND ONLY, and this was added after watching the first version generate.
+        //
+        // The feature worked and was nearly invisible. Household sprawl is wall-to-wall mounds, so a
+        // perimeter laid on WORLD_SURFACE_WG climbs over and threads between them: measured at one
+        // compound, 10 of 45 ground panels had a mound block sitting directly on top and the rest
+        // showed in fragments. A fence you cannot see is not a boundary, and "someone fenced this
+        // off" is the entire reason the block exists.
+        //
+        // So the footprint has to be level. That is not a compromise with the mounds - it is where a
+        // fenced yard belongs anyway: the open coarse-dirt flats between them, which is also where a
+        // player walks. Three blocks of spread tolerates a bit of undulation and rejects a mound.
+        if (spread(level, origin, halfW, halfD) > MAX_RELIEF) {
+            return false;
+        }
 
         java.util.List<BlockPos> placed = new java.util.ArrayList<>();
         for (int dx = -halfW; dx <= halfW; dx++) {
@@ -113,6 +131,31 @@ public class FencedCompoundFeature extends Feature<NoneFeatureConfiguration> {
             return false;
         }
         return true;
+    }
+
+    /**
+     * How much the ground rises and falls across the footprint.
+     *
+     * <p>Sampled over the whole box rather than the perimeter, because a mound sitting in the MIDDLE
+     * of a compound is just as wrong as one on its edge - the fence would ring a hill.
+     */
+    private static int spread(WorldGenLevel level, BlockPos origin, int halfW, int halfD) {
+        int low = Integer.MAX_VALUE;
+        int high = Integer.MIN_VALUE;
+        for (int dx = -halfW; dx <= halfW; dx++) {
+            for (int dz = -halfD; dz <= halfD; dz++) {
+                int y = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG,
+                    origin.getX() + dx, origin.getZ() + dz);
+                low = Math.min(low, y);
+                high = Math.max(high, y);
+                // Nothing flat enough can still be under consideration once it is this uneven, and
+                // the footprint is up to 225 columns.
+                if (high - low > MAX_RELIEF) {
+                    return high - low;
+                }
+            }
+        }
+        return high - low;
     }
 
     /** Whether this perimeter cell is the hole somebody cut to get in. */

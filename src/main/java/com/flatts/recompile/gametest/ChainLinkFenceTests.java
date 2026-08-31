@@ -75,12 +75,16 @@ final class ChainLinkFenceTests {
         RCGameTests.test("a_fenced_compound_is_connected_and_not_sealed", 100, helper -> {
             var level = helper.getLevel();
             BlockPos origin = helper.absolutePos(new BlockPos(0, 1, 0));
+            // CLEARED HIGH, not just enough for a two-block fence. Plots sit beside each other and
+            // WORLD_SURFACE_WG reads whatever a neighbouring test left standing; at four blocks of
+            // clearance the footprint measured a spread of five and the flatness gate refused it,
+            // correctly. The pad has to actually be flat before it can stand in for flat ground.
             for (int dx = -9; dx <= 9; dx++) {
                 for (int dz = -9; dz <= 9; dz++) {
-                    level.setBlock(origin.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 2);
-                    for (int dy = 0; dy <= 3; dy++) {
+                    for (int dy = 0; dy <= 12; dy++) {
                         level.setBlock(origin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
                     }
+                    level.setBlock(origin.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 2);
                 }
             }
 
@@ -92,8 +96,8 @@ final class ChainLinkFenceTests {
                     RandomSource.create(500L + seed), origin);
             }
             helper.assertTrue(built,
-                "twelve attempts placed no compound on flat stone, so either the ground check or the "
-                    + "size floor rejects everything and fences never generate anywhere");
+                "twelve attempts placed no compound on flat stone, so either the ground check, the "
+                    + "flatness gate or the size floor rejects everything and fences never generate");
 
             List<BlockPos> panels = new ArrayList<>();
             int connected = 0;
@@ -182,6 +186,51 @@ final class ChainLinkFenceTests {
                 missing + " generate no fenced compounds. The owner asked for fences in every biome, "
                     + "and a biome quietly left out of that list looks exactly like a biome that "
                     + "happened not to roll one");
+            helper.succeed();
+        });
+
+        // AND IT REFUSES A HILL, which is the difference between a fence you can see and one you
+        // cannot.
+        //
+        // The first version placed on WORLD_SURFACE_WG wherever it landed, which in household
+        // sprawl means over and between mounds: measured in a generated world at 10 of 45 ground
+        // panels with a mound block sitting directly on top, and the rest visible only in fragments.
+        // It generated, every test passed, and you could stand next to a compound without seeing
+        // one. That is the failure this guards, and it is invisible to every other check here
+        // because the feature still returns true and still writes fence.
+        RCGameTests.test("a_compound_will_not_generate_on_a_hill", 100, helper -> {
+            var level = helper.getLevel();
+            BlockPos origin = helper.absolutePos(new BlockPos(0, 1, 0));
+            for (int dx = -9; dx <= 9; dx++) {
+                for (int dz = -9; dz <= 9; dz++) {
+                    for (int dy = -1; dy <= 12; dy++) {
+                        level.setBlock(origin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                    }
+                    level.setBlock(origin.offset(dx, -1, dz), Blocks.STONE.defaultBlockState(), 2);
+                }
+            }
+            // A mound in the middle of the footprint, taller than MAX_RELIEF allows.
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    for (int dy = 0; dy <= 7; dy++) {
+                        level.setBlock(origin.offset(dx, dy, dz),
+                            RCBlocks.GARBAGE_BLOCK.get().defaultBlockState(), 2);
+                    }
+                }
+            }
+
+            var feature = new FencedCompoundFeature();
+            int built = 0;
+            for (int seed = 0; seed < 12; seed++) {
+                if (feature.place(NoneFeatureConfiguration.INSTANCE, level,
+                        level.getChunkSource().getGenerator(),
+                        RandomSource.create(900L + seed), origin)) {
+                    built++;
+                }
+            }
+            helper.assertTrue(built == 0,
+                built + " of 12 compounds generated around a mound eight blocks tall. A perimeter "
+                    + "laid over that is buried in it, and a fence you cannot see is not a boundary");
             helper.succeed();
         });
     }
