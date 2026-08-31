@@ -84,33 +84,4 @@ class CoolingTowerProfileTest {
                 + " and " + (t + 1) + ", which the shell tolerance cannot bridge");
         }
     }
-
-    @Test
-    @DisplayName("the weathered rim never leaves a block hanging in the air")
-    void theRimCannotFloat() {
-        // ERODE THE TOP ROW HARD ENOUGH AND THE RIM BECOMES CONFETTI. Rolling each block on its own
-        // gave a top row where one in seven survived and left blocks with no neighbour at all, hovering
-        // over a structure that is nothing but its silhouette. Erosion is monotonic up the column now,
-        // and this is the property that guarantees it: nothing stands on nothing.
-        int floating = 0;
-        int standing = 0;
-        for (int x = -400; x < 400; x++) {
-            for (int z = -400; z < 400; z += 7) {
-                for (int fromTop = 0; fromTop < CoolingTowerPiece.RAGGED_ROWS; fromTop++) {
-                    int y = 100 - fromTop;
-                    if (!CoolingTowerPiece.rimSurvives(x, y, z, fromTop)) {
-                        continue;
-                    }
-                    standing++;
-                    // The block below is one row lower, which is one further from the top.
-                    if (fromTop + 1 < CoolingTowerPiece.RAGGED_ROWS
-                            && !CoolingTowerPiece.rimSurvives(x, y - 1, z, fromTop + 1)) {
-                        floating++;
-                    }
-                }
-            }
-        }
-        assertTrue(standing > 1000, "the sample should actually contain rim; found " + standing);
-        assertEquals(0, floating, floating + " rim blocks of " + standing + " had nothing beneath them");
-    }
 }

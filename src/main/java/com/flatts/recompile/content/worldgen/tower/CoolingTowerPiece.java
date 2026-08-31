@@ -137,6 +137,34 @@ public class CoolingTowerPiece extends StructurePiece {
         silt(level, limit, cx, cz, baseY, baseRadius);
     }
 
+    /** Whether the shell stands at this column and layer, band test and all. */
+    static boolean occupied(int t, int height, double baseRadius, int dx, int dz, int cx, int cz,
+            int baseY, double tearAngle, double tearSpan, int tearBottom, int tearTop) {
+        if (t < 0 || t >= height) {
+            return false;
+        }
+        double r = radiusAt(t, height, baseRadius);
+        double slope = Math.abs(radiusAt(t + 1, height, baseRadius) - r);
+        if (Math.abs(Math.sqrt(dx * dx + dz * dz) - r) > 0.5 + slope / 2.0) {
+            return false;
+        }
+        return standsHere(t, height, dx, dz, tearAngle, tearSpan, tearBottom, tearTop,
+            cx + dx, baseY + t, cz + dz);
+    }
+
+    /** Whether any of the six face neighbours is also shell. */
+    private static boolean touchesSomething(int t, int height, double baseRadius, int dx, int dz,
+            int cx, int cz, int baseY, double tearAngle, double tearSpan, int tearBottom, int tearTop) {
+        int[][] around = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
+        for (int[] step : around) {
+            if (occupied(t + step[1], height, baseRadius, dx + step[0], dz + step[2], cx, cz, baseY,
+                    tearAngle, tearSpan, tearBottom, tearTop)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * {@code r = throat * sqrt(1 + (dy/c)^2)}, with c solved so r(0) is the base radius.
      *
@@ -176,31 +204,7 @@ public class CoolingTowerPiece extends StructurePiece {
         // THE RAGGED TOP. Weathering eats the rim, and more of it the higher you go.
         int fromTop = height - 1 - t;
         if (fromTop < RAGGED_ROWS) {
-            return rimSurvives(worldX, worldY, worldZ, fromTop);
-        }
-        return true;
-    }
-
-    /**
-     * Whether a block in the weathered rim is still there, <b>and whether everything under it is</b>.
-     *
-     * <p><b>Erosion has to be monotonic up the column or the rim floats.</b> Rolling each block
-     * independently gave a top row where only one block in seven survived, so the rim came out as
-     * confetti - and it left blocks with no neighbour at all, hanging over the tower. That is a
-     * particularly bad failure here, because this structure is nothing but its silhouette.
-     *
-     * <p>So a rim block stands only if the one below it stands. Weather eats a chimney from the top
-     * down and cannot leave a brick in the air, and the loop is bounded by {@link #RAGGED_ROWS}.
-     *
-     * <p>The top row is also eaten less hard than it was: the numerator loses one, so it erodes about
-     * seventy percent rather than eighty-six. Ragged, not dissolved.
-     */
-    static boolean rimSurvives(int x, int y, int z, int fromTop) {
-        for (int f = RAGGED_ROWS - 1; f >= fromTop; f--) {
-            double bite = (RAGGED_ROWS - f - 1) / (double) (RAGGED_ROWS + 1);
-            if (hash(x, y - (f - fromTop), z) <= bite) {
-                return false;
-            }
+            return RaggedRim.survives(worldX, worldZ, fromTop, RAGGED_ROWS);
         }
         return true;
     }
@@ -244,20 +248,13 @@ public class CoolingTowerPiece extends StructurePiece {
                 if (Math.sqrt(dx * dx + dz * dz) > baseRadius - 1) {
                     continue;
                 }
-                double roll = hash(cx + dx, baseY, cz + dz);
+                double roll = RaggedRim.hash(cx + dx, baseY, cz + dz);
                 BlockState floor = roll < 0.45 ? Blocks.GRAVEL.defaultBlockState()
                                  : roll < 0.85 ? Blocks.SAND.defaultBlockState()
                                                : Blocks.COARSE_DIRT.defaultBlockState();
                 put(level, limit, cx + dx, baseY, cz + dz, floor);
             }
         }
-    }
-
-    /** A stable 0..1 from a position. Same block, same answer, on every regeneration. */
-    private static double hash(int x, int y, int z) {
-        long h = x * 3129871L ^ z * 116129781L ^ y * 7919L;
-        h = h * h * 42317861L + h * 11L;
-        return ((h >> 16) & 0xFFFF) / 65536.0;
     }
 
     private static void put(WorldGenLevel level, BoundingBox limit, int x, int y, int z, BlockState state) {
