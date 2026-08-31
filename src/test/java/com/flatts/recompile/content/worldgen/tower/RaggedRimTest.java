@@ -1,10 +1,8 @@
 package com.flatts.recompile.content.worldgen.tower;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -19,32 +17,13 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * <p>Row counts are parameterised because the two structures weather different depths, and the
  * property has to hold for both.
+ *
+ * <p><b>What this does NOT test is whether anything floats.</b> A first version asserted that erosion
+ * is monotonic up a column, which is a restatement of {@code fromTop >= eaten} rather than a property -
+ * it could not fail. Floating is a question about the assembled shell, including the geometry that has
+ * nothing to do with weathering, and it lives in {@code ShellHasNoFloatersTest}.
  */
 class RaggedRimTest {
-
-    @ParameterizedTest
-    @ValueSource(ints = {4, 6})
-    @DisplayName("nothing survives above a hole")
-    void nothingFloats(int raggedRows) {
-        int floating = 0;
-        int standing = 0;
-        for (int x = -300; x < 300; x++) {
-            for (int z = -300; z < 300; z += 5) {
-                for (int fromTop = 0; fromTop < raggedRows; fromTop++) {
-                    if (!RaggedRim.survives(x, z, fromTop, raggedRows)) {
-                        continue;
-                    }
-                    standing++;
-                    if (fromTop + 1 < raggedRows
-                            && !RaggedRim.survives(x, z, fromTop + 1, raggedRows)) {
-                        floating++;
-                    }
-                }
-            }
-        }
-        assertTrue(standing > 1000, "the sample should contain rim; found " + standing);
-        assertEquals(0, floating, floating + " of " + standing + " rim blocks had nothing beneath them");
-    }
 
     @ParameterizedTest
     @ValueSource(ints = {4, 6})

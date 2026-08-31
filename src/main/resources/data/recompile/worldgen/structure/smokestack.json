@@ -2,6 +2,6 @@
   "type": "recompile:smokestack",
   "biomes": "#recompile:has_structure/smokestack",
   "spawn_overrides": {},
-  "step": "surface_structures",
+  "step": "top_layer_modification",
   "terrain_adaptation": "beard_thin"
 }

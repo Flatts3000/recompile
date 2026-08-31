@@ -25,15 +25,21 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSeriali
  * the most yard-specific image available, and a felled one lying in sections is the story of what the
  * yard does to everything else.
  *
- * <p><b>Deliberately shorter than the cooling tower.</b> 25 to 40 against its 62 to 76, so the two
+ * <p><b>Deliberately shorter than the cooling tower.</b> 30 to 48 against its 62 to 76, so the two
  * layer instead of competing: the tower is what you see from the next region, the chimneys are what
  * you see once you are in the yard. Two landmarks at one height would just be two landmarks.
  *
- * <p><b>Nothing inside, and no way in.</b> The shell is a ring with no opening, which is what a real
- * chimney is - a flue, not a room. Drawing it solid would read the same from outside and cost several
- * thousand more blocks, so it is a wall around sealed air. It is not climbable and there is no shaft:
- * a vertical shaft with a ladder is already the sewer's entrance, and reusing that verb would make the
- * two structures read as the same thing.
+ * <p><b>No way in.</b> The shell is a ring with no opening, which is what a real chimney is - a flue,
+ * not a room. Drawing it solid would read the same from outside and cost several thousand more blocks.
+ * It is not climbable and there is no shaft: a vertical shaft with a ladder is already the sewer's
+ * entrance, and reusing that verb would make the two structures read as the same thing.
+ *
+ * <p><b>The flue is not quite empty, and that is a knowing exception.</b> #308 rules that these hold
+ * nothing, and a standing stack has a lit campfire buried in it to make the smoke the owner asked for
+ * (see {@link #light}). That is two charcoal to anyone who tunnels forty blocks up a sealed chimney for
+ * it. It is the cheapest vanilla source of a tall plume, and the obvious alternative - a hay bale under
+ * the fire - would have been nine wheat, so the exception is taken deliberately and at the smallest
+ * size available rather than by accident.
  *
  * <p>Everything is derived from the bounding box, for the reason {@link CoolingTowerPiece} gives: a
  * piece is stored as its box and rebuilt from it, so a shape held in a field comes back wrong.
@@ -46,7 +52,8 @@ public class SmokestackPiece extends StructurePiece {
      * <p><b>Slenderness is the whole silhouette, and the first pass got it wrong.</b> At radius 3.4 and
      * 25 to 40 tall the ratio was about four to one, which generated a stubby brick tower that read as
      * a keep rather than a chimney. A real industrial stack is nearer ten to one. Narrower and taller
-     * puts this around eight, which is what makes it recognisable at the distance it is seen from.
+     * puts it between about six at the shortest and nine at the tallest, which is what makes it
+     * recognisable at the distance it is seen from.
      */
     private static final double BASE_RADIUS = 2.6;
 
@@ -58,6 +65,9 @@ public class SmokestackPiece extends StructurePiece {
 
     /** How much of a felled stack is left standing as a stump. */
     private static final int STUMP_ROWS = 5;
+
+    /** How far below the stump a fallen section will follow the ground. Also how far the box reaches. */
+    private static final int GROUND_SEARCH_DOWN = 6;
 
     /**
      * Where the stack stands, which is NOT the centre of the box.
@@ -98,12 +108,12 @@ public class SmokestackPiece extends StructurePiece {
     }
 
     /**
-     * 25 to 40 tall, and the box is only as big as this particular stack needs.
+     * 30 to 48 tall, and the box is only as big as this particular stack needs.
      *
      * <p><b>The box has to cover the fallen length, because a piece may only write inside its own box</b>
      * - a stack that fell outside it would be sheared off at the edge with nothing said. But a square
-     * of plus-or-minus the height in every direction, which is the easy way to guarantee that, is a
-     * ninety block box for a nine block chimney. That matters beyond tidiness: {@code beard_thin}
+     * of plus-or-minus the height in every direction, which is the easy way to guarantee that, is a box
+     * nearly a hundred across for a chimney six wide. That matters beyond tidiness: {@code beard_thin}
      * terrain adaptation works on the bounding box, so an oversized one would flatten the yard in a
      * wide circle around every stack.
      *
@@ -119,8 +129,11 @@ public class SmokestackPiece extends StructurePiece {
         double angle = fallAngle(x, z);
         int endX = x + (int) Math.round(Math.cos(angle) * (height + BASE_RADIUS));
         int endZ = z + (int) Math.round(Math.sin(angle) * (height + BASE_RADIUS));
+        // A FELLED STACK REACHES BELOW ITS FOOT. Sections follow the ground under them and that search
+        // goes GROUND_SEARCH_DOWN below the stump, so the box goes there too: a piece may only write
+        // inside its own box, and beard_thin adapts terrain from box.minY().
         return new BoundingBox(
-            Math.min(x, endX) - foot, base, Math.min(z, endZ) - foot,
+            Math.min(x, endX) - foot, base - GROUND_SEARCH_DOWN, Math.min(z, endZ) - foot,
             Math.max(x, endX) + foot, base + height - 1, Math.max(z, endZ) + foot);
     }
 
@@ -241,21 +254,31 @@ public class SmokestackPiece extends StructurePiece {
             double r = BASE_RADIUS + (TOP_RADIUS - BASE_RADIUS) * (along / (double) Math.max(1, height - 1));
             int lx = cx + (int) Math.round(ux * (along + BASE_RADIUS));
             int lz = cz + (int) Math.round(uz * (along + BASE_RADIUS));
-            int span = (int) Math.ceil(r) + 1;
-            for (int dy = 0; dy <= span; dy++) {
-                for (int side = -span; side <= span; side++) {
+            int across = (int) Math.ceil(r) + 1;
+            // THE DISC IS 2r TALL, NOT r. It is a ring centred at dy = r with radius r, so it runs from
+            // the ground to twice the radius. Bounding the vertical sweep by the horizontal one sliced
+            // the crown off every section near the stump, which reads as an open trough rather than
+            // as pipe.
+            int tall = (int) Math.ceil(2 * r) + 1;
+            for (int side = -across; side <= across; side++) {
+                int px = lx + (int) Math.round(-uz * side);
+                int pz = lz + (int) Math.round(ux * side);
+                // ONE GROUND LOOKUP PER COLUMN, HOISTED OUT OF THE dy LOOP ON PURPOSE. Calling it per
+                // block reads the bricks this same piece laid a moment earlier: the block at dy=0
+                // becomes the ground for dy=1, which lands at dy=2 leaving a hole, and by dy=4 the
+                // column is four blocks clear of anything. The fix for floating blocks was creating
+                // them.
+                int ground = groundAt(level, limit, px, pz, baseY);
+                for (int dy = 0; dy <= tall; dy++) {
                     // A disc standing up across the fall line: the section seen end-on.
                     double d = Math.sqrt(side * side + (dy - r) * (dy - r));
                     if (d > r || d < r - 1.35) {
                         continue;
                     }
-                    int px = lx + (int) Math.round(-uz * side);
-                    int pz = lz + (int) Math.round(ux * side);
-                    // LAY IT ON THE GROUND UNDER IT, not on the ground under the stump. The yard is
-                    // not flat - it has rubble piles and mounds - so a section forty blocks out lands
-                    // at a different height, and using the stump's would hang the far end in the air
-                    // or bury it. A fallen chimney rests on whatever is beneath it.
-                    put(level, limit, px, groundAt(level, limit, px, pz, baseY) + dy, pz, brick);
+                    // LAY IT ON THE GROUND UNDER IT, not on the ground under the stump. The yard has
+                    // rubble piles and mounds, so a section forty blocks out lands at a different
+                    // height, and using the stump's would hang the far end in the air or bury it.
+                    put(level, limit, px, ground + dy, pz, brick);
                 }
             }
         }
@@ -269,7 +292,7 @@ public class SmokestackPiece extends StructurePiece {
      * old behaviour and is right for flat ground.
      */
     private static int groundAt(WorldGenLevel level, BoundingBox limit, int x, int z, int around) {
-        for (int y = around + 4; y >= around - 6; y--) {
+        for (int y = around + 4; y >= around - GROUND_SEARCH_DOWN; y--) {
             BlockPos at = new BlockPos(x, y, z);
             if (!limit.isInside(at)) {
                 continue;

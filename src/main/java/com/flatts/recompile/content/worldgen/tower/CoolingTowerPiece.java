@@ -137,6 +137,34 @@ public class CoolingTowerPiece extends StructurePiece {
         silt(level, limit, cx, cz, baseY, baseRadius);
     }
 
+    /** Whether the shell stands at this column and layer, band test and all. */
+    static boolean occupied(int t, int height, double baseRadius, int dx, int dz, int cx, int cz,
+            int baseY, double tearAngle, double tearSpan, int tearBottom, int tearTop) {
+        if (t < 0 || t >= height) {
+            return false;
+        }
+        double r = radiusAt(t, height, baseRadius);
+        double slope = Math.abs(radiusAt(t + 1, height, baseRadius) - r);
+        if (Math.abs(Math.sqrt(dx * dx + dz * dz) - r) > 0.5 + slope / 2.0) {
+            return false;
+        }
+        return standsHere(t, height, dx, dz, tearAngle, tearSpan, tearBottom, tearTop,
+            cx + dx, baseY + t, cz + dz);
+    }
+
+    /** Whether any of the six face neighbours is also shell. */
+    private static boolean touchesSomething(int t, int height, double baseRadius, int dx, int dz,
+            int cx, int cz, int baseY, double tearAngle, double tearSpan, int tearBottom, int tearTop) {
+        int[][] around = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
+        for (int[] step : around) {
+            if (occupied(t + step[1], height, baseRadius, dx + step[0], dz + step[2], cx, cz, baseY,
+                    tearAngle, tearSpan, tearBottom, tearTop)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * {@code r = throat * sqrt(1 + (dy/c)^2)}, with c solved so r(0) is the base radius.
      *
@@ -220,20 +248,13 @@ public class CoolingTowerPiece extends StructurePiece {
                 if (Math.sqrt(dx * dx + dz * dz) > baseRadius - 1) {
                     continue;
                 }
-                double roll = hash(cx + dx, baseY, cz + dz);
+                double roll = RaggedRim.hash(cx + dx, baseY, cz + dz);
                 BlockState floor = roll < 0.45 ? Blocks.GRAVEL.defaultBlockState()
                                  : roll < 0.85 ? Blocks.SAND.defaultBlockState()
                                                : Blocks.COARSE_DIRT.defaultBlockState();
                 put(level, limit, cx + dx, baseY, cz + dz, floor);
             }
         }
-    }
-
-    /** A stable 0..1 from a position. Same block, same answer, on every regeneration. */
-    private static double hash(int x, int y, int z) {
-        long h = x * 3129871L ^ z * 116129781L ^ y * 7919L;
-        h = h * h * 42317861L + h * 11L;
-        return ((h >> 16) & 0xFFFF) / 65536.0;
     }
 
     private static void put(WorldGenLevel level, BoundingBox limit, int x, int y, int z, BlockState state) {
