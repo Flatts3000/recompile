@@ -130,6 +130,26 @@ public class CoolingTowerPiece extends StructurePiece {
 
         clearInterior(level, limit, cx, cz, baseY, height, baseRadius);
         silt(level, limit, cx, cz, baseY, baseRadius);
+
+        // A PARCHED SPAWNER ON THE BASIN FLOOR (owner, 2026-08-31), with a leather cap.
+        //
+        // AFTER clearInterior AND silt, NOT BEFORE. Both of those write the column this stands in -
+        // clearInterior sets it to air one block up, which is exactly here - so placing it earlier put
+        // a spawner in and then deleted it, with nothing to show for the trip but a missing feature.
+        //
+        // THE HAT IS NOT DECORATION. Parched is an AbstractSkeleton, so it burns in daylight, and a
+        // large part of this floor sees sky straight up the throat - Mob.burnUndead checks canSeeSky
+        // and the opening is directly overhead. Anything in the HEAD slot stops the ignite outright.
+        //
+        // A leather cap is damageable, so it takes a point of wear per burn tick and would eventually
+        // break and leave them burning; over the minutes a mob actually lives near a player that never
+        // arrives, and it keeps an unbreakable item out of the player's hands. One component makes it
+        // permanent if that turns out to be wrong.
+        //
+        // The basin is open, so the default spawn range of 4 is right here - unlike the chimney's.
+        Spawners.place(level, limit, new BlockPos(cx, baseY + 1, cz), "minecraft:parched", 4,
+            "recompile:equipment/sun_cap");
+
     }
 
     /** The band test on its own, so the layer radius can be hoisted out of the column loops. */

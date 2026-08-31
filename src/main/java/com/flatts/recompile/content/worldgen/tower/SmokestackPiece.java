@@ -172,6 +172,19 @@ public class SmokestackPiece extends StructurePiece {
         } else {
             drawStanding(level, limit, this.footX, this.footZ, baseY, height, 0, height);
             light(level, limit, this.footX, this.footZ, baseY, height);
+            // A HUSK SPAWNER SEALED IN THE FLUE (owner, 2026-08-31). The ring has no opening, so this
+            // does nothing at all until somebody breaks the brick - which is the point. A chimney that
+            // turns out to be full is a better reason to hit one with a pick than a chest would be.
+            //
+            // NO HAT, unlike the tower's. A husk is the zombie that does not burn: Husk.isSunSensitive
+            // returns false, so a leather cap on one would be cargo-culted from the other structure and
+            // would do nothing. It is also sealed in the dark regardless.
+            //
+            // SPAWN RANGE 1, NOT THE DEFAULT 4. The flue is about two and a half blocks across, and at
+            // range 4 most spawns that succeed land in the open outside the brick - so an untouched
+            // chimney would drip husks onto the yard, which is the exact opposite of sealed.
+            Spawners.place(level, limit, new BlockPos(this.footX, baseY + 1, this.footZ),
+                "minecraft:husk", 1, null);
         }
     }
 
