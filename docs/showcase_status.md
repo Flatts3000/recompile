@@ -9,7 +9,7 @@ resume point, not a design doc.
 | --- | --- |
 | `museum` | **Done and approved.** Six recovered masterworks over four loaded pedestals, landfill on the horizon. Ready for the CurseForge gallery |
 | `machine_wall` | **Done.** Sixteen machines in one plane plus the Separator, assembled by the game, standing in the dump |
-| `reclaim_before` / `reclaim_after` | **Done, and shot automatically.** Ground-anchored, standing in real terrain with the dump around them, HUD off, identical camera. `tools/shoot_reclaim.py` takes both without a keystroke |
+| `reclaim_before` / `reclaim_after` | **Done, and shot automatically.** Ground-anchored, standing in real terrain with the dump around them, HUD off, identical camera. `python tools/shoot_scenes.py` takes both without a keystroke - it defaults to the pair, because they are the two frames that must share a camera |
 
 ## Where the images go
 
@@ -19,15 +19,21 @@ resume point, not a design doc.
 python tools/prepare_gallery.py museum machine_wall   # crop to subject, fit under 2 MB, write the files
 ```
 
-Name the scenes you re-shot. A bare run is refused: PLAN's numbers are the gallery's upload order and
-several have drifted from what is actually uploaded, so processing the whole list writes duplicates
-into occupied slots rather than replacing them.
+Name the scenes you re-shot. A bare run is refused - not because the numbers are unsafe any more, but
+because every scene you name is re-cropped and re-encoded whether or not its capture moved, and a full
+rewrite is rarely what you meant. If the numbers ever drift out of step with the gallery again, the
+tool refuses to write into a slot another file holds and names the file holding it.
 
-Output lands in `docs/cf image gallery/`, numbered into the running order rather than appended.
-**The numbers are the gallery's order and the order is an argument:** theme first, because Theme Fit
-is the pillar this entry is weakest on and a judge skims the strip before reading a word. The museum
-leads, the reclamation pair follows as one beat, and the materials tier sits at the back. See
-`../mod-jam-2026/round_1_rewards_analysis.md`. **CurseForge rejects a gallery
+Output lands in `docs/cf image gallery/`, numbered into the gallery's upload order.
+
+**The order was an argument** - theme first, because Theme Fit is the pillar this entry is weakest on
+and a judge skims the strip before reading a word, and
+`../mod-jam-2026/round_1_rewards_analysis.md` asks for the artifacts in the first three images.
+**It is only half honoured.** On 2026-08-30 the numbers were reconciled against what is actually
+uploaded rather than the gallery being re-uploaded to match them: the world shot leads at 1, the museum
+holds 2 and the machine wall 3, so the artifacts are near the front - but the reclamation pair sits at
+19 and 20, at the back. Moving it forward means re-uploading every image after the insert point by
+hand. Worth revisiting only if the gallery is rebuilt from scratch. **CurseForge rejects a gallery
 image over 2 MB**, and the raw 1920x1080 captures are 1.5 to 2.6 MB, so this step is not optional.
 `_originals/` there is untracked and holds raw captures; only the numbered files are committed.
 

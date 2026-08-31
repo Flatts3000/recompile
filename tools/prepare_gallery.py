@@ -7,12 +7,10 @@ files in `docs/cf image gallery/`. The raw captures stay where they are: `_origi
 is deliberately untracked, and `run/` is gitignored, so this is the step that puts an image *in the
 project* rather than in a scratch directory.
 
-**IT WILL NOT RUN OVER EVERYTHING.** Naming at least one scene is required, and that is a guard rather
-than an interface preference: the numbers in PLAN are the gallery's upload order and several have
-drifted from what is actually uploaded, so a run over the whole list writes files into slots that are
-already occupied by something else. It deletes only the number-and-name it is about to write, so a
-duplicate lands quietly beside the original instead of replacing it. Until the numbers are reconciled
-against the live gallery, the safe unit of work is the scene you just re-shot.
+**NAME THE SCENES YOU RE-SHOT.** A bare run is refused. PLAN's numbers now match the live gallery, so
+this is no longer protecting you from drift - it is protecting the gallery from a full rewrite you did
+not ask for, since every scene named gets re-cropped and re-encoded whether or not its capture moved.
+If the numbers ever drift again, the slot guard below is what catches it.
 
 Three rules it enforces rather than trusts:
 
@@ -49,27 +47,34 @@ FULL = (0.0, 0.0, 1.0, 1.0)
 # One box for both reclamation frames. Do not split this into two constants.
 RECLAIM_CROP = (0.07, 0.09, 0.93, 0.80)
 
-# The numbers are the gallery's ORDER, and the order is an argument: theme first, because Theme Fit is
+# The numbers are the gallery's ORDER, and the order was an argument: theme first, because Theme Fit is
 # the pillar this entry is weakest on and a judge skims the strip before reading a word. See
-# ../mod-jam-2026/round_1_rewards_analysis.md. The rest of the gallery is numbered around these, so
-# changing a number here means renumbering there too.
+# ../mod-jam-2026/round_1_rewards_analysis.md, whose action 2 asks for the artifacts in the first three
+# images.
+#
+# THAT ARGUMENT IS ONLY HALF HONOURED NOW, and the trade should be visible rather than discovered.
+# Reconciling PLAN against the live gallery (2026-08-30) matched the numbers to what is actually
+# uploaded, rather than re-uploading the gallery to match PLAN. The museum survives at 2, so the
+# artifacts are still near the front; the reclamation pair does not, and sits at the back at 19 and 20.
+# Putting it back means re-uploading by hand every image after the insert point, which is the cost that
+# bought the numbers being true. Worth revisiting if the gallery is ever rebuilt from scratch.
 PLAN = [
     # RECONCILED against the live gallery 2026-08-30. These four had drifted: museum and machine_wall
     # named numbers that other images hold, and the reclamation pair claimed 2 and 3 while not being in
     # the gallery at all. The pair is being uploaded (owner), and it is appended rather than inserted -
     # a number here is the upload order, so putting the pair early would mean re-uploading every image
     # after it to keep the strip in step.
+    # Listed in gallery order, because eyeballing this list against the folder is how the next drift
+    # gets caught, and a list out of sequence makes that harder than it needs to be.
     ("museum", 2, (0.19, 0.10, 0.81, 1.0)),
     ("machine_wall", 3, (0.17, 0.20, 0.83, 1.0)),
-    ("reclaim_before", 19, RECLAIM_CROP),
-    ("reclaim_after", 20, RECLAIM_CROP),
-    # The sewers and the radioactive dump, appended rather than interleaved: a number here is the
-    # gallery's order, and inserting one in the middle means re-uploading every image after it.
     ("sewer_corridor", 14, FULL),
     ("sewer_sump", 15, (0.12, 0.04, 0.88, 0.78)),
     ("sewer_den", 16, FULL),
     ("radioactive_dump", 17, FULL),
     ("radioactive_museum", 18, (0.06, 0.26, 0.94, 1.0)),
+    ("reclaim_before", 19, RECLAIM_CROP),
+    ("reclaim_after", 20, RECLAIM_CROP),
 ]
 
 
@@ -107,8 +112,7 @@ def main() -> None:
         raise SystemExit(
             "name at least one scene: python tools/prepare_gallery.py <scene> [<scene> ...]\n"
             "  scenes: " + ", ".join(sorted(known)) + "\n"
-            "A run over all of them writes into gallery slots that are already occupied - see the "
-            "module docstring.")
+            "Naming the scene you re-shot is the unit of work - see the module docstring.")
     unknown = wanted - known
     if unknown:
         raise SystemExit("not a scene: " + ", ".join(sorted(unknown)) + "\n  scenes: "
@@ -119,6 +123,17 @@ def main() -> None:
     pair = {"reclaim_before", "reclaim_after"}
     if wanted & pair:
         wanted |= pair
+        # AND BOTH CAPTURES MUST EXIST BEFORE EITHER IS WRITTEN. Expanding the set is not enough on its
+        # own: the loop below skips a scene whose capture is missing and carries on, so a half-finished
+        # shoot would rewrite one frame from the new camera, print a skip for the other, exit 0, and
+        # leave a committed pair shot from two different cameras - the guarantee this guard exists to
+        # protect, defeated from underneath.
+        absent = sorted(n for n in pair if not (SHOTS / (n + ".png")).is_file())
+        if absent:
+            raise SystemExit(
+                "the reclamation pair is one unit, and " + ", ".join(absent) + " has no capture in "
+                + str(SHOTS) + ". Shoot both frames before writing either, or the two come from "
+                "different cameras.")
     for name, number, box in PLAN:
         if wanted and name not in wanted:
             continue
