@@ -75,6 +75,12 @@ PLAN = [
     ("radioactive_museum", 18, (0.06, 0.26, 0.94, 1.0)),
     ("reclaim_before", 19, RECLAIM_CROP),
     ("reclaim_after", 20, RECLAIM_CROP),
+    # The two landmarks (#307, #308). Both are silhouettes, so both are shot full frame with the
+    # horizon low - cropping in on either one throws away the thing that makes it work, which is how
+    # much sky it takes up from where a player would be standing.
+    ("cooling_tower", 21, FULL),
+    ("cooling_tower_inside", 22, FULL),
+    ("smokestack", 23, FULL),
 ]
 
 
