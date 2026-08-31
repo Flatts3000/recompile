@@ -93,8 +93,8 @@ thing was made.
 
 ![Scrap bins, each bound to one material, with barrels for the overflow.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/05-scrap-bins-and-barrels.png)
 
-Bins bind to whatever you put in them first. Stand them next to each other and they become one
-network, and everything you sort finds its own bin.
+A bin takes the first thing you put in it and nothing else after that. Stand a few side by side and
+everything you sort goes where it belongs.
 
 Later there are machines that do it while you are somewhere else. They have no screens. You drop
 things on them.
@@ -109,6 +109,9 @@ unless something holds the line: plants, then wet farmland, then trees.
 Trees hold it permanently. Getting a tree means a Tree Nursery, because no sapling can be found
 anywhere in this world.
 
+Once there is grass, leave bait on it and walk away. Nothing comes while you are standing there. What
+turns up depends on the bait and on what is growing around it.
+
 ## Down the manhole
 
 ![A sewer run. Leachate down the middle, dry brick either side, silt in the corners.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/14-sewer-corridor.png)
@@ -117,8 +120,7 @@ A square of pale concrete with a rusted plate in it. The plate comes up with a p
 ladder under it.
 
 Brick corridors with a channel of leachate down the middle. Mushrooms in the damp, silt in the
-corners, mossy brick at the waterline. The rooms are lit and the corridors are not, because dark is
-where things spawn.
+corners, mossy brick at the waterline. The rooms are lit. The corridors are not.
 
 ![The sump: standing leachate, no lamp, and a drowned spawner on the walkway.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/15-sewer-sump.png)
 
@@ -138,8 +140,7 @@ household objects that were quietly radioactive the whole time.
 
 ![Mill tailings, waste drums and uranium glass, with the finds behind.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/18-radioactive-museum.png)
 
-A radium dial clock. A smoke detector. Thoriated welding rods. Uranium glass, which goes on a
-pedestal rather than into a machine.
+A radium dial clock. A smoke detector. Thoriated welding rods. Uranium glass.
 
 Nothing out here grows back. You strip a dump and move to the next one.
 
@@ -155,7 +156,7 @@ slag your own furnace rakes off.
 
 ![The machine tier, built by stacking components on a core.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/03-machine-wall.png)
 
-You place a core and stack parts on it and it forms where it stands.
+The machines are multiblocks. You place a core, stack parts on it, and it forms where it stands.
 
 A trommel sorts. A separator divides. A pulverizer grinds. A kiln puts powder back together, which is
 the only machine here that builds rather than breaks. A cupola melts scrap into iron, and rakes off
@@ -165,21 +166,20 @@ slag while it does.
 
 ![Recovered paintings over pedestals holding found objects.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/02-museum.png)
 
-Six real paintings turn up in the rubbish, and a painting keeps its picture when you break it and hang
-it again. A puzzle cube in nine pieces. A toy car, a gold coin, a wrapped present, an avocado.
+You can pull a Van Gogh out of a bin bag. Six real paintings are down there, and the one you find is
+the one that goes on your wall. A puzzle cube in nine pieces, never together. A toy car, a gold coin,
+a wrapped present, an avocado.
 
-Amber comes out of the mounds with something caught in it. Read four of the same creature and you can
-make its spawn egg, which is the only way to get an animal here.
-
-Pedestals take any item and turn it over slowly.
+Amber turns up with something caught in it. Read four of the same creature and you have its spawn
+egg.
 
 ## Worth knowing
 
-- Alpha, and in active development. Drop rates and recipe costs are first-pass.
-- Worldgen changes need a new world. An existing save keeps the ground it generated with.
+- Alpha, and still being worked on. The numbers are not balanced yet.
+- Start a new world when you update. New regions do not appear in one you have already been to.
 - The End is closed. The Nether is not.
-- Works with **AE2**, **Powah**, **Simple Magnets** and **Ender IO**, each of which has something in
-  this world it cannot otherwise start from. None of them are required.
+- Works with **AE2**, **Powah**, **Simple Magnets** and **Ender IO**. Each of them needs something
+  this world does not hand out, and each has a way in here. None of them are required.
 - **JEI** and **Jade** plugins, and an in-game guidebook with 3D multiblock pages.
 
 ## Links
