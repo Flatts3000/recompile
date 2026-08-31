@@ -1,5 +1,8 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
+import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCItems;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -11,6 +14,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
@@ -133,6 +137,112 @@ final class JadeDataTests {
             helper.assertTrue(charged.getIntOr("capacity", 0) >= charged.getIntOr("stored", 0),
                 "capacity " + charged.getIntOr("capacity", 0) + " is below stored "
                     + charged.getIntOr("stored", 0) + ", so the bar would render over-full");
+            helper.succeed();
+        });
+
+        // THE MACHINES THE SWEEP ABOVE CANNOT REACH, which is most of them.
+        //
+        // `every_powered_machine_reports_real_numbers_to_jade` derives its list from powered multiblock
+        // cores, so it covers exactly three providers - Separator, Trommel, Pulverizer - and those three
+        // are the only ones in compat/jade at 100%. Five more IServerDataProvider classes exist and none
+        // of them was ever run: the Scrap Bin, the Workbench, the generators, the Compost Heap and the
+        // Tree Nursery. A derived list is the right shape and it still only derives the set somebody
+        // thought of, which is the same failure the Pulverizer's missing providers were.
+        //
+        // These are the blocks with the LEAST to fall back on. A Separator at least has a power bar to
+        // look at; a Scrap Bin's contents and a Workbench's racked tools exist nowhere else in the UI at
+        // all, so a provider that writes nothing is a block that cannot be read.
+        RCGameTests.test("the_unpowered_machines_report_to_jade_too", 60, helper -> {
+            helper.assertTrue(jadePresent(),
+                "Jade is not on the GameTest classpath, so this test would pass without checking "
+                    + "anything");
+
+            record Subject(String provider, Block block, boolean formed, String why) { }
+            List<Subject> subjects = List.of(
+                new Subject("ScrapBinDataProvider", RCBlocks.SCRAP_BIN.get(), false,
+                    "a bound bin's contents and fill level are on no other surface"),
+                // NOT the Workbench - see the loop below. An empty bench correctly reports nothing,
+                // so it needs a tool racked first and cannot be driven by a bare setBlock.
+
+                new Subject("GeneratorDataProvider", RCBlocks.SOLAR_PANEL.get(), false,
+                    "a solar panel has no screen, so its charge is Jade or nothing"),
+                new Subject("CompostHeapDataProvider", RCBlocks.COMPOST_HEAP.get(), true,
+                    "layer count is the whole state of a compost heap"),
+                new Subject("TreeNurseryDataProvider", RCBlocks.TREE_NURSERY.get(), true,
+                    "water and fertiliser levels, which its screen shows only while open"));
+
+            List<String> gaps = new ArrayList<>();
+            for (Subject subject : subjects) {
+                BlockPos probe = new BlockPos(1, 1, 1);
+                BlockState state = subject.block().defaultBlockState();
+                if (subject.formed()) {
+                    // FORMED IS A BLOCKSTATE, NOT A STRUCTURE - see MultiblockCoreBlock. Both of these
+                    // providers bail on an unformed core, deliberately, so without this they would be
+                    // "covered" by a test that only ever exercised the early return.
+                    state = state.setValue(MultiblockCoreBlock.FORMED, true);
+                }
+                helper.setBlock(probe, state);
+                BlockPos abs = helper.absolutePos(probe);
+                BlockEntity be = helper.getLevel().getBlockEntity(abs);
+                if (be == null) {
+                    gaps.add(subject.provider() + ": " + idOf(subject.block()) + " has no BlockEntity");
+                    helper.setBlock(probe, net.minecraft.world.level.block.Blocks.AIR);
+                    continue;
+                }
+
+                CompoundTag data = serverData(subject.provider(), helper.getLevel(), abs, be);
+                if (data == null) {
+                    gaps.add(subject.provider() + " is missing or does not implement the interface");
+                } else if (data.isEmpty()) {
+                    gaps.add(subject.provider() + " wrote nothing, so " + idOf(subject.block())
+                        + " cannot explain itself - " + subject.why());
+                }
+                helper.setBlock(probe, net.minecraft.world.level.block.Blocks.AIR);
+            }
+
+            // THE WORKBENCH, SEPARATELY, BECAUSE AN EMPTY ONE IS SUPPOSED TO SAY NOTHING.
+            //
+            // WorkbenchDataProvider writes a durability pair per racked tool and skips a slot that is
+            // empty or holds something undamageable - so a bare bench reports an empty tag, correctly.
+            // The first version of this test swept it with the others and failed, which was the test
+            // being wrong rather than the provider: what it had actually proved was that the empty
+            // path returns nothing, which is the one behaviour not worth asserting. Racking a knife
+            // exercises the branch that has something to say.
+            BlockPos benchPos = new BlockPos(3, 1, 1);
+            helper.setBlock(benchPos, RCBlocks.RECOMPILE_WORKBENCH.get());
+            BlockPos benchAbs = helper.absolutePos(benchPos);
+            if (helper.getLevel().getBlockEntity(benchAbs)
+                    instanceof com.flatts.recompile.content.block.entity
+                        .RecompileWorkbenchBlockEntity bench) {
+                CompoundTag bare = serverData("WorkbenchDataProvider", helper.getLevel(), benchAbs,
+                    bench);
+                helper.assertTrue(bare != null && bare.isEmpty(),
+                    "an empty Workbench reported " + bare + ". Nothing is racked, so there is nothing "
+                        + "to say, and inventing a number here would draw a durability bar for a tool "
+                        + "that is not there");
+
+                var player = helper.makeMockServerPlayerInLevel();
+                player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+                bench.rackTool(helper.getLevel(), player,
+                    new net.minecraft.world.item.ItemStack(RCItems.SCRAP_KNIFE.get()));
+                CompoundTag racked = serverData("WorkbenchDataProvider", helper.getLevel(), benchAbs,
+                    bench);
+                helper.assertTrue(racked != null && racked.getIntOr("knife_max", 0) > 0,
+                    "a Workbench with a Scrap Knife racked reported " + racked + ", so the one surface "
+                        + "that shows which tools are on the bench shows nothing. Which tools are "
+                        + "racked decides which teardowns will run");
+                helper.assertTrue(racked.getIntOr("knife_rem", -1) >= 0
+                        && racked.getIntOr("knife_rem", -1) <= racked.getIntOr("knife_max", 0),
+                    "the knife's remaining durability (" + racked.getIntOr("knife_rem", -1)
+                        + ") is outside 0.." + racked.getIntOr("knife_max", 0)
+                        + ", so the bar it draws is meaningless");
+            } else {
+                gaps.add("the Workbench has no BlockEntity to report from");
+            }
+            helper.setBlock(benchPos, net.minecraft.world.level.block.Blocks.AIR);
+
+            helper.assertTrue(gaps.isEmpty(),
+                "Jade is the only feedback these blocks have, and these are silent: " + gaps);
             helper.succeed();
         });
     }

@@ -43,6 +43,29 @@ argued with.
 - Gradle does not honour command-line order for tasks with no declared relationship, so `coverageReport`
   could run before either test task had written anything. It now `mustRunAfter` both.
 
+## The numbers, 2026-08-31 (post-v0.16.0)
+
+| | line | branch |
+|---|---|---|
+| Merged, both layers | **71.6%** | 57.4% |
+| JUnit layer alone | 23.3% | 3.4% |
+| **Actionable** (minus what neither layer can reach) | **77.4%** | - |
+
+Up from 70.6% / 55.2% at v0.14.0, across two releases that added the landmarks, cardboard, the
+Sequencer and the resin chain - so the suite kept pace with the code rather than being diluted by it.
+
+**What the 2026-08-31 COVER pass changed.** `compat/jade` went from 28.4% to 34.8%. It was the largest
+gap either layer could actually reach, and the reason it existed is worth keeping: `JadeDataTests`
+derives its subjects from powered multiblock cores, so it covered exactly three providers - Separator,
+Trommel, Pulverizer, the only three at 100% - and five more `IServerDataProvider` classes had never
+been run at all. A derived list is the right shape and it still only derives the set somebody thought
+of, which is the same failure the Pulverizer's missing providers were.
+
+**What is still uncovered, on purpose:** `compat/jei` (443 lines), `client` (258) and `client/gui`
+(153) are client-render code neither layer can reach - that is what the actionable row subtracts, and
+`tools/shoot_screens.py` plus `tools/shoot_guidebook.py` are the evidence for them instead. Jade's
+`IBlockComponentProvider` half is in the same position: it draws, so it is only checkable by looking.
+
 ## The numbers, 2026-08-20 (post-v0.14.0)
 
 All three rows share one denominator - 9847 lines, `src/main/java` minus `gametest` - so they can be
