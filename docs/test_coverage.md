@@ -43,6 +43,28 @@ argued with.
 - Gradle does not honour command-line order for tasks with no declared relationship, so `coverageReport`
   could run before either test task had written anything. It now `mustRunAfter` both.
 
+## The numbers, 2026-08-31 (post-v0.16.0)
+
+| | line | branch |
+|---|---|---|
+| Merged, both layers | **71.8%** | 57.6% |
+| JUnit layer alone | 23.3% | 3.4% |
+| **Actionable** (minus what neither layer can reach) | **77.4%** | - |
+
+Up from 70.6% / 55.2% at v0.14.0, across two releases that added the landmarks, cardboard, the
+Sequencer and the resin chain - so the suite kept pace with the code rather than being diluted by it.
+
+**What the 2026-08-31 COVER pass changed.** `compat/jade` went from 28.4% to 37.8%. It was the largest
+gap either layer could actually reach, and the reason it existed is worth keeping: `JadeDataTests`
+derives its subjects from powered multiblock cores, so it covered exactly three providers - Separator,
+Trommel, Pulverizer, the only three at 100% - and five more `IServerDataProvider` classes had never
+been run at all. A derived list is the right shape and it still only derives the set somebody thought
+of, which is the same failure the Pulverizer's missing providers were.
+
+**What is still uncovered, on purpose:** the client-render code, counted once under *What neither
+layer can reach* below rather than restated here. Jade's `IBlockComponentProvider` half belongs with
+it: it draws, so it is only checkable by looking.
+
 ## The numbers, 2026-08-20 (post-v0.14.0)
 
 All three rows share one denominator - 9847 lines, `src/main/java` minus `gametest` - so they can be
@@ -79,13 +101,15 @@ directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
-771 lines, all at 0%, and they are excluded from the actionable figure rather than counted as debt:
+**854 lines as of 2026-08-31**, all at 0%, excluded from the actionable figure rather than counted as
+debt. *(These grow with the code; they were 771 at v0.14.0. This is the one place they are stated -
+anywhere else that quotes a total is a second source waiting to drift from this one.)*
 
-- **`client/**` (395 lines: `client` 242 plus `client/gui` 153)** - screens, the GUI framework's rendering visitor, the one
+- **`client/**` (411 lines: `client` 258 plus `client/gui` 153)** - screens, the GUI framework's rendering visitor, the one
   BlockEntityRenderer. A GameTest server has no client and JUnit loads none. `CLAUDE.md` already says
   screens are the layer both test layers are blind to; `python tools/shoot_screens.py` against a
   running `runClient` is the acceptance evidence for them, not a coverage number.
-- **`compat/jei` (376 lines)** - categories and renderers. JEI's own registration only happens
+- **`compat/jei` (443 lines)** - categories and renderers. JEI's own registration only happens
   client-side. `SortingData` is the server-safe half and is covered by `SortingDataTests`, which is
   exactly why that split exists.
 

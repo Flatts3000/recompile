@@ -1,5 +1,8 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.content.block.multiblock.MultiblockCoreBlock;
+import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCItems;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -11,6 +14,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
@@ -135,6 +139,262 @@ final class JadeDataTests {
                     + charged.getIntOr("stored", 0) + ", so the bar would render over-full");
             helper.succeed();
         });
+
+        // THE MACHINES THE SWEEP ABOVE CANNOT REACH, which is most of them.
+        //
+        // `every_powered_machine_reports_real_numbers_to_jade` derives its list from powered multiblock
+        // cores, so it covers exactly three providers - Separator, Trommel, Pulverizer - and those three
+        // are the only ones in compat/jade at 100%. Five more IServerDataProvider classes exist and none
+        // of them was ever run: the Scrap Bin, the Workbench, the generators, the Compost Heap and the
+        // Tree Nursery. A derived list is the right shape and it still only derives the set somebody
+        // thought of, which is the same failure the Pulverizer's missing providers were.
+        //
+        // These are the blocks with the LEAST to fall back on. A Separator at least has a power bar to
+        // look at; a Scrap Bin's contents and a Workbench's racked tools exist nowhere else in the UI at
+        // all, so a provider that writes nothing is a block that cannot be read.
+        RCGameTests.test("every_server_data_provider_has_a_subject_and_writes", 80, helper -> {
+            helper.assertTrue(jadePresent(),
+                "Jade is not on the GameTest classpath, so this test would pass without checking "
+                    + "anything");
+
+            record Subject(String provider, Block block, boolean formed, String why) { }
+            List<Subject> subjects = List.of(
+                new Subject("GeneratorDataProvider", RCBlocks.BURNER_GENERATOR.get(), false,
+                    "burn time remaining, which nothing else reports"),
+                new Subject("GeneratorDataProvider", RCBlocks.SEQUENCER.get(), false,
+                    "the Sequencer is the provider's third branch and shares none of the other two"),
+                new Subject("ScrapBinDataProvider", RCBlocks.SCRAP_BIN.get(), false,
+                    "a bound bin's contents and fill level are on no other surface"),
+                // NOT the Workbench - see the loop below. An empty bench correctly reports nothing,
+                // so it needs a tool racked first and cannot be driven by a bare setBlock.
+
+                new Subject("GeneratorDataProvider", RCBlocks.SOLAR_PANEL.get(), false,
+                    "a solar panel has no screen, so its charge is Jade or nothing"),
+                new Subject("CompostHeapDataProvider", RCBlocks.COMPOST_HEAP.get(), true,
+                    "layer count is the whole state of a compost heap"),
+                new Subject("TreeNurseryDataProvider", RCBlocks.TREE_NURSERY.get(), true,
+                    "water and fertiliser levels, which its screen shows only while open"));
+
+            List<String> gaps = new ArrayList<>();
+            for (Subject subject : subjects) {
+                BlockPos probe = new BlockPos(1, 1, 1);
+                BlockState state = subject.block().defaultBlockState();
+                if (subject.formed()) {
+                    // FORMED IS A BLOCKSTATE, NOT A STRUCTURE - see MultiblockCoreBlock. Both of these
+                    // providers bail on an unformed core, deliberately, so without this they would be
+                    // "covered" by a test that only ever exercised the early return.
+                    state = state.setValue(MultiblockCoreBlock.FORMED, true);
+                }
+                helper.setBlock(probe, state);
+                BlockPos abs = helper.absolutePos(probe);
+                BlockEntity be = helper.getLevel().getBlockEntity(abs);
+                if (be == null) {
+                    gaps.add(subject.provider() + ": " + idOf(subject.block()) + " has no BlockEntity");
+                    helper.setBlock(probe, net.minecraft.world.level.block.Blocks.AIR);
+                    continue;
+                }
+
+                // BIND THE BIN BEFORE READING IT. Its subject line says "a bound bin's contents", and
+                // an unbound bin has boundMaterial null - so the branch that names the material, which
+                // exists precisely because the blockstate cannot express a modded binding, was the one
+                // thing about this provider not being exercised.
+                if (be instanceof com.flatts.recompile.content.block.entity.ScrapBinBlockEntity bin) {
+                    bin.deposit(new net.minecraft.world.item.ItemStack(RCItems.SCRAP_METAL.get(), 8));
+                }
+
+                CompoundTag data = serverData(subject.provider(), helper.getLevel(), abs, be);
+                if (data == null) {
+                    gaps.add(subject.provider() + " is missing or does not implement the interface");
+                } else if (data.isEmpty()) {
+                    gaps.add(subject.provider() + " wrote nothing, so " + idOf(subject.block())
+                        + " cannot explain itself - " + subject.why());
+                } else if (be instanceof com.flatts.recompile.content.block.entity.ScrapBinBlockEntity
+                        && !data.contains("material")) {
+                    gaps.add("a bound Scrap Bin reported no material, so a bin holding a modded item "
+                        + "is unreadable - the blockstate cannot name it and this is the only thing "
+                        + "that can");
+                }
+                helper.setBlock(probe, net.minecraft.world.level.block.Blocks.AIR);
+            }
+
+            // THE WORKBENCH, SEPARATELY, BECAUSE AN EMPTY ONE IS SUPPOSED TO SAY NOTHING.
+            //
+            // WorkbenchDataProvider writes a durability pair per racked tool and skips a slot that is
+            // empty or holds something undamageable - so a bare bench reports an empty tag, correctly.
+            // The first version of this test swept it with the others and failed, which was the test
+            // being wrong rather than the provider: what it had actually proved was that the empty
+            // path returns nothing, which is the one behaviour not worth asserting. Racking a knife
+            // exercises the branch that has something to say.
+            BlockPos benchPos = new BlockPos(3, 1, 1);
+            helper.setBlock(benchPos, RCBlocks.RECOMPILE_WORKBENCH.get());
+            BlockPos benchAbs = helper.absolutePos(benchPos);
+            if (helper.getLevel().getBlockEntity(benchAbs)
+                    instanceof com.flatts.recompile.content.block.entity
+                        .RecompileWorkbenchBlockEntity bench) {
+                CompoundTag bare = serverData("WorkbenchDataProvider", helper.getLevel(), benchAbs,
+                    bench);
+                // TWO FAILURES, TWO MESSAGES. Folding these together made a missing provider class
+                // report as "an empty Workbench reported null", which sends the reader looking for an
+                // over-reporting provider when the class is simply gone. The loop above already
+                // separates them.
+                helper.assertTrue(bare != null,
+                    "WorkbenchDataProvider is missing or does not implement IServerDataProvider");
+                helper.assertTrue(bare.isEmpty(),
+                    "an empty Workbench reported " + bare + ". Nothing is racked, so there is nothing "
+                        + "to say, and inventing a number here would draw a durability bar for a tool "
+                        + "that is not there");
+
+                var player = helper.makeMockServerPlayerInLevel();
+                player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+                bench.rackTool(helper.getLevel(), player,
+                    new net.minecraft.world.item.ItemStack(RCItems.SCRAP_KNIFE.get()));
+                CompoundTag racked = serverData("WorkbenchDataProvider", helper.getLevel(), benchAbs,
+                    bench);
+                helper.assertTrue(racked != null && racked.getIntOr("knife_max", 0) > 0,
+                    "a Workbench with a Scrap Knife racked reported " + racked + ", so the one surface "
+                        + "that shows which tools are on the bench shows nothing. Which tools are "
+                        + "racked decides which teardowns will run");
+                helper.assertTrue(racked.getIntOr("knife_rem", -1) >= 0
+                        && racked.getIntOr("knife_rem", -1) <= racked.getIntOr("knife_max", 0),
+                    "the knife's remaining durability (" + racked.getIntOr("knife_rem", -1)
+                        + ") is outside 0.." + racked.getIntOr("knife_max", 0)
+                        + ", so the bar it draws is meaningless");
+            } else {
+                gaps.add("the Workbench has no BlockEntity to report from");
+            }
+            helper.setBlock(benchPos, net.minecraft.world.level.block.Blocks.AIR);
+
+            // THE resolve() FALLBACK, WHICH IS THE HALF THE SWEEP CANNOT REACH.
+            //
+            // CompostHeapDataProvider and TreeNurseryDataProvider both carry a resolve() that walks
+            // from a hovered DUMMY cell back to the core via MultiblockDummyBlock.findCore, so that
+            // hovering any face of an assembled machine reads the machine rather than only the one
+            // core cell. The sweep above hands the proxy the core's own BlockEntity, so resolve()
+            // short-circuits on its first instanceof and that walk never runs - it sat at zero while
+            // the provider read as covered. Pointing the proxy at a cell with no BlockEntity is what
+            // makes it take the branch.
+            BlockPos corePos = new BlockPos(1, 1, 3);
+            BlockState coreState = RCBlocks.COMPOST_HEAP.get().defaultBlockState()
+                .setValue(MultiblockCoreBlock.FORMED, true);
+            helper.setBlock(corePos, coreState);
+            // THE CELL COMES OFF THE BLUEPRINT, not off a guess. findCore only accepts a position the
+            // core's own blueprint claims, so a cage placed at an arbitrary offset is not a dummy
+            // cell as far as it is concerned - which is what the first version of this did, and it
+            // failed for that reason rather than for the one it reported.
+            MultiblockCoreBlock core = (MultiblockCoreBlock) RCBlocks.COMPOST_HEAP.get();
+            BlockPos coreAbs = helper.absolutePos(corePos);
+            BlockPos cellAbs = core.blueprint().cells().get(0)
+                .at(coreAbs, core.rotationFor(coreState));
+            CompoundTag viaDummy = serverData("CompostHeapDataProvider", helper.getLevel(),
+                cellAbs, null);
+            helper.assertTrue(viaDummy != null,
+                "CompostHeapDataProvider is missing or does not implement IServerDataProvider");
+            helper.assertTrue(!viaDummy.isEmpty(),
+                "hovering a Compost Cage reported nothing. resolve() is supposed to walk from a dummy "
+                    + "cell back to the core so any face of the heap reads the heap - if that walk is "
+                    + "broken, five of the machine's six faces go blank and the core still works, "
+                    + "which is exactly the shape that ships unnoticed");
+            helper.setBlock(corePos, net.minecraft.world.level.block.Blocks.AIR);
+
+            // AND EVERY PROVIDER THAT EXISTS IS IN THAT LIST, derived rather than trusted.
+            //
+            // The list above is hand-written, and the failure this whole test was added for is that
+            // the OTHER sweep's derived list only derived the set somebody had thought of. A
+            // hand-written one is worse at exactly the same thing, so it does not get to be the last
+            // word: this walks the compiled compat.jade package and fails on any IServerDataProvider
+            // with no subject. Add a tenth provider and the build tells you, rather than the class
+            // sitting at zero percent with everything green.
+            List<String> unclaimed = new ArrayList<>();
+            for (String provider : serverDataProviders()) {
+                boolean claimed = subjects.stream().anyMatch(sub -> sub.provider().equals(provider))
+                    || COVERED_ELSEWHERE.contains(provider);
+                if (!claimed) {
+                    unclaimed.add(provider);
+                }
+            }
+            helper.assertTrue(!serverDataProviders().isEmpty(),
+                "no IServerDataProvider classes were discovered at all, so this check is vacuous - "
+                    + "the package scan is broken, not the providers");
+            // AND THE OTHER DIRECTION, which matters more. The check above catches a registered
+            // provider nobody drives; this catches a provider we drive that is no longer REGISTERED -
+            // a class that still works when a test calls it by name and never runs in the game,
+            // because nothing wires it to a block. Unregistering ScrapBinDataProvider passed
+            // everything until this existed.
+            List<String> unwired = new ArrayList<>();
+            for (Subject subject : subjects) {
+                if (!serverDataProviders().contains(subject.provider())
+                        && !unwired.contains(subject.provider())) {
+                    unwired.add(subject.provider());
+                }
+            }
+            helper.assertTrue(unwired.isEmpty(),
+                unwired + " are driven by this test but registered against no block, so they run here "
+                    + "and never in the game. RecompileJadePlugin.register is what wires them");
+
+            helper.assertTrue(unclaimed.isEmpty(),
+                unclaimed + " implement IServerDataProvider and no test drives them. Either add a "
+                    + "Subject row or, if another test already covers it, name it in COVERED_ELSEWHERE "
+                    + "with the reason");
+
+            helper.assertTrue(gaps.isEmpty(),
+                "Jade is the only feedback these blocks have, and these are silent: " + gaps);
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Providers driven by {@code every_powered_machine_reports_real_numbers_to_jade} instead.
+     *
+     * <p>Named rather than skipped, so the sweep below stays a complete account of what is covered.
+     */
+    private static final List<String> COVERED_ELSEWHERE = List.of(
+        // Driven by every_powered_machine_reports_real_numbers_to_jade, which derives its subjects
+        // from powered multiblock cores.
+        "SeparatorDataProvider", "TrommelDataProvider", "PulverizerDataProvider",
+        // Driven by the Workbench block further down this same test rather than by the subject loop:
+        // an empty bench correctly writes nothing, so it needs a tool racked first and cannot be
+        // driven by a bare setBlock.
+        "WorkbenchDataProvider");
+
+    /**
+     * Every {@code IServerDataProvider} the mod actually registers, asked of the plugin itself.
+     *
+     * <p><b>Not a package scan, which was tried first and does not work here.</b> Listing the compiled
+     * {@code compat/jade} directory needs the classloader to hand back a {@code file:} URL, and
+     * moddev's does not - the sweep found nothing and only the "this cannot be vacuous" guard caught
+     * it. This is better anyway: registration is what decides whether a provider ever runs, so a class
+     * that exists and is never registered is exactly as dead as one that does not exist, and only this
+     * can see that.
+     *
+     * <p>The registration object is a {@link Proxy} that records what it is handed. It is the same
+     * trick as {@code serverData}'s accessor, for the same reason - the plugin asks it for one method
+     * and Jade's own implementation would drag in the rest of the mod's client half.
+     */
+    private static List<String> serverDataProviders() {
+        List<String> found = new ArrayList<>();
+        try {
+            Class<?> registrationType = Class.forName("snownee.jade.api.IWailaCommonRegistration");
+            Class<?> providerType = Class.forName("snownee.jade.api.IServerDataProvider");
+            Object recorder = Proxy.newProxyInstance(
+                JadeDataTests.class.getClassLoader(), new Class<?>[]{registrationType},
+                (InvocationHandler) (proxy, method, args) -> {
+                    if ("registerBlockDataProvider".equals(method.getName()) && args != null
+                            && args.length > 0 && providerType.isInstance(args[0])) {
+                        String simple = args[0].getClass().getSimpleName();
+                        if (!found.contains(simple)) {
+                            found.add(simple);
+                        }
+                    }
+                    return defaultFor(method.getReturnType());
+                });
+            Class<?> plugin = Class.forName(
+                "com.flatts.recompile.compat.jade.RecompileJadePlugin");
+            plugin.getMethod("register", registrationType)
+                .invoke(plugin.getDeclaredConstructor().newInstance(), recorder);
+        } catch (ReflectiveOperationException absent) {
+            return found;
+        }
+        return found;
     }
 
     // ---------------------------------------------------------------- plumbing
