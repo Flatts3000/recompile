@@ -63,6 +63,7 @@
     [
       "recompile:garbage_mound",
       "recompile:mycelium_patch",
+      "recompile:fenced_compound",
       "recompile:leachate_pool"
     ],
     []

@@ -670,5 +670,6 @@
   "block.recompile.cardboard_slab": "Cardboard Slab",
   "block.recompile.cardboard_stairs": "Cardboard Stairs",
   "block.recompile.cardboard_wall": "Cardboard Wall",
-  "block.recompile.cardboard_pile": "Cardboard Pile"
+  "block.recompile.cardboard_pile": "Cardboard Pile",
+  "block.recompile.chain_link_fence": "Chain-Link Fence"
 }

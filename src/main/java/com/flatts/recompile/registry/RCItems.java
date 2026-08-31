@@ -962,6 +962,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("cullet_glass", RCBlocks.CULLET_GLASS);
     public static final DeferredItem<BlockItem> CULLET_GLASS_PANE =
         ITEMS.registerSimpleBlockItem("cullet_glass_pane", RCBlocks.CULLET_GLASS_PANE);
+    public static final DeferredItem<BlockItem> CHAIN_LINK_FENCE =
+        ITEMS.registerSimpleBlockItem("chain_link_fence", RCBlocks.CHAIN_LINK_FENCE);
 
     /** Building blocks in creative-tab order (grouped by family: base, slab, stairs, wall/pane). */
     public static final List<DeferredItem<BlockItem>> BUILDING_BLOCKS = List.of(
@@ -970,7 +972,8 @@ public final class RCItems {
         CORRUGATED_METAL, CORRUGATED_METAL_SLAB, CORRUGATED_METAL_STAIRS, CORRUGATED_METAL_WALL,
         PLASTIC_PANEL, PLASTIC_PANEL_SLAB, PLASTIC_PANEL_STAIRS, PLASTIC_PANEL_WALL,
         CARDBOARD_BLOCK, CARDBOARD_SLAB, CARDBOARD_STAIRS, CARDBOARD_WALL,
-        CULLET_GLASS, CULLET_GLASS_PANE);
+        CULLET_GLASS, CULLET_GLASS_PANE,
+        CHAIN_LINK_FENCE);
 
     private RCItems() {
         // utility class

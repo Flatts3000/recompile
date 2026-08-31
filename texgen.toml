@@ -324,6 +324,29 @@ prompt = "a full-bleed Minecraft block face of a dense pressed cardboard panel, 
 # and open flaps; from the SIDE you see the stacked flattened edges. Deliberately loose and
 # untidy, because the crafted cardboard_block above is the tidy one and the pair has to read
 # as raw material next to finished material.
+# Chain-link fence (#310). PROCEDURAL, and not as a fallback: a diamond mesh is fixed geometry on a
+# regular pitch that also has to TILE, since a fence run is this one sprite repeated along a wall.
+# Both properties die in generate-then-downsample. See the toolkit's _chain_link for why the pitch is
+# 8 rather than 4. transparent = true with kind = "block" is the dump_mushroom case - the sprite has
+# to be see-through AND has to land in the blocks atlas the pane model reads.
+[surface.chain_link_fence]
+kind = "block"
+transparent = true
+backend = "procedural"
+size = 16
+prompt = "a galvanized chain-link fence mesh, diamond weave, seen face on against nothing"
+[surface.chain_link_fence.procedural]
+style = "chain_link"
+
+[surface.chain_link_fence_barbed]
+kind = "block"
+transparent = true
+backend = "procedural"
+size = 16
+prompt = "a galvanized chain-link fence mesh topped with strands of barbed wire"
+[surface.chain_link_fence_barbed.procedural]
+style = "chain_link_barbed"
+
 [surface.cardboard_pile]
 kind = "block_multiface"
 backend = "ai"

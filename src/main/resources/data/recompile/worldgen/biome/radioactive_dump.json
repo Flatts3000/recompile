@@ -106,7 +106,8 @@
     [],
     [],
     [
-      "recompile:radioactive_scatter"
+      "recompile:radioactive_scatter",
+      "recompile:fenced_compound"
     ],
     []
   ],

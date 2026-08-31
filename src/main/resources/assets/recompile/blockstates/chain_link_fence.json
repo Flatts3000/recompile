@@ -1,0 +1,172 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_post"
+      },
+      "when": {
+        "barbed": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_side"
+      },
+      "when": {
+        "barbed": "false",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_side",
+        "y": 90
+      },
+      "when": {
+        "barbed": "false",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_side_alt"
+      },
+      "when": {
+        "barbed": "false",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_side_alt",
+        "y": 90
+      },
+      "when": {
+        "barbed": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_noside"
+      },
+      "when": {
+        "barbed": "false",
+        "north": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_noside",
+        "y": 90
+      },
+      "when": {
+        "barbed": "false",
+        "east": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_noside_alt"
+      },
+      "when": {
+        "barbed": "false",
+        "south": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_noside_alt",
+        "y": 90
+      },
+      "when": {
+        "barbed": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_post"
+      },
+      "when": {
+        "barbed": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_side"
+      },
+      "when": {
+        "barbed": "true",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_side",
+        "y": 90
+      },
+      "when": {
+        "barbed": "true",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_side_alt"
+      },
+      "when": {
+        "barbed": "true",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_side_alt",
+        "y": 90
+      },
+      "when": {
+        "barbed": "true",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_noside"
+      },
+      "when": {
+        "barbed": "true",
+        "north": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_noside",
+        "y": 90
+      },
+      "when": {
+        "barbed": "true",
+        "east": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_noside_alt"
+      },
+      "when": {
+        "barbed": "true",
+        "south": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_noside_alt",
+        "y": 90
+      },
+      "when": {
+        "barbed": "true",
+        "west": "false"
+      }
+    }
+  ]
+}

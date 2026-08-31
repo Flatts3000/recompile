@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_glass_pane_side",
+  "textures": {
+    "edge": "recompile:block/chain_link_fence_barbed",
+    "pane": "recompile:block/chain_link_fence_barbed"
+  }
+}

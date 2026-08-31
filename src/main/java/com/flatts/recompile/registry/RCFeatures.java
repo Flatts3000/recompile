@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.LeachatePoolFeature;
 import com.flatts.recompile.content.worldgen.MechanicalWastePileFeature;
+import com.flatts.recompile.content.worldgen.FencedCompoundFeature;
 import com.flatts.recompile.content.worldgen.MoundFeature;
 import com.flatts.recompile.content.worldgen.MyceliumPatchFeature;
 import com.flatts.recompile.content.worldgen.RubblePileFeature;
@@ -24,6 +25,10 @@ public final class RCFeatures {
 
     public static final Supplier<Feature<NoneFeatureConfiguration>> GARBAGE_MOUND =
         FEATURES.register("garbage_mound", MoundFeature::new);
+
+    /** Fenced compounds, in every overworld biome (#310). */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> FENCED_COMPOUND =
+        FEATURES.register("fenced_compound", FencedCompoundFeature::new);
 
     /** Forageable mycelium patches with dump mushrooms (design P1.9). */
     public static final Supplier<Feature<NoneFeatureConfiguration>> MYCELIUM_PATCH =

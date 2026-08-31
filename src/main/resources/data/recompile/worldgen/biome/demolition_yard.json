@@ -101,7 +101,8 @@
       "recompile:rubble_pile",
       "recompile:mechanical_waste_pile",
       "recompile:steel_stack",
-      "recompile:building_husk"
+      "recompile:building_husk",
+      "recompile:fenced_compound"
     ],
     []
   ]

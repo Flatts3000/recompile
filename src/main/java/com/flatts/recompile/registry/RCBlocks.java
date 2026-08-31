@@ -11,6 +11,7 @@ import com.flatts.recompile.content.block.TrommelDrumBlock;
 import com.flatts.recompile.content.block.TrommelPartBlock;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.CardboardPileBlock;
+import com.flatts.recompile.content.block.ChainLinkFenceBlock;
 import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
 import com.flatts.recompile.content.block.SinteringKilnBlock;
@@ -1310,6 +1311,23 @@ public final class RCBlocks {
         "cullet_glass", TransparentBlock::new, RCBlocks::glassBuildProps);
     public static final DeferredBlock<IronBarsBlock> CULLET_GLASS_PANE = BLOCKS.registerBlock(
         "cullet_glass_pane", IronBarsBlock::new, RCBlocks::glassBuildProps);
+
+    /**
+     * Chain-link fence (#310): see-through, climbable, and the mod's first boundary.
+     *
+     * <p>Metal, so it takes the building tier's metal strength and sound - but deliberately NOT
+     * {@code requiresCorrectToolForDrops}, like every other building block here: reclaiming your own
+     * fence must not be punishing. {@code noOcclusion} because it is not a full cube, which is the
+     * trap that punches a hole in the world when it is forgotten.
+     */
+    public static final DeferredBlock<ChainLinkFenceBlock> CHAIN_LINK_FENCE = BLOCKS.registerBlock(
+        "chain_link_fence",
+        ChainLinkFenceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(1.5F)
+            .sound(SoundType.CHAIN)
+            .noOcclusion());
 
     // Scrap Torch (P1.4-A lighting): a rag torch that is a 1:1 reskin of the vanilla torch -
     // an oily rag (the trash-world "coal") lashed to a rebar. Light 14, no burn-out. The wall
