@@ -40,18 +40,27 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSeriali
  * cheapest vanilla source of a tall plume, where a hay bale under the fire would have been nine wheat.
  *
  * <p>It also has a husk spawner at the foot, and that one is not small. It reaches past the brick on
- * purpose, so walking by a chimney is an encounter rather than scenery. Vanilla husks drop iron on a
- * player kill, so the husk loot table is overridden here without that pool: this mod PLACES this
- * spawner, at a fixed point, in unlimited supply, and #91 is on record as an iron gate that died to a
- * route nobody had costed.
+ * purpose, so walking by a chimney is an encounter rather than scenery.
  *
- * <p><b>That closes what this structure adds and no more, and the difference matters.</b> It is not a
- * guarantee that iron cannot be farmed from mobs in the demolition yard, and reading it as one would be
- * wrong twice. The yard's biome already lists {@code minecraft:zombie} at weight 90 with its vanilla
- * table intact, so natural spawns drop iron there today and did before this structure existed. And a
- * husk submerged for 300 ticks converts to a zombie ({@code Husk.doUnderWaterConversion}), which is the
- * override walked around with a bucket. Whether the vanilla mob economy should be gated at all is a
- * design question rather than a defect in this piece, and it is filed rather than decided here (#318).
+ * <p><b>Its husks drop iron, and that is accepted rather than overlooked</b> (owner ruling on #318,
+ * 2026-08-31: the vanilla mob economy is out of scope for the iron gate). This shipped with a
+ * {@code minecraft:husk} loot table override stripping that pool, on the reasoning that a mod-placed
+ * spawner is an unlimited fixed-location farm and #91 is on record as an iron gate that died to a
+ * route nobody had costed. The override is gone, because it closed one hole in a wall with two others
+ * in it and therefore read as a guarantee it was not:
+ *
+ * <ul>
+ *   <li>The yard's biome lists {@code minecraft:zombie} at weight 90 - seventeen percent of its
+ *       monster spawns - with the vanilla table intact. Natural spawns dropped iron here before this
+ *       structure existed and still do.
+ *   <li>A husk submerged for 300 ticks becomes a zombie ({@code Husk.doUnderWaterConversion}), so the
+ *       override was walked around with a bucket.
+ * </ul>
+ *
+ * <p>The gate that actually holds is the machine one, and it is unaffected by any of this: both iron
+ * recipes are {@code minecraft:blasting} and the Cupola is the only blasting machine you can reach, so
+ * MANUFACTURING iron still needs the yard and the machine. A 2.5 percent player-kill drip is an
+ * informal route, not a bypass of that.
  *
  * <p>Everything is derived from the bounding box, for the reason {@link CoolingTowerPiece} gives: a
  * piece is stored as its box and rebuilt from it, so a shape held in a field comes back wrong.
