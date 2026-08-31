@@ -7,17 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:leather_helmet",
-          "functions": [
-            {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:equippable": {
-                  "slot": "head"
-                }
-              }
-            }
-          ]
+          "name": "minecraft:leather_helmet"
         }
       ]
     }

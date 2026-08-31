@@ -34,12 +34,16 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSeriali
  * It is not climbable and there is no shaft: a vertical shaft with a ladder is already the sewer's
  * entrance, and reusing that verb would make the two structures read as the same thing.
  *
- * <p><b>The flue is not quite empty, and that is a knowing exception.</b> #308 rules that these hold
- * nothing, and a standing stack has a lit campfire buried in it to make the smoke the owner asked for
- * (see {@link #light}). That is two charcoal to anyone who tunnels forty blocks up a sealed chimney for
- * it. It is the cheapest vanilla source of a tall plume, and the obvious alternative - a hay bale under
- * the fire - would have been nine wheat, so the exception is taken deliberately and at the smallest
- * size available rather than by accident.
+ * <p><b>The flue is not empty, and that is a knowing exception.</b> #308 rules that these hold nothing.
+ * A standing stack has a lit campfire buried in it to make the smoke the owner asked for (see
+ * {@link #light}) - two charcoal to anyone who tunnels forty blocks up a chimney for it, and the
+ * cheapest vanilla source of a tall plume, where a hay bale under the fire would have been nine wheat.
+ *
+ * <p>It also has a husk spawner at the foot, and that one is not small. It reaches past the brick on
+ * purpose, so walking by a chimney is an encounter rather than scenery. Vanilla husks drop iron on a
+ * player kill, so the husk loot table is overridden here without that pool - an unlimited iron farm at
+ * a chimney would route around the Cupola, which is the mod's iron gate, and #91 is on record as a
+ * gate that died exactly that way.
  *
  * <p>Everything is derived from the bounding box, for the reason {@link CoolingTowerPiece} gives: a
  * piece is stored as its box and rebuilt from it, so a shape held in a field comes back wrong.
@@ -172,19 +176,19 @@ public class SmokestackPiece extends StructurePiece {
         } else {
             drawStanding(level, limit, this.footX, this.footZ, baseY, height, 0, height);
             light(level, limit, this.footX, this.footZ, baseY, height);
-            // A HUSK SPAWNER SEALED IN THE FLUE (owner, 2026-08-31). The ring has no opening, so this
-            // does nothing at all until somebody breaks the brick - which is the point. A chimney that
-            // turns out to be full is a better reason to hit one with a pick than a chest would be.
+            // A HUSK SPAWNER AT THE FOOT OF THE FLUE (owner, 2026-08-31).
+            //
+            // NOT SEALED, AND THAT IS THE POINT. It first shipped clamped to a spawn range of 1 so the
+            // husks stayed inside the brick until a player broke in. That was wrong: it made the
+            // structure inert to anyone who simply walked past, which is most people. The default
+            // range of 4 reaches past the flue, so passing a chimney at any hour puts husks around
+            // you. The spawner needs no line of sight - it only measures distance to the player.
             //
             // NO HAT, unlike the tower's. A husk is the zombie that does not burn: Husk.isSunSensitive
             // returns false, so a leather cap on one would be cargo-culted from the other structure and
             // would do nothing. It is also sealed in the dark regardless.
-            //
-            // SPAWN RANGE 1, NOT THE DEFAULT 4. The flue is about two and a half blocks across, and at
-            // range 4 most spawns that succeed land in the open outside the brick - so an untouched
-            // chimney would drip husks onto the yard, which is the exact opposite of sealed.
             Spawners.place(level, limit, new BlockPos(this.footX, baseY + 1, this.footZ),
-                "minecraft:husk", 1, null);
+                "minecraft:husk", 4, null);
         }
     }
 

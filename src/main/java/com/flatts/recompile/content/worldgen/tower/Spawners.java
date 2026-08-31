@@ -36,13 +36,14 @@ final class Spawners {
     /**
      * Seal a spawner into the world at {@code pos}.
      *
-     * @param spawnRange how far from the spawner a mob may appear. <b>Not optional, and the default is
-     *                   wrong for anything enclosed.</b> {@code BaseSpawner} defaults to 4, and the
-     *                   candidate position is the spawner's own plus
-     *                   {@code (nextDouble() - nextDouble()) * range} per axis - so inside a chimney
-     *                   whose flue is about two and a half blocks across, most successful spawns land
-     *                   in the open air outside the brick. A structure that is supposed to do nothing
-     *                   until it is broken into instead drips mobs onto the yard.
+     * @param spawnRange how far from the spawner a mob may appear. The candidate position is the
+     *                   spawner's own plus {@code (nextDouble() - nextDouble()) * range} per axis, so
+     *                   inside a chimney whose flue is about two and a half blocks across, a range of
+     *                   4 puts most successful spawns in the open air outside the brick.
+     *                   <p><b>That is wanted rather than avoided</b> (owner, 2026-08-31): walking past
+     *                   a smokestack should put mobs around you. An earlier version clamped this to 1
+     *                   to keep them sealed in the flue until somebody broke in, and that was the
+     *                   wrong call - it made the structure inert to anyone who did not attack it.
      * @param equipment  a loot table for what the mob wears, or null.
      *                   <p><b>This goes in SpawnData rather than in the entity tag, and the difference
      *                   is a bow.</b> {@code BaseSpawner.serverTick} treats a spawn as unconfigured
@@ -53,6 +54,13 @@ final class Spawners {
      *                   picks its ranged goal. A Parched configured that way spawns empty-handed and
      *                   punches. The SpawnData field is applied after finalization instead, so it gets
      *                   both.
+     *                   <p><b>The table must not touch the item's equippable component.</b> A leather
+     *                   helmet already carries a complete one, and Mob.equip reads it to decide which
+     *                   slot the roll goes in. Writing a partial {@code equippable} through
+     *                   {@code set_components} - even one naming the right slot - replaces the real
+     *                   component, the slot lookup stops recognising it as headgear, and the cap ends
+     *                   up carried rather than worn. The mob then burns with the hat in its inventory,
+     *                   which is what shipped. Vanilla's own equipment tables only ever set trim.
      */
     static void place(WorldGenLevel level, BoundingBox limit, BlockPos pos, String entityId,
             int spawnRange, String equipment) {
@@ -75,6 +83,20 @@ final class Spawners {
 
         CompoundTag spawnData = new CompoundTag();
         spawnData.put("entity", entity);
+
+        // SPAWN AT ANY LIGHT LEVEL (owner, 2026-08-31), and this is not the freebie it looks like.
+        // A plain spawner is NOT exempt from the darkness check: EntitySpawnReason
+        // .ignoresLightRequirements is true only for TRIAL_SPAWNER, and the isSpawner carve-out in
+        // Monster.checkSurfaceMonstersSpawnRules waives sky VISIBILITY, not light. So without this both
+        // of these would sit dead through every day and only work at night, which is not what a
+        // landmark you walk up to in the afternoon should do.
+        //
+        // An empty custom_spawn_rules is the whole fix: both limits default to the full 0..15 range.
+        // Its presence is what matters - BaseSpawner uses it INSTEAD of
+        // SpawnPlacements.checkSpawnRules, so the light test is gone rather than widened. Note that
+        // takes the ground check with it, and noCollision is all that remains; a mob can appear in the
+        // air and drop, which in a dump is fine.
+        spawnData.put("custom_spawn_rules", new CompoundTag());
         if (equipment != null) {
             CompoundTag chances = new CompoundTag();
             chances.putFloat("head", 0.0F);
