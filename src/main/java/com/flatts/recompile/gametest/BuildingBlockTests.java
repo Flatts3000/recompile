@@ -105,5 +105,83 @@ final class BuildingBlockTests {
                 "the Cardboard Pile is not a sorting source, so JEI has nothing to show for cardboard");
             helper.succeed();
         });
+
+        // AND WORLDGEN ACTUALLY PLACES THEM, which is the half no amount of recipe checking reaches.
+        //
+        // FindRateTest proves the ARITHMETIC - that SURFACE_CARDBOARD_CHANCE works out at several
+        // piles a mound - and it would go on proving it if pickBlock never returned a pile at all.
+        // The two halves fail independently: a constant set to zero is caught there, a branch that
+        // never fires is caught here, and neither test sees the other's failure.
+        //
+        // This runs MoundFeature itself rather than reimplementing the placement rule, for the same
+        // reason ShellHasNoFloatersTest calls the tower's own flood fill: a test that copies the
+        // algorithm it is checking passes just as happily when the real one is wrong.
+        RCGameTests.test("mounds_generate_cardboard_piles", 100, helper -> {
+            var level = helper.getLevel();
+            var origin = helper.absolutePos(new BlockPos(0, 1, 0));
+
+            // A floor to build on. The feature only writes into air, so bare test-plot ground would
+            // let a mound land wherever and make the count meaningless.
+            for (int dx = -20; dx <= 20; dx++) {
+                for (int dz = -20; dz <= 20; dz++) {
+                    level.setBlock(origin.offset(dx, -1, dz),
+                        net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 2);
+                }
+            }
+
+            var feature = com.flatts.recompile.registry.RCFeatures.GARBAGE_MOUND.get();
+            int piles = 0;
+            int bags = 0;
+            int garbage = 0;
+            // ENOUGH MOUNDS TO BE A MEASUREMENT RATHER THAN A COIN FLIP. One mound at 10 percent of
+            // its surface could plausibly roll none; a dozen could not.
+            for (int seed = 0; seed < 12; seed++) {
+                for (int dx = -20; dx <= 20; dx++) {
+                    for (int dy = 0; dy <= 18; dy++) {
+                        for (int dz = -20; dz <= 20; dz++) {
+                            level.setBlock(origin.offset(dx, dy, dz),
+                                net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                        }
+                    }
+                }
+                feature.place(
+                    net.minecraft.world.level.levelgen.feature.configurations
+                        .NoneFeatureConfiguration.INSTANCE,
+                    level, level.getChunkSource().getGenerator(),
+                    net.minecraft.util.RandomSource.create(1000L + seed), origin);
+                for (int dx = -20; dx <= 20; dx++) {
+                    for (int dy = 0; dy <= 18; dy++) {
+                        for (int dz = -20; dz <= 20; dz++) {
+                            var state = level.getBlockState(origin.offset(dx, dy, dz));
+                            if (state.is(RCBlocks.CARDBOARD_PILE.get())) {
+                                piles++;
+                            } else if (state.is(RCBlocks.TRASH_BAG.get())) {
+                                bags++;
+                            } else if (state.is(RCBlocks.GARBAGE_BLOCK.get())) {
+                                garbage++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            helper.assertTrue(garbage > 0,
+                "no mound generated at all, so this measured nothing - the placement below would "
+                    + "have 'passed' against a feature that writes no blocks");
+            helper.assertTrue(piles > 0,
+                "twelve mounds generated " + garbage + " garbage blocks and " + bags + " trash bags "
+                    + "and not one cardboard pile, so cardboard has no source in the world however "
+                    + "well its recipes and its rate arithmetic check out");
+
+            // THE BAG IS THE YARDSTICK, not a fixed number. Both come out of one roll at 0.22 and
+            // 0.10, so piles should be roughly half the bags whatever the surface budget is retuned
+            // to; a bare count would need editing every time either dial moved. Wide band because
+            // twelve mounds is a small sample and this is guarding a branch, not a balance point.
+            helper.assertTrue(piles < bags,
+                "cardboard piles (" + piles + ") outnumber trash bags (" + bags + "), but they share "
+                    + "one roll with cardboard taking the smaller band - so either the bands are the "
+                    + "wrong way round or the roll is not shared any more");
+            helper.succeed();
+        });
     }
 }

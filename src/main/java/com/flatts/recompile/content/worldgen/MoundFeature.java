@@ -53,11 +53,17 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
      * independently would let the surface quietly fill up as materials are added, with each addition
      * looking free on its own.
      *
-     * <p>0.10 against the bag's 0.22, which is a handful of piles on a small mound and a dozen or
-     * more on a big one - common enough that a new player trips over cardboard before they have
-     * crafted anything, which is the entire point of the family.
+     * <p><b>0.05, against the bag's 0.22, and it was cut from 0.10 on sight</b> (owner, 2026-08-31:
+     * "that's way too much cardboard"). At 0.10 an average mound carried about 8 piles and a big one
+     * nearly 18 - a visible fraction of the surface, which is more presence than a background
+     * material has any business having. 0.05 gives about 4 on an average mound, under a quarter of
+     * the bags there, which is enough that a player meets cardboard on the first mound and not so
+     * much that mounds start reading as heaps of boxes.
+     *
+     * <p>One pile is worth roughly one Cardboard Block, so an average mound is about four blocks of
+     * cardboard. That is the number to think in when retuning this: it is walls per mound, not piles.
      */
-    public static final float SURFACE_CARDBOARD_CHANCE = 0.10F;
+    public static final float SURFACE_CARDBOARD_CHANCE = 0.05F;
 
     /**
      * What fraction of a surface cell is NOT a garbage block.

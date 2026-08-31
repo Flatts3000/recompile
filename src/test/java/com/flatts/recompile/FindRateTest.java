@@ -363,10 +363,20 @@ class FindRateTest {
         // boxes lying on the mound in front of them. Set SURFACE_CARDBOARD_CHANCE to 0.005 and every
         // other test in the repo still passes while the family quietly becomes late-game.
         double piles = averageCardboardPilesPerMound();
-        assertTrue(piles > 3.0,
+        assertTrue(piles > 2.0,
             "an average mound carries " + String.format("%.1f", piles) + " cardboard piles, which is "
                 + "not enough for a player to meet cardboard before they have crafted anything - and "
                 + "that is the only thing making this building family the early one");
+
+        // AND A CEILING, because the first number shipped was over it. 0.10 put about 8 piles on an
+        // average mound and nearly 18 on a big one, and the owner called it on sight from a single
+        // screenshot: "that's way too much cardboard". A background material that covers a tenth of
+        // every mound's surface is not a background material. Both edges are now written down, so
+        // the next retune has the band rather than one bound and a memory.
+        assertTrue(piles < 8.0,
+            "an average mound carries " + String.format("%.1f", piles) + " cardboard piles. Past "
+                + "about half a dozen the mounds stop reading as garbage with boxes on them and "
+                + "start reading as boxes, which is the failure this ceiling exists for");
 
         // AND IT MUST NOT EAT THE DUMP. Surface litter takes the cells garbage blocks would have had,
         // so every pile is a Block of Garbage that is not there, and every household rate this file
