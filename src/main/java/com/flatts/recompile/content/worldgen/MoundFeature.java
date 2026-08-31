@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.worldgen;
 
 import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.CardboardPileBlock;
 import com.flatts.recompile.content.block.MoundGroundBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
@@ -149,12 +150,47 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
             if (existing.getValue(MoundGroundBlock.HEIGHT) >= column + 1) {
                 return;
             }
-        } else if (!existing.isSolidRender() || existing.getBlock() instanceof SortableBlock
-                || existing.getBlock() instanceof BulkyWasteBlock) {
+        } else if (!existing.isSolidRender() || isMoundContent(existing)) {
             return;
         }
         level.setBlock(pos, RCBlocks.MOUND_GROUND.get().defaultBlockState()
             .setValue(MoundGroundBlock.HEIGHT, Math.min(column + 1, 16)), 2);
+    }
+
+    /**
+     * Whether this block is something a mound is MADE of, as opposed to ground a mound can sit on.
+     *
+     * <p><b>Extracted because the list went stale the first time it was extended, and silently.</b>
+     * It used to be two {@code instanceof} checks inline in {@link #writeBed} - SortableBlock and
+     * BulkyWasteBlock - which was complete only for as long as every mound block was one of those
+     * two things. The Cardboard Pile (#309) is neither: it is a plain {@link FallingBlock}, and it
+     * is a full opaque cube, so it passed {@code isSolidRender()} and fell straight through the
+     * guard. Mounds overlap by design, so a later mound's bed pass would have replaced a
+     * neighbour's cardboard pile with Mound Ground - destroying the pile AND planting a regrowth
+     * bed partway up a stack, which is precisely what {@code writeBed}'s own javadoc says it exists
+     * to prevent. Nothing would have been logged and nothing would have looked wrong until someone
+     * quarried that mound and watched it regrow from the middle.
+     *
+     * <p>{@code every_block_a_mound_places_is_recognised_as_mound_content} sweeps
+     * {@link #pickBlock}'s outputs against this, so the next variant fails the build instead.
+     */
+    public static boolean isMoundContent(BlockState state) {
+        return state.getBlock() instanceof SortableBlock
+            || state.getBlock() instanceof BulkyWasteBlock
+            || state.getBlock() instanceof CardboardPileBlock;
+    }
+
+    /**
+     * Every block {@link #pickBlock} can return, for the test that keeps
+     * {@link #isMoundContent} honest. Public only because the GameTests live in another package.
+     */
+    public static java.util.List<BlockState> everyMoundBlock() {
+        return java.util.List.of(
+            RCBlocks.TRASH_BAG.get().defaultBlockState(),
+            RCBlocks.CARDBOARD_PILE.get().defaultBlockState(),
+            RCBlocks.BULKY_WASTE.get().defaultBlockState(),
+            RCBlocks.COMPACTED_BALE.get().defaultBlockState(),
+            RCBlocks.GARBAGE_BLOCK.get().defaultBlockState());
     }
 
     /** Pick the block for a mound cell: bags on the surface, bales/bulky waste in the core. */

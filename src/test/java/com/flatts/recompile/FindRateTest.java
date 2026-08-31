@@ -327,6 +327,41 @@ class FindRateTest {
                 + "they are actually doing");
     }
 
+    /** What one Cardboard Pile drops, from {@code loot_table/blocks/cardboard_pile.json} itself. */
+    private static double averageCardboardPerPile() throws IOException {
+        JsonObject table;
+        try (InputStream in = FindRateTest.class.getResourceAsStream(
+                "/data/recompile/loot_table/blocks/cardboard_pile.json")) {
+            assertTrue(in != null, "cardboard_pile.json is not on the classpath");
+            table = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+                .getAsJsonObject();
+        }
+        double total = 0.0;
+        for (JsonElement poolElement : table.getAsJsonArray("pools")) {
+            for (JsonElement entryElement : poolElement.getAsJsonObject().getAsJsonArray("entries")) {
+                JsonObject entry = entryElement.getAsJsonObject();
+                if (!"recompile:cardboard".equals(entry.get("name").getAsString())) {
+                    continue;
+                }
+                // Default 1, so a table that loses its set_count reads as 1 rather than blowing up -
+                // and 1 is exactly the change this assertion has to catch.
+                double count = 1.0;
+                if (entry.has("functions")) {
+                    for (JsonElement fn : entry.getAsJsonArray("functions")) {
+                        JsonObject function = fn.getAsJsonObject();
+                        if ("minecraft:set_count".equals(function.get("function").getAsString())) {
+                            JsonObject range = function.getAsJsonObject("count");
+                            count = (range.get("min").getAsDouble()
+                                + range.get("max").getAsDouble()) / 2.0;
+                        }
+                    }
+                }
+                total += count;
+            }
+        }
+        return total;
+    }
+
     /** Surface cells in one mound of this size - one per column, which is where litter goes. */
     private static double surfaceCellsIn(int width) {
         double radius = width / 2.0;
@@ -356,7 +391,7 @@ class FindRateTest {
 
     @Test
     @DisplayName("cardboard is early because there is cardboard on every mound, not because of a recipe")
-    void cardboardIsActuallyEarly() {
+    void cardboardIsActuallyEarly() throws IOException {
         // WHAT MAKES THE FAMILY WORK IS A NUMBER IN WORLDGEN, which is the whole reason this test
         // exists. #309's building family is meant to be the one a new player can use immediately.
         // Nothing in the recipes or the tags enforces that; it is enforced by there being piles of
@@ -388,9 +423,14 @@ class FindRateTest {
                 + "household find rate in this file moves with it");
 
         // ONE PILE IS ABOUT ONE BLOCK, the rate that makes clearing the boxes off a mound feel like
-        // it built you something: 2-3 pulls (2.5 average), about 77 percent of the stream cardboard,
-        // 1-3 of it per pull, four to a Cardboard Block.
-        double cardboardPerPile = 2.5 * (200.0 / 260.0) * 2.0;
+        // it built you something.
+        //
+        // READ OFF THE SHIPPED LOOT TABLE, and the first version of this was not. It was
+        // `2.5 * (200.0 / 260.0) * 2.0` - three literals, no reference to anything the game loads,
+        // describing a pull stream that had already been deleted. It evaluated to 3.85 forever, so
+        // the assertion around it could not fail: set the table's count to a flat 1 and it stayed
+        // green while the family's economy became a quarter of what the comment claimed.
+        double cardboardPerPile = averageCardboardPerPile();
         assertTrue(cardboardPerPile > 3.0 && cardboardPerPile < 6.0,
             "a pile yields " + String.format("%.1f", cardboardPerPile) + " cardboard against the four "
                 + "a Cardboard Block costs. Far under and the piles are litter you walk past; far "

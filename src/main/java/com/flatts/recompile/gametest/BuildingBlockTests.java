@@ -1,5 +1,6 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.content.worldgen.MoundFeature;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import net.minecraft.core.BlockPos;
@@ -139,8 +140,16 @@ final class BuildingBlockTests {
 
             // A floor to build on. The feature only writes into air, so bare test-plot ground would
             // let a mound land wherever and make the count meaningless.
-            for (int dx = -20; dx <= 20; dx++) {
-                for (int dz = -20; dz <= 20; dz++) {
+            //
+            // SIZED TO WHAT A MOUND CAN ACTUALLY OCCUPY, not generously. MAX_WIDTH is 15 and
+            // MAX_HEIGHT is 15, so a mound centred here never reaches past 8 in any direction. The
+            // first version used 20 and 400,000 setBlock calls, which spills well outside a
+            // 5x5x5 plot into whatever test GameTest laid out next door - a failure that would
+            // reproduce only under one plot layout and look like a flake.
+            final int r = 8;
+            final int h = MoundFeature.MAX_HEIGHT + 1;
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dz = -r; dz <= r; dz++) {
                     level.setBlock(origin.offset(dx, -1, dz),
                         net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 2);
                 }
@@ -153,9 +162,9 @@ final class BuildingBlockTests {
             // ENOUGH MOUNDS TO BE A MEASUREMENT RATHER THAN A COIN FLIP. One mound at 10 percent of
             // its surface could plausibly roll none; a dozen could not.
             for (int seed = 0; seed < 12; seed++) {
-                for (int dx = -20; dx <= 20; dx++) {
-                    for (int dy = 0; dy <= 18; dy++) {
-                        for (int dz = -20; dz <= 20; dz++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dy = 0; dy <= h; dy++) {
+                        for (int dz = -r; dz <= r; dz++) {
                             level.setBlock(origin.offset(dx, dy, dz),
                                 net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
                         }
@@ -166,9 +175,9 @@ final class BuildingBlockTests {
                         .NoneFeatureConfiguration.INSTANCE,
                     level, level.getChunkSource().getGenerator(),
                     net.minecraft.util.RandomSource.create(1000L + seed), origin);
-                for (int dx = -20; dx <= 20; dx++) {
-                    for (int dy = 0; dy <= 18; dy++) {
-                        for (int dz = -20; dz <= 20; dz++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dy = 0; dy <= h; dy++) {
+                        for (int dz = -r; dz <= r; dz++) {
                             var state = level.getBlockState(origin.offset(dx, dy, dz));
                             if (state.is(RCBlocks.CARDBOARD_PILE.get())) {
                                 piles++;
@@ -190,14 +199,55 @@ final class BuildingBlockTests {
                     + "and not one cardboard pile, so cardboard has no source in the world however "
                     + "well its recipes and its rate arithmetic check out");
 
-            // THE BAG IS THE YARDSTICK, not a fixed number. Both come out of one roll at 0.22 and
-            // 0.10, so piles should be roughly half the bags whatever the surface budget is retuned
-            // to; a bare count would need editing every time either dial moved. Wide band because
-            // twelve mounds is a small sample and this is guarding a branch, not a balance point.
+            // THE BAG IS THE YARDSTICK, not a fixed number. Both come out of one roll, cardboard
+            // taking the smaller band (0.05 against 0.22 today), so piles stay the minority however
+            // the surface budget is retuned; a bare count would need editing every time either dial
+            // moved. Deliberately only an inequality: twelve mounds is a small sample, and this is
+            // guarding a branch rather than a balance point - FindRateTest owns the numbers.
             helper.assertTrue(piles < bags,
                 "cardboard piles (" + piles + ") outnumber trash bags (" + bags + "), but they share "
                     + "one roll with cardboard taking the smaller band - so either the bands are the "
                     + "wrong way round or the roll is not shared any more");
+
+            // PUT THE PLOT BACK. GameTest restores only the structure bounds, and this wrote well
+            // outside them; leaving a dozen mounds' worth of garbage standing there is how a later
+            // batch inherits a dirty floor.
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -1; dy <= h; dy++) {
+                    for (int dz = -r; dz <= r; dz++) {
+                        level.setBlock(origin.offset(dx, dy, dz),
+                            net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+            helper.succeed();
+        });
+
+        // EVERY BLOCK A MOUND PLACES MUST BE RECOGNISED AS MOUND CONTENT.
+        //
+        // MoundFeature.writeBed lays the regrowth bed UNDER a mound, and bails when the cell it is
+        // about to write already holds part of a mound - because mounds overlap, and overwriting a
+        // neighbour's stack punches a hole in it. That guard was two instanceof checks, complete
+        // only while every mound block was a SortableBlock or Bulky Waste. The Cardboard Pile is
+        // neither: a plain FallingBlock, and a full opaque cube, so it passed isSolidRender() and
+        // fell through - a later mound would have replaced a pile with Mound Ground, destroying it
+        // and planting a regrowth bed partway up a stack. Nothing logged, and invisible until
+        // somebody quarried that mound and watched it come back from the middle.
+        //
+        // So the list is swept rather than trusted. A new mound variant that forgets this fails
+        // here instead of shipping.
+        RCGameTests.test("every_block_a_mound_places_is_recognised_as_mound_content", 20, helper -> {
+            java.util.List<String> unguarded = new java.util.ArrayList<>();
+            for (var state : MoundFeature.everyMoundBlock()) {
+                if (!MoundFeature.isMoundContent(state)) {
+                    unguarded.add(net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                        .getKey(state.getBlock()).toString());
+                }
+            }
+            helper.assertTrue(unguarded.isEmpty(),
+                unguarded + " are placed into mounds but writeBed does not recognise them as mound "
+                    + "content, so an overlapping mound will overwrite them with Mound Ground - "
+                    + "destroying the block and seeding regrowth at the wrong height, silently");
             helper.succeed();
         });
     }
