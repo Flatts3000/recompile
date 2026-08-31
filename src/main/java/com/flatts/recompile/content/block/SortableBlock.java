@@ -278,6 +278,7 @@ public abstract class SortableBlock extends FallingBlock {
      * <pre>
      *   block              window   hand (avg)   machine   ratio
      *   garbage_block        2-3        2.50         6      2.40x
+     *   cardboard_pile       2-3        2.50         6      2.40x
      *   trash_bag            2-2        2.00         4      2.00x
      *   compacted_bale       3-4        3.50         8      2.29x
      *   stone_rubble         2-4        2.89         7      2.42x
@@ -330,6 +331,12 @@ public abstract class SortableBlock extends FallingBlock {
         // documented 2.89, which is what makes it checkable.)
         //
         // The drum shares Stone Rubble's 2-4 window and therefore its 7.
+        // The cardboard pile (#309) is the Mechanical Waste move again, and the cheapest instance of
+        // it: it shares the GARBAGE BLOCK's 2-3 window exactly, so it shares its 2.50 hand average,
+        // so it takes its 6. Nothing to compute and nothing to pick.
+        if (item == RCItems.CARDBOARD_PILE.get().asItem()) {
+            return 6;
+        }
         if (item == RCItems.MILL_TAILINGS.get().asItem()) {
             return 10;
         }

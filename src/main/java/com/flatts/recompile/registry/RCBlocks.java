@@ -10,6 +10,7 @@ import com.flatts.recompile.content.block.TrommelCoreBlock;
 import com.flatts.recompile.content.block.TrommelDrumBlock;
 import com.flatts.recompile.content.block.TrommelPartBlock;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
+import com.flatts.recompile.content.block.CardboardPileBlock;
 import com.flatts.recompile.content.block.CupolaFurnaceBlock;
 import com.flatts.recompile.content.block.BurnBarrelBlock;
 import com.flatts.recompile.content.block.SinteringKilnBlock;
@@ -397,6 +398,29 @@ public final class RCBlocks {
             .mapColor(MapColor.TERRACOTTA_WHITE)
             .strength(0.2F)
             .sound(SoundType.WOOL)
+    );
+
+    /**
+     * Cardboard pile (#309): flattened boxes on the mound surface, and the only source of cardboard.
+     *
+     * <p>Built to the trash bag's shape on purpose - same strength, same surface band, same absence
+     * of {@code requiresCorrectToolForDrops} for the same reason. The two are the litter tier, and a
+     * player meets both in the first minute. Where they differ is what comes out: the bag draws the
+     * light household stream and this draws {@code gameplay/cardboard_pulls}, which is nearly all
+     * cardboard.
+     *
+     * <p>Sound is WOOD rather than the bag's WOOL, matching the building family it feeds - see
+     * {@link #cardboardProps}. It is the one cue that says these two soft piles are different
+     * materials before you have hit either of them.
+     */
+    public static final DeferredBlock<CardboardPileBlock> CARDBOARD_PILE = BLOCKS.registerBlock(
+        "cardboard_pile",
+        CardboardPileBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_ORANGE)
+            .strength(0.2F)
+            .sound(SoundType.WOOD)
+            .ignitedByLava()
     );
 
     /**

@@ -135,6 +135,21 @@
       "model": "recompile:block/scrap_bin_junk",
       "y": 270
     },
+    "content=cardboard,facing=north": {
+      "model": "recompile:block/scrap_bin_cardboard"
+    },
+    "content=cardboard,facing=east": {
+      "model": "recompile:block/scrap_bin_cardboard",
+      "y": 90
+    },
+    "content=cardboard,facing=south": {
+      "model": "recompile:block/scrap_bin_cardboard",
+      "y": 180
+    },
+    "content=cardboard,facing=west": {
+      "model": "recompile:block/scrap_bin_cardboard",
+      "y": 270
+    },
     "content=stone_shard,facing=north": {
       "model": "recompile:block/scrap_bin_stone_shard"
     },

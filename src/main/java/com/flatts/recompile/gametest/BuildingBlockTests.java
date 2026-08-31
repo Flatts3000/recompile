@@ -82,15 +82,27 @@ final class BuildingBlockTests {
                 "four cardboard in a 2x2 does not make a Cardboard Block at an ordinary bench, so the "
                     + "one building family that is meant to need nothing now needs something");
 
-            // AND IT COMES OUT OF THE GROUND. A recipe a player cannot reach the ingredient for is
-            // gated just as hard as one behind a blueprint, and the ingredient here is a pull-stream
-            // entry - data, so it can be moved or dropped without touching a line of Java.
-            boolean inTheStream = com.flatts.recompile.compat.SortingData
-                .outputs(com.flatts.recompile.compat.SortingData.HOUSEHOLD).stream()
-                .anyMatch(w -> w.stack().is(RCItems.CARDBOARD.get()));
-            helper.assertTrue(inTheStream,
-                "cardboard is not in the household pull stream, so the first thing a player can build "
-                    + "with is not actually available from the first mound");
+            // AND IT COMES OUT OF THE GROUND. A recipe whose ingredient cannot be reached is gated
+            // just as hard as one behind a blueprint, and the ingredient here comes from a block:
+            // pick apart a Cardboard Pile. Both halves are data - the pile's pull table, and the
+            // worldgen chance that puts piles on mounds at all - so both can be moved without
+            // touching a line of Java. This asserts the table; FindRateTest asserts the chance.
+            boolean fromThePile = com.flatts.recompile.compat.SortingData
+                .outputs(com.flatts.recompile.compat.SortingData.pathFor(
+                    com.flatts.recompile.content.block.CardboardPileBlock.CARDBOARD_PULLS))
+                .stream().anyMatch(w -> w.stack().is(RCItems.CARDBOARD.get()));
+            helper.assertTrue(fromThePile,
+                "the Cardboard Pile's own pull stream yields no cardboard, so the block that exists "
+                    + "to be the source of the material is not one");
+
+            // AND THE VIEWERS CAN SEE IT. sortingSources() is derived from the registry, so a new
+            // sortable is covered the day it is registered - but a pile whose pull table failed to
+            // resolve would drop out of that list silently, and clicking cardboard in JEI would show
+            // an empty panel, which reads as a broken item rather than a missing page.
+            boolean inJei = com.flatts.recompile.compat.SortingData.sortingSources().stream()
+                .anyMatch(src -> src.block() == RCBlocks.CARDBOARD_PILE.get());
+            helper.assertTrue(inJei,
+                "the Cardboard Pile is not a sorting source, so JEI has nothing to show for cardboard");
             helper.succeed();
         });
     }

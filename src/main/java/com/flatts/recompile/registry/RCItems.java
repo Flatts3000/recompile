@@ -81,10 +81,15 @@ public final class RCItems {
      * the single commonest thing in household waste - it should come out of the mound, not out of
      * something else that came out of the mound.
      *
-     * <p><b>Craftable, which is the rule rather than an exception to it.</b> P2.11 makes finished
-     * goods found-only; building materials stay craftable because a material is not a finished good.
-     * That the paper form ({@code minecraft:paper}) is in {@code #recompile:found_only} is consistent
-     * with the same line: a sheet of writing paper is a product, a flattened box is stock.
+     * <p><b>Found, not crafted, like all seven of its siblings.</b> An earlier draft of this comment
+     * claimed the opposite - that building materials stay craftable - which is contradicted by every
+     * other base material in the game: junk, scrap metal, rebar, plastic scrap, glass shards, fiber
+     * scrap, organic muck and e-scrap are all in {@code #recompile:found_only}. Cardboard is too, and
+     * the source is {@link com.flatts.recompile.content.block.CardboardPileBlock}. What P2.11's rule
+     * actually permits is the BLOCK family being craftable from the material, which it is.
+     *
+     * <p>That the paper form ({@code minecraft:paper}) is in the same tag is consistent rather than
+     * a coincidence: a sheet of writing paper is a product, a flattened box is stock.
      */
     public static final DeferredItem<Item> CARDBOARD = ITEMS.registerItem("cardboard", Item::new);
 
@@ -710,6 +715,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("trash_bag", RCBlocks.TRASH_BAG);
     public static final DeferredItem<BlockItem> COMPACTED_BALE =
         ITEMS.registerSimpleBlockItem("compacted_bale", RCBlocks.COMPACTED_BALE);
+    public static final DeferredItem<BlockItem> CARDBOARD_PILE =
+        ITEMS.registerSimpleBlockItem("cardboard_pile", RCBlocks.CARDBOARD_PILE);
     /**
      * Bulky Waste (P1.11). Registered so creative can place it; it is unobtainable in
      * survival, because breaking the block yields the <em>find</em> rather than itself,
@@ -905,7 +912,7 @@ public final class RCItems {
 
     /** The garbage-block family in creative-tab order. */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(
-        GARBAGE_BLOCK, TRASH_BAG, COMPACTED_BALE, BULKY_WASTE);
+        GARBAGE_BLOCK, TRASH_BAG, CARDBOARD_PILE, COMPACTED_BALE, BULKY_WASTE);
 
     // ---------------- Building blocks (P1.12): the deliberate shelter tier ----------------
     // Refined from scrap into blocks you would choose to build a home from. Full kit per

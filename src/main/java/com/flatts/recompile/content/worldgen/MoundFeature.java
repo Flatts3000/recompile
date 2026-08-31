@@ -18,9 +18,10 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * of random radius and height, so the field varies instead of tiling. Density is
  * controlled by the placed-feature count (config-tunable later).
  *
- * <p>The block mix (P1.1) follows the mound shape: trash bags scatter on the outer
- * surface (easy litter), compacted bales concentrate in the core (the mound shape
- * does the depth-reward work), and Bulky Waste is the uncommon pocket find inside.
+ * <p>The block mix (P1.1) follows the mound shape: trash bags and cardboard piles scatter
+ * on the outer surface (easy litter, sharing one budget), compacted bales concentrate in
+ * the core (the mound shape does the depth-reward work), and Bulky Waste is the uncommon
+ * pocket find inside.
  * Per-column heightmap sampling can refine the skirt later if needed.
  */
 public class MoundFeature extends Feature<NoneFeatureConfiguration> {
@@ -41,6 +42,34 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
     // read in. FindRateTest computes that fraction from these rather than assuming a mound is all
     // garbage - it is 88 percent of it.
     public static final float SURFACE_BAG_CHANCE = 0.22F;
+
+    /**
+     * Cardboard piles per surface cell (#309, owner 2026-08-31): cardboard is a thing you SEE in the
+     * world, not a weighted entry you occasionally get out of something else.
+     *
+     * <p><b>It shares the bag's roll, so the two compete for one surface budget.</b> That is the same
+     * idiom the core uses for bulky waste and bales, and it is the honest shape: a mound has one
+     * surface, and every cell given to boxes is a cell not given to bags or garbage. Rolling
+     * independently would let the surface quietly fill up as materials are added, with each addition
+     * looking free on its own.
+     *
+     * <p>0.10 against the bag's 0.22, which is a handful of piles on a small mound and a dozen or
+     * more on a big one - common enough that a new player trips over cardboard before they have
+     * crafted anything, which is the entire point of the family.
+     */
+    public static final float SURFACE_CARDBOARD_CHANCE = 0.10F;
+
+    /**
+     * What fraction of a surface cell is NOT a garbage block.
+     *
+     * <p><b>Here so that exactly one place knows it.</b> {@code FindRateTest} computes the garbage
+     * fraction of a mound and every household drop rate in the game is read against that number, so
+     * it has to agree with what this class actually places. It agreed by having the same arithmetic
+     * typed out twice, which survives one surface variant and not two: adding cardboard without
+     * touching the test would have left it counting cardboard cells as garbage and reporting every
+     * find as commoner than it is, with nothing red anywhere.
+     */
+    public static final float SURFACE_NON_GARBAGE = SURFACE_BAG_CHANCE + SURFACE_CARDBOARD_CHANCE;
     public static final float CORE_BALE_CHANCE = 0.35F;
     /**
      * Bulky Waste per core cell (P1.11). Inherited unchanged from the appliance it
@@ -124,8 +153,17 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
 
     /** Pick the block for a mound cell: bags on the surface, bales/bulky waste in the core. */
     private BlockState pickBlock(RandomSource random, boolean core, int dy, int column, boolean surface) {
-        if (surface && random.nextFloat() < SURFACE_BAG_CHANCE) {
-            return RCBlocks.TRASH_BAG.get().defaultBlockState();
+        if (surface) {
+            // ONE ROLL FOR BOTH, like the core's bulky/bale pair: the cardboard band sits above the
+            // bag band, so changing either moves the other and neither can be tuned into the other's
+            // share by accident.
+            float litter = random.nextFloat();
+            if (litter < SURFACE_BAG_CHANCE) {
+                return RCBlocks.TRASH_BAG.get().defaultBlockState();
+            }
+            if (litter < SURFACE_NON_GARBAGE) {
+                return RCBlocks.CARDBOARD_PILE.get().defaultBlockState();
+            }
         }
         if (core && dy <= column * 0.5) {
             // One roll shared by both: bulky waste takes the bottom band, bales the next.

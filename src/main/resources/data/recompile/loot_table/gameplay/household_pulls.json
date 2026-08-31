@@ -41,20 +41,6 @@
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:cardboard",
-          "weight": 90,
-          "functions": [
-            {
-              "function": "minecraft:set_count",
-              "count": {
-                "min": 1.0,
-                "max": 3.0
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
           "name": "recompile:fiber_scrap",
           "weight": 60
         },

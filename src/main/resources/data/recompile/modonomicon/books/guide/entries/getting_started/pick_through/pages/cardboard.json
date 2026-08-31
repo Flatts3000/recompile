@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "cardboard",
+  "sort_number": 2,
+  "item": "recompile:cardboard_pile",
+  "title": "book.recompile.guide.getting_started.pick_through.cardboard.title",
+  "text": "book.recompile.guide.getting_started.pick_through.cardboard.text"
+}

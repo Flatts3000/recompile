@@ -1,0 +1,55 @@
+{
+  "variants": {
+    "sorted=0": [
+      {
+        "model": "recompile:block/cardboard_pile"
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 270
+      }
+    ],
+    "sorted=1": [
+      {
+        "model": "recompile:block/cardboard_pile"
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 270
+      }
+    ],
+    "sorted=2": [
+      {
+        "model": "recompile:block/cardboard_pile"
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 90
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 180
+      },
+      {
+        "model": "recompile:block/cardboard_pile",
+        "y": 270
+      }
+    ]
+  }
+}

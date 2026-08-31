@@ -1,7 +1,7 @@
 {
   "type": "modonomicon:spotlight",
   "id": "digging",
-  "sort_number": 2,
+  "sort_number": 3,
   "item": "recompile:junk_shovel",
   "title": "book.recompile.guide.getting_started.pick_through.digging.title",
   "text": "book.recompile.guide.getting_started.pick_through.digging.text"

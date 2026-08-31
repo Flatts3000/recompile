@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "recompile:cardboard",
+          "weight": 200,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 1.0,
+                "max": 3.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:fiber_scrap",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:plastic_scrap",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:junk",
+          "weight": 15
+        }
+      ]
+    }
+  ]
+}
