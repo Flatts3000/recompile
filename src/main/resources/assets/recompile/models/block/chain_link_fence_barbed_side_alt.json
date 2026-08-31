@@ -1,7 +1,8 @@
 {
-  "parent": "minecraft:block/template_glass_pane_side_alt",
+  "parent": "minecraft:block/template_bars_side_alt",
+  "render_type": "minecraft:cutout",
   "textures": {
-    "edge": "recompile:block/chain_link_fence_barbed",
-    "pane": "recompile:block/chain_link_fence_barbed"
+    "bars": "recompile:block/chain_link_fence_barbed",
+    "edge": "recompile:block/chain_link_fence_barbed"
   }
 }

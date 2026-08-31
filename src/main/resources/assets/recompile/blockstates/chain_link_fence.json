@@ -2,9 +2,71 @@
   "multipart": [
     {
       "apply": {
+        "model": "recompile:block/chain_link_fence_post_ends"
+      },
+      "when": {
+        "barbed": "false"
+      }
+    },
+    {
+      "apply": {
         "model": "recompile:block/chain_link_fence_post"
       },
       "when": {
+        "east": "false",
+        "north": "false",
+        "south": "false",
+        "west": "false",
+        "barbed": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_cap"
+      },
+      "when": {
+        "east": "false",
+        "north": "true",
+        "south": "false",
+        "west": "false",
+        "barbed": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_cap",
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "north": "false",
+        "south": "false",
+        "west": "false",
+        "barbed": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_cap_alt"
+      },
+      "when": {
+        "east": "false",
+        "north": "false",
+        "south": "true",
+        "west": "false",
+        "barbed": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_cap_alt",
+        "y": 90
+      },
+      "when": {
+        "east": "false",
+        "north": "false",
+        "south": "false",
+        "west": "true",
         "barbed": "false"
       }
     },
@@ -13,8 +75,8 @@
         "model": "recompile:block/chain_link_fence_side"
       },
       "when": {
-        "barbed": "false",
-        "north": "true"
+        "north": "true",
+        "barbed": "false"
       }
     },
     {
@@ -23,8 +85,8 @@
         "y": 90
       },
       "when": {
-        "barbed": "false",
-        "east": "true"
+        "east": "true",
+        "barbed": "false"
       }
     },
     {
@@ -32,8 +94,8 @@
         "model": "recompile:block/chain_link_fence_side_alt"
       },
       "when": {
-        "barbed": "false",
-        "south": "true"
+        "south": "true",
+        "barbed": "false"
       }
     },
     {
@@ -42,46 +104,16 @@
         "y": 90
       },
       "when": {
-        "barbed": "false",
-        "west": "true"
+        "west": "true",
+        "barbed": "false"
       }
     },
     {
       "apply": {
-        "model": "recompile:block/chain_link_fence_noside"
+        "model": "recompile:block/chain_link_fence_barbed_post_ends"
       },
       "when": {
-        "barbed": "false",
-        "north": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "recompile:block/chain_link_fence_noside",
-        "y": 90
-      },
-      "when": {
-        "barbed": "false",
-        "east": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "recompile:block/chain_link_fence_noside_alt"
-      },
-      "when": {
-        "barbed": "false",
-        "south": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "recompile:block/chain_link_fence_noside_alt",
-        "y": 90
-      },
-      "when": {
-        "barbed": "false",
-        "west": "false"
+        "barbed": "true"
       }
     },
     {
@@ -89,6 +121,60 @@
         "model": "recompile:block/chain_link_fence_barbed_post"
       },
       "when": {
+        "east": "false",
+        "north": "false",
+        "south": "false",
+        "west": "false",
+        "barbed": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_cap"
+      },
+      "when": {
+        "east": "false",
+        "north": "true",
+        "south": "false",
+        "west": "false",
+        "barbed": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_cap",
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "north": "false",
+        "south": "false",
+        "west": "false",
+        "barbed": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_cap_alt"
+      },
+      "when": {
+        "east": "false",
+        "north": "false",
+        "south": "true",
+        "west": "false",
+        "barbed": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "recompile:block/chain_link_fence_barbed_cap_alt",
+        "y": 90
+      },
+      "when": {
+        "east": "false",
+        "north": "false",
+        "south": "false",
+        "west": "true",
         "barbed": "true"
       }
     },
@@ -97,8 +183,8 @@
         "model": "recompile:block/chain_link_fence_barbed_side"
       },
       "when": {
-        "barbed": "true",
-        "north": "true"
+        "north": "true",
+        "barbed": "true"
       }
     },
     {
@@ -107,8 +193,8 @@
         "y": 90
       },
       "when": {
-        "barbed": "true",
-        "east": "true"
+        "east": "true",
+        "barbed": "true"
       }
     },
     {
@@ -116,8 +202,8 @@
         "model": "recompile:block/chain_link_fence_barbed_side_alt"
       },
       "when": {
-        "barbed": "true",
-        "south": "true"
+        "south": "true",
+        "barbed": "true"
       }
     },
     {
@@ -126,46 +212,8 @@
         "y": 90
       },
       "when": {
-        "barbed": "true",
-        "west": "true"
-      }
-    },
-    {
-      "apply": {
-        "model": "recompile:block/chain_link_fence_barbed_noside"
-      },
-      "when": {
-        "barbed": "true",
-        "north": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "recompile:block/chain_link_fence_barbed_noside",
-        "y": 90
-      },
-      "when": {
-        "barbed": "true",
-        "east": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "recompile:block/chain_link_fence_barbed_noside_alt"
-      },
-      "when": {
-        "barbed": "true",
-        "south": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "recompile:block/chain_link_fence_barbed_noside_alt",
-        "y": 90
-      },
-      "when": {
-        "barbed": "true",
-        "west": "false"
+        "west": "true",
+        "barbed": "true"
       }
     }
   ]
