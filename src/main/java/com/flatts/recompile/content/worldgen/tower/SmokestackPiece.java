@@ -176,11 +176,9 @@ public class SmokestackPiece extends StructurePiece {
                         continue;
                     }
                     int fromTop = to - 1 - t;
-                    if (fromTop < RAGGED_ROWS) {
-                        double bite = (RAGGED_ROWS - fromTop) / (double) (RAGGED_ROWS + 1);
-                        if (hash(cx + dx, y, cz + dz) <= bite) {
-                            continue;
-                        }
+                    if (fromTop < RAGGED_ROWS
+                            && !RaggedRim.survives(cx + dx, cz + dz, fromTop, RAGGED_ROWS)) {
+                        continue;
                     }
                     put(level, limit, cx + dx, y, cz + dz, brick);
                 }
@@ -208,7 +206,7 @@ public class SmokestackPiece extends StructurePiece {
             // Broken into sections, with the breaks widening toward the far end - which is where a
             // falling chimney actually shatters.
             double breakChance = 0.06 + 0.5 * (along / (double) fallen);
-            if (hash(cx + along, baseY, cz - along) < breakChance * 0.35) {
+            if (RaggedRim.hash(cx + along, baseY, cz - along) < breakChance * 0.35) {
                 continue;
             }
             double r = BASE_RADIUS + (TOP_RADIUS - BASE_RADIUS) * (along / (double) Math.max(1, height - 1));
@@ -224,16 +222,34 @@ public class SmokestackPiece extends StructurePiece {
                     }
                     int px = lx + (int) Math.round(-uz * side);
                     int pz = lz + (int) Math.round(ux * side);
-                    put(level, limit, px, baseY + dy, pz, brick);
+                    // LAY IT ON THE GROUND UNDER IT, not on the ground under the stump. The yard is
+                    // not flat - it has rubble piles and mounds - so a section forty blocks out lands
+                    // at a different height, and using the stump's would hang the far end in the air
+                    // or bury it. A fallen chimney rests on whatever is beneath it.
+                    put(level, limit, px, groundAt(level, limit, px, pz, baseY) + dy, pz, brick);
                 }
             }
         }
     }
 
-    private static double hash(int x, int y, int z) {
-        long h = x * 3129871L ^ z * 116129781L ^ y * 7919L;
-        h = h * h * 42317861L + h * 11L;
-        return ((h >> 16) & 0xFFFF) / 65536.0;
+    /**
+     * The first free block above the ground in this column, searched near the stack's own base.
+     *
+     * <p>Bounded on purpose: a fallen stack should follow the terrain it landed on, not chase a hole
+     * twenty blocks down. Outside the search window it falls back to the stump's level, which is the
+     * old behaviour and is right for flat ground.
+     */
+    private static int groundAt(WorldGenLevel level, BoundingBox limit, int x, int z, int around) {
+        for (int y = around + 4; y >= around - 6; y--) {
+            BlockPos at = new BlockPos(x, y, z);
+            if (!limit.isInside(at)) {
+                continue;
+            }
+            if (!level.getBlockState(at).isAir()) {
+                return y + 1;
+            }
+        }
+        return around;
     }
 
     private static void put(WorldGenLevel level, BoundingBox limit, int x, int y, int z, BlockState state) {
