@@ -1,5 +1,63 @@
 # Changelog
 
+## v0.16.0
+
+**The skyline has two things on it now, and there is finally something you can build with on the
+first day.** v0.15.0 filled in what the world could not give you. This one is about what you can see
+and what you can put up: a cooling tower you can pick out from the next region over, chimneys smoking
+across the demolition yard, and cardboard.
+
+### A decrepit cooling tower
+
+- **You can see it from the next region.** Sixty to seventy-five blocks of concrete on a plain that
+  sits flat at about y 66, so it breaks the horizon from a long way out and gives the radioactive dump
+  something to walk toward.
+- **It is a real hyperboloid**, wide at the ground, pinched at the waist, opening out again at the top.
+  The first one had its waist where a real cooling tower has it and read as a chimney, because at block
+  resolution the flare above it was about a tenth. It is unmistakable now.
+- **The rim is eaten away and the shell is torn open on one side**, so it reads as forty years
+  abandoned rather than as a shape someone placed. The floor inside is silted over.
+- **Rare on purpose.** You will not trip over a second one.
+
+### Brick smokestacks
+
+- **Common across the demolition yard**, where the tower is rare. The yard is where things were made,
+  and it should look like it.
+- **One in three has come down**, lying across the ground in a line of broken brick with a stump where
+  it stood. The two read as one place, which is the point of having both.
+- **The standing ones smoke.** There is a fire buried up near the top, and the plume is visible at
+  distance. It is not how a chimney works and it is what makes the yard look inhabited.
+- **Slender.** The first pass was four to one and generated brick keeps; a real industrial stack is
+  nearer ten to one, and these are between six and nine.
+
+### And something lives at the foot of each
+
+- **A husk at the bottom of every standing chimney.** It reaches out past the brick on purpose, so
+  walking past one is an encounter rather than scenery. You do not have to break in.
+- **Parched in the tower's basin**, wearing leather caps, because a large part of that floor sees sky
+  straight up the throat and a skeleton in the open burns.
+- **Both work in daylight.** An ordinary spawner does not, which is the sort of thing you only find out
+  by walking up to a landmark in the afternoon and watching nothing happen.
+
+### Cardboard
+
+- **The first building family you can reach.** Everything else in this world is gated behind a machine,
+  a tool or a journey. Piles of flattened boxes sit on top of the mounds; break one by hand and it
+  gives you cardboard, four of which make a block, and the block makes a slab, stairs and a wall.
+- **No tool, no station, no recipe to learn.** It is the plainest thing in the mod and that is the
+  whole feature.
+- **A pile is worth about one block**, and an average mound carries about four of them.
+
+### Smaller things
+
+- **A snack cake in the household stream.** The cream-filled sponge famous for outlasting everything,
+  found intact in a landfill. It is the one food down here that does not gamble and does not need
+  cooking: it feeds you as well as a cooked roach and holds you nowhere near as long, which is what
+  empty calories are.
+- **The Roach got the per-part treatment the Pigeon has**, so it no longer reads as one flat colour,
+  and its spawn egg stopped being a blob.
+- The radioactive dump guidebook entry said "trefoil". It says what the symbol looks like now.
+
 ## v0.15.0
 
 **Two mods that could not be started in this world now can, the plain gained a second frontier region,
