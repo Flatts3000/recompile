@@ -29,6 +29,7 @@
     "recompile:present",
     "recompile:gold_coin",
     "recompile:toy_car",
-    "recompile:turpentine"
+    "recompile:turpentine",
+    "recompile:snack_cake"
   ]
 }

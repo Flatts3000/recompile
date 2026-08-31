@@ -656,6 +656,23 @@ backend = "ai"
 size = 16
 prompt = "a bold simple Minecraft item icon of a single raw cockroach carcass on its back, dark chitinous brown body with pale underside and thin legs curled up, centered, plain transparent background, no scene"
 
+# THE SNACK CAKE (#303). The cream-filled sponge cake that famously outlasts everything, which is why
+# finding one intact in a landfill works and why it is the one food here that does not cost you
+# anything to eat.
+#
+# THE PROBLEM AT 16PX IS THAT A PLAIN GOLDEN OBLONG IS A BREAD ROLL. Two details separate it and both
+# are in the prompt: the row of small dots along the top where the filling was injected, and white
+# cream showing at a cut end. Without those it reads as baking rather than as something that came out
+# of a machine, and the joke depends on it reading as manufactured.
+#
+# No wrapper. A cellophane wrapper is the most truthful version - it is why the thing survived - but a
+# transparent crinkled film is exactly what does not survive being drawn at 16 pixels.
+[surface.snack_cake]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small golden-yellow snack cake, a plump oblong sponge cake lying flat, one end cut open to show a thick white cream filling inside, three small round dimples in a row along the top crust where the cream was injected, warm golden baked crust with a soft crumb, simple bold Minecraft item icon silhouette, centered, plain transparent background, no wrapper and no packaging, no scene"
+
 [surface.cooked_roach]
 kind = "item"
 backend = "ai"

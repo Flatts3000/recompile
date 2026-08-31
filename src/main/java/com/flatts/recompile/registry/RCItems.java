@@ -526,8 +526,29 @@ public final class RCItems {
         props -> new Item(props.food(new FoodProperties.Builder()
             .nutrition(4).saturationModifier(0.3F).build())));
 
+    /**
+     * A cream-filled snack cake, found (#303). <b>The one food down here that is simply fine.</b>
+     *
+     * <p>Everything else you eat in this world costs you something or gambles: a tin can rolls an
+     * effect the way Suspicious Stew does, a mushroom is forage, a roach is a roach. This is the
+     * industrial sponge cake that famously outlasts everything, and finding one intact in a landfill
+     * is the whole of it - so it does <b>not</b> roll an effect. A second random-effect food would
+     * have been the tin can again, and the joke only lands if the thing is genuinely still good.
+     *
+     * <p><b>Nutrition 4, saturation 0.1, and the split is the point.</b> It feeds you as well as a
+     * cooked roach and holds you nowhere near as long, which is what empty calories are. Compare the
+     * can and the cooked roach at 4 / 0.3. First-pass; balance is #36.
+     *
+     * <p>Found-only by tag, so it has a pull-stream source and no recipe. It is deliberately rarer
+     * than a tin can: the can is the food economy's floor and this is a thing you are pleased to see.
+     */
+    public static final DeferredItem<Item> SNACK_CAKE = ITEMS.registerItem(
+        "snack_cake",
+        props -> new Item(props.food(new FoodProperties.Builder()
+            .nutrition(4).saturationModifier(0.1F).build())));
+
     public static final List<DeferredItem<Item>> FOOD =
-        List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM, RAW_ROACH, COOKED_ROACH);
+        List.of(TIN_CAN, TIN_CAN_OPEN, DUMP_MUSHROOM, RAW_ROACH, COOKED_ROACH, SNACK_CAKE);
 
     // ---------------- Collectibles (design I-2) ----------------
     // Artifacts from the past, assembled from thematic pieces the player finds in the garbage. A piece
