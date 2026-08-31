@@ -445,11 +445,27 @@ size = 16
 prompt = "a full-bleed Minecraft block face: the front of a running vitrifying furnace, blue-grey riveted steel with a slot-shaped slag runner across the lower third pouring molten white-hot glass, the pour blazing brilliant white and yellow at its hottest and fading through orange as it cools over the lip, the molten stream by far the brightest and most saturated thing in the tile, a small inspection port above it lit from within, the surrounding plate still cold steel-blue, flat, no perspective, blocky pixel-art shapes, fills the whole tile"
 vanilla_ref = "block/deepslate_tiles"
 
-# The Roach's skin (#78). RETINT, not AI, and that is not a shortcut - an entity texture is a 64x32 UV
-# ATLAS where every pixel's position is meaningful, because the model samples specific regions for the
-# head, legs and body. A generated image would map legs onto the head. Recolouring vanilla's silverfish
-# keeps the unwrap exactly and changes only the hue, which is the whole difference between a silverfish
-# and a roach anyway: grey-blue chitin becomes warm reddish-brown.
+# The Roach's skin (#78, repainted #210). NOT AI, and that half of the original reasoning stands: an
+# entity texture is a 64x32 UV ATLAS where every pixel's position is meaningful, because the model
+# samples specific regions for each body segment. A generated image would map a flank onto the head.
+#
+# WHAT CHANGED IS THE ANSWER TO THAT, NOT THE ARGUMENT. This was a whole-image retint to one brown,
+# and one hue over the entire atlas is the same failure the Pigeon started from: a roach is a dark
+# shield behind the head, glossy chestnut wing casings with a seam down the middle, and pale legs, and
+# a tint cannot express any of them. It produced a brown silverfish. The answer is the Pigeon's -
+# per-part procedural painting of the known UV rectangles, computed from SilverfishModel's own mesh
+# rather than eyeballed, so the unwrap stays exact while each part gets its own colour.
+#
+# THE ONE SILHOUETTE CHANGE, recorded because it is a design call and not a repaint: vanilla's three
+# `layer` boxes are vertical fins standing up to 8 units off the ground, painted as a bristly fringe
+# scattered up their full height. That crest is what reads as "silverfish" from any distance, and a
+# roach is flat. The fringe is kept but pushed to the rows nearest the ground, so it reads as spines at
+# body level and the dorsal line goes flat.
+#
+# TWO FEATURES THE GEOMETRY WILL NOT GIVE. The model is seven body segments plus those three plates -
+# no antennae, no legs. Antennae are the most roach-like feature there is and they are out of reach of
+# a texture; adding them means a bespoke model, which is a much larger change than this. Legs are
+# approximated by the pale underside row of each segment and by the spines.
 #
 # kind = "entity" tells the pipeline this is an atlas: no crop, no downscale, quantize only.
 
@@ -517,21 +533,31 @@ prompt = "a small pressed briquette of dark grey gunpowder, a squat rectangular 
 
 [surface.roach]
 kind = "entity"
-backend = "retint"
+backend = "procedural"
 size = 64
-tint = "#8a5230"
-source = "entity/silverfish/silverfish"
+[surface.roach.procedural]
+style = "roach_skin"
 
-# The Roach spawn egg (#78). Retinted from vanilla's silverfish egg for the same reason the skin is:
-# the egg silhouette and its speckling are a fixed vanilla shape that every player already reads as
-# "spawn egg", and generating one blind produces an egg that is subtly the wrong shape. Recolouring
-# keeps the silhouette exact and changes only the hue, to the same brown the entity wears.
+# The Roach spawn egg (#78, re-sourced #210). Retint rather than AI for the reason every egg here is:
+# the silhouette and its speckling are a fixed vanilla shape every player already reads as "spawn egg",
+# and generating one blind produces an egg that is subtly the wrong shape.
+#
+# SOURCED FROM THE CHICKEN EGG, NOT THE SILVERFISH ONE, and the numbers are why. Retint preserves
+# luminance, so the source decides the tone and nothing else - the Pigeon learned this when the parrot
+# egg (mean luma 78) came back "a black blob in the hotbar" and the chicken egg (160) did not. The
+# silverfish egg is 96, close enough to the rejected one that brown over it shipped at mean luma 34:
+# darker than the failure that established the rule, and less than a third of the Pigeon's 113. Same
+# brown, brighter body underneath.
 #
 # 26.1 delta this exists because of: template_spawn_egg is GONE. Eggs are no longer a tinted two-layer
 # template - each one is an ordinary item/generated with its own PNG, so a mod egg needs real art now.
-# The Pigeon (#133): the dump's birds. Retinted from vanilla's parrot skin for the same reason the
-# Roach is retinted from a silverfish - the entity is bespoke so it can leave out everything a parrot
-# does, but a pigeon and a parrot are the same bird-shaped geometry, so the whole art budget is a hue.
+# The Pigeon (#133): the dump's birds. It borrows vanilla's PARROT geometry for the same reason the
+# Roach borrows the silverfish's - the entity is bespoke so it can leave out everything a parrot does,
+# but a pigeon and a parrot are the same bird-shaped shell, so the whole art budget is one skin.
+#
+# BOTH ARE PAINTED PER PART NOW, and this sentence said both were retints until #210. It described the
+# state before the Pigeon was repainted, survived that change two lines from the block it contradicted,
+# and would have gone on teaching a reader the opposite of what either surface does.
 #
 # It has to be its own texture in OUR namespace rather than an override of the vanilla one: replacing
 # assets/minecraft/textures/entity/parrot/* would retexture every parrot in the game and a player could
@@ -614,7 +640,12 @@ kind = "item"
 backend = "retint"
 size = 16
 tint = "#8a5230"
-source = "item/silverfish_spawn_egg"
+source = "item/chicken_spawn_egg"
+# The same compensation the Pigeon's egg carries, for the same measured reason: retint darkens as it
+# casts, so a brown over the bright chicken egg still landed at 58. 1.7 puts it at 98 - clear of the
+# 78 that was rejected as a blob, and deliberately short of the Pigeon's 113, because a roach egg
+# should read darker than a pigeon's.
+brightness = 1.7
 
 # Raw and Cooked Roach (#78) - what the dump's one native creature drops, and what the Burn Barrel
 # turns it into. Icons, so they read at inventory scale on transparent; cooked reads as cooked at a
