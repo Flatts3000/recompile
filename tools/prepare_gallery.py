@@ -54,10 +54,15 @@ RECLAIM_CROP = (0.07, 0.09, 0.93, 0.80)
 # ../mod-jam-2026/round_1_rewards_analysis.md. The rest of the gallery is numbered around these, so
 # changing a number here means renumbering there too.
 PLAN = [
-    ("museum", 1, (0.19, 0.10, 0.81, 1.0)),
-    ("reclaim_before", 2, RECLAIM_CROP),
-    ("reclaim_after", 3, RECLAIM_CROP),
-    ("machine_wall", 7, (0.17, 0.20, 0.83, 1.0)),
+    # RECONCILED against the live gallery 2026-08-30. These four had drifted: museum and machine_wall
+    # named numbers that other images hold, and the reclamation pair claimed 2 and 3 while not being in
+    # the gallery at all. The pair is being uploaded (owner), and it is appended rather than inserted -
+    # a number here is the upload order, so putting the pair early would mean re-uploading every image
+    # after it to keep the strip in step.
+    ("museum", 2, (0.19, 0.10, 0.81, 1.0)),
+    ("machine_wall", 3, (0.17, 0.20, 0.83, 1.0)),
+    ("reclaim_before", 19, RECLAIM_CROP),
+    ("reclaim_after", 20, RECLAIM_CROP),
     # The sewers and the radioactive dump, appended rather than interleaved: a number here is the
     # gallery's order, and inserting one in the middle means re-uploading every image after it.
     ("sewer_corridor", 14, FULL),
