@@ -551,9 +551,13 @@ style = "roach_skin"
 #
 # 26.1 delta this exists because of: template_spawn_egg is GONE. Eggs are no longer a tinted two-layer
 # template - each one is an ordinary item/generated with its own PNG, so a mod egg needs real art now.
-# The Pigeon (#133): the dump's birds. Retinted from vanilla's parrot skin for the same reason the
-# Roach is retinted from a silverfish - the entity is bespoke so it can leave out everything a parrot
-# does, but a pigeon and a parrot are the same bird-shaped geometry, so the whole art budget is a hue.
+# The Pigeon (#133): the dump's birds. It borrows vanilla's PARROT geometry for the same reason the
+# Roach borrows the silverfish's - the entity is bespoke so it can leave out everything a parrot does,
+# but a pigeon and a parrot are the same bird-shaped shell, so the whole art budget is one skin.
+#
+# BOTH ARE PAINTED PER PART NOW, and this sentence said both were retints until #210. It described the
+# state before the Pigeon was repainted, survived that change two lines from the block it contradicted,
+# and would have gone on teaching a reader the opposite of what either surface does.
 #
 # It has to be its own texture in OUR namespace rather than an override of the vanilla one: replacing
 # assets/minecraft/textures/entity/parrot/* would retexture every parrot in the game and a player could
