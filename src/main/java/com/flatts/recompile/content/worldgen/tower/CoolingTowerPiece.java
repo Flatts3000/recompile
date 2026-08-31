@@ -146,7 +146,10 @@ public class CoolingTowerPiece extends StructurePiece {
         // arrives, and it keeps an unbreakable item out of the player's hands. One component makes it
         // permanent if that turns out to be wrong.
         //
-        // The basin is open, so the default spawn range of 4 is right here - unlike the chimney's.
+        // RANGE 4, the same as the chimney's, and for the same reason rather than by copying it: a
+        // spawner should put mobs where a player walking past would meet them. The basin is open, so
+        // here that is simply the floor around it; at the chimney it means reaching out through the
+        // brick, which is the harder half of the same rule and the one that had to be argued.
         Spawners.place(level, limit, new BlockPos(cx, baseY + 1, cz), "minecraft:parched", 4,
             "recompile:equipment/sun_cap");
 
