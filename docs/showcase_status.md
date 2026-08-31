@@ -26,14 +26,12 @@ tool refuses to write into a slot another file holds and names the file holding 
 
 Output lands in `docs/cf_image_gallery/`, numbered into the gallery's upload order.
 
-**The order was an argument** - theme first, because Theme Fit is the pillar this entry is weakest on
-and a judge skims the strip before reading a word, and
-`../mod-jam-2026/round_1_rewards_analysis.md` asks for the artifacts in the first three images.
-**It is only half honoured.** On 2026-08-30 the numbers were reconciled against what is actually
-uploaded rather than the gallery being re-uploaded to match them: the world shot leads at 1, the museum
-holds 2 and the machine wall 3, so the artifacts are near the front - but the reclamation pair sits at
-19 and 20, at the back. Moving it forward means re-uploading every image after the insert point by
-hand. Worth revisiting only if the gallery is rebuilt from scratch. **CurseForge rejects a gallery
+**The number is a slot, not a position** (2026-08-31). CurseForge orders the gallery in its own UI and
+the live strip is curated there, so a filename number is only a stable identity for a file - what gets
+overwritten when a scene is re-shot. Picking one no longer decides what a visitor sees first, and the
+old constraint that inserting an image meant re-uploading everything after it is gone with it.
+
+**CurseForge rejects a gallery
 image over 2 MB**, and the raw 1920x1080 captures are 1.5 to 2.6 MB, so this step is not optional.
 `_originals/` there is untracked and holds raw captures; only the numbered files are committed.
 

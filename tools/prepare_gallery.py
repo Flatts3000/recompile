@@ -47,17 +47,19 @@ FULL = (0.0, 0.0, 1.0, 1.0)
 # One box for both reclamation frames. Do not split this into two constants.
 RECLAIM_CROP = (0.07, 0.09, 0.93, 0.80)
 
-# The numbers are the gallery's ORDER, and the order was an argument: theme first, because Theme Fit is
-# the pillar this entry is weakest on and a judge skims the strip before reading a word. See
-# ../mod-jam-2026/round_1_rewards_analysis.md, whose action 2 asks for the artifacts in the first three
-# images.
+# THE NUMBER IS A SLOT, NOT A POSITION (owner reordered the live gallery, 2026-08-31). CurseForge lets
+# you drag images into any order in its own UI, and the shipped gallery is now curated there: the strip
+# opens on the garbage world, then the smokestack, then the scrap bins, and the filenames do not follow
+# it. So the number here is only a stable identity for a file - what to overwrite when a scene is
+# re-shot - and choosing it no longer decides what a visitor sees first.
 #
-# THAT ARGUMENT IS ONLY HALF HONOURED NOW, and the trade should be visible rather than discovered.
-# Reconciling PLAN against the live gallery (2026-08-30) matched the numbers to what is actually
-# uploaded, rather than re-uploading the gallery to match PLAN. The museum survives at 2, so the
-# artifacts are still near the front; the reclamation pair does not, and sits at the back at 19 and 20.
-# Putting it back means re-uploading by hand every image after the insert point, which is the cost that
-# bought the numbers being true. Worth revisiting if the gallery is ever rebuilt from scratch.
+# That retires a real constraint rather than a stylistic one. It used to be true that inserting an image
+# in the middle meant re-uploading every image after it, which is why the reclamation pair was appended
+# at 19 and 20 instead of going where it belonged. Anything can be moved in the UI now, so a new scene
+# takes the next free number and gets dragged into place.
+#
+# The ordering argument itself still stands and is still unmet: ../mod-jam-2026/round_1_rewards_analysis.md
+# asks for the artifacts in the first three images, and the live strip opens on the dump.
 PLAN = [
     # RECONCILED against the live gallery 2026-08-30. These four had drifted: museum and machine_wall
     # named numbers that other images hold, and the reclamation pair claimed 2 and 3 while not being in
@@ -75,12 +77,13 @@ PLAN = [
     ("radioactive_museum", 18, (0.06, 0.26, 0.94, 1.0)),
     ("reclaim_before", 19, RECLAIM_CROP),
     ("reclaim_after", 20, RECLAIM_CROP),
-    # The two landmarks (#307, #308). Both are silhouettes, so both are shot full frame with the
-    # horizon low - cropping in on either one throws away the thing that makes it work, which is how
-    # much sky it takes up from where a player would be standing.
+    # The two landmarks (#307, #308), full frame because they are silhouettes: cropping in throws away
+    # how much sky each one takes up from where a player stands, which is the whole of what they do.
     ("cooling_tower", 21, FULL),
-    ("cooling_tower_inside", 22, FULL),
     ("smokestack", 23, FULL),
+    # The interior is full frame for a different reason - the shot is the throat and the tear, and the
+    # frame edges are already wall. There is nothing to crop toward.
+    ("cooling_tower_inside", 22, FULL),
 ]
 
 

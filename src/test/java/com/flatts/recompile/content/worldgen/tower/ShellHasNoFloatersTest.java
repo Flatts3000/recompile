@@ -1,9 +1,7 @@
 package com.flatts.recompile.content.worldgen.tower;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayDeque;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -26,8 +24,9 @@ import org.junit.jupiter.api.Test;
  * other, floating clear of the tower - and a test asking whether anything touches nothing cannot see
  * them either. The owner could, from the ground.
  *
- * <p>The property is connectivity: <b>every block must trace back to the bottom course.</b> That is what
- * the piece enforces with a flood fill, and what this measures.
+ * <p>The property is connectivity: <b>every block must trace back to the bottom course.</b> The piece
+ * enforces that with a flood fill, and this <b>calls that fill</b> rather than reimplementing it - a
+ * test that copies the algorithm it is checking is the same dead-code trap all over again.
  */
 class ShellHasNoFloatersTest {
 
@@ -41,14 +40,13 @@ class ShellHasNoFloatersTest {
             int span = (int) Math.ceil(baseRadius) + 1;
             int width = 2 * span + 1;
 
-            boolean[] solid = new boolean[width * width * height];
+            // The raw shape, from the piece's own occupancy rule.
             int total = 0;
             for (int t = 0; t < height; t++) {
                 for (int dx = -span; dx <= span; dx++) {
                     for (int dz = -span; dz <= span; dz++) {
                         if (CoolingTowerPiece.occupied(t, height, baseRadius, dx, dz, 0, 0, 0,
                                 0, -1, -1, -1)) {
-                            solid[CoolingTowerPiece.index(dx + span, t, dz + span, width)] = true;
                             total++;
                         }
                     }
@@ -56,34 +54,16 @@ class ShellHasNoFloatersTest {
             }
             assertTrue(total > 2000, "the shell should be substantial; found " + total);
 
-            boolean[] rooted = new boolean[solid.length];
-            ArrayDeque<int[]> queue = new ArrayDeque<>();
-            for (int dx = -span; dx <= span; dx++) {
-                for (int dz = -span; dz <= span; dz++) {
-                    int at = CoolingTowerPiece.index(dx + span, 0, dz + span, width);
-                    if (solid[at]) {
-                        rooted[at] = true;
-                        queue.add(new int[] {dx + span, 0, dz + span});
-                    }
-                }
-            }
-            int[][] steps = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {0, 1, 0}, {0, -1, 0}};
-            int reached = queue.size();
-            while (!queue.isEmpty()) {
-                int[] cell = queue.poll();
-                for (int[] step : steps) {
-                    int nx = cell[0] + step[0];
-                    int ny = cell[1] + step[1];
-                    int nz = cell[2] + step[2];
-                    if (nx < 0 || nz < 0 || nx >= width || nz >= width || ny < 0 || ny >= height) {
-                        continue;
-                    }
-                    int at = CoolingTowerPiece.index(nx, ny, nz, width);
-                    if (solid[at] && !rooted[at]) {
-                        rooted[at] = true;
-                        reached++;
-                        queue.add(new int[] {nx, ny, nz});
-                    }
+            // AND WHAT THE PIECE ACTUALLY PLACES - the production fill, called rather than copied. A
+            // test that reimplements the algorithm it is checking passes just as happily when the
+            // real one is seeded from the wrong end, which is how the previous fix survived as dead
+            // code.
+            boolean[] rooted = CoolingTowerPiece.rooted(height, baseRadius, 0, 0, 0,
+                0, -1, -1, -1, span);
+            int reached = 0;
+            for (boolean kept : rooted) {
+                if (kept) {
+                    reached++;
                 }
             }
 
