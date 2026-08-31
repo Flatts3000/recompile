@@ -1,0 +1,7 @@
+{
+  "type": "recompile:cooling_tower",
+  "biomes": "#recompile:has_structure/cooling_tower",
+  "spawn_overrides": {},
+  "step": "top_layer_modification",
+  "terrain_adaptation": "beard_thin"
+}
