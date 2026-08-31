@@ -2,7 +2,6 @@
   "values": [
     "recompile:garbage_block",
     "recompile:trash_bag",
-    "recompile:cardboard_pile",
     "recompile:compacted_bale"
   ]
 }

@@ -276,6 +276,27 @@ final class StrayTests {
                         com.flatts.recompile.registry.RCTags.PIGEON_FORAGEABLE),
                     block + " must be forageable, or the pigeon has nothing to peck at");
             }
+
+            // AND EVERY MEMBER MUST HAVE A TABLE TO ROLL, swept rather than listed.
+            //
+            // tableFor is SortableBlock.pullTableOf, so a forageable block that is not a sortable
+            // resolves to null: the bird flies over, pecks, and nothing happens, forever, with
+            // nothing logged. That is not hypothetical - the Cardboard Pile was added to this tag
+            // while it was a SortableBlock (#309) and stayed in it when it stopped being one, and
+            // the three hand-listed members above could not see it because it was not one of them.
+            List<String> tableless = new ArrayList<>();
+            for (var block : net.minecraft.core.registries.BuiltInRegistries.BLOCK) {
+                if (block.defaultBlockState().is(
+                        com.flatts.recompile.registry.RCTags.PIGEON_FORAGEABLE)
+                        && PigeonForageGoal.tableFor(block) == null) {
+                    tableless.add(net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                        .getKey(block).toString());
+                }
+            }
+            helper.assertTrue(tableless.isEmpty(),
+                "a pigeon would fly to " + tableless + " and peck at nothing, because the tag says "
+                    + "it is food and pullTableOf says it has no table. Either give it a pull "
+                    + "stream or take it out of the tag");
             helper.succeed();
         });
 

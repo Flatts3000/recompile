@@ -405,9 +405,9 @@ public final class RCBlocks {
      *
      * <p>Built to the trash bag's shape on purpose - same strength, same surface band, same absence
      * of {@code requiresCorrectToolForDrops} for the same reason. The two are the litter tier, and a
-     * player meets both in the first minute. Where they differ is what comes out: the bag draws the
-     * light household stream and this draws {@code gameplay/cardboard_pulls}, which is nearly all
-     * cardboard.
+     * player meets both in the first minute. Where they differ is the VERB: a bag is picked through
+     * one pull at a time, and this is simply broken. See
+     * {@link com.flatts.recompile.content.block.CardboardPileBlock} for why it is not a sortable.
      *
      * <p>Sound is WOOD rather than the bag's WOOL, matching the building family it feeds - see
      * {@link #cardboardProps}. It is the one cue that says these two soft piles are different
