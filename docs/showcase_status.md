@@ -16,8 +16,12 @@ resume point, not a design doc.
 `run/screenshots/` is gitignored, so a shot is not in the project until it is processed:
 
 ```bash
-python tools/prepare_gallery.py     # crop to subject, fit under 2 MB, write the numbered files
+python tools/prepare_gallery.py museum machine_wall   # crop to subject, fit under 2 MB, write the files
 ```
+
+Name the scenes you re-shot. A bare run is refused: PLAN's numbers are the gallery's upload order and
+several have drifted from what is actually uploaded, so processing the whole list writes duplicates
+into occupied slots rather than replacing them.
 
 Output lands in `docs/cf image gallery/`, numbered into the running order rather than appended.
 **The numbers are the gallery's order and the order is an argument:** theme first, because Theme Fit
