@@ -86,8 +86,7 @@ filing cabinet.
 Take it apart at the Teardown Workbench and you get two things: what it was made of, and an idea of
 how it was made. Four ideas about a mattress and you can make a mattress again.
 
-That is the whole mod. The materials are the easy part. What you are actually recovering is how the
-thing was made.
+The materials are the easy part. What you are actually recovering is how the thing was made.
 
 ## Sorting is the job
 
@@ -96,8 +95,7 @@ thing was made.
 A bin takes the first thing you put in it and nothing else after that. Stand a few side by side and
 everything you sort goes where it belongs.
 
-Later there are machines that do it while you are somewhere else. They have no screens. You drop
-things on them.
+Later you throw the garbage at a machine and walk away, and it is sorted when you come back.
 
 ## Ground you can stand on
 
@@ -125,17 +123,17 @@ corners, mossy brick at the waterline. The rooms are lit. The corridors are not.
 ![The sump: standing leachate, no lamp, and a drowned spawner on the walkway.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/15-sewer-sump.png)
 
 Every channel runs downhill to the same room. Leachate deep enough to go over your head, no lamp, and
-a drowned spawner on the walkway. There is one echo shard down there in the silt, and it is the only
-one in the world.
+a drowned spawner on the walkway. There is an echo shard in the silt at the bottom of every sewer, and
+nowhere else in the world.
 
-Turtles and frogs live in dens off the corridors. There are only ever as many as you find.
+Turtles and frogs live down there, in rooms of sand and mud off the corridors.
 
 ## Out past the yard
 
 ![Tailings impoundments with decant ponds, drums at the toe.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/17-radioactive-dump.png)
 
 Keep going past the demolition yard and the ground turns sallow. Somebody buried the things nobody
-would take: mill tailings in flat-topped heaps, steel drums with a trefoil on the side, and the
+would take: mill tailings in flat-topped heaps, steel drums with the radiation symbol stencilled on them, and the
 household objects that were quietly radioactive the whole time.
 
 ![Mill tailings, waste drums and uranium glass, with the finds behind.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf%20image%20gallery/18-radioactive-museum.png)
@@ -158,9 +156,8 @@ slag your own furnace rakes off.
 
 The machines are multiblocks. You place a core, stack parts on it, and it forms where it stands.
 
-A trommel sorts. A separator divides. A pulverizer grinds. A kiln puts powder back together, which is
-the only machine here that builds rather than breaks. A cupola melts scrap into iron, and rakes off
-slag while it does.
+A trommel sorts. A separator divides. A pulverizer grinds. A kiln presses powder back into something
+solid. A cupola melts scrap down into iron, and rakes off slag while it does.
 
 ## Things worth finding
 
