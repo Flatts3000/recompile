@@ -21,6 +21,7 @@ it usually wins; JPEG at descending quality only if PNG will not fit.
 from __future__ import annotations
 
 import io
+import sys
 from pathlib import Path
 
 from PIL import Image
@@ -46,6 +47,13 @@ PLAN = [
     ("reclaim_before", 2, RECLAIM_CROP),
     ("reclaim_after", 3, RECLAIM_CROP),
     ("machine_wall", 7, (0.17, 0.20, 0.83, 1.0)),
+    # The sewers and the radioactive dump, appended rather than interleaved: a number here is the
+    # gallery's order, and inserting one in the middle means re-uploading every image after it.
+    ("sewer_corridor", 14, FULL),
+    ("sewer_sump", 15, (0.12, 0.04, 0.88, 0.78)),
+    ("sewer_den", 16, FULL),
+    ("radioactive_dump", 17, FULL),
+    ("radioactive_museum", 18, (0.06, 0.26, 0.94, 1.0)),
 ]
 
 
@@ -77,7 +85,14 @@ def main() -> None:
     assert boxes["reclaim_before"] == boxes["reclaim_after"], \
         "the reclamation pair must share one crop, or the comparison is not honest"
 
+    # Name scenes on the command line to process only those. The numbers in PLAN are the gallery's
+    # order and several of them have drifted from what is actually uploaded, so a bare run can write a
+    # second copy of an image under a stale number. Filtering is how you add one image without
+    # touching the rest.
+    wanted = set(sys.argv[1:])
     for name, number, box in PLAN:
+        if wanted and name not in wanted:
+            continue
         source = SHOTS / f"{name}.png"
         if not source.is_file():
             print(f"{name}: no capture at {source}, skipped")
