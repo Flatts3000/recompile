@@ -145,7 +145,7 @@ the part that is cheaper to argue here than in Java.
 | **Reef Gallery** | the tank rows: **most of the 15 dead corals**, cracked glass, shallow leachate in the tank floors | Lobby, Big Tank, Guardian Tank, Back of House | 20x10, the largest room |
 | **Big Tank** | the centrepiece, **heart of the sea**, prismarine and sea lanterns at their densest | Reef Gallery | 8x8, tallest volume |
 | **Guardian Tank** | **the only real water in the building**, one guardian spawner | Reef Gallery | 6x6, breached |
-| **Filtration Hall** | **sponge and wet sponge**, silt, pipework, the sump | Reef Gallery, by ramp | 12x8, half-sunk |
+| **Filtration Hall** | **sponge and wet sponge**, **brushable silt (the 19 pottery sherds)**, pipework, the sump | Reef Gallery, by ramp | 12x8, half-sunk |
 | **Back of House** | the curator's chest, the drowned spawner | Reef Gallery, Filtration Hall | 8x6 |
 
 **Four rules that the arrangement has to satisfy**, each of them a decision rather than a preference:
@@ -173,6 +173,40 @@ the part that is cheaper to argue here than in Java.
 tank rows the gallery holds, and whether the building is one `StructurePiece` per room or a few larger
 ones. Those are build-time questions, and the sewer answers the last one by example - it assembles
 named pieces with computed boxes rather than one piece that draws everything.
+
+### 3.2 The palette
+
+**Nothing here is a new block, and that is the precedent rather than a constraint accepted
+reluctantly.** The cooling tower is Reinforced Concrete plus vanilla ground, and `SewerPalette` is
+entirely vanilla blocks plus leachate. A structure in this mod is an arrangement of things that already
+exist, so this building needs no texgen work at all. Expect an `AquariumPalette` of named constants,
+the way the sewer has one.
+
+| Role | Block | Why |
+|---|---|---|
+| Shell | `recompile:reinforced_concrete` | the yard's own concrete, and what the cooling tower is made of |
+| Frame | `recompile:steel_i_beam` | roof and gallery structure, ties it to the yard's other ruins |
+| Inner wall | `stone_bricks`, `cracked_stone_bricks`, `mossy_stone_bricks` | civic tiling and its two states of decay, exactly the sewer's three-course trick |
+| Floor | `smooth_stone` | a public building's floor, and it reads flat against the cladding |
+| Cladding | `prismarine`, `prismarine_bricks`, `dark_prismarine` | the point of the building |
+| Lighting | `sea_lantern` | what an aquarium actually lights tanks with, and it is the same family |
+| Glazing | `glass`, `glass_pane` | see the crack rule below |
+| The one wet tank | `tinted_glass` | see the crack rule below |
+| Railings | `iron_bars` | `SewerPalette.GRATE` is the same block for the same reason |
+| Silt | `suspicious_gravel`, `suspicious_sand` | brushable, and the same pair `SewerPalette` calls SILT and FINE_SILT |
+| Standing fluid | `recompile:leachate` | everywhere except the guardian tank |
+| Guardian tank | `water` | the only water in the building, ruling 8.1 |
+| Age | `cobweb` | corners and dead tanks |
+
+**The crack rule, because "cracked glass" named a block that does not exist.** Vanilla has no cracked
+glass, so the first draft's "tank walls of cracked glass" was a description with no implementation.
+**Damage is expressed by absence, not by a block**: a sheet of `glass` with panes missing, a row of
+`glass_pane` where the sheet is half gone, and open holes where a wall failed. That is how the other two
+landmarks express ruin and it needs nothing new.
+
+**`tinted_glass` is reserved for the guardian tank alone**, which turns a palette choice into
+information: the darkest glass in the building is the one tank still holding water, readable from
+outside before a player walks in. It is also the right look for the only lit-from-within exhibit left.
 
 ---
 
@@ -203,9 +237,10 @@ that colour**, and the fifteen dead coral items the building holds become fiftee
 rather than fifteen one-shots. That reads as correct here: it makes a living reef the reward for having
 built water and power infrastructure, which is the same shape as every other thing the bay grows.
 
-**Which of the three forms revives into which** is the one detail left to build time. There are fifteen
-dead items across five colours and three forms (coral, fan, block), and the obvious mapping is each
-form to its own live counterpart, which keeps the data map honest and needs no special cases.
+**Each dead form revives into its own live counterpart** - `dead_tube_coral` to `tube_coral`,
+`dead_tube_coral_fan` to `tube_coral_fan`, `dead_tube_coral_block` to `tube_coral_block`, and the same
+across all five colours. Fifteen tag lines and fifteen data-map lines, no special cases, and no
+cross-form conversion to explain to anybody.
 
 Coral bleaching is the expulsion of zooxanthellae under stress; the skeleton survives and the colour
 does not. Reviving bleached coral is real restoration practice, so the chain is honest in the way the
@@ -299,7 +334,7 @@ a player wants. Exhibit stock, dive kit, the gift shop's inventory, the archive.
 | **Sponges** | 2 | also placed in the filtration hall; the chest carries spares |
 | **`turtle_scute`** | 1 | its only route in the game, see #345 |
 | **Enchanted books** | 0 | flavour rather than a gap: already reachable from a librarian |
-| **Ocean-related resources** | ? | called for but not enumerated; candidates below |
+| **The four nautilus armours** | 4 | this is what "ocean-related resources" resolves to; nothing else in the game can source them |
 
 **Three things about that list need saying rather than quietly implementing.**
 
@@ -310,16 +345,29 @@ makes this one chest the sole route to the entire trim system. #328 leans toward
 cosmetic; if that ruling ever lands it takes this group with it. Recorded as a reversal so nobody has
 to reconstruct why 8.4 says one thing and 5.1 says another.
 
-**"Ocean-related resources" is not yet a list.** What is actually left unreachable and marine, once the
-placed blocks and the guardian are accounted for: the **four nautilus armours** (chest loot in vanilla,
-no recipe, and **no other possible home in this mod** - if they are not here they stay unreachable
-forever) and `heart_of_the_sea` (currently specced as the placed centrepiece, so the chest is an
-alternative rather than an addition). Both are proposed for this slot.
+**"Ocean-related resources" resolves to the four nautilus armours.** They are the only marine items
+left unreachable once the placed blocks, the guardian and the brushing route are accounted for, they
+are chest loot with no recipe in vanilla, and they have **no other possible home in this mod**. If they
+are not in this chest they stay unreachable forever, which is what settles it.
 
-**The 19 pottery sherds were not selected, and that is the largest single gap left open.** Nineteen of
-the twenty have no source, `heart_pottery_sherd` is the only reachable one, and maritime archaeology is
-about as natural an aquarium exhibit as exists. Left out because it was not asked for, not because a
-reason was given; worth one more look before the table is written.
+**`heart_of_the_sea` stays PLACED in the centrepiece tank rather than joining the chest.** Finding it
+in the tank it was exhibited in is a landmark moment; rolling it out of a crate in the back office is
+the same item and a worse one. One per building either way.
+
+**The 19 pottery sherds are NOT chest loot. They are brushed out of the filtration hall's silt.**
+This was the open question and it resolves against the chest on four counts, all of which point the
+same way:
+
+- **The mechanism already exists.** `heart_pottery_sherd` is reachable today by brushing sewer silt, so
+  this extends a shipped route rather than inventing one, and it leaves a clean split: the heart sherd
+  stays the sewers', the other nineteen become the aquarium's.
+- **It is what vanilla does.** Sherds come from archaeology everywhere else in the game, and a player
+  who has ever brushed suspicious gravel will reach for a brush here without being told.
+- **The room is already silted**, so it costs one palette entry rather than a new idea, and
+  `suspicious_gravel` is the same block `SewerPalette` already calls SILT.
+- **It spreads the building's rewards across two verbs.** A landmark whose entire payoff is one crate
+  is a crate with a building around it; brushing the plant room and looting the office are two
+  different afternoons.
 
 **Explicitly out**, so the rule is not quietly abandoned later: everything End-locked (`shulker_shell`,
 the dragon set, `elytra`, `chorus_*`), everything from the Nether, every ore, and the trial-chamber
@@ -409,16 +457,23 @@ On the "it is a building" argument. Section 2 stands as written.
    shards also get a manufactured route, which is this mod's established practice for a gated material
    - exactly how #277 sourced AE2's certus and fluix, on the reasoning that only a machine produces at
    playthrough scale. Belt and braces: prismarine stays renewable even if the tank is ever cut.
-   **What the machine eats is still open.** It should be a `separating` recipe, because dividing a
-   mixture is the Separator's verb and prismarine is a silicate fraction. The leading candidate input is
-   **silt** - the filtration hall is full of it, the sewers already have it as a brushable material, and
-   it keeps the route tied to this building rather than appearing from nowhere. Not decided, and it must
-   not be anything downstream of prismarine itself or the recipe is circular.
-2. **DECIDED: the building carries a loot chest** (owner, 2026-09-03), and 5.1 now records the ruled
-   contents. Two things there are still open: what "ocean-related resources" resolves to (the four
-   nautilus armours are proposed, and they have no other home in the game), and whether the nineteen
-   pottery sherds go in, which is the largest gap this building could close and was not asked for
-   either way.
+   **The recipe is `separating` on Mill Tailings**, results one prismarine shard, byproduct glass
+   shards - the exact shape of `separating_amethyst.json`, which turns Quartz Grit into an amethyst
+   shard with the same byproduct. Silt was the first candidate and is wrong: in this mod silt is
+   `suspicious_gravel` and `suspicious_sand`, which are brushable blocks rather than items a Separator
+   can eat. Tailings work because they are a mineral-processing residue, which is where an odd silicate
+   would concentrate in reality, and it is the same argument slag already makes; Mill Tailings is an
+   ordinary block item, so no new item is needed at all.
+   **The two routes deliberately fail in opposite ways, which is what makes the pair worth having.**
+   The guardian is renewable but destructible - bucket the tank dry and the drop route dies with it.
+   Tailings cannot be destroyed but heaps do not regrow, so that route is large and finite. Belt and
+   braces means two routes with different failure modes rather than two of the same one. It also lands
+   the machine at onset 1024 against the guardian's 512, so the tank stays the early route and the
+   Separator is the late scale-up.
+2. **DECIDED: the building carries a loot chest** (owner, 2026-09-03) and 5.1 records its contents in
+   full. The two questions left hanging there are now answered: "ocean-related resources" is the four
+   nautilus armours, and the nineteen pottery sherds are **not** chest loot but are brushed out of the
+   filtration hall's silt, which extends the shipped sewer-silt route instead of inventing one.
 3. **`leachate_is_not_water` does not assert what its name says.** It compares fluid identity, so it
    would stay green if leachate were ever added to `#minecraft:water` - which is the single edit that
    would undo the fluid's whole reason for existing, and the one this structure creates a temptation to
