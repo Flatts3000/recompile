@@ -1,0 +1,274 @@
+{
+  "_comment": [
+    "The Municipal Aquarium's curator's chest (docs/municipal_aquarium_spec.md 5.1). One per",
+    "building, in Back of House. Its job is items with no other source in this world.",
+    "",
+    "Three pools with different jobs, not one flat list. The dive kit and the trims are finished goods",
+    "and want to be rare; the exhibit stock is materials and can be generous. Enchanted books are",
+    "flavour rather than a gap (a librarian sells them) so they ride in the stock pool at low weight.",
+    "",
+    "Every weight here is a pre-beta placeholder, like every weight in this mod (#36)."
+  ],
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "_comment": "Dive kit: the four nautilus armours, which have no recipe and no other home.",
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:copper_nautilus_armor",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_nautilus_armor",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:golden_nautilus_armor",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_nautilus_armor",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 30
+        }
+      ]
+    },
+    {
+      "_comment": "The archive: every trim template this world otherwise lacks. Reverses ruling 8.4.",
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bolt_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:coast_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:dune_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:eye_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:flow_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:host_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:raiser_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:sentry_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:shaper_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:silence_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:spire_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:tide_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:vex_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ward_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:wayfinder_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:wild_armor_trim_smithing_template",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 24
+        }
+      ]
+    },
+    {
+      "_comment": "Exhibit stock: the wetlands wing, spare sponges, and the one scute in the game.",
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2,
+        "max": 4
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:glow_lichen",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:big_dripleaf",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:spore_blossom",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:hanging_roots",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:azalea",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:flowering_azalea",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:sponge",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:wet_sponge",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:turtle_scute",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:book",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:enchant_randomly"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

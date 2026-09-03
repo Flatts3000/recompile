@@ -863,6 +863,17 @@ kind = "item"
 backend = "ai"
 size = 16
 prompt = "a small heap of rich dark crumbly finished compost fertilizer, near-black soil flecked with pale bits, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+[surface.prismarine_grit]
+# The second grit, and deliberately the SAME drawing as the first with the mineral changed. Retint
+# rather than a fresh AI pass for the reason the depleted battery is a retint of the live one: two
+# grits that are the same object in different minerals should share an outline, and a retint is the
+# only backend that can promise it. Quartz grit is violet; prismarine is the sea-green of the block.
+kind = "item"
+backend = "retint"
+size = 16
+tint = "#63b5a4"
+source = "item/quartz_grit"
+
 [surface.quartz_grit.procedural]
 style = "lump"
 palette = ["#d8d4e0", "#eceaf2", "#bdb6c8", "#a795b8", "#f4f2f8"]

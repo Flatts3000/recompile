@@ -472,6 +472,8 @@
   "item.recompile.spent_abrasive": "Spent Abrasive",
   "item.recompile.magnet_scrap": "Magnet Scrap",
   "item.recompile.quartz_grit": "Quartz Grit",
+  "item.recompile.prismarine_grit": "Prismarine Grit",
+  "jei.recompile.info.prismarine_grit": "Sorted out of Mill Tailings in the radioactive dump. A Separator divides it into a prismarine shard, with glass shards as the leftover - the same way Quartz Grit gives an amethyst. Guardians drop shards too, so this is the route that survives if you ever bucket the aquarium dry.",
   "block.recompile.separator": "Separator",
   "block.recompile.trommel": "Trommel",
   "block.recompile.trommel_drum": "Trommel Drum",
