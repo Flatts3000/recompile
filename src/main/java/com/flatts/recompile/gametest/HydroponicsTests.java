@@ -12,6 +12,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * The Hydroponics Bay (#43).
@@ -56,6 +61,54 @@ final class HydroponicsTests {
     }
 
     static void register() {
+        // THE NULL SIDE. The bay has said "automation may not take my seed" since #43 -
+        // canTakeItemThroughFace is `slot != SLOT_INPUT` - and was not enforcing it against one
+        // caller: WorldlyContainerWrapper.extract is guarded by `side != null &&`, so a non-sided
+        // query skipped the check and could pull the seed back out of a bay it was feeding.
+        //
+        // Closed by handing a non-sided caller no handler at all, the Burner Generator's pattern. Both
+        // halves are asserted, because refusing everything would "fix" this while breaking the machine.
+        RCGameTests.test("a_non_sided_pipe_gets_no_handler_on_the_bay", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.HYDROPONICS_BAY.get());
+            BlockPos abs = helper.absolutePos(pos);
+
+            helper.assertTrue(
+                helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, null) == null,
+                "a non-sided query must get NO handler - one would bypass canTakeItemThroughFace and "
+                    + "let a pipe take the seed");
+            helper.assertTrue(
+                helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, Direction.UP) != null,
+                "a sided query must still get a handler - this bay is the automation tier");
+            helper.succeed();
+        });
+
+        // ...and the rule it was failing to keep, now asserted from a real face rather than inferred.
+        RCGameTests.test("a_pipe_cannot_take_the_bays_seed", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.HYDROPONICS_BAY.get());
+            BlockPos abs = helper.absolutePos(pos);
+            ServerLevel level = helper.getLevel();
+            if (!(level.getBlockEntity(abs) instanceof HydroponicsBayBlockEntity bay)) {
+                helper.fail("the hydroponics bay has no BlockEntity");
+                return;
+            }
+            bay.setItem(HydroponicsBayBlockEntity.SLOT_INPUT,
+                new ItemStack(RCItems.UNKNOWN_SEEDLING.get(), 3));
+
+            ResourceHandler<ItemResource> top =
+                level.getCapability(Capabilities.Item.BLOCK, abs, Direction.UP);
+            helper.assertTrue(top != null, "the top face must expose a handler");
+            try (Transaction tx = Transaction.openRoot()) {
+                int stolen = top.extract(ItemResource.of(RCItems.UNKNOWN_SEEDLING.get()), 3, tx);
+                helper.assertTrue(stolen == 0,
+                    "a pipe must not be able to take the seed out of a bay it is feeding, took "
+                        + stolen);
+            }
+            helper.succeed();
+        });
+
+
         // THE SWAP, half one: a seedling is a lottery ticket and yields SOMETHING growable.
         RCGameTests.test("a_seedling_grows_into_some_plant", 60, helper -> {
             var be = placeFuelled(helper, BAY);

@@ -204,10 +204,29 @@ public final class RCBlockEntities {
         // that cannot be plumbed is not one. Caught by every_container_block_declares_its_automation on
         // its first run, which is the test written after the Cupola shipped advertising automation no
         // pipe could reach.
+        //
+        // NULL SIDE GETS NOTHING (2026-09-03). Its canTakeItemThroughFace says `slot != SLOT_INPUT`,
+        // and WorldlyContainerWrapper.extract is guarded by `side != null &&` - so a non-sided caller
+        // skipped that check entirely and could pull the seed straight back out of a bay it was
+        // supposed to be feeding. The machine had declared the rule since #43 and not been enforcing
+        // it against that one caller. Same fix and same shape as the Tree Nursery and the Burner
+        // Generator.
+        //
+        // IT COSTS NULL-SIDE INSERTION TOO, which is the honest price of this shape. `insert` has no
+        // `side != null` guard, so a non-sided caller could legitimately FEED the bay under its own
+        // rules and now cannot reach it at all. Accepted: it keeps this machine identical to the
+        // Nursery and the Burner rather than minting a bespoke insert-only wrapper for one block, and
+        // a pipe attached to a face - which is what almost all of them are - is unaffected.
+        //
+        // The CUPOLA below keeps the plain wrapper on purpose: it is held to vanilla furnace parity,
+        // a vanilla furnace does answer a non-sided query, and VanillaParityTests compares every face
+        // PLUS the null one against Blocks.FURNACE. Guarding it would break the parity it exists to
+        // keep. The Slag Furnace and Sintering Kiln are furnace subclasses meant to behave the same
+        // way, but NOTHING PINS THEM - neither is in VanillaParityTests (#341).
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             HYDROPONICS_BAY.get(),
-            (be, side) -> new WorldlyContainerWrapper(be, side));
+            (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
         event.registerBlockEntity(
             Capabilities.Fluid.BLOCK,
             HYDROPONICS_BAY.get(),
@@ -303,7 +322,7 @@ public final class RCBlockEntities {
         // non-sided caller SKIPS canTakeItemThroughFace entirely and could pull the fertilizer and
         // seedling straight back out - the exact invariant this machine states. Handing a non-sided
         // caller no handler at all is one expression and closes it; the alternative was documenting a
-        // hole. (The Hydroponics Bay still has it, registered plainly at the top of this method.)
+        // hole. (The Hydroponics Bay had the same one and was fixed the same day; see its registration.)
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             TREE_NURSERY.get(),

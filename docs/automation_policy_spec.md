@@ -69,6 +69,7 @@ Separator's four, and only an audit found it.
 | **Scrap Bin** | custom `ResourceHandler` | in + out | in + out | **Deliberate departure.** Gated to its bound material. Extraction added 2026-07-31, reversing P2.9's "hopper in, no out". Draining to empty **keeps the binding**, or a pipe would silently un-type a bin and the next unrelated insert would re-bind it, quietly scrambling a sorted wall. |
 | **Burn Barrel** | `AbstractFurnaceBlockEntity` | **none** | **none** | **The exception, and it is load-bearing** (owner call, 2026-07-31). Manual-only is why the Cupola is worth building - "unlike the barrel it takes hoppers" is its stated selling point. Empty `getSlotsForFace` closes the Container path; registering **no capability at all** closes the pipe path *and* stops pipes from connecting. |
 | **Tree Nursery** | `WorldlyContainer` | sided | sided, **null side refused** | **Reversed 2026-09-03 (owner): fully automatable.** Inputs from the sides, saplings from the bottom - the furnace convention, matching the Hydroponics Bay. **The top is unusable on a built nursery** and that is geometry, not policy: the blueprint puts a Solar Panel directly above the core in every orientation, and a dummy cell forwards no item capability. `canPlaceItem` routes each input by item and refuses the output slot; `canTakeItemThroughFace` allows only the output, so a hopper cannot drain the machine it is feeding. A **non-sided** capability query is handed no handler at all, the Burner Generator's pattern - see the changelog. Its **water tank** stays exposed as before. |
+| **Hydroponics Bay** | `WorldlyContainer` | sided | sided, **null side refused** | **The automation tier** (#43): a machine that cannot be plumbed is not one, so it exposes items, fluid and energy. Input from the top and sides, harvest and byproduct from the bottom - both harvest slots pull from below, or a hopper under a potato farm drains the good potatoes and leaves the poisonous ones to stall it. `canTakeItemThroughFace` refuses `SLOT_INPUT`, and since 2026-09-03 a **non-sided** query is refused outright so that rule holds against every caller. **It had no row here until then**, which is this table's own rule going unenforced on the one machine built to be automated. |
 | **Sequencer** | `WorldlyContainer` | **none** | **none** | Manual-only by design (#294): the "one precious thing at a time" machine, not an automation-tier one. Amber arrives at about 1 in 700 pulls, so a pipe would be feeding it nothing most of the time. **Energy IS exposed** (`Capabilities.Energy.BLOCK`, insert-only), because it has to be charged. It shipped closed on the capability door and OPEN on the Container one - a plain `Container`, which `HopperBlockEntity.getContainerAt` takes directly - so a hopper underneath pulled the amber out mid-read. Caught in review, fixed to `WorldlyContainer` with no slots on any face, the Tree Nursery's shape exactly. |
 | **Rain Collector** | plain `BlockEntity` | n/a | fluid only | Its tank is the point; it holds no items. |
 | **Display Pedestal** | plain `BlockEntity` | **none** | **none** | Holds one item and is **never hopper-fed** by design - placing and taking is the interaction. |
@@ -130,10 +131,27 @@ satisfy the sweep and still get its faces wrong.
   eighty lines below in the same method. `a_non_sided_pipe_gets_no_handler_on_the_nursery` pins both
   halves - nothing for a null side, a working handler for a real one.
 
-  **The Hydroponics Bay still has it**, registered plainly as `new WorldlyContainerWrapper(be, side)`
-  since #43, so a non-sided pipe can take its seed. It is the same one-line fix and it is deliberately
-  not bundled into this change: the Bay is a shipped machine and closing a door on it is a behaviour
-  change somebody's base may be built on.
+  **The Hydroponics Bay had it too, and is fixed as well** (owner call, same day). It had declared
+  `slot != SLOT_INPUT` since #43 and was simply not enforcing it against a non-sided caller, so a pipe
+  could pull the seed back out of a bay it was feeding. Fixing it also surfaced that the Bay had **no
+  row in the table above at all** - this page's central rule, unenforced on the one machine built to be
+  automated. It has one now.
+
+  **It costs null-side INSERTION too.** `insert` has no `side != null` guard, so a non-sided caller
+  could legitimately feed both machines under their own rules and now cannot reach them at all.
+  Accepted, to keep them identical to the Burner Generator rather than mint a bespoke insert-only
+  wrapper; a pipe attached to a face is unaffected, and that is what almost all of them are.
+
+  **The FURNACES keep the plain wrapper, and that is not an oversight.** The **Cupola** is held to
+  vanilla furnace parity: a vanilla furnace *does* answer a non-sided query, and `VanillaParityTests`
+  compares every face **plus** the null one against `Blocks.FURNACE`, so guarding it would break the
+  parity it exists to keep. The **Slag Furnace** and **Sintering Kiln** are furnace subclasses meant to
+  behave the same way, but **nothing pins them** - neither appears in `VanillaParityTests`, which
+  covers only the Scrap Barrel and the Cupola. That gap is #341; this page said all three were parity
+  tested until review checked, which is the "reads as complete" failure it exists to prevent.
+
+  So the rule is not "always refuse the null side" - it is **a machine that restricts extraction by
+  face must refuse it, and a parity block must match vanilla instead.**
 
 - **2026-09-03** - The Charging Station (#336) added a row: manual-only on both item doors like the
   pedestal, energy in only like the Sequencer. Worth a line because it is the first block here whose
