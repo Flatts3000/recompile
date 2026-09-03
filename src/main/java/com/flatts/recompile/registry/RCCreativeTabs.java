@@ -111,6 +111,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.GROG.get());
                     output.accept(RCItems.KITTY_LITTER.get());
                     output.accept(RCItems.DRY_CLAY_BODY.get());
+                    output.accept(RCItems.DRIED_BOUQUET.get());
 
                     // --- 5. Machine parts: what every multiblock is assembled from ---
                     output.accept(RCItems.MACHINE_FRAME.get());

@@ -291,6 +291,13 @@ Pulverizer shipped with zero Jade providers against the Separator's four.
   plasticity has to come from the bentonite in cat litter. The two halves are useless apart. It
   unlocks 43 vanilla items, and it needed a source added for sherds: this world has no archaeology, so
   they were unobtainable and the whole chain was a dead end until one entered `household_pulls`.
+  **The cauldron interaction now has a sibling that runs the other way** (#331, #335, 2026-09-03): a
+  **Dried Bouquet** from `household_pulls` rehydrates into one of the five two-block plants - the four
+  tall flowers and the large fern, which the wandering trader has never sold and nothing else here
+  grew - or tears down for Fiber Scrap. A fired pot lost something that cannot be put back; a dried
+  flower lost only water. Which plant is a loot table (`gameplay/dried_bouquet`, the seedling
+  lottery's shape), so a pack retunes it; the interaction itself is still Java, and both live in
+  `RCCauldronInteractions`.
 - **Resin** (#231, owner 2026-08-29): Amber -> Sequencer -> **Spent Amber** + a fragment; Spent Amber
   + **Turpentine** (found) -> `resin_clump` (grid), and all nine resin items hang off the clump.
   **This is the clay chain's argument applied a second time, and it had to be.** Amber is polymerised

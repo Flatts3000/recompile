@@ -149,6 +149,9 @@ public final class SortingData {
     /** The Hydroponics Bay's seedling lottery: which plant an Unknown Seedling turns out to be. */
     public static final String SEEDLING = "/data/recompile/loot_table/gameplay/hydroponics_seedling.json";
 
+    /** What a Dried Bouquet rehydrates into in a water cauldron. */
+    public static final String BOUQUET = "/data/recompile/loot_table/gameplay/dried_bouquet.json";
+
     /**
      * Every species the pull streams can stamp onto a piece of Amber (#294), in table order.
      *

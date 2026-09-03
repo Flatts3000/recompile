@@ -1851,6 +1851,16 @@ prompt = "a compact block of dry unfired clay mix, dusty pinkish-grey pressed po
 [surface.dry_clay_body.procedural]
 style = "lump"
 
+[surface.dried_bouquet]
+# A find that shares the clay chain's cauldron (#331, #335): dead flowers that come back as one of the
+# tall plants when you add water. It has to read as DRIED - faded, papery, drooping - rather than as
+# a fresh bunch, or the cauldron step makes no sense; and it has to read as several stems tied together
+# rather than one flower, because a single bloom at 16px is the vanilla flower icons.
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a small bunch of dried flowers tied at the stems with a faded ribbon, drooping heads in dusty muted pink, ochre and brown with papery brittle petals and a few dry fern fronds, chunky readable shapes and very few details, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
+
 [surface.circuit_powder]
 # The middle of the gold chain (#120): ground circuit board, one stage before the smelter.
 #

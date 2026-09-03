@@ -51,6 +51,7 @@ public final class JeiInfoPanels {
             new Panel(RCItems.BULB.get(), "bulb"),
             new Panel(RCItems.DEPLETED_BATTERY.get(), "depleted_battery"),
             new Panel(RCItems.BATTERY.get(), "battery"),
+            new Panel(RCItems.DRIED_BOUQUET.get(), "dried_bouquet"),
             new Panel(RCItems.LEACHATE_BUCKET.get(), "leachate_bucket"),
 
             // Machines whose restriction or behaviour no recipe states.

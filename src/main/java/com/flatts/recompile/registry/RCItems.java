@@ -755,6 +755,22 @@ public final class RCItems {
     public static final DeferredItem<Item> KITTY_LITTER = ITEMS.registerItem("kitty_litter", Item::new);
     public static final DeferredItem<Item> DRY_CLAY_BODY = ITEMS.registerItem("dry_clay_body", Item::new);
 
+    /**
+     * Dried Bouquet: a find from household garbage that is two things depending on what you do with it
+     * (owner, 2026-09-03; #331, #335).
+     *
+     * <p>Right-click it on a water cauldron and it rehydrates into one of the five two-block plants -
+     * the four tall flowers and the large fern - which had no source at all here: the wandering trader
+     * stocks every small flower and has never sold a tall one, and a large fern needs a fern to
+     * bone-meal that nothing provides. Or pull it apart at the workbench for the stems, which are
+     * fibre. It is the clay chain's cauldron pointed the other way: a fired pot lost something that
+     * cannot be put back, a dried flower lost only water.
+     *
+     * <p>Not a component and not found-only in the tag sense - there is simply no recipe for it,
+     * because nobody makes a dead bouquet on purpose.
+     */
+    public static final DeferredItem<Item> DRIED_BOUQUET = ITEMS.registerItem("dried_bouquet", Item::new);
+
 
     /** Sorted in the order the Separator will consume them. */
     public static final List<DeferredItem<Item>> INDUSTRIAL_SCRAP =

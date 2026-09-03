@@ -208,7 +208,8 @@ public class RecompileJeiPlugin implements IModPlugin {
                 com.flatts.recompile.compat.SeparatingData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new SalvageCategory(HYDRATING, Component.translatable("jei.recompile.hydrating"),
-                gui.createDrawableItemStack(new ItemStack(Items.WATER_BUCKET)), false, 1),
+                gui.createDrawableItemStack(new ItemStack(Items.WATER_BUCKET)), false,
+                widest(SortingData.BOUQUET)),
             new SalvageCategory(PULVERIZING, Component.translatable("jei.recompile.pulverizing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
                 com.flatts.recompile.compat.PulverizingData.all().stream()
@@ -336,7 +337,9 @@ public class RecompileJeiPlugin implements IModPlugin {
         registration.addRecipes(HYDRATING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.DRY_CLAY_BODY.get()),
                 List.of(new com.flatts.recompile.compat.SortingData.Weighted(
-                    new ItemStack(Items.CLAY_BALL), 1.0F)))));
+                    new ItemStack(Items.CLAY_BALL), 1.0F))),
+            new SalvageRecipe(new ItemStack(RCItems.DRIED_BOUQUET.get()),
+                SortingData.visibleOutputs(SortingData.BOUQUET))));
 
         registration.addRecipes(PRYING, List.of(
             new SalvageRecipe(new ItemStack(RCItems.BULKY_WASTE.get()),

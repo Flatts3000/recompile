@@ -50,7 +50,9 @@ The weighted streams that a sortable block yields when you pick through it, roll
 `getLootTable` + `getRandomItems`. **Tuning drop rates means editing these, not Java.**
 
 `recompile:gameplay/` holds `household_pulls`, `bag_pulls`, `mechanical_pulls`, `rubble_pulls`,
-`slag_rubble_pulls`, `depths_pulls`, `bulky_spine`, `bulky_windfall` and `hydroponics_seedling`.
+`slag_rubble_pulls`, `depths_pulls`, `bulky_spine`, `bulky_windfall`, `hydroponics_seedling` and
+`dried_bouquet` (what a Dried Bouquet turns into in a water cauldron; the interaction is Java, the
+odds are yours).
 
 They declare `"type": "minecraft:chest"` despite never being a chest - that is what gates loot-context
 param validation - so a replacement must keep it.

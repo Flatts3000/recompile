@@ -91,6 +91,11 @@
         },
         {
           "type": "minecraft:item",
+          "name": "recompile:dried_bouquet",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
           "name": "recompile:kitty_litter",
           "weight": 18
         },
