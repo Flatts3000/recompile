@@ -76,6 +76,13 @@ public class SteelStackFeature extends Feature<NoneFeatureConfiguration> {
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
+        // The Municipal Aquarium claims its footprint before any feature runs (its start box is known
+        // at the structure_starts stage), and a lattice standing through a civic building read as a
+        // generation bug the first time one generated. Owner ruling 2026-09-03: structures do not
+        // overlap. Exclusion zones handle the other structures; this handles the yard's tall features.
+        if (com.flatts.recompile.content.worldgen.aquarium.AquariumStructure.claims(level, origin)) {
+            return false;
+        }
         RandomSource random = context.random();
 
         int base = groundY(level, origin);

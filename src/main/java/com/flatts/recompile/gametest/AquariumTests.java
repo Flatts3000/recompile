@@ -64,7 +64,7 @@ public final class AquariumTests {
         BlockPos o = helper.absolutePos(new BlockPos(0, 1, 0));
         BoundingBox all = AquariumStructure.footprint(o.getX(), o.getY(), o.getZ());
         BoundingBox limit = new BoundingBox(all.minX() - 8, all.minY() - 8, all.minZ() - 8,
-            all.maxX() + 8, all.maxY() + 8, all.maxZ() + 8);
+            all.maxX() + 8, all.maxY() + AquariumStructure.CLEAR_ABOVE + 8, all.maxZ() + 8);
         for (StructurePiece piece : AquariumStructure.pieces(o.getX(), o.getY(), o.getZ())) {
             BoundingBox box = piece.getBoundingBox();
             piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
@@ -259,6 +259,37 @@ public final class AquariumTests {
                 }
             }
             helper.assertTrue(wrong.isEmpty(), String.join("; ", wrong));
+            helper.succeed();
+        });
+
+        // WHAT A FEATURE LEFT STANDING OVER THE BUILDING IS CLEARED. The first aquarium generated with a
+        // Building Husk lattice rising through its forecourt and over its roof: the shell overwrote
+        // everything inside the boxes, and the lattice above them was outside every box. Steel beams
+        // are planted over three rooms before the build and must be gone after it.
+        RCGameTests.test("a_lattice_standing_over_the_building_is_cleared", 200, helper -> {
+            var level = helper.getLevel();
+            BlockPos o = helper.absolutePos(new BlockPos(0, 1, 0));
+            int ox = o.getX();
+            int base = o.getY();
+            int oz = o.getZ();
+            List<BlockPos> planted = new ArrayList<>();
+            for (Room room : List.of(Room.FORECOURT, Room.GALLERY, Room.FILTRATION_HALL)) {
+                BoundingBox b = room.box(ox, base, oz);
+                for (int y = b.maxY() + 1; y <= base + AquariumStructure.CLEAR_ABOVE; y += 5) {
+                    planted.add(new BlockPos((b.minX() + b.maxX()) / 2, y, (b.minZ() + b.maxZ()) / 2));
+                }
+            }
+            for (BlockPos p : planted) {
+                level.setBlock(p, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
+            }
+            build(helper);
+            List<String> standing = new ArrayList<>();
+            for (BlockPos p : planted) {
+                if (!level.getBlockState(p).isAir()) {
+                    standing.add(p.toString());
+                }
+            }
+            helper.assertTrue(standing.isEmpty(), "feature blocks still standing over the building: " + standing);
             helper.succeed();
         });
 

@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.worldgen.aquarium;
 
+import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCStructures;
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayDeque;
@@ -9,6 +10,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -39,6 +46,48 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilde
 public class AquariumStructure extends Structure {
 
     public static final MapCodec<AquariumStructure> CODEC = simpleCodec(AquariumStructure::new);
+
+    public static final ResourceKey<Structure> KEY = ResourceKey.create(Registries.STRUCTURE,
+        Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "municipal_aquarium"));
+
+    /**
+     * How far above its own roof each room clears. Structures at top_layer_modification write after
+     * every feature, so anything a feature left standing INSIDE a room's box is overwritten by the
+     * shell - but a Building Husk's lattice or a steel stack rising above an open forecourt is outside
+     * every box and would stand straight through the building. Husks are tall; this is generous.
+     */
+    public static final int CLEAR_ABOVE = 28;
+
+    /**
+     * Whether this structure has claimed the ground around {@code pos}, for the yard's tall features to
+     * ask before they place. A structure start's box is known at the structure_starts stage, which is
+     * before any feature runs, so a feature can decline to put a husk where a room is about to be.
+     *
+     * <p>Checks a ring rather than the one point, because a husk's origin is its centre and its frame
+     * reaches well past it; a husk centred just outside the footprint still leans over it.
+     */
+    public static boolean claims(WorldGenLevel level, BlockPos pos) {
+        // A WorldGenLevel carries no structure manager of its own in 26.1. Vanilla's decoration
+        // binds the server's manager to the region it is generating (forWorldGenRegion), which is
+        // what makes chunk access safe from a worldgen thread; anything else is a feature asking
+        // the live level about a chunk it is in the middle of making.
+        if (!(level instanceof WorldGenRegion region)) {
+            return false;
+        }
+        var structure = level.registryAccess().lookupOrThrow(Registries.STRUCTURE).get(KEY);
+        if (structure.isEmpty()) {
+            return false;
+        }
+        Structure s = structure.get().value();
+        StructureManager manager = region.getLevel().structureManager().forWorldGenRegion(region);
+        for (BlockPos probe : new BlockPos[]{pos, pos.offset(10, 0, 0), pos.offset(-10, 0, 0),
+                pos.offset(0, 0, 10), pos.offset(0, 0, -10)}) {
+            if (manager.getStructureAt(probe, s).isValid()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * The seven rooms, each with its box as offsets from the origin (ox, base, oz) where {@code base}

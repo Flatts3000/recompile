@@ -10,8 +10,8 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 |---|---|
 | Minecraft version | 26.1.2 |
 | Catalogued | 886 |
-| **Reachable in Recompile** | **730 (82%)** |
-| Not reachable | 156 |
+| **Reachable in Recompile** | **778 (88%)** |
+| Not reachable | 108 |
 | Mobs obtainable | 59 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
@@ -45,14 +45,14 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Mountain | 0 | 1 |
 | Mushroom Fields | 5 | 5 |
 | River | 1 | 2 |
-| Ocean | 56 | 95 |
-| Cave & Underground | 103 | 128 |
+| Ocean | 67 | 95 |
+| Cave & Underground | 107 | 128 |
 | Nether | 73 | 82 |
-| End | 10 | 25 |
-| Structures & Chest Loot | 215 | 238 |
+| End | 11 | 25 |
+| Structures & Chest Loot | 224 | 238 |
 | Trading | 62 | 62 |
 | Fishing | 1 | 1 |
-| Archaeology | 13 | 38 |
+| Archaeology | 36 | 38 |
 
 **Legend.** `(c)` also craftable. `(finite)` non-renewable in vanilla terms.
 
@@ -428,7 +428,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `salmon_bucket` - bucket a salmon
 
 
-## Ocean  <sub>56/95</sub>
+## Ocean  <sub>67/95</sub>
 
 *Oceans and their structures: monuments, shipwrecks, ocean ruins, buried treasure.*
 
@@ -467,12 +467,12 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `ink_sac` - kill a squid (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `nautilus_shell` - brush sewer silt
 - [ ] `prismarine_crystals` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `prismarine_shard` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `prismarine_shard` - separated in the Separator from prismarine grit
 - [x] `pufferfish` - fishing (water from a Rain Collector or the sewers)
 - [x] `salmon` - kill a polar bear (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `seagrass` - kill a turtle (sewer resident)
-- [ ] `tide_armor_trim_smithing_template` `(c)` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `wet_sponge` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `tide_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
+- [x] `wet_sponge` `(finite)` - chests/aquarium_curator
 
 ### Piglin bartering
 
@@ -481,19 +481,19 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 ### Structure chests
 
 - [x] `clock` `(c)` - crafted from gold ingot + redstone
-- [ ] `coast_armor_trim_smithing_template` `(c)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `coast_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `compass` `(c)` - crafted from iron ingot + redstone
 - [x] `cooked_cod` `(c)` - smelted from cod
 - [x] `cooked_salmon` `(c)` - smelted from salmon
-- [ ] `copper_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `diamond_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `copper_nautilus_armor` `(finite)` - chests/aquarium_curator
+- [x] `diamond_nautilus_armor` `(finite)` - chests/aquarium_curator
 - [x] `experience_bottle` - buy from a cleric
 - [x] `fishing_rod` `(c)` - crafted from stick + string
 - [x] `gold_block` `(c)` - mine gold_block (bastion remnant)
 - [x] `golden_helmet` `(c)` - bastion remnant chest
-- [ ] `golden_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `golden_nautilus_armor` `(finite)` - chests/aquarium_curator
 - [ ] `heart_of_the_sea` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `iron_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `iron_nautilus_armor` `(finite)` - chests/aquarium_curator
 - [x] `iron_spear` `(c)` - crafted from stick + iron ingot
 - [x] `leather_boots` `(c)` - trash bag pull stream
 - [x] `leather_chestplate` `(c)` - trash bag pull stream
@@ -521,14 +521,14 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `sea_pickle` - Hydroponics Bay seedling
 - [x] `tube_coral_block` - buy from a wandering trader
 
-<details><summary>Also mineable from structures here, but craftable (21, 17 reachable) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (21, 20 reachable) - decoration, not a resource</summary>
 
-`birch_fence`, `birch_slab`, `birch_stairs`, `bricks`, `dark_oak_door`, `dark_oak_stairs`, `dark_oak_trapdoor`, `dark_prismarine` (no), `jungle_door`, `jungle_fence`, `jungle_slab`, `jungle_stairs`, `jungle_trapdoor`, `oak_stairs`, `oak_trapdoor`, `prismarine` (no), `prismarine_bricks` (no), `sea_lantern` (no), `spruce_door`, `spruce_slab`, `spruce_trapdoor`
+`birch_fence`, `birch_slab`, `birch_stairs`, `bricks`, `dark_oak_door`, `dark_oak_stairs`, `dark_oak_trapdoor`, `dark_prismarine`, `jungle_door`, `jungle_fence`, `jungle_slab`, `jungle_stairs`, `jungle_trapdoor`, `oak_stairs`, `oak_trapdoor`, `prismarine`, `prismarine_bricks`, `sea_lantern` (no), `spruce_door`, `spruce_slab`, `spruce_trapdoor`
 
 </details>
 
 
-## Cave & Underground  <sub>103/128</sub>
+## Cave & Underground  <sub>107/128</sub>
 
 *Ores and everything below the surface.*
 
@@ -537,7 +537,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `amethyst_block` `(c)` - crafted from amethyst shard
 - [x] `andesite` `(c)` - crafted from andesite shard
 - [ ] `azalea` - no lush caves generate
-- [ ] `big_dripleaf` - no lush caves generate
+- [x] `big_dripleaf` - chests/aquarium_curator
 - [x] `calcite` `(finite)` - crafted from calcite shard
 - [ ] `coal_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
 - [x] `cobbled_deepslate` `(c)` - mine deepslate (overworld terrain)
@@ -557,10 +557,10 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `diorite` `(c)` - crafted from diorite shard
 - [ ] `emerald_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
 - [ ] `flowering_azalea` - no lush caves generate
-- [ ] `glow_lichen` - no lush caves generate
+- [x] `glow_lichen` - chests/aquarium_curator
 - [ ] `gold_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
 - [x] `granite` `(c)` - crafted from granite shard
-- [ ] `hanging_roots` - no lush caves generate
+- [x] `hanging_roots` - chests/aquarium_curator
 - [x] `iron_bars` `(c)` - mine iron_bars (sewers)
 - [ ] `iron_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
 - [ ] `lapis_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
@@ -572,7 +572,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `sculk_shrieker` - crafted from sculk powder + soul sand
 - [x] `sculk_vein` - crafted from sculk powder
 - [x] `smooth_basalt` `(c)` - smelted from basalt
-- [ ] `spore_blossom` `(finite)` - no lush caves generate
+- [x] `spore_blossom` `(finite)` - chests/aquarium_curator
 
 ### Mob & entity drops
 
@@ -745,7 +745,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## End  <sub>10/25</sub>
+## End  <sub>11/25</sub>
 
 *The End dimension, end cities, and the dragon.*
 
@@ -776,7 +776,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `iron_leggings` `(c)` - crafted from iron ingot
 - [x] `iron_pickaxe` `(c)` - crafted from stick + iron ingot
 - [x] `iron_shovel` `(c)` - crafted from stick + iron ingot
-- [ ] `spire_armor_trim_smithing_template` `(c)` - the End is locked - RCDimensionLockout blocks travel and portal formation
+- [x] `spire_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 
 ### Other
 
@@ -790,7 +790,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Structures & Chest Loot  <sub>215/238</sub>
+## Structures & Chest Loot  <sub>224/238</sub>
 
 *Only reachable from a generated structure's chest or block palette.*
 
@@ -834,7 +834,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `bamboo_hanging_sign` `(c)` - crafted from stripped bamboo block + iron chain
 - [x] `barrel` `(c)` - mine barrel (sewers)
 - [x] `beetroot_soup` `(c)` - crafted from bowl + beetroot
-- [ ] `bolt_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `bolt_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `bow` `(c)` - crafted from stick + string
 - [x] `bread` `(c)` - crafted from wheat
 - [x] `bucket` `(c)` - household pull stream (sort garbage)
@@ -852,9 +852,9 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `diamond_pickaxe` `(c)` - bastion remnant chest
 - [x] `diamond_sword` `(c)` - bastion remnant chest
 - [ ] `disc_fragment_5` `(finite)` - the structure that carries it (ancient city / stronghold / trail ruins) is absent
-- [ ] `dune_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
-- [ ] `eye_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
-- [ ] `flow_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `dune_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
+- [x] `eye_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
+- [x] `flow_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [ ] `flow_banner_pattern` - no trial chambers generate
 - [x] `goat_horn` - a goat rams a hard block
 - [x] `golden_apple` `(c)` - bastion remnant chest
@@ -876,10 +876,10 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `name_tag` `(c)` - sewer chest
 - [x] `pumpkin_pie` `(c)` - crafted from pumpkin + sugar
 - [x] `scaffolding` `(c)` - crafted from bamboo + string
-- [ ] `sentry_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `sentry_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `shears` `(c)` - household pull stream (sort garbage)
 - [x] `shield` `(c)` - crafted from bamboo planks + iron ingot
-- [ ] `silence_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `silence_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `smooth_stone` `(c)` - smelted from stone
 - [x] `soul_torch` `(c)` - crafted from stick + soul sand
 - [x] `spruce_sign` `(c)` - crafted from spruce planks + stick
@@ -887,10 +887,10 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `stone_pickaxe` `(c)` - crafted from stick + blackstone
 - [x] `tall_grass` - bone meal on grass
 - [x] `tnt` `(c)` - crafted from red sand + gunpowder
-- [ ] `vex_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
-- [ ] `ward_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `vex_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
+- [x] `ward_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `water_bucket` - fill a bucket from sewer water
-- [ ] `wild_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `wild_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `wind_charge` `(c)` - crafted from breeze rod
 - [x] `wooden_axe` `(c)` - crafted from stick + bamboo planks
 - [x] `wooden_pickaxe` `(c)` - crafted from stick + bamboo planks
@@ -1044,49 +1044,49 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `bowl` `(c)` - kill a turtle (sewer resident)
 
 
-## Archaeology  <sub>13/38</sub>
+## Archaeology  <sub>36/38</sub>
 
 *Brushing suspicious sand and gravel.*
 
 ### Archaeology
 
-- [ ] `angler_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `archer_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `arms_up_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `blade_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `angler_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `archer_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `arms_up_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `blade_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [x] `blue_stained_glass_pane` `(c)` - crafted from blue stained glass
-- [ ] `brewer_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `brewer_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [x] `brown_candle` `(c)` - crafted from candle + brown dye
-- [ ] `burn_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `danger_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `explorer_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `friend_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `burn_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `danger_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `explorer_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `friend_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [x] `green_candle` `(c)` - crafted from candle + green dye
 - [x] `heart_pottery_sherd` `(finite)` - brush sewer silt
-- [ ] `heartbreak_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `host_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
-- [ ] `howl_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `heartbreak_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `host_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
+- [x] `howl_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [x] `light_blue_stained_glass_pane` `(c)` - crafted from light blue stained glass
 - [x] `magenta_stained_glass_pane` `(c)` - crafted from magenta stained glass
-- [ ] `miner_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `mourner_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `miner_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `mourner_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [ ] `music_disc_relic` `(finite)` - the structure that carries it (ancient city / stronghold / trail ruins) is absent
 - [x] `oak_hanging_sign` `(c)` - crafted from stripped oak log + iron chain
 - [x] `pink_stained_glass_pane` `(c)` - crafted from pink stained glass
-- [ ] `plenty_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `prize_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `plenty_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `prize_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [x] `purple_candle` `(c)` - crafted from candle + purple dye
 - [x] `purple_stained_glass_pane` `(c)` - crafted from purple stained glass
-- [ ] `raiser_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `raiser_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `red_stained_glass_pane` `(c)` - crafted from red stained glass
-- [ ] `shaper_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
-- [ ] `sheaf_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `shelter_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
-- [ ] `skull_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `shaper_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
+- [x] `sheaf_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `shelter_pottery_sherd` `(finite)` - archaeology/aquarium_silt
+- [x] `skull_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [ ] `sniffer_egg` - the structure that carries it (ancient city / stronghold / trail ruins) is absent
-- [ ] `snort_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `snort_pottery_sherd` `(finite)` - archaeology/aquarium_silt
 - [x] `spruce_hanging_sign` `(c)` - crafted from stripped spruce log + iron chain
-- [ ] `wayfinder_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `wayfinder_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `wooden_hoe` `(c)` - crafted from stick + bamboo planks
 
 
@@ -1094,19 +1094,17 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ## What Recompile cannot give you
 
-The 156 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+The 108 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
 of the vanilla economy, not an oversight, unless noted.
 
-- **39** - no ocean, monument, shipwreck or ocean ruin generates
+- **28** - no ocean, monument, shipwreck or ocean ruin generates
 - **21** - the garbage world generates no ore; metal comes from scrap instead
-- **19** - only the heart sherd is in the loot; the other sherds have no source
-- **15** - the End is locked - RCDimensionLockout blocks travel and portal formation
-- **13** - the structure that carries this template does not generate
+- **14** - the End is locked - RCDimensionLockout blocks travel and portal formation
 - **13** - the compacted depths has no nylium - only slag rubble and lava break the fill
 - **10** - no trial chambers generate
-- **8** - no lush caves generate
 - **6** - nothing in this world, its structures, its mobs or its recipes produces one
 - **4** - no amethyst geodes generate
+- **4** - no lush caves generate
 - **4** - the structure that carries it (ancient city / stronghold / trail ruins) is absent
 - **2** - no raids: evokers and pillagers never spawn
 - **1** - needs a charged creeper to kill another player
@@ -1148,17 +1146,17 @@ Items are filed above by *where*; this lists them by *how*. `~` marks one not re
 
 `pitcher_plant`, `pitcher_pod`, `torchflower`, `torchflower_seeds`
 
-**Archaeology (brushing)** <sub>64, 38 reachable</sub>
+**Archaeology (brushing)** <sub>64, 61 reachable</sub>
 
-`angler_pottery_sherd`~, `archer_pottery_sherd`~, `armadillo_scute`, `arms_up_pottery_sherd`~, `beetroot_seeds`, `blade_pottery_sherd`~, `blue_dye`, `blue_stained_glass_pane`, `brewer_pottery_sherd`~, `brick`, `brown_candle`, `burn_pottery_sherd`~, `clay`, `coal`, `danger_pottery_sherd`~, `dead_bush`~, `diamond`, `emerald`, `explorer_pottery_sherd`~, `flower_pot`, `friend_pottery_sherd`~, `gold_nugget`, `green_candle`, `gunpowder`, `heart_pottery_sherd`, `heartbreak_pottery_sherd`~, `host_armor_trim_smithing_template`~, `howl_pottery_sherd`~, `iron_axe`, `lead`, `light_blue_dye`, `light_blue_stained_glass_pane`, `magenta_stained_glass_pane`, `miner_pottery_sherd`~, `mourner_pottery_sherd`~, `music_disc_relic`~, `oak_hanging_sign`, `orange_dye`, `pink_stained_glass_pane`, `plenty_pottery_sherd`~, `prize_pottery_sherd`~, `purple_candle`, `purple_stained_glass_pane`, `raiser_armor_trim_smithing_template`~, `red_candle`, `red_stained_glass_pane`, `shaper_armor_trim_smithing_template`~, `sheaf_pottery_sherd`~, `shelter_pottery_sherd`~, `skull_pottery_sherd`~, `sniffer_egg`~, `snort_pottery_sherd`~, `spruce_hanging_sign`, `stick`, `string`, `suspicious_stew`, `tnt`, `wayfinder_armor_trim_smithing_template`~, `wheat`, `wheat_seeds`, `white_dye`, `wooden_hoe`, `yellow_dye`, `yellow_stained_glass_pane`
+`angler_pottery_sherd`, `archer_pottery_sherd`, `armadillo_scute`, `arms_up_pottery_sherd`, `beetroot_seeds`, `blade_pottery_sherd`, `blue_dye`, `blue_stained_glass_pane`, `brewer_pottery_sherd`, `brick`, `brown_candle`, `burn_pottery_sherd`, `clay`, `coal`, `danger_pottery_sherd`, `dead_bush`~, `diamond`, `emerald`, `explorer_pottery_sherd`, `flower_pot`, `friend_pottery_sherd`, `gold_nugget`, `green_candle`, `gunpowder`, `heart_pottery_sherd`, `heartbreak_pottery_sherd`, `host_armor_trim_smithing_template`, `howl_pottery_sherd`, `iron_axe`, `lead`, `light_blue_dye`, `light_blue_stained_glass_pane`, `magenta_stained_glass_pane`, `miner_pottery_sherd`, `mourner_pottery_sherd`, `music_disc_relic`~, `oak_hanging_sign`, `orange_dye`, `pink_stained_glass_pane`, `plenty_pottery_sherd`, `prize_pottery_sherd`, `purple_candle`, `purple_stained_glass_pane`, `raiser_armor_trim_smithing_template`, `red_candle`, `red_stained_glass_pane`, `shaper_armor_trim_smithing_template`, `sheaf_pottery_sherd`, `shelter_pottery_sherd`, `skull_pottery_sherd`, `sniffer_egg`~, `snort_pottery_sherd`, `spruce_hanging_sign`, `stick`, `string`, `suspicious_stew`, `tnt`, `wayfinder_armor_trim_smithing_template`, `wheat`, `wheat_seeds`, `white_dye`, `wooden_hoe`, `yellow_dye`, `yellow_stained_glass_pane`
 
 **Hero of the Village gifts** <sub>47, 47 reachable</sub>
 
 `arrow`, `black_wool`, `blue_wool`, `book`, `bread`, `brown_wool`, `chainmail_boots`, `chainmail_chestplate`, `chainmail_helmet`, `chainmail_leggings`, `clay`, `cod`, `cooked_beef`, `cooked_chicken`, `cooked_mutton`, `cooked_porkchop`, `cooked_rabbit`, `cookie`, `cyan_wool`, `golden_axe`, `gray_wool`, `green_wool`, `iron_axe`, `lapis_lazuli`, `leather`, `light_blue_wool`, `light_gray_wool`, `lime_wool`, `magenta_wool`, `map`, `orange_wool`, `paper`, `pink_wool`, `poppy`, `pumpkin_pie`, `purple_wool`, `red_wool`, `redstone`, `salmon`, `stone_axe`, `stone_hoe`, `stone_pickaxe`, `stone_shovel`, `tipped_arrow`, `wheat_seeds`, `white_wool`, `yellow_wool`
 
-**Trial chambers** <sub>72, 61 reachable</sub>
+**Trial chambers** <sub>72, 63 reachable</sub>
 
-`acacia_planks`, `amethyst_shard`, `arrow`, `baked_potato`, `bamboo_hanging_sign`, `bamboo_planks`, `bolt_armor_trim_smithing_template`~, `bone_meal`, `book`, `bow`, `bread`, `bucket`, `cake`, `chainmail_chestplate`, `chainmail_helmet`, `compass`, `cooked_beef`, `cooked_chicken`, `crossbow`, `diamond`, `diamond_axe`, `diamond_block`, `diamond_chestplate`, `diamond_helmet`, `diamond_pickaxe`, `diamond_sword`, `egg`, `emerald`, `emerald_block`, `enchanted_golden_apple`, `ender_pearl`, `fire_charge`, `flow_armor_trim_smithing_template`~, `flow_banner_pattern`~, `glow_berries`, `golden_apple`, `golden_axe`, `golden_carrot`, `golden_pickaxe`, `guster_banner_pattern`~, `heavy_core`~, `honey_bottle`, `honeycomb`, `iron_axe`, `iron_block`, `iron_chestplate`, `iron_helmet`, `iron_ingot`, `iron_sword`, `lingering_potion`~, `milk_bucket`, `moss_block`, `music_disc_creator`~, `music_disc_precipice`~, `ominous_bottle`~, `ominous_trial_key`~, `potion`, `scaffolding`, `shield`, `snowball`, `splash_potion`, `stick`, `stone_axe`, `stone_pickaxe`, `tipped_arrow`, `torch`, `trial_key`~, `trident`, `tuff`, `water_bucket`, `wind_charge`, `wooden_axe`
+`acacia_planks`, `amethyst_shard`, `arrow`, `baked_potato`, `bamboo_hanging_sign`, `bamboo_planks`, `bolt_armor_trim_smithing_template`, `bone_meal`, `book`, `bow`, `bread`, `bucket`, `cake`, `chainmail_chestplate`, `chainmail_helmet`, `compass`, `cooked_beef`, `cooked_chicken`, `crossbow`, `diamond`, `diamond_axe`, `diamond_block`, `diamond_chestplate`, `diamond_helmet`, `diamond_pickaxe`, `diamond_sword`, `egg`, `emerald`, `emerald_block`, `enchanted_golden_apple`, `ender_pearl`, `fire_charge`, `flow_armor_trim_smithing_template`, `flow_banner_pattern`~, `glow_berries`, `golden_apple`, `golden_axe`, `golden_carrot`, `golden_pickaxe`, `guster_banner_pattern`~, `heavy_core`~, `honey_bottle`, `honeycomb`, `iron_axe`, `iron_block`, `iron_chestplate`, `iron_helmet`, `iron_ingot`, `iron_sword`, `lingering_potion`~, `milk_bucket`, `moss_block`, `music_disc_creator`~, `music_disc_precipice`~, `ominous_bottle`~, `ominous_trial_key`~, `potion`, `scaffolding`, `shield`, `snowball`, `splash_potion`, `stick`, `stone_axe`, `stone_pickaxe`, `tipped_arrow`, `torch`, `trial_key`~, `trident`, `tuff`, `water_bucket`, `wind_charge`, `wooden_axe`
 
 **Villager & wandering trader** <sub>265, 265 reachable</sub>
 

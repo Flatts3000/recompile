@@ -155,6 +155,18 @@ public final class AquariumPieces {
                 }
             }
 
+            // 1b. The column above. Features run before this and nothing inside the box survives the
+            //     shell, but a husk lattice standing over the roof or an open forecourt is outside every
+            //     box and would rise straight through the building.
+            int top = room().roofed() ? b.maxY() : b.maxY();
+            for (int x = b.minX(); x <= b.maxX(); x++) {
+                for (int z = b.minZ(); z <= b.maxZ(); z++) {
+                    for (int y = top + 1; y <= base + AquariumStructure.CLEAR_ABOVE; y++) {
+                        this.placeBlock(level, AquariumPalette.HOLLOW, x, y, z, limit);
+                    }
+                }
+            }
+
             // 2. Every doorway on one of this room's planes, cut by this room too, so the cut survives
             //    whichever piece the chunk order writes last.
             for (Door door : AquariumStructure.doors(ox, base, oz)) {
