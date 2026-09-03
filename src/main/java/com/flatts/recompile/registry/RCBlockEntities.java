@@ -221,8 +221,9 @@ public final class RCBlockEntities {
         // The CUPOLA below keeps the plain wrapper on purpose: it is held to vanilla furnace parity,
         // a vanilla furnace does answer a non-sided query, and VanillaParityTests compares every face
         // PLUS the null one against Blocks.FURNACE. Guarding it would break the parity it exists to
-        // keep. The Slag Furnace and Sintering Kiln are furnace subclasses meant to behave the same
-        // way, but NOTHING PINS THEM - neither is in VanillaParityTests (#341).
+        // keep. The Slag Furnace and the Sintering Kiln are pinned too since #341, with insert AND
+        // extract parity on every face including the null one - stronger coverage than the Cupola's,
+        // which checks insert only.
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             HYDROPONICS_BAY.get(),

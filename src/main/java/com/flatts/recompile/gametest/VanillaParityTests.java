@@ -70,44 +70,52 @@ final class VanillaParityTests {
     }
 
     /**
-     * Both blocks get the same insert on every face; the amount accepted must match. -1 (no handler) has
-     * to match too - a block that exposes nothing where vanilla exposes something cannot be piped at all,
-     * which is exactly the Scrap Barrel's bug.
-     */
-    /**
      * Extraction parity on every face, the null one included.
      *
-     * <p>Assumes {@code assertInsertParity} has already placed both blocks - it is called straight
-     * after it, and re-placing them would discard the contents that make an extract worth probing.
+     * <p>Assumes {@code assertInsertParity} has already placed and filled both blocks - it is called
+     * straight after it, and re-placing them would discard the contents that make an extract worth
+     * probing.
      *
      * <p><b>The null side is the point.</b> {@code WorldlyContainerWrapper.extract} is guarded by
      * {@code side != null &&}, so a non-sided caller skips {@code canTakeItemThroughFace} entirely.
      * That is exactly the behaviour a parity block must KEEP and a bespoke machine must refuse, and it
      * is only visible if the comparison includes null - which {@code faces()} does and
      * {@code Direction.values()} does not.
+     *
+     * <p><b>ONE PASS, and that is not a tidy-up.</b> The insert half proves non-vacuity in a separate
+     * loop first and then re-places the vanilla block, because its probe fills it. The same shape is
+     * wrong here: {@code probeExtract} COMMITS, so a separate probe loop would drain the vanilla
+     * reference by up to seven items while ours sat untouched, and the comparison that followed would
+     * be against unequal contents. It passes today only because both machines start with more items
+     * than the probe removes; a resource that stacks to one would report {@code ours 1, vanilla 0} -
+     * a harness artifact reported as a machine defect, in the file that exists to prevent exactly
+     * that. Tracking the best vanilla result inside the comparison loop keeps both blocks drained in
+     * lockstep and proves the same thing.
      */
     private static void assertExtractParity(GameTestHelper helper, ItemResource resource, String label) {
-        // SAME GUARD AS THE INSERT HALF, for the same reason. If the vanilla reference could not hand
-        // the item back on any face, every comparison would be 0 == 0 and this would pass while
-        // asserting that two blocks are equally unextractable. Proven before it is used.
-        int vanillaBest = 0;
-        for (Direction side : faces()) {
-            vanillaBest = Math.max(vanillaBest, probeExtract(handler(helper, VANILLA, side), resource, 1));
-        }
-        helper.assertTrue(vanillaBest > 0,
-            label + ": the vanilla reference gave nothing back on any face, so an extract comparison "
-                + "would be 0 == 0 everywhere and prove nothing");
-
+        int vanillaBest = -1;
         for (Direction side : faces()) {
             ResourceHandler<ItemResource> mine = handler(helper, OURS, side);
             ResourceHandler<ItemResource> theirs = handler(helper, VANILLA, side);
             int a = probeExtract(mine, resource, 1);
             int b = probeExtract(theirs, resource, 1);
+            vanillaBest = Math.max(vanillaBest, b);
             helper.assertTrue(a == b, label + ": extract on " + side
                 + " must match vanilla - ours " + a + ", vanilla " + b);
         }
+        // Seeded at -1 rather than 0 so "exposed no handler at all" is distinguishable from "handed
+        // nothing back", which are different faults with the same symptom. The insert half does the
+        // same, for the same reason.
+        helper.assertTrue(vanillaBest > 0,
+            label + ": the vanilla reference gave nothing back on any face, so every comparison above "
+                + "was equal-and-empty and proved nothing (best was " + vanillaBest + ")");
     }
 
+    /**
+     * Both blocks get the same insert on every face; the amount accepted must match. -1 (no handler) has
+     * to match too - a block that exposes nothing where vanilla exposes something cannot be piped at all,
+     * which is exactly the Scrap Barrel's bug.
+     */
     private static void assertInsertParity(GameTestHelper helper, Block ours, Block vanilla,
             ItemResource resource, String label) {
         helper.setBlock(OURS, ours);

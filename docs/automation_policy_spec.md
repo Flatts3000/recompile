@@ -146,9 +146,10 @@ satisfy the sweep and still get its faces wrong.
   vanilla furnace parity: a vanilla furnace *does* answer a non-sided query, and `VanillaParityTests`
   compares every face **plus** the null one against `Blocks.FURNACE`, so guarding it would break the
   parity it exists to keep. The **Slag Furnace** and **Sintering Kiln** are furnace subclasses meant to
-  behave the same way, but **nothing pins them** - neither appears in `VanillaParityTests`, which
-  covers only the Scrap Barrel and the Cupola. That gap is #341; this page said all three were parity
-  tested until review checked, which is the "reads as complete" failure it exists to prevent.
+  behave the same way, and **are now pinned as well** (#341): insert *and* extract parity on every
+  face including the null one, which is stronger coverage than the Cupola's insert-only test. This page
+  claimed all three were parity tested before any of that was true, which is the "reads as complete"
+  failure it exists to prevent - the claim came first and the test came second.
 
   So the rule is not "always refuse the null side" - it is **a machine that restricts extraction by
   face must refuse it, and a parity block must match vanilla instead.**
