@@ -2502,3 +2502,11 @@ faces = ["top", "side", "bottom"]
 top = "a full-bleed top-down Minecraft block face of a scrap-steel charging dock: a recessed cradle slot in the centre shaped to hold a tool, two brass contact pads inside it, a thick cable socket at one edge, riveted dark steel plate all around, bold and simple, high contrast"
 side = "a full-bleed Minecraft block face of a dark riveted scrap steel machine panel with a short vertical row of three small amber indicator lights near the top and a heavy cable conduit running up one side, faint rust streaks, bold and simple"
 bottom = "a full-bleed Minecraft block face of a plain heavy scrap steel base plate: flat dark grey metal, one large bolt in each corner, oil stains and grime, deliberately plain and uncluttered"
+
+# The Battery: a crafting component (#336). A dead household cell - the thing you find loose in a bin
+# bag and the thing a smoke detector is mostly made of.
+[surface.battery]
+kind = "item"
+backend = "ai"
+size = 16
+prompt = "a single AA household battery standing upright, bright saturated red and gold label wrapped around the middle of the cell, light silver metal top cap and base clearly visible against it, high contrast, slightly scuffed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"

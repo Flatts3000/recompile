@@ -27,6 +27,7 @@ import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
@@ -72,6 +73,17 @@ public class GarbageVacuumItem extends Item {
 
     private static final int SOUND_PERIOD_TICKS = 12;
 
+    /** Dust motes per tick. Two, not four: see {@link #clientParticles}. */
+    private static final int DUST_STREAMS = 2;
+
+    /**
+     * How far short of the nozzle the dust stops, in blocks.
+     *
+     * <p>Bigger than the nozzle's own distance from the eyes on purpose, so the stream thins out well
+     * before the lens instead of piling up on it.
+     */
+    private static final double DUST_STOP = 2.0;
+
     /** What one call to {@link #intakeOnce} did. */
     public enum Intake {
         /** A block left the world and is on its way to the nozzle. */
@@ -112,6 +124,28 @@ public class GarbageVacuumItem extends Item {
     // ---- use ------------------------------------------------------------------------------
 
     /**
+     * Right-clicking AT A BLOCK. Needed as well as {@link #use} because vanilla resolves a click
+     * block-first: with the crosshair on a pile the chain reaches
+     * {@code ItemStack.useOn} and stops there, and {@code use} is only called when the click hit
+     * nothing. {@code SortableBlock} passes rather than hand-sorting so this is reached at all; see
+     * the note there. Both paths funnel into {@link #beginVacuuming}, and this one consuming the
+     * action is what stops the click being paid for twice.
+     */
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player == null) {
+            return InteractionResult.PASS;
+        }
+        return beginVacuuming(context.getLevel(), player, context.getHand());
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        return beginVacuuming(level, player, hand);
+    }
+
+    /**
      * A tap takes one block; a hold keeps taking.
      *
      * <p>The first intake happens HERE, on the click, not on the first use tick. A tap starts and
@@ -120,9 +154,11 @@ public class GarbageVacuumItem extends Item {
      * that does nothing on a click and only works when held reads as broken for the first second of
      * owning it. The use loop then skips its tick-zero intake so a hold does not take two at once.
      */
-    @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    private InteractionResult beginVacuuming(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (!(stack.getItem() instanceof GarbageVacuumItem)) {
+            return InteractionResult.PASS;
+        }
         if (!player.hasInfiniteMaterials() && charge(stack) <= 0) {
             if (!level.isClientSide()) {
                 player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_flat"));
@@ -263,29 +299,41 @@ public class GarbageVacuumItem extends Item {
     }
 
     /**
-     * Client side only: dust off the piles in range streaming into the nozzle, and a puff of air at the
-     * mouth whether or not there is anything to take - a vacuum that is on makes noise and moves air.
+     * Client side only: dust lifting off the piles in range and drawn toward the nozzle.
+     *
+     * <p><b>The stream stays out at the far end and never reaches the camera</b>, which is the whole
+     * shape of this method rather than a detail of it. The first version aimed everything at the
+     * nozzle and added a {@code POOF} puff at the mouth for "the vacuum is on": the nozzle is about a
+     * block from the eyes, so a converging stream plus a white puff piled up ON the lens and hid the
+     * thing being vacuumed - reported on the first playtest, and clearly visible in the dev-client
+     * screenshots as a white blob over the lower right of the frame. So: the puff is gone entirely,
+     * the count is two rather than four, and each particle is aimed at a point {@link #DUST_STOP}
+     * blocks short of the nozzle, along the same line. It still reads as suction, because what sells
+     * it is dust leaving the pile and converging, not dust arriving.
+     *
+     * <p>Block dust rather than a generic particle for the same reason the flying block is the real
+     * block: the colour of what you are clearing is the feedback.
      */
     private void clientParticles(Level level, Player player, Vec3 aim) {
         RandomSource random = level.getRandom();
         Vec3 nozzle = nozzleOf(player);
         List<BlockPos> candidates = candidates(level, aim);
-        int streams = Math.min(candidates.size(), 4);
-        for (int i = 0; i < streams; i++) {
+        if (candidates.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < DUST_STREAMS; i++) {
             BlockPos pos = candidates.get(random.nextInt(candidates.size()));
             BlockState state = level.getBlockState(pos);
             Vec3 from = Vec3.atLowerCornerOf(pos)
                 .add(random.nextDouble(), random.nextDouble(), random.nextDouble());
-            Vec3 velocity = nozzle.subtract(from).normalize().scale(0.45);
+            Vec3 toNozzle = nozzle.subtract(from);
+            double travel = toNozzle.length() - DUST_STOP;
+            if (travel <= 0.0) {
+                continue;   // already inside the stop radius: drawing it would be drawing it on the lens
+            }
+            Vec3 velocity = toNozzle.normalize().scale(Math.min(travel, 0.45));
             level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, state),
                 from.x, from.y, from.z, velocity.x, velocity.y, velocity.z);
-        }
-        if (random.nextInt(3) == 0) {
-            Vec3 from = nozzle.add(player.getLookAngle().scale(1.2))
-                .add((random.nextDouble() - 0.5) * 0.6, (random.nextDouble() - 0.5) * 0.6,
-                    (random.nextDouble() - 0.5) * 0.6);
-            Vec3 velocity = nozzle.subtract(from).normalize().scale(0.25);
-            level.addParticle(ParticleTypes.POOF, from.x, from.y, from.z, velocity.x, velocity.y, velocity.z);
         }
     }
 

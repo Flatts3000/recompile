@@ -118,6 +118,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.PUMP.get());
                     output.accept(RCItems.MOTOR.get());
                     output.accept(RCItems.BULB.get());
+                    output.accept(RCItems.BATTERY.get());
                     output.accept(RCItems.WATER_TANK.get());
                     output.accept(RCItems.SOLAR_PANEL.get());
 

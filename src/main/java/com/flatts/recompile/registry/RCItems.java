@@ -67,6 +67,22 @@ public final class RCItems {
      */
     public static final DeferredItem<Item> BULB = ITEMS.registerItem("bulb", Item::new);
 
+    /**
+     * Battery: the second CRAFTING component, and the Garbage Vacuum's power cell (#336).
+     *
+     * <p>The Bulb's shape exactly - found loose in household pulls, torn out of an object (a Smoke
+     * Detector, which is a battery, a plastic shell and a speck of americium), and craftable from the
+     * blueprint that teardown teaches. Found early on purpose: the knowledge lives in the radioactive
+     * dump but the item does not, so a vacuum is buildable long before that trip.
+     *
+     * <p><b>It is INERT, and that is a live question rather than an oversight.</b> A component named
+     * for a capacity that holds nothing is exactly what made the Water Tank read as broken to two
+     * playtesters (#229, owner ruling). This one is an ingredient you spend; if it should instead hold
+     * a charge, the machinery already exists - {@code Capabilities.Energy.ITEM} over a component, the
+     * way {@code GarbageVacuumItem} does it - and the Charging Station would fill it unchanged.
+     */
+    public static final DeferredItem<Item> BATTERY = ITEMS.registerItem("battery", Item::new);
+
     public static final DeferredItem<Item> SCRAP_METAL = ITEMS.registerItem("scrap_metal", Item::new);
     public static final DeferredItem<Item> PLASTIC_SCRAP = ITEMS.registerItem("plastic_scrap", Item::new);
     public static final DeferredItem<Item> GLASS_SHARDS = ITEMS.registerItem("glass_shards", Item::new);

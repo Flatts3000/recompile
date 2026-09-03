@@ -1,0 +1,17 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:battery",
+  "key": {
+    "N": "minecraft:copper_nugget",
+    "S": "recompile:scrap_metal",
+    "E": "recompile:e_scrap"
+  },
+  "pattern": [
+    " N ",
+    "SES",
+    " S "
+  ],
+  "result": {
+    "item": "recompile:battery"
+  }
+}

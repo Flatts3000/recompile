@@ -49,6 +49,7 @@ public final class JeiInfoPanels {
             new Panel(RCItems.STEEL_OFFCUT.get(), "steel_offcut"),
             new Panel(RCItems.MOTOR.get(), "motor"),
             new Panel(RCItems.BULB.get(), "bulb"),
+            new Panel(RCItems.BATTERY.get(), "battery"),
             new Panel(RCItems.LEACHATE_BUCKET.get(), "leachate_bucket"),
 
             // Machines whose restriction or behaviour no recipe states.

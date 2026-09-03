@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.RCConfig;
+import com.flatts.recompile.content.item.GarbageVacuumItem;
 import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCEntities;
 import java.util.List;
@@ -383,9 +384,36 @@ public abstract class SortableBlock extends FallingBlock {
         return InteractionResult.SUCCESS;
     }
 
+    /**
+     * Whether a held item takes this pile's right-click away from it.
+     *
+     * <p><b>Vanilla resolves a right-click BLOCK-FIRST, then the item.</b> {@code
+     * ServerPlayerGameMode.useItemOn} asks the block, and a {@code TRY_WITH_EMPTY_HAND} answer sends
+     * it straight to {@link #useWithoutItem} - the hand pull - before the item in hand is ever
+     * consulted. So without this the CROSSHAIR decides: point at the pile you mean to vacuum and it
+     * hand-sorts instead, and the Garbage Vacuum only works when aimed at nothing, which is not where
+     * anyone stands. Reported on the tool's first playtest, and it read as the vacuum being broken
+     * rather than as the block winning.
+     *
+     * <p>Returning {@code PASS} rather than {@code TRY_WITH_EMPTY_HAND} is the whole fix: it is the
+     * one answer that is neither consumed nor routed to the empty-hand path, so the chain falls
+     * through to the item.
+     *
+     * <p>Scoped to a tool whose entire purpose is these blocks. Bulky Waste deliberately still wins
+     * its own right-click while a vacuum is held, because the vacuum refuses it anyway and the
+     * "you need a Prybar" nudge is the useful answer there; a hold sweeping across one does not
+     * stutter, since only the opening click resolves against a block at all.
+     */
+    private static boolean itemOverridesSorting(ItemStack stack) {
+        return stack.getItem() instanceof GarbageVacuumItem;
+    }
+
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
+        if (itemOverridesSorting(stack)) {
+            return InteractionResult.PASS;
+        }
         if (isCorrectTool(stack)) {
             if (!takePull(player, stack)) {
                 return InteractionResult.SUCCESS;

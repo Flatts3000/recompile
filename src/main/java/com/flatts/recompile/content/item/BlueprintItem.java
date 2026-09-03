@@ -118,7 +118,7 @@ public class BlueprintItem extends Item {
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
         return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
-            SPAWNER);
+            SPAWNER, BATTERY);
     }
 
     /**
@@ -192,6 +192,19 @@ public class BlueprintItem extends Item {
 
     public static final Identifier BULB =
         Identifier.fromNamespaceAndPath("recompile", "bulb");
+
+    /**
+     * The Battery (#336), learned from a <b>Smoke Detector</b> found in the radioactive dump - which is
+     * a battery, a plastic shell and a speck of americium, so the thing you tear out of it is the
+     * obvious one.
+     *
+     * <p>Salvage first and blueprint second, exactly like the three components above, with one
+     * difference worth knowing: its found source is <b>household pulls</b> rather than the object that
+     * teaches it. The knowledge is in the second frontier region and the item is in the first bin bag,
+     * so a Garbage Vacuum is buildable long before the dump and repeatable only after it.
+     */
+    public static final Identifier BATTERY =
+        Identifier.fromNamespaceAndPath("recompile", "battery");
 
     /**
      * The sixth blueprint, and the first that gates a <b>vanilla</b> item rather than one of ours
