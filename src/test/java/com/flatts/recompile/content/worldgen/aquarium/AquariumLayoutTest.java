@@ -103,11 +103,11 @@ class AquariumLayoutTest {
     }
 
     @Test
-    @DisplayName("the sump and the gallery troughs are bounded the same way")
+    @DisplayName("the sump and the gallery bays are bounded the same way")
     void theLeachateIsBounded() {
         assertBoundedInside(AquariumStructure.sump(OX, BASE, OZ), Room.FILTRATION_HALL, "sump");
-        for (BoundingBox trough : AquariumStructure.troughs(OX, BASE, OZ)) {
-            assertBoundedInside(trough, Room.GALLERY, "trough");
+        for (BoundingBox bay : AquariumStructure.bays(OX, BASE, OZ)) {
+            assertBoundedInside(bay, Room.GALLERY, "bay");
         }
     }
 

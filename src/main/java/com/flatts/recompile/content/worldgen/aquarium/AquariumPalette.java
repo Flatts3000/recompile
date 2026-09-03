@@ -53,6 +53,8 @@ public final class AquariumPalette {
     /** Brushable, and the same pair {@code SewerPalette} calls SILT and FINE_SILT. */
     public static final BlockState SILT = Blocks.SUSPICIOUS_GRAVEL.defaultBlockState();
     public static final BlockState FINE_SILT = Blocks.SUSPICIOUS_SAND.defaultBlockState();
+    /** What a tank floor is: the exhibit bays stand their coral on it. */
+    public static final BlockState BED = Blocks.SAND.defaultBlockState();
     public static final BlockState SPONGE = Blocks.SPONGE.defaultBlockState();
     public static final BlockState WET_SPONGE = Blocks.WET_SPONGE.defaultBlockState();
 

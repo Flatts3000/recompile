@@ -188,8 +188,13 @@ public class AquariumStructure extends Structure {
         return bb(ox - 15, base - 4, oz - 3, ox - 12, base - 4, oz + 2);
     }
 
-    /** The two leachate troughs along the gallery's long walls, in the upper floor course. */
-    public static List<BoundingBox> troughs(int ox, int base, int oz) {
+    /**
+     * The two exhibit bays along the gallery's long walls: one deep, glass-fronted, their floor in the
+     * upper floor course. Every other cell of a bay floor is leachate and the rest is sand with dead
+     * coral standing on it, so the tank rows read as tanks rather than as planters - the first build
+     * put the coral out on a kerb by itself, and the owner called it weird, correctly.
+     */
+    public static List<BoundingBox> bays(int ox, int base, int oz) {
         return List.of(
             bb(ox - 9, base, oz - 4, ox + 8, base, oz - 4),
             bb(ox - 9, base, oz + 3, ox + 8, base, oz + 3));

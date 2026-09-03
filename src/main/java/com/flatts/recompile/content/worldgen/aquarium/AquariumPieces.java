@@ -342,18 +342,35 @@ public final class AquariumPieces {
         @Override
         protected void dress(WorldGenLevel level, BoundingBox limit, RandomSource random,
                 int ox, int base, int oz) {
-            // The kerbs, then the troughs cut into the floor beside them, then the coral on the kerbs.
-            for (int x = ox - 9; x <= ox + 8; x++) {
-                this.placeBlock(level, AquariumPalette.CLADDING, x, base, oz - 3, limit);
-                this.placeBlock(level, AquariumPalette.CLADDING, x, base, oz + 2, limit);
-            }
-            for (BoundingBox trough : AquariumStructure.troughs(ox, base, oz)) {
-                fill(level, limit, trough, AquariumPalette.FLUID);
-            }
+            // The exhibit bays. A prismarine sill and a glass front (cracked, like every sheet here) one
+            // cell in from each long wall; behind it, the bay floor alternates sand with standing dead
+            // coral and a cell of leachate, so the tank rows read as tanks and not as planters.
+            //
+            // WATERLOGGED IS FORCED OFF. Vanilla's coral plants and fans default to waterlogged=true, so
+            // a defaultBlockState() coral is a bucketable water source, eighteen of them - which the
+            // first build shipped and the fluid test did not see, because it looked for water BLOCKS.
             int i = 0;
-            for (int x = ox - 9; x <= ox + 8; x += 2) {
-                this.placeBlock(level, DEAD_CORAL[i++ % DEAD_CORAL.length], x, base + 1, oz - 3, limit);
-                this.placeBlock(level, DEAD_CORAL[i++ % DEAD_CORAL.length], x + 1, base + 1, oz + 2, limit);
+            for (int x = ox - 9; x <= ox + 8; x++) {
+                for (int side = 0; side < 2; side++) {
+                    int front = side == 0 ? oz - 3 : oz + 2;
+                    int floor = side == 0 ? oz - 4 : oz + 3;
+                    this.placeBlock(level, AquariumPalette.CLADDING, x, base, front, limit);
+                    for (int y = base + 1; y <= base + 3; y++) {
+                        BlockState pane = y >= base + 2 && AquariumPalette.cracked(x, y, front)
+                            ? AquariumPalette.HOLLOW : AquariumPalette.GLASS;
+                        this.placeBlock(level, pane, x, y, front, limit);
+                    }
+                    if ((x + side) % 2 == 0) {
+                        this.placeBlock(level, AquariumPalette.FLUID, x, base, floor, limit);
+                    } else {
+                        this.placeBlock(level, AquariumPalette.BED, x, base, floor, limit);
+                        BlockState coral = DEAD_CORAL[i++ % DEAD_CORAL.length];
+                        if (coral.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                            coral = coral.setValue(BlockStateProperties.WATERLOGGED, false);
+                        }
+                        this.placeBlock(level, coral, x, base + 1, floor, limit);
+                    }
+                }
             }
             // The roof frame, and the viewing steps up to the guardian tank's breach.
             for (int x : new int[]{ox - 5, ox, ox + 5}) {

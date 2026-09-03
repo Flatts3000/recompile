@@ -167,7 +167,9 @@ public final class AquariumTests {
                     for (int z = all.minZ(); z <= all.maxZ(); z++) {
                         BlockPos at = new BlockPos(x, y, z);
                         BlockState s = level.getBlockState(at);
-                        if (s.is(Blocks.WATER)) {
+                        // FLUID STATE, not block: a waterlogged coral fan is a bucketable water source
+                        // and is not Blocks.WATER. Eighteen of them shipped past the block check.
+                        if (s.getFluidState().is(net.minecraft.tags.FluidTags.WATER)) {
                             waterCells++;
                             if (!water.isInside(at)) {
                                 wrong.add("water outside the guardian tank at " + at);
@@ -177,7 +179,7 @@ public final class AquariumTests {
                             if (Room.GUARDIAN_TANK.box(ox, base, oz).isInside(at)) {
                                 wrong.add("leachate in the guardian tank at " + at);
                             }
-                        } else if (water.isInside(at) && !s.is(Blocks.SPAWNER)) {
+                        } else if (water.isInside(at) && !s.is(Blocks.SPAWNER) && !s.is(Blocks.WATER)) {
                             wrong.add("the guardian tank holds " + s + " rather than water at " + at);
                         }
                     }
