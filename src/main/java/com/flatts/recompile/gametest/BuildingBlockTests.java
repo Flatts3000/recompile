@@ -21,6 +21,9 @@ import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WallSide;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 /**
  * GameTests for the building-block tier (design P1.12). These are ordinary blocks, so
@@ -57,11 +60,16 @@ final class BuildingBlockTests {
         // the day somebody remembers this file. Stairs and slabs ride along: nothing vanilla needs
         // those tags for them to work, which is exactly why they would go missing unnoticed.
         RCGameTests.test("every_building_family_block_is_in_its_vanilla_tag", 20, helper -> {
-            record Family(String name, Class<?> type, TagKey<Block> tag) {}
+            // BOTH HALVES, and the item half is the one that would drift. Vanilla ships a block
+            // tag and an item tag for each of these families; only the block half changes anything
+            // in play, so a sixth wall added to the block tag turns this green while the item tag
+            // stays at five with nothing to say so - which is the same "nothing needs it, so it goes
+            // missing unnoticed" failure that produced the bug this test exists for.
+            record Family(String name, Class<?> type, TagKey<Block> blockTag, TagKey<Item> itemTag) {}
             List<Family> families = List.of(
-                new Family("wall", WallBlock.class, BlockTags.WALLS),
-                new Family("stairs", StairBlock.class, BlockTags.STAIRS),
-                new Family("slab", SlabBlock.class, BlockTags.SLABS));
+                new Family("wall", WallBlock.class, BlockTags.WALLS, ItemTags.WALLS),
+                new Family("stairs", StairBlock.class, BlockTags.STAIRS, ItemTags.STAIRS),
+                new Family("slab", SlabBlock.class, BlockTags.SLABS, ItemTags.SLABS));
 
             List<String> missing = new ArrayList<>();
             int checked = 0;
@@ -75,8 +83,16 @@ final class BuildingBlockTests {
                         continue;
                     }
                     checked++;
-                    if (!block.defaultBlockState().is(family.tag())) {
-                        missing.add(id + " is a " + family.name() + " outside " + family.tag().location());
+                    if (!block.defaultBlockState().is(family.blockTag())) {
+                        missing.add(id + " is a " + family.name() + " outside "
+                            + family.blockTag().location());
+                    }
+                    // A block with no item form has nothing to tag; RegistryCompletenessTests owns
+                    // that case, and asking here would report it twice in different words.
+                    Item item = block.asItem();
+                    if (item != Items.AIR && !item.getDefaultInstance().is(family.itemTag())) {
+                        missing.add(id + " is a " + family.name() + " whose ITEM is outside "
+                            + family.itemTag().location());
                     }
                 }
             }
@@ -84,8 +100,9 @@ final class BuildingBlockTests {
                 "only " + checked + " family blocks found - discovery is broken, so this would pass "
                     + "by checking nothing");
             helper.assertTrue(missing.isEmpty(),
-                "these are outside their vanilla family tag; for walls that means they will not "
-                    + "connect to each other: " + missing);
+                "these are outside their vanilla family tag; for a wall's BLOCK tag that means it "
+                    + "will not connect to its neighbours, and for an item tag it means anything "
+                    + "reading the family will not see it: " + missing);
             helper.succeed();
         });
 
