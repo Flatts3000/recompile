@@ -19,6 +19,10 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * GameTests for the Tree Nursery (reclamation rung 4, spec {@code docs/tree_nursery_spec.md}). The
@@ -67,6 +71,107 @@ final class TreeNurseryTests {
     }
 
     static void register() {
+        // AUTOMATION, opened 2026-09-03 by owner reversal. This block was manual-only on both doors
+        // and a playtester asked why a hopper would not feed it; the answer is now that it does.
+        //
+        // Sided, the furnace convention: inputs from the top and sides, saplings out of the bottom.
+        // Asserted through the CAPABILITY rather than by calling the container directly, because that
+        // is the door a pipe actually uses and registering it is the half that was missing.
+        RCGameTests.test("the_nursery_takes_items_from_a_pipe_on_its_input_faces", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.TREE_NURSERY.get());
+            BlockPos abs = helper.absolutePos(pos);
+            ServerLevel level = helper.getLevel();
+
+            ResourceHandler<ItemResource> top =
+                level.getCapability(Capabilities.Item.BLOCK, abs, Direction.UP);
+            helper.assertTrue(top != null,
+                "the nursery must expose Capabilities.Item.BLOCK, or no pipe can reach it at all");
+
+            int moved;
+            try (Transaction tx = Transaction.openRoot()) {
+                moved = top.insert(ItemResource.of(RCItems.FERTILIZER.get()), 1, tx);
+                tx.commit();
+            }
+            helper.assertTrue(moved == 1, "a pipe on the top face must be able to insert Fertilizer, moved " + moved);
+
+            try (Transaction tx = Transaction.openRoot()) {
+                int junk = top.insert(ItemResource.of(RCItems.SCRAP_METAL.get()), 1, tx);
+                helper.assertTrue(junk == 0,
+                    "canPlaceItem must still refuse the wrong item through a face, moved " + junk);
+            }
+            helper.succeed();
+        });
+
+        // The half that stops a hopper draining the machine it is feeding. Inputs are insert-only from
+        // a face; only the finished sapling may be pulled.
+        RCGameTests.test("a_pipe_cannot_pull_the_nurserys_inputs_back_out", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.TREE_NURSERY.get());
+            BlockPos abs = helper.absolutePos(pos);
+            ServerLevel level = helper.getLevel();
+            if (!(level.getBlockEntity(abs) instanceof TreeNurseryBlockEntity nursery)) {
+                helper.fail("the tree nursery has no BlockEntity");
+                return;
+            }
+            nursery.setItem(TreeNurseryBlockEntity.SLOT_FERTILIZER,
+                new ItemStack(RCItems.FERTILIZER.get(), 4));
+            nursery.setItem(TreeNurseryBlockEntity.SLOT_OUTPUT,
+                new ItemStack(net.minecraft.world.item.Items.OAK_SAPLING, 2));
+
+            // A side face sees only the inputs, and may not take them.
+            ResourceHandler<ItemResource> north =
+                level.getCapability(Capabilities.Item.BLOCK, abs, Direction.NORTH);
+            helper.assertTrue(north != null, "the north face must expose a handler");
+            try (Transaction tx = Transaction.openRoot()) {
+                int stolen = north.extract(ItemResource.of(RCItems.FERTILIZER.get()), 4, tx);
+                helper.assertTrue(stolen == 0,
+                    "a pipe must not be able to pull fertilizer out of a nursery it is feeding, took "
+                        + stolen);
+            }
+
+            // The bottom face sees the output, and may take it.
+            ResourceHandler<ItemResource> below =
+                level.getCapability(Capabilities.Item.BLOCK, abs, Direction.DOWN);
+            helper.assertTrue(below != null, "the bottom face must expose a handler");
+            int taken;
+            try (Transaction tx = Transaction.openRoot()) {
+                taken = below.extract(ItemResource.of(net.minecraft.world.item.Items.OAK_SAPLING), 2, tx);
+                tx.commit();
+            }
+            helper.assertTrue(taken == 2,
+                "a hopper under the nursery must be able to take the saplings, took " + taken);
+            helper.succeed();
+        });
+
+        // THE NULL SIDE, which the automation policy names as its own rule because nothing else tests
+        // it - Direction.values() has no null in it. What this pins is the SHAPE the wrapper gives a
+        // non-sided query, which is deliberately different from a sided one: it sees the whole
+        // container rather than a face's slots.
+        //
+        // It also documents a real gap rather than hiding it. NeoForge's WorldlyContainerWrapper
+        // guards extract with `side != null &&`, so a null-side query skips canTakeItemThroughFace
+        // entirely and CAN take an input. The Hydroponics Bay has the same gap for the same reason.
+        // Sided queries are what a pipe attached to a face makes, and those are covered above.
+        RCGameTests.test("the_nurserys_null_side_exposes_the_whole_container", 20, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.TREE_NURSERY.get());
+            BlockPos abs = helper.absolutePos(pos);
+            ResourceHandler<ItemResource> any =
+                helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, null);
+            helper.assertTrue(any != null, "a non-sided query must still get a handler");
+            if (!(helper.getLevel().getBlockEntity(abs) instanceof TreeNurseryBlockEntity nursery)) {
+                helper.fail("the tree nursery has no BlockEntity");
+                return;
+            }
+            helper.assertTrue(any.size() == nursery.getContainerSize(),
+                "a null side sees the whole container (" + nursery.getContainerSize()
+                    + " slots), got " + any.size() + " - if this changed, the wrapper's null-side "
+                    + "short-circuit changed with it and the note on canTakeItemThroughFace is stale");
+            helper.succeed();
+        });
+
+
         // Breaking a DUMMY cell of the formed 2x2x1 wall must return each part exactly once - the nursery
         // is a 3-dummy machine, the class of build the core-dupe fix (framework) exists for. Break the clad
         // tank cell (which has the two solar cells as siblings) and confirm no part multiplies.

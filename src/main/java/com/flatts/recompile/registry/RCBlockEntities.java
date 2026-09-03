@@ -296,6 +296,13 @@ public final class RCBlockEntities {
             (be, side) -> be.storageHandler());
         // The Tree Nursery's water tank: a pipe or pump from a Rain Collector fills it (items stay
         // manual - the BE exposes no item capability, so hoppers cannot touch the slots).
+        // The Tree Nursery's ITEMS, opened 2026-09-03 by owner reversal - it was manual-only and a
+        // playtester asked why a hopper would not feed it. Sided, so the faces above decide: inputs
+        // from the top and sides, saplings from the bottom.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            TREE_NURSERY.get(),
+            (be, side) -> new WorldlyContainerWrapper(be, side));
         event.registerBlockEntity(
             Capabilities.Fluid.BLOCK,
             TREE_NURSERY.get(),

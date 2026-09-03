@@ -76,6 +76,9 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
     };
 
     private static final int[] NO_SLOTS = new int[0];
+    /** Everything a hopper may push in, and the one thing it may pull out. */
+    private static final int[] INPUT_FACES = new int[] {SLOT_FERTILIZER, SLOT_SEEDLING};
+    private static final int[] OUTPUT_FACE = new int[] {SLOT_OUTPUT};
     private static final FluidResource WATER = FluidResource.of(Fluids.WATER);
 
     private NonNullList<ItemStack> items = NonNullList.withSize(SLOTS, ItemStack.EMPTY);
@@ -288,20 +291,48 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
         items.clear();
     }
 
-    // WorldlyContainer: manual only - no face exposes any slot, so nothing pipes items in or out.
+    /**
+     * Automation faces: inputs from the top and sides, saplings out of the bottom.
+     *
+     * <p><b>A recorded reversal</b> (owner, 2026-09-03). This block shipped manual-only on both doors,
+     * and {@code docs/automation_policy_spec.md} carried the row saying so. A playtester asked whether
+     * hoppers or pipes could feed it, which was the question the old row answered with "no"; the answer
+     * is now yes, in full - fertilizer and seedlings in, saplings out, so a nursery can actually run a
+     * tree farm rather than being a block you stand at.
+     *
+     * <p>The furnace convention, matching the Hydroponics Bay: a player should not have to learn a
+     * second layout for the second automatable machine.
+     *
+     * <p>Shared arrays rather than fresh ones - a hopper calls this several times a second per adjacent
+     * hopper, and vanilla's containers hand back constants for exactly that reason.
+     */
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return NO_SLOTS;
+        return side == Direction.DOWN ? OUTPUT_FACE : INPUT_FACES;
     }
 
+    /**
+     * {@code canPlaceItem} already refuses the output slot and routes each input by item, so a pipe
+     * cannot jam this machine with the wrong thing the way the Cupola could before #240 restricted it.
+     */
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
-        return false;
+        return canPlaceItem(slot, stack);
     }
 
+    /**
+     * Only the finished sapling leaves. Automation may never pull the fertilizer or the seedling back
+     * out - a hopper that could would drain the machine it is supposed to be feeding.
+     *
+     * <p><b>One hole, and it is NeoForge's rather than ours:</b>
+     * {@code WorldlyContainerWrapper.extract} is guarded by {@code side != null &&}, so a capability
+     * query with a NULL side skips this check entirely and can take any slot. The Hydroponics Bay has
+     * the same gap for the same reason. Sided queries - which is what a pipe attached to a face
+     * actually makes - are covered.
+     */
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return false;
+        return slot == SLOT_OUTPUT;
     }
 
     // ---------------- MenuProvider ----------------

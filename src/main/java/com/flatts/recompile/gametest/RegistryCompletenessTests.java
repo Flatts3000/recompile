@@ -715,8 +715,7 @@ final class RegistryCompletenessTests {
         // both powered blocks with screens and that is where the resemblance stops. Revisit if
         // playtest says otherwise; it is one registerBlockEntity call away.
         "sequencer",
-        // Items stay manual; only its water tank is automatable.
-        "tree_nursery",
+
         // Holds one displayed item and is never hopper-fed - placing and taking is the interaction.
         "display_pedestal"
     );
