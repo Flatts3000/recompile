@@ -54,6 +54,18 @@ public final class RCDataComponents {
                 .networkSynchronized(ByteBufCodecs.VAR_INT)
                 .build());
 
+    /**
+     * A Garbage Vacuum's stored charge in FE (#336). The first powered ITEM in the mod: read directly
+     * by the item for its own drain, and through {@code Capabilities.Energy.ITEM} by the Charging
+     * Station and any other charger - one number behind two doors, so they cannot disagree.
+     */
+    public static final Supplier<DataComponentType<Integer>> VACUUM_CHARGE =
+        DATA_COMPONENTS.register("vacuum_charge",
+            () -> DataComponentType.<Integer>builder()
+                .persistent(Codec.INT)
+                .networkSynchronized(ByteBufCodecs.VAR_INT)
+                .build());
+
     /** A filled Scrap Bin's {material, count}, carried on its dropped item (P2.9). */
     public static final Supplier<DataComponentType<ScrapBinContents>> SCRAP_BIN_CONTENTS =
         DATA_COMPONENTS.register("scrap_bin_contents",

@@ -6,9 +6,11 @@ import com.flatts.recompile.content.item.AmberItem;
 import com.flatts.recompile.content.item.AnimalBaitItem;
 import com.flatts.recompile.content.item.CuttingTorchItem;
 import com.flatts.recompile.content.item.FertilizerItem;
+import com.flatts.recompile.content.item.GarbageVacuumItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.UnknownSeedlingItem;
 import com.flatts.recompile.content.item.SealedCanItem;
+import com.flatts.recompile.content.item.VacuumTier;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -482,6 +484,28 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> SLEDGEHAMMERS = List.of(
         COPPER_SLEDGEHAMMER, IRON_SLEDGEHAMMER, DIAMOND_SLEDGEHAMMER, NETHERITE_SLEDGEHAMMER);
 
+    // ---------------- The Garbage Vacuum (#336) ----------------
+    // Bulk block collection for FE, on the sledgehammer's tier ladder: the same four materials, so the
+    // rungs light up together. stacksTo(1) because the charge is per stack and a stack of two vacuums
+    // sharing one component would be one charge worn twice. The tier material decides which gated
+    // piles a vacuum may take (GarbageVacuumItem.canTake); today none is gated by tier, so all take all.
+    public static final DeferredItem<GarbageVacuumItem> COPPER_GARBAGE_VACUUM = ITEMS.registerItem(
+        "copper_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.COPPER, COPPER_TIER));
+    public static final DeferredItem<GarbageVacuumItem> IRON_GARBAGE_VACUUM = ITEMS.registerItem(
+        "iron_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.IRON, ToolMaterial.IRON));
+    public static final DeferredItem<GarbageVacuumItem> DIAMOND_GARBAGE_VACUUM = ITEMS.registerItem(
+        "diamond_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.DIAMOND, ToolMaterial.DIAMOND));
+    public static final DeferredItem<GarbageVacuumItem> NETHERITE_GARBAGE_VACUUM = ITEMS.registerItem(
+        "netherite_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.NETHERITE, ToolMaterial.NETHERITE));
+
+    /** The vacuum tier ladder, in creative-tab order. */
+    public static final List<DeferredItem<GarbageVacuumItem>> GARBAGE_VACUUMS = List.of(
+        COPPER_GARBAGE_VACUUM, IRON_GARBAGE_VACUUM, DIAMOND_GARBAGE_VACUUM, NETHERITE_GARBAGE_VACUUM);
+
     // The Cutting Torch: cuts Steel I-Beams (a sledgehammer cannot - you crush concrete, you cut steel).
     // Single tool, not a tier ladder. Durability is its fuel tank (v1); the Oily Rag in its recipe is the
     // fuel. Iron in the recipe gates it one step past first-iron (rebar bootstrap).
@@ -751,6 +775,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("recompile_workbench", RCBlocks.RECOMPILE_WORKBENCH);
     public static final DeferredItem<BlockItem> DISPLAY_PEDESTAL =
         ITEMS.registerSimpleBlockItem("display_pedestal", RCBlocks.DISPLAY_PEDESTAL);
+    public static final DeferredItem<BlockItem> CHARGING_STATION =
+        ITEMS.registerSimpleBlockItem("charging_station", RCBlocks.CHARGING_STATION);
     public static final DeferredItem<BlockItem> SCRAP_BARREL =
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> SCRAP_BIN =

@@ -670,5 +670,17 @@
   "block.recompile.cardboard_slab": "Cardboard Slab",
   "block.recompile.cardboard_stairs": "Cardboard Stairs",
   "block.recompile.cardboard_wall": "Cardboard Wall",
-  "block.recompile.cardboard_pile": "Cardboard Pile"
+  "block.recompile.cardboard_pile": "Cardboard Pile",
+  "item.recompile.copper_garbage_vacuum": "Copper Garbage Vacuum",
+  "item.recompile.iron_garbage_vacuum": "Iron Garbage Vacuum",
+  "item.recompile.diamond_garbage_vacuum": "Diamond Garbage Vacuum",
+  "item.recompile.netherite_garbage_vacuum": "Netherite Garbage Vacuum",
+  "block.recompile.charging_station": "Charging Station",
+  "message.recompile.vacuum_flat": "The vacuum is flat - set it on a Charging Station",
+  "tooltip.recompile.vacuum_radius": "Intake radius: %s blocks",
+  "jade.recompile.charging": "Vacuum: %s / %s FE",
+  "jade.recompile.dock_empty": "Empty - right-click with a Garbage Vacuum",
+  "book.recompile.guide.power.garbage_vacuum.name": "The Garbage Vacuum",
+  "book.recompile.guide.power.garbage_vacuum.intro.title": "Clearing a mound",
+  "book.recompile.guide.power.garbage_vacuum.intro.text": "Hold right-click and the vacuum pulls garbage blocks out of the ground in front of you, a few a second, straight into your inventory. It takes whole blocks, not what is inside them - sort them afterwards at a tarp, a workbench or a Trommel. A block you had half picked through comes out fresh; the pulls you already took are gone.\n\n\\\n\\\nIt runs on power. Set it on a Charging Station with a generator touching the station and it fills; a flat vacuum does nothing. Better tiers reach further and hold more.\n\n\\\n\\\nTake a mound from the bottom and the rest comes down on top of you. That is the quick way. The ground under a mound remembers it, so a cleared mound grows back like any other."
 }

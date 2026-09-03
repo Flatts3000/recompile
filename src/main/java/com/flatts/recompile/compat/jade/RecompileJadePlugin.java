@@ -8,6 +8,7 @@ import com.flatts.recompile.content.block.RecompileWorkbenchBlock;
 import com.flatts.recompile.content.block.ScrapBinBlock;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.BurnerGeneratorBlock;
+import com.flatts.recompile.content.block.ChargingStationBlock;
 import com.flatts.recompile.content.block.SolarPanelBlock;
 import com.flatts.recompile.content.block.SeparatorCoreBlock;
 import com.flatts.recompile.content.block.SequencerBlock;
@@ -73,11 +74,13 @@ public class RecompileJadePlugin implements IWailaPlugin {
         // The Sequencer is a CONSUMER on the same provider (#294): the first powered block that is
         // neither a generator nor a multiblock core, so nothing else covered its FE.
         registration.registerBlockDataProvider(GeneratorDataProvider.INSTANCE, SequencerBlock.class);
+        registration.registerBlockDataProvider(GeneratorDataProvider.INSTANCE, ChargingStationBlock.class);
     }
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(GeneratorProvider.INSTANCE, SequencerBlock.class);
+        registration.registerBlockComponent(GeneratorProvider.INSTANCE, ChargingStationBlock.class);
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, SortableBlock.class);
 
         // Recovered paintings name themselves on the wall (#99). An ENTITY component, not a block

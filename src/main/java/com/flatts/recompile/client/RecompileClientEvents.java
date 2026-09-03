@@ -28,5 +28,8 @@ public final class RecompileClientEvents {
         // The Roach (#78) - the mod's first ENTITY renderer, alongside its one block-entity renderer.
         event.registerEntityRenderer(RCEntities.ROACH.get(), RoachRenderer::new);
         event.registerEntityRenderer(RCEntities.PIGEON.get(), PigeonRenderer::new);
+        // A garbage block in flight to a vacuum (#336). An ENTITY renderer, so it costs no rule: the
+        // block-entity-renderer exception stays scoped to the pedestal.
+        event.registerEntityRenderer(RCEntities.VACUUMED_BLOCK.get(), VacuumedBlockRenderer::new);
     }
 }

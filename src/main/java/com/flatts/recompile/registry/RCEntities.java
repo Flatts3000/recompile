@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.entity.PigeonEntity;
 import com.flatts.recompile.content.entity.RoachEntity;
+import com.flatts.recompile.content.entity.VacuumedBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -57,6 +58,24 @@ public final class RCEntities {
             .eyeHeight(0.6F)
             .clientTrackingRange(8)
             .build(PIGEON_KEY));
+
+    private static final ResourceKey<EntityType<?>> VACUUMED_BLOCK_KEY = ResourceKey.create(
+        Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "vacuumed_block"));
+
+    /**
+     * A garbage block in flight to a Garbage Vacuum (#336): {@link MobCategory#MISC}, no attributes, no
+     * summon - it only ever exists because a vacuum took a block. Sized as the block it carries so
+     * culling is right at launch; the renderer shrinks it from there.
+     */
+    public static final Supplier<EntityType<VacuumedBlockEntity>> VACUUMED_BLOCK = ENTITIES.register(
+        "vacuumed_block",
+        () -> EntityType.Builder.of(VacuumedBlockEntity::new, MobCategory.MISC)
+            .sized(1.0F, 1.0F)
+            .clientTrackingRange(8)
+            .updateInterval(1)
+            .noSummon()
+            .fireImmune()
+            .build(VACUUMED_BLOCK_KEY));
 
     private RCEntities() {
     }

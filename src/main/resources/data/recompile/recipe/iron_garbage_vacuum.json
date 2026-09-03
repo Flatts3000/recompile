@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "T T",
+    "HPH",
+    " M "
+  ],
+  "key": {
+    "T": "minecraft:iron_ingot",
+    "H": "recompile:copper_pipe",
+    "P": "recompile:pump",
+    "M": "recompile:motor"
+  },
+  "result": {
+    "id": "recompile:iron_garbage_vacuum"
+  }
+}

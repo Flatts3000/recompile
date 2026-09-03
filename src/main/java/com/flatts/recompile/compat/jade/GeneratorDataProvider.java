@@ -2,10 +2,13 @@ package com.flatts.recompile.compat.jade;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
+import com.flatts.recompile.content.block.entity.ChargingStationBlockEntity;
 import com.flatts.recompile.content.block.entity.SequencerBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
+import com.flatts.recompile.content.item.GarbageVacuumItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IServerDataProvider;
 
@@ -40,6 +43,20 @@ public enum GeneratorDataProvider implements IServerDataProvider<BlockAccessor> 
             data.putInt("capacity", BurnerGeneratorBlockEntity.CAPACITY);
             data.putInt("rate", generator.isLit() ? BurnerGeneratorBlockEntity.FE_PER_TICK : 0);
             data.putInt("burn", generator.burnTime());
+        } else if (accessor.getBlockEntity() instanceof ChargingStationBlockEntity dock) {
+            // The Charging Station (#336): a consumer whose "rate" is what it is pushing into the
+            // docked vacuum this tick, plus the vacuum's own gauge, so a player reading the dock does
+            // not have to pick the tool up to know whether it is done.
+            data.putBoolean("consumer", true);
+            data.putInt("stored", dock.stored());
+            data.putInt("capacity", ChargingStationBlockEntity.CAPACITY);
+            data.putInt("rate", dock.lastTransfer());
+            ItemStack docked = dock.docked();
+            data.putBoolean("docked", !docked.isEmpty());
+            if (!docked.isEmpty()) {
+                data.putInt("held_stored", GarbageVacuumItem.charge(docked));
+                data.putInt("held_capacity", GarbageVacuumItem.capacityOf(docked));
+            }
         } else if (accessor.getBlockEntity() instanceof SequencerBlockEntity sequencer) {
             // A CONSUMER, on the same wire. The Sequencer is the first powered block that is neither a
             // generator nor a multiblock core, so neither existing provider covered it: the generator

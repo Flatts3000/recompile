@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "T T",
+    "HPH",
+    " M "
+  ],
+  "key": {
+    "T": "minecraft:diamond",
+    "H": "recompile:copper_pipe",
+    "P": "recompile:pump",
+    "M": "recompile:motor"
+  },
+  "result": {
+    "id": "recompile:diamond_garbage_vacuum"
+  }
+}

@@ -72,6 +72,7 @@ Separator's four, and only an audit found it.
 | **Sequencer** | `WorldlyContainer` | **none** | **none** | Manual-only by design (#294): the "one precious thing at a time" machine, not an automation-tier one. Amber arrives at about 1 in 700 pulls, so a pipe would be feeding it nothing most of the time. **Energy IS exposed** (`Capabilities.Energy.BLOCK`, insert-only), because it has to be charged. It shipped closed on the capability door and OPEN on the Container one - a plain `Container`, which `HopperBlockEntity.getContainerAt` takes directly - so a hopper underneath pulled the amber out mid-read. Caught in review, fixed to `WorldlyContainer` with no slots on any face, the Tree Nursery's shape exactly. |
 | **Rain Collector** | plain `BlockEntity` | n/a | fluid only | Its tank is the point; it holds no items. |
 | **Display Pedestal** | plain `BlockEntity` | **none** | **none** | Holds one item and is **never hopper-fed** by design - placing and taking is the interaction. |
+| **Charging Station** | plain `BlockEntity` | **none** | **none** | The pedestal's terms, plus power (#336): holds one Garbage Vacuum, set down and picked up by hand, no `Container` and no item capability so neither a hopper nor a pipe can lift the tool off the dock. **Energy IS exposed** (`Capabilities.Energy.BLOCK`, insert-only), the Sequencer's shape, because it has to be fed. It charges the docked item through `Capabilities.Energy.ITEM` - the first item capability in the mod - so the door any other charger would use is the door this block proves every tick. |
 | **Compost Heap**, **Recompile Workbench**, **Scrap Crafting Table** | plain `BlockEntity` | n/a | n/a | Not `Container`s. Nothing to expose. |
 | **Separator** | *no container at all* | **none** | **none** | Closed on both doors, and it **joined `#scrap_connectable` anyway** (2026-08-03) without opening either. It is a SOURCE: it pushes separated material into the cluster and can never receive, because routing only ever lands in a Scrap Bin or the Scrap Barrel by block id and this machine has no `Container` to land in. Its formed cells are RELAYs, in the tag only so a bin against any face of the machine joins the cluster. **Being reachable and being writable are different questions** - the machine reaches out at both ends (it swallows what lands in its bay, drains a container on it, and pushes into the network or its chute) and is still reachable-into by nothing. |
 | **Trommel** | *no container at all* | **none** | **none** | Same terms as the Separator, and for the same reason. It swallows loose items along the drum, drains a container parked on it, and discharges off the END of the drum at drum height - into a container if one is there, thrown clear if not. A SOURCE in the network; its formed cells are RELAYs. Took automated sorting off the Separator in #187. |
@@ -110,6 +111,13 @@ satisfy the sweep and still get its faces wrong.
 5. **Test the null side.** Not just `Direction.values()`.
 
 ## Changelog
+
+- **2026-09-03** - The Charging Station (#336) added a row: manual-only on both item doors like the
+  pedestal, energy in only like the Sequencer. Worth a line because it is the first block here whose
+  job is to write into an ITEM's capability - `Capabilities.Energy.ITEM` on the docked Garbage
+  Vacuum - which is a third door this table had never needed a column for. It is closed to the
+  world (the stack is only reachable by hand) and open to the block, and
+  `every_vacuum_tier_exposes_the_item_energy_capability` pins that every tier answers it.
 
 - **2026-08-29** - The Sequencer (#294) added a row, and the reason it is worth reading is that it was
   wrong when it shipped. Declaring no item capability closes the pipe door and leaves the Container

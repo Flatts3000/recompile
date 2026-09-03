@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "C C",
+    "CFC",
+    "JJJ"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "F": "recompile:machine_frame",
+    "J": "recompile:pressed_junk_block"
+  },
+  "result": {
+    "id": "recompile:charging_station",
+    "count": 1
+  }
+}
