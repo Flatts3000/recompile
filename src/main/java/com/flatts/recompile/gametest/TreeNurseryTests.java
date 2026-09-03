@@ -144,30 +144,80 @@ final class TreeNurseryTests {
             helper.succeed();
         });
 
-        // THE NULL SIDE, which the automation policy names as its own rule because nothing else tests
-        // it - Direction.values() has no null in it. What this pins is the SHAPE the wrapper gives a
-        // non-sided query, which is deliberately different from a sided one: it sees the whole
-        // container rather than a face's slots.
+        // THE ASSEMBLED MACHINE, which is the only geometry a player ever automates - and the gap
+        // that let a wrong claim ship. The other tests here place a bare core with setBlock, so they
+        // say nothing about what faces are actually exposed once the thing is built.
         //
-        // It also documents a real gap rather than hiding it. NeoForge's WorldlyContainerWrapper
-        // guards extract with `side != null &&`, so a null-side query skips canTakeItemThroughFace
-        // entirely and CAN take an input. The Hydroponics Bay has the same gap for the same reason.
-        // Sided queries are what a pipe attached to a face makes, and those are covered above.
-        RCGameTests.test("the_nurserys_null_side_exposes_the_whole_container", 20, helper -> {
+        // The nursery's blueprint puts a Solar Panel at (0, 1, 0), DIRECTLY above the core, and
+        // Multiblock.rotate only turns about Y - so the top face is occupied in every orientation and
+        // a hopper there reaches nothing. The javadoc and the guidebook said "the top or the sides"
+        // until review caught it. What a player really has is the three free horizontal faces (the
+        // fourth is the Water Tank) plus the bottom.
+        RCGameTests.test("a_formed_nursery_is_reachable_from_the_sides_and_below", 60, helper -> {
+            BlockPos core = new BlockPos(1, 1, 1);
+            helper.setBlock(core, RCBlocks.TREE_NURSERY.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(core);
+
+            MultiblockCoreBlock block = (MultiblockCoreBlock) RCBlocks.TREE_NURSERY.get();
+            block.blueprint().form(level, abs);
+
+            // The top really is taken, so this is geometry rather than an opinion.
+            helper.assertTrue(level.getBlockState(abs.above()).is(RCBlocks.SOLAR_PANEL.get()),
+                "the blueprint must put a Solar Panel directly above the core - if this changed, the "
+                    + "note about the unreachable top face is stale and the guidebook can say 'top'");
+
+            // A free side takes inputs...
+            ResourceHandler<ItemResource> side =
+                level.getCapability(Capabilities.Item.BLOCK, abs, Direction.NORTH);
+            helper.assertTrue(side != null, "a formed nursery must still expose its sides");
+            int moved;
+            try (Transaction tx = Transaction.openRoot()) {
+                moved = side.insert(ItemResource.of(RCItems.FERTILIZER.get()), 1, tx);
+                tx.commit();
+            }
+            helper.assertTrue(moved == 1,
+                "a hopper on a free side of a BUILT nursery must be able to feed it, moved " + moved);
+
+            // ...and the bottom gives back saplings.
+            if (!(level.getBlockEntity(abs) instanceof TreeNurseryBlockEntity nursery)) {
+                helper.fail("the formed nursery lost its BlockEntity");
+                return;
+            }
+            nursery.setItem(TreeNurseryBlockEntity.SLOT_OUTPUT,
+                new ItemStack(net.minecraft.world.item.Items.OAK_SAPLING, 1));
+            ResourceHandler<ItemResource> below =
+                level.getCapability(Capabilities.Item.BLOCK, abs, Direction.DOWN);
+            int taken;
+            try (Transaction tx = Transaction.openRoot()) {
+                taken = below.extract(ItemResource.of(net.minecraft.world.item.Items.OAK_SAPLING), 1, tx);
+                tx.commit();
+            }
+            helper.assertTrue(taken == 1,
+                "a hopper under a BUILT nursery must be able to take the saplings, took " + taken);
+            helper.succeed();
+        });
+
+        // THE NULL SIDE, which the automation policy names as its own rule because nothing else
+        // tests it - Direction.values() has no null in it.
+        //
+        // A non-sided caller gets NO handler, deliberately. WorldlyContainerWrapper.extract is guarded
+        // by `side != null &&`, so a handler handed to one would skip canTakeItemThroughFace and let a
+        // pipe pull the fertilizer and seedling straight back out - the one thing this machine
+        // promises it will not do. The Burner Generator closes it the same way, which is where the
+        // one-expression fix came from.
+        RCGameTests.test("a_non_sided_pipe_gets_no_handler_on_the_nursery", 20, helper -> {
             BlockPos pos = new BlockPos(1, 1, 1);
             helper.setBlock(pos, RCBlocks.TREE_NURSERY.get());
             BlockPos abs = helper.absolutePos(pos);
-            ResourceHandler<ItemResource> any =
-                helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, null);
-            helper.assertTrue(any != null, "a non-sided query must still get a handler");
-            if (!(helper.getLevel().getBlockEntity(abs) instanceof TreeNurseryBlockEntity nursery)) {
-                helper.fail("the tree nursery has no BlockEntity");
-                return;
-            }
-            helper.assertTrue(any.size() == nursery.getContainerSize(),
-                "a null side sees the whole container (" + nursery.getContainerSize()
-                    + " slots), got " + any.size() + " - if this changed, the wrapper's null-side "
-                    + "short-circuit changed with it and the note on canTakeItemThroughFace is stale");
+            helper.assertTrue(
+                helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, null) == null,
+                "a non-sided query must get NO handler - one would bypass canTakeItemThroughFace and "
+                    + "let a pipe drain the inputs");
+            // ...while a sided one still works, so this closes a hole rather than the machine.
+            helper.assertTrue(
+                helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, Direction.NORTH) != null,
+                "a sided query must still get a handler");
             helper.succeed();
         });
 

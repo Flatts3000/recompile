@@ -760,7 +760,7 @@ final class RegistryCompletenessTests {
                         // checked the other half of it. Caught in review, not here.
                         //
                         // WorldlyContainer with no slots on any face is the only shape that shuts it,
-                        // and it is what the Burn Barrel and the Tree Nursery already do.
+                        // and it is what the Burn Barrel does. (The Tree Nursery was on this list until 2026-09-03, when the owner opened it to hoppers and pipes.)
                         var be = level.getBlockEntity(pos);
                         if (!(be instanceof net.minecraft.world.WorldlyContainer worldly)) {
                             hopperReachable.add(id.getPath() + " (plain Container, so a hopper reaches "

@@ -44,10 +44,13 @@ import com.flatts.recompile.content.menu.TreeNurseryMenu;
  * and the cook progress. It is the sanctioned "storage is the honest exception" line the Rain
  * Collector's tank and the Scrap Barrel already sit on.
  *
- * <p><b>Manual only.</b> As a {@link WorldlyContainer} it exposes no slots to any face, so hoppers and
- * pipes cannot move items - you load Fertilizer and Seedlings and take saplings by hand through the
- * GUI. The water is the one automatable input: the fluid tank is exposed as a capability, so a pipe or
- * pump from a Rain Collector fills it (and a bucket fills it through the block's use handler).
+ * <p><b>Automatable since 2026-09-03</b> (owner reversal - it shipped manual-only, and a playtester
+ * asked why a hopper would not feed it). As a {@link WorldlyContainer} it exposes its inputs to the
+ * sides and its output to the bottom, so hoppers and pipes can run it; loading it by hand through the
+ * GUI still works exactly as before. See {@link #getSlotsForFace} for why the top is not one of those
+ * faces on an assembled machine. The water was always automatable and is unchanged: the fluid tank is
+ * exposed as a capability, so a pipe or pump from a Rain Collector fills it (and a bucket fills it
+ * through the block's use handler).
  */
 public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
 
@@ -75,7 +78,6 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
         Items.PALE_OAK_SAPLING
     };
 
-    private static final int[] NO_SLOTS = new int[0];
     /** Everything a hopper may push in, and the one thing it may pull out. */
     private static final int[] INPUT_FACES = new int[] {SLOT_FERTILIZER, SLOT_SEEDLING};
     private static final int[] OUTPUT_FACE = new int[] {SLOT_OUTPUT};
@@ -302,6 +304,16 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
      *
      * <p>The furnace convention, matching the Hydroponics Bay: a player should not have to learn a
      * second layout for the second automatable machine.
+     *
+     * <p><b>On an ASSEMBLED nursery the top face is not reachable, and that is geometry rather than
+     * policy.</b> This is a multiblock: {@code TreeNurseryCoreBlock.createBlueprint} puts a Solar Panel
+     * at {@code (0, 1, 0)}, directly above the core, and {@code Multiblock.rotate} only turns about Y,
+     * so that cell is above the core in every orientation. A dummy cell forwards no item capability, so
+     * a hopper on the panel reaches nothing. What a player can actually use is the three free
+     * horizontal faces - the fourth is the Water Tank at {@code (1, 0, 0)} - and the bottom for output.
+     * The mapping still gives inputs to {@code UP} because an unformed core can be fed from above and
+     * costing nothing to keep; the guidebook says "the sides", because that is what is true of a
+     * machine you have actually built.
      *
      * <p>Shared arrays rather than fresh ones - a hopper calls this several times a second per adjacent
      * hopper, and vanilla's containers hand back constants for exactly that reason.
