@@ -1,5 +1,61 @@
 # Changelog
 
+## v0.17.0
+
+**Clearing a mound stops being a mining job.** v0.16.0 put things on the skyline to walk toward. This
+one is about the walk back: a powered vacuum that pulls garbage blocks out of the ground several a
+second, and the battery chain you have to work out before you can build one.
+
+### The Garbage Vacuum
+
+- **Hold right-click and the piles in front of you leave the ground and fly into the nozzle**, about
+  five a second. It takes whole blocks, not what is inside them, so you still sort them afterwards at
+  a tarp, a workbench or a Trommel.
+- **Take a mound from the bottom and the rest comes down on top of you.** That is the fast way to
+  clear one. The ground under a mound still remembers it, so a cleared mound grows back exactly as it
+  did before.
+- **A block you had half picked through comes out fresh.** The pulls you already took are gone. Vacuum
+  the ones you have not started on.
+- **It costs power per block, and a bigger block costs more.** A Compacted Bale is eight rolls against
+  a Trash Bag's four, so bulk-clearing the good stuff is not free.
+- **Point it at something out of its league and it names the pile** instead of doing nothing.
+
+### Each vacuum is rated for the waste it was built for
+
+- **Copper handles household rubbish.** Iron adds the demolition yard, diamond the tailings and drums
+  out past it, and only a netherite one will touch the depths. Each tier also handles everything
+  easier than itself.
+- **Better tiers also reach further and hold more.** Two blocks and 4,000 FE at copper, five and
+  24,000 at netherite.
+
+### The Charging Station
+
+- **A flat vacuum does nothing.** Set it down on a Charging Station with a generator touching the
+  station and it fills.
+- **No screen.** Right-click the station holding a vacuum to leave it there, right-click it
+  empty-handed to take it back. Look at the station and Jade tells you what it is holding and how full
+  the vacuum is.
+- **Nothing can reach in and take the tool off it.** No hopper, no pipe. Putting it down and picking
+  it up is the whole interaction.
+
+### Batteries, and the dead ones you find first
+
+- **Depleted Batteries turn up loose in household waste**, about as often as a dead bulb. They are not
+  a part and you cannot build anything out of one.
+- **Cut one open at a Teardown Workbench with a Scrap Knife** for its scrap metal, e-scrap and
+  plastic. Four of them and you will have worked out what is inside.
+- **Then you can make live ones.** A Battery is copper, scrap metal and e-scrap at the Scrap Crafting
+  Table, and it is the only route: nothing in this world hands you a working cell.
+- **Both the vacuum and the Charging Station need one**, so the batteries gate the whole tier. No
+  cell, no charger, no vacuum.
+
+### Fixed
+
+- **Zombies in the demolition yard drop iron again.** A husk loot override shipped in v0.16.0 to stop
+  a spawner farm handing out iron; it only covered the husks at the smokestacks while the yard's
+  ordinary zombie spawns and any husk you drowned went on dropping it as before. It read as a
+  guarantee it never was, so it is gone.
+
 ## v0.16.0
 
 **The skyline has two things on it now, and there is finally something you can build with on the
