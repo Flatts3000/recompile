@@ -186,7 +186,8 @@ public class VacuumedBlockEntity extends Entity {
         }
         level.playSound(null, owner.getX(), owner.getY(), owner.getZ(),
             SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.5F, 0.7F);
-        level.sendParticles(ParticleTypes.POOF, nozzle.x, nozzle.y, nozzle.z, 3, 0.08, 0.08, 0.08, 0.02);
+        // One puff. Three filled the bottom of the screen in the dev client; a swallow is a small event.
+        level.sendParticles(ParticleTypes.POOF, nozzle.x, nozzle.y, nozzle.z, 1, 0.05, 0.05, 0.05, 0.01);
         discard();
     }
 

@@ -111,6 +111,15 @@ public class GarbageVacuumItem extends Item {
 
     // ---- use ------------------------------------------------------------------------------
 
+    /**
+     * A tap takes one block; a hold keeps taking.
+     *
+     * <p>The first intake happens HERE, on the click, not on the first use tick. A tap starts and
+     * releases the use within one tick, so {@code onUseTick} never runs for it - measured through
+     * devbridge, whose {@code use} verb is exactly a tap, and true of a real quick click too. A tool
+     * that does nothing on a click and only works when held reads as broken for the first second of
+     * owning it. The use loop then skips its tick-zero intake so a hold does not take two at once.
+     */
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -119,6 +128,9 @@ public class GarbageVacuumItem extends Item {
                 player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_flat"));
             }
             return InteractionResult.FAIL;
+        }
+        if (level instanceof ServerLevel server) {
+            intakeOnce(server, player, stack, aimPoint(player));
         }
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
@@ -148,7 +160,9 @@ public class GarbageVacuumItem extends Item {
                 server.playSound(null, player.getX(), player.getY(), player.getZ(),
                     SoundEvents.BREEZE_IDLE_AIR, SoundSource.PLAYERS, 0.35F, 0.85F);
             }
-            if (elapsed % INTAKE_PERIOD_TICKS == 0 && intakeOnce(server, player, stack, aim) == Intake.FLAT) {
+            // elapsed 0 is the click itself, which use() has already paid for.
+            if (elapsed > 0 && elapsed % INTAKE_PERIOD_TICKS == 0
+                    && intakeOnce(server, player, stack, aim) == Intake.FLAT) {
                 player.releaseUsingItem();
                 player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_flat"));
             }

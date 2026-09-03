@@ -18,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -121,6 +122,33 @@ final class GarbageVacuumTests {
             Intake second = GarbageVacuumItem.intakeOnce(level, player, stack, centreOf(helper, AIM));
             helper.assertTrue(second == Intake.NOTHING_IN_RANGE,
                 "with only stone left in range the vacuum must take nothing, got " + second);
+            helper.succeed();
+        });
+
+        // A TAP takes a block. A quick click starts and releases the use inside one tick, so the use
+        // loop never runs for it; the first intake is on the click itself. Found by driving the dev
+        // client through devbridge, whose `use` verb is exactly a tap: three taps, nothing taken, a
+        // tool that only worked when held. The mock player looks along +z from the plot's edge, so
+        // the aim point five blocks out is in the air beside a pile within copper's reach.
+        RCGameTests.test("a_tap_takes_one_block_and_starts_the_stream", 20, helper -> {
+            BlockPos pile = new BlockPos(2, 2, 4);
+            helper.setBlock(pile, RCBlocks.GARBAGE_BLOCK.get());
+            ServerLevel level = helper.getLevel();
+            ServerPlayer player = survivalPlayer(helper);
+            Vec3 edge = helper.absoluteVec(new Vec3(2.5, 1.0, 0.5));
+            player.setPos(edge.x, edge.y, edge.z);
+            player.setYRot(0.0F);
+            player.setXRot(0.0F);
+            ItemStack stack = vacuum(RCItems.COPPER_GARBAGE_VACUUM, 4_000);
+            player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, stack);
+
+            InteractionResult result = stack.getItem().use(level, player, net.minecraft.world.InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.consumesAction(), "a click on a charged vacuum must be consumed, got " + result);
+            helper.assertBlockPresent(Blocks.AIR, pile);
+            helper.assertTrue(GarbageVacuumItem.charge(player.getMainHandItem()) == 4_000 - garbageCost(),
+                "the click itself must take and pay for one block, charge is "
+                    + GarbageVacuumItem.charge(player.getMainHandItem()));
+            helper.assertTrue(player.isUsingItem(), "and the hold must be running so a held click keeps taking");
             helper.succeed();
         });
 
@@ -342,6 +370,9 @@ final class GarbageVacuumTests {
             List<String> missing = new ArrayList<>();
             for (String key : List.of(
                     "message.recompile.vacuum_flat", "tooltip.recompile.vacuum_radius",
+                    // Jade names the entity under the crosshair mid-flight; the dev client showed
+                    // the raw key there before this line existed.
+                    "entity.recompile.vacuumed_block",
                     "jade.recompile.charging", "jade.recompile.dock_empty",
                     "book.recompile.guide.power.garbage_vacuum.name",
                     "book.recompile.guide.power.garbage_vacuum.intro.title",
