@@ -26,7 +26,7 @@ public final class AquariumPalette {
     public static final BlockState SHELL = RCBlocks.REINFORCED_CONCRETE.get().defaultBlockState();
     /** Roof and gallery frame, the yard's steel. */
     public static final BlockState BEAM_Z = RCBlocks.STEEL_I_BEAM.get().defaultBlockState()
-        .setValue(SteelBeamBlock.AXIS, Direction.Axis.Z);
+        .setValue(SteelBeamBlock.AXIS, Direction.Axis.Z).setValue(SteelBeamBlock.Z, true);
     public static final BlockState BEAM_Y = RCBlocks.STEEL_I_BEAM.get().defaultBlockState()
         .setValue(SteelBeamBlock.AXIS, Direction.Axis.Y);
 

@@ -145,8 +145,17 @@ public final class AquariumPieces {
                             state = roof(x, y, z, ox, base, oz);
                         } else if (face) {
                             Room other = AquariumStructure.otherRoomAt(room(), new BlockPos(x, y, z), ox, base, oz);
-                            state = other == null ? wall(x, y, z, ox, base, oz)
-                                : wallBetween(room(), other, x, y, z, base);
+                            if (other == null) {
+                                state = wall(x, y, z, ox, base, oz);
+                            } else if (other.roofed() && y == other.box(ox, base, oz).maxY()) {
+                                // A cell on the neighbour's ROOF ROW is its roof, whatever this room
+                                // would have drawn there. The big tank's cracked glass ran up through
+                                // the gallery's roof edge on their shared plane and left it full of
+                                // sky wherever the crack hash landed; the roof-integrity test found it.
+                                state = AquariumPalette.SHELL;
+                            } else {
+                                state = wallBetween(room(), other, x, y, z, base);
+                            }
                         } else {
                             state = AquariumPalette.HOLLOW;
                         }
@@ -158,11 +167,16 @@ public final class AquariumPieces {
             // 1b. The column above. Features run before this and nothing inside the box survives the
             //     shell, but a husk lattice standing over the roof or an open forecourt is outside every
             //     box and would rise straight through the building.
-            int top = room().roofed() ? b.maxY() : b.maxY();
+            //     BUT NEVER A CELL ANOTHER ROOM OWNS. A lower room's clearing begins above its own
+            //     roof, which is inside the wall and roof edge of a taller neighbour on their shared
+            //     plane; the filtration hall opened the top of the gallery's west wall to the sky in the
+            //     fourth aquarium, on whichever chunks the hall happened to write last.
             for (int x = b.minX(); x <= b.maxX(); x++) {
                 for (int z = b.minZ(); z <= b.maxZ(); z++) {
-                    for (int y = top + 1; y <= base + AquariumStructure.CLEAR_ABOVE; y++) {
-                        this.placeBlock(level, AquariumPalette.HOLLOW, x, y, z, limit);
+                    for (int y = b.maxY() + 1; y <= base + AquariumStructure.CLEAR_ABOVE; y++) {
+                        if (AquariumStructure.otherRoomAt(room(), new BlockPos(x, y, z), ox, base, oz) == null) {
+                            this.placeBlock(level, AquariumPalette.HOLLOW, x, y, z, limit);
+                        }
                     }
                 }
             }
@@ -349,11 +363,23 @@ public final class AquariumPieces {
             // WATERLOGGED IS FORCED OFF. Vanilla's coral plants and fans default to waterlogged=true, so
             // a defaultBlockState() coral is a bucketable water source, eighteen of them - which the
             // first build shipped and the fluid test did not see, because it looked for water BLOCKS.
+            // A BAY STOPS SHORT OF EVERY DOORWAY IN THE WALL BEHIND IT. The lobby's door opened straight
+            // into the south bay's glass in the fourth aquarium: a doorway in a long wall needs the bay
+            // in front of it left as floor, one cell either side, or the door is a window.
+            java.util.List<Door> doors = AquariumStructure.doors(ox, base, oz);
             int i = 0;
             for (int x = ox - 9; x <= ox + 8; x++) {
                 for (int side = 0; side < 2; side++) {
                     int front = side == 0 ? oz - 3 : oz + 2;
                     int floor = side == 0 ? oz - 4 : oz + 3;
+                    int wall = side == 0 ? oz - 5 : oz + 4;
+                    final int fx = x;
+                    boolean doorway = doors.stream().anyMatch(d -> d.joins(Room.GALLERY)
+                        && d.cells().minZ() == wall && d.cells().maxZ() == wall
+                        && fx >= d.cells().minX() - 1 && fx <= d.cells().maxX() + 1);
+                    if (doorway) {
+                        continue;
+                    }
                     this.placeBlock(level, AquariumPalette.CLADDING, x, base, front, limit);
                     for (int y = base + 1; y <= base + 3; y++) {
                         BlockState pane = y >= base + 2 && AquariumPalette.cracked(x, y, front)
@@ -372,12 +398,31 @@ public final class AquariumPieces {
                     }
                 }
             }
-            // The roof frame, and the viewing steps up to the guardian tank's breach.
+            // The roof girders. Placed as members of a Z run, then their joints resolved through the
+            // block's own updateState - worldgen places with flag 2, which skips neighbour updates, so
+            // a beam left in its placed state never notices the beam beside it and renders as a stub.
+            // The Building Husk does the same second pass for the same reason.
+            java.util.List<BlockPos> girders = new java.util.ArrayList<>();
             for (int x : new int[]{ox - 5, ox, ox + 5}) {
                 for (int z = oz - 4; z <= oz + 3; z++) {
                     this.placeBlock(level, AquariumPalette.BEAM_Z, x, base + 6, z, limit);
+                    girders.add(new BlockPos(x, base + 6, z));
                 }
             }
+            for (BlockPos at : girders) {
+                if (!limit.isInside(at)) {
+                    continue;
+                }
+                BlockState state = level.getBlockState(at);
+                if (!(state.getBlock() instanceof com.flatts.recompile.content.block.SteelBeamBlock)) {
+                    continue;
+                }
+                for (Direction d : Direction.values()) {
+                    state = com.flatts.recompile.content.block.SteelBeamBlock.updateState(level, at, state, d);
+                }
+                level.setBlock(at, state, 2);
+            }
+            // The viewing steps up to the guardian tank's breach.
             for (int step = 0; step < 3; step++) {
                 for (int z = oz - 1; z <= oz; z++) {
                     for (int y = base + 1; y <= base + 1 + step; y++) {

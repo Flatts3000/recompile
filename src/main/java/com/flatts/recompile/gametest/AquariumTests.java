@@ -58,10 +58,20 @@ public final class AquariumTests {
         return ResourceKey.create(Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, path));
     }
 
-    /** Run every room's own postProcess into the test world, and hand back the origin they were laid out from. */
-    private static BlockPos build(GameTestHelper helper) {
+    /**
+     * Run every room's own postProcess into the test world, and hand back the origin they were laid out
+     * from.
+     *
+     * <p><b>Each building test lifts its build by a different amount.</b> The harness sites test plots
+     * twelve blocks apart and this building is thirty-eight wide, so two tests that both built at plot
+     * height would build through each other - the roof-integrity assertion first failed on two cells
+     * that the NEXT test's clearing pass had emptied, which a trace of this method's own pieces proved
+     * were concrete when it finished. Forty blocks of lift is the building's height plus its clearing
+     * reach plus a margin, so no two tests share a band whatever plot they land in.
+     */
+    private static BlockPos build(GameTestHelper helper, int lift) {
         var level = helper.getLevel();
-        BlockPos o = helper.absolutePos(new BlockPos(0, 1, 0));
+        BlockPos o = helper.absolutePos(new BlockPos(0, 1 + lift, 0));
         BoundingBox all = AquariumStructure.footprint(o.getX(), o.getY(), o.getZ());
         BoundingBox limit = new BoundingBox(all.minX() - 8, all.minY() - 8, all.minZ() - 8,
             all.maxX() + 8, all.maxY() + AquariumStructure.CLEAR_ABOVE + 8, all.maxZ() + 8);
@@ -101,10 +111,13 @@ public final class AquariumTests {
         });
 
         // RULE 1 OF THE ROOM GRAPH, IN THE WORLD. The layout test walks doors as arithmetic; this walks
-        // AIR, from the forecourt, through whatever the pieces actually wrote - so a door that one
-        // piece cut and the other piece walled back over is what fails here, and nothing else can see it.
-        RCGameTests.test("every_room_is_reachable_from_the_forecourt_through_placed_air", 200, helper -> {
-            BlockPos o = build(helper);
+        // ON FOOT, from the forecourt, through whatever the pieces actually wrote. A door one piece cut
+        // and the other walled back over fails here, and so does a door that opens into an exhibit
+        // bay's glass - which the first version of this test could not see, because it flooded air in
+        // six directions and simply climbed over the glass. A walker needs headroom, steps up one,
+        // falls any distance, and swims through fluid.
+        RCGameTests.test("every_room_is_reachable_from_the_forecourt_on_foot", 200, helper -> {
+            BlockPos o = build(helper, 0);
             var level = helper.getLevel();
             int ox = o.getX();
             int base = o.getY();
@@ -121,8 +134,27 @@ public final class AquariumTests {
             seen.add(start);
             while (!queue.isEmpty()) {
                 BlockPos here = queue.poll();
-                for (BlockPos n : new BlockPos[]{here.above(), here.below(), here.north(), here.south(), here.east(), here.west()}) {
-                    if (all.isInside(n) && seen.add(n) && passable(level.getBlockState(n))) {
+                List<BlockPos> next = new ArrayList<>();
+                boolean swimming = level.getBlockState(here).getFluidState().isSource()
+                    || !level.getBlockState(here).getFluidState().isEmpty();
+                if (swimming && passable(level.getBlockState(here.above()))) {
+                    next.add(here.above());
+                }
+                for (BlockPos t : new BlockPos[]{here.north(), here.south(), here.east(), here.west()}) {
+                    if (passable(level.getBlockState(t)) && passable(level.getBlockState(t.above()))) {
+                        next.add(t);
+                    } else if (passable(level.getBlockState(t.above())) && passable(level.getBlockState(t.above(2)))
+                            && passable(level.getBlockState(here.above(2)))) {
+                        next.add(t.above());
+                    }
+                }
+                for (BlockPos n : next) {
+                    // Fall until something holds.
+                    while (all.isInside(n.below()) && passable(level.getBlockState(n.below()))
+                            && level.getBlockState(n).getFluidState().isEmpty()) {
+                        n = n.below();
+                    }
+                    if (all.isInside(n) && seen.add(n)) {
                         queue.add(n);
                     }
                 }
@@ -151,7 +183,7 @@ public final class AquariumTests {
         // RULE 4: exactly one room holds water. The two fluids are one block id apart and a swap fails
         // silently in both directions, so this reads every cell in the footprint.
         RCGameTests.test("only_the_guardian_tank_holds_water_and_the_rest_is_leachate", 200, helper -> {
-            BlockPos o = build(helper);
+            BlockPos o = build(helper, 40);
             var level = helper.getLevel();
             int ox = o.getX();
             int base = o.getY();
@@ -194,14 +226,14 @@ public final class AquariumTests {
         // Both spawners, configured rather than merely present: LandmarkSpawnerTests records three
         // separate silent spawner defects that shipped through a green suite.
         RCGameTests.test("the_guardian_and_the_drowned_spawners_are_configured", 200, helper -> {
-            BlockPos o = build(helper);
+            BlockPos o = build(helper, 80);
             assertSpawner(helper, AquariumStructure.guardianSpawner(o.getX(), o.getY(), o.getZ()), "minecraft:guardian");
             assertSpawner(helper, AquariumStructure.drownedSpawner(o.getX(), o.getY(), o.getZ()), "minecraft:drowned");
             helper.succeed();
         });
 
         RCGameTests.test("the_chest_the_silt_and_the_pedestal_carry_their_contents", 200, helper -> {
-            BlockPos o = build(helper);
+            BlockPos o = build(helper, 120);
             var level = helper.getLevel();
             int ox = o.getX();
             int base = o.getY();
@@ -270,7 +302,7 @@ public final class AquariumTests {
         // are planted over three rooms before the build and must be gone after it.
         RCGameTests.test("a_lattice_standing_over_the_building_is_cleared", 200, helper -> {
             var level = helper.getLevel();
-            BlockPos o = helper.absolutePos(new BlockPos(0, 1, 0));
+            BlockPos o = helper.absolutePos(new BlockPos(0, 1 + 160, 0));
             int ox = o.getX();
             int base = o.getY();
             int oz = o.getZ();
@@ -284,7 +316,7 @@ public final class AquariumTests {
             for (BlockPos p : planted) {
                 level.setBlock(p, RCBlocks.STEEL_I_BEAM.get().defaultBlockState(), 3);
             }
-            build(helper);
+            build(helper, 160);
             List<String> standing = new ArrayList<>();
             for (BlockPos p : planted) {
                 if (!level.getBlockState(p).isAir()) {
@@ -292,6 +324,26 @@ public final class AquariumTests {
                 }
             }
             helper.assertTrue(standing.isEmpty(), "feature blocks still standing over the building: " + standing);
+
+            // AND THE CLEARING TOOK NOTHING THAT WAS OURS. Every roofed room keeps a solid roof over its
+            // whole box after every piece has run - a lower room's clearing must not open a taller
+            // neighbour's wall top or roof edge on the plane they share.
+            List<String> holes = new ArrayList<>();
+            for (Room room : Room.values()) {
+                if (!room.roofed()) {
+                    continue;
+                }
+                BoundingBox b = room.box(ox, base, oz);
+                for (int x = b.minX(); x <= b.maxX(); x++) {
+                    for (int z = b.minZ(); z <= b.maxZ(); z++) {
+                        if (level.getBlockState(new BlockPos(x, b.maxY(), z)).isAir()) {
+                            holes.add(room + "@" + x + "," + z);
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(holes.isEmpty(), "roof cells that ended up air: " + holes.size() + " e.g. "
+                + holes.subList(0, Math.min(6, holes.size())));
             helper.succeed();
         });
 
