@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:spotlight",
+  "id": "intro",
+  "sort_number": 0,
+  "item": "recompile:dried_bouquet",
+  "title": "book.recompile.guide.reclamation.bouquet.intro.title",
+  "text": "book.recompile.guide.reclamation.bouquet.intro.text"
+}

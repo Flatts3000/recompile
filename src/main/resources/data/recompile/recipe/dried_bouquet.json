@@ -1,0 +1,22 @@
+{
+  "_comment": [
+    "The other thing a Dried Bouquet is for. Pulled apart at the workbench with no tool - it is",
+    "dead plant matter held together by a ribbon, and a knife would be theatre.",
+    "",
+    "The fibre is the stems. Dried flower stems are what the whole bouquet mostly is by weight, and",
+    "a bouquet that gave a flower back this way would make the cauldron pointless."
+  ],
+  "type": "recompile:teardown",
+  "input": "recompile:dried_bouquet",
+  "station": "recompile:workbench",
+  "ticks": 40,
+  "pools": [
+    {
+      "rolls": 3,
+      "entries": [
+        { "item": "recompile:fiber_scrap", "weight": 3 },
+        { "item": "minecraft:string", "weight": 1 }
+      ]
+    }
+  ]
+}

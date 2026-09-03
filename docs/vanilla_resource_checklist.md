@@ -10,8 +10,8 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 |---|---|
 | Minecraft version | 26.1.2 |
 | Catalogued | 886 |
-| **Reachable in Recompile** | **725 (82%)** |
-| Not reachable | 161 |
+| **Reachable in Recompile** | **730 (82%)** |
+| Not reachable | 156 |
 | Mobs obtainable | 59 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
@@ -34,8 +34,8 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Domain | Reachable | Total |
 |---|---:|---:|
 | Wood | 58 | 66 |
-| Overworld - General Surface | 92 | 99 |
-| Forest | 6 | 10 |
+| Overworld - General Surface | 93 | 99 |
+| Forest | 9 | 10 |
 | Jungle | 6 | 6 |
 | Desert | 5 | 7 |
 | Badlands | 4 | 4 |
@@ -49,7 +49,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Cave & Underground | 103 | 128 |
 | Nether | 73 | 82 |
 | End | 10 | 25 |
-| Structures & Chest Loot | 214 | 238 |
+| Structures & Chest Loot | 215 | 238 |
 | Trading | 62 | 62 |
 | Fishing | 1 | 1 |
 | Archaeology | 13 | 38 |
@@ -141,7 +141,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Overworld - General Surface  <sub>92/99</sub>
+## Overworld - General Surface  <sub>93/99</sub>
 
 *Found across three or more surface biomes, so not biome-specific.*
 
@@ -158,7 +158,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `mossy_cobblestone` `(c)` - crafted from cobblestone + moss block
 - [x] `sandstone` `(c)` - crafted from sand
 - [ ] `small_amethyst_bud` - no amethyst geodes generate
-- [ ] `sunflower` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `sunflower` - gameplay/dried_bouquet
 - [x] `turtle_egg` - breed turtles on sand
 
 ### Mob & entity drops
@@ -263,16 +263,16 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `sugar_cane` - Hydroponics Bay seedling
 
 
-## Forest  <sub>6/10</sub>
+## Forest  <sub>9/10</sub>
 
 ### Mine / break a block
 
 - [ ] `closed_eyeblossom` - nothing in this world, its structures, its mobs or its recipes produces one
 - [x] `leaf_litter` `(c)` - smelted from acacia leaves
-- [ ] `lilac` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `lilac` - gameplay/dried_bouquet
 - [x] `pale_moss_carpet` `(c)` - crafted from pale moss block
-- [ ] `peony` - nothing in this world, its structures, its mobs or its recipes produces one
-- [ ] `rose_bush` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `peony` - gameplay/dried_bouquet
+- [x] `rose_bush` - gameplay/dried_bouquet
 
 ### Trading
 
@@ -790,7 +790,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Structures & Chest Loot  <sub>214/238</sub>
+## Structures & Chest Loot  <sub>215/238</sub>
 
 *Only reachable from a generated structure's chest or block palette.*
 
@@ -866,7 +866,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `iron_axe` `(c)` - crafted from stick + iron ingot
 - [x] `iron_horse_armor` `(finite)` - nether fortress chest
 - [x] `iron_sword` `(c)` - bastion remnant chest
-- [ ] `large_fern` - needs a fern, which nothing here provides
+- [x] `large_fern` - gameplay/dried_bouquet
 - [x] `lead` `(c)` - household pull stream (sort garbage)
 - [x] `melon_seeds` `(c)` - Hydroponics Bay seedling
 - [x] `milk_bucket` - milk a cow into a bucket
@@ -894,7 +894,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `wind_charge` `(c)` - crafted from breeze rod
 - [x] `wooden_axe` `(c)` - crafted from stick + bamboo planks
 - [x] `wooden_pickaxe` `(c)` - crafted from stick + bamboo planks
-- [x] `yellow_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `yellow_dye` `(c)` - crafted from sunflower
 
 ### Trading
 
@@ -1007,7 +1007,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `lime_banner` `(c)` - crafted from lime wool + stick
 - [x] `lime_dye` `(c)` - smelted from sea pickle
 - [x] `magenta_banner` `(c)` - crafted from magenta wool + stick
-- [x] `magenta_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `magenta_dye` `(c)` - crafted from lilac
 - [x] `magenta_glazed_terracotta` `(c)` - smelted from magenta terracotta
 - [x] `magenta_terracotta` `(c)` - crafted from terracotta + magenta dye
 - [x] `open_eyeblossom` - buy from a wandering trader
@@ -1015,7 +1015,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `orange_dye` `(c)` - crafted from torchflower
 - [x] `painting` `(c)` - break a mod block
 - [x] `pink_banner` `(c)` - crafted from pink wool + stick
-- [x] `pink_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `pink_dye` `(c)` - crafted from peony
 - [x] `pink_glazed_terracotta` `(c)` - smelted from pink terracotta
 - [x] `pink_terracotta` `(c)` - crafted from terracotta + pink dye
 - [x] `pufferfish_bucket` - buy from a wandering trader
@@ -1094,7 +1094,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ## What Recompile cannot give you
 
-The 161 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+The 156 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
 of the vanilla economy, not an oversight, unless noted.
 
 - **39** - no ocean, monument, shipwreck or ocean ruin generates
@@ -1103,13 +1103,12 @@ of the vanilla economy, not an oversight, unless noted.
 - **15** - the End is locked - RCDimensionLockout blocks travel and portal formation
 - **13** - the structure that carries this template does not generate
 - **13** - the compacted depths has no nylium - only slag rubble and lava break the fill
-- **10** - nothing in this world, its structures, its mobs or its recipes produces one
 - **10** - no trial chambers generate
 - **8** - no lush caves generate
+- **6** - nothing in this world, its structures, its mobs or its recipes produces one
 - **4** - no amethyst geodes generate
 - **4** - the structure that carries it (ancient city / stronghold / trail ruins) is absent
 - **2** - no raids: evokers and pillagers never spawn
-- **1** - needs a fern, which nothing here provides
 - **1** - needs a charged creeper to kill another player
 - **1** - no powder snow in this world
 

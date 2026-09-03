@@ -47,6 +47,9 @@ class RollSitesAreInstrumentedTest {
         // Not sorting and not a pull stream: the bay rolls its own seedling table, which is a
         // machine output rather than something a player's time converts into materials.
         "HydroponicsBayBlockEntity.java", "the seedling table - deliberately not a pull stream",
+        // Same shape as the bay: a Dried Bouquet resolves into one plant when used, which is what a
+        // find contains rather than what a player's time converts into. Not a pull stream either.
+        "RCCauldronInteractions.java", "the bouquet table - deliberately not a pull stream",
         // Does NOT roll anything. It is a global loot modifier: it filters what a roll already
         // produced, so there is no player action behind it to record. It matches only because the
         // scan reads raw text and its javadoc CITES getRandomItems - explaining that the queried

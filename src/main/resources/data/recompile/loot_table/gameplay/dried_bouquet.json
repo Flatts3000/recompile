@@ -1,0 +1,33 @@
+{
+  "_comment": [
+    "What a Dried Bouquet rehydrates into (#331, #335). One draw: the four vanilla tall flowers and",
+    "the large fern, which is the greenery every florist packs a bouquet with.",
+    "",
+    "These five are exactly the two-block plants, and they were the whole gap, though not for one",
+    "reason. The wandering trader stocks every small flower and has never sold a tall one. The large",
+    "fern is different and its entry is worth reading twice: fern and large fern are both PLACED by",
+    "FertilizerScatter already, and the trader sells a fern - what does not exist is the large_fern",
+    "ITEM, because a placed large fern shears into minecraft:fern and never into itself.",
+    "",
+    "So the four flowers are renewable once drawn (TallFlowerBlock is BonemealableBlock, and breaking",
+    "one returns the item) and the large fern is NOT: it is spent when placed, and no amount of bone",
+    "meal gives a second. Weights are flat anyway, because these are pre-beta placeholders like every",
+    "other weight here and the bouquet itself is renewable through household_pulls.",
+    "",
+    "Rolled programmatically from RCCauldronInteractions (chest type gates the param set, as every",
+    "gameplay/ table here). Read by SortingData for the JEI hydrating row, so the odds shown are these."
+  ],
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:sunflower", "weight": 4 },
+        { "type": "minecraft:item", "name": "minecraft:lilac", "weight": 4 },
+        { "type": "minecraft:item", "name": "minecraft:peony", "weight": 4 },
+        { "type": "minecraft:item", "name": "minecraft:rose_bush", "weight": 4 },
+        { "type": "minecraft:item", "name": "minecraft:large_fern", "weight": 4 }
+      ]
+    }
+  ]
+}

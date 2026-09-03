@@ -755,6 +755,34 @@ public final class RCItems {
     public static final DeferredItem<Item> KITTY_LITTER = ITEMS.registerItem("kitty_litter", Item::new);
     public static final DeferredItem<Item> DRY_CLAY_BODY = ITEMS.registerItem("dry_clay_body", Item::new);
 
+    /**
+     * Dried Bouquet: a find from household garbage that is two things depending on what you do with it
+     * (owner, 2026-09-03; #331, #335).
+     *
+     * <p>Right-click it on a water cauldron and it rehydrates into one of the five two-block plants -
+     * the four tall flowers and the large fern - or pull it apart at the workbench for the stems,
+     * which are fibre. It is the clay chain's cauldron pointed the other way: a fired pot lost
+     * something that cannot be put back, a dried flower lost only water.
+     *
+     * <p><b>The five have no source here, but not for one reason, and the difference outlives this
+     * comment.</b> The wandering trader stocks every small flower and has never sold a tall one, so
+     * the four flowers are simply absent. The large fern is not absent as a BLOCK at all - {@code
+     * FertilizerScatter} scatters both fern and large fern, and the trader sells a fern - what does
+     * not exist is the {@code large_fern} ITEM, because a placed large fern shears into {@code
+     * minecraft:fern} and never into itself.
+     *
+     * <p><b>Which is why only four of the five are renewable.</b> {@code TallFlowerBlock} implements
+     * {@code BonemealableBlock} and a broken tall flower returns its own item, so one sunflower is
+     * enough forever. {@code LARGE_FERN} is a plain {@code DoublePlantBlock}: bone meal does nothing
+     * to it and breaking it hands back a fern. A large fern drawn from a bouquet is spent when it is
+     * placed. {@code the_four_tall_flowers_renew_and_the_large_fern_does_not} pins that split,
+     * because every player-facing string here got it wrong first time.
+     *
+     * <p>Not a component and not found-only in the tag sense - there is simply no recipe for it,
+     * because nobody makes a dead bouquet on purpose.
+     */
+    public static final DeferredItem<Item> DRIED_BOUQUET = ITEMS.registerItem("dried_bouquet", Item::new);
+
 
     /** Sorted in the order the Separator will consume them. */
     public static final List<DeferredItem<Item>> INDUSTRIAL_SCRAP =
