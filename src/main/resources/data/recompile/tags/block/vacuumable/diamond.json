@@ -1,0 +1,8 @@
+{
+  "_comment": "The radioactive dump: what TailingsHeapFeature scatters.",
+  "values": [
+    "#recompile:vacuumable/iron",
+    "recompile:mill_tailings",
+    "recompile:waste_drum"
+  ]
+}

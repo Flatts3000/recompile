@@ -1,0 +1,8 @@
+{
+  "_comment": "Household sprawl - what MoundFeature builds. The starting biome's whole vocabulary.",
+  "values": [
+    "recompile:garbage_block",
+    "recompile:trash_bag",
+    "recompile:compacted_bale"
+  ]
+}

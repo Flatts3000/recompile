@@ -1,0 +1,11 @@
+{
+  "_comment": [
+    "The compacted depths. Last on the ladder because netherite comes OUT of the Nether, so a",
+    "vacuum rated for the depths is one you could only have built after going there."
+  ],
+  "values": [
+    "#recompile:vacuumable/diamond",
+    "recompile:techno_organic_waste",
+    "recompile:slag_rubble"
+  ]
+}

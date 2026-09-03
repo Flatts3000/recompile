@@ -355,4 +355,27 @@ public final class RCTags {
      */
     public static final TagKey<Item> UNDISCOVERABLE = TagKey.create(
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "undiscoverable"));
+
+    /**
+     * What a Garbage Vacuum of a given tier is rated to take (#336, owner 2026-09-03): one block tag
+     * per tier, named for the tier, each including the band below it.
+     *
+     * <p><b>The ladder is expressed in the DATA, not here.</b> {@code vacuumable/iron.json} lists
+     * {@code #recompile:vacuumable/copper} plus the demolition yard's two piles, and so on up - so
+     * widening copper widens every tier above it, and a pack adds a pile to a band without a mod
+     * release. Java only needs to know the name of the tier it is holding.
+     *
+     * <p>The bands follow the REGIONS rather than the blocks: household sprawl, then the demolition
+     * yard, then the radioactive dump, then the compacted depths. Netherite is last because netherite
+     * comes out of the Nether, so a vacuum rated for the depths is one you could only have built after
+     * going there.
+     *
+     * <p>Derived from the tier's name rather than hand-listed, so a fifth tier needs a JSON file and
+     * nothing else. Resolve it ONCE and hold it - this is asked per block per tick over a cube, which
+     * for netherite is 1,331 cells.
+     */
+    public static TagKey<Block> vacuumable(String tierName) {
+        return TagKey.create(Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "vacuumable/" + tierName));
+    }
 }

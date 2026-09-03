@@ -4,6 +4,7 @@ import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.entity.VacuumedBlockEntity;
 import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCDataComponents;
+import com.flatts.recompile.registry.RCTags;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,13 +26,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The Garbage Vacuum (#336): hold right-click and garbage blocks in front of you leave the world and
@@ -55,10 +58,15 @@ import net.minecraft.world.phys.Vec3;
  * same component through {@code Capabilities.Energy.ITEM}, registered per tier in
  * {@code RCBlockEntities}. Both read one number, so they cannot disagree.
  *
- * <p>Tier decides reach and buffer ({@link VacuumTier}) and, through its {@link ToolMaterial}, which
- * gated piles it may take: a sortable that {@code requiresCorrectToolForDrops} is skipped when the
- * tier's material would deny drops on it. Today no sortable carries a {@code needs_*_tool} tag, so every
- * tier takes every pile; the check exists so that stops being true the day a pile gains one.
+ * <p><b>Tier decides reach, buffer and WHAT IT IS RATED FOR</b> ({@link VacuumTier}, owner
+ * 2026-09-03). The bands follow the regions: copper handles household waste, iron adds the demolition
+ * yard, diamond the radioactive dump, netherite the compacted depths. Membership is a block tag per
+ * tier, {@code #recompile:vacuumable/<tier>}, each including the band below it - so the ladder lives in
+ * data and a pack widens a band without a mod release. See {@link #canTake}.
+ *
+ * <p>A refusal SAYS SO. Aiming a copper vacuum at mill tailings names the pile in the action bar
+ * rather than doing nothing, because "nothing happens" and "you need a better vacuum" look identical
+ * from the player's side and only one of them is learnable.
  */
 public class GarbageVacuumItem extends Item {
 
@@ -90,17 +98,24 @@ public class GarbageVacuumItem extends Item {
         TOOK,
         /** Nothing takeable in the volume. */
         NOTHING_IN_RANGE,
+        /** There is a pile in range, and this tier is not rated for it. */
+        TOO_TOUGH,
         /** Something was there and the charge could not cover it. */
         FLAT
     }
 
     private final VacuumTier tier;
-    private final ToolMaterial material;
 
-    public GarbageVacuumItem(Properties properties, VacuumTier tier, ToolMaterial material) {
+    /**
+     * What this tier is rated to take. Resolved once, because {@link #canTake} is asked per block per
+     * tick over a cube - 1,331 cells at netherite's radius.
+     */
+    private final TagKey<Block> accepts;
+
+    public GarbageVacuumItem(Properties properties, VacuumTier tier) {
         super(properties);
         this.tier = tier;
-        this.material = material;
+        this.accepts = RCTags.vacuumable(tier.name());
     }
 
     public VacuumTier tier() {
@@ -166,10 +181,25 @@ public class GarbageVacuumItem extends Item {
             return InteractionResult.FAIL;
         }
         if (level instanceof ServerLevel server) {
-            intakeOnce(server, player, stack, aimPoint(player));
+            Vec3 aim = aimPoint(player);
+            if (intakeOnce(server, player, stack, aim) == Intake.TOO_TOUGH) {
+                // Do not start the hold: there is nothing here this tier can do, and a running vacuum
+                // that takes nothing is the same silent failure the message exists to prevent.
+                sayTooTough(this, player, aim);
+                return InteractionResult.CONSUME;
+            }
         }
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
+    }
+
+    /** Name the pile this tier could not take, so the ladder is learnable from the tool. */
+    private static void sayTooTough(GarbageVacuumItem vacuum, Player player, Vec3 aim) {
+        BlockState blocked = vacuum.blockedInRange(player.level(), aim);
+        if (blocked != null) {
+            player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_too_tough",
+                Component.translatable(blocked.getBlock().getDescriptionId())));
+        }
     }
 
     @Override
@@ -197,10 +227,15 @@ public class GarbageVacuumItem extends Item {
                     SoundEvents.BREEZE_IDLE_AIR, SoundSource.PLAYERS, 0.35F, 0.85F);
             }
             // elapsed 0 is the click itself, which use() has already paid for.
-            if (elapsed > 0 && elapsed % INTAKE_PERIOD_TICKS == 0
-                    && intakeOnce(server, player, stack, aim) == Intake.FLAT) {
-                player.releaseUsingItem();
-                player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_flat"));
+            if (elapsed > 0 && elapsed % INTAKE_PERIOD_TICKS == 0) {
+                Intake result = intakeOnce(server, player, stack, aim);
+                if (result == Intake.FLAT) {
+                    player.releaseUsingItem();
+                    player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_flat"));
+                } else if (result == Intake.TOO_TOUGH) {
+                    player.releaseUsingItem();
+                    sayTooTough(this, player, aim);
+                }
             }
         } else {
             clientParticles(level, player, aim);
@@ -222,7 +257,9 @@ public class GarbageVacuumItem extends Item {
         }
         List<BlockPos> candidates = vacuum.candidates(level, aim);
         if (candidates.isEmpty()) {
-            return Intake.NOTHING_IN_RANGE;
+            return vacuum.blockedInRange(level, aim) == null
+                ? Intake.NOTHING_IN_RANGE
+                : Intake.TOO_TOUGH;
         }
         BlockPos pos = candidates.get(0);
         BlockState state = level.getBlockState(pos);
@@ -259,14 +296,46 @@ public class GarbageVacuumItem extends Item {
     }
 
     /**
-     * A sortable pile this tier may take. Type is decided by class ({@code instanceof SortableBlock},
-     * never a list); tier by whether the material would deny drops on a gated block.
+     * A pile this tier is rated for. Type is decided by class ({@code instanceof SortableBlock}, never
+     * a list); the tier band by a data tag, {@code #recompile:vacuumable/<tier>}.
+     *
+     * <p><b>Both halves are load-bearing and neither implies the other.</b> The class check keeps the
+     * tool honest about what it is for - it takes pick-through piles and nothing else, so no tag can
+     * turn it into a block-breaker. The tag is what makes the ladder a ladder, and it is data, so a
+     * pack can widen a band without a mod release.
+     *
+     * <p><b>Fails CLOSED:</b> a sortable in no band is takeable by nothing. That is the safe direction
+     * and it is not left to trust - {@code every_sortable_block_is_in_a_vacuum_band} fails the build on
+     * an untagged pile, because the alternative is a new pile the vacuum silently ignores forever.
+     *
+     * <p>This used to gate on the tier's {@code ToolMaterial} instead, asking whether the material
+     * would deny drops. That check could never fire, because no sortable carries a
+     * {@code needs_*_tool} tag - and if one ever had, it would have been a second invisible gate
+     * sitting beside this one.
      */
     public boolean canTake(BlockState state) {
-        if (!(state.getBlock() instanceof SortableBlock)) {
-            return false;
+        return state.getBlock() instanceof SortableBlock && state.is(accepts);
+    }
+
+    /**
+     * A pile in range this tier is NOT rated for, if there is one.
+     *
+     * <p>Exists so a refusal can say why. Without it, aiming a copper vacuum at mill tailings is
+     * indistinguishable from aiming it at nothing: the trigger does nothing, and the only thing the
+     * player learns is that the tool is broken. Same call {@code RCHarvestGate} made about digging a
+     * pile with the wrong tool, for the same reason - a rule the player cannot see is one they cannot
+     * learn.
+     */
+    public @Nullable BlockState blockedInRange(Level level, Vec3 aim) {
+        BlockPos centre = BlockPos.containing(aim);
+        int r = tier.radius();
+        for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-r, -r, -r), centre.offset(r, r, r))) {
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof SortableBlock && !canTake(state)) {
+                return state;
+            }
         }
-        return !state.requiresCorrectToolForDrops() || !state.is(material.incorrectBlocksForDrops());
+        return null;
     }
 
     /** Where the intake is centred: the block face in front of the player, or {@link #REACH} into the air. */
@@ -361,5 +430,6 @@ public class GarbageVacuumItem extends Item {
         lines.accept(Component.translatable("tooltip.recompile.energy_stored",
             String.format("%,d", charge(stack)), String.format("%,d", tier.capacity())));
         lines.accept(Component.translatable("tooltip.recompile.vacuum_radius", tier.radius()));
+        lines.accept(Component.translatable("tooltip.recompile.vacuum_band." + tier.name()));
     }
 }

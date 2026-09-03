@@ -1,0 +1,8 @@
+{
+  "_comment": "The demolition yard: RubblePileFeature, SteelStackFeature and the mechanical waste pile.",
+  "values": [
+    "#recompile:vacuumable/copper",
+    "recompile:stone_rubble",
+    "recompile:mechanical_waste"
+  ]
+}

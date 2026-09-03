@@ -10,9 +10,11 @@ import com.flatts.recompile.content.item.VacuumTier;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCItems;
+import com.flatts.recompile.registry.RCTags;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -24,6 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -364,12 +367,123 @@ final class GarbageVacuumTests {
             helper.succeed();
         });
 
+        // THE LADDER, derived from the registry rather than from a list of names. Every sortable must
+        // sit in some band: the gate fails CLOSED, so an untagged pile is one no vacuum can ever take,
+        // and the symptom is a tool that silently ignores it forever. This is the guard that turns
+        // that into a build failure the day the pile is registered.
+        RCGameTests.test("every_sortable_block_is_in_a_vacuum_band", 20, helper -> {
+            List<Block> sortables = BuiltInRegistries.BLOCK.stream()
+                .filter(block -> block instanceof SortableBlock)
+                .toList();
+            helper.assertTrue(sortables.size() >= 9,
+                "only " + sortables.size() + " sortable blocks found - discovery is broken, so this "
+                    + "test would pass by checking nothing");
+
+            List<String> unbanded = new ArrayList<>();
+            for (Block block : sortables) {
+                boolean banded = false;
+                for (VacuumTier tier : VacuumTier.LADDER) {
+                    if (block.defaultBlockState().is(RCTags.vacuumable(tier.name()))) {
+                        banded = true;
+                    }
+                }
+                if (!banded) {
+                    unbanded.add(String.valueOf(BuiltInRegistries.BLOCK.getKey(block)));
+                }
+            }
+            helper.assertTrue(unbanded.isEmpty(),
+                "these piles are in no #recompile:vacuumable/<tier> band, so no vacuum of any tier can "
+                    + "ever take them: " + unbanded);
+            helper.succeed();
+        });
+
+        // The bands are CUMULATIVE, and that is the property the tag files express by including the
+        // band below rather than by restating it. Asserted over the registry so a pile added to copper
+        // is proven to reach netherite too - the failure this replaces is a tag file that lists its own
+        // region and quietly forgets the include.
+        RCGameTests.test("a_higher_tier_takes_everything_a_lower_one_does", 20, helper -> {
+            List<String> gaps = new ArrayList<>();
+            for (Block block : BuiltInRegistries.BLOCK.stream()
+                    .filter(b -> b instanceof SortableBlock).toList()) {
+                boolean below = false;
+                for (VacuumTier tier : VacuumTier.LADDER) {
+                    boolean here = block.defaultBlockState().is(RCTags.vacuumable(tier.name()));
+                    if (below && !here) {
+                        gaps.add(BuiltInRegistries.BLOCK.getKey(block) + " drops out at " + tier.name());
+                    }
+                    below |= here;
+                }
+            }
+            helper.assertTrue(gaps.isEmpty(),
+                "a band must include the one below it, so these are ladder gaps: " + gaps);
+            helper.succeed();
+        });
+
+        // The bands as the owner set them (2026-09-03), one representative pile per region. Named
+        // rather than derived on purpose: the sweeps above prove the SHAPE of the ladder and would be
+        // just as happy with every pile in copper. This is the test that says which region is which,
+        // and it is the one that has to be edited deliberately when that changes.
+        RCGameTests.test("each_tier_is_rated_for_its_region", 20, helper -> {
+            record Case(String region, Block pile, int fromTier) {}
+            List<Case> cases = List.of(
+                new Case("household sprawl", RCBlocks.GARBAGE_BLOCK.get(), 0),
+                new Case("demolition yard", RCBlocks.MECHANICAL_WASTE.get(), 1),
+                new Case("radioactive dump", RCBlocks.MILL_TAILINGS.get(), 2),
+                new Case("compacted depths", RCBlocks.SLAG_RUBBLE.get(), 3));
+
+            List<String> wrong = new ArrayList<>();
+            for (Case c : cases) {
+                for (int i = 0; i < VacuumTier.LADDER.size(); i++) {
+                    VacuumTier tier = VacuumTier.LADDER.get(i);
+                    GarbageVacuumItem vacuum = RCItems.GARBAGE_VACUUMS.get(i).get();
+                    boolean takes = vacuum.canTake(c.pile().defaultBlockState());
+                    boolean should = i >= c.fromTier();
+                    if (takes != should) {
+                        wrong.add(tier.name() + (should ? " must take " : " must refuse ")
+                            + BuiltInRegistries.BLOCK.getKey(c.pile()) + " (" + c.region() + ")");
+                    }
+                }
+            }
+            helper.assertTrue(wrong.isEmpty(), "the tier bands do not match the regions: " + wrong);
+            helper.succeed();
+        });
+
+        // A refusal is REPORTED, not silent. The copper vacuum facing tailings must come back
+        // TOO_TOUGH rather than NOTHING_IN_RANGE, because those two are the same to a player unless
+        // the tool says which - and it is the message that teaches the ladder exists at all.
+        RCGameTests.test("an_underrated_vacuum_says_so_instead_of_doing_nothing", 20, helper -> {
+            helper.setBlock(AIM, RCBlocks.MILL_TAILINGS.get());
+            ServerLevel level = helper.getLevel();
+            ServerPlayer player = survivalPlayer(helper);
+
+            Intake copper = GarbageVacuumItem.intakeOnce(level, player,
+                vacuum(RCItems.COPPER_GARBAGE_VACUUM, 4_000), centreOf(helper, AIM));
+            helper.assertTrue(copper == Intake.TOO_TOUGH,
+                "copper on mill tailings must report TOO_TOUGH, got " + copper);
+            helper.assertBlockPresent(RCBlocks.MILL_TAILINGS.get(), AIM);
+
+            Intake diamond = GarbageVacuumItem.intakeOnce(level, player,
+                vacuum(RCItems.DIAMOND_GARBAGE_VACUUM, 16_000), centreOf(helper, AIM));
+            helper.assertTrue(diamond == Intake.TOOK,
+                "diamond is rated for the dump and must take them, got " + diamond);
+
+            // And an empty volume is still NOTHING_IN_RANGE - the two answers must not collapse.
+            helper.assertTrue(GarbageVacuumItem.intakeOnce(level, player,
+                    vacuum(RCItems.COPPER_GARBAGE_VACUUM, 4_000), centreOf(helper, AIM))
+                    == Intake.NOTHING_IN_RANGE,
+                "with the pile gone the same vacuum must report NOTHING_IN_RANGE, not TOO_TOUGH");
+            helper.succeed();
+        });
+
         // Copy is a silent failure: a missing key renders as itself and only shows in a client the
         // tests never run.
         RCGameTests.test("garbage_vacuum_lang_keys_resolve", 20, helper -> {
             List<String> missing = new ArrayList<>();
             for (String key : List.of(
                     "message.recompile.vacuum_flat", "tooltip.recompile.vacuum_radius",
+                    "message.recompile.vacuum_too_tough",
+                    "tooltip.recompile.vacuum_band.copper", "tooltip.recompile.vacuum_band.iron",
+                    "tooltip.recompile.vacuum_band.diamond", "tooltip.recompile.vacuum_band.netherite",
                     // Jade names the entity under the crosshair mid-flight; the dev client showed
                     // the raw key there before this line existed.
                     "entity.recompile.vacuumed_block",

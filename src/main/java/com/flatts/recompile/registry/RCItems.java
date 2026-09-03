@@ -519,19 +519,21 @@ public final class RCItems {
     // Bulk block collection for FE, on the sledgehammer's tier ladder: the same four materials, so the
     // rungs light up together. stacksTo(1) because the charge is per stack and a stack of two vacuums
     // sharing one component would be one charge worn twice. The tier material decides which gated
-    // piles a vacuum may take (GarbageVacuumItem.canTake); today none is gated by tier, so all take all.
+    // TIER BANDS are data: #recompile:vacuumable/<tier>, each including the band below it,
+    // so copper handles household waste, iron adds the demolition yard, diamond the
+    // radioactive dump and netherite the depths. See RCTags.vacuumable.
     public static final DeferredItem<GarbageVacuumItem> COPPER_GARBAGE_VACUUM = ITEMS.registerItem(
         "copper_garbage_vacuum",
-        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.COPPER, COPPER_TIER));
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.COPPER));
     public static final DeferredItem<GarbageVacuumItem> IRON_GARBAGE_VACUUM = ITEMS.registerItem(
         "iron_garbage_vacuum",
-        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.IRON, ToolMaterial.IRON));
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.IRON));
     public static final DeferredItem<GarbageVacuumItem> DIAMOND_GARBAGE_VACUUM = ITEMS.registerItem(
         "diamond_garbage_vacuum",
-        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.DIAMOND, ToolMaterial.DIAMOND));
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.DIAMOND));
     public static final DeferredItem<GarbageVacuumItem> NETHERITE_GARBAGE_VACUUM = ITEMS.registerItem(
         "netherite_garbage_vacuum",
-        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.NETHERITE, ToolMaterial.NETHERITE));
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.NETHERITE));
 
     /** The vacuum tier ladder, in creative-tab order. */
     public static final List<DeferredItem<GarbageVacuumItem>> GARBAGE_VACUUMS = List.of(

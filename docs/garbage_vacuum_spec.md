@@ -60,12 +60,33 @@ quietly turn it into the other thing.
 Ship a tier ladder matching the established sledgehammer pattern rather than a component-based upgrade
 system. Radius and buffer climb together:
 
-| Tier | Radius | Buffer |
-|---|---|---|
-| Copper | 2 | 4,000 FE |
-| Iron | 3 | 8,000 FE |
-| Diamond | 4 | 16,000 FE |
-| Netherite | 5 | 24,000 FE |
+| Tier | Radius | Buffer | Rated for |
+|---|---|---|---|
+| Copper | 2 | 4,000 FE | household sprawl |
+| Iron | 3 | 8,000 FE | + the demolition yard |
+| Diamond | 4 | 16,000 FE | + the radioactive dump |
+| Netherite | 5 | 24,000 FE | + the compacted depths |
+
+**The bands follow the REGIONS, not the blocks** (owner, 2026-09-03). Each tier handles its own region
+and every region below it, so the ladder is a travel gate rather than a stat: a copper vacuum is not a
+worse netherite one, it is a household tool. Netherite is last because netherite comes out of the
+Nether, so a vacuum rated for the depths is one you could only have built after going there.
+
+Membership is a block tag per tier - `#recompile:vacuumable/<tier>` - and each band's file **includes
+the band below it** rather than restating it. So the ladder is expressed once, widening copper widens
+everything above it, and a pack adds a pile to a band without a mod release. `RCTags.vacuumable`
+derives the key from the tier's name, so a fifth tier is a JSON file and nothing else.
+
+**The gate fails closed, and that is guarded.** A sortable in no band is takeable by nothing, which is
+the safe direction and exactly the kind of silence this repo keeps paying for - so
+`every_sortable_block_is_in_a_vacuum_band` walks the registry and fails the build on an untagged pile,
+and `a_higher_tier_takes_everything_a_lower_one_does` fails on a band file that forgot its include.
+
+**A refusal says so.** Aiming an underrated vacuum at a pile names it in the action bar rather than
+doing nothing, because "nothing happened" and "you need a better vacuum" are identical from the
+player's side and only one of them is learnable. Same call `RCHarvestGate` made about digging a pile
+with the wrong tool. `Intake.TOO_TOUGH` is a distinct answer from `NOTHING_IN_RANGE` for that reason,
+and a test pins that the two never collapse into each other.
 
 The five upgrades the issue floated (radius, filter, void, capacity, network link) split cleanly:
 radius and capacity are a **ladder** and become the tiers above; filter, void and network link are a

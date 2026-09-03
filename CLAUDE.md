@@ -43,7 +43,12 @@ CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent j
 **The Garbage Vacuum takes blocks, the magnet takes items** (owner, 2026-09-03, #336, spec
 `docs/garbage_vacuum_spec.md`). A powered handheld on the sledgehammer's tier ladder: hold right-click
 and `SortableBlock`s in a cube around the aim point leave the world one every four ticks, for FE
-scaled by the block's `sortRolls`. It does not automate the pick-through loop - breaking a garbage
+scaled by the block's `sortRolls`. **Tiers are a travel gate, not a stat**: each is rated for its
+region and every region below it (copper household, iron the demolition yard, diamond the
+radioactive dump, netherite the depths), via cumulative block tags `#recompile:vacuumable/<tier>`
+whose files include the band below rather than restating it. It fails CLOSED - an untagged pile is
+takeable by nobody - so `every_sortable_block_is_in_a_vacuum_band` fails the build on one, and a
+refusal names the pile in the action bar rather than doing nothing. It does not automate the pick-through loop - breaking a garbage
 block already drops the block, this only makes collecting fast, and a half-sorted block comes out
 fresh (the `sorted` flyweight is discarded, deliberately). **Three things about how it is built are
 worth knowing.** It is the first powered ITEM: `Capabilities.Energy.ITEM` over the `vacuum_charge`
