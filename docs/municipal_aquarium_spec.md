@@ -1,9 +1,11 @@
 # The Municipal Aquarium - landmark spec
 
-**Status: rulings in, unbuilt.** Proposed 2026-09-03 as the answer to #324 (ocean materials
-unreachable). All five open questions were decided by the owner on 2026-09-03 and are recorded in
-section 8, which is now a record of decisions rather than a list of questions. One technical blocker
-and one new question came out of those rulings; both are in 8.6.
+**Status: built 2026-09-03, unreleased.** Proposed the same day as the answer to #324 (ocean materials
+unreachable); every ruling in section 8 was decided by the owner before code, and the code follows
+them. Implementation: `content/worldgen/aquarium/` (`AquariumStructure` holds the layout as statics,
+`AquariumPieces` the seven rooms, `AquariumPalette` the blocks), `AquariumLayoutTest` measures the room
+graph with no world, `AquariumTests` builds it and reads it back. Where the build corrected this
+document, the correction is inline and dated rather than silently rewritten.
 
 Sibling specs: [`demolition_yard_spec.md`](demolition_yard_spec.md),
 [`radioactive_dump_spec.md`](radioactive_dump_spec.md). Landmark precedent: the decrepit cooling tower

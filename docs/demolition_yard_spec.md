@@ -124,6 +124,10 @@ ground. The optional **Sanctuary Ward** (a placeable spawn-suppression block for
 
 The demolition yard scatters **three** feature types - a few standing husks in a field of debris:
 
+**(a0) The Municipal Aquarium** (rare, a structure rather than a feature; its own spec,
+`municipal_aquarium_spec.md`). It claims its footprint before the yard's features run, so a husk or a
+steel stack never stands through it, and the smokestack set is excluded from its chunks.
+
 **(a) Building Husks** (rare landmarks). A **procedural** `BuildingHuskFeature` (a `Feature<NoneFeatureConfiguration>` in `RCFeatures`, same shape as
 `MoundFeature`) - **no NBT structure templates** (keeps the mod's no-hand-authored-structures record; and
 ruins are the one structure procedural gen nails, because raggedness *is* the aesthetic). Grounded in real
