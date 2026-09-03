@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "THE ONE THAT IS A VISIBLE BUG. WallBlock.connectsTo is",
+    "`state.is(BlockTags.WALLS) || !isExceptionForConnection(state) && faceSolid || ...`, and a",
+    "wall's side face is not sturdy - so this tag is the only route by which one wall connects to",
+    "another. Without it they stand as separate posts. Reported from playtest."
+  ],
+  "values": [
+    "recompile:pressed_junk_wall",
+    "recompile:scrap_plating_wall",
+    "recompile:corrugated_metal_wall",
+    "recompile:cardboard_wall",
+    "recompile:plastic_panel_wall"
+  ]
+}

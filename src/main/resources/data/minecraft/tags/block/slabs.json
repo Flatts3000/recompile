@@ -1,0 +1,13 @@
+{
+  "_comment": [
+    "Same as stairs: nothing vanilla needs it for our slabs to work, and it is what identifies",
+    "them to anything else that asks."
+  ],
+  "values": [
+    "recompile:pressed_junk_slab",
+    "recompile:scrap_plating_slab",
+    "recompile:corrugated_metal_slab",
+    "recompile:cardboard_slab",
+    "recompile:plastic_panel_slab"
+  ]
+}

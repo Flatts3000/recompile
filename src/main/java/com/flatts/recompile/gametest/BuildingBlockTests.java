@@ -8,6 +8,19 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.properties.SlabType;
+import com.flatts.recompile.Recompile;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.WallSide;
 
 /**
  * GameTests for the building-block tier (design P1.12). These are ordinary blocks, so
@@ -30,6 +43,72 @@ final class BuildingBlockTests {
             helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
             helper.assertBlockPresent(Blocks.AIR, pos);
             helper.succeedWhenEntityPresent(EntityType.ITEM, pos);
+        });
+
+        // WALLS MUST BE IN #minecraft:walls, AND THIS IS NOT BOOKKEEPING - it is the only thing that
+        // makes one wall connect to the next. WallBlock.connectsTo reads
+        //   state.is(BlockTags.WALLS) || !isExceptionForConnection(state) && faceSolid || ...
+        // and a wall's side face is NOT sturdy, so the tag is the sole route for wall-to-wall. All
+        // five shipped without it and stood as separate posts; reported from playtest by a player
+        // ("the walls aren't connecting") rather than by anything here, because every other check
+        // passes - the block registers, models, drops and places perfectly well as an island.
+        //
+        // Derived from the REGISTRY, so a sixth wall is covered the day it is registered rather than
+        // the day somebody remembers this file. Stairs and slabs ride along: nothing vanilla needs
+        // those tags for them to work, which is exactly why they would go missing unnoticed.
+        RCGameTests.test("every_building_family_block_is_in_its_vanilla_tag", 20, helper -> {
+            record Family(String name, Class<?> type, TagKey<Block> tag) {}
+            List<Family> families = List.of(
+                new Family("wall", WallBlock.class, BlockTags.WALLS),
+                new Family("stairs", StairBlock.class, BlockTags.STAIRS),
+                new Family("slab", SlabBlock.class, BlockTags.SLABS));
+
+            List<String> missing = new ArrayList<>();
+            int checked = 0;
+            for (Block block : BuiltInRegistries.BLOCK) {
+                Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+                if (id == null || !Recompile.MOD_ID.equals(id.getNamespace())) {
+                    continue;
+                }
+                for (Family family : families) {
+                    if (!family.type().isInstance(block)) {
+                        continue;
+                    }
+                    checked++;
+                    if (!block.defaultBlockState().is(family.tag())) {
+                        missing.add(id + " is a " + family.name() + " outside " + family.tag().location());
+                    }
+                }
+            }
+            helper.assertTrue(checked >= 15,
+                "only " + checked + " family blocks found - discovery is broken, so this would pass "
+                    + "by checking nothing");
+            helper.assertTrue(missing.isEmpty(),
+                "these are outside their vanilla family tag; for walls that means they will not "
+                    + "connect to each other: " + missing);
+            helper.succeed();
+        });
+
+        // And the behaviour the tag exists for, asserted directly rather than inferred from the tag.
+        // A tag present but somehow unread would pass the sweep above and still leave a row of posts,
+        // so this asks the block what it actually does with a neighbour.
+        RCGameTests.test("two_walls_side_by_side_connect", 20, helper -> {
+            BlockPos west = new BlockPos(1, 1, 1);
+            BlockPos east = new BlockPos(2, 1, 1);
+            helper.setBlock(west, RCBlocks.SCRAP_PLATING_WALL.get());
+            helper.setBlock(east, RCBlocks.SCRAP_PLATING_WALL.get());
+
+            // setBlock writes the default state without running placement or neighbour logic, so
+            // recompute the way the game does when a block is placed beside another.
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(west);
+            BlockState connected = Block.updateFromNeighbourShapes(level.getBlockState(abs), level, abs);
+
+            helper.assertTrue(connected.getValue(WallBlock.EAST) != WallSide.NONE,
+                "a wall with another wall to its east must connect toward it, got "
+                    + connected.getValue(WallBlock.EAST)
+                    + " - NONE is what the playtest saw as a row of separate posts");
+            helper.succeed();
         });
 
         // A double slab must give back two slabs, not one - the vanilla-derived loot
