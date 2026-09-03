@@ -294,8 +294,22 @@ public final class RCBlockEntities {
             Capabilities.Item.BLOCK,
             SCRAP_BIN.get(),
             (be, side) -> be.storageHandler());
-        // The Tree Nursery's water tank: a pipe or pump from a Rain Collector fills it (items stay
-        // manual - the BE exposes no item capability, so hoppers cannot touch the slots).
+        // The Tree Nursery's ITEMS, opened 2026-09-03 by owner reversal - it was manual-only and a
+        // playtester asked why a hopper would not feed it. Sided: inputs from the sides, saplings out
+        // of the bottom.
+        //
+        // NULL SIDE GETS NOTHING, which is the Burner Generator's pattern below and is load-bearing
+        // rather than tidy. WorldlyContainerWrapper.extract is guarded by `side != null &&`, so a
+        // non-sided caller SKIPS canTakeItemThroughFace entirely and could pull the fertilizer and
+        // seedling straight back out - the exact invariant this machine states. Handing a non-sided
+        // caller no handler at all is one expression and closes it; the alternative was documenting a
+        // hole. (The Hydroponics Bay still has it, registered plainly at the top of this method.)
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            TREE_NURSERY.get(),
+            (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
+        // The Tree Nursery's water tank: a pipe or pump from a Rain Collector fills it. Older than the
+        // item door above by a year and unaffected by it.
         event.registerBlockEntity(
             Capabilities.Fluid.BLOCK,
             TREE_NURSERY.get(),

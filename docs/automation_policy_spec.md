@@ -68,7 +68,7 @@ Separator's four, and only an audit found it.
 | **Cupola Furnace** | `AbstractFurnaceBlockEntity` | sided, vanilla | sided, vanilla | **Parity with `minecraft:furnace`, with one departure.** Automation is half of what the upgrade buys. **Departure:** automation may only insert into the input slot what a smelting recipe consumes. Vanilla accepts anything there, which is harmless from a human hand and destructive from a pipe - a non-smeltable fills the slot and bricks the machine until cleared by hand (found in playtest, with the Cupola's own iron output looped back in). Restricted on `canPlaceItemThroughFace` only, so **placing by hand stays exactly vanilla**. Fuel and output slots untouched. |
 | **Scrap Bin** | custom `ResourceHandler` | in + out | in + out | **Deliberate departure.** Gated to its bound material. Extraction added 2026-07-31, reversing P2.9's "hopper in, no out". Draining to empty **keeps the binding**, or a pipe would silently un-type a bin and the next unrelated insert would re-bind it, quietly scrambling a sorted wall. |
 | **Burn Barrel** | `AbstractFurnaceBlockEntity` | **none** | **none** | **The exception, and it is load-bearing** (owner call, 2026-07-31). Manual-only is why the Cupola is worth building - "unlike the barrel it takes hoppers" is its stated selling point. Empty `getSlotsForFace` closes the Container path; registering **no capability at all** closes the pipe path *and* stops pipes from connecting. |
-| **Tree Nursery** | `WorldlyContainer` | **none** | **none** | Items are manual by design; only its **water tank** is exposed (`Capabilities.Fluid.BLOCK`), so a pipe from a Rain Collector can fill it. Closed on both doors, correctly. |
+| **Tree Nursery** | `WorldlyContainer` | sided | sided, **null side refused** | **Reversed 2026-09-03 (owner): fully automatable.** Inputs from the sides, saplings from the bottom - the furnace convention, matching the Hydroponics Bay. **The top is unusable on a built nursery** and that is geometry, not policy: the blueprint puts a Solar Panel directly above the core in every orientation, and a dummy cell forwards no item capability. `canPlaceItem` routes each input by item and refuses the output slot; `canTakeItemThroughFace` allows only the output, so a hopper cannot drain the machine it is feeding. A **non-sided** capability query is handed no handler at all, the Burner Generator's pattern - see the changelog. Its **water tank** stays exposed as before. |
 | **Sequencer** | `WorldlyContainer` | **none** | **none** | Manual-only by design (#294): the "one precious thing at a time" machine, not an automation-tier one. Amber arrives at about 1 in 700 pulls, so a pipe would be feeding it nothing most of the time. **Energy IS exposed** (`Capabilities.Energy.BLOCK`, insert-only), because it has to be charged. It shipped closed on the capability door and OPEN on the Container one - a plain `Container`, which `HopperBlockEntity.getContainerAt` takes directly - so a hopper underneath pulled the amber out mid-read. Caught in review, fixed to `WorldlyContainer` with no slots on any face, the Tree Nursery's shape exactly. |
 | **Rain Collector** | plain `BlockEntity` | n/a | fluid only | Its tank is the point; it holds no items. |
 | **Display Pedestal** | plain `BlockEntity` | **none** | **none** | Holds one item and is **never hopper-fed** by design - placing and taking is the interaction. |
@@ -111,6 +111,29 @@ satisfy the sweep and still get its faces wrong.
 5. **Test the null side.** Not just `Direction.values()`.
 
 ## Changelog
+
+- **2026-09-03** - The **Tree Nursery** was opened to hoppers and pipes, reversing its manual-only row.
+  It came from a playtester asking whether items could be supplied that way (`#trashlands-playtest`);
+  the honest answer was no, by a decision nothing in the game stated. A nursery is the only source of
+  trees in this world, so "you must stand at it" made a tree farm impossible rather than manual.
+
+  **A THIRD DOOR THIS TABLE HAD NEVER NAMED: the null side.** NeoForge's
+  `WorldlyContainerWrapper.extract` is guarded by `side != null &&`, so a capability query with **no**
+  side skips `canTakeItemThroughFace` entirely and can pull any slot, inputs included. A machine that
+  states "automation may not take my inputs" does not actually state it unless the non-sided caller is
+  handled too.
+
+  **Closed here by handing a non-sided caller no handler at all**
+  (`side == null ? null : new WorldlyContainerWrapper(be, side)`), which is the pattern the **Burner
+  Generator** has used since #72. It was nearly written up as an accepted hole on the grounds that
+  closing it meant wrapping every sided handler in the mod; that was wrong, and the counter-example was
+  eighty lines below in the same method. `a_non_sided_pipe_gets_no_handler_on_the_nursery` pins both
+  halves - nothing for a null side, a working handler for a real one.
+
+  **The Hydroponics Bay still has it**, registered plainly as `new WorldlyContainerWrapper(be, side)`
+  since #43, so a non-sided pipe can take its seed. It is the same one-line fix and it is deliberately
+  not bundled into this change: the Bay is a shipped machine and closing a door on it is a behaviour
+  change somebody's base may be built on.
 
 - **2026-09-03** - The Charging Station (#336) added a row: manual-only on both item doors like the
   pedestal, energy in only like the Sequencer. Worth a line because it is the first block here whose
