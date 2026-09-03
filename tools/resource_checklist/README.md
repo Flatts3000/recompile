@@ -50,6 +50,14 @@ one of them can be re-run alone while debugging.
 `renewability.py` is data, not a stage: the wiki's renewable and non-renewable lists, which
 contradict each other on 52 items, reduced to the subset nothing disputes.
 
+## Determinism
+
+The document carries no timestamp, and every glob that feeds a first-wins record is sorted. Both
+matter: `REACH[item]` keeps the route that reached it FIRST, so unsorted `glob.glob` order (which
+is `os.scandir` order, and differs between NTFS and ext4) silently rewrites ~149 route labels
+without changing the reachable set. A CI box would then produce a different file from a dev box
+and the diff would mean nothing.
+
 ## Things that bit, and will bite again
 
 - **`unzip 'data/minecraft/loot_table/*'` extracts nothing** and reports success. These trees need
@@ -73,8 +81,11 @@ contradict each other on 52 items, reduced to the subset nothing disputes.
 `reachability.py` reads the mod's data directly, so new loot tables, recipes and tags are picked up
 with no edit. Three things are hand-maintained in it and will drift silently:
 
-- `MOBS` - which mobs can exist, and why. Biome spawners are read from data, but structure spawners,
-  Animal Bait's diet tags, the Sequencer's amber species and curing are declared.
+- `MOBS` - which mobs can exist, and why. **Every entry is hand-declared, including the biome
+  spawners**: `reachability.py` never opens a biome file. So adding a mob to a biome's spawner list
+  changes nothing here until `MOBS` is edited too, and nothing will tell you. `recompile:pigeon` is
+  the live example - it is in `household_sprawl.json` and not in `MOBS` (harmless only because it
+  has no loot table).
 - `VANILLA_IN_WORLD` - the vanilla blocks the mod's code-generated structures place. Sewers, cooling
   towers and smokestacks build from Java, so their palettes cannot be read from data.
 - `INTERACT` - the non-recipe routes described above.

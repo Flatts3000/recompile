@@ -3,6 +3,7 @@
 
     python tools/resource_checklist/run.py              # everything
     python tools/resource_checklist/run.py --from reach # skip the vanilla stages
+    python tools/resource_checklist/run.py --version 26.2.0
 
 The vanilla stages (extract, index, domains, catalogue) only change when the Minecraft version
 does, and they are the slow ones. The mod stages (reach, render) change every time the mod's loot,
@@ -32,6 +33,10 @@ STAGES = [
 
 
 def main():
+    version = None
+    if "--version" in sys.argv:
+        version = sys.argv[sys.argv.index("--version") + 1]
+
     start = 0
     if "--from" in sys.argv:
         want = sys.argv[sys.argv.index("--from") + 1]
@@ -47,7 +52,10 @@ def main():
 
     for name, script, blurb in STAGES[start:]:
         print("\n=== %s: %s ===" % (name, blurb))
-        r = subprocess.run([sys.executable, os.path.join(HERE, script)], cwd=HERE)
+        cmd = [sys.executable, os.path.join(HERE, script)]
+        if name == "extract" and version:
+            cmd.append(version)
+        r = subprocess.run(cmd, cwd=HERE)
         if r.returncode != 0:
             print("stage %r failed (exit %d)" % (name, r.returncode))
             return r.returncode

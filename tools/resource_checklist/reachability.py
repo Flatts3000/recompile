@@ -23,7 +23,7 @@ TAGS = {}
 
 def load_tags(root, ns):
     d = os.path.join(root, ns, "tags", "item")
-    for p in glob.glob(d + "/**/*.json", recursive=True):
+    for p in sorted(glob.glob(d + "/**/*.json", recursive=True)):
         rel = os.path.relpath(p, d).replace("\\", "/")[:-5]
         TAGS.setdefault(ns + ":" + rel, []).extend((jl(p) or {}).get("values", []))
 
@@ -53,6 +53,39 @@ def tag_items(t, seen=None):
         else:
             out.add(v)
     return out
+
+
+ABSENT_MODS = {"ae2", "enderio", "simplemagnets", "modonomicon", "jei", "jade"}
+
+
+def cond_true(c):
+    """Evaluate one neoforge condition for a vanilla-only install.
+
+    Substring-matching modids inverts `neoforge:not`: a recipe guarded "load only when AE2 is
+    ABSENT" is exactly the configuration being modelled, and would be discarded. That idiom already
+    ships one directory over in loot_modifiers/no_sky_stone.json.
+    """
+    if not isinstance(c, dict):
+        return True
+    t = c.get("type", "")
+    if t == "neoforge:never":
+        return False
+    if t == "neoforge:true":
+        return True
+    if t == "neoforge:mod_loaded":
+        return c.get("modid") not in ABSENT_MODS
+    if t == "neoforge:not":
+        return not cond_true(c.get("value"))
+    if t == "neoforge:and":
+        return all(cond_true(x) for x in c.get("values", []))
+    if t == "neoforge:or":
+        return any(cond_true(x) for x in c.get("values", []))
+    return True          # a condition type we do not model is treated as satisfied
+
+
+def cond_ok(j):
+    """Whether this file would load in a vanilla-only install."""
+    return all(cond_true(c) for c in j.get("neoforge:conditions", []))
 
 
 # --------------------------------------------------------------- mobs
@@ -125,7 +158,7 @@ def add_table(path, why):
     reach_tables.setdefault(path, why)
 
 
-for p in glob.glob(MOD + "/recompile/loot_table/**/*.json", recursive=True):
+for p in sorted(glob.glob(MOD + "/recompile/loot_table/**/*.json", recursive=True)):
     rel = os.path.relpath(p, MOD + "/recompile/loot_table").replace("\\", "/")[:-5]
     if rel.startswith(("gameplay/", "chests/", "archaeology/", "entities/", "equipment/")):
         pretty = {"gameplay/household_pulls": "household pull stream (sort garbage)",
@@ -148,7 +181,7 @@ add_table("recompile:blocks/*", "break a mod block")
 for b, why in VANILLA_IN_WORLD.items():
     add_table("minecraft:blocks/" + b, "mine " + b + " (" + why + ")")
 
-for m, why in MOBS.items():
+for m, why in sorted(MOBS.items()):
     add_table("minecraft:entities/" + m, "kill a " + m.replace("_", " ") + " (" + why + ")")
 
 # mob-gated gameplay/harvest/shearing tables
@@ -160,7 +193,6 @@ GATED = [("minecraft:gameplay/cat_morning_gift", "cat", "a tamed cat's morning g
          ("minecraft:gameplay/panda_sneeze", "panda", "a panda sneezes"),
          ("minecraft:gameplay/piglin_bartering", "piglin", "piglin bartering"),
          ("minecraft:brush/armadillo", "armadillo", "brush an armadillo"),
-         ("minecraft:carve/pumpkin", "pig", "shear a pumpkin"),
          ("minecraft:shearing/snow_golem", "snow_golem", "shear a snow golem"),
          ("minecraft:shearing/mooshroom", "mooshroom", "shear a mooshroom"),
          ]
@@ -188,12 +220,12 @@ for t in ("bastion_bridge", "bastion_hoglin_stable", "bastion_other", "bastion_t
 add_table("minecraft:chests/nether_bridge", "nether fortress chest")
 
 # --------------------------------------------------------------- seed items
-def loot_items(path):
+def loot_items(path, depth=0):
     ns, rel = path.split(":", 1)
     root = (MCDATA + "/data/minecraft/loot_table") if ns == "minecraft" \
         else (MOD + "/recompile/loot_table")
     if rel.endswith("/*"):
-        files = glob.glob(root + "/" + rel[:-1] + "**/*.json", recursive=True)
+        files = sorted(glob.glob(root + "/" + rel[:-1] + "**/*.json", recursive=True))
     else:
         files = [root + "/" + rel + ".json"]
     out = set()
@@ -201,30 +233,67 @@ def loot_items(path):
         j = jl(f)
         if j is None:
             continue
-        walk_items(j, out)
+        walk_items(j, out, depth)
     return out
 
 
-def walk_items(o, acc):
+def walk_items(o, acc, depth=0):
+    """Collect items from a loot json, expanding tags and following nested table references.
+
+    Vanilla sheep, guardian and elder guardian all reach their drops through a
+    `minecraft:loot_table` entry, as does the mod's own bulky_waste. Not following those makes a
+    table look empty with nothing reporting it.
+    """
+    if depth > 6:
+        return
     if isinstance(o, dict):
         t, nm = o.get("type"), o.get("name")
         if t in ("minecraft:item", "item") and isinstance(nm, str):
             acc.add(nm)
         elif t in ("minecraft:tag", "tag") and isinstance(nm, str):
             acc |= tag_items(nm)
+        elif t in ("minecraft:loot_table", "loot_table"):
+            ref = o.get("value") if isinstance(o.get("value"), str) else nm
+            if isinstance(ref, str):
+                acc |= loot_items(ref if ":" in ref else "minecraft:" + ref, depth + 1)
         if isinstance(o.get("item"), str):
             acc.add(o["item"])
         for v in o.values():
-            walk_items(v, acc)
+            walk_items(v, acc, depth)
     elif isinstance(o, list):
         for v in o:
-            walk_items(v, acc)
+            walk_items(v, acc, depth)
 
+
+def stripped_items():
+    """Items a global loot modifier removes from every roll in a vanilla-only install.
+
+    CLAUDE.md records that SortingData honours strip modifiers for exactly this reason: a table
+    listing an item a modifier deletes is telling the truth about itself and a lie about the world.
+    `no_sky_stone` is the live case - it strips the Sky Stone Shard precisely when AE2 is absent,
+    which is the configuration modelled here.
+    """
+    out = set()
+    for p2 in sorted(glob.glob(MOD + "/*/loot_modifiers/*.json")):
+        j = jl(p2)
+        if j is None or not cond_ok(j):
+            continue
+        t = j.get("type", "")
+        if t == "recompile:strip_item" and isinstance(j.get("item"), str):
+            out.add(j["item"])
+        elif t == "recompile:strip_saplings":
+            out |= tag_items("minecraft:saplings")
+    return out
+
+
+STRIPPED = stripped_items()
 
 REACH = {}
 
 
-def gain(item, why):
+def gain(item, why, from_loot=False):
+    if from_loot and item in STRIPPED:
+        return False          # a global loot modifier deletes it before the player sees it
     if item and item not in REACH:
         REACH[item] = why
         return True
@@ -235,18 +304,18 @@ LATE = ("fishing", "Hero of the Village")
 
 
 def seed(late):
-    for path, why in reach_tables.items():
+    for path, why in sorted(reach_tables.items()):
         if (any(k in why for k in LATE)) != late:
             continue
-        for it in loot_items(path):
-            gain(it, why)
+        for it in sorted(loot_items(path)):
+            gain(it, why, from_loot=True)
 
 
 def seed_trades():
     if "villager" not in MOBS:
         return
     base = MCDATA + "/data/minecraft/villager_trade"
-    for p in glob.glob(base + "/**/*.json", recursive=True):
+    for p in sorted(glob.glob(base + "/**/*.json", recursive=True)):
         j = jl(p) or {}
         g = j.get("gives")
         prof = os.path.relpath(p, base).replace("\\", "/").split("/")[0]
@@ -386,20 +455,6 @@ for p in glob.glob(MOD + "/minecraft/recipe/*.json"):
     if "neoforge:never" in open(p, encoding="utf-8").read():
         DISABLED.add("minecraft:" + os.path.basename(p)[:-5])
 
-ABSENT_MODS = {"ae2", "enderio", "simplemagnets", "modonomicon", "jei", "jade"}
-
-
-def cond_ok(j):
-    """Skip recipes gated on a mod we are not counting as installed."""
-    s = json.dumps(j.get("neoforge:conditions", []))
-    for m in ABSENT_MODS:
-        if '"' + m + '"' in s:
-            return False
-    if '"neoforge:never"' in s:
-        return False
-    return True
-
-
 def ing_options(x):
     """An ingredient -> the set of items that satisfy it."""
     if x is None:
@@ -436,16 +491,29 @@ def result_of(j):
 RULES = []          # (list_of_ingredient_option_sets, [outputs], label)
 
 
-def add_rule(ings, outs, label):
-    ings = [i for i in ings if i]
+UNRESOLVED = set()
+
+
+def add_rule(ings, outs, label, rid=None):
+    """Record a rule, keeping track of ingredient slots that resolved to nothing.
+
+    Dropping an unresolvable slot silently turns an unknown tag into "free", and if every slot were
+    unresolvable `all()` over an empty list is True and the output would be reachable from tick
+    zero. The slots are still dropped (a `#c:` tag NeoForge ships but we do not parse is a real
+    ingredient the player can satisfy), but they are counted and reported so the over-approximation
+    is visible rather than silent.
+    """
+    kept = [i for i in ings if i]
+    if len(kept) != len(ings) and rid:
+        UNRESOLVED.add(rid)
     outs = [o for o in outs if o]
     if outs:
-        RULES.append((ings, outs, label))
+        RULES.append((kept, outs, label))
 
 
 def load_recipes(root, ns, disabled=()):
     d = os.path.join(root, ns, "recipe")
-    for p in glob.glob(d + "/**/*.json", recursive=True):
+    for p in sorted(glob.glob(d + "/**/*.json", recursive=True)):
         rid = ns + ":" + os.path.relpath(p, d).replace("\\", "/")[:-5]
         if rid in disabled:
             continue
@@ -458,7 +526,11 @@ def load_recipes(root, ns, disabled=()):
             ings = [ing_options(v) for v in (j.get("key") or {}).values()]
             label = "crafted"
             if t == "recompile:blueprint_crafting":
-                ings.append({j.get("blueprint", "")})
+                # `blueprint` names a SET, not an item (BlueprintCraftingRecipe: "blueprint names a
+                # set, not a recipe"). Three of the shipped values are not item ids at all and the
+                # rest equal their own result, so requiring it as an ingredient makes every
+                # blueprint recipe inert. What the bench actually requires is a Blueprint sheet.
+                ings.append({"recompile:blueprint"})
                 label = "crafted from a Blueprint at the Scrap Crafting Table"
         elif t == "minecraft:crafting_shapeless":
             ings = [ing_options(v) for v in j.get("ingredients", [])]
@@ -481,6 +553,10 @@ def load_recipes(root, ns, disabled=()):
         elif t == "recompile:teardown":
             ings = [ing_options(j.get("input"))]
             outs = sorted(collect_out(j))
+            # A pool marked `teaches` grants an Idea Fragment for whatever it drew, and fragments
+            # are the only route to a Blueprint. Without this the whole knowledge tier is invisible.
+            if "teaches" in json.dumps(j):
+                outs = sorted(set(outs) | {"recompile:idea_fragment"})
             label = "torn down at the Recompile Workbench"
         elif t == "recompile:separating":
             ings = [ing_options(j.get("input") or j.get("ingredient"))]
@@ -497,12 +573,15 @@ def load_recipes(root, ns, disabled=()):
             ings = [ing_options(j.get("ingredient") or j.get("input"))]
             label = "fired in the Sintering Kiln"
         elif t == "recompile:fragment_assembly":
+            # A bare marker type; the fragments-to-sheet logic lives in Java.
+            add_rule([{"recompile:idea_fragment"}], ["recompile:blueprint"],
+                     "assembled at the Scrap Crafting Table")
             continue
         elif t == "recompile:spawn_egg_crafting":
             continue
         else:
             continue
-        add_rule(ings, outs, label)
+        add_rule(ings, outs, label, rid)
 
 
 def collect_out(j):
@@ -553,3 +632,9 @@ while changed:
 json.dump({"reach": REACH, "mobs": MOBS}, open(SP + "/reach.json", "w"), indent=0)
 print("reachable items:", len(REACH))
 print("mobs available :", len(MOBS))
+print("stripped by a loot modifier:", len(STRIPPED))
+if UNRESOLVED:
+    print("recipes with an unresolvable ingredient slot (treated as satisfiable): %d"
+          % len(UNRESOLVED))
+    for rid in sorted(UNRESOLVED)[:8]:
+        print("   ", rid)

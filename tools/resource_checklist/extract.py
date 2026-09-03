@@ -27,6 +27,7 @@ Usage:
 import glob
 import os
 import sys
+import shutil
 import zipfile
 
 from paths import MCDATA, WORK
@@ -64,6 +65,10 @@ def main():
               "compileJava) to populate it.")
         return 1
 
+    # Wipe first. Overwrite-in-place leaves files upstream DELETED between versions sitting there,
+    # and every later stage keeps indexing loot tables and recipes that no longer exist.
+    if os.path.isdir(MCDATA):
+        shutil.rmtree(MCDATA)
     os.makedirs(MCDATA, exist_ok=True)
     written = 0
     with zipfile.ZipFile(jar) as z:

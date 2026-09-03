@@ -1,6 +1,12 @@
-import json, os, collections, datetime, re
+import json, os, collections, re
 
 from paths import WORK as SP, OUTPUT
+
+# Read back what extract.py actually unpacked rather than restating a constant.
+try:
+    MC_VERSION = open(SP + "/VERSION", encoding="utf-8").read().strip()
+except OSError:
+    MC_VERSION = "unknown"
 rows = json.load(open(SP + "/rows.json"))
 dropped = json.load(open(SP + "/dropped.json"))
 RJ = json.load(open(SP + "/reach.json"))
@@ -123,12 +129,11 @@ A("- `[ ]` not reachable, followed by why not.")
 A("")
 A("| | |")
 A("|---|---|")
-A("| Minecraft version | 26.1.2 |")
+A("| Minecraft version | %s |" % MC_VERSION)
 A("| Catalogued | %d |" % len(rows))
 A("| **Reachable in Recompile** | **%d (%d%%)** |" % (nreach, round(100 * nreach / len(rows))))
 A("| Not reachable | %d |" % (len(rows) - nreach))
 A("| Mobs obtainable | %d |" % len(MOBS))
-A("| Generated | %s |" % datetime.date.today().isoformat())
 A("")
 A("**How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's")
 A("own data. Seeded from what the garbage world actually generates (its 4 biomes, its terrain rules,")
