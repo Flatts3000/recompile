@@ -204,10 +204,21 @@ public final class RCBlockEntities {
         // that cannot be plumbed is not one. Caught by every_container_block_declares_its_automation on
         // its first run, which is the test written after the Cupola shipped advertising automation no
         // pipe could reach.
+        //
+        // NULL SIDE GETS NOTHING (2026-09-03). Its canTakeItemThroughFace says `slot != SLOT_INPUT`,
+        // and WorldlyContainerWrapper.extract is guarded by `side != null &&` - so a non-sided caller
+        // skipped that check entirely and could pull the seed straight back out of a bay it was
+        // supposed to be feeding. The machine had declared the rule since #43 and not been enforcing
+        // it against that one caller. Same fix and same shape as the Tree Nursery and the Burner
+        // Generator.
+        //
+        // The three FURNACES below keep the plain wrapper on purpose: they are held to vanilla parity,
+        // a vanilla furnace does answer a non-sided query, and VanillaParityTests compares every face
+        // PLUS the null one. Guarding them would break the parity they exist to keep.
         event.registerBlockEntity(
             Capabilities.Item.BLOCK,
             HYDROPONICS_BAY.get(),
-            (be, side) -> new WorldlyContainerWrapper(be, side));
+            (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
         event.registerBlockEntity(
             Capabilities.Fluid.BLOCK,
             HYDROPONICS_BAY.get(),
