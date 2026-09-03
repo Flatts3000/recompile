@@ -53,12 +53,25 @@ prismarine is a **finite** one-time strip of the structure, and a guardian tank 
 family **renewable**. That reframes the spawner from flavour into the load-bearing half of the
 prismarine route, and it is why 8.3 changed from "no" to "yes, if it can be made to work".
 
-**The aquatic animals were never the gap.** Worth stating plainly because it is the intuitive worry and
-it is unfounded: cod, salmon, tropical fish, pufferfish, ink sacs, glow ink sacs, nautilus shells,
-turtle scutes, seagrass, sea pickles, kelp and even a trident are all reachable today, through fishing,
-the Sequencer's spawn eggs, the sewer residents and the Printer teardown. **What is missing is
-materials, and only two of them are mob drops** (shards and crystals from a guardian, and wet sponge
-from an elder guardian, which is ruled out). Everything else has to be placed in the building.
+**The aquatic animals were mostly never the gap, with two exceptions worth knowing.** Cod, salmon,
+tropical fish, pufferfish, ink sacs, glow ink sacs, nautilus shells, sea pickles, kelp and even a
+trident are all reachable today, through fishing, the Sequencer's spawn eggs, the sewer residents and
+the Printer teardown. Kelp in particular is solid: it is a weight-3 entry in the Hydroponics Bay's
+seedling table, so it is renewable rather than found. **What is missing is materials**, and only two of
+those are mob drops: shards and crystals from a guardian, and wet sponge from an elder guardian, which
+is ruled out.
+
+**The two exceptions are the turtle's, and the resource checklist is wrong about the second one.**
+`SewerTurtleDen` places three adult turtles in every sewer, persistent, and a turtle drops seagrass -
+so seagrass is real but **finite and one-way**, capped at the sewers a player finds times three
+turtles, and each unit costs a turtle permanently. `turtle_scute` is worse than finite: the checklist
+says "a turtle grows up", and **no turtle here can**. Scute drops only when a baby matures, egg-laying
+needs `y < seaLevel + 4` against a sea level of -64 (which `SewerLifeTests` already records as the
+reason turtles are not renewable), and the den cannot spawn a baby either: it calls `finalizeSpawn`
+with a null group data once per turtle, and `AgeableMob` gates its baby roll behind
+`getGroupSize() > 0`, which a fresh group data never satisfies. So every den turtle is an adult,
+forever. **Not this structure's problem to fix**, but it is a live checklist error and it is filed
+rather than folded in here.
 
 **Correction to the first draft on the nautilus armours.** It said they "need nothing from this"
 because `nautilus_shell` is already reachable. That is wrong: the copper, iron, golden and diamond
@@ -146,7 +159,7 @@ so vanilla's water checks do not see it.
 
 ---
 
-## 5. Spawners
+## 5. Spawners, and the chest
 
 **A guardian spawner in the guardian tank** (ruling 8.3), plus the drowned spawner the landmark
 precedent calls for (`Spawners.java`, owner 2026-08-31: a spawner is not loot but it is not nothing
@@ -194,6 +207,41 @@ landmark inert to anyone who does not attack it was the wrong call once already.
 **Not elder guardians.** They are the only mob source of wet sponge, which is a real cost of this
 ruling: sponges stay placed-only and therefore finite. An elder guardian is a boss-weight encounter
 with a mining-fatigue aura, and putting one in a landmark a player walks into is a different feature.
+
+### 5.1 The curator's chest
+
+**Decided (owner, 2026-09-03): the building carries a loot chest with its own table**, and its job is
+to clear esoteric items that have no source anywhere else. That settles the nautilus armours, which
+were the open question in 8.6, and it gives the building a second job beyond supplying blocks.
+
+**The selection rule matters more than the list, because a chest with no rule becomes a vending
+machine.** 146 vanilla items are unreachable today and most of them have nothing to do with a public
+aquarium; dumping the interesting ones in one crate would make this building the answer to every gap
+in the game and would read as exactly that. The rule that keeps it honest: **an abandoned public
+aquarium is a small zoo and a museum**, so what is left in its storage is what a CURATOR had, not what
+a player wants. Exhibit stock, dive kit, the gift shop's inventory, the archive.
+
+By that rule, in descending order of fit:
+
+| Candidate | Count | Why it fits |
+|---|---|---|
+| The four nautilus armours | 4 | dive gear and display pieces, and they have no other route at all |
+| The 19 unreachable pottery sherds | 19 | **maritime archaeology is a real aquarium exhibit**, and it completes a set rather than inventing a route: `heart_pottery_sherd` is already reachable from household pulls and sewer silt, and it is the only one of the twenty that is |
+| `heart_of_the_sea` | 1 | already specced as the centrepiece; the chest is the alternative to placing it |
+| Wetlands-wing plants: `glow_lichen`, `big_dripleaf`, `spore_blossom`, `hanging_roots`, `azalea`, `flowering_azalea` | 6 | a damp planted exhibit is the most ordinary thing in an aquarium after the tanks |
+| Arid-vivarium plants: `cactus_flower`, `short_dry_grass`, `dead_bush`, `bush` | 4 | a reptile vivarium is standard in the same building, and these are four of the six left open in #331 |
+| `powder_snow_bucket` | 1 | an arctic exhibit, and it is the only powder snow this world could ever have |
+
+**Explicitly out**, so the rule is not quietly abandoned later: everything End-locked (`shulker_shell`,
+the dragon set, `elytra`, `chorus_*`), everything from the Nether, every ore, the trial-chamber group
+(`heavy_core`, `trial_key`, `ominous_*`, `totem_of_undying`), and all armour trims, which ruling 8.4
+already cut. None of them is something a curator had in a cupboard.
+
+**One tension to settle at build time.** The mod's rule is that finished goods are found rather than
+crafted, which a chest satisfies perfectly - but the sherds and the plants are materials, and the
+armours are finished goods, so this one table straddles both. That is allowed and probably right for a
+gift shop; it just means the table wants pools with different weights rather than one flat list, and
+the armours want to be rare.
 
 ---
 
@@ -273,11 +321,9 @@ On the "it is a building" argument. Section 2 stands as written.
    prismarine family renewable with no tank at all, and would leave the guardian free to be cut or kept
    purely as an encounter. Not proposed as a replacement, just noted as the option that dissolves the
    trade rather than paying it.
-2. **Do the four nautilus armours belong here?** They are ocean chest loot with no recipe, so they are
-   blocked, and the first draft of this spec wrongly said they were fine. A small "gift shop" or
-   "curator's office" chest would source them. Against: this building is specced as a materials
-   structure, and armour out of a chest is the one thing in it that would be finished goods rather than
-   material. Not decided.
+2. **DECIDED: the building carries a loot chest** (owner, 2026-09-03), which sources the nautilus
+   armours and whatever else section 5.1's rule admits. What remains open is only the contents, and
+   5.1 proposes them with a selection rule rather than a wish list.
 3. **`leachate_is_not_water` does not assert what its name says.** It compares fluid identity, so it
    would stay green if leachate were ever added to `#minecraft:water` - which is the single edit that
    would undo the fluid's whole reason for existing, and the one this structure creates a temptation to
