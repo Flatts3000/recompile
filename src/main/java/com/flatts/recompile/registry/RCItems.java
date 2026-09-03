@@ -6,9 +6,11 @@ import com.flatts.recompile.content.item.AmberItem;
 import com.flatts.recompile.content.item.AnimalBaitItem;
 import com.flatts.recompile.content.item.CuttingTorchItem;
 import com.flatts.recompile.content.item.FertilizerItem;
+import com.flatts.recompile.content.item.GarbageVacuumItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.UnknownSeedlingItem;
 import com.flatts.recompile.content.item.SealedCanItem;
+import com.flatts.recompile.content.item.VacuumTier;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -64,6 +66,37 @@ public final class RCItems {
      * the Hydroponics Bay needs one, because a bay under a mound has no other light.
      */
     public static final DeferredItem<Item> BULB = ITEMS.registerItem("bulb", Item::new);
+
+    /**
+     * Depleted Battery: a dead household cell, found loose in the garbage (owner, 2026-09-03).
+     *
+     * <p>It is not a component and cannot be spent as one. It is a <b>teardown input</b>: cut one open
+     * at the workbench for scrap and, four of them in, the knowledge of how to build a live one. That
+     * is the whole of what it does, and it is the most literal possible statement of the mod's thesis -
+     * the dead thing in the bin is where the idea comes from.
+     *
+     * <p><b>This is also what settles the Water Tank problem</b> (#229: a component named for a
+     * capacity that holds nothing reads as broken). A DEPLETED battery holding nothing is not a bug,
+     * it is the noun. The live {@link #BATTERY} you make from it is an ingredient you spend, which is
+     * what a crafting component is.
+     */
+    public static final DeferredItem<Item> DEPLETED_BATTERY =
+        ITEMS.registerItem("depleted_battery", Item::new);
+
+    /**
+     * Battery: the second CRAFTING component, and the power cell the Garbage Vacuum and the Charging
+     * Station are both built around (#336).
+     *
+     * <p><b>Manufactured, never found</b>, which makes it the first component of its kind here. The
+     * Pump, Motor and Bulb are salvage first and blueprint second; this one is blueprint ONLY, because
+     * what the garbage gives you is a {@link #DEPLETED_BATTERY} and a dead cell is not a live one. So
+     * it is deliberately absent from {@code ComponentBlueprintTests}' salvage-and-blueprint list and
+     * covered instead by {@code a_blueprint_result_has_no_other_route}, which is the sweep that
+     * actually means something for it.
+     *
+     * <p>It gates the whole powered-tool tier: no cell, no charger, no vacuum.
+     */
+    public static final DeferredItem<Item> BATTERY = ITEMS.registerItem("battery", Item::new);
 
     public static final DeferredItem<Item> SCRAP_METAL = ITEMS.registerItem("scrap_metal", Item::new);
     public static final DeferredItem<Item> PLASTIC_SCRAP = ITEMS.registerItem("plastic_scrap", Item::new);
@@ -482,6 +515,30 @@ public final class RCItems {
     public static final List<DeferredItem<Item>> SLEDGEHAMMERS = List.of(
         COPPER_SLEDGEHAMMER, IRON_SLEDGEHAMMER, DIAMOND_SLEDGEHAMMER, NETHERITE_SLEDGEHAMMER);
 
+    // ---------------- The Garbage Vacuum (#336) ----------------
+    // Bulk block collection for FE, on the sledgehammer's tier ladder: the same four materials, so the
+    // rungs light up together. stacksTo(1) because the charge is per stack and a stack of two vacuums
+    // sharing one component would be one charge worn twice. The tier material decides which gated
+    // TIER BANDS are data: #recompile:vacuumable/<tier>, each including the band below it,
+    // so copper handles household waste, iron adds the demolition yard, diamond the
+    // radioactive dump and netherite the depths. See RCTags.vacuumable.
+    public static final DeferredItem<GarbageVacuumItem> COPPER_GARBAGE_VACUUM = ITEMS.registerItem(
+        "copper_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.COPPER));
+    public static final DeferredItem<GarbageVacuumItem> IRON_GARBAGE_VACUUM = ITEMS.registerItem(
+        "iron_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.IRON));
+    public static final DeferredItem<GarbageVacuumItem> DIAMOND_GARBAGE_VACUUM = ITEMS.registerItem(
+        "diamond_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.DIAMOND));
+    public static final DeferredItem<GarbageVacuumItem> NETHERITE_GARBAGE_VACUUM = ITEMS.registerItem(
+        "netherite_garbage_vacuum",
+        props -> new GarbageVacuumItem(props.stacksTo(1), VacuumTier.NETHERITE));
+
+    /** The vacuum tier ladder, in creative-tab order. */
+    public static final List<DeferredItem<GarbageVacuumItem>> GARBAGE_VACUUMS = List.of(
+        COPPER_GARBAGE_VACUUM, IRON_GARBAGE_VACUUM, DIAMOND_GARBAGE_VACUUM, NETHERITE_GARBAGE_VACUUM);
+
     // The Cutting Torch: cuts Steel I-Beams (a sledgehammer cannot - you crush concrete, you cut steel).
     // Single tool, not a tier ladder. Durability is its fuel tank (v1); the Oily Rag in its recipe is the
     // fuel. Iron in the recipe gates it one step past first-iron (rebar bootstrap).
@@ -751,6 +808,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("recompile_workbench", RCBlocks.RECOMPILE_WORKBENCH);
     public static final DeferredItem<BlockItem> DISPLAY_PEDESTAL =
         ITEMS.registerSimpleBlockItem("display_pedestal", RCBlocks.DISPLAY_PEDESTAL);
+    public static final DeferredItem<BlockItem> CHARGING_STATION =
+        ITEMS.registerSimpleBlockItem("charging_station", RCBlocks.CHARGING_STATION);
     public static final DeferredItem<BlockItem> SCRAP_BARREL =
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> SCRAP_BIN =

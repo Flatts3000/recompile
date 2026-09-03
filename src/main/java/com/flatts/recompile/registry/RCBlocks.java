@@ -19,6 +19,7 @@ import com.flatts.recompile.content.block.BurnerGeneratorBlock;
 import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
+import com.flatts.recompile.content.block.ChargingStationBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.DisplayPedestalBlock;
@@ -517,6 +518,19 @@ public final class RCBlocks {
             .strength(2.0F)
             .sound(SoundType.STONE)
             .noOcclusion()
+    );
+
+    /**
+     * The Charging Station (#336): a dock that fills a Garbage Vacuum from whatever generator touches
+     * it. No screen - set the vacuum down, pick it up. A full cube, so no noOcclusion.
+     */
+    public static final DeferredBlock<ChargingStationBlock> CHARGING_STATION = BLOCKS.registerBlock(
+        "charging_station",
+        ChargingStationBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.5F)
+            .sound(SoundType.METAL)
     );
 
     /**

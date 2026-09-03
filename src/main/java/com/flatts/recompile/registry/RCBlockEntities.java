@@ -12,6 +12,7 @@ import com.flatts.recompile.content.block.entity.PulverizerBlockEntity;
 import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
+import com.flatts.recompile.content.block.entity.ChargingStationBlockEntity;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.SinteringKilnBlockEntity;
 import com.flatts.recompile.content.block.entity.SlagFurnaceBlockEntity;
@@ -22,13 +23,16 @@ import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapCraftingTableBlockEntity;
 import com.flatts.recompile.content.block.entity.HydroponicsBayBlockEntity;
 import com.flatts.recompile.content.block.entity.TreeNurseryBlockEntity;
+import com.flatts.recompile.content.item.GarbageVacuumItem;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
 import net.neoforged.neoforge.transfer.energy.LimitingEnergyHandler;
 import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
@@ -52,6 +56,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "display_pedestal",
             () -> new BlockEntityType<>(DisplayPedestalBlockEntity::new, RCBlocks.DISPLAY_PEDESTAL.get()));
+
+    /** The Charging Station's docked vacuum and buffer (#336). Not a Container; see the block. */
+    public static final Supplier<BlockEntityType<ChargingStationBlockEntity>> CHARGING_STATION =
+        BLOCK_ENTITIES.register(
+            "charging_station",
+            () -> new BlockEntityType<>(ChargingStationBlockEntity::new, RCBlocks.CHARGING_STATION.get()));
 
     /** The Filing Cabinet's blueprint shelf (#95). */
     public static final Supplier<BlockEntityType<FilingCabinetBlockEntity>> FILING_CABINET =
@@ -217,6 +227,26 @@ public final class RCBlockEntities {
             Capabilities.Energy.BLOCK,
             SEQUENCER.get(),
             (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
+        // The Charging Station (#336): power in, nothing else - INSERT-only, a consumer. No item
+        // capability and no Container, the Display Pedestal's terms: the docked vacuum is set down and
+        // picked up by hand, and a pipe that could pull it out would make the dock a chest.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            CHARGING_STATION.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+
+        // THE FIRST ITEM CAPABILITY IN THE MOD. Every vacuum tier answers Capabilities.Energy.ITEM
+        // over its VACUUM_CHARGE component, which is how the station charges it and how any other
+        // mod's charger would. The handler is stack-backed (ItemAccessEnergyHandler, NeoForge's own),
+        // so there is no second copy of the number anywhere to fall out of step with the tooltip.
+        for (DeferredItem<GarbageVacuumItem> vacuum : RCItems.GARBAGE_VACUUMS) {
+            event.registerItem(
+                Capabilities.Energy.ITEM,
+                (stack, access) -> new ItemAccessEnergyHandler(
+                    access, RCDataComponents.VACUUM_CHARGE.get(), vacuum.get().tier().capacity()),
+                vacuum.get());
+        }
 
         // The Separator takes power and nothing else. INSERT-only, like the Bay: it is a consumer.
         // Deliberately NO item capability and no Container, so no pipe can connect and no hopper can

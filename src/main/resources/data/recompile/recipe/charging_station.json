@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": [
+    "A battery in the housing (owner, 2026-09-03). The dock holds a 20,000 FE buffer of its own, so",
+    "the cell is what that buffer IS rather than a decoration on it - and it means the battery",
+    "blueprint gates the whole powered-tool tier: no cell, no charger, no vacuum."
+  ],
+  "pattern": [
+    "CBC",
+    "CFC",
+    "JJJ"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "B": "recompile:battery",
+    "F": "recompile:machine_frame",
+    "J": "recompile:pressed_junk_block"
+  },
+  "result": {
+    "id": "recompile:charging_station",
+    "count": 1
+  }
+}

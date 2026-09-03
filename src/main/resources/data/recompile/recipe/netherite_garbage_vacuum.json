@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "pattern": [
+    "TBT",
+    "HPH",
+    " M "
+  ],
+  "key": {
+    "T": "minecraft:netherite_ingot",
+    "B": "recompile:battery",
+    "H": "recompile:copper_pipe",
+    "P": "recompile:pump",
+    "M": "recompile:motor"
+  },
+  "result": {
+    "id": "recompile:netherite_garbage_vacuum"
+  }
+}

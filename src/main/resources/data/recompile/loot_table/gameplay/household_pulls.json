@@ -86,6 +86,11 @@
         },
         {
           "type": "minecraft:item",
+          "name": "recompile:depleted_battery",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
           "name": "recompile:kitty_litter",
           "weight": 18
         },

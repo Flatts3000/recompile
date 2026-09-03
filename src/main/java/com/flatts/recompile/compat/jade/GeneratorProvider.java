@@ -56,6 +56,15 @@ public enum GeneratorProvider implements IBlockComponentProvider {
                     Math.min(99, progress * 100 / Math.max(1, duration))));
             }
         }
+        // Only the Charging Station sends this: the docked vacuum's own gauge, or that the dock is empty.
+        if (data.contains("docked")) {
+            if (data.getBooleanOr("docked", false)) {
+                tooltip.add(Component.translatable("jade.recompile.charging",
+                    format(data.getIntOr("held_stored", 0)), format(data.getIntOr("held_capacity", 0))));
+            } else {
+                tooltip.add(Component.translatable("jade.recompile.dock_empty"));
+            }
+        }
         // Only the Burner sends this, so its absence is what distinguishes the two without a type check.
         if (data.contains("burn")) {
             int burn = data.getIntOr("burn", 0);

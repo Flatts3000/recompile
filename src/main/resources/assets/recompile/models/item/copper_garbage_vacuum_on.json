@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "recompile:item/copper_garbage_vacuum",
+    "layer1": "recompile:item/vacuum_intake"
+  }
+}

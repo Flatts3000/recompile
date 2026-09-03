@@ -118,7 +118,7 @@ public class BlueprintItem extends Item {
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
         return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
-            SPAWNER);
+            SPAWNER, BATTERY);
     }
 
     /**
@@ -192,6 +192,22 @@ public class BlueprintItem extends Item {
 
     public static final Identifier BULB =
         Identifier.fromNamespaceAndPath("recompile", "bulb");
+
+    /**
+     * The Battery (#336), learned from the <b>Depleted Batteries</b> found loose in household garbage
+     * (owner, 2026-09-03).
+     *
+     * <p><b>Unlike the three components above it is not salvage-first - it is blueprint only</b>, and
+     * the chain is the point: the garbage gives you dead cells, cutting four of them open teaches you
+     * what is inside, and only then can you build a live one. Nothing anywhere hands over a working
+     * battery, which is why {@code a_blueprint_result_has_no_other_route} is the sweep that covers it
+     * and {@code ComponentBlueprintTests} deliberately does not.
+     *
+     * <p>It gates the powered-tool tier at both ends, since the Charging Station needs a cell as well
+     * as the vacuum does.
+     */
+    public static final Identifier BATTERY =
+        Identifier.fromNamespaceAndPath("recompile", "battery");
 
     /**
      * The sixth blueprint, and the first that gates a <b>vanilla</b> item rather than one of ours
