@@ -1,0 +1,10 @@
+{
+  "_comment": "The item half of the block tag beside it. Vanilla ships both for every one of these families.",
+  "values": [
+    "recompile:pressed_junk_slab",
+    "recompile:scrap_plating_slab",
+    "recompile:corrugated_metal_slab",
+    "recompile:cardboard_slab",
+    "recompile:plastic_panel_slab"
+  ]
+}
