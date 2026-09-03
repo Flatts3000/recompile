@@ -43,7 +43,8 @@ Closing #324 without adding an ocean.
 | Dead coral, dead coral fans, dead coral blocks (5 colours) | 15 | **exhibit remains**, placed and found |
 | Live coral, fans, blocks (5 colours) | 15 | the revival chain, section 4 - **approved, ruling 8.2** |
 | `heart_of_the_sea` | 1 | the centrepiece exhibit, one per building |
-| `coast` / `tide` armor trim templates | 0 | **cut by ruling 8.4** - trims are out |
+| Armor trim smithing templates | 16 | **the chest** - ruling 8.4 reversed, see 5.1 |
+| `turtle_scute` | 1 | **the chest** - the only route, see #345 |
 
 **Renewability is the whole argument for the guardian, and it was not in the first draft of this
 spec.** Every prismarine block in the game is crafted from prismarine shards: 4 shards make prismarine,
@@ -184,7 +185,27 @@ This is the mod's established "put back what left" pattern, and it is the third 
 |---|---|---|
 | Clay (#115) | bound hydroxyls, driven off by firing | bentonite in cat litter |
 | Resin (#231) | volatiles, driven off by fossilisation | turpentine |
-| **Coral** | **the symbiotic algae, driven off by bleaching** | **proposed: water + light** |
+| **Coral** | **the symbiotic algae, driven off by bleaching** | **the Hydroponics Bay: water + light** |
+
+**Mechanism decided (owner, 2026-09-03): the Hydroponics Bay.** Put dead coral in, get live coral out.
+It is the machine that already consumes water and power together, which is precisely what an algae
+culture needs, so "water + light" stopped being a placeholder and became a machine that already
+exists.
+
+**It is almost free to build, and that is a property of the bay rather than luck.** `yieldOf` reads the
+`HYDROPONIC_CROP` data map and `isGrowable` reads the `#recompile:hydroponic` item tag, so each of the
+five colours is one tag line plus one data-map line. **Zero Java**, and a pack can retune or extend it.
+
+**One consequence falls straight out and is worth stating rather than discovering.** The bay does not
+consume what you seed it with - its own javadoc is explicit that a seeded plant is a crop and the input
+stack is never consumed, because the bay replants itself. So **one dead coral is a permanent source of
+that colour**, and the fifteen dead coral items the building holds become fifteen renewable lines
+rather than fifteen one-shots. That reads as correct here: it makes a living reef the reward for having
+built water and power infrastructure, which is the same shape as every other thing the bay grows.
+
+**Which of the three forms revives into which** is the one detail left to build time. There are fifteen
+dead items across five colours and three forms (coral, fan, block), and the obvious mapping is each
+form to its own live counterpart, which keeps the data map honest and needs no special cases.
 
 Coral bleaching is the expulsion of zooxanthellae under stress; the skeleton survives and the colour
 does not. Reviving bleached coral is real restoration practice, so the chain is honest in the way the
@@ -269,27 +290,47 @@ in the game and would read as exactly that. The rule that keeps it honest: **an 
 aquarium is a small zoo and a museum**, so what is left in its storage is what a CURATOR had, not what
 a player wants. Exhibit stock, dive kit, the gift shop's inventory, the archive.
 
-By that rule, in descending order of fit:
+**Contents, as ruled (owner, 2026-09-03):**
 
-| Candidate | Count | Why it fits |
+| Group | Count | Note |
 |---|---|---|
-| The four nautilus armours | 4 | dive gear and display pieces, and they have no other route at all |
-| The 19 unreachable pottery sherds | 19 | **maritime archaeology is a real aquarium exhibit**, and it completes a set rather than inventing a route: `heart_pottery_sherd` is already reachable from household pulls and sewer silt, and it is the only one of the twenty that is |
-| `heart_of_the_sea` | 1 | already specced as the centrepiece; the chest is the alternative to placing it |
-| Wetlands-wing plants: `glow_lichen`, `big_dripleaf`, `spore_blossom`, `hanging_roots`, `azalea`, `flowering_azalea` | 6 | a damp planted exhibit is the most ordinary thing in an aquarium after the tanks |
-| Arid-vivarium plants: `cactus_flower`, `short_dry_grass`, `dead_bush`, `bush` | 4 | a reptile vivarium is standard in the same building, and these are four of the six left open in #331 |
-| `powder_snow_bucket` | 1 | an arctic exhibit, and it is the only powder snow this world could ever have |
+| **Armor trim smithing templates** | 16 | **reverses ruling 8.4**, see below |
+| **Wetlands-wing plants** | 6 | `glow_lichen`, `big_dripleaf`, `spore_blossom`, `hanging_roots`, `azalea`, `flowering_azalea` |
+| **Sponges** | 2 | also placed in the filtration hall; the chest carries spares |
+| **`turtle_scute`** | 1 | its only route in the game, see #345 |
+| **Enchanted books** | 0 | flavour rather than a gap: already reachable from a librarian |
+| **Ocean-related resources** | ? | called for but not enumerated; candidates below |
+
+**Three things about that list need saying rather than quietly implementing.**
+
+**The trims reverse 8.4, and the reversal is bigger than the ruling it replaces.** 8.4 cut the two
+OCEAN trims, `coast` and `tide`, from this structure. Putting trims in the chest brings back all
+**sixteen** unreachable templates, which is every trim in the game that has no source here, and it
+makes this one chest the sole route to the entire trim system. #328 leans toward ruling trims out as
+cosmetic; if that ruling ever lands it takes this group with it. Recorded as a reversal so nobody has
+to reconstruct why 8.4 says one thing and 5.1 says another.
+
+**"Ocean-related resources" is not yet a list.** What is actually left unreachable and marine, once the
+placed blocks and the guardian are accounted for: the **four nautilus armours** (chest loot in vanilla,
+no recipe, and **no other possible home in this mod** - if they are not here they stay unreachable
+forever) and `heart_of_the_sea` (currently specced as the placed centrepiece, so the chest is an
+alternative rather than an addition). Both are proposed for this slot.
+
+**The 19 pottery sherds were not selected, and that is the largest single gap left open.** Nineteen of
+the twenty have no source, `heart_pottery_sherd` is the only reachable one, and maritime archaeology is
+about as natural an aquarium exhibit as exists. Left out because it was not asked for, not because a
+reason was given; worth one more look before the table is written.
 
 **Explicitly out**, so the rule is not quietly abandoned later: everything End-locked (`shulker_shell`,
-the dragon set, `elytra`, `chorus_*`), everything from the Nether, every ore, the trial-chamber group
-(`heavy_core`, `trial_key`, `ominous_*`, `totem_of_undying`), and all armour trims, which ruling 8.4
-already cut. None of them is something a curator had in a cupboard.
+the dragon set, `elytra`, `chorus_*`), everything from the Nether, every ore, and the trial-chamber
+group (`heavy_core`, `trial_key`, `ominous_*`, `totem_of_undying`). None of them is something a curator
+had in a cupboard.
 
-**One tension to settle at build time.** The mod's rule is that finished goods are found rather than
-crafted, which a chest satisfies perfectly - but the sherds and the plants are materials, and the
-armours are finished goods, so this one table straddles both. That is allowed and probably right for a
-gift shop; it just means the table wants pools with different weights rather than one flat list, and
-the armours want to be rare.
+**One tension to settle when the table is written.** The mod's rule is that finished goods are found
+rather than crafted, which a chest satisfies perfectly - but the plants and sherds are materials while
+the armours and trims are finished goods, so this one table straddles both. That is allowed and
+probably right for a gift shop; it just means pools with different weights rather than one flat list,
+and the armours and trims want to be rare.
 
 ---
 
@@ -350,9 +391,13 @@ of prismarine shards and crystals, so without them the prismarine family is a fi
 building. It is still not the answer to #44: no fish, no dolphins, no turtles, no ecosystem, and #44
 stays a separate question. The aquatic animals it might have supplied are already reachable anyway.
 
-### 8.4 Are the two ocean trims wanted at all? DECIDED: out
+### 8.4 Are the two ocean trims wanted at all? DECIDED: out, then REVERSED
 
-Trims are cut. `coast` and `tide` leave section 1 and the structure loses nothing.
+Originally cut: `coast` and `tide` left section 1 and the structure lost nothing. **Superseded the same
+day** by the chest ruling, which puts all sixteen unreachable trim templates in the curator's chest and
+so makes this building the only route to the trim system. See 5.1. The original reasoning is left
+standing above because #328 may yet rule trims out globally, and if it does this is the decision that
+gets revisited.
 
 ### 8.5 Region? DECIDED: the demolition yard
 
@@ -360,18 +405,20 @@ On the "it is a building" argument. Section 2 stands as written.
 
 ### 8.6 What came out of the rulings, and is still open
 
-1. **Is a guardian worth moving free water to onset 512?** This is the only genuinely open cost in the
-   build, and section 5 now states it correctly. If it is judged too cheap, there is a way out that
-   needs no water and no guardian: **manufacture the shards.** Sourcing a gated material through a
-   machine rather than a drop is this mod's established practice - it is exactly how #277 sourced AE2's
-   certus and fluix, and the reason given there (only a machine produces at playthrough scale) applies
-   here too. A `separating` or `pulverizing` recipe yielding prismarine shards would make the whole
-   prismarine family renewable with no tank at all, and would leave the guardian free to be cut or kept
-   purely as an encounter. Not proposed as a replacement, just noted as the option that dissolves the
-   trade rather than paying it.
-2. **DECIDED: the building carries a loot chest** (owner, 2026-09-03), which sources the nautilus
-   armours and whatever else section 5.1's rule admits. What remains open is only the contents, and
-   5.1 proposes them with a selection rule rather than a wish list.
+1. **DECIDED: the guardian AND a machine recipe** (owner, 2026-09-03). The tank stays, and prismarine
+   shards also get a manufactured route, which is this mod's established practice for a gated material
+   - exactly how #277 sourced AE2's certus and fluix, on the reasoning that only a machine produces at
+   playthrough scale. Belt and braces: prismarine stays renewable even if the tank is ever cut.
+   **What the machine eats is still open.** It should be a `separating` recipe, because dividing a
+   mixture is the Separator's verb and prismarine is a silicate fraction. The leading candidate input is
+   **silt** - the filtration hall is full of it, the sewers already have it as a brushable material, and
+   it keeps the route tied to this building rather than appearing from nowhere. Not decided, and it must
+   not be anything downstream of prismarine itself or the recipe is circular.
+2. **DECIDED: the building carries a loot chest** (owner, 2026-09-03), and 5.1 now records the ruled
+   contents. Two things there are still open: what "ocean-related resources" resolves to (the four
+   nautilus armours are proposed, and they have no other home in the game), and whether the nineteen
+   pottery sherds go in, which is the largest gap this building could close and was not asked for
+   either way.
 3. **`leachate_is_not_water` does not assert what its name says.** It compares fluid identity, so it
    would stay green if leachate were ever added to `#minecraft:water` - which is the single edit that
    would undo the fluid's whole reason for existing, and the one this structure creates a temptation to
