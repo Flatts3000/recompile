@@ -20,6 +20,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -115,7 +116,10 @@ public final class DriedBouquetTests {
                 }
             }
             helper.assertTrue(missing.isEmpty(),
-                "#recompile:compostable names these and nothing else sources them: " + missing);
+                "these have no other route to the player's hand - the four flowers because the trader "
+                    + "sells only small ones, the large fern because a placed one shears into "
+                    + "minecraft:fern rather than into itself - and #recompile:compostable names all "
+                    + "four flowers: " + missing);
             helper.succeed();
         });
 
@@ -135,6 +139,29 @@ public final class DriedBouquetTests {
             helper.succeed();
         });
 
+        // THE SPLIT EVERY PLAYER-FACING STRING GOT WRONG FIRST TIME (#344 review). Four of the five
+        // renew and one does not, and no test could see the difference: the table guard above asks
+        // only for DoublePlantBlock, which is the one check that CANNOT separate them - TallFlowerBlock
+        // extends it. So the four flowers were shipped described as "one is all you need" alongside a
+        // large fern that bone meal will not copy and that shears back into an ordinary fern.
+        RCGameTests.test("the_four_tall_flowers_renew_and_the_large_fern_does_not", 20, helper -> {
+            List<Item> notRenewable = new ArrayList<>();
+            for (Item flower : List.of(Items.SUNFLOWER, Items.LILAC, Items.PEONY, Items.ROSE_BUSH)) {
+                if (!(Block.byItem(flower) instanceof BonemealableBlock)) {
+                    notRenewable.add(flower);
+                }
+            }
+            helper.assertTrue(notRenewable.isEmpty(),
+                "the guidebook and the JEI panel both promise bone meal copies these, so a tall flower "
+                    + "that is not bonemealable makes the mod lie to the player: " + notRenewable);
+
+            helper.assertTrue(!(Block.byItem(Items.LARGE_FERN) instanceof BonemealableBlock),
+                "a large fern became bonemealable, so the copy saying it is the exception is now the "
+                    + "wrong half of the story - say so in en_us.json and in RCItems before deleting "
+                    + "this assertion");
+            helper.succeed();
+        });
+
         // THE OTHER EXIT: a bouquet a player does not want to gamble on pulls apart for fibre, and it
         // must not hand a flower back that way or the cauldron is pointless.
         RCGameTests.test("a_dried_bouquet_tears_down_into_fibre_and_never_a_flower", 20, helper -> {
@@ -143,15 +170,17 @@ public final class DriedBouquetTests {
                     .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
                 if (holder.value().input().test(new ItemStack(RCItems.DRIED_BOUQUET.get()))) {
                     bouquet = holder;
+                    break;   // first match, as PrinterTests.teardownFor does - see below
                 }
             }
             helper.assertTrue(bouquet != null, "no teardown recipe accepts a Dried Bouquet");
 
             Set<Item> pool = bouquetPool();
-            List<Item> outputs = new ArrayList<>();
-            bouquet.value().results().forEach(r -> outputs.add(r.item()));
-            bouquet.value().pools().forEach(p -> p.entries().forEach(e -> e.item().ifPresent(outputs::add)));
-            bouquet.value().extras().forEach(e -> outputs.add(e.item()));
+            // everyPossibleOutput rather than results + pools + extras by hand. That union already
+            // exists and ten other sites use it; a private copy of it goes vacuously green the day
+            // the public schema grows another output-carrying field, and the assertion that would
+            // quietly stop meaning anything is "never a flower".
+            List<Item> outputs = bouquet.value().everyPossibleOutput().toList();
             helper.assertTrue(outputs.contains(RCItems.FIBER_SCRAP.get()),
                 "tearing a bouquet down must yield Fiber Scrap, got " + outputs);
             List<Item> flowers = outputs.stream().filter(pool::contains).toList();

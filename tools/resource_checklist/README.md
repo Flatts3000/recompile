@@ -75,6 +75,16 @@ and the diff would mean nothing.
   and the Dry Clay Body's cauldron step. The resin and clay chains are dead without the last two.
   They live in `INTERACT` in `reachability.py`; adding a mechanic of that shape means adding a line
   there, and nothing else will tell you it is missing.
+- **A mod that PLACES a vanilla block is invisible here, and the doc reads as if the block is not in
+  the world at all.** `FertilizerScatter` scatters fern, large fern, tall grass and four small
+  flowers on every fertilizer use, and the closure models none of it - it only knows loot tables,
+  recipes and `INTERACT`. Today no verdict is wrong, because everything on that list is reachable by
+  another route anyway, so this is latent rather than live. It still cost something: #344's stated
+  reason for a new find was "a large fern needs a fern to bone-meal that nothing here provides",
+  which is false and came from reading this doc. The verdict there was right for a reason the doc
+  does not print - a placed large fern shears into `minecraft:fern`, so the `large_fern` ITEM really
+  is bouquet-only. **A row says whether an item is reachable, never why it is not**, and inferring
+  the second from the first is how a wrong premise gets written down.
 
 ## When the mod changes
 

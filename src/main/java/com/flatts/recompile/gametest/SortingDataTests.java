@@ -525,7 +525,11 @@ final class SortingDataTests {
             var offenders = new java.util.TreeSet<String>();
             var paths = new java.util.ArrayList<>(java.util.List.of(
                 SortingData.HOUSEHOLD, SortingData.BAG, SortingData.MECHANICAL, SortingData.RUBBLE,
-                SortingData.BULKY, SortingData.STEEL_BEAM, SortingData.SEEDLING));
+                SortingData.BULKY, SortingData.STEEL_BEAM, SortingData.SEEDLING,
+                // The bouquet table is the natural place for someone to write the tall flowers as one
+                // #tag entry, which is exactly the unexercised form this guard exists for. It reached
+                // the viewer in #344 without reaching this list.
+                SortingData.BOUQUET));
             for (var source : SortingData.sortingSources()) {
                 paths.add(source.path());
             }
@@ -540,7 +544,7 @@ final class SortingDataTests {
                 scanForTagEntries(com.google.gson.JsonParser.parseString(body), path, offenders);
             }
 
-            helper.assertTrue(scanned >= 7,
+            helper.assertTrue(scanned >= 8,
                 "scanned only " + scanned + " tables, so this guard would pass against a viewer that "
                     + "had stopped reading anything");
             helper.assertTrue(offenders.isEmpty(),

@@ -72,9 +72,9 @@ public final class Recompile {
         // In-world GameTests (CI gameTest job runs these).
         RCGameTests.register(modEventBus);
 
-        // Hydrating a Dry Clay Body in a water cauldron (#115). Deferred to FMLCommonSetup
-        // because it touches RCItems.DRY_CLAY_BODY.get(), and a DeferredItem is not resolved
-        // while the constructor is still running - calling it here throws.
+        // The water-cauldron interactions: a Dry Clay Body into clay (#115) and a Dried Bouquet
+        // into a tall plant (#331). Deferred to FMLCommonSetup because both resolve a DeferredItem,
+        // which is not resolved while the constructor is still running - calling it here throws.
         modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) ->
             event.enqueueWork(RCCauldronInteractions::register));
 
