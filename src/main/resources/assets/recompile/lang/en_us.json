@@ -685,6 +685,8 @@
   "book.recompile.guide.power.garbage_vacuum.intro.text": "Hold right-click and the vacuum pulls garbage blocks out of the ground in front of you, a few a second, straight into your inventory. It takes whole blocks, not what is inside them - sort them afterwards at a tarp, a workbench or a Trommel. A block you had half picked through comes out fresh; the pulls you already took are gone.\n\n\\\n\\\nIt runs on power. Set it on a Charging Station with a generator touching the station and it fills; a flat vacuum does nothing. Better tiers reach further and hold more.\n\n\\\n\\\nTake a mound from the bottom and the rest comes down on top of you. That is the quick way. The ground under a mound remembers it, so a cleared mound grows back like any other.",
   "entity.recompile.vacuumed_block": "Vacuumed Block",
   "item.recompile.battery": "Battery",
-  "jei.recompile.info.battery": "A dead household battery. Found loose in garbage, and torn out of a smoke detector - which is also where you learn to build one. The Garbage Vacuum needs one.",
-  "blueprint.recompile.battery": "Battery"
+  "jei.recompile.info.battery": "The power cell the Charging Station and the Garbage Vacuum are both built around. Nothing hands one over - you learn it by cutting open the depleted ones you find in the garbage, then make your own.",
+  "blueprint.recompile.battery": "Battery",
+  "item.recompile.depleted_battery": "Depleted Battery",
+  "jei.recompile.info.depleted_battery": "A dead household cell, and one of the commonest things in a bin bag. Cut one open at the workbench for its scrap; four of them and you will have worked out how to build a live one."
 }

@@ -194,14 +194,17 @@ public class BlueprintItem extends Item {
         Identifier.fromNamespaceAndPath("recompile", "bulb");
 
     /**
-     * The Battery (#336), learned from a <b>Smoke Detector</b> found in the radioactive dump - which is
-     * a battery, a plastic shell and a speck of americium, so the thing you tear out of it is the
-     * obvious one.
+     * The Battery (#336), learned from the <b>Depleted Batteries</b> found loose in household garbage
+     * (owner, 2026-09-03).
      *
-     * <p>Salvage first and blueprint second, exactly like the three components above, with one
-     * difference worth knowing: its found source is <b>household pulls</b> rather than the object that
-     * teaches it. The knowledge is in the second frontier region and the item is in the first bin bag,
-     * so a Garbage Vacuum is buildable long before the dump and repeatable only after it.
+     * <p><b>Unlike the three components above it is not salvage-first - it is blueprint only</b>, and
+     * the chain is the point: the garbage gives you dead cells, cutting four of them open teaches you
+     * what is inside, and only then can you build a live one. Nothing anywhere hands over a working
+     * battery, which is why {@code a_blueprint_result_has_no_other_route} is the sweep that covers it
+     * and {@code ComponentBlueprintTests} deliberately does not.
+     *
+     * <p>It gates the powered-tool tier at both ends, since the Charging Station needs a cell as well
+     * as the vacuum does.
      */
     public static final Identifier BATTERY =
         Identifier.fromNamespaceAndPath("recompile", "battery");

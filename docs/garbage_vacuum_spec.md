@@ -136,6 +136,36 @@ bulk-clearing the good stuff is not free.
 
 ---
 
+## The Battery, and what powers the tier (owner, 2026-09-03)
+
+The vacuum and the Charging Station are both built around a **Battery**, and the chain to one is the
+mod's thesis stated as literally as it gets: **the garbage gives you dead cells, and the dead cell is
+where the idea comes from.**
+
+- **Depleted Battery** - found loose in `household_pulls`, at the Bulb's weight. Not a component and
+  not spendable as one. It is a teardown input: cut one open at the workbench with a Scrap Knife for
+  scrap metal, e-scrap and plastic.
+- **The knowledge rides on that teardown**, declared as a top-level `teaches` entry rather than a
+  `teaches: true` pool. That distinction is load-bearing: a teaching POOL grants the fragment for
+  whatever item it drew, so saying it that way would have handed back a live battery for tearing up a
+  dead one. Four of them completes the blueprint.
+- **Battery** - manufactured, never found. The first component here that is **blueprint only**: the
+  Pump, Motor and Bulb are salvage first and blueprint second, and this one has no salvage route at
+  all, because a dead cell is not a live one. So it is deliberately absent from
+  `ComponentBlueprintTests`' salvage-and-blueprint list, and covered instead by
+  `a_blueprint_result_has_no_other_route`, which is the sweep that actually means something for it.
+
+**This is also what settles the Water Tank problem** (#229: a component named for a capacity that holds
+nothing reads as broken, reported by two playtesters ninety minutes apart). A *depleted* battery holding
+nothing is not a bug, it is the noun. The live one is an ingredient you spend, which is what a crafting
+component is here.
+
+**The cell gates the whole powered tier at both ends**, since the Charging Station needs one as well as
+the vacuum does: no cell, no charger, no vacuum, and no way to learn the cell but to take the rubbish
+apart.
+
+---
+
 ## How the animation is built
 
 Slime Rancher's vacpack, in this game's idiom. Mining Gadgets was the reference for the block half

@@ -68,18 +68,33 @@ public final class RCItems {
     public static final DeferredItem<Item> BULB = ITEMS.registerItem("bulb", Item::new);
 
     /**
-     * Battery: the second CRAFTING component, and the Garbage Vacuum's power cell (#336).
+     * Depleted Battery: a dead household cell, found loose in the garbage (owner, 2026-09-03).
      *
-     * <p>The Bulb's shape exactly - found loose in household pulls, torn out of an object (a Smoke
-     * Detector, which is a battery, a plastic shell and a speck of americium), and craftable from the
-     * blueprint that teardown teaches. Found early on purpose: the knowledge lives in the radioactive
-     * dump but the item does not, so a vacuum is buildable long before that trip.
+     * <p>It is not a component and cannot be spent as one. It is a <b>teardown input</b>: cut one open
+     * at the workbench for scrap and, four of them in, the knowledge of how to build a live one. That
+     * is the whole of what it does, and it is the most literal possible statement of the mod's thesis -
+     * the dead thing in the bin is where the idea comes from.
      *
-     * <p><b>It is INERT, and that is a live question rather than an oversight.</b> A component named
-     * for a capacity that holds nothing is exactly what made the Water Tank read as broken to two
-     * playtesters (#229, owner ruling). This one is an ingredient you spend; if it should instead hold
-     * a charge, the machinery already exists - {@code Capabilities.Energy.ITEM} over a component, the
-     * way {@code GarbageVacuumItem} does it - and the Charging Station would fill it unchanged.
+     * <p><b>This is also what settles the Water Tank problem</b> (#229: a component named for a
+     * capacity that holds nothing reads as broken). A DEPLETED battery holding nothing is not a bug,
+     * it is the noun. The live {@link #BATTERY} you make from it is an ingredient you spend, which is
+     * what a crafting component is.
+     */
+    public static final DeferredItem<Item> DEPLETED_BATTERY =
+        ITEMS.registerItem("depleted_battery", Item::new);
+
+    /**
+     * Battery: the second CRAFTING component, and the power cell the Garbage Vacuum and the Charging
+     * Station are both built around (#336).
+     *
+     * <p><b>Manufactured, never found</b>, which makes it the first component of its kind here. The
+     * Pump, Motor and Bulb are salvage first and blueprint second; this one is blueprint ONLY, because
+     * what the garbage gives you is a {@link #DEPLETED_BATTERY} and a dead cell is not a live one. So
+     * it is deliberately absent from {@code ComponentBlueprintTests}' salvage-and-blueprint list and
+     * covered instead by {@code a_blueprint_result_has_no_other_route}, which is the sweep that
+     * actually means something for it.
+     *
+     * <p>It gates the whole powered-tool tier: no cell, no charger, no vacuum.
      */
     public static final DeferredItem<Item> BATTERY = ITEMS.registerItem("battery", Item::new);
 

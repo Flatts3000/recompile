@@ -86,7 +86,7 @@
         },
         {
           "type": "minecraft:item",
-          "name": "recompile:battery",
+          "name": "recompile:depleted_battery",
           "weight": 6
         },
         {

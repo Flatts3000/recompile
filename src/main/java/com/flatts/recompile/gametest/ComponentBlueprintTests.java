@@ -67,8 +67,7 @@ final class ComponentBlueprintTests {
      * to call time is the fix in both places.
      */
     private static List<Item> gatedComponents() {
-        return List.of(RCItems.PUMP.get(), RCItems.MOTOR.get(), RCItems.BULB.get(),
-            RCItems.BATTERY.get());
+        return List.of(RCItems.PUMP.get(), RCItems.MOTOR.get(), RCItems.BULB.get());
     }
 
     static void register() {

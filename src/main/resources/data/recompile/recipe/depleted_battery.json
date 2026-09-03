@@ -1,0 +1,44 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:depleted_battery",
+  "station": "recompile:workbench",
+  "tool": "recompile:scrap_knife",
+  "ticks": 60,
+  "pools": [
+    {
+      "_comment": [
+        "The carcass of a small cell: a steel can, the guts, a little plastic. Three draws,",
+        "because a battery is a small object and a pile of scrap out of one would read as",
+        "alchemy.",
+        "",
+        "NO BATTERY IN THIS POOL, deliberately, which is the whole point of the chain. The",
+        "knowledge is declared at the top level instead, where it is granted WITHOUT the pool",
+        "having to draw the thing it teaches - a pool marked `teaches: true` grants the",
+        "fragment for whatever item it drew, so saying it that way would have handed back a",
+        "live battery for tearing up a dead one."
+      ],
+      "rolls": 3,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 3
+        },
+        {
+          "item": "recompile:e_scrap",
+          "weight": 2
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:battery",
+      "chance": 1.0,
+      "scraps_required": 4
+    }
+  ]
+}
