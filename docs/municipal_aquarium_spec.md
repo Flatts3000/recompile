@@ -125,6 +125,54 @@ Proposed, and the part most likely to change once something is standing in the w
 - **Signage and railings** as dressing, in the mod's existing salvage palette so it reads as continuous
   with the yard rather than as an imported vanilla build.
 
+### 3.1 The room graph
+
+**This is the plan, and it is deliberately a room list rather than a drawing.** The two landmark
+precedents are solids of revolution - the cooling tower is one function of height,
+`r = throat * sqrt(1 + (dy/c)^2)`, in a single piece - so a profile test could check the whole
+building. Rooms cannot be expressed that way, which makes **the sewer the real precedent** and not the
+towers. See section 9, which has been corrected accordingly.
+
+Sizes below are starting points for the fixtures, not measurements to honour. **The numbers live in
+code once it exists**; this table exists to settle what rooms there are and how they connect, which is
+the part that is cheaper to argue here than in Java.
+
+| Room | Holds | Connects to | Rough footprint |
+|---|---|---|---|
+| **Forecourt** | signage, railings, the collapsed frontage that is the way in | Lobby | 12x6, open to sky |
+| **Lobby** | ticket desk, more signage, leachate puddles | Forecourt, Gallery | 10x8 |
+| **Reef Gallery** | the tank rows: **most of the 15 dead corals**, cracked glass, shallow leachate in the tank floors | Lobby, Big Tank, Guardian Tank, Back of House | 20x10, the largest room |
+| **Big Tank** | the centrepiece, **heart of the sea**, prismarine and sea lanterns at their densest | Reef Gallery | 8x8, tallest volume |
+| **Guardian Tank** | **the only real water in the building**, one guardian spawner | Reef Gallery | 6x6, breached |
+| **Filtration Hall** | **sponge and wet sponge**, silt, pipework, the sump | Reef Gallery, by ramp | 12x8, half-sunk |
+| **Back of House** | the curator's chest, the drowned spawner | Reef Gallery, Filtration Hall | 8x6 |
+
+**Four rules that the arrangement has to satisfy**, each of them a decision rather than a preference:
+
+1. **Every room is reachable from the forecourt without breaking a block.** This is the "enterable
+   without being a puzzle" line made checkable. Collapse is the mechanism - a fallen frontage, a
+   breached tank wall, a ramp where a stair rotted out - so the ruin is what opens the building rather
+   than the player's pickaxe.
+2. **The Guardian Tank is breached, not sealed.** A guardian behind intact glass is inert to anyone who
+   does not break in, which is the mistake the smokestacks already made once and which section 5 warns
+   about in its own words. Open the top or take out a wall panel, so its spawn range reaches somebody
+   standing in the gallery. It is also the only room a player can drown in on purpose, which is a fair
+   trade for the only bucket-fillable water in the region.
+3. **The Filtration Hall is behind and half-sunk, not below.** "Below" was left open in the first
+   draft; a basement under a low wide hall needs a stair, and a stair is the one thing a player can
+   walk past without noticing, which would hide both sponges. Half-sunk off the gallery keeps the whole
+   building one connected walk and gives the sump a reason to be the lowest point in the structure,
+   which is where leachate should pool.
+4. **Exactly one room holds water and every other wet surface is leachate.** Stated as a rule because
+   the two fluids are one block id apart in a generator and the failure is silent in both directions:
+   leachate in the guardian tank spawns nothing forever, and water anywhere else quietly doubles the
+   free-water route this structure was careful to bound.
+
+**What is deliberately not decided here:** exact dimensions, wall thickness, roof treatment, how many
+tank rows the gallery holds, and whether the building is one `StructurePiece` per room or a few larger
+ones. Those are build-time questions, and the sewer answers the last one by example - it assembles
+named pieces with computed boxes rather than one piece that draws everything.
+
 ---
 
 ## 4. The coral revival chain
@@ -334,11 +382,21 @@ On the "it is a building" argument. Section 2 stands as written.
 
 ## 9. Build notes
 
-- The landmark pattern is proven twice; nothing here needs a new mechanism. Follow
-  `CoolingTowerStructure` / `SmokestackStructure` rather than inventing.
-- **A profile test before a world test.** `CoolingTowerProfileTest` and `SmokestackProfileTest` are
-  JUnit and catch shape errors without booting anything; the cooling tower's first pass read as a
-  chimney and that is how it was caught.
+- **Follow the SEWER, not the towers.** The first draft of these notes said to follow
+  `CoolingTowerStructure` / `SmokestackStructure`, and that is wrong for this building. Both of those
+  are solids of revolution built as a single piece from a radius-by-height function, which is why a
+  profile test could check them end to end. This is a set of connected rooms, so the model is
+  `SewerStructure`: named pieces with computed boxes, assembled by one method that owns the layout.
+- **Build the fixtures class on day one, not after the first drift.** `SewerFixtures` exists because
+  the sewer's layout drifted from its real build order **twice**, once when access chambers landed and
+  once when the sump did, and its own comment says three copies would be three chances to drift again.
+  It was still not enough on its own: a habitability test hand-built a den at a size the game had
+  stopped generating, so it measured a room that does not exist and would have gone on passing while
+  the real one broke. **Tests ask the structure for its boxes; they never retype them.**
+- **A shape test before a world test.** `CoolingTowerProfileTest` and `SmokestackProfileTest` are JUnit
+  and catch shape errors without booting anything - the cooling tower's first pass read as a chimney
+  and that is how it was caught. The equivalent here is not a profile but a **reachability** check:
+  every room in 3.1 entered from the forecourt without breaking a block, which is rule 1 as a test.
 - `ShellHasNoFloatersTest` is the precedent for asserting a structure has no disconnected blocks.
 - **Assert the guardian tank is water and the rest is leachate**, in a test. The two fluids are one
   block id apart in a structure template and the failure is silent in the strongest sense: the spawner
