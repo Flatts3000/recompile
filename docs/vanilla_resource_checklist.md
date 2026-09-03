@@ -13,7 +13,6 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 | **Reachable in Recompile** | **725 (82%)** |
 | Not reachable | 161 |
 | Mobs obtainable | 59 |
-| Generated | 2026-09-02 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
 own data. Seeded from what the garbage world actually generates (its 4 biomes, its terrain rules,
@@ -84,7 +83,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Mob & entity drops
 
-- [x] `bamboo` - Hydroponics Bay seedling
+- [x] `bamboo` - kill a panda (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `stick` `(c)` - kill a witch (spawns in the demolition yard / radioactive dump)
 
 ### Harvest & interact
@@ -164,26 +163,26 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Mob & entity drops
 
-- [x] `arrow` `(c)` - kill a skeleton (spawns in the demolition yard / radioactive dump)
+- [x] `arrow` `(c)` - bastion remnant chest
 - [x] `beef` - kill a cow (Animal Bait)
-- [x] `black_wool` `(c)` - shear a sheep
-- [x] `blue_wool` `(c)` - shear a sheep
-- [x] `bone` - brush sewer silt
-- [x] `brown_wool` `(c)` - shear a sheep
-- [x] `carrot` - Hydroponics Bay seedling
+- [x] `black_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `blue_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `bone` - kill a parched (cooling tower spawner)
+- [x] `brown_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `carrot` - kill a husk (smokestack spawner)
 - [x] `chicken` - kill a chicken (Animal Bait)
-- [x] `cyan_wool` `(c)` - shear a sheep
+- [x] `cyan_wool` `(c)` - kill a sheep (Animal Bait)
 - [x] `feather` - kill a chicken (Animal Bait)
-- [x] `glass_bottle` `(c)` - brush sewer silt
+- [x] `glass_bottle` `(c)` - kill a witch (spawns in the demolition yard / radioactive dump)
 - [x] `glow_ink_sac` - torn down at the Recompile Workbench from printer
-- [x] `gray_wool` `(c)` - shear a sheep
-- [x] `green_wool` `(c)` - shear a sheep
+- [x] `gray_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `green_wool` `(c)` - kill a sheep (Animal Bait)
 - [x] `gunpowder` - kill a creeper (spawns in the demolition yard / radioactive dump)
-- [x] `iron_ingot` `(c)` - kill a zombie (spawns in the demolition yard / radioactive dump)
-- [x] `light_blue_wool` `(c)` - shear a sheep
-- [x] `light_gray_wool` `(c)` - shear a sheep
-- [x] `lime_wool` `(c)` - shear a sheep
-- [x] `magenta_wool` `(c)` - shear a sheep
+- [x] `iron_ingot` `(c)` - bastion remnant chest
+- [x] `light_blue_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `light_gray_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `lime_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `magenta_wool` `(c)` - kill a sheep (Animal Bait)
 - [x] `music_disc_11` - kill a creeper (spawns in the demolition yard / radioactive dump)
 - [x] `music_disc_13` - kill a creeper (spawns in the demolition yard / radioactive dump)
 - [x] `music_disc_blocks` - kill a creeper (spawns in the demolition yard / radioactive dump)
@@ -198,30 +197,30 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `music_disc_wait` - kill a creeper (spawns in the demolition yard / radioactive dump)
 - [x] `music_disc_ward` - kill a creeper (spawns in the demolition yard / radioactive dump)
 - [x] `mutton` - kill a sheep (Animal Bait)
-- [x] `orange_wool` `(c)` - shear a sheep
+- [x] `orange_wool` `(c)` - kill a sheep (Animal Bait)
 - [x] `phantom_membrane` - kill a phantom (insomnia)
-- [x] `pink_wool` `(c)` - shear a sheep
+- [x] `pink_wool` `(c)` - kill a sheep (Animal Bait)
 - [x] `poppy` - kill a iron golem (built)
-- [x] `porkchop` - kill a hoglin (bastion remnant (generates in the compacted depths))
-- [x] `potato` - Hydroponics Bay seedling
-- [x] `purple_wool` `(c)` - shear a sheep
+- [x] `porkchop` - bastion remnant chest
+- [x] `potato` - kill a husk (smokestack spawner)
+- [x] `purple_wool` `(c)` - kill a sheep (Animal Bait)
 - [x] `rabbit` - kill a rabbit (Animal Bait)
 - [x] `rabbit_foot` - kill a husk (smokestack spawner)
 - [x] `rabbit_hide` - kill a rabbit (Animal Bait)
 - [x] `red_mushroom` - mine red_mushroom (sewers)
-- [x] `red_wool` `(c)` - shear a sheep
-- [x] `rotten_flesh` - household pull stream (sort garbage)
+- [x] `red_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `rotten_flesh` - kill a drowned (sewer spawner)
 - [x] `slime_ball` `(c)` - kill a slime (spawns in the demolition yard / radioactive dump)
 - [x] `snowball` - kill a snow golem (built)
 - [x] `spider_eye` - kill a spider (spawns in the demolition yard / radioactive dump)
 - [x] `sugar` `(c)` - kill a witch (spawns in the demolition yard / radioactive dump)
 - [x] `tipped_arrow` `(c)` - kill a parched (cooling tower spawner)
-- [x] `white_wool` `(c)` - shear a sheep
-- [x] `yellow_wool` `(c)` - shear a sheep
+- [x] `white_wool` `(c)` - kill a sheep (Animal Bait)
+- [x] `yellow_wool` `(c)` - kill a sheep (Animal Bait)
 
 ### Harvest & interact
 
-- [x] `armadillo_scute` - an armadillo sheds its scute
+- [x] `armadillo_scute` - brush an armadillo
 - [x] `beetroot` - grow beetroot seeds
 - [x] `blue_egg` - a chicken lays an egg
 - [x] `brown_egg` - a chicken lays an egg
@@ -239,10 +238,10 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Piglin bartering
 
-- [x] `crying_obsidian` - piglin bartering
+- [x] `crying_obsidian` - bastion remnant chest
 - [x] `dried_ghast` `(c)` - piglin bartering
 - [x] `ender_pearl` - kill a enderman (spawns in the demolition yard / radioactive dump)
-- [x] `leather` `(c)` - kill a hoglin (bastion remnant (generates in the compacted depths))
+- [x] `leather` `(c)` - bastion remnant chest
 - [x] `nether_brick` `(c)` - piglin bartering
 
 ### Structure chests
@@ -252,7 +251,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [ ] `dead_bush` `(finite)` - nothing in this world, its structures, its mobs or its recipes produces one
 - [x] `pumpkin` - grow pumpkin seeds
 - [x] `resin_clump` `(c)` - crafted from spent amber + turpentine
-- [x] `sand` - mill tailings pull stream
+- [x] `sand` - mine sand (sewers)
 - [x] `short_grass` - bone meal on grass
 - [x] `wheat_seeds` - Hydroponics Bay seedling
 
@@ -464,7 +463,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Mob & entity drops
 
-- [x] `cod` - kill a polar bear (spawn egg (amber -> Sequencer -> Blueprint))
+- [x] `cod` - kill a cod (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `ink_sac` - kill a squid (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `nautilus_shell` - brush sewer silt
 - [ ] `prismarine_crystals` - no ocean, monument, shipwreck or ocean ruin generates
@@ -593,10 +592,10 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Piglin bartering
 
-- [x] `gravel` - mill tailings pull stream
-- [x] `obsidian` - piglin bartering
+- [x] `gravel` - mine gravel (sewers)
+- [x] `obsidian` - bastion remnant chest
 - [x] `soul_sand` - mine soul_sand (bastion remnant)
-- [x] `string` - brush sewer silt
+- [x] `string` - mine cobweb (sewers)
 
 ### Structure chests
 
@@ -622,7 +621,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 - [x] `azure_bluet` - buy from a wandering trader
 - [x] `blue_carpet` `(c)` - crafted from blue wool
-- [x] `bookshelf` `(c)` - bulky waste (pry it open)
+- [x] `bookshelf` `(c)` - break a mod block
 - [x] `campfire` `(c)` - mine campfire (sewers)
 - [x] `cornflower` - buy from a wandering trader
 - [x] `cyan_carpet` `(c)` - crafted from cyan wool
@@ -678,27 +677,27 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `blaze_rod` - kill a blaze (nether fortress (generates in the compacted depths))
 - [x] `ghast_tear` - kill a ghast (spawns in the compacted depths)
 - [x] `glowstone_dust` - mine glowstone (bastion remnant)
-- [x] `gold_ingot` `(c)` - kill a zombified piglin (spawns in the compacted depths)
+- [x] `gold_ingot` `(c)` - bastion remnant chest
 - [x] `gold_nugget` `(c)` - mine gilded_blackstone (bastion remnant)
-- [x] `magma_cream` `(c)` - kill a magma cube (spawns in the compacted depths)
+- [x] `magma_cream` `(c)` - bastion remnant chest
 - [x] `music_disc_tears` - kill a ghast (spawns in the compacted depths)
 - [x] `nether_star` - kill the wither
 - [x] `ochre_froglight` - kill a magma cube (spawns in the compacted depths)
 - [x] `pearlescent_froglight` - kill a magma cube (spawns in the compacted depths)
 - [x] `verdant_froglight` - kill a magma cube (spawns in the compacted depths)
-- [x] `wither_skeleton_skull` - kill a wither skeleton (nether fortress (generates in the compacted depths))
+- [x] `wither_skeleton_skull` - a charged creeper kills a wither skeleton
 
 ### Piglin bartering
 
 - [x] `blackstone` - mine blackstone (bastion remnant)
 - [x] `fire_charge` `(c)` - piglin bartering
-- [x] `quartz` `(c)` - piglin bartering
-- [x] `spectral_arrow` `(c)` - piglin bartering
+- [x] `quartz` `(c)` - bastion remnant chest
+- [x] `spectral_arrow` `(c)` - bastion remnant chest
 
 ### Structure chests
 
 - [x] `ancient_debris` `(finite)` - bastion remnant chest
-- [x] `bell` - bulky waste (pry it open)
+- [x] `bell` - break a mod block
 - [x] `cooked_porkchop` `(c)` - bastion remnant chest
 - [x] `crimson_fungus` - bastion remnant chest
 - [x] `crimson_nylium` - bastion remnant chest
@@ -708,7 +707,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `diamond_shovel` `(c)` - bastion remnant chest
 - [x] `diamond_spear` `(c)` - bastion remnant chest
 - [x] `enchanted_golden_apple` - bastion remnant chest
-- [x] `flint_and_steel` `(c)` - household pull stream (sort garbage)
+- [x] `flint_and_steel` `(c)` - nether fortress chest
 - [x] `gilded_blackstone` `(finite)` - mine gilded_blackstone (bastion remnant)
 - [x] `glistering_melon_slice` `(c)` - crafted from gold nugget + melon slice
 - [x] `glowstone` `(c)` - mine glowstone (bastion remnant)
@@ -728,7 +727,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `music_disc_pigstep` `(finite)` - bastion remnant chest
 - [x] `nether_wart` - mine nether_wart (bastion remnant)
 - [x] `netherite_ingot` `(c)` `(finite)` - bastion remnant chest
-- [x] `netherite_scrap` `(c)` `(finite)` - techno-organic waste pull stream
+- [x] `netherite_scrap` `(c)` `(finite)` - bastion remnant chest
 - [x] `netherite_upgrade_smithing_template` `(c)` - bastion remnant chest
 - [x] `piglin_banner_pattern` - bastion remnant chest
 - [x] `rib_armor_trim_smithing_template` `(c)` - nether fortress chest
@@ -824,8 +823,8 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Piglin bartering
 
-- [x] `book` `(c)` - trash bag pull stream
-- [x] `iron_nugget` `(c)` - piglin bartering
+- [x] `book` `(c)` - bastion remnant chest
+- [x] `iron_nugget` `(c)` - bastion remnant chest
 - [x] `splash_potion` - piglin bartering
 
 ### Structure chests
@@ -899,53 +898,53 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Trading
 
-- [x] `black_bed` `(c)` - buy from a shepherd
+- [x] `black_bed` `(c)` - crafted from black dye + white bed
 - [x] `black_carpet` `(c)` - crafted from black wool
 - [x] `black_glazed_terracotta` `(c)` - smelted from black terracotta
-- [x] `blue_bed` `(c)` - buy from a shepherd
-- [x] `brown_bed` `(c)` - buy from a shepherd
+- [x] `blue_bed` `(c)` - crafted from blue dye + black bed
+- [x] `brown_bed` `(c)` - crafted from brown dye + black bed
 - [x] `brown_carpet` `(c)` - crafted from brown wool
 - [x] `brown_terracotta` `(c)` - crafted from terracotta + brown dye
 - [x] `chainmail_helmet` - Hero of the Village gift
 - [x] `chiseled_stone_bricks` `(c)` - cut on a stonecutter from stone
 - [x] `cooked_beef` `(c)` - smelted from beef
 - [x] `cooked_chicken` `(c)` - smelted from chicken
-- [x] `cyan_bed` `(c)` - buy from a shepherd
+- [x] `cyan_bed` `(c)` - crafted from cyan dye + black bed
 - [x] `cyan_glazed_terracotta` `(c)` - smelted from cyan terracotta
 - [x] `cyan_terracotta` `(c)` - crafted from terracotta + cyan dye
-- [x] `gray_bed` `(c)` - buy from a shepherd
+- [x] `gray_bed` `(c)` - crafted from gray dye + black bed
 - [x] `gray_terracotta` `(c)` - crafted from terracotta + gray dye
-- [x] `green_bed` `(c)` - buy from a shepherd
+- [x] `green_bed` `(c)` - crafted from green dye + black bed
 - [x] `green_carpet` `(c)` - crafted from green wool
-- [x] `light_blue_bed` `(c)` - buy from a shepherd
+- [x] `light_blue_bed` `(c)` - crafted from light blue dye + black bed
 - [x] `light_blue_glazed_terracotta` `(c)` - smelted from light blue terracotta
-- [x] `light_gray_bed` `(c)` - buy from a shepherd
+- [x] `light_gray_bed` `(c)` - crafted from light gray dye + black bed
 - [x] `light_gray_carpet` `(c)` - crafted from light gray wool
 - [x] `light_gray_glazed_terracotta` `(c)` - smelted from light gray terracotta
 - [x] `light_gray_terracotta` `(c)` - crafted from terracotta + light gray dye
-- [x] `lime_bed` `(c)` - buy from a shepherd
+- [x] `lime_bed` `(c)` - crafted from lime dye + black bed
 - [x] `lime_carpet` `(c)` - crafted from lime wool
 - [x] `lime_glazed_terracotta` `(c)` - smelted from lime terracotta
 - [x] `lime_terracotta` `(c)` - crafted from terracotta + lime dye
-- [x] `magenta_bed` `(c)` - buy from a shepherd
+- [x] `magenta_bed` `(c)` - crafted from magenta dye + black bed
 - [x] `magenta_carpet` `(c)` - crafted from magenta wool
-- [x] `orange_bed` `(c)` - buy from a shepherd
+- [x] `orange_bed` `(c)` - crafted from orange dye + black bed
 - [x] `orange_carpet` `(c)` - crafted from orange wool
 - [x] `orange_glazed_terracotta` `(c)` - smelted from orange terracotta
-- [x] `pink_bed` `(c)` - buy from a shepherd
+- [x] `pink_bed` `(c)` - crafted from pink dye + black bed
 - [x] `pink_carpet` `(c)` - crafted from pink wool
 - [x] `polished_andesite` `(c)` - crafted from andesite
-- [x] `purple_bed` `(c)` - buy from a shepherd
+- [x] `purple_bed` `(c)` - crafted from purple dye + black bed
 - [x] `purple_carpet` `(c)` - crafted from purple wool
-- [x] `red_bed` `(c)` - buy from a shepherd
+- [x] `red_bed` `(c)` - crafted from red dye + black bed
 - [x] `red_candle` `(c)` - crafted from candle + red dye
 - [x] `red_carpet` `(c)` - crafted from red wool
 - [x] `red_glazed_terracotta` `(c)` - smelted from red terracotta
 - [x] `red_terracotta` `(c)` - crafted from terracotta + red dye
-- [x] `white_bed` `(c)` - buy from a shepherd
+- [x] `white_bed` `(c)` - crafted from white clean mattress + acacia planks
 - [x] `white_carpet` `(c)` - crafted from white wool
 - [x] `white_glazed_terracotta` `(c)` - smelted from white terracotta
-- [x] `yellow_bed` `(c)` - buy from a shepherd
+- [x] `yellow_bed` `(c)` - crafted from yellow dye + black bed
 - [x] `yellow_carpet` `(c)` - crafted from yellow wool
 - [x] `yellow_glazed_terracotta` `(c)` - smelted from yellow terracotta
 - [x] `yellow_terracotta` `(c)` - crafted from terracotta + yellow dye
@@ -1042,7 +1041,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Mob & entity drops
 
-- [x] `bowl` `(c)` - household pull stream (sort garbage)
+- [x] `bowl` `(c)` - kill a turtle (sewer resident)
 
 
 ## Archaeology  <sub>13/38</sub>
