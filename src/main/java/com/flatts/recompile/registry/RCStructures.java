@@ -1,6 +1,8 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.worldgen.aquarium.AquariumPieces;
+import com.flatts.recompile.content.worldgen.aquarium.AquariumStructure;
 import com.flatts.recompile.content.worldgen.sewer.SewerPieces;
 import com.flatts.recompile.content.worldgen.tower.CoolingTowerPiece;
 import com.flatts.recompile.content.worldgen.tower.CoolingTowerStructure;
@@ -103,6 +105,42 @@ public final class RCStructures {
 
     private RCStructures() {
     }
+
+    /**
+     * The Municipal Aquarium (docs/municipal_aquarium_spec.md): the sewer's shape sited like the
+     * tower. One piece type per room, because a piece serialises only its box and each room derives
+     * everything else from which room it is - which the type carries and a tag would have to.
+     */
+    public static final Supplier<StructureType<AquariumStructure>> MUNICIPAL_AQUARIUM =
+        STRUCTURE_TYPES.register("municipal_aquarium", () -> () -> AquariumStructure.CODEC);
+
+    public static final Supplier<StructurePieceType> AQUARIUM_FORECOURT =
+        PIECE_TYPES.register("aquarium_forecourt",
+            () -> (StructurePieceType.ContextlessType) AquariumPieces.Forecourt::new);
+
+    public static final Supplier<StructurePieceType> AQUARIUM_LOBBY =
+        PIECE_TYPES.register("aquarium_lobby",
+            () -> (StructurePieceType.ContextlessType) AquariumPieces.Lobby::new);
+
+    public static final Supplier<StructurePieceType> AQUARIUM_GALLERY =
+        PIECE_TYPES.register("aquarium_gallery",
+            () -> (StructurePieceType.ContextlessType) AquariumPieces.Gallery::new);
+
+    public static final Supplier<StructurePieceType> AQUARIUM_BIG_TANK =
+        PIECE_TYPES.register("aquarium_big_tank",
+            () -> (StructurePieceType.ContextlessType) AquariumPieces.BigTank::new);
+
+    public static final Supplier<StructurePieceType> AQUARIUM_GUARDIAN_TANK =
+        PIECE_TYPES.register("aquarium_guardian_tank",
+            () -> (StructurePieceType.ContextlessType) AquariumPieces.GuardianTank::new);
+
+    public static final Supplier<StructurePieceType> AQUARIUM_FILTRATION_HALL =
+        PIECE_TYPES.register("aquarium_filtration_hall",
+            () -> (StructurePieceType.ContextlessType) AquariumPieces.FiltrationHall::new);
+
+    public static final Supplier<StructurePieceType> AQUARIUM_BACK_OF_HOUSE =
+        PIECE_TYPES.register("aquarium_back_of_house",
+            () -> (StructurePieceType.ContextlessType) AquariumPieces.BackOfHouse::new);
 
     public static void register(IEventBus modEventBus) {
         STRUCTURE_TYPES.register(modEventBus);

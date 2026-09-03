@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 48151,
+    "spacing": 48,
+    "separation": 24
+  },
+  "structures": [
+    {
+      "structure": "recompile:municipal_aquarium",
+      "weight": 1
+    }
+  ]
+}
