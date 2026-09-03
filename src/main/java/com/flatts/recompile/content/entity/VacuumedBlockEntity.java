@@ -151,6 +151,18 @@ public class VacuumedBlockEntity extends Entity {
             deliver(server, owner, target);
             return;
         }
+        if (level().isClientSide()) {
+            // THE CLIENT DOES NOT STEER. It is fed positions by the tracker every tick
+            // (updateInterval(1)), and a client that also integrates its own motion fights those
+            // packets: it advances a step, the next packet snaps it back, and the interpolation the
+            // renderer draws is built on a base the client has already overwritten - which reads as a
+            // stutter. Vanilla's FallingBlockEntity gets away with ticking on both sides because
+            // gravity is deterministic; a block steering toward a moving player is not.
+            //
+            // startDistance is still computed above on both sides, because renderScale needs it and it
+            // is derived from the entity's own first-tick position rather than from the motion.
+            return;
+        }
         double speed = Math.min(distance, BASE_SPEED + ACCELERATION * tickCount);
         Vec3 step = to.scale(speed / Math.max(distance, 1.0e-4));
         // A sideways wobble that dies out as it closes, so a stream of blocks corkscrews into the

@@ -48,6 +48,9 @@ public class ChargingStationBlockEntity extends BlockEntity {
     /** What the last tick moved into the vacuum, for Jade's rate line. */
     private int lastTransfer;
 
+    /** The buffer level as of the last {@code setChanged}; see {@link #markBufferDirty}. */
+    private int savedEnergy;
+
     public ChargingStationBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.CHARGING_STATION.get(), pos, state);
     }
@@ -92,6 +95,30 @@ public class ChargingStationBlockEntity extends BlockEntity {
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, ChargingStationBlockEntity dock) {
         dock.lastTransfer = dock.chargeOnce();
+        dock.markBufferDirty();
+    }
+
+    /**
+     * Mark the block entity dirty when the BUFFER moved, whatever the dock is holding.
+     *
+     * <p>{@link #chargeOnce} only reaches {@code setChanged} when it actually moved energy into a
+     * docked vacuum, and the generator's insert path is a {@code LimitingEnergyHandler} wrapped around
+     * the raw battery - it has no back-reference to this block entity, so an insert marks nothing.
+     * The result was that the case this block advertises by name in its javadoc, a dock banking a
+     * night's charge while the vacuum is out, was the one path that never saved: a Solar Panel fills an
+     * empty dock to 20,000 FE, nothing else dirties the chunk, the region unloads, and the buffer
+     * reloads at whatever it last happened to write.
+     *
+     * <p>Compared against a remembered value rather than called unconditionally, because
+     * {@code setChanged} every tick on every dock in the world is a real cost for a block that is
+     * usually idle.
+     */
+    private void markBufferDirty() {
+        int now = battery.getAmountAsInt();
+        if (now != savedEnergy) {
+            savedEnergy = now;
+            setChanged();
+        }
     }
 
     /** One tick of charging at {@code pos}. The static entry point the GameTests drive, like {@code burnOnce}. */
@@ -145,5 +172,6 @@ public class ChargingStationBlockEntity extends BlockEntity {
         docked = NonNullList.withSize(1, ItemStack.EMPTY);
         ContainerHelper.loadAllItems(input, docked);
         input.child("battery").ifPresent(battery::deserialize);
+        savedEnergy = battery.getAmountAsInt();
     }
 }

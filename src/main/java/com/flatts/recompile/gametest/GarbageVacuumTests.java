@@ -397,6 +397,38 @@ final class GarbageVacuumTests {
             helper.succeed();
         });
 
+        // A BANDED PILE MUST COST SOMETHING. VacuumTier.costFor returns 0 for anything sortRolls does
+        // not name, and a cost of 0 can never fail the `charge < cost` test - so such a pile is
+        // vacuumed for free, forever, by a flat vacuum, and no amount of clearing will ever report
+        // FLAT. That is exactly the "reads as complete, fails silently" shape the band sweep above was
+        // written against, and the band sweep does not catch it: a tenth sortable added to a tag and
+        // forgotten in sortRolls passes there and is free here.
+        RCGameTests.test("every_vacuumable_pile_costs_charge", 20, helper -> {
+            List<String> free = new ArrayList<>();
+            int checked = 0;
+            for (Block block : BuiltInRegistries.BLOCK.stream()
+                    .filter(b -> b instanceof SortableBlock).toList()) {
+                boolean banded = false;
+                for (VacuumTier tier : VacuumTier.LADDER) {
+                    banded |= block.defaultBlockState().is(RCTags.vacuumable(tier.name()));
+                }
+                if (!banded) {
+                    continue;   // every_sortable_block_is_in_a_vacuum_band owns that failure
+                }
+                checked++;
+                if (VacuumTier.costFor(SortableBlock.sortRolls(block.asItem())) <= 0) {
+                    free.add(String.valueOf(BuiltInRegistries.BLOCK.getKey(block)));
+                }
+            }
+            helper.assertTrue(checked >= 9,
+                "only " + checked + " banded piles found - discovery is broken, so this would pass by "
+                    + "checking nothing");
+            helper.assertTrue(free.isEmpty(),
+                "these are vacuumable but cost 0 FE, so they are free and can never run a vacuum flat "
+                    + "(missing from SortableBlock.sortRolls): " + free);
+            helper.succeed();
+        });
+
         // The bands are CUMULATIVE, and that is the property the tag files express by including the
         // band below rather than by restating it. Asserted over the registry so a pile added to copper
         // is proven to reach netherite too - the failure this replaces is a tag file that lists its own

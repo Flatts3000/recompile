@@ -255,7 +255,7 @@ public class GarbageVacuumItem extends Item {
         if (!(stack.getItem() instanceof GarbageVacuumItem vacuum)) {
             return Intake.NOTHING_IN_RANGE;
         }
-        List<BlockPos> candidates = vacuum.candidates(level, aim);
+        List<BlockPos> candidates = vacuum.candidates(level, player, aim);
         if (candidates.isEmpty()) {
             return vacuum.blockedInRange(level, aim) == null
                 ? Intake.NOTHING_IN_RANGE
@@ -282,17 +282,38 @@ public class GarbageVacuumItem extends Item {
     }
 
     /** Every takeable pile in the intake volume, nearest to the aim point first. */
-    public List<BlockPos> candidates(Level level, Vec3 aim) {
+    public List<BlockPos> candidates(Level level, Player player, Vec3 aim) {
         BlockPos centre = BlockPos.containing(aim);
         int r = tier.radius();
         List<BlockPos> found = new ArrayList<>();
         for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-r, -r, -r), centre.offset(r, r, r))) {
-            if (canTake(level.getBlockState(pos))) {
+            if (canTake(level.getBlockState(pos)) && mayTake(player, level, pos)) {
                 found.add(pos.immutable());
             }
         }
         found.sort(Comparator.comparingDouble(pos -> pos.distToCenterSqr(aim)));
         return found;
+    }
+
+    /**
+     * Whether this player is allowed to remove the block at {@code pos} at all.
+     *
+     * <p><b>Nothing upstream checks this for us.</b> A vacuum removes blocks from {@code use} and
+     * {@code useOn}, and neither path in {@code ServerPlayerGameMode} performs a build-permission test
+     * - those live on the DIG path and on {@code BlockItem} placement. So without this an
+     * adventure-mode player, or anyone standing in a server's spawn protection or someone else's
+     * claim, could hold right-click and strip every pile within reach. Every other tool in this mod is
+     * safe by accident, because each acts on a block vanilla had already permitted.
+     *
+     * <p>Both halves are needed and neither implies the other: {@code mayBuild} is the gamemode
+     * (adventure and spectator say no), and {@code mayInteract} is the world's own answer, which
+     * {@code ServerPlayer} overrides with the spawn-protection check.
+     */
+    private static boolean mayTake(Player player, Level level, BlockPos pos) {
+        if (!player.mayBuild()) {
+            return false;
+        }
+        return !(level instanceof ServerLevel server) || player.mayInteract(server, pos);
     }
 
     /**
@@ -329,18 +350,36 @@ public class GarbageVacuumItem extends Item {
     public @Nullable BlockState blockedInRange(Level level, Vec3 aim) {
         BlockPos centre = BlockPos.containing(aim);
         int r = tier.radius();
+        // NEAREST to the aim point, not first in iteration order. betweenClosed walks from the
+        // -r,-r,-r corner, so the first match is the corner-most pile - and a message that names a
+        // Waste Drum behind you when you are pointing at Mill Tailings teaches the wrong rung of the
+        // ladder, which is the one job this message has.
+        BlockState nearest = null;
+        double best = Double.MAX_VALUE;
         for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-r, -r, -r), centre.offset(r, r, r))) {
             BlockState state = level.getBlockState(pos);
             if (state.getBlock() instanceof SortableBlock && !canTake(state)) {
-                return state;
+                double d = pos.distToCenterSqr(aim);
+                if (d < best) {
+                    best = d;
+                    nearest = state;
+                }
             }
         }
-        return null;
+        return nearest;
     }
 
-    /** Where the intake is centred: the block face in front of the player, or {@link #REACH} into the air. */
+    /**
+     * Where the intake is centred: the block face in front of the player, or {@link #REACH} into the air.
+     *
+     * <p><b>partialTicks 1.0F means "now".</b> {@code Entity.getXRot(float)} special-cases exactly 1.0F
+     * and otherwise lerps from {@code xRotO}, so passing 0.0F aims at the PREVIOUS tick's rotation -
+     * the intake volume and the dust stream both trail the crosshair by a tick while turning, which at
+     * radius 2 is enough to take a pile the player has already turned away from. The gametests could
+     * not see it: a freshly-made mock player has {@code xRotO == xRot}.
+     */
     public static Vec3 aimPoint(Player player) {
-        HitResult hit = player.pick(REACH, 0.0F, false);
+        HitResult hit = player.pick(REACH, 1.0F, false);
         if (hit.getType() == HitResult.Type.BLOCK) {
             return hit.getLocation();
         }
@@ -386,12 +425,27 @@ public class GarbageVacuumItem extends Item {
     private void clientParticles(Level level, Player player, Vec3 aim) {
         RandomSource random = level.getRandom();
         Vec3 nozzle = nozzleOf(player);
-        List<BlockPos> candidates = candidates(level, aim);
-        if (candidates.isEmpty()) {
-            return;
-        }
+        // SAMPLED, not enumerated. This used to call candidates(), which reads up to 1,331 block states
+        // and then sorts them by distance - twenty times a second, for the whole of a hold, to pick two
+        // of them at random. The sort was pure waste (a random pick does not care about order) and so
+        // was most of the scan. Throwing darts at the cube costs a handful of lookups and looks the
+        // same, because the dust only has to come off SOME pile in range.
+        int r = tier.radius();
+        BlockPos centre = BlockPos.containing(aim);
         for (int i = 0; i < DUST_STREAMS; i++) {
-            BlockPos pos = candidates.get(random.nextInt(candidates.size()));
+            BlockPos pos = null;
+            for (int attempt = 0; attempt < 12 && pos == null; attempt++) {
+                BlockPos candidate = centre.offset(
+                    random.nextInt(2 * r + 1) - r,
+                    random.nextInt(2 * r + 1) - r,
+                    random.nextInt(2 * r + 1) - r);
+                if (canTake(level.getBlockState(candidate))) {
+                    pos = candidate;
+                }
+            }
+            if (pos == null) {
+                continue;
+            }
             BlockState state = level.getBlockState(pos);
             Vec3 from = Vec3.atLowerCornerOf(pos)
                 .add(random.nextDouble(), random.nextDouble(), random.nextDouble());

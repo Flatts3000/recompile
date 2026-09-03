@@ -192,7 +192,7 @@ size = 16
 faces = ["top", "front", "side", "bottom"]
 # A scrap-metal retint of the vanilla crafting table: keep the recognizable grid/shape,
 # recolor to cool grey. Sources are vanilla textures, extracted from the client jar.
-tint = "#c2b096"
+tint = "#aab0b6"
 [surface.scrap_crafting_table.source]
 top = "block/crafting_table_top"
 front = "block/crafting_table_front"
@@ -246,7 +246,7 @@ side = "a full-bleed Minecraft block face: the flat side panel of a boxy welded 
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#a9713f"
 source = "item/stick"
 
 # No vanilla knife to retint, so AI item icon on a transparent background.
@@ -269,7 +269,7 @@ prompt = "a bent steel crowbar prybar held diagonally, one hooked flattened pry 
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#9095a0"
 source = "item/iron_shovel"
 
 # Oily Rag: the trash-world fuel. AI item icon (no vanilla rag to retint).
@@ -286,7 +286,7 @@ kind = "block"
 backend = "retint"
 size = 16
 transparent = true
-tint = "#c2b096"
+tint = "#a9713f"
 source = "block/torch"
 
 # ---------------------------------------------------------------------------
@@ -531,7 +531,7 @@ size = 16
 # As generated this face meant luma 149.5 against the front's 121.8 and the top's 127.3, which on a
 # placed block reads as one wall built from a paler brick than the other three. 0.83 lands it at ~124.
 # Re-check if the front is ever regenerated - tone is calibrated against neighbours, not in isolation.
-brightness = 1.3
+brightness = 0.83
 prompt = "the side wall of a small industrial sintering kiln, pale fire-brick masonry in irregular courses banded by two iron tie straps, soot staining, flat orthographic Minecraft block texture, no perspective, tiles seamlessly"
 
 [surface.sintering_kiln_top]
@@ -656,21 +656,21 @@ style = "pigeon_skin"
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#6b7079"
 source = "item/chicken_spawn_egg"
-brightness = 1.3
+brightness = 1.6
 
 [surface.roach_spawn_egg]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#8a5230"
 source = "item/chicken_spawn_egg"
 # The same compensation the Pigeon's egg carries, for the same measured reason: retint darkens as it
 # casts, so a brown over the bright chicken egg still landed at 58. 1.7 puts it at 98 - clear of the
 # 78 that was rejected as a blob, and deliberately short of the Pigeon's 113, because a roach egg
 # should read darker than a pigeon's.
-brightness = 1.3
+brightness = 1.7
 
 # Raw and Cooked Roach (#78) - what the dump's one native creature drops, and what the Burn Barrel
 # turns it into. Icons, so they read at inventory scale on transparent; cooked reads as cooked at a
@@ -729,7 +729,7 @@ bottom = "a full-bleed Minecraft block face of a plain heavy steel base plate: f
 kind = "block"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#fb8359"
 source = "block/scrap_barrel_side"
 
 # The Burn Barrel top (P2.2): unlit = a cold open drum mouth of ash and soot; lit = glowing embers.
@@ -754,7 +754,7 @@ kind = "block"
 transparent = true
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#6e7a5a"
 source = "block/glass"
 
 [surface.cullet_glass_pane_top]
@@ -762,7 +762,7 @@ kind = "block"
 transparent = true
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#6e7a5a"
 source = "block/glass_pane_top"
 
 # ---------------------------------------------------------------------------
@@ -1217,7 +1217,7 @@ size = 16
 #
 # Promote-time, so this re-finalizes from art_src with NO API call and the owner-approved
 # picks are untouched. Re-check it if Mechanical Waste is ever regenerated.
-brightness = 1.3
+brightness = 1.55
 variants = 4
 prompt = "a full-bleed top-down Minecraft block face of compacted techno-organic waste: crushed machinery fused with dark organic matter, broken circuit board fragments, severed cable ends and twisted metal set in a dark tarry matrix, faint dull-orange heat in the cracks, oily browns and near-black with muted teal circuit-green flecks, gritty and dense"
 vanilla_ref = "block/netherrack"
@@ -1235,7 +1235,7 @@ size = 16
 #
 # Promote-time, so this re-finalizes from art_src with NO API call and the owner-approved
 # picks are untouched. Re-check it if Mechanical Waste is ever regenerated.
-brightness = 1.3
+brightness = 1.55
 variants = 3
 prompt = "a full-bleed top-down Minecraft block face of loose burnt slag rubble: angular chunks of cooled black furnace slag with a glassy vitreous sheen on the broken faces, grey ash and grit between them, cold charcoal blacks and dark greys with a faint dull ember glow deep in a crack or two"
 vanilla_ref = "block/gravel"
@@ -1485,36 +1485,36 @@ prompt = "a small compacted lump of soul soil, dark brown crumbly earth, drier a
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#b5683a"
 source = "item/mace"
-handle_tint = "#c2b096"
+handle_tint = "#7a4a24"
 handle_from = 8
 
 [surface.iron_sledgehammer]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#cececf"
 source = "item/mace"
-handle_tint = "#c2b096"
+handle_tint = "#7a4a24"
 handle_from = 8
 
 [surface.diamond_sledgehammer]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#4dd0c8"
 source = "item/mace"
-handle_tint = "#c2b096"
+handle_tint = "#7a4a24"
 handle_from = 8
 
 [surface.netherite_sledgehammer]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#4a4148"
 source = "item/mace"
-handle_tint = "#c2b096"
+handle_tint = "#7a4a24"
 handle_from = 8
 
 # Reinforced Concrete (#47/#51): the demolition yard's deck and the block that drops rebar. The exposed
@@ -1536,7 +1536,7 @@ prompt = "a full-bleed Minecraft block texture: the surface of dusty grey reinfo
 # Rubble's 138 and the steel beam's 136 - three materials within 12 points, which is not a separable
 # difference at 16px, so concrete simply vanished into the rubble it lies among. 0.75 puts it near 95:
 # about 43 below rubble, and still clearly mid-grey rather than the near-black the vanilla placeholder gave.
-brightness = 1.3
+brightness = 0.75
 # A palette for the procedural backend, so a procedural/AI comparison is fair rather than a strawman:
 # without one it falls back to a default grey and loses on presentation, not merit. Dark concrete greys
 # with two rust tones for the rebar.
@@ -1579,7 +1579,7 @@ backend = "ai"
 size = 16
 reference = "steel_beam_web"
 match_hue = "steel_beam_web"
-brightness = 1.3
+brightness = 1.18
 prompt = "keep this exact steel plate, its palette and all its markings unchanged - only darken it slightly and add a little extra surface wear. Add NO bolts, NO rivets and no new features. It must still tile seamlessly and stay uniform across the whole tile"
 
 # Derived: the same plate with the beam's ONLY fasteners added.
@@ -2014,8 +2014,8 @@ kind = "block"
 backend = "retint"
 size = 16
 source = "block/coarse_dirt"
-tint = "#c2b096"
-brightness = 1.3
+tint = "#cdb298"
+brightness = 1.0
 prompt = "vanilla coarse dirt, darkened"
 # Calibrated, not eyeballed: vanilla coarse dirt is mean luma 90.4 and this lands at 66, about
 # three quarters. Dark enough to read as a different ground at a glance, close enough that it
@@ -2461,21 +2461,21 @@ prompt = "a handheld garbage vacuum tool: a stubby riveted copper canister body 
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#cececf"
 source = "item/copper_garbage_vacuum"
 
 [surface.diamond_garbage_vacuum]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#4dd0c8"
 source = "item/copper_garbage_vacuum"
 
 [surface.netherite_garbage_vacuum]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#c2b096"
+tint = "#4a4148"
 source = "item/copper_garbage_vacuum"
 
 # The running overlay: layer1 over any tier's body, shown only while the item is in use. Six frames
