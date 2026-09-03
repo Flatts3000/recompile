@@ -74,6 +74,40 @@ final class VanillaParityTests {
      * to match too - a block that exposes nothing where vanilla exposes something cannot be piped at all,
      * which is exactly the Scrap Barrel's bug.
      */
+    /**
+     * Extraction parity on every face, the null one included.
+     *
+     * <p>Assumes {@code assertInsertParity} has already placed both blocks - it is called straight
+     * after it, and re-placing them would discard the contents that make an extract worth probing.
+     *
+     * <p><b>The null side is the point.</b> {@code WorldlyContainerWrapper.extract} is guarded by
+     * {@code side != null &&}, so a non-sided caller skips {@code canTakeItemThroughFace} entirely.
+     * That is exactly the behaviour a parity block must KEEP and a bespoke machine must refuse, and it
+     * is only visible if the comparison includes null - which {@code faces()} does and
+     * {@code Direction.values()} does not.
+     */
+    private static void assertExtractParity(GameTestHelper helper, ItemResource resource, String label) {
+        // SAME GUARD AS THE INSERT HALF, for the same reason. If the vanilla reference could not hand
+        // the item back on any face, every comparison would be 0 == 0 and this would pass while
+        // asserting that two blocks are equally unextractable. Proven before it is used.
+        int vanillaBest = 0;
+        for (Direction side : faces()) {
+            vanillaBest = Math.max(vanillaBest, probeExtract(handler(helper, VANILLA, side), resource, 1));
+        }
+        helper.assertTrue(vanillaBest > 0,
+            label + ": the vanilla reference gave nothing back on any face, so an extract comparison "
+                + "would be 0 == 0 everywhere and prove nothing");
+
+        for (Direction side : faces()) {
+            ResourceHandler<ItemResource> mine = handler(helper, OURS, side);
+            ResourceHandler<ItemResource> theirs = handler(helper, VANILLA, side);
+            int a = probeExtract(mine, resource, 1);
+            int b = probeExtract(theirs, resource, 1);
+            helper.assertTrue(a == b, label + ": extract on " + side
+                + " must match vanilla - ours " + a + ", vanilla " + b);
+        }
+    }
+
     private static void assertInsertParity(GameTestHelper helper, Block ours, Block vanilla,
             ItemResource resource, String label) {
         helper.setBlock(OURS, ours);
@@ -122,6 +156,33 @@ final class VanillaParityTests {
         RCGameTests.test("cupola_matches_vanilla_furnace", 20, helper -> {
             assertInsertParity(helper, RCBlocks.CUPOLA_FURNACE.get(), Blocks.FURNACE,
                 ItemResource.of(RCItems.STEEL_OFFCUT.get()), "cupola");
+            helper.succeed();
+        });
+
+        // THE OTHER TWO FURNACES (#341). Neither was covered here, and the gap only surfaced because
+        // a comment elsewhere justified leaving them unguarded on the null side by claiming they were
+        // "held to vanilla parity" - a claim this file was the whole evidence for, and did not support.
+        //
+        // Both are plain AbstractFurnaceBlockEntity subclasses that override none of the automation
+        // methods, so they should be vanilla's behaviour exactly. That is worth ASSERTING rather than
+        // reading off the class declaration: a future override, or a NeoForge change to the base
+        // class, would be invisible until a hopper stopped working in somebody's base.
+        //
+        // Insert AND extract, unlike the Cupola's test above which checks insert only. The claim being
+        // pinned is specifically about every face PLUS the null one on the EXTRACT path, since that is
+        // where WorldlyContainerWrapper's `side != null &&` guard lives.
+        RCGameTests.test("slag_furnace_matches_vanilla_furnace", 20, helper -> {
+            assertInsertParity(helper, RCBlocks.SLAG_FURNACE.get(), Blocks.FURNACE,
+                ItemResource.of(RCItems.SLAG.get()), "slag furnace");
+            assertExtractParity(helper, ItemResource.of(RCItems.SLAG.get()), "slag furnace");
+            helper.succeed();
+        });
+
+        RCGameTests.test("sintering_kiln_matches_vanilla_furnace", 20, helper -> {
+            assertInsertParity(helper, RCBlocks.SINTERING_KILN.get(), Blocks.FURNACE,
+                ItemResource.of(RCItems.BLAZE_BRIQUETTE.get()), "sintering kiln");
+            assertExtractParity(helper, ItemResource.of(RCItems.BLAZE_BRIQUETTE.get()),
+                "sintering kiln");
             helper.succeed();
         });
 
