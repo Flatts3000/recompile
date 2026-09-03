@@ -1,1151 +1,1178 @@
-# Vanilla Minecraft Resource Checklist
+# Vanilla Resource Checklist, checked against Recompile
 
-Every resource vanilla Minecraft gives a player **without a crafting grid** - mined, killed,
-harvested, fished, brushed, traded, or looted - grouped by where you go to get it.
+Every resource vanilla Minecraft gives a player **without a crafting grid**, grouped by where you
+go to get it - and for each one, whether a player of **Recompile standalone** can actually get it.
 
-**Scope.** A row is here if the game has at least one non-crafting way to obtain it. That includes
-found-only manufactured goods (horse armor, music discs, pottery sherds, tridents), because those
-are found and not craftable. It excludes items whose only "source" is breaking one you placed
-yourself - a crafted block dropping itself is not acquisition.
+- `[x]` reachable, followed by the route that reaches it.
+- `[ ]` not reachable, followed by why not.
 
 | | |
 |---|---|
-| Minecraft version | 26.1.2 (client jar shipped with this repo's NeoForge toolchain) |
-| Rows | 886 |
+| Minecraft version | 26.1.2 |
+| Catalogued | 886 |
+| **Reachable in Recompile** | **725 (82%)** |
+| Not reachable | 161 |
+| Mobs obtainable | 59 |
 | Generated | 2026-09-02 |
 
-**How this was built.** Derived from the game's own data, not from memory:
+**How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
+own data. Seeded from what the garbage world actually generates (its 4 biomes, its terrain rules,
+its sewers/cooling towers/smokestacks, and the vanilla nether fortress and bastion its biome tags
+let through), plus every mob that can exist, plus the mod's loot tables. Then closed under every
+recipe that still loads - vanilla minus the 30 the mod disables, plus the mod's own 170 and its
+seven custom recipe types - until nothing new appeared. Interactions that are neither loot nor
+recipe are encoded explicitly (bucket fills, axe-stripping, oxidation, the Compost Heap volunteer,
+the Sequencer's byproduct, the Dry Clay Body cauldron step).
 
-- all 1,326 vanilla loot tables (`blocks/`, `entities/`, `chests/`, `gameplay/`, `harvest/`,
-  `shearing/`, `carve/`, `brush/`, `archaeology/`, `pots/`, `spawners/`, `equipment/`, `dispensers/`)
-- all 387 villager/wandering-trader trades (data-driven since 26.1)
-- 65 biome definitions, resolved through placed -> configured features, for what generates where
-- 1,202 structure NBT templates, palette-parsed, plus the code-generated structures
-- the `noise_settings` surface rules, for terrain blocks no feature places
-- all 1,515 vanilla recipes, to mark which resources are *also* craftable
+**Where the mobs come from.** The starting biome is creature-free by design, so the roster is
+assembled: the frontier regions spawn the hostile set, the compacted depths spawn the nether set,
+the sewers seat a drowned spawner and house turtles and frogs, the landmarks seat a parched and a
+husk, **Animal Bait** draws 16 farm and wild species, the **Sequencer** turns amber into spawn
+eggs for 29 more, and **curing a zombie villager** opens the whole villager trade tree.
 
-Domain is assigned from biome tags (`is_ocean`, `is_nether`, ...) and structure membership. An item
-found across three or more surface biomes is filed as general Overworld rather than to whichever
-biome sorts first.
+**Coverage by domain**
 
-**Legend.**
+| Domain | Reachable | Total |
+|---|---:|---:|
+| Wood | 58 | 66 |
+| Overworld - General Surface | 92 | 99 |
+| Forest | 6 | 10 |
+| Jungle | 6 | 6 |
+| Desert | 5 | 7 |
+| Badlands | 4 | 4 |
+| Taiga | 2 | 2 |
+| Swamp | 9 | 9 |
+| Snowy | 5 | 6 |
+| Mountain | 0 | 1 |
+| Mushroom Fields | 5 | 5 |
+| River | 1 | 2 |
+| Ocean | 56 | 95 |
+| Cave & Underground | 103 | 128 |
+| Nether | 73 | 82 |
+| End | 10 | 25 |
+| Structures & Chest Loot | 214 | 238 |
+| Trading | 62 | 62 |
+| Fishing | 1 | 1 |
+| Archaeology | 13 | 38 |
 
-- `(c)` - also obtainable by crafting, so the entry here is about the *found* route.
-- `(finite)` - non-renewable: the world holds a fixed amount and mining it out is permanent.
-  Taken from the wiki's non-renewable list, minus everything its renewable list also names
-  (those two pages contradict each other on 52 items, mostly Peaceful-difficulty rows and
-  Bedrock-only entries). Absence of the tag means "not confidently finite", not "renewable".
-- Sub-headings are the acquisition method.
+**Legend.** `(c)` also craftable. `(finite)` non-renewable in vanilla terms.
 
 ---
 
-## Wood  <sub>57</sub>
+## Wood  <sub>58/66</sub>
 
 *Every log/leaf/sapling family, plus the stripped variants (axe on a log).*
 
 ### Mine / break a block
 
-- [ ] `acacia_leaves` - mine acacia_leaves
-- [ ] `azalea_leaves` - mine azalea_leaves
-- [ ] `birch_leaves` - mine birch_leaves
-- [ ] `cherry_leaves` - mine cherry_leaves
-- [ ] `crimson_stem` - mine crimson_stem
-- [ ] `dark_oak_leaves` - mine dark_oak_leaves
-- [ ] `flowering_azalea_leaves` - mine flowering_azalea_leaves
-- [ ] `jungle_leaves` - mine jungle_leaves
-- [ ] `mangrove_leaves` - mine mangrove_leaves
-- [ ] `oak_leaves` - mine oak_leaves
-- [ ] `pale_oak_leaves` - mine pale_oak_leaves
-- [ ] `spruce_leaves` - mine spruce_leaves
-- [ ] `stripped_acacia_log` - mine stripped_acacia_log
-- [ ] `stripped_oak_log` - mine stripped_oak_log
-- [ ] `stripped_spruce_log` - mine stripped_spruce_log
-- [ ] `warped_stem` - mine warped_stem
+- [x] `acacia_leaves` - grow acacia sapling
+- [ ] `azalea_leaves` - no lush caves generate
+- [x] `birch_leaves` - grow birch sapling
+- [x] `cherry_leaves` - grow cherry sapling
+- [ ] `crimson_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `dark_oak_leaves` - grow dark oak sapling
+- [ ] `flowering_azalea_leaves` - no lush caves generate
+- [x] `jungle_leaves` - grow jungle sapling
+- [x] `mangrove_leaves` - grow mangrove propagule
+- [x] `oak_leaves` - grow oak sapling
+- [x] `pale_oak_leaves` - grow pale oak sapling
+- [x] `spruce_leaves` - grow spruce sapling
+- [x] `stripped_acacia_log` - use an axe on an acacia log
+- [x] `stripped_oak_log` - use an axe on an oak log
+- [x] `stripped_spruce_log` - use an axe on a spruce log
+- [ ] `warped_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
 
 ### Mob & entity drops
 
-- [ ] `bamboo` - chest jungle_temple; chest shipwreck_supply; fishing; +2 more
-- [ ] `stick` `(c)` - brush desert_well; chest spawn_bonus_chest; chest trial_chambers/entrance; +17 more
+- [x] `bamboo` - Hydroponics Bay seedling
+- [x] `stick` `(c)` - kill a witch (spawns in the demolition yard / radioactive dump)
 
 ### Harvest & interact
 
-- [ ] `stripped_acacia_wood` `(c)` - use an axe on acacia wood
-- [ ] `stripped_bamboo_block` - use an axe on a bamboo block
-- [ ] `stripped_birch_log` - use an axe on a birch log
-- [ ] `stripped_birch_wood` `(c)` - use an axe on birch wood
-- [ ] `stripped_cherry_log` - use an axe on a cherry log
-- [ ] `stripped_cherry_wood` `(c)` - use an axe on cherry wood
-- [ ] `stripped_crimson_hyphae` `(c)` - use an axe on crimson hyphae
-- [ ] `stripped_crimson_stem` - use an axe on a crimson stem
-- [ ] `stripped_dark_oak_log` - use an axe on a dark_oak log
-- [ ] `stripped_dark_oak_wood` `(c)` - use an axe on dark_oak wood
-- [ ] `stripped_jungle_log` - use an axe on a jungle log
-- [ ] `stripped_jungle_wood` `(c)` - use an axe on jungle wood
-- [ ] `stripped_mangrove_log` - use an axe on a mangrove log
-- [ ] `stripped_mangrove_wood` `(c)` - use an axe on mangrove wood
-- [ ] `stripped_pale_oak_log` - use an axe on a pale_oak log
-- [ ] `stripped_pale_oak_wood` `(c)` - use an axe on pale_oak wood
-- [ ] `stripped_warped_hyphae` `(c)` - use an axe on warped hyphae
-- [ ] `stripped_warped_stem` - use an axe on a warped stem
+- [x] `stripped_acacia_wood` `(c)` - crafted from stripped acacia log
+- [x] `stripped_bamboo_block` - use an axe on a bamboo block
+- [x] `stripped_birch_log` - use an axe on a birch log
+- [x] `stripped_birch_wood` `(c)` - crafted from stripped birch log
+- [x] `stripped_cherry_log` - use an axe on a cherry log
+- [x] `stripped_cherry_wood` `(c)` - crafted from stripped cherry log
+- [ ] `stripped_crimson_hyphae` `(c)` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [ ] `stripped_crimson_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `stripped_dark_oak_log` - use an axe on a dark oak log
+- [x] `stripped_dark_oak_wood` `(c)` - crafted from stripped dark oak log
+- [x] `stripped_jungle_log` - use an axe on a jungle log
+- [x] `stripped_jungle_wood` `(c)` - crafted from stripped jungle log
+- [x] `stripped_mangrove_log` - use an axe on a mangrove log
+- [x] `stripped_mangrove_wood` `(c)` - crafted from stripped mangrove log
+- [x] `stripped_pale_oak_log` - use an axe on a pale oak log
+- [x] `stripped_pale_oak_wood` `(c)` - crafted from stripped pale oak log
+- [ ] `stripped_warped_hyphae` `(c)` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [ ] `stripped_warped_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
 
 ### Structure chests
 
-- [ ] `acacia_log` - chest spawn_bonus_chest; mine acacia_log; trade wandering_trader
-- [ ] `acacia_planks` `(c)` - chest trial_chambers/supply; mine acacia_planks
-- [ ] `acacia_sapling` - chest village/village_savanna_house; mine acacia_leaves; mine acacia_sapling; +1 more
-- [ ] `bamboo_planks` `(c)` - chest trial_chambers/corridor; chest trial_chambers/intersection_barrel
-- [ ] `birch_log` - chest spawn_bonus_chest; mine birch_log; trade wandering_trader
-- [ ] `dark_oak_log` - chest pillager_outpost; chest spawn_bonus_chest; mine dark_oak_log; +1 more
-- [ ] `jungle_log` - chest spawn_bonus_chest; mine jungle_log; trade wandering_trader
-- [ ] `mangrove_log` - chest spawn_bonus_chest; mine mangrove_log; trade wandering_trader
-- [ ] `oak_log` - chest spawn_bonus_chest; mine oak_log; trade wandering_trader
-- [ ] `oak_planks` `(c)` - chest spawn_bonus_chest; mine oak_planks
-- [ ] `oak_sapling` - chest village/village_plains_house; chest village/village_weaponsmith; mine oak_leaves; +1 more
-- [ ] `spruce_log` - chest spawn_bonus_chest; chest village/village_taiga_house; mine spruce_log; +1 more
-- [ ] `spruce_sapling` - chest village/village_taiga_house; mine potted_spruce_sapling; mine spruce_leaves; +1 more
+- [x] `acacia_log` - grow acacia sapling
+- [x] `acacia_planks` `(c)` - crafted from acacia log
+- [x] `acacia_sapling` - Tree Nursery (fertilizer + unknown seedling)
+- [x] `bamboo_planks` `(c)` - crafted from bamboo block
+- [x] `birch_log` - grow birch sapling
+- [x] `dark_oak_log` - grow dark oak sapling
+- [x] `jungle_log` - grow jungle sapling
+- [x] `mangrove_log` - grow mangrove propagule
+- [x] `oak_log` - grow oak sapling
+- [x] `oak_planks` `(c)` - crafted from oak log
+- [x] `oak_sapling` - Tree Nursery (fertilizer + unknown seedling)
+- [x] `spruce_log` - grow spruce sapling
+- [x] `spruce_sapling` - Tree Nursery (fertilizer + unknown seedling)
 
 ### Trading
 
-- [ ] `birch_sapling` - mine birch_leaves; mine potted_birch_sapling; trade wandering_trader
-- [ ] `cherry_log` - mine cherry_log; trade wandering_trader
-- [ ] `cherry_sapling` - mine cherry_leaves; trade wandering_trader
-- [ ] `dark_oak_sapling` - mine dark_oak_leaves; mine dark_oak_sapling; trade wandering_trader
-- [ ] `jungle_sapling` - mine jungle_leaves; trade wandering_trader
-- [ ] `mangrove_propagule` - mine mangrove_propagule; trade wandering_trader
-- [ ] `pale_oak_log` - mine pale_oak_log; trade wandering_trader
-- [ ] `pale_oak_sapling` - mine pale_oak_leaves; trade wandering_trader
+- [x] `birch_sapling` - Tree Nursery (fertilizer + unknown seedling)
+- [x] `cherry_log` - grow cherry sapling
+- [x] `cherry_sapling` - Tree Nursery (fertilizer + unknown seedling)
+- [x] `dark_oak_sapling` - Tree Nursery (fertilizer + unknown seedling)
+- [x] `jungle_sapling` - Tree Nursery (fertilizer + unknown seedling)
+- [x] `mangrove_propagule` - Tree Nursery (fertilizer + unknown seedling)
+- [x] `pale_oak_log` - grow pale oak sapling
+- [x] `pale_oak_sapling` - Tree Nursery (fertilizer + unknown seedling)
 
-<details><summary>Also mineable from structures here, but craftable (9) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (9, 9 reachable) - decoration, not a resource</summary>
 
 `acacia_wood`, `birch_planks`, `dark_oak_planks`, `jungle_planks`, `mangrove_wood`, `spruce_planks`, `spruce_wood`, `stripped_oak_wood`, `stripped_spruce_wood`
 
 </details>
 
 
-## Overworld - General Surface  <sub>99</sub>
+## Overworld - General Surface  <sub>92/99</sub>
 
-*Found across three or more surface biomes, so not biome-specific: farm animals, wool, eggs, common plants.*
+*Found across three or more surface biomes, so not biome-specific.*
 
 ### Mine / break a block
 
-- [ ] `amethyst_cluster` - mine amethyst_cluster
-- [ ] `bee_nest` - mine bee_nest
-- [ ] `coarse_dirt` `(c)` - mine coarse_dirt
-- [ ] `creaking_heart` `(c)` - mine creaking_heart
-- [ ] `dirt` - mine dirt; mine dirt_path; mine farmland; +3 more
-- [ ] `grass_block` - mine grass_block
-- [ ] `large_amethyst_bud` - mine large_amethyst_bud
-- [ ] `medium_amethyst_bud` - mine medium_amethyst_bud
-- [ ] `mossy_cobblestone` `(c)` - mine mossy_cobblestone
-- [ ] `sandstone` `(c)` - mine sandstone
-- [ ] `small_amethyst_bud` - mine small_amethyst_bud
-- [ ] `sunflower` - mine sunflower
-- [ ] `turtle_egg` - mine turtle_egg
+- [ ] `amethyst_cluster` - no amethyst geodes generate
+- [x] `bee_nest` - grow a birch sapling within 2 blocks of a flower (5% bee nest)
+- [x] `coarse_dirt` `(c)` - mine coarse_dirt (overworld terrain)
+- [x] `creaking_heart` `(c)` - crafted from pale oak log + resin block
+- [x] `dirt` - mine mycelium (mycelium patches)
+- [x] `grass_block` - Grass Spreader converts coarse dirt to grass
+- [ ] `large_amethyst_bud` - no amethyst geodes generate
+- [ ] `medium_amethyst_bud` - no amethyst geodes generate
+- [x] `mossy_cobblestone` `(c)` - crafted from cobblestone + moss block
+- [x] `sandstone` `(c)` - crafted from sand
+- [ ] `small_amethyst_bud` - no amethyst geodes generate
+- [ ] `sunflower` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `turtle_egg` - breed turtles on sand
 
 ### Mob & entity drops
 
-- [ ] `arrow` `(c)` - chest bastion_bridge; chest bastion_hoglin_stable; chest bastion_other; +15 more
-- [ ] `beef` - chest village/village_butcher; kill cow; kill mooshroom
-- [ ] `black_wool` `(c)` - chest village/village_shepherd; hero of the village gift; kill sheep; +3 more
-- [ ] `blue_wool` `(c)` - hero of the village gift; kill sheep; mine blue_wool; +2 more
-- [ ] `bone` - chest ancient_city; chest desert_pyramid; chest jungle_temple; +9 more
-- [ ] `brown_wool` `(c)` - chest village/village_shepherd; hero of the village gift; kill sheep; +3 more
-- [ ] `carrot` - chest pillager_outpost; chest shipwreck_supply; kill husk; +2 more
-- [ ] `chicken` - cat morning gift; kill chicken
-- [ ] `cyan_wool` `(c)` - hero of the village gift; kill sheep; mine cyan_wool; +2 more
-- [ ] `feather` - cat morning gift; chest shipwreck_map; chest village/village_fletcher; +3 more
-- [ ] `glass_bottle` `(c)` - kill witch
-- [ ] `glow_ink_sac` - kill glow_squid
-- [ ] `gray_wool` `(c)` - chest village/village_shepherd; hero of the village gift; kill sheep; +3 more
-- [ ] `green_wool` `(c)` - hero of the village gift; kill sheep; mine green_wool; +2 more
-- [ ] `gunpowder` - brush desert_pyramid; chest desert_pyramid; chest shipwreck_supply; +6 more
-- [ ] `iron_ingot` `(c)` - chest abandoned_mineshaft; chest bastion_bridge; chest bastion_other; +21 more
-- [ ] `light_blue_wool` `(c)` - hero of the village gift; kill sheep; mine light_blue_wool; +2 more
-- [ ] `light_gray_wool` `(c)` - chest village/village_shepherd; hero of the village gift; kill sheep; +3 more
-- [ ] `lime_wool` `(c)` - hero of the village gift; kill sheep; mine lime_wool; +2 more
-- [ ] `magenta_wool` `(c)` - hero of the village gift; kill sheep; shear sheep; +1 more
-- [ ] `music_disc_11` - kill creeper
-- [ ] `music_disc_13` - chest ancient_city; chest simple_dungeon; chest woodland_mansion; +1 more
-- [ ] `music_disc_blocks` - kill creeper
-- [ ] `music_disc_cat` - chest ancient_city; chest simple_dungeon; chest woodland_mansion; +1 more
-- [ ] `music_disc_chirp` - kill creeper
-- [ ] `music_disc_far` - kill creeper
-- [ ] `music_disc_lava_chicken` - kill zombie
-- [ ] `music_disc_mall` - kill creeper
-- [ ] `music_disc_mellohi` - kill creeper
-- [ ] `music_disc_stal` - kill creeper
-- [ ] `music_disc_strad` - kill creeper
-- [ ] `music_disc_wait` - kill creeper
-- [ ] `music_disc_ward` - kill creeper
-- [ ] `mutton` - chest village/village_butcher; kill sheep
-- [ ] `orange_wool` `(c)` - hero of the village gift; kill sheep; mine orange_wool; +2 more
-- [ ] `phantom_membrane` - cat morning gift; kill phantom
-- [ ] `pink_wool` `(c)` - hero of the village gift; kill sheep; shear sheep; +1 more
-- [ ] `poppy` - chest village/village_plains_house; hero of the village gift; kill iron_golem; +3 more
-- [ ] `porkchop` - chest bastion_hoglin_stable; chest village/village_butcher; kill hoglin; +1 more
-- [ ] `potato` - chest pillager_outpost; chest shipwreck_supply; chest village/village_plains_house; +5 more
-- [ ] `purple_wool` `(c)` - hero of the village gift; kill sheep; shear sheep; +1 more
-- [ ] `rabbit` - kill rabbit
-- [ ] `rabbit_foot` - cat morning gift; kill husk; kill rabbit
-- [ ] `rabbit_hide` - cat morning gift; kill rabbit
-- [ ] `red_mushroom` - kill zombie; mine red_mushroom; mine red_mushroom_block; +3 more
-- [ ] `red_wool` `(c)` - hero of the village gift; kill sheep; mine red_wool; +2 more
-- [ ] `rotten_flesh` - cat morning gift; chest desert_pyramid; chest igloo_chest; +16 more
-- [ ] `slime_ball` `(c)` - kill slime; panda sneeze; trade wandering_trader
-- [ ] `snowball` - chest ancient_city_ice_box; chest village/village_snowy_house; dispensers (trial chambers); +4 more
-- [ ] `spider_eye` - chest desert_pyramid; kill cave_spider; kill spider; +1 more
-- [ ] `sugar` `(c)` - kill witch
-- [ ] `tipped_arrow` `(c)` - chest trial_chambers/reward_common; chest trial_chambers/reward_ominous_common; chest trial_chambers/supply; +5 more
-- [ ] `white_wool` `(c)` - chest village/village_shepherd; hero of the village gift; kill sheep; +3 more
-- [ ] `yellow_wool` `(c)` - hero of the village gift; kill sheep; mine yellow_wool; +2 more
+- [x] `arrow` `(c)` - kill a skeleton (spawns in the demolition yard / radioactive dump)
+- [x] `beef` - kill a cow (Animal Bait)
+- [x] `black_wool` `(c)` - shear a sheep
+- [x] `blue_wool` `(c)` - shear a sheep
+- [x] `bone` - brush sewer silt
+- [x] `brown_wool` `(c)` - shear a sheep
+- [x] `carrot` - Hydroponics Bay seedling
+- [x] `chicken` - kill a chicken (Animal Bait)
+- [x] `cyan_wool` `(c)` - shear a sheep
+- [x] `feather` - kill a chicken (Animal Bait)
+- [x] `glass_bottle` `(c)` - brush sewer silt
+- [x] `glow_ink_sac` - torn down at the Recompile Workbench from printer
+- [x] `gray_wool` `(c)` - shear a sheep
+- [x] `green_wool` `(c)` - shear a sheep
+- [x] `gunpowder` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `iron_ingot` `(c)` - kill a zombie (spawns in the demolition yard / radioactive dump)
+- [x] `light_blue_wool` `(c)` - shear a sheep
+- [x] `light_gray_wool` `(c)` - shear a sheep
+- [x] `lime_wool` `(c)` - shear a sheep
+- [x] `magenta_wool` `(c)` - shear a sheep
+- [x] `music_disc_11` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_13` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_blocks` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_cat` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_chirp` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_far` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_lava_chicken` - kill a zombie (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_mall` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_mellohi` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_stal` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_strad` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_wait` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `music_disc_ward` - kill a creeper (spawns in the demolition yard / radioactive dump)
+- [x] `mutton` - kill a sheep (Animal Bait)
+- [x] `orange_wool` `(c)` - shear a sheep
+- [x] `phantom_membrane` - kill a phantom (insomnia)
+- [x] `pink_wool` `(c)` - shear a sheep
+- [x] `poppy` - kill a iron golem (built)
+- [x] `porkchop` - kill a hoglin (bastion remnant (generates in the compacted depths))
+- [x] `potato` - Hydroponics Bay seedling
+- [x] `purple_wool` `(c)` - shear a sheep
+- [x] `rabbit` - kill a rabbit (Animal Bait)
+- [x] `rabbit_foot` - kill a husk (smokestack spawner)
+- [x] `rabbit_hide` - kill a rabbit (Animal Bait)
+- [x] `red_mushroom` - mine red_mushroom (sewers)
+- [x] `red_wool` `(c)` - shear a sheep
+- [x] `rotten_flesh` - household pull stream (sort garbage)
+- [x] `slime_ball` `(c)` - kill a slime (spawns in the demolition yard / radioactive dump)
+- [x] `snowball` - kill a snow golem (built)
+- [x] `spider_eye` - kill a spider (spawns in the demolition yard / radioactive dump)
+- [x] `sugar` `(c)` - kill a witch (spawns in the demolition yard / radioactive dump)
+- [x] `tipped_arrow` `(c)` - kill a parched (cooling tower spawner)
+- [x] `white_wool` `(c)` - shear a sheep
+- [x] `yellow_wool` `(c)` - shear a sheep
 
 ### Harvest & interact
 
-- [ ] `armadillo_scute` - armadillo shed; brush an armadillo
-- [ ] `beetroot` - grow beetroot seeds
-- [ ] `blue_egg` - chicken lays egg
-- [ ] `brown_egg` - chicken lays egg
-- [ ] `brown_mushroom` - mine brown_mushroom; mine brown_mushroom_block; shear bogged; +2 more
-- [ ] `creeper_head` - charged creeper kills creeper
-- [ ] `piglin_head` - charged creeper kills piglin
-- [ ] `pitcher_plant` - grow a pitcher pod (sniffer)
-- [ ] `pitcher_pod` - sniffer digging
-- [ ] `player_head` - a charged creeper kills a player
-- [ ] `torchflower` - grow torchflower seeds (sniffer)
-- [ ] `torchflower_seeds` - sniffer digging
-- [ ] `turtle_scute` - turtle grows up
-- [ ] `wither_rose` - a wither kills a mob
-- [ ] `zombie_head` - charged creeper kills zombie
+- [x] `armadillo_scute` - an armadillo sheds its scute
+- [x] `beetroot` - grow beetroot seeds
+- [x] `blue_egg` - a chicken lays an egg
+- [x] `brown_egg` - a chicken lays an egg
+- [x] `brown_mushroom` - shear a mooshroom
+- [x] `creeper_head` - a charged creeper kills a creeper
+- [x] `piglin_head` - a charged creeper kills a piglin
+- [x] `pitcher_plant` - grow pitcher pod
+- [x] `pitcher_pod` - sniffer digging
+- [ ] `player_head` - needs a charged creeper to kill another player
+- [x] `torchflower` - grow torchflower seeds
+- [x] `torchflower_seeds` - sniffer digging
+- [x] `turtle_scute` - a turtle grows up
+- [x] `wither_rose` - the wither kills a mob
+- [x] `zombie_head` - a charged creeper kills a zombie
 
 ### Piglin bartering
 
-- [ ] `crying_obsidian` - chest bastion_bridge; chest bastion_hoglin_stable; chest bastion_other; +3 more
-- [ ] `dried_ghast` `(c)` - piglin bartering
-- [ ] `ender_pearl` - chest stronghold_corridor; chest trial_chambers/corridor; kill enderman; +2 more
-- [ ] `leather` `(c)` - chest ancient_city; chest bastion_bridge; chest bastion_hoglin_stable; +16 more
-- [ ] `nether_brick` `(c)` - piglin bartering
+- [x] `crying_obsidian` - piglin bartering
+- [x] `dried_ghast` `(c)` - piglin bartering
+- [x] `ender_pearl` - kill a enderman (spawns in the demolition yard / radioactive dump)
+- [x] `leather` `(c)` - kill a hoglin (bastion remnant (generates in the compacted depths))
+- [x] `nether_brick` `(c)` - piglin bartering
 
 ### Structure chests
 
-- [ ] `apple` - chest igloo_chest; chest spawn_bonus_chest; chest stronghold_corridor; +6 more
-- [ ] `dandelion` - chest village/village_plains_house; mine dandelion; mine potted_dandelion; +1 more
-- [ ] `dead_bush` `(finite)` - brush trail_ruins_common; chest village/village_desert_house; mine dead_bush; +1 more
-- [ ] `pumpkin` - chest shipwreck_supply; mine pumpkin; trade wandering_trader
-- [ ] `resin_clump` `(c)` - chest woodland_mansion; mine creaking_heart
-- [ ] `sand` - chest desert_pyramid; mine sand; trade wandering_trader
-- [ ] `short_grass` - chest village/village_savanna_house; mine short_grass; mine tall_grass
-- [ ] `wheat_seeds` - brush trail_ruins_common; chest village/village_fisher; chest village/village_savanna_house; +7 more
+- [x] `apple` - grow oak sapling
+- [x] `dandelion` - buy from a wandering trader
+- [ ] `dead_bush` `(finite)` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `pumpkin` - grow pumpkin seeds
+- [x] `resin_clump` `(c)` - crafted from spent amber + turpentine
+- [x] `sand` - mill tailings pull stream
+- [x] `short_grass` - bone meal on grass
+- [x] `wheat_seeds` - Hydroponics Bay seedling
 
 ### Trading
 
-- [ ] `clay` `(c)` - brush trail_ruins_common; hero of the village gift; mine clay
-- [ ] `firefly_bush` - mine firefly_bush; trade wandering_trader
-- [ ] `pale_hanging_moss` - mine pale_hanging_moss; trade wandering_trader
-- [ ] `sugar_cane` - mine sugar_cane; trade wandering_trader
+- [x] `clay` `(c)` - crafted from clay ball
+- [x] `firefly_bush` - buy from a wandering trader
+- [x] `pale_hanging_moss` - buy from a wandering trader
+- [x] `sugar_cane` - Hydroponics Bay seedling
 
 
-## Forest  <sub>10</sub>
+## Forest  <sub>6/10</sub>
 
 ### Mine / break a block
 
-- [ ] `closed_eyeblossom` - mine closed_eyeblossom
-- [ ] `leaf_litter` `(c)` - mine leaf_litter
-- [ ] `lilac` - mine lilac
-- [ ] `pale_moss_carpet` `(c)` - mine pale_moss_carpet
-- [ ] `peony` - mine peony
-- [ ] `rose_bush` - mine rose_bush
+- [ ] `closed_eyeblossom` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `leaf_litter` `(c)` - smelted from acacia leaves
+- [ ] `lilac` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `pale_moss_carpet` `(c)` - crafted from pale moss block
+- [ ] `peony` - nothing in this world, its structures, its mobs or its recipes produces one
+- [ ] `rose_bush` - nothing in this world, its structures, its mobs or its recipes produces one
 
 ### Trading
 
-- [ ] `allium` - mine allium; mine potted_allium; trade wandering_trader
-- [ ] `lily_of_the_valley` - mine lily_of_the_valley; trade wandering_trader
-- [ ] `pale_moss_block` - mine pale_moss_block; trade wandering_trader
-- [ ] `wildflowers` - mine wildflowers; trade wandering_trader
+- [x] `allium` - buy from a wandering trader
+- [x] `lily_of_the_valley` - buy from a wandering trader
+- [x] `pale_moss_block` - buy from a wandering trader
+- [x] `wildflowers` - buy from a wandering trader
 
 
-## Jungle  <sub>5</sub>
+## Jungle  <sub>6/6</sub>
 
 ### Mine / break a block
 
-- [ ] `cocoa_beans` - mine cocoa
-- [ ] `melon` `(c)` - mine melon
-- [ ] `melon_slice` - mine melon
+- [x] `cocoa_beans` - Hydroponics Bay seedling
+- [x] `melon` `(c)` - grow melon seeds
+- [x] `melon_slice` - grow melon seeds
 
 ### Structure chests
 
-- [ ] `fern` - chest village/village_taiga_house; mine fern; mine large_fern; +1 more
-- [ ] `tripwire_hook` `(c)` - chest pillager_outpost; fishing; mine tripwire_hook
+- [x] `fern` - buy from a wandering trader
+- [x] `tripwire_hook` `(c)` - crafted from bamboo planks + iron ingot
 
-<details><summary>Also mineable from structures here, but craftable (1) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (1, 1 reachable) - decoration, not a resource</summary>
 
 `dispenser`
 
 </details>
 
 
-## Desert  <sub>6</sub>
+## Desert  <sub>5/7</sub>
 
 ### Mine / break a block
 
-- [ ] `cactus_flower` - mine cactus_flower
-- [ ] `short_dry_grass` - mine short_dry_grass
+- [ ] `cactus_flower` - nothing in this world, its structures, its mobs or its recipes produces one
+- [ ] `short_dry_grass` - nothing in this world, its structures, its mobs or its recipes produces one
 
 ### Structure chests
 
-- [ ] `cactus` - chest village/village_desert_house; mine cactus; mine potted_cactus; +1 more
+- [x] `cactus` - Hydroponics Bay seedling
 
 ### Trading
 
-- [ ] `blue_terracotta` `(c)` - mine blue_terracotta; trade mason
-- [ ] `orange_terracotta` `(c)` - mine orange_terracotta; trade mason
-- [ ] `tall_dry_grass` - mine tall_dry_grass; trade wandering_trader
+- [x] `blue_terracotta` `(c)` - crafted from terracotta + blue dye
+- [x] `orange_terracotta` `(c)` - crafted from terracotta + orange dye
+- [x] `tall_dry_grass` - buy from a wandering trader
 
-<details><summary>Also mineable from structures here, but craftable (1) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (1, 1 reachable) - decoration, not a resource</summary>
 
 `sandstone_slab`
 
 </details>
 
 
-## Badlands  <sub>4</sub>
+## Badlands  <sub>4/4</sub>
 
 ### Mine / break a block
 
-- [ ] `red_sandstone` `(c)` - mine red_sandstone
-- [ ] `terracotta` `(c)` - mine terracotta
+- [x] `red_sandstone` `(c)` - crafted from red sand
+- [x] `terracotta` `(c)` - smelted from clay
 
 ### Trading
 
-- [ ] `red_sand` - mine red_sand; trade wandering_trader
-- [ ] `white_terracotta` `(c)` - mine white_terracotta; trade mason
+- [x] `red_sand` - break a mod block
+- [x] `white_terracotta` `(c)` - crafted from terracotta + white dye
 
 
-## Taiga  <sub>2</sub>
+## Taiga  <sub>2/2</sub>
 
 ### Harvest & interact
 
-- [ ] `sweet_berries` - chest village/village_taiga_house; harvest sweet_berry_bush; mine sweet_berry_bush
+- [x] `sweet_berries` - Hydroponics Bay seedling
 
 ### Trading
 
-- [ ] `podzol` - mine podzol; trade wandering_trader
+- [x] `podzol` - buy from a wandering trader
 
 
-## Swamp  <sub>7</sub>
+## Swamp  <sub>9/9</sub>
 
 ### Mine / break a block
 
-- [ ] `mangrove_roots` - mine mangrove_roots
-- [ ] `mud` - mine mud
-- [ ] `muddy_mangrove_roots` `(c)` - mine muddy_mangrove_roots
+- [x] `mangrove_roots` - grow mangrove propagule
+- [x] `mud` - mine mud (sewers)
+- [x] `muddy_mangrove_roots` `(c)` - crafted from mud + mangrove roots
 
 ### Structure chests
 
-- [ ] `flower_pot` `(c)` - brush trail_ruins_common; chest village/village_mason; mine flower_pot; +12 more
+- [x] `flower_pot` `(c)` - crafted from brick
 
 ### Trading
 
-- [ ] `blue_orchid` - mine blue_orchid; mine potted_blue_orchid; trade wandering_trader
-- [ ] `lily_pad` - fishing; mine lily_pad; trade wandering_trader
+- [x] `blue_orchid` - buy from a wandering trader
+- [x] `lily_pad` - fishing (water from a Rain Collector or the sewers)
 
 ### Other
 
-- [ ] `tadpole_bucket` - bucket a tadpole
+- [x] `tadpole_bucket` - bucket a tadpole
 
-<details><summary>Also mineable from structures here, but craftable (2) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (2, 2 reachable) - decoration, not a resource</summary>
 
 `cauldron`, `crafting_table`
 
 </details>
 
 
-## Snowy  <sub>6</sub>
+## Snowy  <sub>5/6</sub>
 
 ### Mine / break a block
 
-- [ ] `ice` - mine ice
-- [ ] `snow` `(c)` - mine snow
+- [x] `ice` - torn down at the Recompile Workbench from fridge
+- [x] `snow` `(c)` - crafted from snow block
 
 ### Structure chests
 
-- [ ] `blue_ice` `(c)` - chest village/village_snowy_house; mine blue_ice; trade wandering_trader
-- [ ] `packed_ice` `(c)` - chest ancient_city_ice_box; mine packed_ice; trade wandering_trader
-- [ ] `snow_block` `(c)` - chest village/village_snowy_house; mine snow; mine snow_block
+- [x] `blue_ice` `(c)` - crafted from packed ice
+- [x] `packed_ice` `(c)` - crafted from ice
+- [x] `snow_block` `(c)` - crafted from snowball
 
 ### Other
 
-- [ ] `powder_snow_bucket` - fill a bucket from powder snow
+- [ ] `powder_snow_bucket` - no powder snow in this world
 
 
-## Mountain  <sub>1</sub>
-
-### Mine / break a block
-
-- [ ] `pink_petals` - mine pink_petals
-
-
-## Mushroom Fields  <sub>5</sub>
+## Mountain  <sub>0/1</sub>
 
 ### Mine / break a block
 
-- [ ] `brown_mushroom_block` - mine brown_mushroom_block
-- [ ] `mushroom_stem` - mine mushroom_stem
-- [ ] `mycelium` - mine mycelium
-- [ ] `red_mushroom_block` - mine red_mushroom_block
+- [ ] `pink_petals` - nothing in this world, its structures, its mobs or its recipes produces one
+
+
+## Mushroom Fields  <sub>5/5</sub>
+
+### Mine / break a block
+
+- [x] `brown_mushroom_block` - bone meal a brown mushroom into a huge one
+- [x] `mushroom_stem` - bone meal a mushroom into a huge one
+- [x] `mycelium` - mine mycelium (mycelium patches)
+- [x] `red_mushroom_block` - bone meal a red mushroom into a huge one
 
 ### Other
 
-- [ ] `mushroom_stew` `(c)` - milk a mooshroom with a bowl
+- [x] `mushroom_stew` `(c)` - crafted from brown mushroom + red mushroom
 
 
-## River  <sub>2</sub>
+## River  <sub>1/2</sub>
 
 ### Mine / break a block
 
-- [ ] `bush` - mine bush
+- [ ] `bush` - nothing in this world, its structures, its mobs or its recipes produces one
 
 ### Other
 
-- [ ] `salmon_bucket` - bucket a salmon
+- [x] `salmon_bucket` - bucket a salmon
 
 
-## Ocean  <sub>74</sub>
+## Ocean  <sub>56/95</sub>
 
-*Warm/cold/frozen oceans and their structures: monuments, shipwrecks, ocean ruins, buried treasure.*
+*Oceans and their structures: monuments, shipwrecks, ocean ruins, buried treasure.*
 
 ### Mine / break a block
 
-- [ ] `brain_coral` - mine brain_coral
-- [ ] `brain_coral_fan` - mine brain_coral_fan
-- [ ] `bubble_coral` - mine bubble_coral
-- [ ] `bubble_coral_fan` - mine bubble_coral_fan
-- [ ] `dead_brain_coral` - mine dead_brain_coral
-- [ ] `dead_brain_coral_block` - mine brain_coral_block; mine dead_brain_coral_block
-- [ ] `dead_brain_coral_fan` - mine dead_brain_coral_fan
-- [ ] `dead_bubble_coral` - mine dead_bubble_coral
-- [ ] `dead_bubble_coral_block` - mine bubble_coral_block; mine dead_bubble_coral_block
-- [ ] `dead_bubble_coral_fan` - mine dead_bubble_coral_fan
-- [ ] `dead_fire_coral` - mine dead_fire_coral
-- [ ] `dead_fire_coral_block` - mine dead_fire_coral_block; mine fire_coral_block
-- [ ] `dead_fire_coral_fan` - mine dead_fire_coral_fan
-- [ ] `dead_horn_coral` - mine dead_horn_coral
-- [ ] `dead_horn_coral_block` - mine dead_horn_coral_block; mine horn_coral_block
-- [ ] `dead_horn_coral_fan` - mine dead_horn_coral_fan
-- [ ] `dead_tube_coral` - mine dead_tube_coral
-- [ ] `dead_tube_coral_block` - mine dead_tube_coral_block; mine tube_coral_block
-- [ ] `dead_tube_coral_fan` - mine dead_tube_coral_fan
-- [ ] `fire_coral` - mine fire_coral
-- [ ] `fire_coral_fan` - mine fire_coral_fan
-- [ ] `horn_coral` - mine horn_coral
-- [ ] `horn_coral_fan` - mine horn_coral_fan
-- [ ] `magma_block` `(c)` - mine magma_block
-- [ ] `tube_coral` - mine tube_coral
-- [ ] `tube_coral_fan` - mine tube_coral_fan
+- [ ] `brain_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `brain_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `bubble_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `bubble_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_brain_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_brain_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_brain_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_bubble_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_bubble_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_bubble_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_fire_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_fire_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_fire_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_horn_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_horn_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_horn_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_tube_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_tube_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `dead_tube_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `fire_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `fire_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `horn_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `horn_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `magma_block` `(c)` - mine magma_block (bastion remnant)
+- [ ] `tube_coral` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `tube_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
 
 ### Mob & entity drops
 
-- [ ] `cod` - chest village/village_fisher; fishing; hero of the village gift; +5 more
-- [ ] `ink_sac` - fishing; kill squid
-- [ ] `nautilus_shell` - fishing; kill nautilus; trade wandering_trader
-- [ ] `prismarine_crystals` - chest buried_treasure; kill elder_guardian; kill guardian; +1 more
-- [ ] `prismarine_shard` - kill elder_guardian; kill guardian
-- [ ] `pufferfish` - fishing; kill pufferfish
-- [ ] `salmon` - chest spawn_bonus_chest; chest village/village_fisher; fishing; +3 more
-- [ ] `seagrass` - kill turtle; mine seagrass
-- [ ] `tide_armor_trim_smithing_template` `(c)` - kill elder_guardian
-- [ ] `wet_sponge` `(finite)` - kill elder_guardian; mine wet_sponge
+- [x] `cod` - kill a polar bear (spawn egg (amber -> Sequencer -> Blueprint))
+- [x] `ink_sac` - kill a squid (spawn egg (amber -> Sequencer -> Blueprint))
+- [x] `nautilus_shell` - brush sewer silt
+- [ ] `prismarine_crystals` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `prismarine_shard` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `pufferfish` - fishing (water from a Rain Collector or the sewers)
+- [x] `salmon` - kill a polar bear (spawn egg (amber -> Sequencer -> Blueprint))
+- [x] `seagrass` - kill a turtle (sewer resident)
+- [ ] `tide_armor_trim_smithing_template` `(c)` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `wet_sponge` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
 
 ### Piglin bartering
 
-- [ ] `potion` - chest ancient_city; chest buried_treasure; chest trial_chambers/supply; +4 more
+- [x] `potion` - piglin bartering
 
 ### Structure chests
 
-- [ ] `clock` `(c)` - chest ruined_portal; chest shipwreck_map; trade librarian
-- [ ] `coast_armor_trim_smithing_template` `(c)` - chest shipwreck_map; chest shipwreck_supply; chest shipwreck_treasure
-- [ ] `compass` `(c)` - chest ancient_city; chest shipwreck_map; chest stronghold_library; +3 more
-- [ ] `cooked_cod` `(c)` - chest buried_treasure; trade fisherman
-- [ ] `cooked_salmon` `(c)` - chest buried_treasure; trade fisherman
-- [ ] `copper_nautilus_armor` `(finite)` - chest buried_treasure; chest shipwreck_map; chest shipwreck_supply; +3 more
-- [ ] `diamond_nautilus_armor` `(finite)` - chest buried_treasure; chest shipwreck_map; chest shipwreck_supply; +3 more
-- [ ] `experience_bottle` - chest ancient_city; chest pillager_outpost; chest shipwreck_treasure; +1 more
-- [ ] `fishing_rod` `(c)` - chest underwater_ruin_big; chest underwater_ruin_small; fishing; +1 more
-- [ ] `gold_block` `(c)` - chest bastion_bridge; chest bastion_hoglin_stable; chest bastion_other; +3 more
-- [ ] `golden_helmet` `(c)` - chest bastion_bridge; chest bastion_other; chest ruined_portal; +2 more
-- [ ] `golden_nautilus_armor` `(finite)` - chest buried_treasure; chest shipwreck_map; chest shipwreck_supply; +3 more
-- [ ] `heart_of_the_sea` `(finite)` - chest buried_treasure
-- [ ] `iron_nautilus_armor` `(finite)` - chest buried_treasure; chest shipwreck_map; chest shipwreck_supply; +3 more
-- [ ] `iron_spear` `(c)` - chest buried_treasure; chest village/village_weaponsmith
-- [ ] `leather_boots` `(c)` - chest shipwreck_supply; chest village/village_tannery; fishing; +1 more
-- [ ] `leather_chestplate` `(c)` - chest buried_treasure; chest shipwreck_supply; chest underwater_ruin_big; +3 more
-- [ ] `leather_helmet` `(c)` - chest shipwreck_supply; chest village/village_tannery; trade leatherworker
-- [ ] `leather_leggings` `(c)` - chest shipwreck_supply; chest village/village_tannery; trade leatherworker
-- [ ] `map` `(c)` - chest shipwreck_map; chest stronghold_library; chest underwater_ruin_big; +4 more
-- [ ] `paper` `(c)` - chest shipwreck_map; chest shipwreck_supply; chest stronghold_library; +2 more
-- [ ] `poisonous_potato` - chest shipwreck_supply
-- [ ] `stone_axe` `(c)` - chest igloo_chest; chest spawn_bonus_chest; chest trial_chambers/corridor; +3 more
-- [ ] `stone_spear` `(c)` - chest underwater_ruin_big; chest underwater_ruin_small
-- [ ] `suspicious_stew` `(c)` - brush desert_well; chest ancient_city_ice_box; chest shipwreck_supply; +1 more
-- [ ] `wheat` `(c)` - brush ocean_ruin_cold; brush ocean_ruin_warm; brush trail_ruins_common; +11 more
+- [x] `clock` `(c)` - crafted from gold ingot + redstone
+- [ ] `coast_armor_trim_smithing_template` `(c)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `compass` `(c)` - crafted from iron ingot + redstone
+- [x] `cooked_cod` `(c)` - smelted from cod
+- [x] `cooked_salmon` `(c)` - smelted from salmon
+- [ ] `copper_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `diamond_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `experience_bottle` - buy from a cleric
+- [x] `fishing_rod` `(c)` - crafted from stick + string
+- [x] `gold_block` `(c)` - mine gold_block (bastion remnant)
+- [x] `golden_helmet` `(c)` - bastion remnant chest
+- [ ] `golden_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `heart_of_the_sea` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [ ] `iron_nautilus_armor` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `iron_spear` `(c)` - crafted from stick + iron ingot
+- [x] `leather_boots` `(c)` - trash bag pull stream
+- [x] `leather_chestplate` `(c)` - trash bag pull stream
+- [x] `leather_helmet` `(c)` - sun cap
+- [x] `leather_leggings` `(c)` - trash bag pull stream
+- [x] `map` `(c)` - crafted from paper + compass
+- [x] `paper` `(c)` - trash bag pull stream
+- [x] `poisonous_potato` - grow potato
+- [x] `stone_axe` `(c)` - crafted from stick + blackstone
+- [x] `stone_spear` `(c)` - crafted from stick + blackstone
+- [x] `suspicious_stew` `(c)` - crafted from bowl + brown mushroom
+- [x] `wheat` `(c)` - grow wheat seeds
 
 ### Trading
 
-- [ ] `brain_coral_block` - mine brain_coral_block; trade wandering_trader
-- [ ] `bubble_coral_block` - mine bubble_coral_block; trade wandering_trader
-- [ ] `fire_coral_block` - mine fire_coral_block; trade wandering_trader
-- [ ] `horn_coral_block` - mine horn_coral_block; trade wandering_trader
-- [ ] `kelp` - mine kelp; trade wandering_trader
-- [ ] `light_blue_terracotta` `(c)` - mine light_blue_terracotta; trade mason
-- [ ] `polished_diorite` `(c)` - mine polished_diorite; trade mason
-- [ ] `polished_granite` `(c)` - mine polished_granite; trade mason
-- [ ] `purple_glazed_terracotta` `(c)` - mine purple_glazed_terracotta; trade mason
-- [ ] `sea_pickle` - mine sea_pickle; trade wandering_trader
-- [ ] `tube_coral_block` - mine tube_coral_block; trade wandering_trader
+- [x] `brain_coral_block` - buy from a wandering trader
+- [x] `bubble_coral_block` - buy from a wandering trader
+- [x] `fire_coral_block` - buy from a wandering trader
+- [x] `horn_coral_block` - buy from a wandering trader
+- [x] `kelp` - Hydroponics Bay seedling
+- [x] `light_blue_terracotta` `(c)` - crafted from terracotta + light blue dye
+- [x] `polished_diorite` `(c)` - crafted from diorite
+- [x] `polished_granite` `(c)` - crafted from granite
+- [x] `purple_glazed_terracotta` `(c)` - smelted from purple terracotta
+- [x] `sea_pickle` - Hydroponics Bay seedling
+- [x] `tube_coral_block` - buy from a wandering trader
 
-<details><summary>Also mineable from structures here, but craftable (21) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (21, 17 reachable) - decoration, not a resource</summary>
 
-`birch_fence`, `birch_slab`, `birch_stairs`, `bricks`, `dark_oak_door`, `dark_oak_stairs`, `dark_oak_trapdoor`, `dark_prismarine`, `jungle_door`, `jungle_fence`, `jungle_slab`, `jungle_stairs`, `jungle_trapdoor`, `oak_stairs`, `oak_trapdoor`, `prismarine`, `prismarine_bricks`, `sea_lantern`, `spruce_door`, `spruce_slab`, `spruce_trapdoor`
+`birch_fence`, `birch_slab`, `birch_stairs`, `bricks`, `dark_oak_door`, `dark_oak_stairs`, `dark_oak_trapdoor`, `dark_prismarine` (no), `jungle_door`, `jungle_fence`, `jungle_slab`, `jungle_stairs`, `jungle_trapdoor`, `oak_stairs`, `oak_trapdoor`, `prismarine` (no), `prismarine_bricks` (no), `sea_lantern` (no), `spruce_door`, `spruce_slab`, `spruce_trapdoor`
 
 </details>
 
 
-## Cave & Underground  <sub>91</sub>
+## Cave & Underground  <sub>103/128</sub>
 
-*Ores and everything below the surface: deepslate, amethyst, dripstone, lush caves, deep dark, mineshafts, strongholds.*
+*Ores and everything below the surface.*
 
 ### Mine / break a block
 
-- [ ] `amethyst_block` `(c)` - mine amethyst_block
-- [ ] `andesite` `(c)` - mine andesite
-- [ ] `azalea` - mine azalea; mine azalea_leaves
-- [ ] `big_dripleaf` - mine big_dripleaf; mine big_dripleaf_stem
-- [ ] `calcite` `(finite)` - mine calcite
-- [ ] `coal_ore` `(finite)` - mine coal_ore
-- [ ] `cobbled_deepslate` `(c)` - mine cobbled_deepslate; mine deepslate
-- [ ] `cobblestone` `(c)` - mine cobblestone; mine infested_cobblestone; mine stone; +1 more
-- [ ] `cobweb` - mine cobweb
-- [ ] `copper_ore` `(finite)` - mine copper_ore
-- [ ] `deepslate` `(c)` `(finite)` - mine deepslate; mine infested_deepslate
-- [ ] `deepslate_coal_ore` `(finite)` - mine deepslate_coal_ore
-- [ ] `deepslate_copper_ore` `(finite)` - mine deepslate_copper_ore
-- [ ] `deepslate_diamond_ore` `(finite)` - mine deepslate_diamond_ore
-- [ ] `deepslate_emerald_ore` `(finite)` - mine deepslate_emerald_ore
-- [ ] `deepslate_gold_ore` `(finite)` - mine deepslate_gold_ore
-- [ ] `deepslate_iron_ore` `(finite)` - mine deepslate_iron_ore
-- [ ] `deepslate_lapis_ore` `(finite)` - mine deepslate_lapis_ore
-- [ ] `deepslate_redstone_ore` `(finite)` - mine deepslate_redstone_ore
-- [ ] `diamond_ore` `(finite)` - mine diamond_ore
-- [ ] `diorite` `(c)` - mine diorite
-- [ ] `emerald_ore` `(finite)` - mine emerald_ore
-- [ ] `flowering_azalea` - mine flowering_azalea; mine flowering_azalea_leaves
-- [ ] `glow_lichen` - mine glow_lichen
-- [ ] `gold_ore` `(finite)` - mine gold_ore
-- [ ] `granite` `(c)` - mine granite
-- [ ] `hanging_roots` - mine hanging_roots
-- [ ] `iron_bars` `(c)` - mine iron_bars
-- [ ] `iron_ore` `(finite)` - mine iron_ore
-- [ ] `lapis_ore` `(finite)` - mine lapis_ore
-- [ ] `moss_carpet` `(c)` - mine moss_carpet
-- [ ] `raw_copper` `(c)` - mine copper_ore; mine deepslate_copper_ore
-- [ ] `raw_gold` `(c)` - mine deepslate_gold_ore; mine gold_ore
-- [ ] `raw_iron` `(c)` - mine deepslate_iron_ore; mine iron_ore
-- [ ] `redstone_ore` `(finite)` - mine redstone_ore
-- [ ] `sculk_shrieker` - mine sculk_shrieker
-- [ ] `sculk_vein` - mine sculk_vein
-- [ ] `smooth_basalt` `(c)` - mine smooth_basalt
-- [ ] `spore_blossom` `(finite)` - mine spore_blossom
+- [x] `amethyst_block` `(c)` - crafted from amethyst shard
+- [x] `andesite` `(c)` - crafted from andesite shard
+- [ ] `azalea` - no lush caves generate
+- [ ] `big_dripleaf` - no lush caves generate
+- [x] `calcite` `(finite)` - crafted from calcite shard
+- [ ] `coal_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [x] `cobbled_deepslate` `(c)` - mine deepslate (overworld terrain)
+- [x] `cobblestone` `(c)` - cut on a stonecutter from stone
+- [x] `cobweb` - mine cobweb (sewers)
+- [ ] `copper_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [x] `deepslate` `(c)` `(finite)` - mine deepslate (overworld terrain)
+- [ ] `deepslate_coal_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `deepslate_copper_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `deepslate_diamond_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `deepslate_emerald_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `deepslate_gold_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `deepslate_iron_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `deepslate_lapis_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `deepslate_redstone_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `diamond_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [x] `diorite` `(c)` - crafted from diorite shard
+- [ ] `emerald_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `flowering_azalea` - no lush caves generate
+- [ ] `glow_lichen` - no lush caves generate
+- [ ] `gold_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [x] `granite` `(c)` - crafted from granite shard
+- [ ] `hanging_roots` - no lush caves generate
+- [x] `iron_bars` `(c)` - mine iron_bars (sewers)
+- [ ] `iron_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `lapis_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [x] `moss_carpet` `(c)` - crafted from moss block
+- [ ] `raw_copper` `(c)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `raw_gold` `(c)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `raw_iron` `(c)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `redstone_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [x] `sculk_shrieker` - crafted from sculk powder + soul sand
+- [x] `sculk_vein` - crafted from sculk powder
+- [x] `smooth_basalt` `(c)` - smelted from basalt
+- [ ] `spore_blossom` `(finite)` - no lush caves generate
 
 ### Mob & entity drops
 
-- [ ] `bone_meal` `(c)` - chest trial_chambers/supply; kill cod; kill pufferfish; +3 more
-- [ ] `coal` `(c)` - brush ocean_ruin_cold; brush ocean_ruin_warm; brush trail_ruins_common; +16 more
-- [ ] `copper_ingot` `(c)` - kill copper_golem; kill drowned
-- [ ] `emerald` `(c)` - brush desert_pyramid; brush desert_well; brush ocean_ruin_cold; +46 more
-- [ ] `redstone` `(c)` - chest abandoned_mineshaft; chest simple_dungeon; chest stronghold_corridor; +9 more
-- [ ] `sculk_catalyst` - chest ancient_city; kill warden; mine sculk_catalyst
-- [ ] `tropical_fish` - fishing; kill tropical_fish
+- [x] `bone_meal` `(c)` - kill a cod (spawn egg (amber -> Sequencer -> Blueprint))
+- [x] `coal` `(c)` - kill a wither skeleton (nether fortress (generates in the compacted depths))
+- [x] `copper_ingot` `(c)` - kill a drowned (sewer spawner)
+- [x] `emerald` `(c)` - buy from a armorer
+- [x] `redstone` `(c)` - kill a witch (spawns in the demolition yard / radioactive dump)
+- [x] `sculk_catalyst` - crafted from sculk powder + echo shard
+- [x] `tropical_fish` - fishing (water from a Rain Collector or the sewers)
 
 ### Harvest & interact
 
-- [ ] `diamond` `(c)` - brush desert_pyramid; chest abandoned_mineshaft; chest bastion_treasure; +16 more
-- [ ] `glow_berries` - chest abandoned_mineshaft; chest ancient_city; chest trial_chambers/supply; +3 more
-- [ ] `skeleton_skull` - charged creeper kills skeleton; mine skeleton_skull
+- [x] `diamond` `(c)` - bastion remnant chest
+- [x] `glow_berries` - Hydroponics Bay seedling
+- [x] `skeleton_skull` - a charged creeper kills a skeleton
 
 ### Piglin bartering
 
-- [ ] `gravel` - mine gravel; piglin bartering
-- [ ] `obsidian` - chest bastion_other; chest nether_bridge; chest ruined_portal; +5 more
-- [ ] `soul_sand` - chest bastion_hoglin_stable; mine soul_sand; piglin bartering
-- [ ] `string` - brush trail_ruins_common; cat morning gift; chest bastion_bridge; +14 more
+- [x] `gravel` - mill tailings pull stream
+- [x] `obsidian` - piglin bartering
+- [x] `soul_sand` - mine soul_sand (bastion remnant)
+- [x] `string` - brush sewer silt
 
 ### Structure chests
 
-- [ ] `amethyst_shard` - chest ancient_city; chest trial_chambers/intersection; mine amethyst_cluster
-- [ ] `bone_block` `(c)` - chest bastion_other; mine bone_block
-- [ ] `candle` `(c)` - chest ancient_city; mine candle
-- [ ] `clay_ball` - chest village/village_desert_house; chest village/village_mason; mine clay; +1 more
-- [ ] `detector_rail` `(c)` - chest abandoned_mineshaft; mine detector_rail
-- [ ] `echo_shard` `(finite)` - chest ancient_city
-- [ ] `flint` - chest ruined_portal; chest village/village_fletcher; mine gravel; +1 more
-- [ ] `furnace` `(c)` - chest village/village_snowy_house; mine furnace
-- [ ] `lapis_lazuli` `(c)` - chest abandoned_mineshaft; chest shipwreck_treasure; chest village/village_temple; +4 more
-- [ ] `moss_block` - chest shipwreck_supply; chest trial_chambers/supply; mine moss_block; +1 more
-- [ ] `powered_rail` `(c)` - chest abandoned_mineshaft; mine powered_rail
-- [ ] `rail` `(c)` - chest abandoned_mineshaft; mine rail
-- [ ] `sculk` - a sculk catalyst consumes a mob death; chest ancient_city; mine sculk
-- [ ] `sculk_sensor` - chest ancient_city; mine sculk_sensor
-- [ ] `stone` `(c)` - chest village/village_mason; mine infested_stone; mine stone
-- [ ] `torch` `(c)` - chest abandoned_mineshaft; chest trial_chambers/corridor; chest trial_chambers/supply; +2 more
-- [ ] `tuff` `(finite)` - chest trial_chambers/corridor; chest trial_chambers/supply; mine tuff
+- [x] `amethyst_shard` - separated in the Separator from quartz grit
+- [x] `bone_block` `(c)` - bastion remnant chest
+- [x] `candle` `(c)` - crafted from honeycomb + string
+- [x] `clay_ball` - hydrate a Dry Clay Body on a filled cauldron
+- [x] `detector_rail` `(c)` - crafted from stone pressure plate + redstone
+- [x] `echo_shard` `(finite)` - sewer sump crate
+- [x] `flint` - mine gravel (sewers)
+- [x] `furnace` `(c)` - crafted from blackstone
+- [x] `lapis_lazuli` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `moss_block` - buy from a wandering trader
+- [x] `powered_rail` `(c)` - crafted from stick + redstone
+- [x] `rail` `(c)` - crafted from stick + iron ingot
+- [x] `sculk` - crafted from sculk powder
+- [x] `sculk_sensor` - crafted from sculk powder + redstone
+- [x] `stone` `(c)` - crafted from stone shard
+- [x] `torch` `(c)` - crafted from stick + charcoal
+- [x] `tuff` `(finite)` - crafted from tuff shard
 
 ### Trading
 
-- [ ] `azure_bluet` - mine azure_bluet; mine potted_azure_bluet; trade wandering_trader
-- [ ] `blue_carpet` `(c)` - mine blue_carpet; trade shepherd
-- [ ] `bookshelf` `(c)` - mine bookshelf; trade librarian
-- [ ] `campfire` `(c)` - mine campfire; trade fisherman
-- [ ] `cornflower` - mine cornflower; trade wandering_trader
-- [ ] `cyan_carpet` `(c)` - mine cyan_carpet; trade shepherd
-- [ ] `dripstone_block` `(c)` - mine dripstone_block; trade mason
-- [ ] `glass` `(c)` - mine glass; trade librarian
-- [ ] `gray_carpet` `(c)` - mine gray_carpet; trade shepherd
-- [ ] `light_blue_carpet` `(c)` - mine light_blue_carpet; trade shepherd
-- [ ] `orange_tulip` - mine orange_tulip; trade wandering_trader
-- [ ] `oxeye_daisy` - mine oxeye_daisy; mine potted_oxeye_daisy; trade wandering_trader
-- [ ] `pink_tulip` - mine pink_tulip; trade wandering_trader
-- [ ] `pointed_dripstone` - mine pointed_dripstone; trade wandering_trader
-- [ ] `red_tulip` - mine potted_red_tulip; mine red_tulip; trade wandering_trader
-- [ ] `rooted_dirt` - mine rooted_dirt; trade wandering_trader
-- [ ] `small_dripleaf` - mine small_dripleaf; trade wandering_trader
-- [ ] `vine` - mine vine; trade wandering_trader
-- [ ] `white_tulip` - mine potted_white_tulip; mine white_tulip; trade wandering_trader
+- [x] `azure_bluet` - buy from a wandering trader
+- [x] `blue_carpet` `(c)` - crafted from blue wool
+- [x] `bookshelf` `(c)` - bulky waste (pry it open)
+- [x] `campfire` `(c)` - mine campfire (sewers)
+- [x] `cornflower` - buy from a wandering trader
+- [x] `cyan_carpet` `(c)` - crafted from cyan wool
+- [x] `dripstone_block` `(c)` - buy from a mason
+- [x] `glass` `(c)` - smelted from red sand
+- [x] `gray_carpet` `(c)` - crafted from gray wool
+- [x] `light_blue_carpet` `(c)` - crafted from light blue wool
+- [x] `orange_tulip` - buy from a wandering trader
+- [x] `oxeye_daisy` - buy from a wandering trader
+- [x] `pink_tulip` - buy from a wandering trader
+- [x] `pointed_dripstone` - buy from a wandering trader
+- [x] `red_tulip` - buy from a wandering trader
+- [x] `rooted_dirt` - buy from a wandering trader
+- [x] `small_dripleaf` - buy from a wandering trader
+- [x] `vine` - buy from a wandering trader
+- [x] `white_tulip` - buy from a wandering trader
 
 ### Other
 
-- [ ] `axolotl_bucket` - bucket an axolotl (lush caves)
-- [ ] `lava_bucket` - fill a bucket from lava
+- [x] `axolotl_bucket` - bucket an axolotl
+- [x] `lava_bucket` - fill a bucket from lava in the compacted depths
 
-<details><summary>Also mineable from structures here, but craftable (37) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (37, 37 reachable) - decoration, not a resource</summary>
 
 `charcoal`, `chiseled_deepslate`, `cobbled_deepslate_slab`, `cobbled_deepslate_stairs`, `cobbled_deepslate_wall`, `comparator`, `cracked_deepslate_bricks`, `cracked_deepslate_tiles`, `deepslate_brick_slab`, `deepslate_brick_stairs`, `deepslate_brick_wall`, `deepslate_bricks`, `deepslate_tile_slab`, `deepslate_tile_stairs`, `deepslate_tile_wall`, `deepslate_tiles`, `glass_pane`, `iron_door`, `iron_trapdoor`, `lectern`, `note_block`, `polished_basalt`, `polished_deepslate`, `polished_deepslate_slab`, `polished_deepslate_stairs`, `polished_deepslate_wall`, `redstone_block`, `redstone_lamp`, `redstone_torch`, `repeater`, `soul_lantern`, `sticky_piston`, `stone_brick_slab`, `stone_button`, `stone_pressure_plate`, `target`, `white_candle`
 
 </details>
 
 
-## Nether  <sub>68</sub>
+## Nether  <sub>73/82</sub>
 
 *The Nether dimension, its biomes, fortresses, bastions, and piglin bartering.*
 
 ### Mine / break a block
 
-- [ ] `basalt` - mine basalt
-- [ ] `nether_gold_ore` `(finite)` - mine nether_gold_ore
-- [ ] `nether_quartz_ore` `(finite)` - mine nether_quartz_ore
-- [ ] `nether_sprouts` - mine nether_sprouts
-- [ ] `nether_wart_block` `(c)` - mine nether_wart_block
-- [ ] `netherrack` - mine crimson_nylium; mine netherrack; mine warped_nylium
-- [ ] `shroomlight` - mine shroomlight
-- [ ] `soul_soil` - mine soul_soil
-- [ ] `twisting_vines` - mine twisting_vines
-- [ ] `warped_fungus` - mine warped_fungus
-- [ ] `warped_nylium` - mine warped_nylium
-- [ ] `warped_roots` - mine warped_roots
-- [ ] `warped_wart_block` - mine warped_wart_block
-- [ ] `weeping_vines` - mine weeping_vines
+- [x] `basalt` - mine basalt (bastion remnant)
+- [ ] `nether_gold_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `nether_quartz_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
+- [ ] `nether_sprouts` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `nether_wart_block` `(c)` - crafted from nether wart
+- [x] `netherrack` - mine netherrack (bastion remnant)
+- [ ] `shroomlight` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `soul_soil` - crafted from soul soil shard
+- [ ] `twisting_vines` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [ ] `warped_fungus` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `warped_nylium` - crafted from warped nylium shard
+- [ ] `warped_roots` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [ ] `warped_wart_block` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [ ] `weeping_vines` - the compacted depths has no nylium - only slag rubble and lava break the fill
 
 ### Mob & entity drops
 
-- [ ] `blaze_rod` - kill blaze
-- [ ] `ghast_tear` - kill ghast
-- [ ] `glowstone_dust` - kill witch; mine glowstone
-- [ ] `gold_ingot` `(c)` - chest abandoned_mineshaft; chest bastion_bridge; chest bastion_other; +16 more
-- [ ] `gold_nugget` `(c)` - brush ocean_ruin_cold; brush ocean_ruin_warm; brush trail_ruins_common; +12 more
-- [ ] `magma_cream` `(c)` - chest bastion_other; chest bastion_treasure; kill magma_cube
-- [ ] `music_disc_tears` - kill ghast
-- [ ] `nether_star` - kill the wither
-- [ ] `ochre_froglight` - kill magma_cube
-- [ ] `pearlescent_froglight` - kill magma_cube
-- [ ] `verdant_froglight` - kill magma_cube
-- [ ] `wither_skeleton_skull` - charged creeper kills wither_skeleton; kill wither_skeleton
+- [x] `blaze_rod` - kill a blaze (nether fortress (generates in the compacted depths))
+- [x] `ghast_tear` - kill a ghast (spawns in the compacted depths)
+- [x] `glowstone_dust` - mine glowstone (bastion remnant)
+- [x] `gold_ingot` `(c)` - kill a zombified piglin (spawns in the compacted depths)
+- [x] `gold_nugget` `(c)` - mine gilded_blackstone (bastion remnant)
+- [x] `magma_cream` `(c)` - kill a magma cube (spawns in the compacted depths)
+- [x] `music_disc_tears` - kill a ghast (spawns in the compacted depths)
+- [x] `nether_star` - kill the wither
+- [x] `ochre_froglight` - kill a magma cube (spawns in the compacted depths)
+- [x] `pearlescent_froglight` - kill a magma cube (spawns in the compacted depths)
+- [x] `verdant_froglight` - kill a magma cube (spawns in the compacted depths)
+- [x] `wither_skeleton_skull` - kill a wither skeleton (nether fortress (generates in the compacted depths))
 
 ### Piglin bartering
 
-- [ ] `blackstone` - mine blackstone; piglin bartering
-- [ ] `fire_charge` `(c)` - chest ruined_portal; dispensers (trial chambers); piglin bartering; +1 more
-- [ ] `quartz` `(c)` - chest bastion_treasure; mine nether_quartz_ore; piglin bartering
-- [ ] `spectral_arrow` `(c)` - chest bastion_bridge; chest bastion_other; chest bastion_treasure; +1 more
+- [x] `blackstone` - mine blackstone (bastion remnant)
+- [x] `fire_charge` `(c)` - piglin bartering
+- [x] `quartz` `(c)` - piglin bartering
+- [x] `spectral_arrow` `(c)` - piglin bartering
 
 ### Structure chests
 
-- [ ] `ancient_debris` `(finite)` - chest bastion_hoglin_stable; chest bastion_other; chest bastion_treasure; +1 more
-- [ ] `bell` - chest ruined_portal; mine bell; trade smith
-- [ ] `cooked_porkchop` `(c)` - chest bastion_hoglin_stable; chest bastion_other; hero of the village gift; +1 more
-- [ ] `crimson_fungus` - chest bastion_hoglin_stable; mine crimson_fungus
-- [ ] `crimson_nylium` - chest bastion_hoglin_stable; mine crimson_nylium
-- [ ] `crimson_roots` - chest bastion_hoglin_stable; mine crimson_roots
-- [ ] `crossbow` `(c)` - chest bastion_bridge; chest bastion_other; chest pillager_outpost; +3 more
-- [ ] `diamond_boots` `(c)` - chest bastion_treasure; chest end_city_treasure; trade armorer
-- [ ] `diamond_shovel` `(c)` - chest bastion_hoglin_stable; chest bastion_other; chest end_city_treasure; +1 more
-- [ ] `diamond_spear` `(c)` - chest bastion_treasure; chest end_city_treasure
-- [ ] `enchanted_golden_apple` - chest abandoned_mineshaft; chest ancient_city; chest bastion_treasure; +5 more
-- [ ] `flint_and_steel` `(c)` - chest nether_bridge; chest ruined_portal
-- [ ] `gilded_blackstone` `(finite)` - chest bastion_bridge; chest bastion_hoglin_stable; chest bastion_other; +2 more
-- [ ] `glistering_melon_slice` `(c)` - chest ruined_portal; trade farmer
-- [ ] `glowstone` `(c)` - chest bastion_hoglin_stable; mine glowstone; trade cleric; +1 more
-- [ ] `golden_axe` `(c)` - chest bastion_bridge; chest bastion_hoglin_stable; chest bastion_other; +3 more
-- [ ] `golden_boots` `(c)` - chest bastion_bridge; chest bastion_other; chest ruined_portal
-- [ ] `golden_carrot` `(c)` - chest ancient_city_ice_box; chest bastion_hoglin_stable; chest bastion_other; +4 more
-- [ ] `golden_chestplate` `(c)` - chest bastion_bridge; chest bastion_other; chest nether_bridge; +1 more
-- [ ] `golden_hoe` `(c)` - chest ruined_portal
-- [ ] `golden_leggings` `(c)` - chest bastion_bridge; chest bastion_other; chest ruined_portal
-- [ ] `golden_pickaxe` `(c)` - chest ruined_portal; chest trial_chambers/intersection_barrel
-- [ ] `golden_shovel` `(c)` - chest ruined_portal
-- [ ] `golden_sword` `(c)` - chest bastion_bridge; chest bastion_other; chest nether_bridge; +1 more
-- [ ] `iron_block` `(c)` - chest bastion_other; chest bastion_treasure; chest trial_chambers/intersection; +1 more
-- [ ] `iron_chain` `(c)` - chest bastion_other; mine iron_chain
-- [ ] `light_weighted_pressure_plate` `(c)` - chest ruined_portal
-- [ ] `lodestone` `(c)` - chest bastion_bridge; chest ruined_portal
-- [ ] `music_disc_pigstep` `(finite)` - chest bastion_other
-- [ ] `nether_wart` - chest nether_bridge; mine nether_wart
-- [ ] `netherite_ingot` `(c)` `(finite)` - chest bastion_treasure
-- [ ] `netherite_scrap` `(c)` `(finite)` - chest bastion_hoglin_stable; chest bastion_other; chest bastion_treasure
-- [ ] `netherite_upgrade_smithing_template` `(c)` - chest bastion_bridge; chest bastion_hoglin_stable; chest bastion_other; +1 more
-- [ ] `piglin_banner_pattern` - chest bastion_other
-- [ ] `rib_armor_trim_smithing_template` `(c)` - chest nether_bridge
-- [ ] `snout_armor_trim_smithing_template` `(c)` - chest bastion_bridge; chest bastion_hoglin_stable; chest bastion_other; +1 more
+- [x] `ancient_debris` `(finite)` - bastion remnant chest
+- [x] `bell` - bulky waste (pry it open)
+- [x] `cooked_porkchop` `(c)` - bastion remnant chest
+- [x] `crimson_fungus` - bastion remnant chest
+- [x] `crimson_nylium` - bastion remnant chest
+- [x] `crimson_roots` - bastion remnant chest
+- [x] `crossbow` `(c)` - bastion remnant chest
+- [x] `diamond_boots` `(c)` - bastion remnant chest
+- [x] `diamond_shovel` `(c)` - bastion remnant chest
+- [x] `diamond_spear` `(c)` - bastion remnant chest
+- [x] `enchanted_golden_apple` - bastion remnant chest
+- [x] `flint_and_steel` `(c)` - household pull stream (sort garbage)
+- [x] `gilded_blackstone` `(finite)` - mine gilded_blackstone (bastion remnant)
+- [x] `glistering_melon_slice` `(c)` - crafted from gold nugget + melon slice
+- [x] `glowstone` `(c)` - mine glowstone (bastion remnant)
+- [x] `golden_axe` `(c)` - bastion remnant chest
+- [x] `golden_boots` `(c)` - bastion remnant chest
+- [x] `golden_carrot` `(c)` - bastion remnant chest
+- [x] `golden_chestplate` `(c)` - bastion remnant chest
+- [x] `golden_hoe` `(c)` - crafted from stick + gold ingot
+- [x] `golden_leggings` `(c)` - bastion remnant chest
+- [x] `golden_pickaxe` `(c)` - crafted from stick + gold ingot
+- [x] `golden_shovel` `(c)` - crafted from stick + gold ingot
+- [x] `golden_sword` `(c)` - bastion remnant chest
+- [x] `iron_block` `(c)` - bastion remnant chest
+- [x] `iron_chain` `(c)` - mine iron_chain (bastion remnant)
+- [x] `light_weighted_pressure_plate` `(c)` - crafted from gold ingot
+- [x] `lodestone` `(c)` - bastion remnant chest
+- [x] `music_disc_pigstep` `(finite)` - bastion remnant chest
+- [x] `nether_wart` - mine nether_wart (bastion remnant)
+- [x] `netherite_ingot` `(c)` `(finite)` - bastion remnant chest
+- [x] `netherite_scrap` `(c)` `(finite)` - techno-organic waste pull stream
+- [x] `netherite_upgrade_smithing_template` `(c)` - bastion remnant chest
+- [x] `piglin_banner_pattern` - bastion remnant chest
+- [x] `rib_armor_trim_smithing_template` `(c)` - nether fortress chest
+- [x] `snout_armor_trim_smithing_template` `(c)` - bastion remnant chest
 
 ### Trading
 
-- [ ] `lantern` `(c)` - mine lantern; trade librarian
-- [ ] `quartz_block` `(c)` - mine quartz_block; trade mason
+- [x] `lantern` `(c)` - mine lantern (sewers)
+- [x] `quartz_block` `(c)` - mine quartz_block (bastion remnant)
 
-<details><summary>Also mineable from structures here, but craftable (14) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (14, 14 reachable) - decoration, not a resource</summary>
 
 `blackstone_slab`, `blackstone_stairs`, `blackstone_wall`, `chiseled_polished_blackstone`, `cracked_polished_blackstone_bricks`, `nether_brick_fence`, `nether_brick_stairs`, `nether_bricks`, `polished_blackstone_brick_stairs`, `polished_blackstone_bricks`, `smooth_quartz`, `smooth_quartz_slab`, `stone_brick_wall`, `stone_slab`
 
 </details>
 
 
-## End  <sub>16</sub>
+## End  <sub>10/25</sub>
 
 *The End dimension, end cities, and the dragon.*
 
 ### Mine / break a block
 
-- [ ] `chorus_flower` - mine chorus_flower
-- [ ] `chorus_fruit` - mine chorus_plant
-- [ ] `dragon_head` `(finite)` - mine from the end ship's bow
-- [ ] `end_stone` - mine end_stone
+- [ ] `chorus_flower` - the End is locked - RCDimensionLockout blocks travel and portal formation
+- [ ] `chorus_fruit` - the End is locked - RCDimensionLockout blocks travel and portal formation
+- [ ] `dragon_head` `(finite)` - the End is locked - RCDimensionLockout blocks travel and portal formation
+- [ ] `end_stone` - the End is locked - RCDimensionLockout blocks travel and portal formation
 
 ### Mob & entity drops
 
-- [ ] `shulker_shell` - kill shulker
+- [ ] `shulker_shell` - the End is locked - RCDimensionLockout blocks travel and portal formation
 
 ### Harvest & interact
 
-- [ ] `dragon_egg` `(finite)` - ender dragon's first death; move with a piston
+- [ ] `dragon_egg` `(finite)` - the End is locked - RCDimensionLockout blocks travel and portal formation
 
 ### Piglin bartering
 
-- [ ] `iron_boots` `(c)` - chest end_city_treasure; chest stronghold_corridor; chest village/village_weaponsmith; +2 more
+- [x] `iron_boots` `(c)` - piglin bartering
 
 ### Structure chests
 
-- [ ] `beetroot_seeds` - brush trail_ruins_common; chest abandoned_mineshaft; chest end_city_treasure; +4 more
-- [ ] `iron_chestplate` `(c)` - chest end_city_treasure; chest stronghold_corridor; chest trial_chambers/reward_rare; +3 more
-- [ ] `iron_helmet` `(c)` - chest end_city_treasure; chest stronghold_corridor; chest village/village_armorer; +3 more
-- [ ] `iron_leggings` `(c)` - chest ancient_city; chest end_city_treasure; chest stronghold_corridor; +2 more
-- [ ] `iron_pickaxe` `(c)` - chest abandoned_mineshaft; chest end_city_treasure; chest stronghold_corridor; +5 more
-- [ ] `iron_shovel` `(c)` - chest end_city_treasure; chest village/village_toolsmith; trade toolsmith
-- [ ] `spire_armor_trim_smithing_template` `(c)` - chest end_city_treasure
+- [x] `beetroot_seeds` - Hydroponics Bay seedling
+- [x] `iron_chestplate` `(c)` - crafted from iron ingot
+- [x] `iron_helmet` `(c)` - crafted from iron ingot
+- [x] `iron_leggings` `(c)` - crafted from iron ingot
+- [x] `iron_pickaxe` `(c)` - crafted from stick + iron ingot
+- [x] `iron_shovel` `(c)` - crafted from stick + iron ingot
+- [ ] `spire_armor_trim_smithing_template` `(c)` - the End is locked - RCDimensionLockout blocks travel and portal formation
 
 ### Other
 
-- [ ] `dragon_breath` - bottle the ender dragon's breath cloud
-- [ ] `elytra` `(finite)` - take from the item frame on an end ship
+- [ ] `dragon_breath` - the End is locked - RCDimensionLockout blocks travel and portal formation
+- [ ] `elytra` `(finite)` - the End is locked - RCDimensionLockout blocks travel and portal formation
 
-<details><summary>Also mineable from structures here, but craftable (9) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (9, 3 reachable) - decoration, not a resource</summary>
 
-`brewing_stand`, `end_rod`, `end_stone_bricks`, `ender_chest`, `magenta_stained_glass`, `purpur_block`, `purpur_pillar`, `purpur_slab`, `purpur_stairs`
+`brewing_stand`, `end_rod` (no), `end_stone_bricks` (no), `ender_chest`, `magenta_stained_glass`, `purpur_block` (no), `purpur_pillar` (no), `purpur_slab` (no), `purpur_stairs` (no)
 
 </details>
 
 
-## Structures & Chest Loot  <sub>140</sub>
+## Structures & Chest Loot  <sub>214/238</sub>
 
-*Only reachable from a generated structure's chest or its block palette.*
+*Only reachable from a generated structure's chest or block palette.*
 
 ### Mine / break a block
 
-- [ ] `damaged_anvil` - mine damaged_anvil
-- [ ] `oxidized_copper_trapdoor` - mine oxidized_copper_trapdoor
-- [ ] `red_concrete` - mine red_concrete
-- [ ] `white_concrete` - mine white_concrete
+- [x] `damaged_anvil` - an anvil degrading with use
+- [x] `oxidized_copper_trapdoor` - leave copper out to oxidize
+- [x] `red_concrete` - drop concrete powder into water
+- [x] `white_concrete` - drop concrete powder into water
 
 ### Mob & entity drops
 
-- [ ] `breeze_rod` - kill breeze
-- [ ] `ominous_banner` `(finite)` - kill a raid captain
-- [ ] `ominous_bottle` - chest trial_chambers/reward_common; chest trial_chambers/reward_ominous_common; kill pillager
-- [ ] `saddle` `(c)` - chest bastion_hoglin_stable; chest end_city_treasure; chest nether_bridge; +6 more
-- [ ] `totem_of_undying` - kill evoker
-- [ ] `trident` - chest trial_chambers/reward_unique; kill a naturally-spawned drowned holding one
+- [x] `breeze_rod` - fired in the Sintering Kiln from propellant briquette
+- [ ] `ominous_banner` `(finite)` - no raids: evokers and pillagers never spawn
+- [ ] `ominous_bottle` - no trial chambers generate
+- [x] `saddle` `(c)` - bastion remnant chest
+- [ ] `totem_of_undying` - no raids: evokers and pillagers never spawn
+- [x] `trident` - a naturally-spawned drowned drops its trident
 
 ### Harvest & interact
 
-- [ ] `carved_pumpkin` - mine carved_pumpkin; shear snow_golem
-- [ ] `diamond_block` `(c)` - chest trial_chambers/intersection; chest trial_chambers/reward_ominous_rare; decorated pot; +1 more
-- [ ] `egg` - chest village/village_fletcher; chicken lays egg; dispensers (trial chambers)
-- [ ] `emerald_block` `(c)` - chest trial_chambers/intersection; chest trial_chambers/reward_ominous_rare; decorated pot
-- [ ] `honeycomb` - chest trial_chambers/corridor; chest trial_chambers/entrance; harvest beehive
-- [ ] `music_disc_creator_music_box` `(finite)` - decorated pot
-- [ ] `pumpkin_seeds` `(c)` - chest abandoned_mineshaft; chest simple_dungeon; chest village/village_taiga_house; +5 more
-- [ ] `trial_key` - chest trial_chambers/entrance; decorated pot; spawners (trial chambers)
+- [x] `carved_pumpkin` - shear a snow golem
+- [x] `diamond_block` `(c)` - crafted from diamond
+- [x] `egg` - a chicken lays an egg
+- [x] `emerald_block` `(c)` - crafted from emerald
+- [x] `honeycomb` - shear a bee nest grown on a birch
+- [ ] `music_disc_creator_music_box` `(finite)` - no trial chambers generate
+- [x] `pumpkin_seeds` `(c)` - Hydroponics Bay seedling
+- [ ] `trial_key` - no trial chambers generate
 
 ### Piglin bartering
 
-- [ ] `book` `(c)` - chest abandoned_mineshaft; chest ancient_city; chest bastion_other; +18 more
-- [ ] `iron_nugget` `(c)` - chest bastion_bridge; chest bastion_other; chest ruined_portal; +3 more
-- [ ] `splash_potion` - dispensers (trial chambers); piglin bartering
+- [x] `book` `(c)` - trash bag pull stream
+- [x] `iron_nugget` `(c)` - piglin bartering
+- [x] `splash_potion` - piglin bartering
 
 ### Structure chests
 
-- [ ] `activator_rail` `(c)` - chest abandoned_mineshaft
-- [ ] `baked_potato` `(c)` - chest ancient_city_ice_box; chest trial_chambers/intersection_barrel; chest trial_chambers/supply; +1 more
-- [ ] `bamboo_hanging_sign` `(c)` - chest trial_chambers/corridor
-- [ ] `barrel` `(c)` - chest village/village_fisher; mine barrel
-- [ ] `beetroot_soup` `(c)` - chest village/village_snowy_house
-- [ ] `bolt_armor_trim_smithing_template` `(c)` - chest trial_chambers/reward_unique
-- [ ] `bow` `(c)` - chest trial_chambers/reward_rare; equipment (trial chambers); fishing; +1 more
-- [ ] `bread` `(c)` - chest abandoned_mineshaft; chest simple_dungeon; chest spawn_bonus_chest; +18 more
-- [ ] `bucket` `(c)` - chest simple_dungeon; chest trial_chambers/intersection_barrel; chest village/village_savanna_house; +1 more
-- [ ] `bundle` `(c)` - chest village/village_cartographer; chest village/village_desert_house; chest village/village_plains_house; +5 more
-- [ ] `cake` `(c)` - chest trial_chambers/intersection; trade farmer
-- [ ] `chainmail_chestplate` - chest woodland_mansion; equipment (trial chambers); hero of the village gift; +1 more
-- [ ] `copper_horse_armor` `(finite)` - chest desert_pyramid; chest end_city_treasure; chest jungle_temple; +4 more
-- [ ] `copper_spear` `(c)` - chest village/village_weaponsmith
-- [ ] `diamond_axe` `(c)` - chest trial_chambers/intersection; chest trial_chambers/intersection_barrel; chest trial_chambers/reward_ominous_rare; +3 more
-- [ ] `diamond_chestplate` `(c)` - chest bastion_treasure; chest end_city_treasure; chest trial_chambers/reward_ominous_rare; +4 more
-- [ ] `diamond_helmet` `(c)` - chest bastion_treasure; chest end_city_treasure; equipment (trial chambers); +1 more
-- [ ] `diamond_hoe` `(c)` - chest ancient_city; chest woodland_mansion; trade toolsmith
-- [ ] `diamond_horse_armor` `(finite)` - chest ancient_city; chest desert_pyramid; chest end_city_treasure; +5 more
-- [ ] `diamond_leggings` `(c)` - chest ancient_city; chest bastion_treasure; chest end_city_treasure; +1 more
-- [ ] `diamond_pickaxe` `(c)` - chest bastion_hoglin_stable; chest bastion_other; chest end_city_treasure; +3 more
-- [ ] `diamond_sword` `(c)` - chest bastion_treasure; chest end_city_treasure; equipment (trial chambers); +1 more
-- [ ] `disc_fragment_5` `(finite)` - chest ancient_city
-- [ ] `dune_armor_trim_smithing_template` `(c)` - chest desert_pyramid
-- [ ] `eye_armor_trim_smithing_template` `(c)` - chest stronghold_corridor; chest stronghold_library
-- [ ] `flow_armor_trim_smithing_template` `(c)` - chest trial_chambers/reward_ominous_unique
-- [ ] `flow_banner_pattern` - chest trial_chambers/reward_ominous_unique
-- [ ] `goat_horn` - a goat rams a hard block; chest pillager_outpost
-- [ ] `golden_apple` `(c)` - chest abandoned_mineshaft; chest bastion_hoglin_stable; chest bastion_other; +9 more
-- [ ] `golden_horse_armor` `(finite)` - chest desert_pyramid; chest end_city_treasure; chest jungle_temple; +5 more
-- [ ] `green_dye` `(c)` - chest village/village_desert_house; trade wandering_trader
-- [ ] `guster_banner_pattern` - chest trial_chambers/reward_unique
-- [ ] `heavy_core` - chest trial_chambers/reward_ominous_unique
-- [ ] `honey_bottle` `(c)` - chest trial_chambers/reward_common; use a glass bottle on a full beehive
-- [ ] `iron_axe` `(c)` - brush ocean_ruin_cold; brush ocean_ruin_warm; chest trial_chambers/corridor; +4 more
-- [ ] `iron_horse_armor` `(finite)` - chest desert_pyramid; chest end_city_treasure; chest jungle_temple; +4 more
-- [ ] `iron_sword` `(c)` - chest bastion_other; chest buried_treasure; chest end_city_treasure; +4 more
-- [ ] `large_fern` - chest village/village_taiga_house
-- [ ] `lead` `(c)` - brush trail_ruins_common; chest ancient_city; chest woodland_mansion
-- [ ] `melon_seeds` `(c)` - chest abandoned_mineshaft; chest simple_dungeon; chest woodland_mansion; +3 more
-- [ ] `milk_bucket` - chest trial_chambers/supply; milk a cow, goat or mooshroom
-- [ ] `music_disc_creator` - chest trial_chambers/reward_ominous_unique
-- [ ] `music_disc_otherside` `(finite)` - chest ancient_city; chest simple_dungeon; chest stronghold_corridor
-- [ ] `music_disc_precipice` - chest trial_chambers/reward_unique
-- [ ] `name_tag` `(c)` - chest abandoned_mineshaft; chest simple_dungeon; fishing; +1 more
-- [ ] `pumpkin_pie` `(c)` - chest village/village_taiga_house; hero of the village gift; trade farmer
-- [ ] `scaffolding` `(c)` - chest trial_chambers/corridor
-- [ ] `sentry_armor_trim_smithing_template` `(c)` - chest pillager_outpost
-- [ ] `shears` `(c)` - chest village/village_shepherd; trade shepherd
-- [ ] `shield` `(c)` - chest trial_chambers/reward_rare; trade armorer
-- [ ] `silence_armor_trim_smithing_template` `(c)` - chest ancient_city
-- [ ] `smooth_stone` `(c)` - chest village/village_mason; mine smooth_stone
-- [ ] `soul_torch` `(c)` - chest ancient_city
-- [ ] `spruce_sign` `(c)` - chest village/village_taiga_house
-- [ ] `stone_bricks` `(c)` - chest village/village_mason; mine infested_stone_bricks; mine stone_bricks
-- [ ] `stone_pickaxe` `(c)` - chest spawn_bonus_chest; chest trial_chambers/corridor; chest trial_chambers/supply; +2 more
-- [ ] `tall_grass` - chest village/village_savanna_house
-- [ ] `tnt` `(c)` - brush desert_pyramid; chest buried_treasure; chest shipwreck_supply; +1 more
-- [ ] `vex_armor_trim_smithing_template` `(c)` - chest woodland_mansion
-- [ ] `ward_armor_trim_smithing_template` `(c)` - chest ancient_city
-- [ ] `water_bucket` - chest village/village_fisher; dispensers (trial chambers); fill a bucket from water
-- [ ] `wild_armor_trim_smithing_template` `(c)` - chest jungle_temple
-- [ ] `wind_charge` `(c)` - chest trial_chambers/reward_common; chest trial_chambers/reward_ominous_common; spawners (trial chambers)
-- [ ] `wooden_axe` `(c)` - chest spawn_bonus_chest; chest trial_chambers/entrance
-- [ ] `wooden_pickaxe` `(c)` - chest spawn_bonus_chest
-- [ ] `yellow_dye` `(c)` - brush trail_ruins_common; chest village/village_mason; trade wandering_trader
+- [x] `activator_rail` `(c)` - crafted from redstone torch + stick
+- [x] `baked_potato` `(c)` - smelted from potato
+- [x] `bamboo_hanging_sign` `(c)` - crafted from stripped bamboo block + iron chain
+- [x] `barrel` `(c)` - mine barrel (sewers)
+- [x] `beetroot_soup` `(c)` - crafted from bowl + beetroot
+- [ ] `bolt_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `bow` `(c)` - crafted from stick + string
+- [x] `bread` `(c)` - crafted from wheat
+- [x] `bucket` `(c)` - household pull stream (sort garbage)
+- [x] `bundle` `(c)` - trash bag pull stream
+- [x] `cake` `(c)` - crafted from milk bucket + sugar
+- [x] `chainmail_chestplate` - Hero of the Village gift
+- [x] `copper_horse_armor` `(finite)` - nether fortress chest
+- [x] `copper_spear` `(c)` - crafted from stick + copper ingot
+- [x] `diamond_axe` `(c)` - crafted from stick + diamond
+- [x] `diamond_chestplate` `(c)` - bastion remnant chest
+- [x] `diamond_helmet` `(c)` - bastion remnant chest
+- [x] `diamond_hoe` `(c)` - crafted from stick + diamond
+- [x] `diamond_horse_armor` `(finite)` - nether fortress chest
+- [x] `diamond_leggings` `(c)` - bastion remnant chest
+- [x] `diamond_pickaxe` `(c)` - bastion remnant chest
+- [x] `diamond_sword` `(c)` - bastion remnant chest
+- [ ] `disc_fragment_5` `(finite)` - the structure that carries it (ancient city / stronghold / trail ruins) is absent
+- [ ] `dune_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [ ] `eye_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [ ] `flow_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [ ] `flow_banner_pattern` - no trial chambers generate
+- [x] `goat_horn` - a goat rams a hard block
+- [x] `golden_apple` `(c)` - bastion remnant chest
+- [x] `golden_horse_armor` `(finite)` - nether fortress chest
+- [x] `green_dye` `(c)` - smelted from cactus
+- [ ] `guster_banner_pattern` - no trial chambers generate
+- [ ] `heavy_core` - no trial chambers generate
+- [x] `honey_bottle` `(c)` - bottle a full bee nest
+- [x] `iron_axe` `(c)` - crafted from stick + iron ingot
+- [x] `iron_horse_armor` `(finite)` - nether fortress chest
+- [x] `iron_sword` `(c)` - bastion remnant chest
+- [ ] `large_fern` - needs a fern, which nothing here provides
+- [x] `lead` `(c)` - household pull stream (sort garbage)
+- [x] `melon_seeds` `(c)` - Hydroponics Bay seedling
+- [x] `milk_bucket` - milk a cow into a bucket
+- [ ] `music_disc_creator` - no trial chambers generate
+- [ ] `music_disc_otherside` `(finite)` - the structure that carries it (ancient city / stronghold / trail ruins) is absent
+- [ ] `music_disc_precipice` - no trial chambers generate
+- [x] `name_tag` `(c)` - sewer chest
+- [x] `pumpkin_pie` `(c)` - crafted from pumpkin + sugar
+- [x] `scaffolding` `(c)` - crafted from bamboo + string
+- [ ] `sentry_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `shears` `(c)` - household pull stream (sort garbage)
+- [x] `shield` `(c)` - crafted from bamboo planks + iron ingot
+- [ ] `silence_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `smooth_stone` `(c)` - smelted from stone
+- [x] `soul_torch` `(c)` - crafted from stick + soul sand
+- [x] `spruce_sign` `(c)` - crafted from spruce planks + stick
+- [x] `stone_bricks` `(c)` - crafted from stone
+- [x] `stone_pickaxe` `(c)` - crafted from stick + blackstone
+- [x] `tall_grass` - bone meal on grass
+- [x] `tnt` `(c)` - crafted from red sand + gunpowder
+- [ ] `vex_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [ ] `ward_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `water_bucket` - fill a bucket from sewer water
+- [ ] `wild_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `wind_charge` `(c)` - crafted from breeze rod
+- [x] `wooden_axe` `(c)` - crafted from stick + bamboo planks
+- [x] `wooden_pickaxe` `(c)` - crafted from stick + bamboo planks
+- [x] `yellow_dye` `(c)` - torn down at the Recompile Workbench from printer
 
 ### Trading
 
-- [ ] `black_bed` `(c)` - mine black_bed; trade shepherd
-- [ ] `black_carpet` `(c)` - mine black_carpet; trade shepherd
-- [ ] `black_glazed_terracotta` `(c)` - mine black_glazed_terracotta; trade mason
-- [ ] `blue_bed` `(c)` - mine blue_bed; trade shepherd
-- [ ] `brown_bed` `(c)` - mine brown_bed; trade shepherd
-- [ ] `brown_carpet` `(c)` - mine brown_carpet; trade shepherd
-- [ ] `brown_terracotta` `(c)` - mine brown_terracotta; trade mason
-- [ ] `chainmail_helmet` - equipment (trial chambers); hero of the village gift; trade armorer
-- [ ] `chiseled_stone_bricks` `(c)` - mine chiseled_stone_bricks; mine infested_chiseled_stone_bricks; trade mason
-- [ ] `cooked_beef` `(c)` - hero of the village gift; spawners (trial chambers)
-- [ ] `cooked_chicken` `(c)` - hero of the village gift; spawners (trial chambers); trade butcher
-- [ ] `cyan_bed` `(c)` - mine cyan_bed; trade shepherd
-- [ ] `cyan_glazed_terracotta` `(c)` - mine cyan_glazed_terracotta; trade mason
-- [ ] `cyan_terracotta` `(c)` - mine cyan_terracotta; trade mason
-- [ ] `gray_bed` `(c)` - mine gray_bed; trade shepherd
-- [ ] `gray_terracotta` `(c)` - mine gray_terracotta; trade mason
-- [ ] `green_bed` `(c)` - mine green_bed; trade shepherd
-- [ ] `green_carpet` `(c)` - mine green_carpet; trade shepherd
-- [ ] `light_blue_bed` `(c)` - mine light_blue_bed; trade shepherd
-- [ ] `light_blue_glazed_terracotta` `(c)` - mine light_blue_glazed_terracotta; trade mason
-- [ ] `light_gray_bed` `(c)` - mine light_gray_bed; trade shepherd
-- [ ] `light_gray_carpet` `(c)` - mine light_gray_carpet; trade shepherd
-- [ ] `light_gray_glazed_terracotta` `(c)` - mine light_gray_glazed_terracotta; trade mason
-- [ ] `light_gray_terracotta` `(c)` - mine light_gray_terracotta; trade mason
-- [ ] `lime_bed` `(c)` - mine lime_bed; trade shepherd
-- [ ] `lime_carpet` `(c)` - mine lime_carpet; trade shepherd
-- [ ] `lime_glazed_terracotta` `(c)` - mine lime_glazed_terracotta; trade mason
-- [ ] `lime_terracotta` `(c)` - mine lime_terracotta; trade mason
-- [ ] `magenta_bed` `(c)` - mine magenta_bed; trade shepherd
-- [ ] `magenta_carpet` `(c)` - mine magenta_carpet; trade shepherd
-- [ ] `orange_bed` `(c)` - mine orange_bed; trade shepherd
-- [ ] `orange_carpet` `(c)` - mine orange_carpet; trade shepherd
-- [ ] `orange_glazed_terracotta` `(c)` - mine orange_glazed_terracotta; trade mason
-- [ ] `pink_bed` `(c)` - mine pink_bed; trade shepherd
-- [ ] `pink_carpet` `(c)` - mine pink_carpet; trade shepherd
-- [ ] `polished_andesite` `(c)` - mine polished_andesite; trade mason
-- [ ] `purple_bed` `(c)` - mine purple_bed; trade shepherd
-- [ ] `purple_carpet` `(c)` - mine purple_carpet; trade shepherd
-- [ ] `red_bed` `(c)` - mine red_bed; trade shepherd
-- [ ] `red_candle` `(c)` - brush trail_ruins_common; mine red_candle; trade librarian
-- [ ] `red_carpet` `(c)` - mine red_carpet; trade shepherd
-- [ ] `red_glazed_terracotta` `(c)` - mine red_glazed_terracotta; trade mason
-- [ ] `red_terracotta` `(c)` - mine red_terracotta; trade mason
-- [ ] `white_bed` `(c)` - mine white_bed; trade shepherd
-- [ ] `white_carpet` `(c)` - mine white_carpet; trade shepherd
-- [ ] `white_glazed_terracotta` `(c)` - mine white_glazed_terracotta; trade mason
-- [ ] `yellow_bed` `(c)` - mine yellow_bed; trade shepherd
-- [ ] `yellow_carpet` `(c)` - mine yellow_carpet; trade shepherd
-- [ ] `yellow_glazed_terracotta` `(c)` - mine yellow_glazed_terracotta; trade mason
-- [ ] `yellow_terracotta` `(c)` - mine yellow_terracotta; trade mason
+- [x] `black_bed` `(c)` - buy from a shepherd
+- [x] `black_carpet` `(c)` - crafted from black wool
+- [x] `black_glazed_terracotta` `(c)` - smelted from black terracotta
+- [x] `blue_bed` `(c)` - buy from a shepherd
+- [x] `brown_bed` `(c)` - buy from a shepherd
+- [x] `brown_carpet` `(c)` - crafted from brown wool
+- [x] `brown_terracotta` `(c)` - crafted from terracotta + brown dye
+- [x] `chainmail_helmet` - Hero of the Village gift
+- [x] `chiseled_stone_bricks` `(c)` - cut on a stonecutter from stone
+- [x] `cooked_beef` `(c)` - smelted from beef
+- [x] `cooked_chicken` `(c)` - smelted from chicken
+- [x] `cyan_bed` `(c)` - buy from a shepherd
+- [x] `cyan_glazed_terracotta` `(c)` - smelted from cyan terracotta
+- [x] `cyan_terracotta` `(c)` - crafted from terracotta + cyan dye
+- [x] `gray_bed` `(c)` - buy from a shepherd
+- [x] `gray_terracotta` `(c)` - crafted from terracotta + gray dye
+- [x] `green_bed` `(c)` - buy from a shepherd
+- [x] `green_carpet` `(c)` - crafted from green wool
+- [x] `light_blue_bed` `(c)` - buy from a shepherd
+- [x] `light_blue_glazed_terracotta` `(c)` - smelted from light blue terracotta
+- [x] `light_gray_bed` `(c)` - buy from a shepherd
+- [x] `light_gray_carpet` `(c)` - crafted from light gray wool
+- [x] `light_gray_glazed_terracotta` `(c)` - smelted from light gray terracotta
+- [x] `light_gray_terracotta` `(c)` - crafted from terracotta + light gray dye
+- [x] `lime_bed` `(c)` - buy from a shepherd
+- [x] `lime_carpet` `(c)` - crafted from lime wool
+- [x] `lime_glazed_terracotta` `(c)` - smelted from lime terracotta
+- [x] `lime_terracotta` `(c)` - crafted from terracotta + lime dye
+- [x] `magenta_bed` `(c)` - buy from a shepherd
+- [x] `magenta_carpet` `(c)` - crafted from magenta wool
+- [x] `orange_bed` `(c)` - buy from a shepherd
+- [x] `orange_carpet` `(c)` - crafted from orange wool
+- [x] `orange_glazed_terracotta` `(c)` - smelted from orange terracotta
+- [x] `pink_bed` `(c)` - buy from a shepherd
+- [x] `pink_carpet` `(c)` - crafted from pink wool
+- [x] `polished_andesite` `(c)` - crafted from andesite
+- [x] `purple_bed` `(c)` - buy from a shepherd
+- [x] `purple_carpet` `(c)` - crafted from purple wool
+- [x] `red_bed` `(c)` - buy from a shepherd
+- [x] `red_candle` `(c)` - crafted from candle + red dye
+- [x] `red_carpet` `(c)` - crafted from red wool
+- [x] `red_glazed_terracotta` `(c)` - smelted from red terracotta
+- [x] `red_terracotta` `(c)` - crafted from terracotta + red dye
+- [x] `white_bed` `(c)` - buy from a shepherd
+- [x] `white_carpet` `(c)` - crafted from white wool
+- [x] `white_glazed_terracotta` `(c)` - smelted from white terracotta
+- [x] `yellow_bed` `(c)` - buy from a shepherd
+- [x] `yellow_carpet` `(c)` - crafted from yellow wool
+- [x] `yellow_glazed_terracotta` `(c)` - smelted from yellow terracotta
+- [x] `yellow_terracotta` `(c)` - crafted from terracotta + yellow dye
 
 ### Archaeology
 
-- [ ] `yellow_stained_glass_pane` `(c)` - brush trail_ruins_common; mine yellow_stained_glass_pane
+- [x] `yellow_stained_glass_pane` `(c)` - crafted from yellow stained glass
 
 ### Other
 
-- [ ] `lingering_potion` - dispensers (trial chambers); spawners (trial chambers)
-- [ ] `ominous_trial_key` - spawners (trial chambers)
+- [ ] `lingering_potion` - no trial chambers generate
+- [ ] `ominous_trial_key` - no trial chambers generate
 
-<details><summary>Also mineable from structures here, but craftable (98) - decoration, not a resource</summary>
+<details><summary>Also mineable from structures here, but craftable (98, 98 reachable) - decoration, not a resource</summary>
 
 `acacia_door`, `acacia_fence`, `acacia_fence_gate`, `acacia_pressure_plate`, `acacia_slab`, `acacia_stairs`, `black_stained_glass`, `blast_furnace`, `brick_slab`, `brick_stairs`, `brick_wall`, `brown_stained_glass`, `cartography_table`, `chest`, `chiseled_sandstone`, `chiseled_tuff`, `chiseled_tuff_bricks`, `coal_block`, `cobblestone_slab`, `cobblestone_stairs`, `cobblestone_wall`, `composter`, `copper_block`, `cracked_stone_bricks`, `cut_sandstone`, `dark_oak_fence`, `dark_oak_fence_gate`, `dark_oak_slab`, `decorated_pot`, `diorite_slab`, `diorite_stairs`, `diorite_wall`, `fletching_table`, `granite_stairs`, `granite_wall`, `grindstone`, `hay_block`, `hopper`, `jungle_button`, `jungle_fence_gate`, `ladder`, `lapis_block`, `lever`, `light_gray_stained_glass`, `loom`, `mossy_cobblestone_slab`, `mossy_cobblestone_stairs`, `mossy_cobblestone_wall`, `mossy_stone_bricks`, `mud_brick_slab`, `mud_brick_stairs`, `mud_brick_wall`, `mud_bricks`, `oak_button`, `oak_door`, `oak_fence`, `oak_fence_gate`, `oak_pressure_plate`, `oak_slab`, `orange_stained_glass_pane`, `oxidized_cut_copper`, `packed_mud`, `polished_tuff`, `polished_tuff_slab`, `sandstone_stairs`, `sandstone_wall`, `smithing_table`, `smoker`, `smooth_sandstone`, `smooth_sandstone_slab`, `smooth_sandstone_stairs`, `smooth_stone_slab`, `spruce_fence`, `spruce_fence_gate`, `spruce_pressure_plate`, `spruce_stairs`, `stone_brick_stairs`, `stonecutter`, `trapped_chest`, `tuff_bricks`, `waxed_chiseled_copper`, `waxed_copper_block`, `waxed_copper_bulb`, `waxed_copper_door`, `waxed_copper_grate`, `waxed_cut_copper`, `waxed_cut_copper_slab`, `waxed_cut_copper_stairs`, `waxed_oxidized_chiseled_copper`, `waxed_oxidized_copper`, `waxed_oxidized_copper_door`, `waxed_oxidized_copper_grate`, `waxed_oxidized_copper_trapdoor`, `waxed_oxidized_cut_copper`, `waxed_oxidized_cut_copper_slab`, `waxed_oxidized_cut_copper_stairs`, `white_stained_glass`, `white_stained_glass_pane`
 
 </details>
 
 
-## Trading  <sub>62</sub>
+## Trading  <sub>62/62</sub>
 
 *Villager trades, wandering trader, and Hero of the Village gifts.*
 
 ### Trading
 
-- [ ] `black_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `black_dye` `(c)` - trade wandering_trader
-- [ ] `black_terracotta` `(c)` - trade mason
-- [ ] `blue_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `blue_dye` `(c)` - brush trail_ruins_common; trade wandering_trader
-- [ ] `blue_glazed_terracotta` `(c)` - trade mason
-- [ ] `brick` `(c)` - brush desert_well; brush trail_ruins_common; trade mason
-- [ ] `brown_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `brown_dye` `(c)` - trade wandering_trader
-- [ ] `brown_glazed_terracotta` `(c)` - trade mason
-- [ ] `chainmail_boots` - hero of the village gift; trade armorer
-- [ ] `chainmail_leggings` - hero of the village gift; trade armorer
-- [ ] `cod_bucket` - trade fisherman
-- [ ] `cooked_mutton` `(c)` - hero of the village gift
-- [ ] `cooked_rabbit` `(c)` - hero of the village gift
-- [ ] `cookie` `(c)` - hero of the village gift; trade farmer
-- [ ] `cyan_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `cyan_dye` `(c)` - trade wandering_trader
-- [ ] `enchanted_book` - trade librarian
-- [ ] `globe_banner_pattern` - trade cartographer
-- [ ] `golden_dandelion` `(c)` - trade wandering_trader
-- [ ] `gray_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `gray_dye` `(c)` - trade wandering_trader
-- [ ] `gray_glazed_terracotta` `(c)` - trade mason
-- [ ] `green_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `green_glazed_terracotta` `(c)` - trade mason
-- [ ] `green_terracotta` `(c)` - trade mason
-- [ ] `item_frame` `(c)` - trade cartographer
-- [ ] `leather_horse_armor` `(c)` - trade leatherworker
-- [ ] `light_blue_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `light_blue_dye` `(c)` - brush trail_ruins_common; trade wandering_trader
-- [ ] `light_gray_banner` `(c)` - trade shepherd
-- [ ] `light_gray_dye` `(c)` - trade wandering_trader
-- [ ] `lime_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `lime_dye` `(c)` - trade wandering_trader
-- [ ] `magenta_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `magenta_dye` `(c)` - trade wandering_trader
-- [ ] `magenta_glazed_terracotta` `(c)` - trade mason
-- [ ] `magenta_terracotta` `(c)` - trade mason
-- [ ] `open_eyeblossom` - trade wandering_trader
-- [ ] `orange_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `orange_dye` `(c)` - brush trail_ruins_common; trade wandering_trader
-- [ ] `painting` `(c)` - trade shepherd
-- [ ] `pink_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `pink_dye` `(c)` - trade wandering_trader
-- [ ] `pink_glazed_terracotta` `(c)` - trade mason
-- [ ] `pink_terracotta` `(c)` - trade mason
-- [ ] `pufferfish_bucket` - trade wandering_trader
-- [ ] `purple_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `purple_dye` `(c)` - trade wandering_trader
-- [ ] `purple_terracotta` `(c)` - trade mason
-- [ ] `quartz_pillar` `(c)` - trade mason
-- [ ] `rabbit_stew` `(c)` - trade butcher
-- [ ] `red_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `red_dye` `(c)` - trade wandering_trader
-- [ ] `stone_hoe` `(c)` - hero of the village gift; trade toolsmith
-- [ ] `stone_shovel` `(c)` - hero of the village gift; trade toolsmith
-- [ ] `tropical_fish_bucket` - trade wandering_trader
-- [ ] `white_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `white_dye` `(c)` - brush trail_ruins_common; trade wandering_trader
-- [ ] `yellow_banner` `(c)` - trade cartographer; trade shepherd
-- [ ] `yellow_candle` `(c)` - trade librarian
+- [x] `black_banner` `(c)` - crafted from black wool + stick
+- [x] `black_dye` `(c)` - crafted from ink sac
+- [x] `black_terracotta` `(c)` - crafted from terracotta + black dye
+- [x] `blue_banner` `(c)` - crafted from blue wool + stick
+- [x] `blue_dye` `(c)` - crafted from lapis lazuli
+- [x] `blue_glazed_terracotta` `(c)` - smelted from blue terracotta
+- [x] `brick` `(c)` - smelted from clay ball
+- [x] `brown_banner` `(c)` - crafted from brown wool + stick
+- [x] `brown_dye` `(c)` - crafted from cocoa beans
+- [x] `brown_glazed_terracotta` `(c)` - smelted from brown terracotta
+- [x] `chainmail_boots` - Hero of the Village gift
+- [x] `chainmail_leggings` - Hero of the Village gift
+- [x] `cod_bucket` - bucket a cod
+- [x] `cooked_mutton` `(c)` - smelted from mutton
+- [x] `cooked_rabbit` `(c)` - smelted from rabbit
+- [x] `cookie` `(c)` - crafted from wheat + cocoa beans
+- [x] `cyan_banner` `(c)` - crafted from cyan wool + stick
+- [x] `cyan_dye` `(c)` - crafted from pitcher plant
+- [x] `enchanted_book` - buy from a librarian
+- [x] `globe_banner_pattern` - buy from a cartographer
+- [x] `golden_dandelion` `(c)` - buy from a wandering trader
+- [x] `gray_banner` `(c)` - crafted from gray wool + stick
+- [x] `gray_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `gray_glazed_terracotta` `(c)` - smelted from gray terracotta
+- [x] `green_banner` `(c)` - crafted from green wool + stick
+- [x] `green_glazed_terracotta` `(c)` - smelted from green terracotta
+- [x] `green_terracotta` `(c)` - crafted from terracotta + green dye
+- [x] `item_frame` `(c)` - crafted from stick + leather
+- [x] `leather_horse_armor` `(c)` - crafted from leather
+- [x] `light_blue_banner` `(c)` - crafted from light blue wool + stick
+- [x] `light_blue_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `light_gray_banner` `(c)` - crafted from light gray wool + stick
+- [x] `light_gray_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `lime_banner` `(c)` - crafted from lime wool + stick
+- [x] `lime_dye` `(c)` - smelted from sea pickle
+- [x] `magenta_banner` `(c)` - crafted from magenta wool + stick
+- [x] `magenta_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `magenta_glazed_terracotta` `(c)` - smelted from magenta terracotta
+- [x] `magenta_terracotta` `(c)` - crafted from terracotta + magenta dye
+- [x] `open_eyeblossom` - buy from a wandering trader
+- [x] `orange_banner` `(c)` - crafted from orange wool + stick
+- [x] `orange_dye` `(c)` - crafted from torchflower
+- [x] `painting` `(c)` - break a mod block
+- [x] `pink_banner` `(c)` - crafted from pink wool + stick
+- [x] `pink_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `pink_glazed_terracotta` `(c)` - smelted from pink terracotta
+- [x] `pink_terracotta` `(c)` - crafted from terracotta + pink dye
+- [x] `pufferfish_bucket` - buy from a wandering trader
+- [x] `purple_banner` `(c)` - crafted from purple wool + stick
+- [x] `purple_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `purple_terracotta` `(c)` - crafted from terracotta + purple dye
+- [x] `quartz_pillar` `(c)` - crafted from quartz block
+- [x] `rabbit_stew` `(c)` - crafted from baked potato + cooked rabbit
+- [x] `red_banner` `(c)` - crafted from red wool + stick
+- [x] `red_dye` `(c)` - crafted from beetroot
+- [x] `stone_hoe` `(c)` - crafted from stick + blackstone
+- [x] `stone_shovel` `(c)` - crafted from stick + blackstone
+- [x] `tropical_fish_bucket` - buy from a wandering trader
+- [x] `white_banner` `(c)` - crafted from white wool + stick
+- [x] `white_dye` `(c)` - crafted from bone meal
+- [x] `yellow_banner` `(c)` - crafted from yellow wool + stick
+- [x] `yellow_candle` `(c)` - crafted from candle + yellow dye
 
 
-## Fishing  <sub>1</sub>
+## Fishing  <sub>1/1</sub>
 
-*The fishing loot tables (fish / junk / treasure).*
+*The fishing loot tables.*
 
 ### Mob & entity drops
 
-- [ ] `bowl` `(c)` - fishing; kill turtle
+- [x] `bowl` `(c)` - household pull stream (sort garbage)
 
 
-## Archaeology  <sub>38</sub>
+## Archaeology  <sub>13/38</sub>
 
 *Brushing suspicious sand and gravel.*
 
 ### Archaeology
 
-- [ ] `angler_pottery_sherd` `(finite)` - brush ocean_ruin_warm
-- [ ] `archer_pottery_sherd` `(finite)` - brush desert_pyramid
-- [ ] `arms_up_pottery_sherd` `(finite)` - brush desert_well
-- [ ] `blade_pottery_sherd` `(finite)` - brush ocean_ruin_cold
-- [ ] `blue_stained_glass_pane` `(c)` - brush trail_ruins_common
-- [ ] `brewer_pottery_sherd` `(finite)` - brush desert_well
-- [ ] `brown_candle` `(c)` - brush trail_ruins_common
-- [ ] `burn_pottery_sherd` `(finite)` - brush trail_ruins_rare
-- [ ] `danger_pottery_sherd` `(finite)` - brush trail_ruins_rare
-- [ ] `explorer_pottery_sherd` `(finite)` - brush ocean_ruin_cold
-- [ ] `friend_pottery_sherd` `(finite)` - brush trail_ruins_rare
-- [ ] `green_candle` `(c)` - brush trail_ruins_common
-- [ ] `heart_pottery_sherd` `(finite)` - brush trail_ruins_rare
-- [ ] `heartbreak_pottery_sherd` `(finite)` - brush trail_ruins_rare
-- [ ] `host_armor_trim_smithing_template` `(c)` - brush trail_ruins_rare
-- [ ] `howl_pottery_sherd` `(finite)` - brush trail_ruins_rare
-- [ ] `light_blue_stained_glass_pane` `(c)` - brush trail_ruins_common
-- [ ] `magenta_stained_glass_pane` `(c)` - brush trail_ruins_common
-- [ ] `miner_pottery_sherd` `(finite)` - brush desert_pyramid
-- [ ] `mourner_pottery_sherd` `(finite)` - brush ocean_ruin_cold
-- [ ] `music_disc_relic` `(finite)` - brush trail_ruins_rare
-- [ ] `oak_hanging_sign` `(c)` - brush trail_ruins_common
-- [ ] `pink_stained_glass_pane` `(c)` - brush trail_ruins_common
-- [ ] `plenty_pottery_sherd` `(finite)` - brush ocean_ruin_cold
-- [ ] `prize_pottery_sherd` `(finite)` - brush desert_pyramid
-- [ ] `purple_candle` `(c)` - brush trail_ruins_common
-- [ ] `purple_stained_glass_pane` `(c)` - brush trail_ruins_common
-- [ ] `raiser_armor_trim_smithing_template` `(c)` - brush trail_ruins_rare
-- [ ] `red_stained_glass_pane` `(c)` - brush trail_ruins_common
-- [ ] `shaper_armor_trim_smithing_template` `(c)` - brush trail_ruins_rare
-- [ ] `sheaf_pottery_sherd` `(finite)` - brush trail_ruins_rare
-- [ ] `shelter_pottery_sherd` `(finite)` - brush ocean_ruin_warm
-- [ ] `skull_pottery_sherd` `(finite)` - brush desert_pyramid
-- [ ] `sniffer_egg` - brush ocean_ruin_warm
-- [ ] `snort_pottery_sherd` `(finite)` - brush ocean_ruin_warm
-- [ ] `spruce_hanging_sign` `(c)` - brush trail_ruins_common
-- [ ] `wayfinder_armor_trim_smithing_template` `(c)` - brush trail_ruins_rare
-- [ ] `wooden_hoe` `(c)` - brush ocean_ruin_cold; brush ocean_ruin_warm; brush trail_ruins_common
+- [ ] `angler_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `archer_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `arms_up_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `blade_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `blue_stained_glass_pane` `(c)` - crafted from blue stained glass
+- [ ] `brewer_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `brown_candle` `(c)` - crafted from candle + brown dye
+- [ ] `burn_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `danger_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `explorer_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `friend_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `green_candle` `(c)` - crafted from candle + green dye
+- [x] `heart_pottery_sherd` `(finite)` - brush sewer silt
+- [ ] `heartbreak_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `host_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [ ] `howl_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `light_blue_stained_glass_pane` `(c)` - crafted from light blue stained glass
+- [x] `magenta_stained_glass_pane` `(c)` - crafted from magenta stained glass
+- [ ] `miner_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `mourner_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `music_disc_relic` `(finite)` - the structure that carries it (ancient city / stronghold / trail ruins) is absent
+- [x] `oak_hanging_sign` `(c)` - crafted from stripped oak log + iron chain
+- [x] `pink_stained_glass_pane` `(c)` - crafted from pink stained glass
+- [ ] `plenty_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `prize_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `purple_candle` `(c)` - crafted from candle + purple dye
+- [x] `purple_stained_glass_pane` `(c)` - crafted from purple stained glass
+- [ ] `raiser_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `red_stained_glass_pane` `(c)` - crafted from red stained glass
+- [ ] `shaper_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [ ] `sheaf_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `shelter_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `skull_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [ ] `sniffer_egg` - the structure that carries it (ancient city / stronghold / trail ruins) is absent
+- [ ] `snort_pottery_sherd` `(finite)` - only the heart sherd is in the loot; the other sherds have no source
+- [x] `spruce_hanging_sign` `(c)` - crafted from stripped spruce log + iron chain
+- [ ] `wayfinder_armor_trim_smithing_template` `(c)` - the structure that carries this template does not generate
+- [x] `wooden_hoe` `(c)` - crafted from stick + bamboo planks
 
+
+---
+
+## What Recompile cannot give you
+
+The 161 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+of the vanilla economy, not an oversight, unless noted.
+
+- **39** - no ocean, monument, shipwreck or ocean ruin generates
+- **21** - the garbage world generates no ore; metal comes from scrap instead
+- **19** - only the heart sherd is in the loot; the other sherds have no source
+- **15** - the End is locked - RCDimensionLockout blocks travel and portal formation
+- **13** - the structure that carries this template does not generate
+- **13** - the compacted depths has no nylium - only slag rubble and lava break the fill
+- **10** - nothing in this world, its structures, its mobs or its recipes produces one
+- **10** - no trial chambers generate
+- **8** - no lush caves generate
+- **4** - no amethyst geodes generate
+- **4** - the structure that carries it (ancient city / stronghold / trail ruins) is absent
+- **2** - no raids: evokers and pillagers never spawn
+- **1** - needs a fern, which nothing here provides
+- **1** - needs a charged creeper to kill another player
+- **1** - no powder snow in this world
+
+Two are worth calling out because they are one flower away from being reachable, and both now are:
+
+- **The whole honey chain** hangs on a single vanilla rule: a birch, oak or cherry sapling grown
+  within 2 blocks of a flower has a 5% chance of carrying a bee nest. No bee nest generates in this
+  world, and a beehive costs honeycomb, so without that rule honeycomb, candles, honey blocks and
+  every waxed copper block would be unobtainable.
+- **The tree line** runs weedgrass -> Compost Heap -> a volunteer seedling -> Tree Nursery ->
+  sapling. Saplings are stripped from every loot roll in the game, so that chain is the only wood
+  in Recompile, and every plank, stick, apple and bee nest is downstream of it.
 
 ---
 
 ## Index: by acquisition method
 
-Cross-reference. Items are filed above by *where*; this lists them by *how*, so a method-shaped
-question ("what does bartering actually give me?") is answerable without reading every section.
-An item appears under every method that yields it.
+Items are filed above by *where*; this lists them by *how*. `~` marks one not reachable in Recompile.
 
-**Fishing** <sub>22</sub>
+**Fishing** <sub>22, 22 reachable</sub>
 
 `bamboo`, `bone`, `book`, `bow`, `bowl`, `cod`, `fishing_rod`, `ink_sac`, `leather`, `leather_boots`, `lily_pad`, `name_tag`, `nautilus_shell`, `potion`, `pufferfish`, `rotten_flesh`, `saddle`, `salmon`, `stick`, `string`, `tripwire_hook`, `tropical_fish`
 
-**Piglin bartering** <sub>18</sub>
+**Piglin bartering** <sub>18, 18 reachable</sub>
 
 `blackstone`, `book`, `crying_obsidian`, `dried_ghast`, `ender_pearl`, `fire_charge`, `gravel`, `iron_boots`, `iron_nugget`, `leather`, `nether_brick`, `obsidian`, `potion`, `quartz`, `soul_sand`, `spectral_arrow`, `splash_potion`, `string`
 
-**Shearing** <sub>20</sub>
+**Shearing** <sub>20, 20 reachable</sub>
 
 `black_wool`, `blue_wool`, `brown_mushroom`, `brown_wool`, `carved_pumpkin`, `cyan_wool`, `gray_wool`, `green_wool`, `light_blue_wool`, `light_gray_wool`, `lime_wool`, `magenta_wool`, `orange_wool`, `pink_wool`, `pumpkin_seeds`, `purple_wool`, `red_mushroom`, `red_wool`, `white_wool`, `yellow_wool`
 
-**Charged creeper (mob heads)** <sub>5</sub>
+**Charged creeper (mob heads)** <sub>5, 5 reachable</sub>
 
 `creeper_head`, `piglin_head`, `skeleton_skull`, `wither_skeleton_skull`, `zombie_head`
 
-**Sniffer** <sub>4</sub>
+**Sniffer** <sub>4, 4 reachable</sub>
 
 `pitcher_plant`, `pitcher_pod`, `torchflower`, `torchflower_seeds`
 
-**Archaeology (brushing)** <sub>64</sub>
+**Archaeology (brushing)** <sub>64, 38 reachable</sub>
 
-`angler_pottery_sherd`, `archer_pottery_sherd`, `armadillo_scute`, `arms_up_pottery_sherd`, `beetroot_seeds`, `blade_pottery_sherd`, `blue_dye`, `blue_stained_glass_pane`, `brewer_pottery_sherd`, `brick`, `brown_candle`, `burn_pottery_sherd`, `clay`, `coal`, `danger_pottery_sherd`, `dead_bush`, `diamond`, `emerald`, `explorer_pottery_sherd`, `flower_pot`, `friend_pottery_sherd`, `gold_nugget`, `green_candle`, `gunpowder`, `heart_pottery_sherd`, `heartbreak_pottery_sherd`, `host_armor_trim_smithing_template`, `howl_pottery_sherd`, `iron_axe`, `lead`, `light_blue_dye`, `light_blue_stained_glass_pane`, `magenta_stained_glass_pane`, `miner_pottery_sherd`, `mourner_pottery_sherd`, `music_disc_relic`, `oak_hanging_sign`, `orange_dye`, `pink_stained_glass_pane`, `plenty_pottery_sherd`, `prize_pottery_sherd`, `purple_candle`, `purple_stained_glass_pane`, `raiser_armor_trim_smithing_template`, `red_candle`, `red_stained_glass_pane`, `shaper_armor_trim_smithing_template`, `sheaf_pottery_sherd`, `shelter_pottery_sherd`, `skull_pottery_sherd`, `sniffer_egg`, `snort_pottery_sherd`, `spruce_hanging_sign`, `stick`, `string`, `suspicious_stew`, `tnt`, `wayfinder_armor_trim_smithing_template`, `wheat`, `wheat_seeds`, `white_dye`, `wooden_hoe`, `yellow_dye`, `yellow_stained_glass_pane`
+`angler_pottery_sherd`~, `archer_pottery_sherd`~, `armadillo_scute`, `arms_up_pottery_sherd`~, `beetroot_seeds`, `blade_pottery_sherd`~, `blue_dye`, `blue_stained_glass_pane`, `brewer_pottery_sherd`~, `brick`, `brown_candle`, `burn_pottery_sherd`~, `clay`, `coal`, `danger_pottery_sherd`~, `dead_bush`~, `diamond`, `emerald`, `explorer_pottery_sherd`~, `flower_pot`, `friend_pottery_sherd`~, `gold_nugget`, `green_candle`, `gunpowder`, `heart_pottery_sherd`, `heartbreak_pottery_sherd`~, `host_armor_trim_smithing_template`~, `howl_pottery_sherd`~, `iron_axe`, `lead`, `light_blue_dye`, `light_blue_stained_glass_pane`, `magenta_stained_glass_pane`, `miner_pottery_sherd`~, `mourner_pottery_sherd`~, `music_disc_relic`~, `oak_hanging_sign`, `orange_dye`, `pink_stained_glass_pane`, `plenty_pottery_sherd`~, `prize_pottery_sherd`~, `purple_candle`, `purple_stained_glass_pane`, `raiser_armor_trim_smithing_template`~, `red_candle`, `red_stained_glass_pane`, `shaper_armor_trim_smithing_template`~, `sheaf_pottery_sherd`~, `shelter_pottery_sherd`~, `skull_pottery_sherd`~, `sniffer_egg`~, `snort_pottery_sherd`~, `spruce_hanging_sign`, `stick`, `string`, `suspicious_stew`, `tnt`, `wayfinder_armor_trim_smithing_template`~, `wheat`, `wheat_seeds`, `white_dye`, `wooden_hoe`, `yellow_dye`, `yellow_stained_glass_pane`
 
-**Hero of the Village gifts** <sub>47</sub>
+**Hero of the Village gifts** <sub>47, 47 reachable</sub>
 
 `arrow`, `black_wool`, `blue_wool`, `book`, `bread`, `brown_wool`, `chainmail_boots`, `chainmail_chestplate`, `chainmail_helmet`, `chainmail_leggings`, `clay`, `cod`, `cooked_beef`, `cooked_chicken`, `cooked_mutton`, `cooked_porkchop`, `cooked_rabbit`, `cookie`, `cyan_wool`, `golden_axe`, `gray_wool`, `green_wool`, `iron_axe`, `lapis_lazuli`, `leather`, `light_blue_wool`, `light_gray_wool`, `lime_wool`, `magenta_wool`, `map`, `orange_wool`, `paper`, `pink_wool`, `poppy`, `pumpkin_pie`, `purple_wool`, `red_wool`, `redstone`, `salmon`, `stone_axe`, `stone_hoe`, `stone_pickaxe`, `stone_shovel`, `tipped_arrow`, `wheat_seeds`, `white_wool`, `yellow_wool`
 
-**Trial chambers** <sub>72</sub>
+**Trial chambers** <sub>72, 61 reachable</sub>
 
-`acacia_planks`, `amethyst_shard`, `arrow`, `baked_potato`, `bamboo_hanging_sign`, `bamboo_planks`, `bolt_armor_trim_smithing_template`, `bone_meal`, `book`, `bow`, `bread`, `bucket`, `cake`, `chainmail_chestplate`, `chainmail_helmet`, `compass`, `cooked_beef`, `cooked_chicken`, `crossbow`, `diamond`, `diamond_axe`, `diamond_block`, `diamond_chestplate`, `diamond_helmet`, `diamond_pickaxe`, `diamond_sword`, `egg`, `emerald`, `emerald_block`, `enchanted_golden_apple`, `ender_pearl`, `fire_charge`, `flow_armor_trim_smithing_template`, `flow_banner_pattern`, `glow_berries`, `golden_apple`, `golden_axe`, `golden_carrot`, `golden_pickaxe`, `guster_banner_pattern`, `heavy_core`, `honey_bottle`, `honeycomb`, `iron_axe`, `iron_block`, `iron_chestplate`, `iron_helmet`, `iron_ingot`, `iron_sword`, `lingering_potion`, `milk_bucket`, `moss_block`, `music_disc_creator`, `music_disc_precipice`, `ominous_bottle`, `ominous_trial_key`, `potion`, `scaffolding`, `shield`, `snowball`, `splash_potion`, `stick`, `stone_axe`, `stone_pickaxe`, `tipped_arrow`, `torch`, `trial_key`, `trident`, `tuff`, `water_bucket`, `wind_charge`, `wooden_axe`
+`acacia_planks`, `amethyst_shard`, `arrow`, `baked_potato`, `bamboo_hanging_sign`, `bamboo_planks`, `bolt_armor_trim_smithing_template`~, `bone_meal`, `book`, `bow`, `bread`, `bucket`, `cake`, `chainmail_chestplate`, `chainmail_helmet`, `compass`, `cooked_beef`, `cooked_chicken`, `crossbow`, `diamond`, `diamond_axe`, `diamond_block`, `diamond_chestplate`, `diamond_helmet`, `diamond_pickaxe`, `diamond_sword`, `egg`, `emerald`, `emerald_block`, `enchanted_golden_apple`, `ender_pearl`, `fire_charge`, `flow_armor_trim_smithing_template`~, `flow_banner_pattern`~, `glow_berries`, `golden_apple`, `golden_axe`, `golden_carrot`, `golden_pickaxe`, `guster_banner_pattern`~, `heavy_core`~, `honey_bottle`, `honeycomb`, `iron_axe`, `iron_block`, `iron_chestplate`, `iron_helmet`, `iron_ingot`, `iron_sword`, `lingering_potion`~, `milk_bucket`, `moss_block`, `music_disc_creator`~, `music_disc_precipice`~, `ominous_bottle`~, `ominous_trial_key`~, `potion`, `scaffolding`, `shield`, `snowball`, `splash_potion`, `stick`, `stone_axe`, `stone_pickaxe`, `tipped_arrow`, `torch`, `trial_key`~, `trident`, `tuff`, `water_bucket`, `wind_charge`, `wooden_axe`
 
-**Villager & wandering trader** <sub>265</sub>
+**Villager & wandering trader** <sub>265, 265 reachable</sub>
 
 `acacia_log`, `acacia_sapling`, `allium`, `apple`, `arrow`, `azure_bluet`, `beetroot_seeds`, `bell`, `birch_log`, `birch_sapling`, `black_banner`, `black_bed`, `black_carpet`, `black_dye`, `black_glazed_terracotta`, `black_terracotta`, `black_wool`, `blue_banner`, `blue_bed`, `blue_carpet`, `blue_dye`, `blue_glazed_terracotta`, `blue_ice`, `blue_orchid`, `blue_terracotta`, `blue_wool`, `bookshelf`, `bow`, `brain_coral_block`, `bread`, `brick`, `brown_banner`, `brown_bed`, `brown_carpet`, `brown_dye`, `brown_glazed_terracotta`, `brown_mushroom`, `brown_terracotta`, `brown_wool`, `bubble_coral_block`, `cactus`, `cake`, `campfire`, `chainmail_boots`, `chainmail_chestplate`, `chainmail_helmet`, `chainmail_leggings`, `cherry_log`, `cherry_sapling`, `chiseled_stone_bricks`, `clock`, `cod_bucket`, `compass`, `cooked_chicken`, `cooked_cod`, `cooked_porkchop`, `cooked_salmon`, `cookie`, `cornflower`, `crossbow`, `cyan_banner`, `cyan_bed`, `cyan_carpet`, `cyan_dye`, `cyan_glazed_terracotta`, `cyan_terracotta`, `cyan_wool`, `dandelion`, `dark_oak_log`, `dark_oak_sapling`, `diamond_axe`, `diamond_boots`, `diamond_chestplate`, `diamond_helmet`, `diamond_hoe`, `diamond_leggings`, `diamond_pickaxe`, `diamond_shovel`, `diamond_sword`, `dripstone_block`, `emerald`, `enchanted_book`, `ender_pearl`, `experience_bottle`, `fern`, `fire_coral_block`, `firefly_bush`, `fishing_rod`, `flint`, `glass`, `glistering_melon_slice`, `globe_banner_pattern`, `glowstone`, `golden_carrot`, `golden_dandelion`, `gray_banner`, `gray_bed`, `gray_carpet`, `gray_dye`, `gray_glazed_terracotta`, `gray_terracotta`, `gray_wool`, `green_banner`, `green_bed`, `green_carpet`, `green_dye`, `green_glazed_terracotta`, `green_terracotta`, `green_wool`, `gunpowder`, `horn_coral_block`, `iron_axe`, `iron_boots`, `iron_chestplate`, `iron_helmet`, `iron_leggings`, `iron_pickaxe`, `iron_shovel`, `iron_sword`, `item_frame`, `jungle_log`, `jungle_sapling`, `kelp`, `lantern`, `lapis_lazuli`, `leather_boots`, `leather_chestplate`, `leather_helmet`, `leather_horse_armor`, `leather_leggings`, `light_blue_banner`, `light_blue_bed`, `light_blue_carpet`, `light_blue_dye`, `light_blue_glazed_terracotta`, `light_blue_terracotta`, `light_blue_wool`, `light_gray_banner`, `light_gray_bed`, `light_gray_carpet`, `light_gray_dye`, `light_gray_glazed_terracotta`, `light_gray_terracotta`, `light_gray_wool`, `lily_of_the_valley`, `lily_pad`, `lime_banner`, `lime_bed`, `lime_carpet`, `lime_dye`, `lime_glazed_terracotta`, `lime_terracotta`, `lime_wool`, `magenta_banner`, `magenta_bed`, `magenta_carpet`, `magenta_dye`, `magenta_glazed_terracotta`, `magenta_terracotta`, `magenta_wool`, `mangrove_log`, `mangrove_propagule`, `map`, `melon_seeds`, `moss_block`, `name_tag`, `nautilus_shell`, `oak_log`, `oak_sapling`, `open_eyeblossom`, `orange_banner`, `orange_bed`, `orange_carpet`, `orange_dye`, `orange_glazed_terracotta`, `orange_terracotta`, `orange_tulip`, `orange_wool`, `oxeye_daisy`, `packed_ice`, `painting`, `pale_hanging_moss`, `pale_moss_block`, `pale_oak_log`, `pale_oak_sapling`, `pink_banner`, `pink_bed`, `pink_carpet`, `pink_dye`, `pink_glazed_terracotta`, `pink_terracotta`, `pink_tulip`, `pink_wool`, `podzol`, `pointed_dripstone`, `polished_andesite`, `polished_diorite`, `polished_granite`, `poppy`, `potion`, `pufferfish_bucket`, `pumpkin`, `pumpkin_pie`, `pumpkin_seeds`, `purple_banner`, `purple_bed`, `purple_carpet`, `purple_dye`, `purple_glazed_terracotta`, `purple_terracotta`, `purple_wool`, `quartz_block`, `quartz_pillar`, `rabbit_stew`, `red_banner`, `red_bed`, `red_candle`, `red_carpet`, `red_dye`, `red_glazed_terracotta`, `red_mushroom`, `red_sand`, `red_terracotta`, `red_tulip`, `red_wool`, `redstone`, `rooted_dirt`, `saddle`, `sand`, `sea_pickle`, `shears`, `shield`, `slime_ball`, `small_dripleaf`, `spruce_log`, `spruce_sapling`, `stone_axe`, `stone_hoe`, `stone_pickaxe`, `stone_shovel`, `sugar_cane`, `suspicious_stew`, `tall_dry_grass`, `tipped_arrow`, `tropical_fish_bucket`, `tube_coral_block`, `vine`, `wheat_seeds`, `white_banner`, `white_bed`, `white_carpet`, `white_dye`, `white_glazed_terracotta`, `white_terracotta`, `white_tulip`, `white_wool`, `wildflowers`, `yellow_banner`, `yellow_bed`, `yellow_candle`, `yellow_carpet`, `yellow_dye`, `yellow_glazed_terracotta`, `yellow_terracotta`, `yellow_wool`
 
 ---
 
-## Appendix: excluded
+## Appendix: excluded from the catalogue
 
-383 items were considered and excluded because their only loot table is the block dropping
-itself, and nothing in worldgen, a structure, a mob, a chest or a trade produces one. These are
-crafted goods, not resources. A few are worth naming because they look like resources and are not:
-
-- **Concrete** (all 16) - concrete powder placed in water. Made, not found.
-- **Copper oxidation states** (exposed / weathered / oxidized, and their doors, bars, chains,
-  lanterns, chests, trapdoors, lightning rods, golem statues) - these form over time on copper you
-  placed. None generate in any structure palette.
-- **Chipped / damaged anvil** - an anvil degrading with use.
-- **`petrified_oak_slab`** - no recipe and no generation. Not obtainable in survival at all.
-
-### No survival source at all
-
-Present in the game, reachable only with commands or creative. Listed so the audit is provably
-complete rather than merely long:
-
-`barrier`, `bedrock`, `budding_amethyst`, `chain_command_block`, `command_block`, `command_block_minecart`, `debug_stick`, `end_portal_frame`, `infested_chiseled_stone_bricks`, `infested_cobblestone`, `infested_cracked_stone_bricks`, `infested_deepslate`, `infested_mossy_stone_bricks`, `infested_stone`, `infested_stone_bricks`, `jigsaw`, `knowledge_book`, `light`, `petrified_oak_slab`, `reinforced_deepslate`, `repeating_command_block`, `spawner`, `structure_block`, `structure_void`, `test_block`, `test_instance_block`, `trial_spawner`, `vault`
-
-...plus all 87 spawn eggs (`*_spawn_egg`), and `suspicious_sand` / `suspicious_gravel`, which
-break rather than drop when mined.
-
-### Named in the game, but with no source in the data
-
-`flow_pottery_sherd`, `guster_pottery_sherd`, `scrape_pottery_sherd`
-
-These three are real items and are members of `#minecraft:decorated_pot_sherds`, but in 26.1.2
-they appear in **no loot table, no trade, and no structure**. Every loot table referenced by a
-structure block entity was checked (all 1,202 templates parsed; the vault and trial-chamber
-reward tables among them) and none yields a sherd. Either the drop moved into code or they are
-genuinely unobtainable in this version. Worth confirming in-game before relying on either.
+383 items are excluded because their only loot table is the block dropping itself, and nothing in
+worldgen, a structure, a mob, a chest or a trade produces one. Those are crafted goods, not
+resources. Also excluded: everything with no survival source in any version (bedrock, barrier,
+command blocks, spawn eggs, `budding_amethyst`, `petrified_oak_slab`), and the three pottery
+sherds - `flow`, `guster`, `scrape` - that name no loot table, trade or structure anywhere in
+26.1.2.
