@@ -1,6 +1,6 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether shipped 2026-08-19** (pulled forward - see that phase). **v0.14.0 is released** (2026-08-21, Ancient Sculk, the two cross-mod stopgaps and the recipe-collision fix; v0.13.0 2026-08-20 brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 2026-08-18 the sewers, v0.10.0 2026-08-17, v0.9.0 2026-08-12, v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27). **Phase 6 (the full loop) is what remains.**
+**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether shipped 2026-08-19** (pulled forward - see that phase). **v0.17.0 is released** (2026-09-03, the Garbage Vacuum, its Charging Station and the battery chain - see "The powered-tool tier" below; v0.16.0 2026-08-31 two landmark structures and cardboard; v0.15.0 2026-08-30 spawn eggs via amber and the Sequencer, the radioactive dump as the second frontier region, and AE2 made playable; v0.14.0 2026-08-21 Ancient Sculk, the two cross-mod stopgaps and the recipe-collision fix; v0.13.0 2026-08-20 brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 2026-08-18 the sewers, v0.10.0 2026-08-17, v0.9.0 2026-08-12, v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27). **Phase 6 (the full loop) is what remains.**
 the latter as the CurseForge ModJam 2026 entry). The mod is a
 playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
 Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
@@ -416,6 +416,29 @@ Three things in the plan above did not survive building it:
 
 ---
 
+## The powered-tool tier  *(shipped 2026-09-03, outside the phase order)*
+
+Not a phase. A tool tier that landed when the owner called for it, recorded here so the build order is
+not silent about it.
+
+- **The Garbage Vacuum** (#336): hold right-click and `SortableBlock`s in a cube around the aim point
+  leave the world about five a second, for FE scaled by the block's `sortRolls`. It takes whole blocks
+  rather than pulling from them, so the pick-through loop is untouched - what it removes is the mining.
+  Taking the foot of a mound collapses it, which was a deliberate ruling over a top-down peel.
+- **Tiers are a travel gate, not a stat.** Copper handles household waste, iron adds the demolition
+  yard, diamond the radioactive dump, netherite the compacted depths - each rated for its region and
+  everything below. Membership is cumulative block tags, so a pack widens a band without a mod release.
+- **The Charging Station**, with no screen: set the vacuum down, pick it up, and Jade reports both
+  gauges. It is deliberately NOT in the Scrap Network, because that tag routes items and power here
+  moves by adjacency.
+- **The battery chain gates both.** The garbage gives you Depleted Batteries; four torn open teach the
+  blueprint; only then can a live Battery be made. Nothing in the world hands one over.
+
+Spec: [`garbage_vacuum_spec.md`](garbage_vacuum_spec.md). Deferred from it: the upgrade matrix
+(filter / void / network link) as data components, tracked in #338.
+
+---
+
 ## Phase 6 - The full loop  *(design P2)*
 
 Discovered as you climb tiers; leans on curation + sibling mods.
@@ -435,7 +458,7 @@ Discovered as you climb tiers; leans on curation + sibling mods.
   sentence outlived itself by a month.)* The encroachment frontier previously had no permanent
   stop. Correct for now (the world has no trees), but it makes the planter the load-bearing rung
   rather than the last one.
-- E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6).
+- E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6). *(The BATTERY half shipped 2026-09-03 in a different shape and is not coming back here. What landed is a two-item crafting-component chain - a Depleted Battery found in household waste, torn open for scrap and for the blueprint that makes a live one - plus a Charging Station, built to power the Garbage Vacuum. It is not a mini-tree and it does not hang off E-waste, so the E-waste half of this bullet is what remains.)*
 - Tier-3 logistics seam: "Recompile converts, Create moves"; never *require* Create (P2.3).
 - Hazmat gating via Mekanism radiation + suit; Recompile ships biome/blocks/caches only (P2.5).
 - Cross-mod teardown tables at scale: tag-driven defaults + landmark hand-authoring + a

@@ -99,6 +99,11 @@ stalling on it - but the machine will be slower and stranger than the pack inten
 
 ## Tags
 
+**`#recompile:vacuumable/<tier>` - what a Garbage Vacuum of each tier may take** (#336). Four files, `copper` / `iron` / `diamond` / `netherite`, and each one **includes the band below it** as a `#tag` entry rather than restating it - so widening copper widens every tier above it, and the ladder is written once. Add a modded pile to a band and that tier can vacuum it, with no mod release.
+
+Two things to know before extending it. The gate **fails closed**: a `SortableBlock` in no band is takeable by nobody, and `every_sortable_block_is_in_a_vacuum_band` fails the build on one rather than letting the tool silently ignore it. And the cost comes from `SortableBlock.sortRolls`, not from the tag - a pile that is banded but absent from that table is vacuumed for free and can never run a vacuum flat, which `every_vacuumable_pile_costs_charge` also fails the build on.
+
+
 Every one of these is data, so a pack extends the behaviour without a mod release:
 
 | Tag | Means |

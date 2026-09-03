@@ -101,11 +101,11 @@ directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
-**854 lines as of 2026-08-31**, all at 0%, excluded from the actionable figure rather than counted as
+**884 lines as of 2026-09-03**, all at 0%, excluded from the actionable figure rather than counted as
 debt. *(These grow with the code; they were 771 at v0.14.0. This is the one place they are stated -
 anywhere else that quotes a total is a second source waiting to drift from this one.)*
 
-- **`client/**` (411 lines: `client` 258 plus `client/gui` 153)** - screens, the GUI framework's rendering visitor, the one
+- **`client/**` (441 lines: `client` 288 plus `client/gui` 153)** - screens, the GUI framework's rendering visitor, the one
   BlockEntityRenderer. A GameTest server has no client and JUnit loads none. `CLAUDE.md` already says
   screens are the layer both test layers are blind to; `python tools/shoot_screens.py` against a
   running `runClient` is the acceptance evidence for them, not a coverage number.

@@ -215,7 +215,7 @@ the pattern the problem, and note that nothing reports the gap, so the count has
 ## What the pack will do
 
 Nothing until this ships. AE2 stays pinned and non-functional, documented as such in
-`docs/pack_setup.md`, and the pack issue stays open pointing here.
+`../trashlands/docs/pack_setup.md`, and the pack issue stays open pointing here. *(Path qualified 2026-09-03: that file lives in the PACK repo, and an unqualified `docs/` reads as this one.)*
 
 ## The third half: sourcing, because the presses cleared only one of two gates (#276, #277)
 
