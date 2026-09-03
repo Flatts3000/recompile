@@ -137,12 +137,21 @@ satisfy the sweep and still get its faces wrong.
   row in the table above at all** - this page's central rule, unenforced on the one machine built to be
   automated. It has one now.
 
-  **The three FURNACES keep the plain wrapper, and that is not an oversight.** The Cupola, the Slag
-  Furnace and the Sintering Kiln are held to vanilla parity; a vanilla furnace *does* answer a
-  non-sided query, and `VanillaParityTests` compares every face **plus** the null one against the real
-  block. Guarding them would break the parity they exist to keep. So the rule is not "always refuse the
-  null side" - it is **a machine that restricts extraction by face must refuse it, and a parity block
-  must match vanilla instead.**
+  **It costs null-side INSERTION too.** `insert` has no `side != null` guard, so a non-sided caller
+  could legitimately feed both machines under their own rules and now cannot reach them at all.
+  Accepted, to keep them identical to the Burner Generator rather than mint a bespoke insert-only
+  wrapper; a pipe attached to a face is unaffected, and that is what almost all of them are.
+
+  **The FURNACES keep the plain wrapper, and that is not an oversight.** The **Cupola** is held to
+  vanilla furnace parity: a vanilla furnace *does* answer a non-sided query, and `VanillaParityTests`
+  compares every face **plus** the null one against `Blocks.FURNACE`, so guarding it would break the
+  parity it exists to keep. The **Slag Furnace** and **Sintering Kiln** are furnace subclasses meant to
+  behave the same way, but **nothing pins them** - neither appears in `VanillaParityTests`, which
+  covers only the Scrap Barrel and the Cupola. That gap is #341; this page said all three were parity
+  tested until review checked, which is the "reads as complete" failure it exists to prevent.
+
+  So the rule is not "always refuse the null side" - it is **a machine that restricts extraction by
+  face must refuse it, and a parity block must match vanilla instead.**
 
 - **2026-09-03** - The Charging Station (#336) added a row: manual-only on both item doors like the
   pedestal, energy in only like the Sequencer. Worth a line because it is the first block here whose
