@@ -422,8 +422,13 @@ public final class AquariumPieces {
             // Moss creeping out of the bays onto the gallery floor, which is where the leaks were.
             for (int x = ox - 9; x <= ox + 8; x++) {
                 for (int z : new int[]{oz - 2, oz + 1}) {
-                    if (AquariumPalette.sparseMossy(x, base, z)
-                            && level.getBlockState(new BlockPos(x, base, z)).is(AquariumPalette.FLOOR.getBlock())) {
+                    // limit.isInside BEFORE the read, which is this file's convention and is one status
+                    // class away from the crash fixed in #349: a read off this chunk is answered from
+                    // terrain the shell has not written yet, so the question gets the wrong answer even
+                    // when it does not throw.
+                    BlockPos at = new BlockPos(x, base, z);
+                    if (limit.isInside(at) && AquariumPalette.sparseMossy(x, base, z)
+                            && level.getBlockState(at).is(AquariumPalette.FLOOR.getBlock())) {
                         this.placeBlock(level, AquariumPalette.MOSS, x, base, z, limit);
                     }
                 }
@@ -622,20 +627,31 @@ public final class AquariumPieces {
             // MOSS, because this is the wettest room in the building: the ramp down, the sump, and a
             // silt bed that has been damp for forty years. It takes the floor rather than the walls so it
             // reads as growing up out of the standing water.
+            //
+            // NO PALE MOSS HERE, and the rule is the reason rather than the palette. Pale is the
+            // centrepiece tank's alone because that tank is sealed and unlit; this room has a sea lantern
+            // in its own roof. Vanilla having no ordinary hanging moss is an argument for this ceiling
+            // staying bare, not for breaking the one rule a player can read off the building.
+            //
+            // AND IT STAYS OFF THE RAMP. The descent writes floor at base-step for four steps, so its
+            // bottom tread sits one course ABOVE this plane - a carpet written at floorCell.above() would
+            // delete the last step down. Skipped by column rather than guarded by a block test, because
+            // moss under the ramp is invisible anyway.
             BoundingBox hall = room().interior(ox, base, oz);
             for (int x = hall.minX(); x <= hall.maxX(); x++) {
                 for (int z = hall.minZ(); z <= hall.maxZ(); z++) {
+                    if (x >= ox - 14 && x <= ox - 11 && z >= oz - 1 && z <= oz + 1) {
+                        continue;   // the ramp's own columns
+                    }
                     BlockPos floorCell = new BlockPos(x, hall.minY() - 1, z);
-                    if (!level.getBlockState(floorCell).is(AquariumPalette.FLOOR.getBlock())) {
-                        continue;   // never over the sump, the silt or the ramp
+                    if (!limit.isInside(floorCell)
+                            || !level.getBlockState(floorCell).is(AquariumPalette.FLOOR.getBlock())) {
+                        continue;   // never over the sump or the silt, and never off this chunk
                     }
                     if (AquariumPalette.mossy(x, floorCell.getY(), z)) {
                         this.placeBlock(level, AquariumPalette.MOSS, x, floorCell.getY(), z, limit);
                     } else if (AquariumPalette.sparseMossy(x, floorCell.getY() + 1, z)) {
                         this.placeBlock(level, AquariumPalette.MOSS_CARPET, x, floorCell.getY() + 1, z, limit);
-                    }
-                    if (AquariumPalette.sparseMossy(x, hall.maxY(), z)) {
-                        this.placeBlock(level, AquariumPalette.PALE_HANGING_MOSS, x, hall.maxY(), z, limit);
                     }
                 }
             }

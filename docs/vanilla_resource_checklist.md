@@ -278,7 +278,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 - [x] `allium` - buy from a wandering trader
 - [x] `lily_of_the_valley` - buy from a wandering trader
-- [x] `pale_moss_block` - buy from a wandering trader
+- [x] `pale_moss_block` - mine pale_moss_block (the Municipal Aquarium's centrepiece tank)
 - [x] `wildflowers` - buy from a wandering trader
 
 
@@ -608,7 +608,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `flint` - mine gravel (sewers)
 - [x] `furnace` `(c)` - crafted from blackstone
 - [x] `lapis_lazuli` `(c)` - torn down at the Recompile Workbench from printer
-- [x] `moss_block` - buy from a wandering trader
+- [x] `moss_block` - mine moss_block (the Municipal Aquarium's filtration hall)
 - [x] `powered_rail` `(c)` - crafted from stick + redstone
 - [x] `rail` `(c)` - crafted from stick + iron ingot
 - [x] `sculk` - crafted from sculk powder
