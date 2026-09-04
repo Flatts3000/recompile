@@ -4,9 +4,11 @@ Reachability closure over the mod's world, its loot, and every recipe that still
 Seeded from what the world generates and which mobs can exist, then closed under recipes
 until nothing new appears. Every reachable item records the route that first reached it.
 """
-import json, os, sys, glob, collections
+import json
+import re
+import os, sys, glob, collections
 
-from paths import WORK as SP, MCDATA, MOD_DATA as MOD
+from paths import WORK as SP, MCDATA, MOD_DATA as MOD, MOD_JAVA
 MC = MCDATA + "/data/minecraft"
 
 
@@ -149,20 +151,94 @@ VANILLA_IN_WORLD = {
     "cracked_stone_bricks": "sewers", "iron_bars": "sewers", "ladder": "sewers",
     "lantern": "sewers", "campfire": "sewers", "barrel": "sewers",
     "suspicious_sand": "sewer silt", "suspicious_gravel": "sewer silt",
-    # The Municipal Aquarium places these and nothing else in the game does. Both were purchasable
-    # from a wandering trader and by no other route, so without these two lines the doc asserts the
-    # opposite of the feature: moss becomes a find rather than a trade.
-    #
-    # Only these two, deliberately. The building also places prismarine, sponges, fifteen dead corals
-    # and the heart of the sea, and the index cannot see any of it - it reads structure NBT palettes
-    # and this structure is procedural Java. That wider gap is recorded in this pipeline's README
-    # rather than patched here one block at a time.
+}
+
+# --------------------------------------------------- the Municipal Aquarium, read from the Java
+#
+# THE BUILDING IS PROCEDURAL JAVA, SO THE STRUCTURE INDEX CANNOT SEE IT. Every other structure here
+# is NBT and `structblocks.json` reads its palette; this one is built by code, so what it places was
+# invisible and every vanilla block whose only source is this building read as unreachable. That was
+# #366: the heart of the sea on the centrepiece pedestal, prismarine crystals off the sea lanterns,
+# and both sponges, all confidently filed under "no ocean, monument, shipwreck or ocean ruin
+# generates".
+#
+# THE LIST IS NOT RETYPED HERE. It is parsed out of `AquariumStructure.VANILLA_PLACED`, which is the
+# one place it is declared, sitting next to the geometry it belongs to and guarded in BOTH
+# directions by `the_aquarium_places_exactly_the_vanilla_blocks_it_declares`. A second copy in this
+# file is exactly the drift this pipeline's README warns about, and this repo has evidence that a
+# second copy drifts.
+#
+# It fails LOUDLY. A rename or a refactor that this regex cannot follow raises here rather than
+# quietly contributing an empty set, because an empty set is indistinguishable from a correct run
+# and would silently restore the bug this closes.
+def _aquarium_blocks() -> set:
+    src = os.path.join(MOD_JAVA, "content", "worldgen", "aquarium", "AquariumStructure.java")
+    text = open(src, encoding="utf-8").read()
+    start = text.find("VANILLA_PLACED = Set.of(")
+    if start == -1:
+        raise SystemExit("AquariumStructure.VANILLA_PLACED is gone or renamed. It is the only "
+                         "record of what the Municipal Aquarium places; without it every vanilla "
+                         "block whose sole source is that building silently reads as unreachable "
+                         "(#366). Fix this parse rather than deleting it.")
+    # Comments are stripped BEFORE the terminator is located. Finding ");" in the raw text lets a
+    # future comment containing one truncate the list silently, and a truncation that still leaves
+    # 20+ blocks slips past the guard below - an under-read that reintroduces #366 for the tail.
+    clean = " ".join(line.split("//")[0] for line in text[start:].splitlines())
+    body = clean[:clean.find(");")]
+    found = set(re.findall(r"Blocks\.([A-Z0-9_]+)", body))
+    if len(found) < 20:
+        raise SystemExit("only %d blocks parsed out of AquariumStructure.VANILLA_PLACED, which is "
+                         "far fewer than the building places - the declaration's shape has changed "
+                         "and this parse no longer follows it." % len(found))
+    return {name.lower() for name in found}
+
+
+# Worth naming precisely; everything else gets the building itself as its reason.
+AQUARIUM_DETAIL = {
     "moss_block": "the Municipal Aquarium's filtration hall",
     "pale_moss_block": "the Municipal Aquarium's centrepiece tank",
-    # AquariumPalette places this in the centrepiece tank alongside the pale moss it hangs from. It
-    # was the only one of the three moss entries still crediting a wandering trader.
     "pale_hanging_moss": "the Municipal Aquarium's centrepiece tank",
+    "sponge": "the Municipal Aquarium's filtration hall",
+    "wet_sponge": "the Municipal Aquarium's filtration hall",
+    "sea_lantern": "the Municipal Aquarium's tank lighting",
+    "prismarine": "the Municipal Aquarium's cladding",
+    "prismarine_bricks": "the Municipal Aquarium's cladding",
+    "dark_prismarine": "the Municipal Aquarium's cladding",
 }
+def _silk_touch_only(block: str) -> bool:
+    """True when every pool of a block's vanilla loot table is gated on Silk Touch.
+
+    WITHOUT THIS THE FIX IS WORSE THAN THE BUG. `walk_items` ignores loot conditions, so seeding a
+    block simply credits whatever its table names - and ten of the forty are silk-touch-only (the
+    five dead coral plants and their five fans, plus glass and tinted glass). The doc would have
+    printed "mine dead_brain_coral (the Municipal Aquarium)" to a player who breaks one and gets
+    nothing. That is the direction this whole guard exists to prevent: a reachable-looking row
+    nothing in the game will ever contradict.
+
+    They are still credited, because Silk Touch is obtainable here and so the resource genuinely is.
+    What changes is that the row SAYS so.
+    """
+    path = os.path.join(MC, "loot_table", "blocks", block + ".json")
+    try:
+        table = json.load(open(path, encoding="utf-8"))
+    except OSError:
+        return False
+    pools = table.get("pools") or []
+    if not pools:
+        return False
+    for pool in pools:
+        conditions = json.dumps(pool.get("conditions") or [])
+        if "silk_touch" not in conditions:
+            return False
+    return True
+
+
+for _b in _aquarium_blocks():
+    _why = AQUARIUM_DETAIL.get(_b, "the Municipal Aquarium")
+    if _silk_touch_only(_b):
+        _why += ", with Silk Touch"
+    VANILLA_IN_WORLD.setdefault(_b, _why)
+
 SB = json.load(open(SP + "/structblocks.json"))
 for b in SB.get("bastion", []):
     VANILLA_IN_WORLD.setdefault(b.replace("minecraft:", ""), "bastion remnant")
@@ -319,7 +395,12 @@ def gain(item, why, from_loot=False):
     return False
 
 
-LATE = ("fishing", "Hero of the Village")
+# "Municipal Aquarium" is LATE for the reason the other two are: these tables should fill a gap,
+# never win a race. Seeded in phase 1 they beat the recipe closure - `gain` is first-wins - and
+# `glass` regressed from "smelted from red sand" to "mine it in the aquarium", which is true and
+# useless. Late, the building only supplies what nothing else does, and the closure still runs to
+# a fixpoint afterwards so its downstream chains (a sea lantern into prismarine crystals) close.
+LATE = ("fishing", "Hero of the Village", "Municipal Aquarium")
 
 
 def seed(late):
@@ -343,7 +424,32 @@ def seed_trades():
                 gain(e["id"], "buy from a " + prof.replace("_", " "))
 
 
+
+def _aquarium_items() -> set:
+    """The vanilla ITEMS the aquarium seats in a block entity, read from the same Java declaration.
+
+    A block sweep cannot see these and neither can a loot table: the heart of the sea sits on the
+    centrepiece Display Pedestal and nowhere else in the game, so without this it reads as
+    unreachable with a confident "no ocean, monument, shipwreck or ocean ruin generates" beside it.
+    Guarded in-game by the same manifest test as the blocks.
+    """
+    src = os.path.join(MOD_JAVA, "content", "worldgen", "aquarium", "AquariumStructure.java")
+    text = open(src, encoding="utf-8").read()
+    start = text.find("VANILLA_ITEMS_PLACED = Set.of(")
+    if start == -1:
+        raise SystemExit("AquariumStructure.VANILLA_ITEMS_PLACED is gone or renamed (#366).")
+    clean = " ".join(line.split("//")[0] for line in text[start:].splitlines())
+    body = clean[:clean.find(");")]
+    found = re.findall(r"Items\.([A-Z0-9_]+)", body)
+    if not found:
+        raise SystemExit("no items parsed out of AquariumStructure.VANILLA_ITEMS_PLACED.")
+    return {name.lower() for name in found}
+
+
 seed(False)
+
+for _i in _aquarium_items():
+    gain("minecraft:" + _i, "the Municipal Aquarium's centrepiece pedestal")
 
 for m in MOBS:
     gain("minecraft:" + m + "_spawn_egg", "Sequencer spawn egg") if m in AMBER else None
@@ -697,7 +803,55 @@ while changed:
         seed_trades()
         changed = True
 
-json.dump({"reach": REACH, "mobs": MOBS}, open(SP + "/reach.json", "w"), indent=0)
+# ------------------------------------------- what the closure closed over, derived not retyped
+#
+# THE DOC USED TO HARDCODE THE WORD "seven" HERE (#371) and it went stale the day market_offer
+# shipped, while the closure itself had already grown the arm to handle it - so the methodology
+# paragraph misreported the very run printed beside it. A number describing the code belongs to the
+# code.
+#
+# It also cross-checks, because the count alone would not have caught the thing that actually bit.
+# `recipe_rules` is one if/elif chain over `type`, so a registered type with no arm contributes
+# NOTHING and reports nothing: the file parses, the run is green, and whatever it produces reads as
+# unreachable. That is exactly how the two market-only items came out unreachable. If the mod
+# registers a type this closure cannot read, say so loudly and put it in the doc rather than
+# printing a confident number over a silent hole.
+def _registered_recipe_types() -> list:
+    src = os.path.join(MOD_JAVA, "registry", "RCRecipeTypes.java")
+    text = open(src, encoding="utf-8").read()
+    found = re.findall(r'RECIPE_TYPES\.register\("([a-z_]+)"', text)
+    if not found:
+        raise SystemExit("no recipe types parsed out of RCRecipeTypes.java - the registration shape "
+                         "has changed and this parse no longer follows it (#371).")
+    return sorted(set(found))
+
+
+def _handled_recipe_types() -> set:
+    """Types `recipe_rules` actually dispatches on.
+
+    Scoped to the dispatch lines rather than the whole file. Grepping every "recompile:<name>"
+    literal counts item ids (`recompile:blueprint`, `recompile:amber`) and anything written in a
+    comment as handled, so a newly registered type whose name collided with an item id, or one
+    merely mentioned in a TODO, would be reported as covered while having no arm - precisely the
+    silent hole this cross-check exists to catch.
+    """
+    mine = open(os.path.abspath(__file__), encoding="utf-8").read()
+    handled = set()
+    for line in mine.splitlines():
+        stripped = line.split("//")[0].strip()
+        if stripped.startswith(("if t ==", "elif t ==", "if t in", "elif t in")):
+            handled.update(re.findall(r'"recompile:([a-z_]+)"', stripped))
+    return handled
+
+
+RECIPE_TYPES = _registered_recipe_types()
+UNHANDLED_RECIPE_TYPES = sorted(set(RECIPE_TYPES) - _handled_recipe_types())
+if UNHANDLED_RECIPE_TYPES:
+    print("WARNING: recipe types with no arm in recipe_rules, so anything they produce will read "
+          "as unreachable: " + ", ".join(UNHANDLED_RECIPE_TYPES))
+
+json.dump({"reach": REACH, "mobs": MOBS, "recipe_types": RECIPE_TYPES,
+           "unhandled_recipe_types": UNHANDLED_RECIPE_TYPES}, open(SP + "/reach.json", "w"), indent=0)
 print("reachable items:", len(REACH))
 print("mobs available :", len(MOBS))
 print("stripped by a loot modifier:", len(STRIPPED))

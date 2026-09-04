@@ -11,6 +11,20 @@ rows = json.load(open(SP + "/rows.json"))
 dropped = json.load(open(SP + "/dropped.json"))
 RJ = json.load(open(SP + "/reach.json"))
 R, MOBS = RJ["reach"], RJ["mobs"]
+# Derived rather than retyped (#371): the sentence below describes the run printed beside it, so
+# the number belongs to the code that produced it.
+# Raise rather than degrade. run.py supports --from render, so a reach.json written before these
+# keys existed would render "its 0 custom recipe types" - the same class of silently-wrong number
+# that #371 was.
+if "recipe_types" not in RJ:
+    raise SystemExit("reach.json has no recipe_types: it predates this renderer. Re-run the reach "
+                     "stage (python tools/resource_checklist/run.py --from reach) rather than "
+                     "rendering a number this file would have to invent.")
+RECIPE_TYPES = RJ["recipe_types"]
+UNHANDLED = RJ.get("unhandled_recipe_types", [])
+WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven",
+         8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve"}
+NTYPES = WORDS.get(len(RECIPE_TYPES), str(len(RECIPE_TYPES)))
 from renewability import FINITE, NO_SURVIVAL_SOURCE, NON_RENEWABLE, CONTRADICTED
 
 ORDER = ["Wood", "Overworld (other)", "Forest", "Jungle", "Desert", "Badlands", "Savanna", "Taiga",
@@ -146,11 +160,40 @@ A("own data. Seeded from what the garbage world actually generates (its 4 biomes
 A("its sewers/cooling towers/smokestacks, and the vanilla nether fortress and bastion its biome tags")
 A("let through), plus every mob that can exist, plus the mod's loot tables. Then closed under every")
 A("recipe that still loads - vanilla minus the 30 the mod disables, plus the mod's own 170 and its")
-A("seven custom recipe types - until nothing new appeared. Interactions that are neither loot nor")
+A("%s custom recipe types - until nothing new appeared. Interactions that are neither loot nor"
+  % NTYPES)
 A("recipe are encoded explicitly (bucket fills, axe-stripping, oxidation, the Compost Heap volunteer,")
 A("the Sequencer's byproduct, the Dry Clay Body cauldron step).")
 A("")
-A("**Where the mobs come from.** The starting biome is creature-free by design, so the roster is")
+A("**What this cannot see, so read any row as a best effort rather than a verdict.** The closure")
+A("models loot tables, recipes and the interactions declared above. Three things sit outside it,")
+A("and they usually make a REACHABLE resource read as unreachable:")
+A("")
+A("- **A mod placing a vanilla block.** The closure knows what generates and what drops, not what")
+A("  this mod's own code puts in the world. Where that is the only source, it has to be declared by")
+A("  hand - the Municipal Aquarium is procedural Java with no NBT palette to read, so its")
+A("  prismarine, sponges, sea lanterns, dead corals and the heart of the sea on its centrepiece")
+A("  pedestal are declared in `AquariumStructure.VANILLA_PLACED` and guarded by a GameTest in both")
+A("  directions. Anything of that shape that is NOT declared is invisible here.")
+A("- **Growth and other mechanics.** Bone meal is modelled; the two vine rows below say plainly")
+A("  that they are not verified either way rather than claiming a verdict.")
+A("- **Anything held in a block entity** that is not filled from a loot table.")
+A("")
+A("**It can also err the other way, which is worse, so the checked boxes are not a guarantee")
+A("either.** Loot CONDITIONS are not modelled: a table is credited with everything it names,")
+A("whatever gate it sits behind. Where that gate is Silk Touch the row says so, because ten of the")
+A("aquarium's blocks are silk-touch-only and would otherwise have told a player to break a dead")
+A("coral and collect nothing. Any other condition is currently invisible.")
+A("")
+if UNHANDLED:
+    A("> **This run had %d registered recipe type(s) the closure cannot read: %s.** Anything they"
+      % (len(UNHANDLED), ", ".join("`recompile:" + t + "`" for t in UNHANDLED)))
+    A("> produce is reported as unreachable here whatever the game actually does. Fix the dispatch in")
+    A("> `reachability.py` before trusting the unreachable list.")
+    A("")
+A("**Where the mobs come from.** The starting biome carries nothing that feeds you by design (an")
+A("empty `monster` list; cat, wolf and pigeon do spawn and none of them yields meat), so the")
+A("roster is")
 A("assembled: the frontier regions spawn the hostile set, the compacted depths spawn the nether set,")
 A("the sewers seat a drowned spawner and house turtles and frogs, the landmarks seat a parched and a")
 A("husk, **Animal Bait** draws 16 farm and wild species, the **Sequencer** turns amber into spawn")

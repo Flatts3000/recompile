@@ -9,9 +9,9 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 | | |
 |---|---|
 | Minecraft version | 26.1.2 |
-| Catalogued | 886 |
-| **Reachable in Recompile** | **797 (90%)** |
-| Not reachable | 89 |
+| Catalogued | 887 |
+| **Reachable in Recompile** | **816 (92%)** |
+| Not reachable | 71 |
 | Mobs obtainable | 59 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
@@ -19,11 +19,33 @@ own data. Seeded from what the garbage world actually generates (its 4 biomes, i
 its sewers/cooling towers/smokestacks, and the vanilla nether fortress and bastion its biome tags
 let through), plus every mob that can exist, plus the mod's loot tables. Then closed under every
 recipe that still loads - vanilla minus the 30 the mod disables, plus the mod's own 170 and its
-seven custom recipe types - until nothing new appeared. Interactions that are neither loot nor
+eight custom recipe types - until nothing new appeared. Interactions that are neither loot nor
 recipe are encoded explicitly (bucket fills, axe-stripping, oxidation, the Compost Heap volunteer,
 the Sequencer's byproduct, the Dry Clay Body cauldron step).
 
-**Where the mobs come from.** The starting biome is creature-free by design, so the roster is
+**What this cannot see, so read any row as a best effort rather than a verdict.** The closure
+models loot tables, recipes and the interactions declared above. Three things sit outside it,
+and they usually make a REACHABLE resource read as unreachable:
+
+- **A mod placing a vanilla block.** The closure knows what generates and what drops, not what
+  this mod's own code puts in the world. Where that is the only source, it has to be declared by
+  hand - the Municipal Aquarium is procedural Java with no NBT palette to read, so its
+  prismarine, sponges, sea lanterns, dead corals and the heart of the sea on its centrepiece
+  pedestal are declared in `AquariumStructure.VANILLA_PLACED` and guarded by a GameTest in both
+  directions. Anything of that shape that is NOT declared is invisible here.
+- **Growth and other mechanics.** Bone meal is modelled; the two vine rows below say plainly
+  that they are not verified either way rather than claiming a verdict.
+- **Anything held in a block entity** that is not filled from a loot table.
+
+**It can also err the other way, which is worse, so the checked boxes are not a guarantee
+either.** Loot CONDITIONS are not modelled: a table is credited with everything it names,
+whatever gate it sits behind. Where that gate is Silk Touch the row says so, because ten of the
+aquarium's blocks are silk-touch-only and would otherwise have told a player to break a dead
+coral and collect nothing. Any other condition is currently invisible.
+
+**Where the mobs come from.** The starting biome carries nothing that feeds you by design (an
+empty `monster` list; cat, wolf and pigeon do spawn and none of them yields meat), so the
+roster is
 assembled: the frontier regions spawn the hostile set, the compacted depths spawn the nether set,
 the sewers seat a drowned spawner and house turtles and frogs, the landmarks seat a parched and a
 husk, **Animal Bait** draws 16 farm and wild species, the **Sequencer** turns amber into spawn
@@ -45,7 +67,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Mountain | 1 | 1 |
 | Mushroom Fields | 5 | 5 |
 | River | 2 | 2 |
-| Ocean | 67 | 95 |
+| Ocean | 86 | 96 |
 | Cave & Underground | 107 | 128 |
 | Nether | 78 | 82 |
 | End | 11 | 25 |
@@ -259,7 +281,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 - [x] `clay` `(c)` - crafted from clay ball
 - [x] `firefly_bush` - buy from a wandering trader
-- [x] `pale_hanging_moss` - mine pale_hanging_moss (the Municipal Aquarium's centrepiece tank)
+- [x] `pale_hanging_moss` - mine pale_hanging_moss (the Municipal Aquarium's centrepiece tank, with Silk Touch)
 - [x] `sugar_cane` - Hydroponics Bay seedling
 
 
@@ -270,7 +292,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `closed_eyeblossom` - sewer chest
 - [x] `leaf_litter` `(c)` - smelted from acacia leaves
 - [x] `lilac` - gameplay/dried_bouquet
-- [x] `pale_moss_carpet` `(c)` - crafted from pale moss block
+- [x] `pale_moss_carpet` `(c)` - mine pale_moss_carpet (the Municipal Aquarium)
 - [x] `peony` - gameplay/dried_bouquet
 - [x] `rose_bush` - gameplay/dried_bouquet
 
@@ -428,7 +450,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `salmon_bucket` - bucket a salmon
 
 
-## Ocean  <sub>67/95</sub>
+## Ocean  <sub>86/96</sub>
 
 *Oceans and their structures: monuments, shipwrecks, ocean ruins, buried treasure.*
 
@@ -438,21 +460,21 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [ ] `brain_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `bubble_coral` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `bubble_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_brain_coral` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_brain_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_brain_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_bubble_coral` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_bubble_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_bubble_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_fire_coral` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_fire_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_fire_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_horn_coral` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_horn_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_horn_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_tube_coral` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_tube_coral_block` - no ocean, monument, shipwreck or ocean ruin generates
-- [ ] `dead_tube_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `dead_brain_coral` - mine dead_brain_coral (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_brain_coral_block` - mine dead_brain_coral_block (the Municipal Aquarium)
+- [x] `dead_brain_coral_fan` - mine dead_brain_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_bubble_coral` - mine dead_bubble_coral (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_bubble_coral_block` - mine dead_bubble_coral_block (the Municipal Aquarium)
+- [x] `dead_bubble_coral_fan` - mine dead_bubble_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_fire_coral` - mine dead_fire_coral (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_fire_coral_block` - mine dead_fire_coral_block (the Municipal Aquarium)
+- [x] `dead_fire_coral_fan` - mine dead_fire_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_horn_coral` - mine dead_horn_coral (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_horn_coral_block` - mine dead_horn_coral_block (the Municipal Aquarium)
+- [x] `dead_horn_coral_fan` - mine dead_horn_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_tube_coral` - mine dead_tube_coral (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_tube_coral_block` - mine dead_tube_coral_block (the Municipal Aquarium)
+- [x] `dead_tube_coral_fan` - mine dead_tube_coral_fan (the Municipal Aquarium, with Silk Touch)
 - [ ] `fire_coral` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `fire_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `horn_coral` - no ocean, monument, shipwreck or ocean ruin generates
@@ -466,7 +488,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `cod` - kill a cod (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `ink_sac` - kill a squid (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `nautilus_shell` - brush sewer silt
-- [ ] `prismarine_crystals` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `prismarine_crystals` - mine sea_lantern (the Municipal Aquarium's tank lighting)
 - [x] `prismarine_shard` - separated in the Separator from prismarine grit
 - [x] `pufferfish` - fishing (water from a Rain Collector or the sewers)
 - [x] `salmon` - kill a polar bear (spawn egg (amber -> Sequencer -> Blueprint))
@@ -492,7 +514,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `gold_block` `(c)` - mine gold_block (bastion remnant)
 - [x] `golden_helmet` `(c)` - bastion remnant chest
 - [x] `golden_nautilus_armor` `(finite)` - chests/aquarium_curator
-- [ ] `heart_of_the_sea` `(finite)` - no ocean, monument, shipwreck or ocean ruin generates
+- [x] `heart_of_the_sea` `(finite)` - the Municipal Aquarium's centrepiece pedestal
 - [x] `iron_nautilus_armor` `(finite)` - chests/aquarium_curator
 - [x] `iron_spear` `(c)` - crafted from stick + iron ingot
 - [x] `leather_boots` `(c)` - trash bag pull stream
@@ -521,9 +543,13 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `sea_pickle` - Hydroponics Bay seedling
 - [x] `tube_coral_block` - buy from a wandering trader
 
-<details><summary>Also mineable from structures here, but craftable (21, 20 reachable) - decoration, not a resource</summary>
+### Other
 
-`birch_fence`, `birch_slab`, `birch_stairs`, `bricks`, `dark_oak_door`, `dark_oak_stairs`, `dark_oak_trapdoor`, `dark_prismarine`, `jungle_door`, `jungle_fence`, `jungle_slab`, `jungle_stairs`, `jungle_trapdoor`, `oak_stairs`, `oak_trapdoor`, `prismarine`, `prismarine_bricks`, `sea_lantern` (no), `spruce_door`, `spruce_slab`, `spruce_trapdoor`
+- [x] `sponge` `(c)` - chests/aquarium_curator
+
+<details><summary>Also mineable from structures here, but craftable (21, 21 reachable) - decoration, not a resource</summary>
+
+`birch_fence`, `birch_slab`, `birch_stairs`, `bricks`, `dark_oak_door`, `dark_oak_stairs`, `dark_oak_trapdoor`, `dark_prismarine`, `jungle_door`, `jungle_fence`, `jungle_slab`, `jungle_stairs`, `jungle_trapdoor`, `oak_stairs`, `oak_trapdoor`, `prismarine`, `prismarine_bricks`, `sea_lantern`, `spruce_door`, `spruce_slab`, `spruce_trapdoor`
 
 </details>
 
@@ -564,7 +590,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `iron_bars` `(c)` - mine iron_bars (sewers)
 - [ ] `iron_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
 - [ ] `lapis_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
-- [x] `moss_carpet` `(c)` - crafted from moss block
+- [x] `moss_carpet` `(c)` - mine moss_carpet (the Municipal Aquarium)
 - [ ] `raw_copper` `(c)` - the garbage world generates no ore; metal comes from scrap instead
 - [ ] `raw_gold` `(c)` - the garbage world generates no ore; metal comes from scrap instead
 - [ ] `raw_iron` `(c)` - the garbage world generates no ore; metal comes from scrap instead
@@ -1094,12 +1120,12 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ## What Recompile cannot give you
 
-The 89 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+The 71 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
 of the vanilla economy, not an oversight, unless noted.
 
-- **28** - no ocean, monument, shipwreck or ocean ruin generates
 - **21** - the garbage world generates no ore; metal comes from scrap instead
 - **14** - the End is locked - RCDimensionLockout blocks travel and portal formation
+- **10** - no ocean, monument, shipwreck or ocean ruin generates
 - **10** - no trial chambers generate
 - **4** - no amethyst geodes generate
 - **4** - no lush caves generate
@@ -1164,7 +1190,7 @@ Items are filed above by *where*; this lists them by *how*. `~` marks one not re
 
 ## Appendix: excluded from the catalogue
 
-383 items are excluded because their only loot table is the block dropping itself, and nothing in
+382 items are excluded because their only loot table is the block dropping itself, and nothing in
 worldgen, a structure, a mob, a chest or a trade produces one. Those are crafted goods, not
 resources. Also excluded: everything with no survival source in any version (bedrock, barrier,
 command blocks, spawn eggs, `budding_amethyst`, `petrified_oak_slab`), and the three pottery

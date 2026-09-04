@@ -459,6 +459,83 @@ public final class AquariumTests {
             helper.assertTrue(found, "no separating recipe turns Prismarine Grit into a prismarine shard");
             helper.succeed();
         });
+
+        registerManifest();
+    }
+
+    /**
+     * The guard on {@link AquariumStructure#VANILLA_PLACED}, and it runs in BOTH directions on
+     * purpose.
+     *
+     * <p>The declaration exists so {@code tools/resource_checklist} can know what this procedural
+     * building puts in the world; a list nothing checks is exactly the silent-drift shape that
+     * produced #366 in the first place. Missing a member makes the checklist call a reachable
+     * resource unreachable. Carrying a member the building no longer places makes it call an
+     * unreachable one reachable, which is the worse direction because nothing in the game will ever
+     * contradict it.
+     */
+    static void registerManifest() {
+        RCGameTests.test("the_aquarium_places_exactly_the_vanilla_blocks_it_declares", 40, helper -> {
+            BlockPos o = build(helper, 280);
+            BoundingBox box = AquariumStructure.footprint(o.getX(), o.getY(), o.getZ());
+            var level = helper.getLevel();
+
+            java.util.Set<Block> seen = new java.util.HashSet<>();
+            for (BlockPos at : BlockPos.betweenClosed(
+                    new BlockPos(box.minX(), box.minY(), box.minZ()),
+                    new BlockPos(box.maxX(), box.maxY(), box.maxZ()))) {
+                Block block = level.getBlockState(at).getBlock();
+                if (block == Blocks.AIR) {
+                    continue;
+                }
+                // Vanilla only: the mod's own blocks are not what the checklist tracks.
+                if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals("minecraft")) {
+                    seen.add(block);
+                }
+            }
+
+            java.util.List<String> missing = new java.util.ArrayList<>();
+            for (Block declared : AquariumStructure.VANILLA_PLACED) {
+                // Position-hashed decoration is exempt from this half: see VANILLA_PLACED_SPARSE.
+                if (AquariumStructure.VANILLA_PLACED_SPARSE.contains(declared)) {
+                    continue;
+                }
+                if (!seen.contains(declared)) {
+                    missing.add(BuiltInRegistries.BLOCK.getKey(declared).toString());
+                }
+            }
+            java.util.List<String> undeclared = new java.util.ArrayList<>();
+            for (Block block : seen) {
+                if (!AquariumStructure.VANILLA_PLACED.contains(block)) {
+                    undeclared.add(BuiltInRegistries.BLOCK.getKey(block).toString());
+                }
+            }
+            java.util.Collections.sort(missing);
+            java.util.Collections.sort(undeclared);
+
+            helper.assertTrue(missing.isEmpty(), "AquariumStructure.VANILLA_PLACED declares blocks the "
+                + "building does not place, so the resource checklist credits it with sources it does "
+                + "not have: " + missing + ". If the block is position-hashed decoration, it belongs "
+                + "in VANILLA_PLACED_SPARSE rather than being deleted.");
+            helper.assertTrue(undeclared.isEmpty(), "the building places vanilla blocks that "
+                + "AquariumStructure.VANILLA_PLACED does not declare, so the resource checklist will "
+                + "call them unreachable (this is #366's failure mode): " + undeclared);
+
+            // The item half. A block sweep cannot see what sits IN a block entity, and the heart of
+            // the sea is the whole reason that matters: it is on the centrepiece pedestal and
+            // nowhere else in the game.
+            for (net.minecraft.world.item.Item declared : AquariumStructure.VANILLA_ITEMS_PLACED) {
+                BlockPos plinth = AquariumStructure.pedestal(o.getX(), o.getY(), o.getZ());
+                helper.assertTrue(
+                    level.getBlockEntity(plinth) instanceof DisplayPedestalBlockEntity p
+                        && p.getDisplayed().is(declared),
+                    "AquariumStructure.VANILLA_ITEMS_PLACED declares "
+                        + BuiltInRegistries.ITEM.getKey(declared) + " but the centrepiece pedestal at "
+                        + plinth + " does not hold it, so the checklist credits a source that is not "
+                        + "there");
+            }
+            helper.succeed();
+        });
     }
 
     private static void assertSpawner(GameTestHelper helper, BlockPos at, String mob, int expectedRange) {
