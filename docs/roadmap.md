@@ -482,9 +482,9 @@ Not a phase. A pair of workstations the owner called for (#311), recorded here b
 - **Found, built, and now purchased.** A `recompile:market_offer` line sells either `blueprint`
   (KNOWLEDGE - the specced shortcut past the fragment grind, still wanting every material and the
   bench) or `item` (THE THING, the only route in this mod by which an object enters the world without
-  being found, grown or built). Two ship on it, both chosen because
-  `vanilla_resource_checklist.md` already listed them unreachable: a **Totem of Undying** outright
-  and a **Bucket of Powder Snow** as knowledge.
+  being found, grown or built). Three ship on it, all chosen because
+  `vanilla_resource_checklist.md` already listed them unreachable: a **Totem of Undying** and a
+  **heavy core** outright, and a **Bucket of Powder Snow** as knowledge.
 - **One invariant had to give and one guard had to be written.** "Every shipped blueprint is taught
   by a teardown" is no longer true, so
   `every_shipped_blueprint_has_a_name_a_recipe_and_a_teacher` is now `..._and_a_route` (a teardown
