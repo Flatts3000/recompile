@@ -334,6 +334,81 @@ Leaning: particles on the top tire of a lit stack only, not on every lit tire in
 
 ---
 
+## 8b. Speculation, asked for 2026-09-04
+
+Everything below is reasoning rather than ruling. Two items overturn things this spec said earlier.
+
+### The fuel entry is a trap, and it should probably be cut
+
+#155 proposed a furnace-fuel entry for tires and section 5 carries it at 1200. **A finite material with
+an infinite sink is a trap**, and that is exactly what this would be: piles do not replenish, and a
+player who learns tires burn hot will feed a furnace with the same tires the Pump needs. They will not
+notice until the dumps are gone, because fuel is spent inattentively and rubber is spent once.
+
+Three ways out, in order of preference:
+
+1. **Drop the fuel entry.** Tires are a material, not a fuel. The mod already has `junk`, `lignite` and
+   `oily_rag` covering that tier, so nothing is missing.
+2. **Make only `rubber_scrap` burnable**, so burning it visibly competes with the Pump and the choice is
+   in front of the player rather than behind them.
+3. **Keep it and accept it**, on the grounds that rubber demand is tiny (below) and dumps are plentiful.
+
+### Rubber demand is tiny, which defuses 8.4 almost entirely
+
+Counted rather than assumed. The Pump is used by **one Grass Spreader cell** and **one per Garbage
+Vacuum**. A whole playthrough wants perhaps two to five pumps, so at one rubber each the entire game's
+rubber demand is a handful. Finite dumps are ample for that, and 8.4's worry mostly evaporates - as long
+as the fuel entry above does not open a second, unbounded demand.
+
+### And rubber does NOT gate the water tier, which corrects what this spec said
+
+Section 8.3 claimed that piles-only puts rubber on the critical path to the Rain Collector and the
+Hydroponics Bay, because both are gated on the Pump. **That is wrong, and the correction matters.** The
+Pump is also *found*: it drops from the **washing machine** and **fridge** teardowns, both Bulky Waste
+finds. So a player who never locates a tire dump can still get pumps and still reach the water tier.
+
+Rubber therefore makes the Pump *craftable on demand* rather than *possible at all*, which is a much
+milder claim than the one made earlier and a much safer place for a finite material to sit.
+
+### The knife has durability, so the fast route balances itself
+
+`SCRAP_KNIFE` is built with `ToolMaterial.STONE`, so it carries stone-tier durability. Breaking tires
+with it therefore costs knife life per tire, and a dump is a lot of tires. That gives the three routes a
+self-balancing shape with no extra design: the knife-in-place route trades tool wear for speed, and the
+hand-then-bench route trades a trip home for durability and the steel belts. Worth confirming whether a
+`teardown` recipe's `tool` also costs durability, since if it does not, the asymmetry is sharper still.
+
+### The Garbage Vacuum will not touch a tire, and that will be reported as a bug
+
+`GarbageVacuumItem.canTake` is `state.getBlock() instanceof SortableBlock && state.is(accepts)`. A tire
+is a plain block by ruling 3, so the vacuum ignores tire piles entirely. That is correct - the vacuum
+takes garbage blocks and a tire is not one - but a player standing in front of a huge pile of dump
+objects holding a machine for hoovering dump objects will not read it that way.
+
+**Recommend a Jade line or a guidebook sentence, not a code change.** The refusal is already legible
+elsewhere: the vacuum names the pile it cannot take in the action bar when a tier is too low, so an
+untakeable pile has precedent.
+
+### Player-placed tires, and lighting one on purpose
+
+Tires are block-items, so a player can build with them, and a tire wall is a good thing to be able to
+make. Two consequences worth having thought about:
+
+- **A placed tire knifes into rubber like a natural one.** Not duplication: the tire came from a tire.
+- **A player can light their own with flint and steel, and it will never go out.** Flint and steel is
+  iron-gated, so this arrives long after light is solved, and the household sprawl has no hostile spawn
+  list at all, so there is no spawn-suppression exploit to worry about either. **Recommend allowing it**;
+  a permanent fire you built on purpose is a reward, and forbidding it would need a special case that
+  contradicts ruling 4.
+
+### The feature should dodge leachate pools too, not only mounds
+
+`leachate_pool` sits in the same `vegetal_decoration` array. Placement rule 1 names mounds and Mound
+Ground; a pile dropped into a pool would look like a mistake and would put tires under a fluid the spec
+never considered. One more block check, same pass.
+
+---
+
 ## 9. Build notes
 
 - **The feature goes after `garbage_mound` in the biome's step 9 array**, and reads blocks at its own
