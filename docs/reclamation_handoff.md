@@ -59,7 +59,10 @@ Two consequences that matter for implementation:
 
 ## What to build
 
-Four machines, one per rung, in this order.
+Four machines, one per rung, in this order. *(Superseded: FIVE rungs shipped, and rungs 3 and 4 are
+not what this table says. As built: 1 Grass Spreader, 2 Vegetation, 3 Farming, 4 Tree Nursery,
+5 Animals - which is the numbering in this file's own banner at the top. The table below is the
+2026-07-23 plan; where the two disagree, the banner is right.)*
 
 > **Running-cost model superseded (see the banner above).** This section originally had each machine
 > *consume compost + clean water*. Rung 1 as specced consumes **nothing** - the cost is the one-time

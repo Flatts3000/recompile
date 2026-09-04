@@ -84,7 +84,7 @@ can slot content between. Ordered by discovery - the sequence a player actually 
 | 2 | **Sorting & Materials** | Pick-through blocks; The base materials; Sorting Tarp | Right-click a Block of Garbage to pull **one** drop at a time; it crumbles after a few pulls. Trash Bag and Compacted Bale are richer streams with their own tools; the Cardboard Pile is a bare-hand one that yields Cardboard. Garbage falls like gravel. The Sorting Tarp sifts held garbage onto the ground (no GUI, no storage). |
 | 3 | **Tools** | The salvage tools | Prybar (opens Bulky Waste), Scrap Knife (cuts cans/mattresses), Junk Shovel - crafted from base materials, not the vanilla wood/stone/iron ladder. |
 | 4 | **Bulky Waste & Finds** | Prying open a find | Pry Bulky Waste with a Prybar: one action, drops a find, breaks. Bare-hand mining yields nothing. Finds (mattress, appliances) are the only source of machine parts. Nothing enters the world without a teardown exit. |
-| 5 | **The Recompile Workbench** | Breaking things down | Rack a Scrap Knife or Prybar, hold right-click an item to tear it into materials. (Materials teardown only; the knowledge/recipe axis is Phase 3, unbuilt - see Out of scope.) |
+| 5 | **The Recompile Workbench** | Breaking things down | Rack a Scrap Knife or Prybar, hold right-click an item to tear it into materials. (Materials teardown here; the knowledge/recipe axis shipped in Phase 3 and has its own entry, `workstations/blueprints`.) |
 | 6 | **Storage & the Scrap Network** | Scrap Barrel & Bin; The Scrap Network | No wood means no vanilla chest/barrel early; use the Scrap Barrel, and a Scrap Bin that binds to one item type. Place scrap blocks touching and junk **routes between them** on a file-all - no pipes, no GUI. |
 | 7 | **Food** | Tin Can; Dump Mushrooms | Cut a Tin Can open with a Scrap Knife to eat it. Forage and **replant** Dump Mushrooms. There are no animals - food is not from mobs. |
 | 8 | **Smelting: the Burn Barrel** | The manual smelter | A furnace variant that takes **no hoppers or automation** (manual only); fuel is Oily Rag and the data-mapped fuels, not just coal. |
@@ -101,9 +101,11 @@ can slot content between. Ordered by discovery - the sequence a player actually 
 
 ## Out of scope
 
-- **Not yet built - document when it ships:** the **knowledge/recipe axis** of teardown
-  (Phase 3 - only materials teardown exists at the workbench today); **mound regrowth**
-  (Phase 5); **themed dimensions** (Phase 6). No entries until they ship. *The tree planter used
+- **Not yet built - document when it ships:** **mound regrowth** (Phase 5) is the only one of the
+  three left, and it is built in the game but has no entry. *(This bullet listed two more that have
+  both shipped AND have entries, so it contradicted the table above it: the knowledge axis is
+  `entries/workstations/blueprints.json`, and themed dimensions are the whole seven-entry `depths`
+  category, which the table's own row 18 lists.)* *The tree planter used
   to be listed here; it shipped as the **Tree Nursery** and now has its own entry, and the
   saplings entry was corrected - it still described the planter as a later tier.*
 - **Pure vanilla - never restate:** anything a player does identically to vanilla. Standard

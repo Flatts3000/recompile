@@ -55,7 +55,7 @@ duplicate rule are one decision wearing two hats.
 **The found-economy invariant is retired** (owner, 2026-08-01). CLAUDE.md carried it as standing: *nothing
 enters the found economy without a teardown exit, or the piles become clutter*. It had already stopped
 being true - the collectibles (avocado, present, gold coin, toy car, Puzzle Cube) are found and displayed
-with no teardown exit, and the mod ships exactly three teardown recipes. Retiring it makes the documents
+with no teardown exit, and the mod ships twelve teardown recipes. Retiring it makes the documents
 match what shipped rather than describing a rule the content had outgrown.
 
 ## 2. What vanilla already gives us

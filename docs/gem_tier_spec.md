@@ -34,7 +34,7 @@ both the real economics and a gate that cannot be cheesed.
 | Redstone | **Refined from Mechanical Waste** | Real: rare-earth magnets in motors and speakers. **This is the tier's gate** |
 | Amethyst | **Refined from Mechanical Waste** | Weakest real fit; defensible read is recovered **quartz** that happens to be purple |
 | Lapis | **Printer teardown** (#112) | Lapis is a pigment and a printer is full of pigment. Machinery contains none |
-| Emerald | **Deferred** | No industrial stream exists in reality, and vanilla uses it only as villager currency, which this world has none of |
+| Emerald | **Deferred** | No industrial stream exists in reality, and vanilla uses it only as villager currency. *(That clause used to read "which this world has none of", and it is false: villagers are reachable by curing a zombie villager, amber carries a villager entry in both pull streams, and `emerald` is marked reachable in the resource checklist. The decision stands on the first clause alone.)* |
 | Mechanical Waste | **A fourth `SortableBlock`**, generated in the demolition yard beside Stone Rubble | The yard already generates piles; no new region needed |
 | What the pile sorts into | **Industrial scrap variants, never gems** | The pile is the found half and is picked through like any other sortable block; the gem is the refined half |
 | How many variants | **Several, one per gem** | One shared scrap would put every gem on a single difficulty curve, and redstone being the hard gate is a decision |

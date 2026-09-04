@@ -1,6 +1,6 @@
 # The Separator: model and animation - spec (issue #119)
 
-**Status: design in progress, not built.** The art half of the gem tier's machine. Mechanics live in
+**Status: SHIPPED (#187).** `SeparatorCoreBlock`, `SeparatorChamberBlock` and `SeparatorPartBlock` exist with finished art, including the animated `separator_bay_0..3{,_running}` textures and their `.mcmeta` files, plus five Jade providers. The art half of the gem tier's machine. Mechanics live in
 [`gem_tier_spec.md`](gem_tier_spec.md); this document is only about **what it looks like and how it
 appears to move**, which is the hard part.
 

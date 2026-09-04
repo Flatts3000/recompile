@@ -47,7 +47,7 @@ permanently lost) and the recommendation not to retune worldgen's 5% for one fin
 
 ```
 mound worldgen -> Bulky Waste block (5% per core cell)
-               -> pry it open -> Washing Machine (14.3% of finds) or Dead Fridge (28.6%)
+               -> pry it open -> Washing Machine (13.3% of finds) or Dead Fridge (26.7%)
                -> tear down at the Teardown Workbench with a prybar
                -> washing machine: 1 Pump + 5 scrap, split metal/plastic
                -> fridge:          1 of motor/pump/bulb + 8 scrap + snow or ice
@@ -124,7 +124,7 @@ prying *less* interesting.
 The fix for both problems is the same: **more finds.** Each line added dilutes the washing machine's
 share naturally, and turns prying open Bulky Waste into a real "what did I get" beat. The invariant
 holds - a new find is a loot line, a teardown recipe, and one texture - but it only pays off if
-things actually get added, and each one needs a teardown exit before it can enter.
+things actually get added. *(This sentence continued "and each one needs a teardown exit before it can enter". That invariant was RETIRED by owner ruling 2026-08-01: a find may now exist to be displayed rather than processed. What still holds is the reason behind it - a find that is neither useful nor wanted is clutter - so a new find needs a point, just not necessarily a teardown one.)*
 
 ## Splitting the appliance: not yet, and the trigger is clear
 

@@ -1,6 +1,6 @@
 # Explorable sewers - spec
 
-**Status: design locked 2026-08-01, not built.** The mod's first real structure, its first finite
+**Status: SHIPPED in v0.11.0 (2026-08-18).** `content/worldgen/sewer/` builds them, 27 GameTests across `SewerLifeTests`, `SewerShapeTests` and `SewerLootTests` hold them, and `demolition/sewers` is the guidebook entry. The build order and risk notes below are kept as the record of how it was planned; read them as history, not as work outstanding. Design locked 2026-08-01. The mod's first real structure, its first finite
 content, and the home for the aquatic life deferred from rung 5. Every decision below was made in the
 design session; what remains is build order and the risks each phase carries.
 
@@ -95,7 +95,7 @@ inside a one-block body, and the Shape row above commits to corridors that branc
 source on an upper level weeps down a stair and puts a falling column at head height on the level below.
 The reasoning stands and the conclusion flipped: because the check is at the **eye** and
 `canSwim(true)` is set, depth cannot decide this either way - so the value belongs on the fluid, and the
-owner has set it to drown. `leachate_can_drown_you` holds it there. It applies **everywhere leachate
+owner has set it to drown. `leachate_drowns_what_is_under_it` holds it there. It applies **everywhere leachate
 exists**, the surface pools included, and a one-block pool is genuinely enough for a player who crawls
 or swims: that is the accepted cost of the ruling, not an oversight in it.
 
@@ -494,7 +494,7 @@ draw would answer differently on each pass and a junction could get a spawner in
 not the other.
 
 `each_den_holds_its_animals_on_its_own_ground`, `the_root_chamber_is_quiet` and
-`a_deep_crossing_carries_the_spawner` assert the three halves of that.
+`every_sewer_has_a_sump_and_it_holds_the_spawner` assert the three halves of that.
 
 **Two more came out of review, and both were bugs the first three could not see:**
 
@@ -513,7 +513,7 @@ not the other.
 **And the spawner guarantee was traded away unnoticed.** The chamber placed one unconditionally;
 junctions place one only past depth 2 and only when the box hashes even, so a sewer could generate with
 **no drowned at all** - and `IN_WATER` means there is no other route to one. Loosened to one in two, and
-`most_sewers_get_a_drowned_spawner` measures the coverage across 200 layouts rather than assuming it.
+`every_sewer_has_a_sump_and_it_holds_the_spawner` measures the coverage across 200 layouts rather than assuming it.
 
 **Extended 2026-08-17 (owner): slimes spawn naturally; frogs and turtles are limited.** Three
 mechanisms for four mobs, and each one is the cheapest thing that actually works:
@@ -528,7 +528,7 @@ mechanisms for four mobs, and each one is the cheapest thing that actually works
 **The slime relaxation is contained by the predicate, not by an argument.** It tests
 `getStructureWithPieceAt`, so it cannot fire outside a sewer even if some future biome or structure
 lists slimes - relying on "nothing else offers them" would be true today and silently false later.
-`no_biome_offers_the_sewer_only_mobs` guards the second line of defence anyway.
+`sewer_mobs_do_not_spawn_outside_a_sewer` guards the second line of defence anyway.
 
 The spawner stays **drowned-only**: slimes and roaches now have natural routes, so putting them in the
 spawner as well would be a second mechanism for a solved problem.

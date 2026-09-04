@@ -4,7 +4,7 @@
 [#40](https://github.com/Flatts3000/trashlands/issues/40).
 **Analysed against:** Recompile **v0.13.0**, Simple Magnets `1.1.12-neoforge-mc26.1` (CF project
 394140, file 8370420), MC 26.1.2 / NeoForge 26.1.2.94.
-**Status:** specced, not implemented. This is a request, not a change.
+**Status:** SHIPPED. The four overrides live at `data/simplemagnets/recipe/` (`advancedmagnet`, `basicmagnet`, `advanced_demagnetization_coil`, `basic_demagnetization_coil`), each at that mod's own recipe id.
 
 ## Why this is a Recompile job and not a pack job
 

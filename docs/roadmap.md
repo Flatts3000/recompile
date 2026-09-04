@@ -333,8 +333,7 @@ scarce here) moves water into it. Spec: [`tree_nursery_spec.md`](tree_nursery_sp
 
 ## Phase 2.17 - Animals, reclamation rung 5  *(DONE 2026-07-27, design P2.4)* (#41, #42)
 
-The start biome is creature-free by design (P1.9), so animals return only through **bait**, never ambient
-spawns. Three diets - **herbivore, carnivore, omnivore** - each with a **Rich** grade, each placed on grass:
+The start biome grows nothing that feeds you by design (P1.9), so FARM animals return only through **bait**. *(Not "creature-free": `household_sprawl` has an empty `monster` list, but `creature` carries cat and wolf and `ambient` carries the pigeon, all added by #133. None of the three yields meat, which is the property the design actually rests on.)* Three diets - **herbivore, carnivore, omnivore** - each with a **Rich** grade, each placed on grass:
 when **no player is near** and it is **not crowded by another bait**, it settles over a countdown and spawns
 **one allowlisted mob** from its diet tag (`#recompile:bait/<diet>`), then is spent. **Rich bait seeds a
 breeding pair** (one an adult, one a baby). Per-mob **spawn weights** make common livestock turn up far more

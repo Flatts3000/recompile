@@ -537,11 +537,11 @@ structure set costs roughly **400x the rarity** the spec pins, which is why it i
 a fix. **Takes:** either a rarity decision (XS, and it is yours) or a real cross-structure check (**L**,
 and it is genuinely hard).
 
-**A sewer can generate with no drowned.** The chamber used to place a spawner unconditionally; junctions
-now place one only past depth 2 and only when the box hashes even.
-`most_sewers_get_a_drowned_spawner` measures the coverage rather than assuming it. **Takes:** a
-guaranteed home for one spawner - which is exactly what a **sump** piece (category B) would provide, and
-the best argument for building that piece first.
+~~**A sewer can generate with no drowned.**~~ **CLOSED by the sump, which shipped** (Phase 3 above,
+marked Shipped in this same file). The sump is the guaranteed home this item argued for, and
+`every_sewer_has_a_sump_and_it_holds_the_spawner` is now a guarantee rather than a coverage
+measurement: every sewer has one and it holds the spawner. Kept struck through because the argument
+it makes is why the sump was built first.
 
 ---
 

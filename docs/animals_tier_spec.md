@@ -2,12 +2,12 @@
 
 **Written 2026-07-27.** The final reclamation tier and the Mod Jam **climax** (the trailer's closing
 shot): life returns to the healed world. Design source: `../trashlands/docs/design_decisions.md`
-(**P2.4-R** the economy revision, **P1.9** the creature-free start). This spec is **not built yet**.
+(**P2.4-R** the economy revision, **P1.9** the creature-free start). **This spec SHIPPED as Phase 2.17 on 2026-07-27**: `AnimalBaitBlock`, `AnimalBaitItem`, six bait items, the three `tags/entity_type/bait/*` files and `AnimalBaitTests`.
 
 ## What it is
 
-The starting biome is **creature-free** - `household_sprawl` has every spawner category empty, so
-nothing spawns naturally. So an animal existing in this world is, by definition, something the player
+The starting biome is **free of anything that feeds you** - `household_sprawl` has an empty
+`monster` list, so nothing hostile spawns naturally. *(Corrected: `household_sprawl` has an EMPTY `monster` list, not empty spawner lists. `creature` carries `minecraft:cat` and `minecraft:wolf` at weight 2 each and `ambient` carries `recompile:pigeon` at weight 3, all added by #133. The design rationale survives - none of the three yields meat, and the mod ships no entity loot table for the pigeon - but the literal claim does not.)* So an animal existing in this world is, by definition, something the player
 brought back. The mechanism is **bait**: you place it on reclaimed grass, walk away, and wildlife
 settles onto the quiet, livable land while you are not watching. The bait is consumed; the animal is
 yours; **vanilla breeding takes over** from there. Baits only *seed* the population.

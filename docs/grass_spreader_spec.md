@@ -197,7 +197,8 @@ BlockEntity on a dummy is a wrinkle the framework has not needed yet).
 - **Encroachment (P1.7-R)** - the headline one. A running spreader repairs inside its radius, so
   **its radius is exactly the land you can hold at rung 1.** Beyond it, erosion wins. Expanding means
   more spreaders, or climbing to trees for permanence.
-- **Mound retirement (Phase 5)** - add `mound_bed` to `spreadable` when it exists, so spreading over
+- **Mound retirement (Phase 5)** - DONE. The block shipped as `recompile:mound_ground` (renamed from
+  `mound_bed`) and is already in `tags/block/spreadable.json`, so spreading over
   a footprint **retires that mound forever**. The quarry-vs-heal decision made physical, and the most
   important interaction in the chain.
 - **Rungs 2-3** - spreader output *is* the precondition terrain the seeder and nursery test for

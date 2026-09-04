@@ -9,10 +9,10 @@ decision below was made in the design session; the phase order it describes is t
 
 A roach scuttles out of a garbage block you are picking through.
 
-**It introduces threat without touching the empty-spawner design.** `household_sprawl` has every spawner
-list empty on purpose (P1.9) - which is why food comes from tin cans and foraged mushrooms rather than
+**It introduces threat without touching the empty-spawner design.** `household_sprawl` has an empty
+`monster` list on purpose (P1.9) - which is why food comes from tin cans and foraged mushrooms rather than
 mobs. A roach that comes out of a *block you disturbed* is not a spawn: it is a consequence of an action
-the player chose. The biome stays creature-free and the dump still bites.
+the player chose. The biome grows nothing that feeds you and the dump still bites. *(Corrected: `household_sprawl` has an EMPTY `monster` list, not empty spawner lists. `creature` carries `minecraft:cat` and `minecraft:wolf` at weight 2 each and `ambient` carries `recompile:pigeon` at weight 3, all added by #133. The design rationale survives - none of the three yields meat, and the mod ships no entity loot table for the pigeon - but the literal claim does not.)*
 
 ## 1. Decisions
 

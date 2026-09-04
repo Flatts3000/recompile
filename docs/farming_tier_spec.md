@@ -65,5 +65,5 @@ own seed deterministically - the RNG is only the entry point, not a permanent ta
 
 ## Tests
 
-`fertilizer_and_dirt_craft_farmland` (the recipe resolves and yields `minecraft:farmland`). The hoe
+`compost_recipes_craft_farmland` (the recipe resolves and yields `minecraft:farmland`). The hoe
 lockout is untested for want of a hoe in the mod; the handler is trivial.

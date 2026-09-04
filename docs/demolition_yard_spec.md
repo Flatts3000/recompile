@@ -23,12 +23,18 @@ P2.4 material economy). This is the engineering spec. Everything ships config-ga
   `ToolMaterial`, each crafts as a metal block on two sticks, handle = tree gate; textures are the vanilla
   mace two-zone-retinted per tier with a wood handle); **rebar -> iron** smelting.
 
-**Remaining**:
-- **Reinforced Concrete placement** - creative-only until the **Building Husk** feature (S3(a), the hard one)
-  + steel piles place it in-world.
-- **Steel I-Beam + Cutting Torch** (S4.3, S6-torch) - the bulk-iron path.
-- **Makeshift Forge** (S7) - the automatable blast-furnace tier.
-- **Textures** - reinforced_concrete is on a vanilla placeholder pending a texgen pass; the biome's final palette.
+**Remaining**: nothing on this list. All four shipped, three under their own names and one under
+another. Kept as the record of what was outstanding, with what closed each:
+
+- ~~**Reinforced Concrete placement**~~ - `BuildingHuskFeature.java` plus
+  `worldgen/{configured,placed}_feature/building_husk.json` place it in-world.
+- ~~**Steel I-Beam + Cutting Torch**~~ (S4.3, S6-torch) - `SteelBeamBlock.java`, `CuttingTorchItem.java`
+  and `recipe/cutting_torch.json`. Shipped 2026-07-30, per `steel_cutting_torch_spec.md`.
+- ~~**Makeshift Forge**~~ (S7) - **never shipped under that name**; it became the **Cupola Furnace**
+  (#236), which is the blast tier and IS the iron gate. `grep -rli makeshift_forge src/` returns
+  nothing, so do not go looking for it.
+- ~~**Textures**~~ - `reinforced_concrete_{0,1,2}.png` are real generated textures, declared in
+  `texgen.toml`.
 
 ---
 

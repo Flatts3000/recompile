@@ -8,7 +8,7 @@ resume point, not a design doc.
 | Scene | State |
 | --- | --- |
 | `museum` | **Done and approved.** Six recovered masterworks over four loaded pedestals, landfill on the horizon. Ready for the CurseForge gallery |
-| `machine_wall` | **Done.** Sixteen machines in one plane plus the Separator, assembled by the game, standing in the dump |
+| `machine_wall` | **Built, not re-shot.** Twenty-two blocks in one plane plus the Separator, assembled by the game, standing in the dump. #367 added six machines (Trommel, Pulverizer, Slag Furnace, Sintering Kiln, Sequencer, Charging Station); the gallery image still shows the old wall, which is open as #354 |
 | `reclaim_before` / `reclaim_after` | **Done, and shot automatically.** Ground-anchored, standing in real terrain with the dump around them, HUD off, identical camera. `python tools/shoot_scenes.py` takes both without a keystroke - it defaults to the pair, because they are the two frames that must share a camera |
 
 ## Where the images go

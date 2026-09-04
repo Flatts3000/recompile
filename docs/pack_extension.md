@@ -133,7 +133,7 @@ stalling on it - but the machine will be slower and stranger than the pack inten
 Two things to know before extending it. The gate **fails closed**: a `SortableBlock` in no band is takeable by nobody, and `every_sortable_block_is_in_a_vacuum_band` fails the build on one rather than letting the tool silently ignore it. And the cost comes from `SortableBlock.sortRolls`, not from the tag - a pile that is banded but absent from that table is vacuumed for free and can never run a vacuum flat, which `every_vacuumable_pile_costs_charge` also fails the build on.
 
 
-Every one of these is data, so a pack extends the behaviour without a mod release. **The mod ships 39
+Every one of these is data, so a pack extends the behaviour without a mod release. **The mod ships 40
 tag files under `data/recompile/tags/`; this table is the pack-relevant subset, not the whole set** -
 it listed eleven for a while under a heading that reads as exhaustive, which is the wrong way round
 for a page whose whole job is to say what a pack can reach. `find data/recompile/tags -name "*.json"`

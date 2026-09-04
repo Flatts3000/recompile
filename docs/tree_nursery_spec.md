@@ -1,7 +1,7 @@
 # Tree Nursery - implementation spec
 
 **Written 2026-07-27.** Rung 4 of the reclamation chain (design P2.4-R), the Mod Jam "Trees" tier.
-Spec only - not built. Design source of truth: `../trashlands/docs/design_decisions.md`
+**SHIPPED** as reclamation rung 4 (Phase 2.16, 2026-07-27): `TreeNurseryCoreBlock`, `TreeNurseryBlockEntity`, `TreeNurseryMenu`, `TreeNurseryScreen`, `TreeNurseryTests`, and the `reclamation/nursery` guidebook entry. Design source of truth: `../trashlands/docs/design_decisions.md`
 (**P2.4-R** the economy revision, **P2.4-R2** the sapling lockout, **P1.7-R** encroachment). This
 spec **revises P2.4-R2** - see "The reversal" - and that revision is **not yet recorded there**; see
 "Design record owed".

@@ -1,6 +1,6 @@
 # Garbage Vacuum - bulk block collection
 
-**Status: specced 2026-09-03.** Issue #336. Owner rulings are recorded inline and dated; everything
+**Status: SHIPPED in v0.17.0 (2026-09-03).** Issue #336. `GarbageVacuumItem`, `VacuumTier`, the four tier items, the `tags/block/vacuumable/*` bands and `GarbageVacuumTests` are all live. Owner rulings are recorded inline and dated; everything
 else is implementation detail that a playtest may move.
 
 **The one-line version:** a powered handheld tool that takes `SortableBlock` blocks out of the world
@@ -111,7 +111,7 @@ the Scrap Network entry to the tag's placeable members.
 
 ### The Charging Station gets no screen (assistant call, 2026-09-03)
 
-All eight custom machine screens are recorded exceptions and a ninth would need a reversal. The
+All ten custom machine screens are recorded exceptions and an eleventh would need a reversal. (This said eight and a ninth; the market's two terminals shipped the next day, with the reversal recorded in `market_spec.md` section 5.) The
 station does not get one:
 
 - **Right-click holding a vacuum** parks it in the station, swapping out whatever was there.

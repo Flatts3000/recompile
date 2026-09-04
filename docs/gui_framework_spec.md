@@ -1,6 +1,6 @@
 # GUI framework spec
 
-**Status: built and shipped** (2026-08-08, issue #164). All eight screens run on it. Owner call the
+**Status: built and shipped** (2026-08-08, issue #164). All ten screens run on it. Owner call the
 same day: a real GUI framework is the thing holding back several features, because a high-quality
 screen was expensive enough that the honest answer was usually "don't build one".
 
@@ -16,8 +16,9 @@ declaration exists. See section 10 for why that turned out to be the whole job.
 
 ## 1. The problem, measured
 
-**Eight** custom screens ship today - Scrap Crafting Table, Tree Nursery, Burner Generator,
-Hydroponics Bay, Cupola Furnace, Slag Furnace, Sintering Kiln, Sequencer - each a recorded exception
+**Ten** custom screens ship today - Scrap Crafting Table, Tree Nursery, Burner Generator,
+Hydroponics Bay, Cupola Furnace, Slag Furnace, Sintering Kiln, Sequencer, and the market's Sell
+and Buy Terminals - each a recorded exception
 to "the mod keeps machine GUIs to a minimum". *(This sentence said four while the paragraph ten lines
 below already said eight, so the page contradicted itself on its own subject. `find src/main/java
 -name "*Screen.java"` settles it; the four in the table below are the ones the framework LAUNCHED
@@ -32,7 +33,7 @@ The cost of the launch four:
 | Burner Generator | 149 | 153 |
 | Hydroponics Bay | 134 | 199 |
 
-**2032 lines for the four screens it launched with** (eight today), and the count is misleading in the wrong direction: most of what a
+**2032 lines for the four screens it launched with** (ten today), and the count is misleading in the wrong direction: most of what a
 new screen costs is not in these files at all, it is in re-learning how any of it works.
 
 Three costs repeat every time.

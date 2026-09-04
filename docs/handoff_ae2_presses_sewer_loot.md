@@ -4,7 +4,7 @@
 [#41](https://github.com/Flatts3000/trashlands/issues/41).
 **Analysed against:** Recompile **v0.13.0**, AE2 `26.1.10-beta` (CF project 223794), MC 26.1.2 /
 NeoForge 26.1.2.94.
-**Status:** specced, not implemented. Owner ruled on the approach 2026-08-20; this records what it
+**Status:** SHIPPED. The presses are a live pool in `loot_table/chests/sump.json` (`ae2:inscriber_presses`), alongside the lang override correcting AE2's own tooltip. Owner ruled on the approach 2026-08-20; this records what it
 needs.
 **Priority:** the pack owner has made this a **release blocker** for the pack's next release.
 

@@ -123,7 +123,7 @@ GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide 
    click - the item's registry id for withdraw, a `-1` sentinel for deposit - so no custom packet). The
    table also **keeps its grid across close** (a `ScrapCraftingTableBlockEntity` holds the 3x3; the grid
    is moved into the menu on open and back on close, so it never duplicates and drops on break). The
-   **recipe-book button is deferred** (it would need swapping the menu's base class, risking the tested
+   **recipe-book button is REFUSED, not deferred** (owner, 2026-08-19: no recipe-book buttons in this mod's machines - a standing decision rather than a backlog item) (it would need swapping the menu's base class, risking the tested
    craft/withdraw/deposit logic; JEI already covers recipe discovery).
 
 ## Placement guidelines - kept, and generalized to every multiblock
