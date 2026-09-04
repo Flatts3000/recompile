@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "Prismarine's manufactured route (docs/municipal_aquarium_spec.md 8.6, owner 2026-09-03), the",
+    "twin of the guardian tank. The two deliberately fail in opposite ways: the guardian renews but",
+    "dies if its tank is bucketed dry, tailings cannot be destroyed but heaps do not regrow.",
+    "",
+    "Prismarine Grit is a tailings_pulls find, because tailings are a mineral-processing residue and",
+    "that is where an odd silicate fraction concentrates - the same argument slag makes. It is the",
+    "quartz_grit shape exactly: a grit pulled from a garbage stream, divided by the Separator into a",
+    "gem-tier shard with glass shards as the silicate leftover. A grit rather than the tailings block",
+    "itself because every_separating_input_is_findable_scrap requires the feed to come out of a pull",
+    "stream, and Mill Tailings is a worldgen block you mine, not a thing anything drops."
+  ],
+  "type": "recompile:separating",
+  "input": "recompile:prismarine_grit",
+  "count": 1,
+  "ticks": 40,
+  "energy": 16,
+  "results": [
+    {
+      "item": "minecraft:prismarine_shard",
+      "count": 1
+    }
+  ],
+  "byproducts": [
+    {
+      "item": "recompile:glass_shards",
+      "count": 1
+    }
+  ]
+}

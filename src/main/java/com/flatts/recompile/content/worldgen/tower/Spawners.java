@@ -26,7 +26,7 @@ import org.slf4j.Logger;
  * else public that can carry a spawn range or equipment. {@code load} takes the whole spawner tag, so
  * it is the only route that can configure one.
  */
-final class Spawners {
+public final class Spawners {
 
     private static final Logger LOG = LogUtils.getLogger();
 
@@ -70,7 +70,7 @@ final class Spawners {
      *                   use {@code set_components} for trim. It is that a partial equippable must carry
      *                   {@code asset_id}, and the cheapest way to carry it is not to write one.
      */
-    static void place(WorldGenLevel level, BoundingBox limit, BlockPos pos, String entityId,
+    public static void place(WorldGenLevel level, BoundingBox limit, BlockPos pos, String entityId,
             int spawnRange, String equipment) {
         if (!limit.isInside(pos)) {
             return;

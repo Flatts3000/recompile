@@ -35,6 +35,19 @@ Three tables, and one of them is not where you would look for it:
 | `recompile:chests/sump` | the sump crate |
 | `recompile:archaeology/sewer_silt` | every brushable suspicious sand and gravel deposit |
 
+### The Municipal Aquarium
+
+| Table | Fills |
+|---|---|
+| `recompile:chests/aquarium_curator` | the curator's chest in Back of House: the four nautilus armours, the sixteen trim templates, the wetlands plants, spare sponges, turtle scute |
+| `recompile:archaeology/aquarium_silt` | the filtration hall's brushable silt bed: the nineteen pottery sherds the sewers do not carry |
+
+Same mechanism as the sewers (`setBlockEntityLootTable` / `setLootTable` at generation, resolved live
+when opened or brushed). **Several of these entries are the item's only source in the game** - the
+nautilus armours, the trim templates, `turtle_scute`, and eighteen of the nineteen sherds - so a pack
+that trims the table is removing an item from the world, and the resource checklist will say so on
+its next run.
+
 `SewerPieces` holds these as `ResourceKey<LootTable>` and calls `setBlockEntityLootTable` /
 `setLootTable` at generation time, so the id is resolved from the **live registry** when the container is
 opened. Nothing is baked into the structure and nothing is hardcoded in Java.

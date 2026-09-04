@@ -107,6 +107,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.TURPENTINE.get());
                     RCItems.NETHER_SHARDS.forEach(shard -> output.accept(shard.get()));
                     RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
+                    output.accept(RCItems.PRISMARINE_GRIT.get());
                     output.accept(RCItems.CIRCUIT_POWDER.get());
                     output.accept(RCItems.GROG.get());
                     output.accept(RCItems.KITTY_LITTER.get());

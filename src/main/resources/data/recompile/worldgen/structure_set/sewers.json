@@ -5,7 +5,11 @@
     "frequency_reduction_method": "legacy_type_3",
     "salt": 90210,
     "separation": 0,
-    "spacing": 1
+    "spacing": 1,
+    "exclusion_zone": {
+      "other_set": "recompile:municipal_aquariums",
+      "chunk_count": 3
+    }
   },
   "structures": [
     {

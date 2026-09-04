@@ -729,6 +729,21 @@ public final class RCItems {
     public static final DeferredItem<Item> QUARTZ_GRIT = ITEMS.registerItem("quartz_grit", Item::new);
 
     /**
+     * Prismarine Grit: the manufactured half of the prismarine route (owner, 2026-09-03; the Municipal
+     * Aquarium spec, 8.6). A Mill Tailings find that the Separator divides into a prismarine shard.
+     *
+     * <p>It is {@link #QUARTZ_GRIT}'s shape in a second stream, and it exists for the reason quartz grit
+     * does: {@code every_separating_input_is_findable_scrap} insists a Separator feed come out of a pull
+     * stream, and the tailings BLOCK is a worldgen thing you mine rather than something anything drops.
+     * The spec first said no new item was needed, and that survived exactly until that test was read.
+     *
+     * <p>Not a member of {@link #INDUSTRIAL_SCRAP}, which is specifically what Mechanical Waste sorts
+     * into; this comes out of the radioactive dump's tailings, one region further out, which is the
+     * point - the guardian tank is the early prismarine route and this is the late one.
+     */
+    public static final DeferredItem<Item> PRISMARINE_GRIT = ITEMS.registerItem("prismarine_grit", Item::new);
+
+    /**
      * Ground circuit board, the middle of the gold chain (#120).
      *
      * <p>Not a member of {@link #INDUSTRIAL_SCRAP}: those are things you FIND in Mechanical Waste and feed

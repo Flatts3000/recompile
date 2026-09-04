@@ -1,0 +1,7 @@
+{
+  "type": "recompile:municipal_aquarium",
+  "biomes": "#recompile:has_structure/municipal_aquarium",
+  "spawn_overrides": {},
+  "step": "top_layer_modification",
+  "terrain_adaptation": "beard_thin"
+}

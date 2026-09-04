@@ -60,6 +60,11 @@ public class LeachatePoolFeature extends Feature<NoneFeatureConfiguration> {
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
+        // The Municipal Aquarium claims its footprint before any feature runs; nothing the yard or
+        // the sprawl scatters may stand in it (owner, 2026-09-03: mounds neither). See BuildingHuskFeature.
+        if (com.flatts.recompile.content.worldgen.aquarium.AquariumStructure.claims(level, origin)) {
+            return false;
+        }
         RandomSource random = context.random();
         int radius = MIN_RADIUS + random.nextInt(MAX_RADIUS - MIN_RADIUS + 1);
 

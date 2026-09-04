@@ -1,0 +1,124 @@
+{
+  "_comment": [
+    "Brushed out of the Filtration Hall's suspicious gravel and sand (docs/municipal_aquarium_spec.md",
+    "5.1). The nineteen pottery sherds this world otherwise lacks - the heart sherd is the twentieth",
+    "and stays the sewers'. Maritime archaeology is a real aquarium exhibit, and this is the shipped",
+    "brush-the-silt route from the sewers pointed at a second building rather than a new idea.",
+    "",
+    "The junk is glass and scrap, which is what silts up a plant room; without it every brush would",
+    "be a sherd and the hall would be a sherd dispenser."
+  ],
+  "type": "minecraft:archaeology",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:angler_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:archer_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:arms_up_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:blade_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:brewer_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:burn_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:danger_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:explorer_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:friend_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:heartbreak_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:howl_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:miner_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:mourner_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:plenty_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:prize_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:sheaf_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:shelter_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:skull_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:snort_pottery_sherd",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:glass_shards",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:scrap_metal",
+          "weight": 6
+        }
+      ]
+    }
+  ]
+}

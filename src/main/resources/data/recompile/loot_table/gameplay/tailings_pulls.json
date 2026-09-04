@@ -40,6 +40,11 @@
         },
         {
           "type": "minecraft:item",
+          "name": "recompile:prismarine_grit",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
           "name": "recompile:stone_shard",
           "weight": 45
         },

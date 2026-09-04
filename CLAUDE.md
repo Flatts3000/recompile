@@ -32,7 +32,7 @@ Its pass count includes a vanilla built-in test: the mod's own tests run in the 
 
 CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent jobs. The `build` job name is load-bearing: main's branch protection requires that status check.
 
-`unitTest` is enabled in `build.gradle` (moddev's JUnit integration, which runs `src/test/java` against a loaded mod context) and **`./gradlew test` runs 92 tests across 24 classes**. `build` depends on `test`, so CI gates them. *(This line previously said no JUnit tests existed. That was wrong from PR #22 onward and went unnoticed until someone counted - a doc claiming a layer is empty is how it stays empty.)* **Use a unit test when the logic is pure** - `GeneratorState` (which reason a generator is idle), `ScrapBinContent` (item to bin appearance), the crumble curve's expected yield. No world, no rendering, no server means a GameTest is the wrong instrument and a slower one. GameTests remain where in-world behaviour is proven.
+`unitTest` is enabled in `build.gradle` (moddev's JUnit integration, which runs `src/test/java` against a loaded mod context) and **`./gradlew test` runs 104 tests across 25 classes**. `build` depends on `test`, so CI gates them. *(This line previously said no JUnit tests existed. That was wrong from PR #22 onward and went unnoticed until someone counted - a doc claiming a layer is empty is how it stays empty.)* **Use a unit test when the logic is pure** - `GeneratorState` (which reason a generator is idle), `ScrapBinContent` (item to bin appearance), the crumble curve's expected yield. No world, no rendering, no server means a GameTest is the wrong instrument and a slower one. GameTests remain where in-world behaviour is proven.
 
 ## Architecture
 
@@ -63,6 +63,36 @@ is this mod's one BER), the held model switches on `using_item` to a body plus a
 the block is removed with a plain `removeBlock`, so a `FallingBlock` above it falls: the owner chose
 collapse over a top-down peel, and `taking_the_foot_of_a_stack_lets_it_collapse` pins it.
 
+**The Municipal Aquarium is the third landmark, and it is the sewer's shape sited like the tower**
+(owner rulings 2026-09-03, spec `docs/municipal_aquarium_spec.md`, the answer to #324). A drained
+public aquarium in the demolition yard: seven rooms, the only prismarine in the game as its cladding,
+fifteen dead corals in its tank rows, sponges in a half-sunk filtration hall, the heart of the sea on a
+Display Pedestal in the centrepiece tank, leachate pooled in every floor, and **one tank of real water
+with a guardian in it**. The guardian is not flavour: every prismarine block and the sea lantern are
+crafted from shards and crystals that drop from exactly one mob, so the tank is what makes the family
+renewable, and Prismarine Grit from Mill Tailings is the manufactured twin that fails the opposite way
+(cannot be bucketed dry, but heaps do not regrow). Four things about how it is built are worth
+knowing. **The layout exists once, as arithmetic** - `AquariumStructure.Room` carries each box as
+offsets from the origin and every door, fluid volume and fixture is a static off the same three
+integers; generation places from it, each piece inverts its own box back to the origin, the JUnit
+layout test measures it with no world, and the GameTests build from it. That is the `SewerFixtures`
+lesson applied before the first drift rather than after the second, and it is why the spec carries a
+room table and not a drawing. **Pieces are un-oriented and work in absolute coordinates**, the sewer
+dens' convention - and a box-constructed piece leaves `mirror` null until `setOrientation` runs, so
+the constructor sets it to null explicitly or `placeBlock` throws. **Rooms share wall PLANES, not
+walls**: both pieces draw the same cells and both cut the same doors, and what a shared plane is made
+of is a function of the pair, so chunk order cannot matter. **The guardian spawns because the
+placement rule is BYPASSED**: `Spawners.place` writes an empty `custom_spawn_rules`, which
+`BaseSpawner` uses instead of the placement predicate, so `Guardian`'s unconditional water-below
+clause is never consulted; the water is still required for it to live (`isInWater`, its navigation,
+and `RCLeachateContact` drowning anything in leachate). **It does not overlap anything**, and that took
+three mechanisms because three kinds of neighbour are placed three ways: `exclusion_zone`s for the
+other structures, `AquariumStructure.claims` for the yard's two tall FEATURES (which no exclusion zone
+can see, and which needs the region-bound `forWorldGenRegion` manager because a `WorldGenLevel` has
+none of its own in 26.1), and each room clearing the column above its roof. Coral revives in the
+**Hydroponics Bay** with zero Java - fifteen tag lines and fifteen data-map lines - and because the
+bay never consumes its seed, one dead coral is a permanent source of that colour.
+
 **Collectibles are pieces-in, cube-out, and drive the mod's one BlockEntityRenderer** (design I-2, spec `docs/collectibles_spec.md`). An artifact from the past (v1: the **Puzzle Cube**) is assembled from thematic **pieces** found rare in the pull streams: nine `puzzle_cube_piece` fill the 3x3 crafting grid into the cube. **The Puzzle Cube is a placeable full block, not an item trophy** - two states, `puzzle_cube` (solved) and `puzzle_cube_scrambled`, that craft into each other with shapeless one-in/one-out recipes. It is a `minecraft:block/cube` with **six per-face 3x3-sticker textures**, so it renders as a genuine 3D cube in hand, inventory, world, and on a pedestal - which is what finally made it read as a cube (a real block model *is* one; every 2D-icon and downsampled-3D attempt was fuzzy or read flat). **The cube's faces, the piece's cubie faces, and the pedestal stone are all procedural** (texgen `sticker_face` / `single_sticker` / `plinth` styles) - AI and downsampling both failed a twisty cube at 16px; fixed geometry draws crisper as code. The piece is likewise a small **3D cubie model**, not a flat icon. Adding a collectible is data (piece item + cube block + recipe + loot + face textures); no code.
 
 **Beyond the assembled cube, collectibles can be ported from open-source CC0 3D models** via the **voxel-porter** (`../mc-pack-toolkit/voxel-porter`, a pip package like texgen): it voxelizes a mesh or `.vox` to the 16px grid, samples per-voxel colour from the texture, greedy-meshes + face-culls, and emits the block model + a generated palette texture + every data file (`voxel-porter emit <model> <id> <res_root>`; you still register the block + lang + tab + one loot line). v1 ports four CC0 objects - **avocado** (Khronos glTF sample), **present**, **gold_coin**, **toy_car** (Kenney kits) - each **found whole**, not pieced, in a dedicated ~1/4000 pool in `household_pulls`/`bag_pulls` (a few times rarer than a cube piece). The Puzzle Cube is the *one* artifact that earns an assembly step, because a puzzle is literally assembled; whole objects (a coin, an avocado) just drop intact. What ports well is a **simple, iconic, colourful** object whose identity survives 16px; detailed/grey/complex models mush at block scale. An earlier hand-authored **era-artifact** set (obelisk/column/chalice/hourglass) read as museum decor and was dropped (2026-07-26) for ported real objects.
@@ -80,7 +110,7 @@ Anything (collectibles the star use) displays on the **Display Pedestal** (`cont
 - **A static `LAYOUT` that transitively touches a registry-backed class cannot be named from another class's static initialiser during mod construction.** `MenuLayoutTests` referencing `TreeNurseryMenu.LAYOUT` eagerly pulled in `TreeNurseryBlockEntity`, whose static `FluidResource.of(Fluids.WATER)` throws *"Components not bound yet"* - and the whole mod fails to load with a bare `ExceptionInInitializerError`. Hold suppliers, not layouts.
 - **26.1 renders through a retained-mode "extract" model, and exactly one class still knows it.** `GuiGraphicsExtractor`, drawing in `extractBackground(...)` (not `renderBg`), `blit` with a `RenderPipelines` pipeline + explicit atlas dims. That lives in `client/gui/VanillaGui`, which is also the only place a screen's chrome comes from; `GuiFrameworkDisciplineTest` fails the build if a screen mentions a pipeline, a blit, or even `leftPos`. Before it, three screens carried a private `panel()`/`slot()`/`recess()` that approximated vanilla rather than borrowing it, so the mod shipped two panels that did not look alike.
 
-**Screens are the one layer GameTest and JUnit are blind to.** Geometry is asserted server-side and the layout algebra has unit tests, but a gauge filled from the wrong end passes both. `python tools/shoot_screens.py` opens all eight in a running `runClient` and screenshots them - that is the acceptance evidence. **The guidebook was in the same blind spot and is now covered too**, by `python tools/shoot_guidebook.py`, which walks all 11 categories and all 71 entries and fails if any of them does not open as ITSELF (#259). That gap is how #241 went unnoticed: every paragraph break in all 71 of the book's text pages was swallowed, so paragraphs ran together, and it shipped that way for releases while `GuidebookTests` - which proves a lang key exists and an icon resolves - passed throughout.
+**Screens are the one layer GameTest and JUnit are blind to.** Geometry is asserted server-side and the layout algebra has unit tests, but a gauge filled from the wrong end passes both. `python tools/shoot_screens.py` opens all eight in a running `runClient` and screenshots them - that is the acceptance evidence. **The guidebook was in the same blind spot and is now covered too**, by `python tools/shoot_guidebook.py`, which walks all 11 categories and all 72 entries and fails if any of them does not open as ITSELF (#259). That gap is how #241 went unnoticed: every paragraph break in all 71 of the book's text pages was swallowed, so paragraphs ran together, and it shipped that way for releases while `GuidebookTests` - which proves a lang key exists and an icon resolves - passed throughout.
 
 **`tools/resource_checklist/` generates `docs/vanilla_resource_checklist.md`** (#323): every resource vanilla gives you, checked against what this mod can actually reach. It is a pipeline rather than a one-shot script, and its own README is the reference. The batch of `question` issues about unreachable vanilla items came out of it.
 

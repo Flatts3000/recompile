@@ -1,9 +1,11 @@
 # The Municipal Aquarium - landmark spec
 
-**Status: rulings in, unbuilt.** Proposed 2026-09-03 as the answer to #324 (ocean materials
-unreachable). All five open questions were decided by the owner on 2026-09-03 and are recorded in
-section 8, which is now a record of decisions rather than a list of questions. One technical blocker
-and one new question came out of those rulings; both are in 8.6.
+**Status: built 2026-09-03, unreleased.** Proposed the same day as the answer to #324 (ocean materials
+unreachable); every ruling in section 8 was decided by the owner before code, and the code follows
+them. Implementation: `content/worldgen/aquarium/` (`AquariumStructure` holds the layout as statics,
+`AquariumPieces` the seven rooms, `AquariumPalette` the blocks), `AquariumLayoutTest` measures the room
+graph with no world, `AquariumTests` builds it and reads it back. Where the build corrected this
+document, the correction is inline and dated rather than silently rewritten.
 
 Sibling specs: [`demolition_yard_spec.md`](demolition_yard_spec.md),
 [`radioactive_dump_spec.md`](radioactive_dump_spec.md). Landmark precedent: the decrepit cooling tower
@@ -92,6 +94,16 @@ section 5 needs, no conduit tutorial. It supplies materials, not an ecosystem.
 Husks, smokestacks, steel stacks - and an aquarium is a building. Household sprawl is where people
 lived rather than where civic buildings stood, and the radioactive dump already carries the cooling
 tower.
+
+**And it does not overlap anything** (owner, 2026-09-03, on seeing the first one generate with a
+Building Husk lattice rising through its forecourt and a smokestack against its east wall). Three
+mechanisms, because the three things that could overlap it are placed three different ways: the
+aquarium set carries an `exclusion_zone` against the smokestacks; the sewer set carries one against
+the aquariums, which is the only direction a single `other_set` per set allows and is enough for
+mutual exclusion; and the yard's two tall FEATURES, the Building Husk and the steel stack, ask
+`AquariumStructure.claims` before placing and decline the footprint, because a feature is not a
+structure and no exclusion zone can see it. Each room also clears the column above its own roof, so
+whatever a feature left standing over an open forecourt is gone.
 
 **Rare, like the cooling tower rather than common like the smokestacks.** One aquarium is a landmark
 you travel to and remember; three would be scenery. Proposed `random_spread` with spacing well above
@@ -280,6 +292,14 @@ the guardian never enters its swimming travel mode, `WaterBoundPathNavigation` n
 on the tank floor forever, and this mod's own `RCLeachateContact` drowns it at 2 damage a tick. Owner
 accepted the fallback in advance: **real water in that one pool.**
 
+**Correction from the build (2026-09-03): the guardian spawns because the rule is bypassed, not
+satisfied.** `Spawners.place`, which both landmarks already use, writes an empty `custom_spawn_rules`
+tag, and `BaseSpawner` uses that INSTEAD of `SpawnPlacements.checkSpawnRules` - so the water-below
+clause above is never consulted and a guardian would spawn over leachate. Everything else in this
+section stands: it would then flop, never repath, and be drowned by `RCLeachateContact`. The water is
+still required; the reason shifts from spawning to living. `AquariumTests` asserts the blocks rather
+than inferring from spawn behaviour, which is what the build notes asked for.
+
 **The drowned spawner is fine in leachate, and that contrast is the useful part.** `Drowned`'s
 predicate short-circuits on the spawner flag before it reaches its water check, which is exactly why
 the sewer sump's drowned spawner already works over leachate today (`RCSewerSpawns`). Drowned is the
@@ -385,6 +405,11 @@ and the armours and trims want to be rare.
 ## 6. What this does to the checklist
 
 If built as specced, `tools/resource_checklist` should move these from unreachable to reachable:
+
+**The checklist cannot see any of this building's placed blocks**, because it reads structure NBT
+templates and this structure is procedural Java. The 48 rows it actually moved are the chest, the silt
+and the grit recipe; the cladding, the sponges, the dead coral and the heart of the sea are reachable
+in-world and still show unchecked. Recorded in that tool's README rather than papered over.
 
 | Piece | Items | Renewable? |
 |---|---|---|

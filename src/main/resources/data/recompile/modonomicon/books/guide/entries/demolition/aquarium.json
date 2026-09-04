@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:demolition/aquarium",
+  "category": "recompile:demolition",
+  "name": "book.recompile.guide.demolition.aquarium.name",
+  "icon": {
+    "id": "minecraft:sea_lantern"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "parents": [
+    {
+      "entry": "recompile:demolition/the_yard"
+    }
+  ],
+  "x": 1,
+  "y": 1
+}
