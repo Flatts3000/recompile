@@ -6,6 +6,7 @@ import com.flatts.recompile.content.recipe.TeardownRecipe;
 import com.flatts.recompile.content.block.MoundGroundBlock;
 import com.flatts.recompile.content.block.TireBlock;
 import com.flatts.recompile.content.worldgen.TirePileFeature;
+import net.minecraft.core.Direction;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
@@ -267,6 +268,71 @@ public final class TirePileTests {
                 }
             }
             helper.assertTrue(tires > 0, "the dump reported success and wrote no tires");
+            helper.succeed();
+        });
+
+        // NOTHING FLOATS. Owner, 2026-09-04, from a screenshot - and it took two separate defects to
+        // produce, which is why an earlier "is any tire over air" check came back clean on 1,070 tires
+        // and the picture still showed a gap. Both are half-block problems that whole-block arithmetic
+        // cannot see:
+        //
+        //   1. A column of odd height ends in a BOTTOM slab, filling the lower half of its cell. Piles
+        //      overlap, so a later pile would start in the cell ABOVE that tire and hang half a block
+        //      clear of it. The block below was a tire either way, so "is there air under it" passed.
+        //   2. Fire is a whole block and can only sit in the cell above the stack. On a column ending
+        //      in a BOTTOM slab that is half a block clear of the rubber, and it reads as a flame
+        //      hanging in the air.
+        //
+        // So this measures SUPPORT rather than occupancy: every tire wants a full top under it, and
+        // every fire wants one too.
+        RCGameTests.test("nothing_in_a_tire_dump_floats", 100, helper -> {
+            var level = helper.getLevel();
+            final int lift = 40;
+            for (int x = -10; x <= 12; x++) {
+                for (int z = -10; z <= 12; z++) {
+                    level.setBlock(helper.absolutePos(new BlockPos(x, lift, z)),
+                        Blocks.COARSE_DIRT.defaultBlockState(), 2);
+                }
+            }
+            // Several dumps over one another, because overlap is what produced the defect. One dump
+            // on clean ground never lands on its own half-filled cell.
+            for (long seed : new long[] {3L, 11L, 19L, 27L}) {
+                new TirePileFeature().place(
+                    new net.minecraft.world.level.levelgen.feature.FeaturePlaceContext<>(
+                        java.util.Optional.empty(), level, level.getChunkSource().getGenerator(),
+                        RandomSource.create(seed), helper.absolutePos(new BlockPos(2, lift + 1, 2)),
+                        NoneFeatureConfiguration.INSTANCE));
+            }
+
+            int tires = 0;
+            int fires = 0;
+            for (int x = -10; x <= 12; x++) {
+                for (int z = -10; z <= 12; z++) {
+                    for (int y = lift + 1; y <= lift + 24; y++) {
+                        BlockPos pos = helper.absolutePos(new BlockPos(x, y, z));
+                        BlockState state = level.getBlockState(pos);
+                        boolean isTire = state.getBlock() instanceof TireBlock;
+                        boolean isFire = state.getBlock() == Blocks.FIRE;
+                        if (!isTire && !isFire) {
+                            continue;
+                        }
+                        BlockState below = level.getBlockState(pos.below());
+                        boolean flush = below.isFaceSturdy(level, pos.below(), Direction.UP);
+                        if (isTire) {
+                            tires++;
+                            helper.assertTrue(flush,
+                                "a tire at " + pos + " rests on " + below.getBlock()
+                                    + ", whose top face is not full. It hangs in the air.");
+                        } else {
+                            fires++;
+                            helper.assertTrue(flush,
+                                "fire at " + pos + " sits over " + below.getBlock()
+                                    + ", whose top face is not full. The flame floats.");
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(tires > 0, "four dumps in a row wrote no tires, so this proved nothing");
             helper.succeed();
         });
     }

@@ -130,16 +130,39 @@ public class TirePileFeature extends Feature<NoneFeatureConfiguration> {
                 }
                 retire(level, ground);
                 int column = Math.max(1, (int) Math.round(tires * (1.0 - dist / (radius + 1.0))));
-                placed |= stack(level, ground.above(), column, tire);
+
+                // MERGE INTO A HALF-FILLED CELL RATHER THAN STARTING ABOVE IT. Piles overlap - they
+                // scatter and they retry - so a later pile routinely lands on the top tire of an
+                // earlier one, and that tire is a BOTTOM slab filling half its cell. Stacking from the
+                // cell above it leaves half a block of daylight under the new column. Filling it to a
+                // DOUBLE is both the fix and the honest reading: another tire went on that stack.
+                if (column > 0 && isHalfTire(level, ground)) {
+                    level.setBlock(ground, tire.setValue(SlabBlock.TYPE, SlabType.DOUBLE),
+                        Block.UPDATE_CLIENTS);
+                    column--;
+                    placed = true;
+                }
+                BlockPos top = stack(level, ground.above(), column, tire);
 
                 // FIRE ON THE TOP TIRE OF A STACK ONLY, never buried in a column. Half the particle
                 // load of a lit dump, and it is what a real pile looks like, since a tire fire burns
                 // at the surface. Only the centre of a lit pile, so a dump reads as smouldering rather
                 // than as an inferno.
-                if (lit && dx == 0 && dz == 0) {
-                    BlockPos top = ground.above(1 + column / 2 + (column % 2 == 1 ? 1 : 0));
-                    if (level.getBlockState(top).isAir()) {
-                        level.setBlock(top, Blocks.FIRE.defaultBlockState(), Block.UPDATE_CLIENTS);
+                if (top != null) {
+                    placed = true;
+                    if (lit && dx == 0 && dz == 0) {
+                        // A COLUMN OF ODD LENGTH ENDS IN A BOTTOM SLAB, and fire is a whole block that
+                        // can only sit in the cell ABOVE it - which is half a block clear of the rubber
+                        // and reads as a flame hanging in the air. One more tire costs nothing and puts
+                        // a flat top under the flame.
+                        if (isHalfTire(level, top)) {
+                            level.setBlock(top, tire.setValue(SlabBlock.TYPE, SlabType.DOUBLE),
+                                Block.UPDATE_CLIENTS);
+                        }
+                        if (level.getBlockState(top.above()).isAir()) {
+                            level.setBlock(top.above(), Blocks.FIRE.defaultBlockState(),
+                                Block.UPDATE_CLIENTS);
+                        }
                     }
                 }
             }
@@ -147,9 +170,15 @@ public class TirePileFeature extends Feature<NoneFeatureConfiguration> {
         return placed;
     }
 
-    /** Lay {@code count} tires upward from {@code base}: pairs become doubles, the odd one a bottom. */
-    private boolean stack(WorldGenLevel level, BlockPos base, int count, BlockState tire) {
-        boolean placed = false;
+    /**
+     * Lay {@code count} tires upward from {@code base}, returning the highest cell written or null.
+     *
+     * <p>Pairs become doubles and the odd tire is a bottom slab, which HAS to be the last one laid
+     * rather than the first: a bottom slab fills the lower half of its cell, so a full cell resting on
+     * one would hang half a block clear. At the top of a column it is simply a stack of odd height.
+     */
+    private BlockPos stack(WorldGenLevel level, BlockPos base, int count, BlockState tire) {
+        BlockPos top = null;
         BlockPos.MutableBlockPos cursor = base.mutable();
         int left = count;
         while (left > 0) {
@@ -158,11 +187,18 @@ public class TirePileFeature extends Feature<NoneFeatureConfiguration> {
             }
             SlabType type = left >= 2 ? SlabType.DOUBLE : SlabType.BOTTOM;
             level.setBlock(cursor, tire.setValue(SlabBlock.TYPE, type), Block.UPDATE_CLIENTS);
-            placed = true;
+            top = cursor.immutable();
             left -= left >= 2 ? 2 : 1;
             cursor.move(Direction.UP);
         }
-        return placed;
+        return top;
+    }
+
+    /** A tire filling only the bottom half of its cell, which is the one thing nothing may rest on. */
+    private static boolean isHalfTire(WorldGenLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return state.getBlock() == RCBlocks.TIRE.get()
+            && state.getValue(SlabBlock.TYPE) == SlabType.BOTTOM;
     }
 
     /**
@@ -200,6 +236,13 @@ public class TirePileFeature extends Feature<NoneFeatureConfiguration> {
         if (state.getBlock() instanceof SortableBlock
             || state.getBlock() instanceof BulkyWasteBlock
             || state.getBlock() == RCBlocks.LEACHATE.get()) {
+            return false;
+        }
+        // NOTHING MAY REST ON A PARTIAL TOP. A block whose UP face is not full leaves the tire above it
+        // hanging in the air, and the sprawl has plenty of them. A tire is the one exception, because a
+        // half-filled one is merged into rather than built on - see the write pass.
+        if (!(state.getBlock() == RCBlocks.TIRE.get())
+            && !state.isFaceSturdy(level, ground, Direction.UP)) {
             return false;
         }
         // And the column it would stand in has to be free.

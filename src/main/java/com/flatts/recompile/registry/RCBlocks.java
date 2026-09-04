@@ -1286,14 +1286,15 @@ public final class RCBlocks {
      */
     public static final DeferredBlock<TireBlock> TIRE = BLOCKS.registerBlock(
         "tire", TireBlock::new,
-        // NO noOcclusion, deliberately, and it is the one slab-shaped block here where that needs
-        // saying. The rule is that a block whose MODEL is not a full cube needs it; a tire's model is
-        // vanilla's slab exactly, and vanilla slabs derive occlusion from their shape correctly
-        // without it. Adding it back would stop a double slab culling its neighbours' faces.
+        // noOcclusion IS REQUIRED. The model is an octagonal ring with a hole through it, so the
+        // engine must not treat it as a full cube for face culling - it would cull the neighbouring
+        // block's face and you would see through the ground. COLLISION is still the plain slab box,
+        // which is what lets a player walk up a pile.
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_BLACK)
             .strength(0.6F)
-            .sound(SoundType.WOOL));
+            .sound(SoundType.WOOL)
+            .noOcclusion());
 
     public static final DeferredBlock<Block> SCRAP_PLATING = BLOCKS.registerBlock(
         "scrap_plating", Block::new, RCBlocks::metalBuildProps);
