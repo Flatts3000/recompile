@@ -16,8 +16,14 @@ declaration exists. See section 10 for why that turned out to be the whole job.
 
 ## 1. The problem, measured
 
-Four custom screens ship today, each a recorded exception to "the mod keeps machine GUIs to a
-minimum". Their cost:
+**Eight** custom screens ship today - Scrap Crafting Table, Tree Nursery, Burner Generator,
+Hydroponics Bay, Cupola Furnace, Slag Furnace, Sintering Kiln, Sequencer - each a recorded exception
+to "the mod keeps machine GUIs to a minimum". *(This sentence said four while the paragraph ten lines
+below already said eight, so the page contradicted itself on its own subject. `find src/main/java
+-name "*Screen.java"` settles it; the four in the table below are the ones the framework LAUNCHED
+with, which is what that measurement is of.)*
+
+The cost of the launch four:
 
 | Screen | Screen LOC | Menu LOC |
 | --- | --- | --- |

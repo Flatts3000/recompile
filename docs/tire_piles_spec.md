@@ -1,8 +1,15 @@
 # Tire piles - spec
 
-**Status: DRAFT, unbuilt.** Owner design 2026-09-04, against issue #155 (`enhancement`, `blocked`),
-which is itself I-4 in `../trashlands/docs/ideas.md` scoped to work. The owner's design revises several
-of #155's decisions; section 7 lists every delta rather than quietly overwriting them.
+**Status: BUILT and RELEASED in v0.18.0** (#352). Owner design 2026-09-04, against issue #155
+(`enhancement`, `blocked`), which is itself I-4 in `../trashlands/docs/ideas.md` scoped to work. The
+owner's design revises several of #155's decisions; section 7 lists every delta rather than quietly
+overwriting them.
+
+**Read this document as a design record, not as a plan.** It was written before the build and still
+speaks in the future tense in places; where building it changed something, the change is recorded in
+place rather than by rewriting the original. `TirePileFeature`, `TireBlock`, `TirePileTests` and
+`worldgen/placed_feature/tire_pile.json` are what actually shipped, and they win over any sentence
+here.
 
 Sibling specs: [`municipal_aquarium_spec.md`](municipal_aquarium_spec.md),
 [`demolition_yard_spec.md`](demolition_yard_spec.md). Worldgen precedent: `MoundFeature`.
@@ -23,9 +30,11 @@ are household-sprawl only, they do not touch mounds, and nothing regrows them.
 
 **Rubber has been an orphan since P2.2.** `material_economy.md` has listed it as an intermediate in the
 same sentence as scrap, cullet, muck and plastic sheet since the beginning, and unlike all four it has
-never had an origin. A grep over this repo confirms it: **the string "rubber" appears nowhere** in the
-sources, the data or the lang file today. Tires are the obvious home, and giving an orphaned material a
-real source is the strongest argument here.
+never had an origin. A grep over this repo confirmed it at the time of writing: the string "rubber"
+appeared nowhere in the sources, the data or the lang file. **That is no longer true, and it is no
+longer true because of this feature** - `recompile:rubber_scrap` ships, and the Pump's
+`blueprint_crafting` recipe consumes it. Tires were the obvious home, and giving an orphaned material a
+real source was the strongest argument here.
 
 The second argument is that a stack of tires reads instantly at 16px, the way the Compacted Bale does.
 
@@ -49,16 +58,29 @@ is the whole avoidance mechanism, and it is worth being explicit about why it is
 **Three placement rules, all owner-stated:**
 
 1. **No pile intersects a mound.** Decline the whole pile if any cell of its footprint holds a
-   `SortableBlock`, a `BulkyWasteBlock` or `MoundGroundBlock`.
+   `SortableBlock` or a `BulkyWasteBlock`. **`MoundGroundBlock` is the exception, and what shipped
+   RETIRES it rather than declining on it** - see the "What ships instead" note near the end of this
+   document, which supersedes the third item in this sentence. Declining on Mound Ground was measured
+   and is a total ban rather than a rarity dial: the sprawl surface is 86 to 92 percent Mound Ground,
+   so a survey that refuses it places almost nothing. The write pass converts each cell it lays a tire
+   on to plain coarse dirt instead, which satisfies rule 2 literally and also stops live Mound Ground
+   random-ticking Blocks of Garbage down onto the tires.
 2. **No Mound Ground is written under a pile.** Tires are not garbage and the ground does not remember
    them.
 3. **Piles do not replenish.** What you take is gone. Section 8.4 is the ruling that follows from this.
 4. **They arrive as a DUMP, not as a tire** (owner, 2026-09-04). One roll of the feature places a
-   cluster of piles rather than a single stack, and the roll itself is well below the mound's 5%.
-   A real tire dump is many piles in one place, and a lone stack on a hillside reads as clutter
-   rather than as somewhere. Proposed: three to six piles inside a radius, so the site has a shape
-   and an edge; the exact numbers are a playtest dial and the mound's 5% is explicitly not to be
-   retuned to match.
+   cluster of piles rather than a single stack. A real tire dump is many piles in one place, and a
+   lone stack on a hillside reads as clutter rather than as somewhere. Proposed: three to six piles
+   inside a radius, so the site has a shape and an edge; the exact numbers are a playtest dial.
+
+   **The comparison to "the mound's 5%" was never a like-for-like one and is withdrawn.** A garbage
+   mound has **no placement roll at all**: `placed_feature/garbage_mound.json` is
+   `{count: 5, in_square, heightmap, biome}`, five guaranteed attempts per chunk. The 5 percent figures
+   live in `MoundFeature` and are per-CELL content odds - `SURFACE_CARDBOARD_CHANCE` and
+   `CORE_BULKY_WASTE_CHANCE`, how often a given cell of an already-placed mound is cardboard or
+   Bulky Waste. What the tire dump has is a `minecraft:rarity_filter` at `chance: 34`, one chunk in
+   34, which is a different KIND of number from either. Comparing a per-chunk placement rate to a
+   per-cell content rate is how a dial gets "tuned to match" something it does not measure.
 
 **Rule 1's reason changed when the block did, and the old one is worth recording as retired.** #155
 spotted a real hazard: `MoundGroundBlock.isMound` counts `SortableBlock` and `BulkyWasteBlock` when it
@@ -211,21 +233,30 @@ rubber is free flavour that happens to be true.
 
 ### 5.1 What spends it: the Pump
 
-**DECIDED (owner, 2026-09-04).** A pump without a seal is the most obvious rubber part in the building,
-and the Pump already gates the Rain Collector and the Hydroponics Bay, so rubber lands upstream of the
-entire water tier rather than in a cul-de-sac. That answers the one thing #155 said must not be skipped.
+**DECIDED (owner, 2026-09-04), and SHIPPED.** A pump without a seal is the most obvious rubber part in
+the building, and the Pump sits upstream of real machines rather than in a cul-de-sac. That answers the
+one thing #155 said must not be skipped.
 
-The Pump ships today as a `recompile:blueprint_crafting` recipe:
+*(The sentence here said the Pump "already gates the Rain Collector and the Hydroponics Bay". It does
+not and never did - that is the exact claim CLAUDE.md records as retired, and this document inherited
+it. Grep says the Pump's consumers are the **Grass Spreader**, where it is a multiblock cell, and all
+four **Garbage Vacuum** recipes. That is still upstream of things worth building, so the argument
+survives; the specific claim did not.)*
+
+`recipe/pump.json` ships today as a `recompile:blueprint_crafting` recipe, with the change already
+made:
 
 ```
  C        C = minecraft:copper_ingot
 CMC       M = recompile:scrap_metal
- P        P = recompile:plastic_scrap
+ P        P = recompile:rubber_scrap
 ```
 
-**Proposed change: the bottom cell becomes `recompile:rubber_scrap`.** One key, same pattern, same
-shape on the bench, and it reads correct - a pump's diaphragm and seals are rubber, and plastic never
-was the part doing that job.
+**This was written as "Proposed change: the bottom cell becomes `recompile:rubber_scrap`" and it
+landed in v0.18.0.** One key, same pattern, same shape on the bench, and it reads correct - a pump's
+diaphragm and seals are rubber, and plastic never was the part doing that job. The recipe file carries
+the owner's reasoning in its own `_comment`. Note the player-facing consequence the changelog records:
+a blueprint sheet already in hand is unchanged while the ingredient is not.
 
 **Two things this costs, both to be handled rather than discovered:**
 

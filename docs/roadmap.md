@@ -58,7 +58,9 @@ The go/no-go slice - spawn, dig, sort, get materials, in a world that reads as a
 - P0.1 world preset (rolling thin crust: coarse-dirt cap, variable deepslate, bedrock, void below).
 - P0.2 garbage mounds (varied height 3-15, width 4-15).
 - P0.3 Block of Garbage (drops itself, shovel-mineable, randomized variants).
-- P0.4 hand-sorting (empty-hand pull; crumbles after 4-6 pulls) + the 7 base materials.
+- P0.4 hand-sorting (empty-hand pull; crumbles after 4-6 pulls) + the base materials. **There are
+  eight now, not the seven this line named**: Cardboard joined in v0.16.0. `RCItems.BASE_MATERIALS`
+  is the canonical list and its own javadoc says eight; the creative tab and the docs read off it.
 - P0.5 a real teardown table proving the schema.
 - Plus: the texgen texture pipeline, JEI/Jade dev tooling, GameTest harness.
 
@@ -131,9 +133,12 @@ tier - refine scrap into blocks you would *choose* to build with - and, just as 
 free, tech is locked); crafted at the Scrap Crafting Table. Not defense - the starting biome is
 creature-free and nothing threatens builds; this is the WALL-E move of rebuilding from garbage.
 
-- **Four full-kit families** (block + slab + stairs + wall): Pressed Junk (the junk sink),
-  Scrap Plating, Corrugated Metal (the shanty aesthetic), Plastic Panel. Plus **Cullet Glass**
-  as **block + pane** only - glass has no honest slab or stairs form (vanilla ships neither).
+- **Five full-kit families** (block + slab + stairs + wall): Pressed Junk (the junk sink),
+  Scrap Plating, Corrugated Metal (the shanty aesthetic), Plastic Panel, and **Cardboard** (v0.16.0,
+  the first family reachable with no tool, station or recipe). Plus **Cullet Glass** as **block +
+  pane** only - glass has no honest slab or stairs form (vanilla ships neither). *(This said four and
+  named four; `data/minecraft/tags/block/walls.json` lists five wall blocks, which is the shortest
+  way to count the families - a family without a wall is not full-kit.)*
 - **Hand-breakable, drop themselves** - no pickaxe exists and reclaiming your own walls must not
   be punishing; the prybar is only the faster tool on metal, never required.
 - The ~110 repetitive JSON files are derived from the vanilla `cobblestone_*` / `glass_pane_*`
@@ -284,9 +289,12 @@ farmland moisture across its radius) plus rain; an unwatered plot dries and the 
 water economy is a reclamation defence. Foraged **Dump Mushrooms replant** (a placeable BlockItem), so
 forage is renewable. Spec: [`farming_tier_spec.md`](farming_tier_spec.md).
 
-**Deferred with a home:** whole-plant farmables (sugar cane, bamboo, cactus, sweet berries) are held for
-a later **hydroponics** option rather than an in-ground source now - so this tier ships the six
-seed-crops only. The P1.9 scrap planter stays parked as an alternate grower.
+**Deferred with a home - and the deferral is discharged.** Whole-plant farmables (sugar cane, bamboo,
+cactus, sweet berries) were held for a later **hydroponics** option rather than an in-ground source, so
+this tier shipped the six seed-crops only. **All four are in
+`data/recompile/tags/item/hydroponic.json` today**, alongside glow berries, kelp, sea pickle and cocoa
+beans, so the home they were deferred to exists and they are in it. The P1.9 scrap planter stays parked
+as an alternate grower.
 
 ## Phase 2.15 - Collectibles  *(DONE 2026-07-26, design I-2)*
 
@@ -307,11 +315,20 @@ Trees are machine-only: a global loot modifier (`StripSaplingsModifier`, P2.4-R2
 every roll, so the player never finds one - the **Tree Nursery** is the forest source. *(Narrowed 2026-08-20: a wandering trader sells saplings for emeralds, so this is now "no loot roll yields one" rather than an absolute. See `StripSaplingsModifier`.)* It is a
 **2x2x1 wall multiblock** (a core + a water tank on the bottom row, two solar panels on top) that raises a
 **vanilla sapling of the player's choice** from **water + Fertilizer + an Unknown Seedling** over a slow
-cook, and **glows while it works** (a furnace-shaped producer). Eight species (oak, birch, spruce, jungle,
-acacia, dark oak, cherry, mangrove) picked in its **bespoke screen** - the mod's second custom menu, a
+cook, and **glows while it works** (a furnace-shaped producer). **Nine** species (oak, birch, spruce,
+jungle, acacia, dark oak, cherry, mangrove, pale oak) picked in its **bespoke screen** - the mod's second
+custom menu, a
 scoped reversal like the Scrap Crafting Table's, because a species picker + water gauge + progress arrow is
-not a vanilla screen. Water is the one automatable input (a fluid capability, pipe/pump-fed); Fertilizer
-and Seedlings go in by hand, saplings come out by hand. A **copper bucket** (copper, not iron - iron is
+not a vanilla screen. *(This said eight and listed eight; `TreeNurseryBlockEntity.SPECIES` is the
+picker order and holds nine, pale oak last. Count the array, not the sentence.)* **Every door is
+automatable as of #340** (v0.18.0): water through the fluid capability as before, Fertilizer and
+Seedlings in by hopper or pipe, saplings out of the bottom - `getSlotsForFace` gives DOWN the output
+slot and every other face the two inputs, though the top is unreachable on an assembled machine
+because the blueprint puts a Solar Panel directly above the core. *(This read "Fertilizer and Seedlings
+go in by hand, saplings come out by hand", which was true until #340 and which
+[`automation_policy_spec.md`](automation_policy_spec.md) already records correctly - a manual-only
+nursery made a tree farm impossible rather than merely hands-on, and a nursery is the only source of
+trees in this world.)* A **copper bucket** (copper, not iron - iron is
 scarce here) moves water into it. Spec: [`tree_nursery_spec.md`](tree_nursery_spec.md).
 
 ## Phase 2.17 - Animals, reclamation rung 5  *(DONE 2026-07-27, design P2.4)* (#41, #42)
@@ -327,7 +344,7 @@ the tier behind trees: herbivore = apple + wheat, carnivore = apples + any `#rec
 one of each, Rich = two of the basic. **JEI and Jade list every reason a bait is held** (disabled, off
 grass, player near, crowded). Spec: [`animals_tier_spec.md`](animals_tier_spec.md).
 
-## Phase 3 - Teardown  *(design P1.4) - the distinct axis*
+## Phase 3 - Teardown  *(DONE 2026-08-02, design P1.4) - the distinct axis*
 
 Tear a found item down at the **Recompile Workbench** into materials. This is the teardown exit
 the found economy needs - the P1.11.5 invariant ("finds in, materials out"), which was blocked on
@@ -369,13 +386,23 @@ category, and a vanilla crafting table needs no code to be excluded, since they 
 rather than a catalyst - JEI's roles here are INPUT / OUTPUT / CRAFTING_STATION / RENDER_ONLY, and
 declaring it an input made the transfer button demand it as a tenth ingredient.
 
-## Phase 4 - Garbage regions  *(design P1.5)*
+## Phase 4 - Garbage regions  *(DONE, design P1.5)*
 
-"I've stripped this area" - venture out. Real biomes distance-banded from spawn; launch trio
-household / scrapyard / e-waste; per-region garbage blocks (the drop table travels with the
-block). One region = one datapack bundle.
+"I've stripped this area" - venture out. Real biomes distance-banded from spawn; per-region garbage
+blocks (the drop table travels with the block). One region = one datapack bundle.
 
-## Phase 5 - Mound regrowth  *(design P1.6 / P1.7-R)*
+**Status: SHIPPED.** `RegionBiomeSource` places biomes on a distance gradient rather than by climate
+noise: `household_sprawl` is guaranteed inside `core_radius` (512) and each frontier region appears
+past its own `onset`, so travel is the gate. **Two frontier regions ship, not the trio this section
+used to name.** `demolition_yard` (v0.3.0, spec `docs/demolition_yard_spec.md`) is where stone,
+concrete, steel and iron come from; `radioactive_dump` (v0.15.0, spec
+`docs/radioactive_dump_spec.md`) is the second. *(The line here read "launch trio household /
+scrapyard / e-waste" - working names from the design pass, and none of the three survived contact:
+`worldgen/biome/` holds `household_sprawl`, `demolition_yard`, `radioactive_dump` and
+`compacted_depths`, and there is no scrapyard or e-waste biome. E-waste survives as a MATERIAL, the
+E-Scrap that feeds the Pulverizer's gold chain, rather than as a place.)*
+
+## Phase 5 - Mound regrowth  *(DONE 2026-08-05, design P1.6 / P1.7-R)*
 
 "Wait, the mounds grew back." Deorbit falling-block delivery (reuses P0.3 gravity). The
 quarry-vs-heal tension is the pack's engine.
@@ -478,7 +505,11 @@ Discovered as you climb tiers; leans on curation + sibling mods.
   actually originate is coal, quartz, glowstone, nether wart, blaze powder and magma cream, each out
   of a machine rather than out of the ground.
 - Themed End (Medium-Hard) - the found-economy capstone.
-- Field Manual (whichever guide-book mod is on 26.x; not a lore vehicle).
+- ~~Field Manual (whichever guide-book mod is on 26.x; not a lore vehicle).~~ **DONE** (#29). The
+  guide-book mod on 26.x turned out to be **Modonomicon**, and `recompile:guide` ships **11
+  categories and 73 entries** under `data/recompile/modonomicon/books/guide/`. Spec:
+  `docs/guidebook_spec.md`. Still not a lore vehicle: the content rule is that a mechanic earns an
+  entry only where it deviates from vanilla.
 
 **Explicitly parked, out of scope until reopened:** the endgame redesign (P3.9) and the final
 chapter/postgame. Do not build against these yet.

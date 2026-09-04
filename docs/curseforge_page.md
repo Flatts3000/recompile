@@ -22,6 +22,18 @@ long form. A CurseForge page is the first thirty seconds.
 systems go under "Not in yet" or are left out. Check `docs/roadmap.md` phase status and the code
 before restating a feature - the design docs describe the intended end state, not what ships.
 
+**Brought current to v0.18.0 (2026-09-04).** It had last been touched before v0.17.0, so it described
+a game two releases old: no Garbage Vacuum, no Municipal Aquarium, no tire dumps. That is a failure of
+the rule directly above it, and it is the failure mode that rule is least able to catch on its own - a
+line does not stop being true when something new ships, it just stops being the whole picture, so
+nothing reads as wrong. **Re-read this page on every minor release**, against `CHANGELOG.md`, not only
+when a claim looks stale.
+
+**Three of the sections below have no screenshot**, because `docs/cf_image_gallery/` has no frame of
+the vacuum, the aquarium or a tire dump. Do not invent a filename to fill the gap: an image link that
+does not resolve renders as alt text and a half-link on the live page. Shoot them, commit them, push
+them, then add the link.
+
 ---
 
 ## Project fields
@@ -101,6 +113,34 @@ everything you sort goes where it belongs.
 
 Later you throw the garbage at a machine and walk away, and it is sorted when you come back.
 
+## Clearing a mound stops being a mining job
+
+Hold right-click with a Garbage Vacuum and the piles in front of you leave the ground and fly into the
+nozzle, about five a second. It takes whole blocks, not what is inside them, so you still sort them
+afterwards.
+
+Take a mound from the bottom and the rest comes down on top of you. That is the fast way to clear one.
+
+It runs on power, and a bigger block costs more. Each one is rated for the waste it was built for:
+copper handles household rubbish, iron adds the demolition yard, diamond the tailings out past it, and
+only a netherite one will touch the Nether. Point one at something out of its league and it tells you
+what the pile is instead of doing nothing.
+
+It charges on a Charging Station with a generator touching it. Set the vacuum down on the station,
+pick it back up when it is full. There is no screen and nothing can reach in and take it off the dock.
+
+## A few thousand tires
+
+Somebody tipped tires across the sprawl in circular heaps, and some of them are burning. A tire fire
+does not go out in rain and does not go out with time. It does not eat the tires either, and there is
+nothing on bare dump ground for it to spread to. Water still puts it out.
+
+Break a tire by hand and you get the tire. Break it with a Scrap Knife and you get the rubber. Carry it
+home and take it apart at the workbench instead and you get more, plus the steel belts out of the
+middle.
+
+Nothing regrows a tire. A dump you strip is a dump you leave.
+
 ## Ground you can stand on
 
 ![Grass spreading back, with the dump still standing behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/07-machines-on-reclaimed-grass.png)
@@ -131,6 +171,23 @@ a drowned spawner on the walkway. There is an echo shard in the silt at the bott
 nowhere else in the world.
 
 Turtles and frogs live down there, in rooms of sand and mud off the corridors.
+
+## The aquarium closed a long time ago
+
+Out in the demolition yard there is a public aquarium with the water let out of it. Seven rooms:
+a forecourt, a lobby, a gallery of tank bays, a centrepiece tank, a guardian tank, a filtration hall
+half under water, and the back of house. Leachate has pooled in the floors and the glass is cracked
+where the tanks leaked.
+
+It is the only prismarine, coral, sponge and sea lantern in the world, and there is a heart of the sea
+still on its stand in the middle.
+
+One tank still holds water, and there is a guardian in it. That is not decoration. Every prismarine
+block is made from what a guardian drops, so the tank is the only reason the whole family is renewable
+rather than a fixed stock. Bucket it dry and you have ended that.
+
+Put a dead coral in a Hydroponics Bay and it comes back alive. The bay does not use up what you put in
+it, so one of each colour is all you will ever need.
 
 ## Out past the yard
 

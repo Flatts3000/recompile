@@ -36,10 +36,23 @@ auto-assemble, and the facing machinery are all gone.
 
 - **Auto-adjacency, flood-fill.** Any scrap blocks sharing a face are one network. No tool, no
   controller, no link step. Face adjacency only (the six orthogonal neighbours).
-- **Only scrap blocks conduct.** The member set is a block tag, `#recompile:scrap_connectable`: **Scrap
-  Bin, Scrap Barrel, Sorting Tarp, Recompile Workbench, Burn Barrel, Scrap Crafting Table**. All six
-  conduct; a Machine Frame does not (it was only the old blueprint's shelf support, and is now
-  unused). Open by design - a pack adds a modded scrap block to the tag without a mod release.
+- **Only scrap blocks conduct.** The member set is a block tag, `#recompile:scrap_connectable`, and the
+  tag file is the list - **20 entries today**, not six. Thirteen placeable member types (Scrap Bin,
+  Scrap Barrel, Sorting Tarp, Recompile Workbench, Burn Barrel, Scrap Crafting Table, Cupola Furnace,
+  Slag Furnace, Sintering Kiln, Filing Cabinet, Separator, Trommel, Pulverizer) plus seven formed cells
+  of the three conveyor machines (`separator_chamber`, `separator_chute`, `separator_housing`,
+  `trommel_drum`, `trommel_stand`, `trommel_chute`, `pulverizer_housing`), so any face of an assembled
+  Separator, Trommel or Pulverizer connects. All of them conduct; a Machine Frame does not (it was only
+  the old blueprint's shelf support, and is now unused). Open by design - a pack adds a modded scrap
+  block to the tag without a mod release.
+
+  *(This read "**Scrap Bin, Scrap Barrel, Sorting Tarp, Recompile Workbench, Burn Barrel, Scrap
+  Crafting Table**. All six conduct" - the original six, unchanged since 2026-07-24. CLAUDE.md carries
+  a long parenthetical about this exact list going stale five separate times, each caught by review
+  rather than by the person editing the tag; **this spec was never included in any of those five
+  fixes**, so the canonical page stayed a release behind the summary page that was correcting itself.
+  Derive the set from `data/recompile/tags/block/scrap_connectable.json`, never from a prose list -
+  including this one.)*
 - **No saved state, no BlockEntity for the structure.** Each interaction floods outward from the acting
   block and reads the members live. Clusters are small and interactions are user-paced, so a fresh
   flood per call is cheap. A `MAX_MEMBERS` cap (256) is a runaway backstop, logged if hit. This keeps
@@ -55,14 +68,20 @@ auto-assemble, and the facing machinery are all gone.
   producer calls. Route order: a bin already **bound** to the item first; then, only if `autoBind`, an
   **empty** bin that binds to it; then the **Scrap Barrel**. Mutates the stack, returns the remainder
   (unchanged if there is no network or no storage - the caller then does its standalone thing).
-  `autoBind` is `true` only for the file-all; machine outputs pass `false`, so a teardown or smelt
-  fills bound bins or the barrel but never surprise-binds an empty one.
+  `autoBind` is `true` in exactly **two** production callers - the Tarp's file-all
+  (`SortingTarpBlock.fileAllIntoNetwork`) and the Scrap Crafting Table's
+  `ScrapCraftingStationMenu.depositCarried` - and every machine output passes `false`, so a teardown,
+  sift, smelt or drain fills bound bins or the barrel but never surprise-binds an empty one. *(This
+  said "only for the file-all", which was the same error CLAUDE.md carried and corrected; grep
+  `insertFromMember(` and read the last argument rather than trusting either sentence.)*
 - `reachesStorage(Level, BlockPos)` - does the cluster contain any sink; gates the file-all.
 
-**Only two of the six member types are sinks:** a Scrap Bin (`ScrapBinBlockEntity`), and the Scrap
-Barrel (its `Container`, **matched by block id**). The Burn Barrel conducts but is deliberately never a
-sink - it is a furnace `WorldlyContainer`, and routing must not land in its smelt slots; the sorter,
-workbench and crafting table are conductors too, never sinks.
+**Only two of the thirteen placeable member types are sinks:** a Scrap Bin (`ScrapBinBlockEntity`), and
+the Scrap Barrel (its `Container`, **matched by block id**). The Burn Barrel conducts but is
+deliberately never a sink - it is a furnace `WorldlyContainer`, and routing must not land in its smelt
+slots; the same reasoning covers the Cupola Furnace, the Slag Furnace and the Sintering Kiln, which are
+furnaces too. The sorter, workbench, crafting table, Filing Cabinet and the three conveyor machines are
+conductors, never sinks.
 
 ## Cross-functional behavior - what flows where
 

@@ -1,6 +1,6 @@
 # The Municipal Aquarium - landmark spec
 
-**Status: built 2026-09-03, unreleased.** Proposed the same day as the answer to #324 (ocean materials
+**Status: built 2026-09-03, RELEASED in v0.18.0 (2026-09-04).** Proposed the same day as the answer to #324 (ocean materials
 unreachable); every ruling in section 8 was decided by the owner before code, and the code follows
 them. Implementation: `content/worldgen/aquarium/` (`AquariumStructure` holds the layout as statics,
 `AquariumPieces` the seven rooms, `AquariumPalette` the blocks), `AquariumLayoutTest` measures the room
@@ -100,10 +100,18 @@ Building Husk lattice rising through its forecourt and a smokestack against its 
 mechanisms, because the three things that could overlap it are placed three different ways: the
 aquarium set carries an `exclusion_zone` against the smokestacks; the sewer set carries one against
 the aquariums, which is the only direction a single `other_set` per set allows and is enough for
-mutual exclusion; and the yard's two tall FEATURES, the Building Husk and the steel stack, ask
-`AquariumStructure.claims` before placing and decline the footprint, because a feature is not a
-structure and no exclusion zone can see it. Each room also clears the column above its own roof, so
-whatever a feature left standing over an open forecourt is gone.
+mutual exclusion; and the yard's tall FEATURES ask `AquariumStructure.claims` before placing and
+decline the footprint, because a feature is not a structure and no exclusion zone can see it. Each
+room also clears the column above its own roof, so whatever a feature left standing over an open
+forecourt is gone.
+
+*(This said "the yard's two tall FEATURES, the Building Husk and the steel stack". **Nine** features
+call `AquariumStructure.claims` today: `BuildingHuskFeature`, `SteelStackFeature`,
+`RubblePileFeature`, `MechanicalWastePileFeature`, `TailingsHeapFeature`, `LeachatePoolFeature`,
+`MoundFeature`, `MyceliumPatchFeature` and `TirePileFeature`. That is the shape of a rule that grows:
+the first two were the visible offenders, and every feature written since has had to opt in. Grep for
+the call rather than counting from this paragraph, which is the third list in these docs to go stale
+by reading as complete.)*
 
 **Rare, like the cooling tower rather than common like the smokestacks.** One aquarium is a landmark
 you travel to and remember; three would be scenery. Proposed `random_spread` with spacing well above
@@ -202,7 +210,7 @@ the way the sewer has one.
 | Floor | `smooth_stone` | a public building's floor, and it reads flat against the cladding |
 | Cladding | `prismarine`, `prismarine_bricks`, `dark_prismarine` | the point of the building |
 | Lighting | `sea_lantern` | what an aquarium actually lights tanks with, and it is the same family |
-| Glazing | `glass`, `glass_pane` | see the crack rule below |
+| Glazing | `glass` | see the crack rule below. **`glass_pane` was in this row and is not in the build**: `AquariumPalette` has `GLASS` and `TANK_GLASS` and no pane state at all, and `cracked(x,y,z)` (one cell in six) simply leaves the cell as `HOLLOW`, which is air. Absence turned out to be the whole of the rule; the half-gone-sheet pane row was a description the code did not need |
 | The one wet tank | `tinted_glass` | see the crack rule below |
 | Railings | `iron_bars` | `SewerPalette.GRATE` is the same block for the same reason |
 | Silt | `suspicious_gravel`, `suspicious_sand` | brushable, and the same pair `SewerPalette` calls SILT and FINE_SILT |
@@ -330,6 +338,14 @@ The smokestack lesson applies to both spawners: give them a spawn range wide eno
 around a player walking past rather than staying sealed in a tank until somebody breaks the glass. A
 landmark inert to anyone who does not attack it was the wrong call once already.
 
+*(**The build went the other way on the guardian half, deliberately, and this instruction is
+superseded for that one spawner.** `AquariumStructure.GUARDIAN_SPAWN_RANGE` is **1**, the narrowest a
+spawner can usefully be, and its javadoc says why: the empty `custom_spawn_rules` that lets a guardian
+spawn at all is also what removes its water requirement, so the range is the ONLY thing left holding
+it in the tank. Widen it and guardians spawn on the gallery floor. `guardianSpawnReach` is the box
+that follows from it and `AquariumTests` measures it. The smokestack lesson still applies to the
+drowned spawner, where nothing is being held in.)*
+
 **Not elder guardians.** They are the only mob source of wet sponge, which is a real cost of this
 ruling: sponges stay placed-only and therefore finite. An elder guardian is a boss-weight encounter
 with a mining-fatigue aura, and putting one in a landmark a player walks into is a different feature.
@@ -356,7 +372,7 @@ a player wants. Exhibit stock, dive kit, the gift shop's inventory, the archive.
 | **Arid vivarium** | 5 | `bush`, `cactus_flower`, `short_dry_grass`, `dead_bush`, `pink_petals`. Owner ruling 2026-09-04, after this table's other rows: put the six left over from #331 into aquarium or sewer loot. In a pool of its own so it does not dilute the row above, which is the only route to everything in it. |
 | **Sponges** | 2 | also placed in the filtration hall; the chest carries spares |
 | **`turtle_scute`** | 1 | a second route rather than the only one, corrected on #345: den turtles can be bred and lay on their own sand, because the `y < seaLevel + 4` rule is on turtle SPAWNING and not on egg-laying |
-| **Enchanted books** | 0 | flavour rather than a gap: already reachable from a librarian |
+| **Enchanted books** | 0 | flavour rather than a gap: already reachable from a librarian. Still true as shipped - there is no `minecraft:enchanted_book` anywhere in this mod's data. What the chest DOES carry, and what this table never accounted for, is a plain `minecraft:book` at weight 2, sitting in pool 2 alongside the wetlands plants, the sponges and the scute |
 | **The four nautilus armours** | 4 | this is what "ocean-related resources" resolves to; nothing else in the game can source them |
 
 **Three things about that list need saying rather than quietly implementing.**
@@ -490,8 +506,18 @@ On the "it is a building" argument. Section 2 stands as written.
    shard with the same byproduct. Silt was the first candidate and is wrong: in this mod silt is
    `suspicious_gravel` and `suspicious_sand`, which are brushable blocks rather than items a Separator
    can eat. Tailings work because they are a mineral-processing residue, which is where an odd silicate
-   would concentrate in reality, and it is the same argument slag already makes; Mill Tailings is an
-   ordinary block item, so no new item is needed at all.
+   would concentrate in reality, and it is the same argument slag already makes.
+
+   *(**The last clause of this ruling did not survive the build, and it is worth knowing why.** It
+   said "Mill Tailings is an ordinary block item, so no new item is needed at all", and the shipped
+   recipe's input is a NEW item, `recompile:prismarine_grit`, entering at weight 20 in
+   `gameplay/tailings_pulls.json`. The reason is a test:
+   `every_separating_input_is_findable_scrap` requires a Separator feed to come out of a pull stream,
+   and Mill Tailings is a worldgen block you mine rather than a thing anything drops. So the chain is
+   the Quartz Grit shape exactly - a grit pulled from a garbage stream, divided into a gem-tier shard
+   with glass shards as the silicate leftover - and `recipe/separating_prismarine.json` carries that
+   reasoning in its own `_comment`. The tailings argument for WHERE the silicate comes from is intact;
+   only "no new item" is retired.)*
    **The two routes deliberately fail in opposite ways, which is what makes the pair worth having.**
    The guardian is renewable but destructible - bucket the tank dry and the drop route dies with it.
    Tailings cannot be destroyed but heaps do not regrow, so that route is large and finite. Belt and

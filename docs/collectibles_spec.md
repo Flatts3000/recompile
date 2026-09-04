@@ -18,18 +18,22 @@ The system is a data-driven catalog either way, so more are add-a-line (or add-a
 
 ## The Puzzle Cube (reference implementation)
 
-- **Piece** (`puzzle_cube_piece`): a rare bonus in the pull streams - a **dedicated 1-in-1000 pool** (a
-  big `minecraft:empty` weight + the piece) in `household_pulls` and `bag_pulls`, so it drops *alongside*
-  a material, not instead of one, and the rate is a single clean tunable (not a weight fighting the
-  material pool's granularity). It is a small **3D cubie model** (three coloured faces + a dark internal
-  face), not a flat icon - a downsampled sprite came out fuzzy, so the piece is modelled like the cube.
+- **Piece** (`puzzle_cube_piece`): a rare bonus in the pull streams - a **dedicated 1-in-120,000 pool**
+  (a `minecraft:empty` filler at weight 119,999 + the piece at weight 1) in `household_pulls` and
+  `bag_pulls`, so it drops *alongside* a material, not instead of one, and the rate is a single clean
+  tunable (not a weight fighting the material pool's granularity). It is a small **3D cubie model**
+  (three coloured faces + a dark internal face), not a flat icon - a downsampled sprite came out fuzzy,
+  so the piece is modelled like the cube.
 
-  **Rarity target - all nine pieces in ~20 hours.** Model: a Sorting Tarp yields ~5 material pulls per
-  garbage block, so 1/1000 per pull is ~1/200 per block -> 9 pieces is ~1,800 garbage blocks, ~20 hours
-  at a moderate ~90 blocks/hour of active reclaiming (bags add a little on top). **This is a pre-beta
-  placeholder**: the real pull rate is only known from playtest, so measure it and adjust the `1000`
-  denominator - it is the one number that moves the whole target. (`SortingData` counts the empty weight
-  so JEI shows the true odds.)
+  **Rarity: a long-tail trophy, and the twenty-hour target is superseded.** This section read "a
+  dedicated 1-in-1000 pool" and "all nine pieces in ~20 hours" long after the owner retuned it. The
+  1/1000 figure is what **v0.8.0** shipped; on **2026-08-11** the owner ruled collectibles should be
+  **120 times rarer than that**, which is why the shipped filler is 119,999 rather than 999. At the
+  4,500-pulls-an-hour model `FindRateTest` uses that is roughly **240 hours for a whole Puzzle Cube**,
+  and the forty-hour figure floated in the same conversation is superseded rather than approximated.
+  `FindRateTest.collectiblesAre120TimesRarer` is where the ratio is pinned and where the arithmetic is
+  written down; treat that test as the source and this paragraph as commentary on it. (`SortingData`
+  counts the empty weight so JEI shows the true odds.)
 - **Craft**: nine pieces **fill the 3x3 crafting grid** at the Scrap Crafting Table into the solved
   **Puzzle Cube** block.
 - **The Puzzle Cube is a placeable full block, not an item trophy.** Two states -
@@ -54,11 +58,22 @@ then register the block + lang + creative-tab line + one loot line.
 v1 ports four, all **CC0**: **avocado** (Khronos glTF sample), **present**, **gold coin**, and
 **toy car** (Kenney Holiday + Toy Car kits). Each is a placeable block that displays on a pedestal.
 
-**Acquisition - found whole, ~1-in-4000 per pull.** These are intact objects, so they drop complete
-from the same pick-through streams as cube pieces (`household_pulls` + `bag_pulls`), each in a
-dedicated empty-weighted pool at 1/4000 - a few times rarer than a Puzzle Cube piece (1/1000). No
-pieces, no recipe: the Puzzle Cube is the one artifact that earns an assembly step, because a puzzle
-is literally assembled. Pre-beta placeholder rate; tune the denominators after playtest.
+**Acquisition - found whole, 1 in 480,000 per pull for a named object.** These are intact objects, so
+they drop complete from the same pick-through streams as cube pieces (`household_pulls` +
+`bag_pulls`). All four share **one** empty-weighted pool: weight 1 each against a `minecraft:empty`
+filler of **479,996**, so the pool hands over *some* collectible once in 120,000 pulls and a
+*particular* one once in 480,000. The Puzzle Cube piece has its own pool, weight 1 against a filler of
+**119,999** - **1 in 120,000** - so any single collectible is four times rarer than a cube piece,
+while the two pools fire at the same rate as each other. No pieces, no recipe: the Puzzle Cube is the
+one artifact that earns an assembly step, because a puzzle is literally assembled.
+
+*(This paragraph said "~1-in-4000 per pull ... a dedicated empty-weighted pool at 1/4000 - a few times
+rarer than a Puzzle Cube piece (1/1000)". Those are the **v0.8.0** numbers, superseded by the owner's
+2026-08-11 ruling that collectibles be 120 times rarer; 4,000 x 120 is the 480,000 the file now
+carries. CLAUDE.md carried the same stale 1/4000. The ratio to the cube piece survived the retune
+because both denominators moved by the same factor, which is exactly why nobody noticed the absolute
+numbers had. Read the filler `weight` in the two loot tables, or read
+`FindRateTest.collectiblesAre120TimesRarer`, which measures it.)*
 
 **What ports well:** simple, iconic, colorful objects whose identity survives 16px (a coin, an
 avocado). Detailed / grey / complex models mush at block scale - see the voxel-porter README.

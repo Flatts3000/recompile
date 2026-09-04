@@ -132,7 +132,11 @@ stalling on it - but the machine will be slower and stranger than the pack inten
 Two things to know before extending it. The gate **fails closed**: a `SortableBlock` in no band is takeable by nobody, and `every_sortable_block_is_in_a_vacuum_band` fails the build on one rather than letting the tool silently ignore it. And the cost comes from `SortableBlock.sortRolls`, not from the tag - a pile that is banded but absent from that table is vacuumed for free and can never run a vacuum flat, which `every_vacuumable_pile_costs_charge` also fails the build on.
 
 
-Every one of these is data, so a pack extends the behaviour without a mod release:
+Every one of these is data, so a pack extends the behaviour without a mod release. **The mod ships 39
+tag files under `data/recompile/tags/`; this table is the pack-relevant subset, not the whole set** -
+it listed eleven for a while under a heading that reads as exhaustive, which is the wrong way round
+for a page whose whole job is to say what a pack can reach. `find data/recompile/tags -name "*.json"`
+is the authority.
 
 | Tag | Means |
 |---|---|
@@ -144,9 +148,26 @@ Every one of these is data, so a pack extends the behaviour without a mod releas
 | `#recompile:stone_shards` / `#recompile:nether_shards` | the two terrain-shard families |
 | `#recompile:compostable` / `#recompile:hydroponic` | inputs for those machines |
 | `#recompile:undiscoverable` | kept out of the viewers |
+| `#recompile:bait/{herbivore,carnivore,omnivore}` | **entity_type** tags, one per `AnimalBaitBlock` diet state. The animal tier's whole tuning surface: which creatures a bait of that diet will draw. A modded animal is baitable by adding one line |
+| `#recompile:mineable/{knife,prybar,sledgehammer,cutting_torch}` | **block** tags, the four bespoke tool types. Which blocks each tool is the correct tool for |
+| `#recompile:spreadable` / `#recompile:spread_immune` | **block** tags read by `GrassSpreaderCoreBlock.isSpreadable`: what the Grass Spreader converts, and what it must leave alone (mycelium today). **Deliberately separate from the encroachment pair** - `encroachment_immune` contains coarse dirt, which is this machine's primary TARGET, so the two systems mean opposite things by "immune" |
+| `#recompile:dump_plants` | **block** tag; this mod's own ground cover (weedgrass, fireweed), and a member of `#frontier_cover` |
+| `#recompile:pigeon_forageable` | **block** tag; what a pigeon will pick at |
+| `#recompile:has_structure/{sewer,cooling_tower,smokestack,municipal_aquarium}` | **worldgen/biome** tags. See below - these are the landmark dial |
 
-Encroachment is tuned the same way: `#recompile:encroachable` minus `#recompile:encroachment_immune`,
-both built from other tags so a chisel-style mod's dirt variants are covered automatically.
+**Every landmark structure is retargetable from data.** All four of `worldgen/structure/*.json` set
+`"biomes"` to `#recompile:has_structure/<name>` rather than naming a biome, so overriding one biome
+tag moves a landmark to a different region, adds it to a modded biome, or removes it from the world
+entirely by emptying the tag. Nothing about it is in Java. This page never said so, which is exactly
+the sort of question it exists to answer.
+
+Encroachment is tuned the same way, and it reads **six** tags rather than the two this line used to
+name: `#recompile:encroachable` minus `#recompile:encroachment_immune` decides the soil (both built
+from other tags, so a chisel-style mod's dirt variants are covered automatically), `#frontier_cover`
+is what gets stripped instead of the ground, `#frontier_anchor` is what makes a patch permanent,
+`#hostile_ground` is what counts as unhealed for the frontier test, and the biome tag
+`#recompile:encroaches` gates the whole mechanic to the garbage biomes. `RCEncroachment` is where all
+six are read; `docs/roadmap.md` already had this right, so this copy was the drifted one.
 
 ## The guidebook
 

@@ -95,6 +95,23 @@ The tag now covers every vanilla overworld plantable rather than a curated ten. 
 fruit are deliberately excluded** - both live behind `RCDimensionLockout`, and growing them here would
 route around a dimension gate with a machine.
 
+**The tag and the map together are what revive CORAL, and this document did not mention coral at all
+until v0.18.0 made the bay its only route.** Fifteen dead corals are in `#recompile:hydroponic` - five
+colours times plant, fan and block - and fifteen `yields` lines in `hydroponic_crop.json` map each dead
+form to its live one. **Zero Java**: reviving coral is entirely the mechanic described above, applied to
+an input nobody had thought of when it was written. Two consequences worth stating here rather than only
+in the aquarium spec:
+
+- **A dead coral is a PERMANENT supply of that colour.** The seedling swap does not consume its seed, so
+  one of each of the fifteen is all a save will ever need. That is the elegant case above landing on a
+  material rather than on a crop.
+- **It is what makes the prismarine family renewable in practice.** The dead corals come out of the
+  Municipal Aquarium's tank rows and nothing else in this world grows one. See
+  [`municipal_aquarium_spec.md`](municipal_aquarium_spec.md).
+
+A dead coral is also the clearest case for the map's existence: nothing about "dead tube coral" tells a
+machine that the answer is "tube coral", so an entry-less default could not have handled it.
+
 ### The byproduct slot
 
 **A third slot, take-only, under the harvest.** Vanilla potatoes carry a 2% chance of a poisonous one, and

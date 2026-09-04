@@ -102,9 +102,18 @@ ground. The optional **Sanctuary Ward** (a placeable spawn-suppression block for
 - **Surface: unchanged.** Shares the coarse-dirt surface rule with household (the reclamation ladder rides on
   coarse dirt; re-surfacing would silently break the Grass Spreader/encroachment). Identity comes from the
   **rubble on top**, not the ground.
-- **Hostile spawns: on.** Populated `monster` spawner list (zombie, skeleton, spider, creeper); creature and
-  other lists stay empty. This is the mod's first hostile-spawning biome (scoped intro of the #46 threat axis).
-- **Features:** the Building Husk feature (S3) + surface rubble scatter. Not the garbage mound.
+- **Hostile spawns: on.** This is the mod's first hostile-spawning biome (scoped intro of the #46 threat
+  axis); creature and other lists stay empty. The `monster` list is **nine** entries as shipped - spider,
+  zombie, zombie villager, zombie horse, skeleton, creeper, slime, enderman, witch. *(This named four,
+  the ones the design pass called for; five more were added during the build and the sentence was not.
+  Read `spawners.monster` in `worldgen/biome/demolition_yard.json`.)*
+- **Features:** the Building Husk feature (S3) + surface rubble scatter. Not the garbage mound. Section
+  3 has the shipped list, which is four features rather than the three it long claimed.
+- **The sewers run underneath it**, which this document never mentions anywhere despite them being the
+  yard's own underside: `worldgen/structure/sewer.json` filters on `#recompile:has_structure/sewer`, and
+  the yard is what that tag points at. Spec: [`sewers_spec.md`](sewers_spec.md), with
+  [`sewer_improvements_spec.md`](sewer_improvements_spec.md) after it. The **Municipal Aquarium** is the
+  yard's other structure, and it does get a mention, at 3(a0).
 - **Encroaching** - in the `#recompile:encroaches` tag, so healed ground is contested here exactly as it is
   in the sprawl (owner call, **2026-07-31**, reversing the original decision below).
   - *Superseded:* "Not encroaching - stays out of the tag (it is a resource region, not contested green)."
@@ -122,7 +131,11 @@ ground. The optional **Sanctuary Ward** (a placeable spawn-suppression block for
 
 ## 3. Worldgen features: husks + piles
 
-The demolition yard scatters **three** feature types - a few standing husks in a field of debris:
+The demolition yard scatters **four** feature types - a few standing husks in a field of debris. Read
+them off step 9 (`vegetal_decoration`) of `worldgen/biome/demolition_yard.json`, which lists
+`recompile:rubble_pile`, `recompile:mechanical_waste_pile`, `recompile:steel_stack` and
+`recompile:building_husk`. *(This said three and listed the husk, rubble and steel; the **mechanical
+waste pile** shipped alongside them and was never added to the count. The biome JSON is the list.)*
 
 **(a0) The Municipal Aquarium** (rare, a structure rather than a feature; its own spec,
 `municipal_aquarium_spec.md`). It claims its footprint before the yard's features run, so a husk or a
