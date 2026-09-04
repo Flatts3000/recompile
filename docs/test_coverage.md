@@ -43,6 +43,47 @@ argued with.
 - Gradle does not honour command-line order for tasks with no declared relationship, so `coverageReport`
   could run before either test task had written anything. It now `mustRunAfter` both.
 
+## The numbers, 2026-09-04 (post-v0.18.0)
+
+| Scope | Line | Branch |
+|---|---|---|
+| Merged, both layers | **75.0%** (9008/12017) | **63.1%** (3557/5635) |
+| Actionable (minus the 931 unreachable below) | **81.3%** | - |
+
+**The actionable figure clears the 80% floor for the first time.** Line moved 72.3 to 75.0 and branch
+57.6 to 63.1 across two passes; branch is the number that moved most in this one, which is what you
+would expect from a pass that went after guards rather than after happy paths.
+
+687 GameTests (686 of them this mod's) and 105 JUnit tests, both layers green.
+
+**What this pass added, and it is worth reading as a list of what was NOT proven before:** the Garbage
+Vacuum's entire hold-to-vacuum loop (`onUseTick` was 0/19 lines, so the headline tool of v0.17.0 had
+its per-block primitives tested and its cadence, its release-when-flat and its mid-stream refusal not
+tested at all); `SortableBlock.useItemOn`, whose `itemOverridesSorting` branch is a shipped fix for a
+playtest regression and had nothing holding it; the Charging Station's dock and swap, which is a
+data-loss path for a charged tool; `ScrapCraftingStationMenu.quickMoveStack` at 7/28 branches, the one
+bespoke crafting menu in the mod and the place a custom menu voids or duplicates stacks; the tin-can
+food chain, which had zero coverage while being one of the two foods in the starting biome;
+`RCDimensionLockout`, previously asserted only by its config defaults; the Sorting Tarp's filter and
+guards; the mattress's placement path; a barrel save/load round trip; `TailingsHeapFeature` and the
+three scatter features, all previously at constructor-only; and a registry-derived sweep asserting
+every worldgen feature consults `AquariumStructure.claims`.
+
+**The unreachable set is 931, not 884.** Three client-only classes live outside `client/**` and were
+silently inside the actionable denominator: `MultiblockPlacementPreview` (26 lines), `RCFuelTooltip`
+(12) and `RCBlockColors` plus its inner class (6), all `Dist.CLIENT` and all in `event/`. This page
+names itself as the single source for that subtraction, so it was wrong by 47 lines.
+
+**Two findings came out of the pass rather than out of the report, which is the point of writing tests
+at all.** A creative break of a Dirty Mattress duplicates it (#357) - the test that found it is in the
+issue rather than in the suite, because shipping it red would be worse than shipping it filed. And
+`GarbageVacuumItem.beginVacuuming` swallows `Intake.FLAT` on the click, so a vacuum holding 1 to 59 FE
+aimed at a Block of Garbage does nothing and says nothing (#358).
+
+**Deliberately not covered:** `ScrapBarrelBlockEntity.setItems`, whose only caller anywhere in
+Minecraft is `ChestBlockEntity`'s double-chest swap - for this BE it is an abstract-method obligation
+with no live call site, and covering it would mean inventing a caller.
+
 ## The numbers, 2026-08-31 (post-v0.16.0)
 
 | | line | branch |
@@ -83,7 +124,7 @@ above argues that reading either layer on its own gives a wrong answer in the op
 this row is the evidence for that argument. 23.3% is what this mod looks like to someone who runs only
 `./gradlew test`.)*
 
-The floor in `~/.claude/rules/common/testing.md` is **80%**, so the actionable figure is still under it.
+The floor in `~/.claude/rules/common/testing.md` is **80%**. The 2026-09-04 pass cleared it at 81.3%; the figures in this section are the older reading and are kept as the trend.
 
 Two releases landed between the 2026-08-19 reading and this one and the number did not move on its own -
 69.9% to 69.9% - which is the useful part: new code arrived carrying roughly the coverage the mod
@@ -101,7 +142,7 @@ directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
-**884 lines as of 2026-09-03**, all at 0%, excluded from the actionable figure rather than counted as
+**931 lines as of 2026-09-04** (884 in the three unreachable packages, plus 47 in three `Dist.CLIENT` classes that sit outside `client/**`), all at 0%, excluded from the actionable figure rather than counted as
 debt. *(These grow with the code; they were 771 at v0.14.0. This is the one place they are stated -
 anywhere else that quotes a total is a second source waiting to drift from this one.)*
 

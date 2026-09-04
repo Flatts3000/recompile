@@ -14,19 +14,24 @@ import com.flatts.recompile.registry.RCTags;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -58,6 +63,21 @@ final class GarbageVacuumTests {
     private static final BlockPos FAR = new BlockPos(4, 2, 1);
     private static final BlockPos FOOT = new BlockPos(2, 1, 2);
     private static final BlockPos DOCK = new BlockPos(1, 1, 1);
+
+    /**
+     * The block the crosshair rests on in the hold tests, so the aim point cannot move mid-stream.
+     *
+     * <p>{@code onUseTick} recomputes {@link GarbageVacuumItem#aimPoint} every tick off
+     * {@code player.pick}, so a test that aimed AT the pile it was about to take would re-centre its own
+     * intake volume the instant that pile left the world, and a cadence measured against a moving cube
+     * proves nothing. One stone block here pins it: the ray always stops on this face, and the piles sit
+     * around it, inside copper's radius of 2.
+     *
+     * <p>The position is chosen so copper's radius-2 cube around it is EXACTLY the 5x5x5 plot. Plots are
+     * batched a single block apart, so a cube that overhangs the wall can see a neighbouring test's
+     * blocks - which would quietly falsify every assertion below of the form "nothing else was takeable".
+     */
+    private static final BlockPos SIGHT = new BlockPos(2, 2, 2);
 
     /**
      * A survival player STANDING IN THE PLOT. {@code makeMockServerPlayerInLevel} places its player at
@@ -101,6 +121,52 @@ final class GarbageVacuumTests {
 
     private static int garbageCost() {
         return VacuumTier.costFor(SortableBlock.sortRolls(RCBlocks.GARBAGE_BLOCK.get().asItem()));
+    }
+
+    /**
+     * A survival player at the plot's edge looking due south at {@link #SIGHT}, with {@code stack} in
+     * hand. Yaw 0 is +z, and the eye at y 2.62 sits inside the sight block's 2..3 band, which is the
+     * same geometry {@code a_tap_takes_one_block_and_starts_the_stream} already relies on.
+     */
+    private static ServerPlayer aimedPlayer(GameTestHelper helper, ItemStack stack) {
+        ServerPlayer player = survivalPlayer(helper);
+        Vec3 edge = helper.absoluteVec(new Vec3(2.5, 1.0, 0.5));
+        player.setPos(edge.x, edge.y, edge.z);
+        player.setYRot(0.0F);
+        player.setXRot(0.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        return player;
+    }
+
+    /** The same player, already mid-hold, as if the click had happened and the trigger were down. */
+    private static ServerPlayer holdingPlayer(GameTestHelper helper, ItemStack stack) {
+        ServerPlayer player = aimedPlayer(helper, stack);
+        player.startUsingItem(InteractionHand.MAIN_HAND);
+        return player;
+    }
+
+    /**
+     * One tick of a hold, {@code elapsed} ticks after the click.
+     *
+     * <p>Driven through {@code ItemStack.onUseTick}, which is the exact call
+     * {@code LivingEntity.updateUsingItem} makes, rather than by letting the server tick the player:
+     * {@code ServerPlayer.tick} does not reach {@code LivingEntity.tick} (that is {@code doTick}, driven
+     * by the packet listener), so a mock player never runs its own use loop and a real-tick test here
+     * would sit there proving nothing. Same reason the rest of this file drives {@code intakeOnce}.
+     */
+    private static void holdTick(GameTestHelper helper, ServerPlayer player, ItemStack stack, int elapsed) {
+        stack.onUseTick(helper.getLevel(), player, stack.getUseDuration(player) - elapsed);
+    }
+
+    /** How many of {@code piles} are still the given block. */
+    private static int standing(GameTestHelper helper, List<BlockPos> piles, Block block) {
+        int count = 0;
+        for (BlockPos pos : piles) {
+            if (helper.getBlockState(pos).is(block)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     static void register() {
@@ -152,6 +218,230 @@ final class GarbageVacuumTests {
                 "the click itself must take and pay for one block, charge is "
                     + GarbageVacuumItem.charge(player.getMainHandItem()));
             helper.assertTrue(player.isUsingItem(), "and the hold must be running so a held click keeps taking");
+            helper.succeed();
+        });
+
+        // THE CADENCE OF A HOLD, which nothing drove before this. Every other test in this file reaches
+        // intakeOnce directly, so they prove what ONE intake does and never how often the tool asks for
+        // one - the use loop that turns a held trigger into five blocks a second was uncovered code.
+        //
+        // Delete the four-tick assertions and INTAKE_PERIOD_TICKS is free to drift to 1: twenty blocks
+        // a second, a mound gone in the time it takes to look at it, and the FE capacity that separates
+        // one tier from the next spent in a fifth of the time it was balanced for. Delete the elapsed-0
+        // assertion and a tap takes TWO blocks for one block's charge, because the click already took
+        // and paid for one before the loop ever ran.
+        RCGameTests.test("a_held_vacuum_takes_one_block_every_four_ticks", 20, helper -> {
+            helper.setBlock(SIGHT, Blocks.STONE);
+            List<BlockPos> piles = List.of(
+                new BlockPos(1, 2, 2), new BlockPos(3, 2, 2), new BlockPos(2, 3, 2));
+            for (BlockPos pile : piles) {
+                helper.setBlock(pile, RCBlocks.GARBAGE_BLOCK.get());
+            }
+            Block garbage = RCBlocks.GARBAGE_BLOCK.get();
+            ItemStack stack = vacuum(RCItems.COPPER_GARBAGE_VACUUM, 4_000);
+            ServerPlayer player = holdingPlayer(helper, stack);
+
+            holdTick(helper, player, stack, 0);
+            helper.assertTrue(standing(helper, piles, garbage) == 3,
+                "tick zero of a hold IS the click, which use() has already taken and paid for - taking "
+                    + "again here hands out two blocks for one block's charge");
+
+            for (int elapsed = 1; elapsed <= 3; elapsed++) {
+                holdTick(helper, player, stack, elapsed);
+            }
+            helper.assertTrue(standing(helper, piles, garbage) == 3,
+                "nothing may be taken inside the four-tick window, or the vacuum runs faster than the "
+                    + "rate every FE number was balanced against, got "
+                    + (3 - standing(helper, piles, garbage)) + " taken");
+            helper.assertTrue(GarbageVacuumItem.charge(stack) == 4_000,
+                "and nothing may be paid for either, charge is " + GarbageVacuumItem.charge(stack));
+
+            holdTick(helper, player, stack, 4);
+            helper.assertTrue(standing(helper, piles, garbage) == 2,
+                "the fourth tick must take exactly one block");
+            for (int elapsed = 5; elapsed <= 7; elapsed++) {
+                holdTick(helper, player, stack, elapsed);
+            }
+            helper.assertTrue(standing(helper, piles, garbage) == 2,
+                "and then wait out another full window");
+            holdTick(helper, player, stack, 8);
+            helper.assertTrue(standing(helper, piles, garbage) == 1, "the eighth tick takes the second");
+            for (int elapsed = 9; elapsed <= 11; elapsed++) {
+                holdTick(helper, player, stack, elapsed);
+            }
+            // Tick 12 is both an intake tick and a sound tick. Stepping over it on purpose: the two
+            // periods share one `elapsed`, and a sound period that also took a block would double the
+            // rate every twelfth tick without ever looking wrong in a log.
+            holdTick(helper, player, stack, 12);
+            helper.assertTrue(standing(helper, piles, garbage) == 0,
+                "the twelfth tick takes the third - and takes ONE, not one for the intake period and "
+                    + "another for the sound period");
+            helper.assertTrue(GarbageVacuumItem.charge(stack) == 4_000 - 3 * garbageCost(),
+                "three blocks must cost exactly three blocks, charge is "
+                    + GarbageVacuumItem.charge(stack));
+            helper.assertTrue(player.isUsingItem(),
+                "and an empty volume must not end the hold - a player sweeping between two mounds "
+                    + "would have to re-click for every gap");
+            helper.succeed();
+        });
+
+        // THE HOLD LETS GO WHEN THE CELL GOES FLAT. That intakeOnce reports FLAT was already pinned;
+        // that the item then drops the trigger was not, and it is the half a player feels. Leave it
+        // running and the tool keeps its use animation up, keeps playing its motor every twelve ticks,
+        // and keeps scanning a cube of block states five times a second forever, while the trigger it
+        // is holding can no longer do anything at all.
+        //
+        // Paired with its opposite in the same body, because "release on tick 8" passes just as well
+        // when the item releases on every tick: with charge for two blocks the same eighth tick must
+        // take the second pile and keep going.
+        RCGameTests.test("a_hold_lets_go_when_the_vacuum_runs_flat", 20, helper -> {
+            helper.setBlock(SIGHT, Blocks.STONE);
+            List<BlockPos> piles = List.of(new BlockPos(1, 2, 2), new BlockPos(3, 2, 2));
+            Block garbage = RCBlocks.GARBAGE_BLOCK.get();
+
+            for (BlockPos pile : piles) {
+                helper.setBlock(pile, garbage);
+            }
+            ItemStack ample = vacuum(RCItems.COPPER_GARBAGE_VACUUM, 2 * garbageCost());
+            ServerPlayer player = holdingPlayer(helper, ample);
+            holdTick(helper, player, ample, 4);
+            holdTick(helper, player, ample, 8);
+            helper.assertTrue(standing(helper, piles, garbage) == 0,
+                "with charge for two, both must go");
+            helper.assertTrue(player.isUsingItem(),
+                "and a hold that is still taking blocks must not let go of the trigger");
+            player.releaseUsingItem();
+
+            // Now the same eighth tick with charge for one block only.
+            for (BlockPos pile : piles) {
+                helper.setBlock(pile, garbage);
+            }
+            ItemStack thin = vacuum(RCItems.COPPER_GARBAGE_VACUUM, garbageCost());
+            player.setItemInHand(InteractionHand.MAIN_HAND, thin);
+            player.startUsingItem(InteractionHand.MAIN_HAND);
+            holdTick(helper, player, thin, 4);
+            helper.assertTrue(GarbageVacuumItem.charge(thin) == 0, "setup: one block must empty it");
+            helper.assertTrue(standing(helper, piles, garbage) == 1, "setup: one pile taken, one left");
+            helper.assertTrue(player.isUsingItem(), "setup: and the hold is still running");
+
+            holdTick(helper, player, thin, 8);
+            helper.assertFalse(player.isUsingItem(),
+                "a flat vacuum must release the trigger rather than idle at full rate on a cube it can "
+                    + "never take anything out of");
+            helper.assertTrue(standing(helper, piles, garbage) == 1,
+                "and the pile it could not pay for must still be standing");
+            helper.succeed();
+        });
+
+        // THE HOLD ALSO LETS GO ON A PILE IT IS NOT RATED FOR, and this is the branch that keeps the
+        // ladder learnable. Sweeping a copper vacuum off household garbage and onto mill tailings has
+        // to stop and name the pile; without the release the tool keeps humming over tailings forever,
+        // which is exactly the "nothing happens, so the tool is broken" reading the message exists to
+        // prevent - and this time with the motor still running to say it is working.
+        //
+        // The rated half is asserted straight after so this cannot pass by releasing on every tick.
+        RCGameTests.test("a_hold_lets_go_when_it_meets_a_pile_it_cannot_take", 20, helper -> {
+            helper.setBlock(SIGHT, Blocks.STONE);
+            BlockPos soft = new BlockPos(1, 2, 2);
+            BlockPos hard = new BlockPos(3, 2, 2);
+            helper.setBlock(soft, RCBlocks.GARBAGE_BLOCK.get());
+            helper.setBlock(hard, RCBlocks.MILL_TAILINGS.get());
+
+            ItemStack copper = vacuum(RCItems.COPPER_GARBAGE_VACUUM, 4_000);
+            ServerPlayer player = holdingPlayer(helper, copper);
+            holdTick(helper, player, copper, 4);
+            helper.assertBlockPresent(Blocks.AIR, soft);
+            helper.assertTrue(player.isUsingItem(),
+                "setup: taking the garbage must not end the hold");
+
+            holdTick(helper, player, copper, 8);
+            helper.assertFalse(player.isUsingItem(),
+                "with only mill tailings left, a copper vacuum must let go and say so rather than run "
+                    + "on over a pile it can never take");
+            helper.assertBlockPresent(RCBlocks.MILL_TAILINGS.get(), hard);
+
+            // Rated for the dump: the same tick, the same pile, and the hold survives it.
+            ItemStack diamond = vacuum(RCItems.DIAMOND_GARBAGE_VACUUM, 16_000);
+            player.setItemInHand(InteractionHand.MAIN_HAND, diamond);
+            player.startUsingItem(InteractionHand.MAIN_HAND);
+            holdTick(helper, player, diamond, 4);
+            helper.assertBlockPresent(Blocks.AIR, hard);
+            helper.assertTrue(player.isUsingItem(),
+                "a diamond vacuum is rated for the dump, so tailings must not end its hold");
+            helper.succeed();
+        });
+
+        // THE CROSSHAIR MUST NOT WIN. This is the shipped fix for the tool's first playtest report -
+        // "the vacuum only works when aimed at nothing" - and it had nothing holding it.
+        //
+        // Vanilla resolves a right-click BLOCK-FIRST: with the crosshair on a pile the chain reaches
+        // SortableBlock.useItemOn, and a TRY_WITH_EMPTY_HAND answer there goes straight to the
+        // hand-sort. Returning PASS instead is the whole fix, and the failure it prevents is silent -
+        // the pile gets picked through, the vacuum never fires, and the tool reads as broken in the one
+        // place a player will always point it. Driven through helper.useBlock, which walks the real
+        // block-then-item chain, because that ordering IS the bug.
+        //
+        // The bare hand is the other half: without it this passes just as well against a block that has
+        // stopped hand-sorting for everybody.
+        RCGameTests.test("a_click_aimed_at_a_pile_runs_the_vacuum_rather_than_hand_sorting_it", 20, helper -> {
+            // The pile IS the crosshair target here, which is the whole point: this is the case where
+            // the block gets asked about the click before the item does.
+            BlockPos pile = new BlockPos(2, 2, 2);
+            helper.setBlock(pile, RCBlocks.GARBAGE_BLOCK.get());
+            ItemStack stack = vacuum(RCItems.COPPER_GARBAGE_VACUUM, 4_000);
+            ServerPlayer player = aimedPlayer(helper, stack);
+
+            helper.useBlock(pile, player);
+
+            helper.assertBlockPresent(Blocks.AIR, pile);
+            helper.assertEntityPresent(RCEntities.VACUUMED_BLOCK.get());
+            helper.assertEntityNotPresent(EntityType.ITEM);
+            helper.assertTrue(GarbageVacuumItem.charge(player.getMainHandItem()) == 4_000 - garbageCost(),
+                "the click must be paid for once, charge is "
+                    + GarbageVacuumItem.charge(player.getMainHandItem()));
+            helper.assertTrue(player.isUsingItem(), "and the hold must have started");
+
+            // Bare-handed, the very same click must still pick through the pile.
+            player.stopUsingItem();
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            helper.setBlock(pile, RCBlocks.GARBAGE_BLOCK.get());
+            // Roaches off, SortingTests' reason: a roach returns early and does NOT advance the sorted
+            // count, so about one garbage trial in eight hundred would assert the pull never happened.
+            boolean was = RCConfig.ROACHES_ENABLED.get();
+            try {
+                RCConfig.ROACHES_ENABLED.set(false);
+                helper.useBlock(pile, player);
+            } finally {
+                RCConfig.ROACHES_ENABLED.set(was);
+            }
+            SortableBlock garbage = (SortableBlock) RCBlocks.GARBAGE_BLOCK.get();
+            helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), pile);
+            helper.assertTrue(garbage.sortedCount(helper.getBlockState(pile)) == 1,
+                "a bare hand on the same pile must still hand-sort it - the vacuum's override is scoped "
+                    + "to the vacuum, and widening it would silently kill the pick-through loop");
+            helper.succeed();
+        });
+
+        // A CLICK WITH NO PLAYER BEHIND IT. useOn takes a UseOnContext, whose player is nullable - a
+        // dispenser, a fake-player-less automation, any mod calling Item.useOn with a null player. The
+        // guard is one line and the failure without it is a NullPointerException inside
+        // beginVacuuming's getItemInHand, which does not throw in the caller's face, it kills the
+        // server tick that was running the dispenser.
+        RCGameTests.test("a_vacuum_click_with_no_player_behind_it_does_nothing", 20, helper -> {
+            BlockPos pile = new BlockPos(1, 2, 1);
+            helper.setBlock(pile, RCBlocks.GARBAGE_BLOCK.get());
+            BlockPos abs = helper.absolutePos(pile);
+            ItemStack stack = vacuum(RCItems.COPPER_GARBAGE_VACUUM, 4_000);
+
+            InteractionResult result = stack.getItem().useOn(new UseOnContext(helper.getLevel(), null,
+                InteractionHand.MAIN_HAND, stack,
+                new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false)));
+
+            helper.assertTrue(result == InteractionResult.PASS,
+                "a playerless click must PASS so the chain carries on, got " + result);
+            helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), pile);
+            helper.assertTrue(GarbageVacuumItem.charge(stack) == 4_000,
+                "and nothing may be spent on it, charge is " + GarbageVacuumItem.charge(stack));
             helper.succeed();
         });
 
@@ -343,6 +633,147 @@ final class GarbageVacuumTests {
             level.destroyBlock(abs, true);
             helper.assertItemEntityPresent(RCItems.COPPER_GARBAGE_VACUUM.get(), DOCK, 2.0);
             helper.assertItemEntityPresent(RCItems.CHARGING_STATION.get(), DOCK, 2.0);
+            helper.succeed();
+        });
+
+        // SETTING ONE DOWN IS THE WHOLE INTERACTION, and the tests above all reached past it - they
+        // called dock() directly, so the block's own right-click was never driven at all. Three separate
+        // things are pinned here because each fails differently and all three are silent.
+        //
+        // Driven through helper.useBlock, the real block-then-item chain, since the third assertion is
+        // about what happens when the block DOESN'T take the click.
+        RCGameTests.test("docking_a_vacuum_by_hand_takes_it_out_of_your_hand", 20, helper -> {
+            helper.setBlock(DOCK, RCBlocks.CHARGING_STATION.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(DOCK);
+            if (!(level.getBlockEntity(abs) instanceof ChargingStationBlockEntity dock)) {
+                helper.fail("the charging station has no BlockEntity");
+                return;
+            }
+            ServerPlayer player = survivalPlayer(helper);
+            player.setItemInHand(InteractionHand.MAIN_HAND,
+                vacuum(RCItems.COPPER_GARBAGE_VACUUM, 1_500));
+
+            helper.useBlock(DOCK, player);
+
+            helper.assertTrue(dock.docked().is(RCItems.COPPER_GARBAGE_VACUUM.get()),
+                "a right-click holding a vacuum must set it on the dock");
+            helper.assertTrue(GarbageVacuumItem.charge(dock.docked()) == 1_500,
+                "with the charge it already had - the dock stores a copy of the stack, and a copy that "
+                    + "lost the component would silently reset a part-charged tool to empty, got "
+                    + GarbageVacuumItem.charge(dock.docked()));
+            helper.assertTrue(player.getMainHandItem().isEmpty(),
+                "and a survival player must not keep one in hand as well - that is a duplication bug on "
+                    + "the most expensive tool in the mod");
+
+            // A click that the dock refuses must PASS all the way through to the held item, or the
+            // block becomes a dead face you cannot build against. Asserted with a real placement rather
+            // than on the InteractionResult, because SUCCESS on the empty-hand path looks identical in
+            // a log and simply eats the click.
+            dock.undock();
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STONE, 4));
+            helper.useBlock(DOCK, player);
+            helper.assertTrue(dock.isEmpty(),
+                "only a Garbage Vacuum may sit on the dock - anything else and the block is a one-slot "
+                    + "chest nothing can get back out of");
+            helper.assertBlockPresent(Blocks.STONE, DOCK.north());
+
+            // Creative keeps its copy, the standard creative contract. makeMockServerPlayerInLevel is
+            // left creative here deliberately: this is the one assertion that is ABOUT instabuild.
+            ServerPlayer creative = helper.makeMockServerPlayerInLevel();
+            creative.setItemInHand(InteractionHand.MAIN_HAND,
+                vacuum(RCItems.COPPER_GARBAGE_VACUUM, 0));
+            helper.useBlock(DOCK, creative);
+            helper.assertFalse(dock.isEmpty(), "setup: the creative click must dock something");
+            helper.assertTrue(creative.getMainHandItem().is(RCItems.COPPER_GARBAGE_VACUUM.get()),
+                "a creative player must keep the vacuum in hand - taking it is how a builder loses the "
+                    + "item they were placing from");
+            helper.succeed();
+        });
+
+        // THE SWAP IS THE DATA-LOSS PATH. Click a dock that already holds a vacuum while holding
+        // another one and the docked one is replaced; if the stack it hands back is dropped on the
+        // floor of the method, a player who parked a full 4,000 FE tool and then absent-mindedly set a
+        // spare on top has destroyed it - no drop, no message, no way to tell it ever existed. Nothing
+        // drove useItemOn at all before this, so the whole swap arm was untested code on a path that
+        // deletes the most expensive item in the mod.
+        //
+        // The charge is asserted, not just the item: handing back a BLANK vacuum is the same loss with
+        // a decoy.
+        RCGameTests.test("swapping_the_dock_hands_the_charged_vacuum_back", 20, helper -> {
+            helper.setBlock(DOCK, RCBlocks.CHARGING_STATION.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(DOCK);
+            if (!(level.getBlockEntity(abs) instanceof ChargingStationBlockEntity dock)) {
+                helper.fail("the charging station has no BlockEntity");
+                return;
+            }
+            ServerPlayer player = survivalPlayer(helper);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND,
+                vacuum(RCItems.COPPER_GARBAGE_VACUUM, 3_000));
+            helper.useBlock(DOCK, player);
+            helper.assertTrue(GarbageVacuumItem.charge(dock.docked()) == 3_000,
+                "setup: the charged vacuum must be parked first");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND,
+                vacuum(RCItems.COPPER_GARBAGE_VACUUM, 0));
+            helper.useBlock(DOCK, player);
+
+            helper.assertTrue(GarbageVacuumItem.charge(dock.docked()) == 0,
+                "the flat vacuum must be the one left on the dock, charge is "
+                    + GarbageVacuumItem.charge(dock.docked()));
+            List<ItemStack> returned = new ArrayList<>();
+            for (ItemStack slot : player.getInventory().getNonEquipmentItems()) {
+                if (!slot.isEmpty() && slot.is(RCItems.COPPER_GARBAGE_VACUUM.get())) {
+                    returned.add(slot);
+                }
+            }
+            helper.assertTrue(returned.size() == 1,
+                "exactly one vacuum must come back off the dock, got " + returned.size()
+                    + " - zero means the swap ate it, two means it duplicated");
+            helper.assertTrue(GarbageVacuumItem.charge(returned.get(0)) == 3_000,
+                "and it must come back with all 3,000 FE still in it, got "
+                    + GarbageVacuumItem.charge(returned.get(0)));
+            helper.succeed();
+        });
+
+        // TAKING ONE BACK WITH NO ROOM FOR IT. giveBack falls through to a drop when the inventory is
+        // full, and that fallback is the only thing between a full-bagged player and a deleted vacuum:
+        // Inventory.add returns false and leaves the stack alone, so a giveBack that ignored the return
+        // value would undock the tool and then simply forget about it.
+        //
+        // Both halves in one body, because a test that only looks at the floor passes just as well when
+        // the vacuum is ALWAYS thrown on the ground rather than put in the bag.
+        RCGameTests.test("taking_a_vacuum_back_with_a_full_bag_drops_it", 20, helper -> {
+            helper.setBlock(DOCK, RCBlocks.CHARGING_STATION.get());
+            ServerLevel level = helper.getLevel();
+            BlockPos abs = helper.absolutePos(DOCK);
+            if (!(level.getBlockEntity(abs) instanceof ChargingStationBlockEntity dock)) {
+                helper.fail("the charging station has no BlockEntity");
+                return;
+            }
+            ServerPlayer player = survivalPlayer(helper);
+
+            // With room: an empty-handed click puts it in the bag and NOT on the floor.
+            dock.dock(vacuum(RCItems.COPPER_GARBAGE_VACUUM, 2_000));
+            helper.useBlock(DOCK, player);
+            helper.assertTrue(dock.isEmpty(), "an empty-handed click must take the vacuum off the dock");
+            helper.assertTrue(player.getInventory().countItem(RCItems.COPPER_GARBAGE_VACUUM.get()) == 1,
+                "and it must land in the inventory, not on the ground at the player's feet");
+            helper.assertItemEntityNotPresent(RCItems.COPPER_GARBAGE_VACUUM.get());
+
+            // Now with every slot packed. The hand holds stone, so useItemOn refuses it and the click
+            // still reaches the empty-hand retrieval.
+            List<ItemStack> slots = player.getInventory().getNonEquipmentItems();
+            for (int i = 0; i < slots.size(); i++) {
+                slots.set(i, new ItemStack(Items.STONE, 64));
+            }
+            dock.dock(vacuum(RCItems.COPPER_GARBAGE_VACUUM, 2_000));
+            helper.useBlock(DOCK, player);
+            helper.assertTrue(dock.isEmpty(),
+                "the dock must let go of the vacuum even when there is nowhere to put it");
+            helper.assertItemEntityPresent(RCItems.COPPER_GARBAGE_VACUUM.get());
             helper.succeed();
         });
 

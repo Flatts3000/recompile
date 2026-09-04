@@ -59,8 +59,11 @@ public final class RCGameTests {
         MoundRegrowthTests.register();
         SortingTarpTests.register();
         ForageTests.register();
+        TinCanTests.register();
+        DimensionLockoutTests.register();
         CraftingTableTests.register();
         CraftingTableTests.registerNetworkReporting();
+        CraftingTableTests.registerQuickMove();
         ScrapBarrelTests.register();
         VanillaParityTests.register();
         PowerTierTests.register();
@@ -127,6 +130,7 @@ public final class RCGameTests {
         DriedBouquetTests.register();
         AquariumTests.register();
         TirePileTests.register();
+        ScatterFeatureTests.register();
         ComponentTests.register();
         LeachateTests.register();
         FoundNotCraftedTests.register();

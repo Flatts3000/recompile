@@ -344,5 +344,75 @@ final class SortingTests {
                     + "cannot out-clear the shovel");
             helper.succeed();
         });
+
+        // THE NUDGE, WHICH NOTHING DROVE. RadioactiveDumpTests asks acceptsTool whether a stack opens a
+        // pile, which pins the PREDICATE; the right-click that consults it - useItemOn refusing a wrong
+        // item, useWithoutItem naming the tool - was never called on a gated pile by any test.
+        //
+        // Four things fail separately here and all four are silent in a compile:
+        //  - a wrong item opening a gated pile means the tool gate is decoration, and nothing about a
+        //    Waste Drum looks different when its gate stops being required;
+        //  - a pull happening anyway on the refusal path costs the player a pile AND its contents;
+        //  - toolName() naming a key with no translation renders "tool.recompile.sledgehammer" to the
+        //    player at exactly the moment the message exists to help them;
+        //  - and the family branch collapsing to the representative item tells a player holding a
+        //    netherite sledgehammer to go and fetch a copper one, which is the whole reason
+        //    requiredToolFamily exists.
+        //
+        // A stick rather than an empty hand on purpose: the two take different branches, and the
+        // wrong-item branch is the one that decides whether ANY held item can open a gated pile.
+        RCGameTests.test("a_pile_that_needs_a_tool_names_the_tool_instead_of_opening", 20, helper -> {
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            BlockPos pos = new BlockPos(1, 1, 1);
+            SortableBlock drum = (SortableBlock) RCBlocks.WASTE_DRUM.get();
+
+            helper.setBlock(pos, RCBlocks.WASTE_DRUM.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
+            helper.useBlock(pos, player);
+            helper.assertBlockPresent(RCBlocks.WASTE_DRUM.get(), pos);
+            helper.assertTrue(drum.sortedCount(helper.getBlockState(pos)) == 0,
+                "a stick opened a Waste Drum, so the prybar gate is not gating anything");
+            helper.assertEntityNotPresent(EntityType.ITEM);
+
+            // The message must name the tool, and name it in words.
+            String prybar = Component.translatable(RCItems.PRYBAR.get().getDescriptionId()).getString();
+            helper.assertFalse(prybar.equals(RCItems.PRYBAR.get().getDescriptionId()),
+                "the Prybar's own name has no translation, so the nudge would show a raw key");
+            helper.assertTrue(drum.toolFamilyName().getString().equals(prybar),
+                "the Waste Drum's nudge says '" + drum.toolFamilyName().getString()
+                    + "' where it should say '" + prybar + "'");
+
+            // The family branch, which is a different line of toolName() and fails differently.
+            SortableBlock tailings = (SortableBlock) RCBlocks.MILL_TAILINGS.get();
+            String family = tailings.toolFamilyName().getString();
+            helper.assertFalse(family.equals("tool.recompile.sledgehammer"),
+                "Mill Tailings' nudge renders its lang key raw: " + family);
+            helper.assertFalse(family.equals(Component.translatable(
+                    RCItems.COPPER_SLEDGEHAMMER.get().getDescriptionId()).getString()),
+                "Mill Tailings' nudge names the COPPER sledgehammer rather than the family, so a player "
+                    + "holding a netherite one is sent to fetch a tier the gate does not require");
+
+            String message = "message.recompile.needs_tool";
+            helper.assertFalse(Component.translatable(message).getString().equals(message),
+                message + " has no translation, so the whole nudge renders as its own key");
+
+            // The other half, without which all of the above passes against a drum nothing can open.
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RCItems.PRYBAR.get()));
+            helper.useBlock(pos, player);
+            helper.assertTrue(drum.sortedCount(helper.getBlockState(pos)) == 1,
+                "the Prybar must actually open the drum - a gate nothing satisfies is an unobtainable "
+                    + "pile, and it looks exactly like a working gate");
+
+            // And a tool pull is rate-limited the same way a bare-hand one is. The cooldown keys on the
+            // held stack rather than on the empty hand here, so it is a second code path in takePull:
+            // without it, holding right-click with a prybar tears a drum apart at the client's 4-tick
+            // use delay instead of the mod's 8, which is the exact regression PULL_COOLDOWN_TICKS
+            // exists to close.
+            helper.useBlock(pos, player);
+            helper.assertTrue(drum.sortedCount(helper.getBlockState(pos)) == 1,
+                "a second click inside PULL_COOLDOWN_TICKS must be refused, the drum is at "
+                    + drum.sortedCount(helper.getBlockState(pos)) + " pulls");
+            helper.succeed();
+        });
     }
 }
