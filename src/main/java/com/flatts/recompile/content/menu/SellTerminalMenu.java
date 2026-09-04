@@ -43,11 +43,10 @@ public class SellTerminalMenu extends AbstractContainerMenu {
     public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 184)
         .panel()
         .slotGrid("goods", 3, 3, 8, 17)
-        // The quote sits beside the grid, not under it: "what will this pay" is answered next to the
-        // things being asked about.
-        // Three lines of the font at this width. Every string drawn here is short enough to fit
-        // three lines at 98px, and the screenshot pass is what checks that, since a fourth line
-        // disappears under the button rather than failing anything.
+        // The quote sits beside the grid, not under it: "what will this pay" is answered next to
+        // the things being asked about. Three lines tall, because every string drawn here fits three
+        // lines at 98px and a fourth would disappear under the button rather than fail anything -
+        // which it did, until the screenshot pass caught it.
         .region("quote", 70, 17, 98, 30)
         // The button is a backdrop with its label as a region on top, which is the only way a
         // labelled surface passes the overlap sweep; the sweep is right that a label over a plain
@@ -64,10 +63,9 @@ public class SellTerminalMenu extends AbstractContainerMenu {
 
     private final SimpleContainer goods = new SimpleContainer(GOODS_SLOTS);
     private final ContainerLevelAccess access;
-    private final Player player;
     private final BalanceSync balanceSync;
 
-    /** Client factory: no block to stand at, the balance arrives through the data slot. */
+    /** Client factory: no block to stand at, and the balance arrives through the data slots. */
     public SellTerminalMenu(int containerId, Inventory inventory) {
         this(containerId, inventory, ContainerLevelAccess.NULL);
     }
@@ -75,7 +73,6 @@ public class SellTerminalMenu extends AbstractContainerMenu {
     public SellTerminalMenu(int containerId, Inventory inventory, ContainerLevelAccess access) {
         super(RCMenus.SELL_TERMINAL.get(), containerId);
         this.access = access;
-        this.player = inventory.player;
 
         LAYOUT.forEachSlot("goods", (index, x, y) -> this.addSlot(new Slot(goods, index, x, y) {
             @Override
@@ -86,7 +83,7 @@ public class SellTerminalMenu extends AbstractContainerMenu {
         LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
 
         // Two slots, low half then high: a data slot is 16 bits on the wire and a balance is not.
-        this.balanceSync = new BalanceSync(this.player);
+        this.balanceSync = new BalanceSync(inventory.player);
         this.addDataSlot(this.balanceSync.lowSlot());
         this.addDataSlot(this.balanceSync.highSlot());
     }

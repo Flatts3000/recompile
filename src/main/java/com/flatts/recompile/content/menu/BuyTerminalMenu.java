@@ -59,7 +59,6 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
 
     private final List<Market.Offer> offers;
     private final ContainerLevelAccess access;
-    private final Player player;
     private final BalanceSync balanceSync;
 
     /** Client factory with nothing on the shelf, for the geometry sweep. */
@@ -77,13 +76,12 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
             List<Market.Offer> offers) {
         super(RCMenus.BUY_TERMINAL.get(), containerId);
         this.access = access;
-        this.player = inventory.player;
         this.offers = List.copyOf(offers);
 
         LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
 
         // Two slots, low half then high: a data slot is 16 bits on the wire and a balance is not.
-        this.balanceSync = new BalanceSync(this.player);
+        this.balanceSync = new BalanceSync(inventory.player);
         this.addDataSlot(this.balanceSync.lowSlot());
         this.addDataSlot(this.balanceSync.highSlot());
     }
