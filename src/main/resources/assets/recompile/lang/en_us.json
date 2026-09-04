@@ -750,5 +750,6 @@
   "container.recompile.offer_count": "%s per purchase",
   "blueprint.recompile.powder_snow_bucket": "Bucket of Powder Snow",
   "jei.recompile.info.totem_of_undying": "Nothing in this world drops one. Totems come off evokers, and there are no raids here, so the Buy Terminal is the only place a totem exists at all. It is not cheap and it is spent when it saves you.",
+  "jei.recompile.info.heavy_core": "A heavy core comes out of a trial chamber vault, and no trial chamber generates here, so the Buy Terminal is the only place one exists. It is the head of a mace; the handle is a breeze rod, which this world already makes by firing a Blaze Briquette in the Sintering Kiln. Buy the core once and the mace is yours to keep, which is why it costs more than a totem.",
   "jei.recompile.info.powder_snow_bucket": "There is no powder snow here to scoop, so there is no bucket of it to find and take apart. The Buy Terminal sells the Blueprint instead - the only sheet in the game that is bought rather than learned by tearing something down. With it, a bucket and four snowballs make one at the Scrap Crafting Table."
 }

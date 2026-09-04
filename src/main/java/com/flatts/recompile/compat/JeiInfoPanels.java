@@ -95,6 +95,11 @@ public final class JeiInfoPanels {
             // isSpecial with no display, so a player looking up a totem sees nothing at all and no
             // hint that a terminal sells one. These two panels are the only thing that says so.
             new Panel(Items.TOTEM_OF_UNDYING, "totem_of_undying"),
-            new Panel(Items.POWDER_SNOW_BUCKET, "powder_snow_bucket"));
+            new Panel(Items.POWDER_SNOW_BUCKET, "powder_snow_bucket"),
+            // The heavy core is the sharpest case of the three, because JEI CAN show the
+            // mace recipe. A player looks the mace up, sees it wants a heavy core, looks
+            // THAT up and finds nothing at all - a dead end one click into a chain that
+            // does work. This panel is what turns that into a price.
+            new Panel(Items.HEAVY_CORE, "heavy_core"));
     }
 }
