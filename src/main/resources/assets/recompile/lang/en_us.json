@@ -724,7 +724,7 @@
   "container.recompile.buy_terminal": "Buy Terminal",
   "container.recompile.scrip_balance": "Balance: %s scrip",
   "container.recompile.sell_quote": "Pays %s scrip",
-  "container.recompile.sell_quote_empty": "Put in components or finished goods to see what they pay",
+  "container.recompile.sell_quote_empty": "Put goods in to see what they pay",
   "container.recompile.sell_button": "Sell",
   "container.recompile.offer_price": "%s scrip",
   "container.recompile.no_offers": "Nothing is for sale",
@@ -742,5 +742,6 @@
   "book.recompile.guide.workstations.market.buying.text": "Every Blueprint the company stocks is listed with its price. Click one you can afford and the sheet lands in your inventory. It is the same sheet fragments make: you still need the materials and the Scrap Crafting Table. You are paying to skip the fragment grind, not the gate.",
   "book.recompile.guide.bulky_waste.broken_terminal.name": "Broken Terminal",
   "book.recompile.guide.bulky_waste.broken_terminal.intro.title": "Broken Terminal",
-  "book.recompile.guide.bulky_waste.broken_terminal.intro.text": "A company terminal, dead. Tear it down at the Teardown Workbench for scrap and an Idea Fragment towards both the Sell Terminal and the Buy Terminal. Four fragments of each make the Blueprint."
+  "book.recompile.guide.bulky_waste.broken_terminal.intro.text": "A company terminal, dead. Tear it down at the Teardown Workbench for scrap and an Idea Fragment towards both the Sell Terminal and the Buy Terminal. Four fragments of each make the Blueprint.",
+  "container.recompile.scroll_up": "(scroll up for more)"
 }

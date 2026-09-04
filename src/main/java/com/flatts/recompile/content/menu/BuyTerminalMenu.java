@@ -31,8 +31,15 @@ import net.minecraft.world.item.ItemStack;
  */
 public class BuyTerminalMenu extends AbstractContainerMenu {
 
-    /** How many offers the screen shows at once; the rest scroll. */
-    public static final int ROWS = 6;
+    /**
+     * How many offers the screen shows at once; the rest scroll.
+     *
+     * <p>Five, with the sixth row's space reserved for a "+N more (scroll)" line drawn at the
+     * extrapolated cell under the last row - the connected-storage shelf's idiom. The first cut
+     * showed six and nothing else, and ten offers shipped, so four of them were invisible with no
+     * hint that a wheel would find them.
+     */
+    public static final int ROWS = 5;
 
     public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 230)
         .panel()

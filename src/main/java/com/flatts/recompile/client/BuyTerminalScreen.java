@@ -51,6 +51,18 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
                     String.format("%,d", offer.price())).getString(),
                 offer.price() <= balance ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_WARN);
         }
+        // The tail line sits in the extrapolated cell under the last row, which a single-column
+        // run answers for on purpose - see ScreenLayout.Group.cell.
+        int hidden = offers.size() - scroll - shown;
+        if (hidden > 0) {
+            painter.textIn("offers", shown, 20, 4,
+                Component.translatable("container.recompile.more_scroll", hidden).getString(),
+                GuiTheme.TEXT_MUTED);
+        } else if (scroll > 0) {
+            painter.textIn("offers", shown, 20, 4,
+                Component.translatable("container.recompile.scroll_up").getString(),
+                GuiTheme.TEXT_MUTED);
+        }
 
         painter.text("balance", Component.translatable("container.recompile.scrip_balance",
             String.format("%,d", balance)).getString(), GuiTheme.TEXT_LABEL);

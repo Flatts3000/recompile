@@ -44,12 +44,15 @@ public class SellTerminalMenu extends AbstractContainerMenu {
         .slotGrid("goods", 3, 3, 8, 17)
         // The quote sits beside the grid, not under it: "what will this pay" is answered next to the
         // things being asked about.
-        .region("quote", 70, 17, 98, 27)
+        // Three lines of the font at this width. Every string drawn here is short enough to fit
+        // three lines at 98px, and the screenshot pass is what checks that, since a fourth line
+        // disappears under the button rather than failing anything.
+        .region("quote", 70, 17, 98, 30)
         // The button is a backdrop with its label as a region on top, which is the only way a
         // labelled surface passes the overlap sweep; the sweep is right that a label over a plain
         // region would be a bug, and a backdrop is the declared exception for exactly this.
-        .backdrop("sell", 70, 48, 60, 18)
-        .region("sell_label", 76, 53, 48, 9)
+        .backdrop("sell", 70, 50, 60, 18)
+        .region("sell_label", 76, 55, 48, 9)
         .region("balance", 8, 76, 160, 9)
         .playerInventory(102)
         .build();
