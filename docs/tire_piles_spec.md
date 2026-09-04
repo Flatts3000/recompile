@@ -60,11 +60,19 @@ is the whole avoidance mechanism, and it is worth being explicit about why it is
    and an edge; the exact numbers are a playtest dial and the mound's 5% is explicitly not to be
    retuned to match.
 
-**Rule 1 is load-bearing beyond tidiness**, and #155 spotted why: `MoundGroundBlock.isMound` counts
-`SortableBlock` and `BulkyWasteBlock` when it measures a column, so anything of that kind standing on
-Mound Ground is read as part of the mound and regrown as garbage. A tire pile on a mound footprint
-would be slowly eaten and replaced. Keeping the two apart avoids the problem rather than narrowing the
-check, which is the cheaper of the two fixes and the one that cannot regress.
+**Rule 1's reason changed when the block did, and the old one is worth recording as retired.** #155
+spotted a real hazard: `MoundGroundBlock.isMound` counts `SortableBlock` and `BulkyWasteBlock` when it
+measures a column, so a pile of that kind on Mound Ground would be read as part of the mound and
+regrown as garbage. That was the argument while the tire was a `SortableBlock`.
+
+**It no longer applies.** Ruling 3 makes the tire a plain block, and `isMound` counts neither plain
+blocks nor slabs, so a tire standing on Mound Ground would simply block regrowth the way any built
+block does. The Phase 5 hazard is gone.
+
+Rule 1 therefore stands as an owner design call rather than as a technical necessity: a tire dump and a
+garbage mound are two different sights and interleaving them muddles both. Written down because a rule
+whose original reason has evaporated is exactly the kind that gets "optimised" away later by someone
+who checks only the justification.
 
 ---
 
@@ -79,11 +87,14 @@ the shape is not new here.
   two traps CLAUDE.md warns about by name, and a tire is emphatically not a full cube.
 - **The model is a ring, not a cylinder.** A torus at 16px reads as a tire from above and in hand; a
   solid disc reads as a hockey puck. The hole in the middle is the whole silhouette.
-- **They do not fall.** Gravity belongs to the garbage blocks; a stack of tires is stable, and a falling
-  tire would be a different mechanic asking to be explained.
-- **No `sorted` progress and no crumble window.** See section 7 for why this departs from #155.
-- **And no `LIT` state either.** Ruling 4 puts a real fire block above a burning tire, so the tire
-  carries no fire state of its own and needs no second model.
+- **It is a PLAIN block, not a `SortableBlock`** (owner, 2026-09-04: "a tire is not a sortable block,
+  that wouldn't make any sense"). You break it and you get a tire. There is no `sorted` progress, no
+  crumble window and no pull table, and section 5 has where the rubber actually comes from.
+- **So it does not fall either.** `SortableBlock` extends `FallingBlock` and would have brought gravity
+  with it (behind an `obeysGravity()` hook); a plain block brings none, and a stack of tires stays where
+  it was tipped.
+- **And no `LIT` state.** Ruling 4 puts a real fire block above a burning tire, so the tire carries no
+  fire state of its own and needs no second model.
 
 ---
 
@@ -140,16 +151,46 @@ tire itself needs no `LIT` state and no extra model.
 
 ## 5. Harvest, and the rubber chain
 
-**Break a tire, get a tire. Shred a tire, get rubber.**
+**What the block drops depends on what you break it with** (owner, 2026-09-04), and that alone gives
+tires three routes without a line of Java.
 
-The processing step should be the **Pulverizer**, and it needs no argument beyond the machine's own:
-its verb is *it reduces*, size reduction is the only thing that happens to it, and shredding scrap tires
-into crumb rubber is a real industry with exactly that shape. This is the six-verb table working as
-designed rather than a new machine.
+| You break it with | You get |
+|---|---|
+| a hand, or anything that is not a knife | the **tire** block-item |
+| a **Scrap Knife** | **rubber scrap**, straight out of the block |
+| (and the tire item, later, at the bench) | see the teardown below |
+
+**Tool-gated drops are a loot-table condition, not code.** The tire's block table is a
+`minecraft:alternatives` entry with a `minecraft:match_tool` predicate on the Scrap Knife: matched, it
+yields rubber; unmatched, it yields the tire. Vanilla does exactly this for the dead corals, which drop
+themselves only to silk touch. So the entire tool gate is one JSON file.
+
+**And the teardown works too**, which is the third route and the one worth hauling for:
 
 ```
-tire (block, broken)  ->  Pulverizer  ->  rubber_scrap
+tire (block)  -- bare hand ---------------------->  tire (item)
+tire (block)  -- Scrap Knife --------------------->  rubber_scrap
+tire (item)   -- Scrap Knife, Recompile Workbench ->  rubber_scrap + occasional scrap_metal
+tire (item)   -- Pulverizer ---------------------->  rubber_scrap
 ```
+
+The teardown is a `recompile:teardown`, station `recompile:workbench`, `tool`
+`recompile:scrap_knife` - the Clean Mattress idiom exactly. The Pulverizer route is a
+`recompile:pulverizing`, on the machine's own verb: size reduction is the only thing that happens to a
+tire, and shredding scrap tires into crumb rubber is a real industry with that shape. Note `count` is 1
+in every pulverizing recipe this mod ships, which is a standing rule rather than an oversight.
+
+**Four routes to one material sounds like too many, and the hierarchy is what makes it not.** Each buys
+something the one above does not:
+
+- **Knife in place** is the fast one. Rubber now, nothing carried, nothing built.
+- **Hand, then teardown** is the patient one, and it is the only route that recovers the **steel belts**
+  as `scrap_metal`. Cutting a tire open at a bench lets you take the wire out; slicing it where it
+  stands does not. That is true of real tire recycling and it is what stops the fast route dominating.
+- **Hand, then Pulverizer** is the bulk one: no attention per tire, at the cost of the belts.
+
+So a player with a knife and no base still gets rubber, and a player with a base gets more from the same
+tire. That is the same shape as hand-sorting a garbage block versus hauling it to the Sorting Tarp.
 
 `rubber_scrap` names consistently with `scrap_metal`, `plastic_scrap` and `fiber_scrap`.
 
@@ -208,10 +249,10 @@ the spec do not quietly disagree.
 
 | #155 said | This spec says | Why |
 |---|---|---|
-| A `tire_pile` block extending `SortableBlock`, Scrap Knife as `sortTool`, "mirroring `CompactedBaleBlock` exactly" | Individual slab-shaped tires you break | The owner's design is a stack of tires, not a bale. A pull stream and a crumble window describe one object you pick apart; a pile of stacking slabs is many objects. |
+| A `tire_pile` block extending `SortableBlock`, Scrap Knife as `sortTool`, "mirroring `CompactedBaleBlock` exactly" | Plain slab-shaped tires you break, then cut the ITEM with the knife at the Workbench | Half kept, half reversed. The knife gate was right and is back (ruling 5); the `SortableBlock` was not. A pull stream and a crumble window describe one object you pick apart where it stands, and a tire is a thing you pick up. |
 | Piles in household sprawl **and the demolition yard** | Household sprawl only | Owner, 2026-09-04. |
 | Tire fire "probably cut for v1" | Fire is in v1, and eternal | Owner, 2026-09-04. It is the most recognisable thing about a tire dump. |
-| "Either keep piles off mound footprints **or** make the check narrower" | Keep them off, and do not touch the check | The narrower check is a change to Phase 5's regrowth for the benefit of a feature that can simply stand elsewhere. |
+| "Either keep piles off mound footprints **or** make the check narrower" | Keep them off, and do not touch the check | Still the ruling, but its reason retired with the `SortableBlock`: `isMound` never counts a plain block, so there is no Phase 5 hazard left to avoid. It stands as a design call now. See section 2. |
 
 **One #155 point that stands unchanged and is the most important line in it:** rubber needs a use that
 does not require Create. Without a mod-side consumer, `rubber_scrap` is a dead end in every install
