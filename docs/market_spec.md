@@ -128,10 +128,31 @@ adds a second number every screen would then have to show.
 
 ## 5. Two blocks, two screens, and this reverses a standing rule
 
-**Two blocks.** One sells, one buys. Different verbs, different screens, two recipes.
+**Two blocks.** Different verbs, different screens, two recipes.
+
+**Name them from the PLAYER's verb, not the company's**, and settle that before either block is
+registered. "The block that sells" is genuinely ambiguous - it reads equally as the one that sells TO
+you and the one you sell AT - and this spec said "one sells, one buys" for a day without noticing. Two
+blocks whose names can be read backwards is a support question forever. So:
+
+| Block | The player | The balance |
+|---|---|---|
+| where you hand over products | sells | goes up |
+| where you spend on Blueprints | buys | goes down |
 
 **Both are instanced per player like an ender chest.** Two players at the same block see their own
 account. The block is a terminal, not a container.
+
+**Neither takes power** (owner, 2026-09-04). No FE, no energy capability, no bar on either screen.
+They are terminals against someone else's ledger rather than machines that do work, and a shopfront
+that needs a generator before it will talk to you is a machine pretending to be a counter. It also
+keeps the two screens honest: the only number either one shows is a price or a balance, which is the
+whole justification in section 5 for minting them at all.
+
+That is a real decision rather than an omission, because every other block in this mod with a screen
+and a job burns something. `MachineParityTests` derives its sweep from multiblock cores answering
+`Capabilities.Energy.BLOCK`, so these two fall outside it by construction, the same way the Slag
+Furnace and the Sintering Kiln do.
 
 ### The reversal, recorded
 
@@ -144,6 +165,29 @@ The justification is the same shape as every existing exception: **no vanilla sc
 The Burner Generator needed an energy bar, the Tree Nursery a species picker, the Cupola a second
 output slot. A shop needs browsable stock with costs attached, and vanilla has no container for that.
 Reusing a chest screen would show the items and hide the only number that matters.
+
+### The art: seven surfaces, one of them shared (owner, 2026-09-04)
+
+Each block owns a **front**, a **side** and a **top**. The two **share one bottom**.
+
+| Surface | Count | Why |
+|---|---|---|
+| front | 2, one each | The face you read the block by. It is what tells the two apart across a room. |
+| side | 2, one each | |
+| top | 2, one each | |
+| bottom | **1, shared** | Nobody sees it, and two terminals from one company should agree somewhere. |
+
+**That is exactly `minecraft:block/orientable_with_bottom`**, whose four texture slots are front, side,
+top and bottom, and which is already on `RegistryCompletenessTests.VANILLA_PARENTS` so it needs no
+allowlist change. The shared bottom is one texgen surface that both models point at rather than two
+surfaces held in sync, so it cannot drift.
+
+Seven surfaces to declare in `texgen.toml`, and the owner approves each with `select` before any of
+them is in `gen/approved.json`. An assistant `select` while generating is not approval.
+
+**A front face means the block is directional**, so it carries `BlockStateProperties.HORIZONTAL_FACING`
+set from placement. In 26.1 that is an `EnumProperty<Direction>`; `DirectionProperty` does not exist and
+every 1.21-era snippet that declares one will not compile.
 
 ### The sell terminal shows what it will pay before you commit
 
