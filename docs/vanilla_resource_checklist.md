@@ -889,7 +889,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `tnt` `(c)` - crafted from red sand + gunpowder
 - [x] `vex_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `ward_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
-- [x] `water_bucket` - fill a bucket from sewer water
+- [x] `water_bucket` - fill a bucket from a tailings decant pond or the aquarium's guardian tank
 - [x] `wild_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `wind_charge` `(c)` - crafted from breeze rod
 - [x] `wooden_axe` `(c)` - crafted from stick + bamboo planks

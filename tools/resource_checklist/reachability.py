@@ -136,7 +136,13 @@ mob("zoglin", "lure a hoglin into the overworld")
 # --------------------------------------------------------------- world blocks
 VANILLA_IN_WORLD = {
     "coarse_dirt": "overworld terrain", "deepslate": "overworld terrain",
-    "lava": "the compacted depths", "water": "sewers",
+    "lava": "the compacted depths",
+    # NOT the sewers. Nothing in the sewer sources places Blocks.WATER at all - the standing
+    # fluid down there is leachate, which is a different fluid on purpose. Exactly two things in
+    # the mod place vanilla water: TailingsHeapFeature's decant ponds, and the Municipal
+    # Aquarium's guardian tank. The aquarium is the nearer of the two, at the demolition yard's
+    # onset rather than the radioactive dump's.
+    "water": "a tailings decant pond, or the aquarium's guardian tank",
     "sand": "sewers", "gravel": "sewers", "mud": "sewers", "cobweb": "sewers",
     "red_mushroom": "sewers", "mycelium": "mycelium patches",
     "bricks": "sewers", "brick_stairs": "sewers", "mossy_stone_bricks": "sewers",
@@ -377,7 +383,8 @@ INTERACT = [(["minecraft:coarse_dirt"], "minecraft:grass_block",
              "bone meal a brown mushroom into a huge one"),
             (["minecraft:bone_meal", "minecraft:red_mushroom"], "minecraft:mushroom_stem",
              "bone meal a mushroom into a huge one"),
-            (["minecraft:bucket"], "minecraft:water_bucket", "fill a bucket from sewer water"),
+            (["minecraft:bucket"], "minecraft:water_bucket",
+             "fill a bucket from a tailings decant pond or the aquarium's guardian tank"),
             (["minecraft:bucket"], "minecraft:lava_bucket",
              "fill a bucket from lava in the compacted depths"),
             ]
