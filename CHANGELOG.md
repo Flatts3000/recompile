@@ -1,6 +1,31 @@
 # Changelog
 
-## Unreleased
+## v0.18.0
+
+**The sea, and the tires.** v0.17.0 was about clearing mounds faster. This one is about two places
+worth walking to, and about the plants and materials that had no way into this world at all.
+
+### The Municipal Aquarium
+
+- **A drained public aquarium out in the demolition yard**, seven rooms of it: a forecourt, a lobby,
+  a gallery of tank bays, a centrepiece tank, a guardian tank, a half-sunk filtration hall and the
+  back of house. Leachate has pooled in the floors and the glass is cracked where the tanks leaked.
+- **It is the only prismarine, coral, sponge and sea lantern in the game.** Fifteen dead corals in
+  the tank rows, sponges down in the filtration hall, and a heart of the sea still on its stand in
+  the middle of the centrepiece tank.
+- **One tank still holds water, and there is a guardian in it.** That is not decoration. Every
+  prismarine block and the sea lantern are crafted from shards and crystals that drop from exactly
+  one mob, so the tank is what makes the whole family renewable rather than a fixed stock.
+- **A dead coral is a permanent supply.** Put one in a Hydroponics Bay and it comes back alive, and
+  the bay never consumes its seed, so one of each colour is all you ever need.
+- **Prismarine Grit** comes out of Mill Tailings if you would rather manufacture it. It cannot be
+  bucketed dry the way the tank can, and tailings do not grow back.
+- **The curator's chest and a brushable silt bed.** The chest carries exhibit stock; the silt is the
+  only archaeology in this world and holds the nineteen pottery sherds the sewers do not.
+- **Moss where it is wet, pale moss where it is dark.** Ordinary moss has taken the filtration hall
+  and crept out of the leaking gallery bays; pale moss is inside the centrepiece tank and nowhere
+  else. Both were wandering-trader purchases and nothing else. Now you can mine them out of a
+  derelict building.
 
 ### Tire dumps
 
@@ -11,15 +36,41 @@
   around rather than a loss. Water still puts it out.
 - **Break a tire by hand and you get the tire. Break it with a Scrap Knife and you get the rubber.**
 - **Carrying them home pays better.** Tear a tire down at the Teardown Workbench with the knife for
-  three rubber and, often, the steel belts out of the middle. Cutting one where it stands cannot reach
-  the wire. A Pulverizer shreds them in bulk and loses the wire too.
+  three rubber and, often, the steel belts out of the middle. Cutting one where it stands cannot
+  reach the wire. A Pulverizer shreds them in bulk and loses the wire too.
+- **The Pump recipe wants Rubber Scrap in the bottom cell instead of Plastic Scrap.** A pump seals
+  with rubber. If you already hold the blueprint, the sheet is unchanged and the ingredient is not,
+  so check it before you go hunting for plastic. Plastic still builds the Cutting Torch, the Plastic
+  Panel and the Rain Collector Funnel.
 
-### The Pump takes rubber now
+### Plants that had nowhere to come from
 
-- **The Pump recipe wants Rubber Scrap in the bottom cell instead of Plastic Scrap.** A pump seals with
-  rubber. If you already hold the blueprint, the sheet is unchanged and the ingredient is not, so check
-  it before you go hunting for plastic. Plastic still builds the Cutting Torch, the Plastic Panel and
-  the Rain Collector Funnel.
+- **A Dried Bouquet turns up in household waste.** Right-click it on a water cauldron and it
+  rehydrates into one of the four tall flowers or a large fern, at random, for a level of water. None
+  of those five had any source before: the wandering trader has never sold a tall flower, and a large
+  fern needs a fern to bone-meal that nothing here provides. One of each is a permanent supply,
+  because bone meal duplicates a tall plant once it is planted.
+- **Or pull the bouquet apart at the workbench** for Fiber Scrap and string. No tool: it is stems and
+  a ribbon.
+- **Six more plants found homes.** A bush, a cactus flower, short dry grass, a dead bush and pink
+  petals are exhibit stock in the aquarium's arid vivarium. The closed eyeblossom rides the sewer's
+  access-chamber barrels, which is the one permanently unlit place in this world and the only place a
+  flower that blooms with the lights off belongs.
+
+### Machines you can walk away from
+
+- **A Tree Nursery can be run by hoppers and pipes now.** Fertilizer and seedlings in from the top
+  and sides, saplings out of the bottom, the same layout as the Hydroponics Bay. It was manual-only
+  on both doors, which made a tree farm impossible rather than merely hands-on, and a nursery is the
+  only source of trees in this world.
+- **A pipe can no longer pull the seedling back out of a Hydroponics Bay** it was feeding.
+
+### Fixes
+
+- **Walls connect to each other.** All five wall blocks - pressed junk, scrap plating, corrugated
+  metal, cardboard and plastic panel - were missing from the tag a wall reads to know its neighbour
+  is a wall, so a row of them stood as separate posts. Reported from playtest.
+- **World generation no longer crashes near an aquarium.**
 
 ### Guide
 
