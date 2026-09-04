@@ -33,6 +33,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BrushableBlockEntity;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
@@ -227,8 +228,34 @@ public final class AquariumTests {
         // separate silent spawner defects that shipped through a green suite.
         RCGameTests.test("the_guardian_and_the_drowned_spawners_are_configured", 200, helper -> {
             BlockPos o = build(helper, 80);
-            assertSpawner(helper, AquariumStructure.guardianSpawner(o.getX(), o.getY(), o.getZ()), "minecraft:guardian");
-            assertSpawner(helper, AquariumStructure.drownedSpawner(o.getX(), o.getY(), o.getZ()), "minecraft:drowned");
+            assertSpawner(helper, AquariumStructure.guardianSpawner(o.getX(), o.getY(), o.getZ()),
+                "minecraft:guardian", AquariumStructure.GUARDIAN_SPAWN_RANGE);
+            assertSpawner(helper, AquariumStructure.drownedSpawner(o.getX(), o.getY(), o.getZ()),
+                "minecraft:drowned", 4);
+            helper.succeed();
+        });
+
+        // THE EXEMPTION THAT LETS A GUARDIAN SPAWN ALSO REMOVES ITS WATER CHECK, so the range is the only
+        // thing keeping one in the tank. Asserted as geometry rather than as a number: every cell the
+        // spawner can reach must be inside the water, or guardians appear flopping on the yard outside.
+        RCGameTests.test("the_guardian_spawner_cannot_reach_outside_its_tank", 20, helper -> {
+            BlockPos o = helper.absolutePos(new BlockPos(0, 1, 0));
+            BoundingBox reach = AquariumStructure.guardianSpawnReach(o.getX(), o.getY(), o.getZ());
+            BoundingBox water = AquariumStructure.guardianWater(o.getX(), o.getY(), o.getZ());
+            List<String> outside = new ArrayList<>();
+            for (int x = reach.minX(); x <= reach.maxX(); x++) {
+                for (int y = reach.minY(); y <= reach.maxY(); y++) {
+                    for (int z = reach.minZ(); z <= reach.maxZ(); z++) {
+                        BlockPos at = new BlockPos(x, y, z);
+                        // y below the waterline is the tank floor: solid, so noCollision refuses it.
+                        if (!water.isInside(at) && y > water.minY() - 1) {
+                            outside.add(at.toString());
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(outside.isEmpty(),
+                "the guardian spawner can place a mob outside its own water at " + outside);
             helper.succeed();
         });
 
@@ -274,6 +301,50 @@ public final class AquariumTests {
             helper.assertTrue(level.getBlockEntity(plinth) instanceof DisplayPedestalBlockEntity p
                     && p.getDisplayed().is(Items.HEART_OF_THE_SEA),
                 "the centrepiece pedestal at " + plinth + " does not hold the heart of the sea");
+            helper.succeed();
+        });
+
+        // ALL FIFTEEN DEAD CORALS ARE ACTUALLY IN THE BUILDING, read off placed blocks at two origins of
+        // opposite parity. The bays are the only dead coral in the game and the bay revival is the only
+        // live coral, so a form this loop never places is a form no world contains - which is what
+        // shipped, and which every existing test was blind to because they read the tag and the data map
+        // rather than the world. Two parities because the bug was parity-dependent: thirteen forms at an
+        // even origin and twelve at an odd one.
+        RCGameTests.test("the_bays_hold_every_one_of_the_fifteen_dead_corals", 200, helper -> {
+            List<String> missing = new ArrayList<>();
+            for (int parity = 0; parity < 2; parity++) {
+                var level = helper.getLevel();
+                BlockPos o = helper.absolutePos(new BlockPos(parity, 1 + 200 + parity * 40, 0));
+                for (StructurePiece piece : AquariumStructure.pieces(o.getX(), o.getY(), o.getZ())) {
+                    BoundingBox pb = piece.getBoundingBox();
+                    BoundingBox lim = new BoundingBox(pb.minX() - 8, pb.minY() - 8, pb.minZ() - 8,
+                        pb.maxX() + 8, pb.maxY() + AquariumStructure.CLEAR_ABOVE + 8, pb.maxZ() + 8);
+                    piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                        RandomSource.create(7L), lim, new ChunkPos(pb.minX() >> 4, pb.minZ() >> 4),
+                        new BlockPos(pb.minX(), pb.minY(), pb.minZ()));
+                }
+                Set<Block> seen = new HashSet<>();
+                BoundingBox g = Room.GALLERY.box(o.getX(), o.getY(), o.getZ());
+                for (int x = g.minX(); x <= g.maxX(); x++) {
+                    for (int y = g.minY(); y <= g.maxY(); y++) {
+                        for (int z = g.minZ(); z <= g.maxZ(); z++) {
+                            seen.add(level.getBlockState(new BlockPos(x, y, z)).getBlock());
+                        }
+                    }
+                }
+                for (String colour : List.of("tube", "brain", "bubble", "fire", "horn")) {
+                    for (String form : List.of("coral", "coral_fan", "coral_block")) {
+                        Block dead = BuiltInRegistries.BLOCK.getValue(
+                            Identifier.withDefaultNamespace("dead_" + colour + "_" + form));
+                        if (!seen.contains(dead)) {
+                            missing.add("origin parity " + parity + ": " + dead);
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "dead corals the bays never place, so neither they nor their live forms exist in any "
+                    + "world: " + missing);
             helper.succeed();
         });
 
@@ -353,7 +424,9 @@ public final class AquariumTests {
             for (RecipeHolder<SeparatingRecipe> holder : helper.getLevel().recipeAccess()
                     .recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
                 if (holder.value().matches(new SingleRecipeInput(new ItemStack(RCItems.PRISMARINE_GRIT.get())), helper.getLevel())) {
-                    found = holder.value().results().stream().anyMatch(r -> r.item() == Items.PRISMARINE_SHARD);
+                    // OR, not assign: a second recipe matching the grit and iterating after this one
+                    // would otherwise flip the answer to false with the shipped route intact.
+                    found |= holder.value().results().stream().anyMatch(r -> r.item() == Items.PRISMARINE_SHARD);
                 }
             }
             helper.assertTrue(found, "no separating recipe turns Prismarine Grit into a prismarine shard");
@@ -361,7 +434,7 @@ public final class AquariumTests {
         });
     }
 
-    private static void assertSpawner(GameTestHelper helper, BlockPos at, String mob) {
+    private static void assertSpawner(GameTestHelper helper, BlockPos at, String mob, int expectedRange) {
         var level = helper.getLevel();
         helper.assertTrue(level.getBlockState(at).is(Blocks.SPAWNER) && level.getBlockEntity(at) instanceof SpawnerBlockEntity,
             "no spawner at " + at + " for " + mob);
@@ -372,6 +445,7 @@ public final class AquariumTests {
             "the spawner at " + at + " has no custom_spawn_rules, so it is back on the vanilla placement check - "
                 + "which for a guardian means it never spawns at all, water or no water");
         int range = tag.getIntOr("SpawnRange", 4);
-        helper.assertTrue(range == 4, "the spawner at " + at + " has a range of " + range + " rather than 4");
+        helper.assertTrue(range == expectedRange, "the spawner at " + at + " has a range of " + range
+            + " rather than " + expectedRange);
     }
 }

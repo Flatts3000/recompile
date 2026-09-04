@@ -75,6 +75,13 @@ and the diff would mean nothing.
   and the Dry Clay Body's cauldron step. The resin and clay chains are dead without the last two.
   They live in `INTERACT` in `reachability.py`; adding a mechanic of that shape means adding a line
   there, and nothing else will tell you it is missing.
+- **A PROCEDURAL structure is invisible here, and its blocks read as unreachable.** The index reads
+  structure NBT templates (`nbt.py` walks their palettes); this mod's structures are Java that writes
+  blocks directly, with no template to read. So the Municipal Aquarium's fifteen dead corals, its
+  prismarine cladding and its heart of the sea are all mineable in-world and all show unchecked here,
+  and the 48 rows that structure did move came from its two LOOT TABLES and one recipe, which the
+  index does read. Treat the reachable count as a floor rather than a measurement wherever a
+  procedural structure is involved.
 - **A mod that PLACES a vanilla block is invisible here, and the doc reads as if the block is not in
   the world at all.** `FertilizerScatter` scatters fern, large fern, tall grass and four small
   flowers on every fertilizer use, and the closure models none of it - it only knows loot tables,

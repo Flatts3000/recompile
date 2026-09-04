@@ -357,45 +357,66 @@ public final class AquariumPieces {
         protected void dress(WorldGenLevel level, BoundingBox limit, RandomSource random,
                 int ox, int base, int oz) {
             // The exhibit bays. A prismarine sill and a glass front (cracked, like every sheet here) one
-            // cell in from each long wall; behind it, the bay floor alternates sand with standing dead
-            // coral and a cell of leachate, so the tank rows read as tanks and not as planters.
+            // cell in from each long wall; behind it, sand with standing dead coral, and leachate in the
+            // cells between, so the tank rows read as tanks and not as planters.
             //
-            // WATERLOGGED IS FORCED OFF. Vanilla's coral plants and fans default to waterlogged=true, so
-            // a defaultBlockState() coral is a bucketable water source, eighteen of them - which the
-            // first build shipped and the fluid test did not see, because it looked for water BLOCKS.
             // A BAY STOPS SHORT OF EVERY DOORWAY IN THE WALL BEHIND IT. The lobby's door opened straight
             // into the south bay's glass in the fourth aquarium: a doorway in a long wall needs the bay
             // in front of it left as floor, one cell either side, or the door is a window.
+            //
+            // EVERY ONE OF THE FIFTEEN GETS A CELL OF ITS OWN, and that is the whole reason this reads as
+            // a two-pass allocation rather than a counter. A running index over an alternating pattern
+            // placed twelve or thirteen of the fifteen, and WHICH ones depended on the PARITY of the
+            // building's origin - so dead fire coral fans and dead horn coral blocks existed in no world
+            // at all, dead bubble coral in half of them, and their live forms with them, because these
+            // bays are the only dead coral in the game and the Hydroponics Bay is the only way to revive
+            // one. It shipped past a green suite: the revival test reads the tag and the data map and
+            // never looks at a placed block.
+            //
+            // WATERLOGGED IS FORCED OFF. Vanilla's coral plants and fans default to waterlogged=true, so
+            // a defaultBlockState() coral is a bucketable water source - which the first build shipped
+            // and the fluid test did not see, because it looked for water BLOCKS.
             java.util.List<Door> doors = AquariumStructure.doors(ox, base, oz);
-            int i = 0;
+            java.util.List<int[]> cells = new java.util.ArrayList<>();
             for (int x = ox - 9; x <= ox + 8; x++) {
                 for (int side = 0; side < 2; side++) {
-                    int front = side == 0 ? oz - 3 : oz + 2;
-                    int floor = side == 0 ? oz - 4 : oz + 3;
-                    int wall = side == 0 ? oz - 5 : oz + 4;
+                    final int wall = side == 0 ? oz - 5 : oz + 4;
                     final int fx = x;
                     boolean doorway = doors.stream().anyMatch(d -> d.joins(Room.GALLERY)
                         && d.cells().minZ() == wall && d.cells().maxZ() == wall
                         && fx >= d.cells().minX() - 1 && fx <= d.cells().maxX() + 1);
-                    if (doorway) {
-                        continue;
+                    if (!doorway) {
+                        cells.add(new int[]{x, side});
                     }
-                    this.placeBlock(level, AquariumPalette.CLADDING, x, base, front, limit);
-                    for (int y = base + 1; y <= base + 3; y++) {
-                        BlockState pane = y >= base + 2 && AquariumPalette.cracked(x, y, front)
-                            ? AquariumPalette.HOLLOW : AquariumPalette.GLASS;
-                        this.placeBlock(level, pane, x, y, front, limit);
+                }
+            }
+            // Evenly spaced, so the fifteen are spread down both bays rather than clustered at one end.
+            // Distinct for any cells.size() >= 15, which the gallery is nowhere near breaching; the
+            // GameTest counts the placed blocks rather than trusting that.
+            java.util.Map<Integer, BlockState> coralAt = new java.util.HashMap<>();
+            for (int k = 0; k < DEAD_CORAL.length && !cells.isEmpty(); k++) {
+                coralAt.put(k * cells.size() / DEAD_CORAL.length, DEAD_CORAL[k]);
+            }
+            for (int c = 0; c < cells.size(); c++) {
+                int x = cells.get(c)[0];
+                int side = cells.get(c)[1];
+                int front = side == 0 ? oz - 3 : oz + 2;
+                int floor = side == 0 ? oz - 4 : oz + 3;
+                this.placeBlock(level, AquariumPalette.CLADDING, x, base, front, limit);
+                for (int y = base + 1; y <= base + 3; y++) {
+                    BlockState pane = y >= base + 2 && AquariumPalette.cracked(x, y, front)
+                        ? AquariumPalette.HOLLOW : AquariumPalette.GLASS;
+                    this.placeBlock(level, pane, x, y, front, limit);
+                }
+                BlockState coral = coralAt.get(c);
+                if (coral == null) {
+                    this.placeBlock(level, AquariumPalette.FLUID, x, base, floor, limit);
+                } else {
+                    this.placeBlock(level, AquariumPalette.BED, x, base, floor, limit);
+                    if (coral.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                        coral = coral.setValue(BlockStateProperties.WATERLOGGED, false);
                     }
-                    if ((x + side) % 2 == 0) {
-                        this.placeBlock(level, AquariumPalette.FLUID, x, base, floor, limit);
-                    } else {
-                        this.placeBlock(level, AquariumPalette.BED, x, base, floor, limit);
-                        BlockState coral = DEAD_CORAL[i++ % DEAD_CORAL.length];
-                        if (coral.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                            coral = coral.setValue(BlockStateProperties.WATERLOGGED, false);
-                        }
-                        this.placeBlock(level, coral, x, base + 1, floor, limit);
-                    }
+                    this.placeBlock(level, coral, x, base + 1, floor, limit);
                 }
             }
             // The roof girders. Placed as members of a Z run, then their joints resolved through the
@@ -513,8 +534,16 @@ public final class AquariumPieces {
             // wholesale. The water is still required - for isInWater, for its navigation, and to keep
             // RCLeachateContact from drowning it - so the reason shifts from spawning to living.
             fill(level, limit, AquariumStructure.guardianWater(ox, base, oz), AquariumPalette.TANK_WATER);
+            // RANGE 1, NOT THE LANDMARK 4, AND THE EXEMPTION IS EXACTLY WHY. Skipping the placement
+            // predicate removes Guardian's water requirement along with everything else, so nothing but
+            // the range keeps a guardian in its tank: BaseSpawner picks
+            // pos + (nextDouble - nextDouble) * range, and range 4 reaches four blocks past a tank that
+            // is five wide, putting guardians in open air on the yard outside. The two landmark
+            // spawners want a wide range so mobs meet a passer-by; this one wants the opposite, and
+            // the_guardian_spawner_cannot_reach_outside_its_tank derives the bound from the water box
+            // rather than pinning the number.
             Spawners.place(level, limit, AquariumStructure.guardianSpawner(ox, base, oz),
-                "minecraft:guardian", 4, null);
+                "minecraft:guardian", AquariumStructure.GUARDIAN_SPAWN_RANGE, null);
         }
     }
 

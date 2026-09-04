@@ -406,6 +406,11 @@ and the armours and trims want to be rare.
 
 If built as specced, `tools/resource_checklist` should move these from unreachable to reachable:
 
+**The checklist cannot see any of this building's placed blocks**, because it reads structure NBT
+templates and this structure is procedural Java. The 48 rows it actually moved are the chest, the silt
+and the grit recipe; the cladding, the sponges, the dead coral and the heart of the sea are reachable
+in-world and still show unchecked. Recorded in that tool's README rather than papered over.
+
 | Piece | Items | Renewable? |
 |---|---|---|
 | Placed cladding, lighting, sponges, dead coral, heart of the sea | 22 | no, finite per building |

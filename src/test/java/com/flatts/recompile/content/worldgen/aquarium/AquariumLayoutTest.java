@@ -103,6 +103,25 @@ class AquariumLayoutTest {
     }
 
     @Test
+    @DisplayName("the guardian spawner's whole reach is inside the water")
+    void theGuardianSpawnerCannotReachOut() {
+        BoundingBox reach = AquariumStructure.guardianSpawnReach(OX, BASE, OZ);
+        BoundingBox water = AquariumStructure.guardianWater(OX, BASE, OZ);
+        List<String> outside = new ArrayList<>();
+        for (int x = reach.minX(); x <= reach.maxX(); x++) {
+            for (int y = reach.minY(); y <= reach.maxY(); y++) {
+                for (int z = reach.minZ(); z <= reach.maxZ(); z++) {
+                    BlockPos at = new BlockPos(x, y, z);
+                    if (!water.isInside(at) && y > water.minY() - 1) {
+                        outside.add(at.toString());
+                    }
+                }
+            }
+        }
+        assertTrue(outside.isEmpty(), "spawnable cells outside the guardian tank's water: " + outside);
+    }
+
+    @Test
     @DisplayName("the sump and the gallery bays are bounded the same way")
     void theLeachateIsBounded() {
         assertBoundedInside(AquariumStructure.sump(OX, BASE, OZ), Room.FILTRATION_HALL, "sump");

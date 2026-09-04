@@ -59,12 +59,26 @@ public class AquariumStructure extends Structure {
     public static final int CLEAR_ABOVE = 28;
 
     /**
+     * How far {@link #claims} looks. Sixteen is a Building Husk at full size, which is the longest
+     * reach of any feature this mod places from its origin.
+     */
+    private static final int REACH = 18;
+
+    /**
      * Whether this structure has claimed the ground around {@code pos}, for the yard's tall features to
      * ask before they place. A structure start's box is known at the structure_starts stage, which is
      * before any feature runs, so a feature can decline to put a husk where a room is about to be.
      *
-     * <p>Checks a ring rather than the one point, because a husk's origin is its centre and its frame
-     * reaches well past it; a husk centred just outside the footprint still leans over it.
+     * <p><b>Checks a grid, not the one point, and not a symmetric ring either.</b> A feature's origin
+     * is its MINIMUM CORNER rather than its centre: {@code BuildingHuskFeature} lays columns at
+     * {@code origin + gx * 4} for up to four bays, so a husk reaches sixteen blocks in +X and +Z and
+     * nothing at all the other way. A symmetric ten-block ring therefore missed every husk originating
+     * eleven to sixteen blocks to the west or north - the two sides it grows toward - which is the
+     * shape of overlap this check exists to stop.
+     *
+     * <p>Probes outside the region's own chunks are skipped rather than read: a {@code WorldGenRegion}
+     * throws on a chunk it is not holding, and a feature asking about one is asking about a chunk that
+     * has not been generated yet.
      */
     public static boolean claims(WorldGenLevel level, BlockPos pos) {
         // A WorldGenLevel carries no structure manager of its own in 26.1. Vanilla's decoration
@@ -80,10 +94,17 @@ public class AquariumStructure extends Structure {
         }
         Structure s = structure.get().value();
         StructureManager manager = region.getLevel().structureManager().forWorldGenRegion(region);
-        for (BlockPos probe : new BlockPos[]{pos, pos.offset(10, 0, 0), pos.offset(-10, 0, 0),
-                pos.offset(0, 0, 10), pos.offset(0, 0, -10)}) {
-            if (manager.getStructureAt(probe, s).isValid()) {
-                return true;
+        // Step 6 over the reach: the smallest room is six wide and the whole footprint is thirty-plus,
+        // so a grid this fine cannot step over the building.
+        for (int dx = -REACH; dx <= REACH; dx += 6) {
+            for (int dz = -REACH; dz <= REACH; dz += 6) {
+                BlockPos probe = pos.offset(dx, 0, dz);
+                if (!region.hasChunk(probe.getX() >> 4, probe.getZ() >> 4)) {
+                    continue;
+                }
+                if (manager.getStructureAt(probe, s).isValid()) {
+                    return true;
+                }
             }
         }
         return false;
@@ -203,6 +224,21 @@ public class AquariumStructure extends Structure {
     /** Where the heart of the sea sits. */
     public static BlockPos pedestal(int ox, int base, int oz) {
         return new BlockPos(ox, base + 1, oz - 8);
+    }
+
+    /**
+     * How far the guardian spawner may reach. One, because the empty {@code custom_spawn_rules} that
+     * lets a guardian spawn at all also removes its water requirement, so the range is the only thing
+     * left holding it in the tank.
+     */
+    public static final int GUARDIAN_SPAWN_RANGE = 1;
+
+    /** The box a spawner at {@link #guardianSpawner} can actually place a mob in. */
+    public static BoundingBox guardianSpawnReach(int ox, int base, int oz) {
+        BlockPos at = guardianSpawner(ox, base, oz);
+        int r = GUARDIAN_SPAWN_RANGE;
+        // BaseSpawner: x/z are pos + (nextDouble - nextDouble) * range + 0.5, y is pos + nextInt(3) - 1.
+        return bb(at.getX() - r, at.getY() - 1, at.getZ() - r, at.getX() + r, at.getY() + 1, at.getZ() + r);
     }
 
     public static BlockPos guardianSpawner(int ox, int base, int oz) {
