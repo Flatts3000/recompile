@@ -182,11 +182,23 @@ public class GarbageVacuumItem extends Item {
         }
         if (level instanceof ServerLevel server) {
             Vec3 aim = aimPoint(player);
-            if (intakeOnce(server, player, stack, aim) == Intake.TOO_TOUGH) {
+            Intake result = intakeOnce(server, player, stack, aim);
+            if (result == Intake.TOO_TOUGH) {
                 // Do not start the hold: there is nothing here this tier can do, and a running vacuum
                 // that takes nothing is the same silent failure the message exists to prevent.
                 sayTooTough(this, player, aim);
                 return InteractionResult.CONSUME;
+            }
+            if (result == Intake.FLAT) {
+                // NOT ENOUGH CHARGE FOR THIS PILE, which is a different state from a flat cell and was
+                // being thrown away (#358). The guard above only catches charge EXACTLY zero; a cell
+                // holding 1 to 59 FE aimed at a Block of Garbage costing 60 gets FLAT back from
+                // intakeOnce, and discarding it meant no block, no message, and the hold starting
+                // anyway. On a tap it was completely silent, because onUseTick never runs for one.
+                // The 200 FE/tick Charging Station against a 60 FE block strands a remainder like this
+                // routinely, so it is an ordinary end state rather than a contrived one.
+                player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_flat"));
+                return InteractionResult.FAIL;
             }
         }
         player.startUsingItem(hand);

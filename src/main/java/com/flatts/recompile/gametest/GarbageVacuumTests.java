@@ -967,5 +967,43 @@ final class GarbageVacuumTests {
                 "these keys render as their own name, so they are missing from en_us.json: " + missing);
             helper.succeed();
         });
+
+        // A CLICK WITH TOO LITTLE CHARGE SAYS SO AND STOPS. #358: the zero-charge guard catches only
+        // charge EXACTLY zero, so a cell holding less than one block's cost got Intake.FLAT back from
+        // intakeOnce and the result was thrown away - no block, no message, and the hold started
+        // anyway. On a tap that is completely silent, because onUseTick never runs for one. Charging
+        // strands a remainder like this routinely: 200 FE/tick into a cell spent 60 at a time.
+        //
+        // Paired with the same click one FE richer, because "it took nothing" passes just as well on a
+        // vacuum that can never take anything.
+        RCGameTests.test("a_click_too_poor_for_the_pile_says_so_and_does_not_hold", 40, helper -> {
+            helper.setBlock(SIGHT, RCBlocks.GARBAGE_BLOCK.get());
+            int cost = garbageCost();
+            helper.assertTrue(cost > 1, "setup: a garbage block must cost more than one FE");
+
+            ItemStack poor = vacuum(RCItems.COPPER_GARBAGE_VACUUM, cost - 1);
+            ServerPlayer player = aimedPlayer(helper, poor);
+            player.gameMode.useItemOn(player, helper.getLevel(), poor, InteractionHand.MAIN_HAND,
+                new BlockHitResult(centreOf(helper, SIGHT), Direction.NORTH,
+                    helper.absolutePos(SIGHT), false));
+
+            helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), SIGHT);
+            helper.assertTrue(GarbageVacuumItem.charge(poor) == cost - 1,
+                "a refused click must not spend charge, got " + GarbageVacuumItem.charge(poor));
+            helper.assertFalse(player.isUsingItem(),
+                "the hold must not start when the click could not take the pile it was aimed at - a "
+                    + "running vacuum that takes nothing is the silent failure the message exists to "
+                    + "prevent");
+
+            // ...and one FE more takes it, so the assertions above are about the SHORTFALL rather than
+            // about the vacuum being broken.
+            ItemStack enough = vacuum(RCItems.COPPER_GARBAGE_VACUUM, cost);
+            ServerPlayer richer = aimedPlayer(helper, enough);
+            richer.gameMode.useItemOn(richer, helper.getLevel(), enough, InteractionHand.MAIN_HAND,
+                new BlockHitResult(centreOf(helper, SIGHT), Direction.NORTH,
+                    helper.absolutePos(SIGHT), false));
+            helper.assertBlockNotPresent(RCBlocks.GARBAGE_BLOCK.get(), SIGHT);
+            helper.succeed();
+        });
     }
 }
