@@ -2,11 +2,9 @@ package com.flatts.recompile.client;
 
 import com.flatts.recompile.client.gui.GuiPainter;
 import com.flatts.recompile.client.gui.LayoutScreen;
-import com.flatts.recompile.content.item.BlueprintItem;
 import com.flatts.recompile.content.market.Market;
 import com.flatts.recompile.content.menu.BuyTerminalMenu;
 import com.flatts.recompile.gui.GuiTheme;
-import com.flatts.recompile.registry.RCItems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +47,7 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
             if (row == hovered) {
                 painter.tintPadded("offers", row, 1, GuiTheme.HOVER_ROW);
             }
-            painter.item("offers", row, BlueprintItem.of(RCItems.BLUEPRINT.get(), offer.blueprint()));
+            painter.item("offers", row, offer.stack());
             // The price is right-aligned to the row's edge and the name gets whatever is left, cut
             // with an ellipsis. "Netherite Upgrade Pattern" at "1,500 scrip" ran through the price
             // and out of the panel when both were placed at fixed columns; the unit lives on the
@@ -60,7 +58,7 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
             painter.textIn("offers", row, width - priceWidth, 4, price,
                 offer.price() <= balance ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_WARN);
             painter.textIn("offers", row, NAME_X, 4,
-                fit(font, BlueprintItem.setName(offer.blueprint()).getString(),
+                fit(font, offer.displayName().getString(),
                     width - NAME_X - priceWidth - GAP),
                 GuiTheme.TEXT_LABEL);
         }
@@ -114,7 +112,13 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
         }
         Market.Offer offer = offers.get(scroll + row);
         List<Component> lines = new ArrayList<>();
-        lines.add(BlueprintItem.setName(offer.blueprint()));
+        lines.add(offer.displayName());
+        // A stack of more than one is a thing rather than knowledge, and how many you get for the
+        // money is the first question about it.
+        if (offer.stack().getCount() > 1) {
+            lines.add(Component.translatable("container.recompile.offer_count",
+                offer.stack().getCount()).withStyle(ChatFormatting.GRAY));
+        }
         lines.add(Component.translatable("container.recompile.offer_price",
             String.format("%,d", offer.price())).withStyle(ChatFormatting.GRAY));
         int shortBy = offer.price() - this.menu.balance();

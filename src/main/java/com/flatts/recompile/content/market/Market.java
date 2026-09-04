@@ -3,7 +3,7 @@ package com.flatts.recompile.content.market;
 import com.flatts.recompile.registry.RCAttachments;
 import com.flatts.recompile.registry.RCDataMaps;
 import com.flatts.recompile.registry.RCTags;
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
@@ -138,14 +138,37 @@ public final class Market {
      * open buffer, so the screen draws exactly the list the server will sell from and no second sync
      * path exists.
      */
-    public record Offer(Identifier blueprint, int price) {
+    public record Offer(ItemStack stack, int price) {
 
-        public static final StreamCodec<ByteBuf, Offer> STREAM_CODEC = StreamCodec.composite(
-            Identifier.STREAM_CODEC, Offer::blueprint,
-            ByteBufCodecs.VAR_INT, Offer::price,
-            Offer::new);
+        /**
+         * The stack itself travels, components and all.
+         *
+         * <p>That is what lets one row type sell both knowledge and things: a blueprint line is a
+         * Blueprint stack carrying its set component, an item line is the item. The screen renders
+         * whatever it is handed and the purchase hands back a copy, so neither side needs to know
+         * which kind of offer it is looking at - except to NAME it, since a Blueprint's item name is
+         * "Blueprint" for every set and the set name lives in its component.
+         */
+        public static final StreamCodec<RegistryFriendlyByteBuf, Offer> STREAM_CODEC =
+            StreamCodec.composite(
+                ItemStack.STREAM_CODEC, Offer::stack,
+                ByteBufCodecs.VAR_INT, Offer::price,
+                Offer::new);
 
-        public static final StreamCodec<ByteBuf, java.util.List<Offer>> LIST_STREAM_CODEC =
-            STREAM_CODEC.apply(ByteBufCodecs.list());
+        public static final StreamCodec<RegistryFriendlyByteBuf, java.util.List<Offer>>
+            LIST_STREAM_CODEC = STREAM_CODEC.apply(ByteBufCodecs.list());
+
+        /** What to call this row: the Blueprint's set name, or the item's own name. */
+        public net.minecraft.network.chat.Component displayName() {
+            Identifier set = com.flatts.recompile.content.item.BlueprintItem.blueprintOf(stack);
+            return set != null
+                ? com.flatts.recompile.content.item.BlueprintItem.setName(set)
+                : stack.getHoverName();
+        }
+
+        /** The Blueprint set this row sells, or null if it sells a thing rather than knowledge. */
+        public @org.jspecify.annotations.Nullable Identifier blueprint() {
+            return com.flatts.recompile.content.item.BlueprintItem.blueprintOf(stack);
+        }
     }
 }

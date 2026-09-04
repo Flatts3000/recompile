@@ -368,6 +368,87 @@ which is the same shape `fragment_assembly` already produces. It does not need a
 
 ---
 
+## 14. The third axis: purchasable (owner, 2026-09-04)
+
+**Until the market there were two ways to hold a thing in this world: find it, or build it.** Every
+rule in the mod is written in those terms. `#recompile:found_only` says some things may only be
+found. `FoundNotCraftedTests` enforces it by sweeping *recipes*. Blueprints made knowledge itself
+findable-then-buildable: you tore down the object and learned how it was made, so **knowledge always
+sat downstream of a find.**
+
+The Buy Terminal adds a third: **purchased.** That is a bigger change than a shopfront, and it is
+worth stating plainly because every existing invariant was written before it existed.
+
+### It comes in two kinds, and they promise different things
+
+| Line | Sells | The buyer still needs |
+|---|---|---|
+| `"blueprint": "<set>"` | **knowledge** | every material, the station and the bench |
+| `"item": "<id>"` | **the thing** | nothing |
+
+The first was the feature as specced: a shortcut past the fragment grind, not past a gate. The second
+is new ground. **It is the only route in this mod by which an object enters the world without being
+found, grown or built.**
+
+### What that enables, and the two things shipped on it
+
+Content whose only source is the market: a thing this world otherwise cannot produce at any price.
+Two ship, and both were chosen because the mod's own reachability report already listed them as
+unreachable:
+
+- **A Totem of Undying, sold outright** (2,500 scrip). Totems drop from evokers, and this world has
+  no raids, so nothing else here makes one. `docs/vanilla_resource_checklist.md` had it as *"no
+  raids: evokers and pillagers never spawn."*
+- **A Bucket of Powder Snow, sold as knowledge** (600 scrip). There is no powder snow here to have
+  found a bucket of, so there is no object to tear down and no way to learn it. Buying the sheet is
+  the only route to the sheet; the recipe then wants a bucket and four snowballs, which a snow golem
+  supplies. Checklist: *"no powder snow in this world."*
+
+Note the asymmetry, because it is the interesting half. The totem is **spent**, so it is a repeatable
+purchase and priced above every sheet. A blueprint is bought **once** and is permanent.
+
+### What had to change, and it is the part to remember
+
+**"Every shipped blueprint is taught by a teardown" is no longer true, and it was an invariant with a
+test behind it.** `every_shipped_blueprint_has_a_name_a_recipe_and_a_teacher` is now
+`..._and_a_route`: a sheet must be reachable by **a teardown teacher or a market offer**, and the
+failure names which is missing. The powder snow sheet is the first blueprint in the mod that is
+bought rather than earned.
+
+So **knowledge is no longer always downstream of a find.** That sentence was true of the whole
+blueprint system from #95 until now, and anything reasoning from it is reasoning from a fact that has
+expired.
+
+### What guards it, because a new axis is a new way to leak
+
+- **The market may not sell anything in `#recompile:found_only`, nor knowledge that unlocks
+  something in it** (`the_market_never_sells_what_is_meant_to_be_found`). This is the load-bearing
+  one. Found-only is enforced by a sweep over *recipes*, and a shop counter is not a recipe, so
+  without this a market line could put a second source on a found-only item with every existing
+  guard staying green. The market may sell what the dump **cannot** give; it may not sell what the
+  dump is supposed to be the **only** giver of.
+- **Every offer hands over something**, and the shelf carries both kinds, so the checks above cannot
+  quietly stop covering a kind that has gone.
+- **Exactly one of `blueprint` and `item`** per line, refused at parse rather than sold as an empty
+  row.
+
+### What it still does not bypass, measured rather than assumed
+
+Section 3.1's claim - *a shortcut past the grind, not past the gate* - survives for the two
+region-gating sheets, and it survives on their **materials** rather than on their price:
+
+| Sheet | Ingredients | So buying it does not skip |
+|---|---|---|
+| Spawner Cage | rebar, soul sand, sculk catalyst | the compacted depths |
+| Netherite Upgrade Pattern | diamond, netherite scrap, netherrack | the compacted depths |
+
+Buy either sheet with household scrip and you still cannot build the thing until you have been to
+the Nether. **That is a property of those two recipes, not of the market**, so a future sheet whose
+materials are all household-side would genuinely sell a region gate. There is no test for that
+today, and it is the sharpest thing to watch when adding an offer.
+
+---
+
 ## 13. As built (2026-09-04)
 
 Where the spec left a choice open, the build made one. Every item here is the assistant's call, made

@@ -1,11 +1,9 @@
 package com.flatts.recompile.content.menu;
 
-import com.flatts.recompile.content.item.BlueprintItem;
 import com.flatts.recompile.content.market.Market;
 import com.flatts.recompile.gui.GuiTheme;
 import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.registry.RCBlocks;
-import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCMenus;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -110,10 +108,10 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
             return false;
         }
         // Into the inventory, and onto the floor if the inventory is full - the money is already
-        // spent, and a sheet that vanished because the hotbar was full would be worse than one at
-        // the player's feet.
-        buyer.getInventory().placeItemBackInInventory(
-            BlueprintItem.of(RCItems.BLUEPRINT.get(), offer.blueprint()));
+        // spent, and goods that vanished because the hotbar was full would be worse than goods at
+        // the player's feet. A COPY, because the offer list outlives the purchase and is shared by
+        // every row the screen draws.
+        buyer.getInventory().placeItemBackInInventory(offer.stack().copy());
         this.broadcastChanges();
         return true;
     }

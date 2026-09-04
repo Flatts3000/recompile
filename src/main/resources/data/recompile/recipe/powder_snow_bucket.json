@@ -1,0 +1,26 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "_comment": [
+    "PURCHASED KNOWLEDGE, TAUGHT BY NOTHING (owner, 2026-09-04). Every other blueprint in the",
+    "mod is learned by tearing down the object it came from; this one has no such object,",
+    "because there is no powder snow in this world to have found a bucket of. The Buy Terminal",
+    "is its only source, which is the first blueprint that is bought rather than earned.",
+    "",
+    "Snowballs rather than snow blocks: powder snow is the LOOSE form, and a block is the",
+    "packed one. Snowballs are reachable here off a snow golem, which is the only reason this",
+    "recipe can be built at all once the sheet is bought."
+  ],
+  "blueprint": "recompile:powder_snow_bucket",
+  "key": {
+    "S": "minecraft:snowball",
+    "B": "minecraft:bucket"
+  },
+  "pattern": [
+    " S ",
+    "SBS",
+    " S "
+  ],
+  "result": {
+    "item": "minecraft:powder_snow_bucket"
+  }
+}

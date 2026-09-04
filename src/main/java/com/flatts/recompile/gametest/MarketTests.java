@@ -274,7 +274,7 @@ final class MarketTests {
                 "only " + offers.size() + " market offers loaded - the stock is broken");
             int index = -1;
             for (int i = 0; i < offers.size(); i++) {
-                if (offers.get(i).blueprint().equals(BlueprintItem.BATTERY)) {
+                if (BlueprintItem.BATTERY.equals(offers.get(i).blueprint())) {
                     index = i;
                 }
             }
@@ -302,7 +302,7 @@ final class MarketTests {
             List<Market.Offer> offers = MarketTerminalBlock.Buy.offers(level.getServer());
             int index = -1;
             for (int i = 0; i < offers.size(); i++) {
-                if (offers.get(i).blueprint().equals(BlueprintItem.BATTERY)) {
+                if (BlueprintItem.BATTERY.equals(offers.get(i).blueprint())) {
                     index = i;
                 }
             }
@@ -578,21 +578,120 @@ final class MarketTests {
                 built.add(holder.value().blueprint());
             }
             List<String> dead = new ArrayList<>();
-            Set<Identifier> seen = new HashSet<>();
+            Set<String> seen = new HashSet<>();
+            int knowledge = 0;
+            int things = 0;
             for (Market.Offer offer : offers) {
-                if (!built.contains(offer.blueprint())) {
-                    dead.add(offer.blueprint() + " is on sale and no recipe reads it");
+                helper.assertTrue(!offer.stack().isEmpty(),
+                    "an offer hands over nothing at " + offer.price() + " scrip");
+                Identifier set = offer.blueprint();
+                if (set != null) {
+                    knowledge++;
+                    if (!built.contains(set)) {
+                        dead.add(set + " is on sale and no recipe reads it");
+                    }
+                    String key = "blueprint." + set.getNamespace() + "." + set.getPath();
+                    if (BlueprintItem.setName(set).getString().equals(key)) {
+                        dead.add(set + " has no name to list it under");
+                    }
+                } else {
+                    things++;
                 }
-                if (!seen.add(offer.blueprint())) {
-                    dead.add(offer.blueprint() + " is on sale twice");
-                }
-                String key = "blueprint." + offer.blueprint().getNamespace() + "."
-                    + offer.blueprint().getPath();
-                if (BlueprintItem.setName(offer.blueprint()).getString().equals(key)) {
-                    dead.add(offer.blueprint() + " has no name to list it under");
+                // Keyed on what the row IS rather than on a set id, since an item row has none.
+                if (!seen.add(offer.displayName().getString())) {
+                    dead.add(offer.displayName().getString() + " is on the shelf twice");
                 }
             }
+            helper.assertTrue(knowledge > 0 && things > 0,
+                "the shelf should carry both knowledge and things, got " + knowledge + " and "
+                    + things + " - if a kind has gone, the checks above stopped covering it");
             helper.assertTrue(dead.isEmpty(), "the stock is wrong (" + dead.size() + "): " + dead);
+            helper.succeed();
+        });
+
+        /*
+         * Buying a THING rather than knowledge (spec section 14). The blueprint path is covered
+         * above; this is the other kind of line, and it is the one with no precedent in the mod -
+         * an object entering the world without being found, grown or built. Asserted on the totem
+         * because that is the shipped instance and because nothing else here can produce one at
+         * all, so a regression would silently make it unobtainable rather than merely awkward.
+         */
+        RCGameTests.test("buying_a_thing_hands_over_the_thing", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.getInventory().clearContent();
+            List<Market.Offer> offers = MarketTerminalBlock.Buy.offers(level.getServer());
+
+            int index = -1;
+            for (int i = 0; i < offers.size(); i++) {
+                if (offers.get(i).stack().is(net.minecraft.world.item.Items.TOTEM_OF_UNDYING)) {
+                    index = i;
+                }
+            }
+            helper.assertTrue(index >= 0,
+                "no offer sells a Totem of Undying, which has no other source in this world");
+            Market.Offer offer = offers.get(index);
+            helper.assertTrue(offer.blueprint() == null,
+                "the totem line is selling knowledge rather than the thing");
+
+            Market.setBalance(player, offer.price() + 7);
+            BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
+                ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)), offers);
+            helper.assertTrue(menu.clickMenuButton(player, index), "the purchase was refused");
+            helper.assertTrue(Market.balance(player) == 7,
+                "expected 7 left, got " + Market.balance(player));
+            helper.assertTrue(
+                player.getInventory().countItem(net.minecraft.world.item.Items.TOTEM_OF_UNDYING) == 1,
+                "expected one totem in the inventory, found " + player.getInventory()
+                    .countItem(net.minecraft.world.item.Items.TOTEM_OF_UNDYING));
+
+            // The shelf must not be spent by the sale: offers are shared by every row the screen
+            // draws, so handing over the offer's own stack rather than a copy would empty it.
+            helper.assertTrue(offer.stack().getCount() == 1,
+                "the purchase consumed the offer's own stack, so the row now sells nothing");
+            helper.succeed();
+        });
+
+        /*
+         * THE THIRD AXIS FAILS CLOSED AGAINST THE SECOND (spec section 14).
+         *
+         * <p>Until the market there were two ways to hold a thing: find it, or build it.
+         * `#recompile:found_only` is the rule that some things may only be found, and
+         * FoundNotCraftedTests enforces it by sweeping RECIPES - which a shop counter is not. So a
+         * market line selling a found-only item would put a second source on it and every existing
+         * guard would stay green, which is exactly the shape of silent leak this repo keeps paying
+         * for. The market may sell what the dump cannot give; it may not sell what the dump is
+         * SUPPOSED to be the only giver of.
+         *
+         * <p>It covers what a blueprint line unlocks too, not just the sheet, since selling the
+         * knowledge to craft a found-only item reaches the same end one step later.
+         */
+        RCGameTests.test("the_market_never_sells_what_is_meant_to_be_found", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            List<Market.Offer> offers = MarketTerminalBlock.Buy.offers(level.getServer());
+            helper.assertTrue(!offers.isEmpty(), "no offers loaded - this would check nothing");
+
+            java.util.Map<Identifier, Item> unlocks = new java.util.HashMap<>();
+            for (RecipeHolder<BlueprintCraftingRecipe> holder : level.recipeAccess().recipeMap()
+                    .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                unlocks.put(holder.value().blueprint(), holder.value().result().item());
+            }
+
+            List<String> leaks = new ArrayList<>();
+            for (Market.Offer offer : offers) {
+                if (offer.stack().is(RCTags.FOUND_ONLY)) {
+                    leaks.add(offer.displayName().getString() + " is sold outright while being in "
+                        + "#recompile:found_only");
+                }
+                Identifier set = offer.blueprint();
+                Item unlocked = set == null ? null : unlocks.get(set);
+                if (unlocked != null && unlocked.builtInRegistryHolder().is(RCTags.FOUND_ONLY)) {
+                    leaks.add(set + " is sold and unlocks "
+                        + BuiltInRegistries.ITEM.getKey(unlocked) + ", which is found-only");
+                }
+            }
+            helper.assertTrue(leaks.isEmpty(),
+                "the market undercuts the found-only rule, which no recipe sweep can see: " + leaks);
             helper.succeed();
         });
     }

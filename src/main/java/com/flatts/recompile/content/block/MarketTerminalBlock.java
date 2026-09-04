@@ -140,8 +140,11 @@ public abstract class MarketTerminalBlock extends HorizontalDirectionalBlock {
                     : server.getRecipeManager().recipeMap().byType(RCRecipeTypes.MARKET_OFFER.get())) {
                 offers.add(holder.value().offer());
             }
+            // Cheapest first, then by what it is, so the shelf order is stable across reloads.
+            // Sorted on the display name rather than a blueprint id, because a row may now sell a
+            // thing rather than knowledge and only one of those has a set id at all.
             offers.sort(Comparator.comparingInt(Market.Offer::price)
-                .thenComparing(offer -> offer.blueprint().toString()));
+                .thenComparing(offer -> offer.displayName().getString()));
             return offers;
         }
     }

@@ -732,7 +732,7 @@
   "blueprint.recompile.buy_terminal": "Buy Terminal",
   "jei.recompile.info.broken_terminal": "Pried out of Bulky Waste. Dead, but the only thing that shows how a company terminal was built: tear it down at the Teardown Workbench for scrap and an Idea Fragment towards both the Sell Terminal and the Buy Terminal. Four fragments make each blueprint.",
   "jei.recompile.info.sell_terminal": "Buys components and finished goods for company scrip, a balance the company keeps for each player and never an item. The screen quotes what a load pays before you sell it. Raw scrap and anything pressed straight from junk are refused at the slot.",
-  "jei.recompile.info.buy_terminal": "Sells Blueprints for scrip. The sheet is the same one fragments make, so you still need every material and the Scrap Crafting Table. You are paying to skip the fragment grind, not the gate.",
+  "jei.recompile.info.buy_terminal": "Sells Blueprints, and a few things outright, for scrip. A Blueprint is the same sheet fragments make, so you still need every material and the Scrap Crafting Table; you are paying to skip the fragment grind, not the gate. A few lines sell the object itself, and those are things this world has no other way to produce at all.",
   "book.recompile.guide.workstations.market.name": "The Market",
   "book.recompile.guide.workstations.market.intro.title": "Company scrip",
   "book.recompile.guide.workstations.market.intro.text": "Two terminals, one account. The Sell Terminal buys components and finished goods and credits your balance in company scrip. The Buy Terminal sells Blueprints against that balance. Scrip is never an item: it cannot be dropped, stored or lost on death, and a hopper cannot sell for you.\n\n\\\n\\\nBoth are learned from a Broken Terminal pried out of Bulky Waste. Tear it down at the Teardown Workbench; four fragments make each Blueprint.",
@@ -746,5 +746,7 @@
   "container.recompile.scroll_up": "(scroll up for more)",
   "tooltip.recompile.market_short": "Short by %s scrip",
   "tooltip.recompile.scrip_value": "Sells for %s scrip",
-  "tooltip.recompile.scrip_value_stack": "Sells for %s scrip each (%s total)"
+  "tooltip.recompile.scrip_value_stack": "Sells for %s scrip each (%s total)",
+  "container.recompile.offer_count": "%s per purchase",
+  "blueprint.recompile.powder_snow_bucket": "Bucket of Powder Snow"
 }

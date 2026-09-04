@@ -1,14 +1,19 @@
 package com.flatts.recompile.content.recipe;
 
+import com.flatts.recompile.content.item.BlueprintItem;
 import com.flatts.recompile.content.market.Market;
+import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.Optional;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -22,21 +27,26 @@ import net.minecraft.world.level.Level;
 /**
  * The public {@code recompile:market_offer} recipe type: one line of the Buy Terminal's stock.
  *
- * <p>JSON shape ({@code data/<ns>/recipe/<name>.json}):
+ * <p>JSON shape ({@code data/<ns>/recipe/<name>.json}), one of two forms:
  * <pre>{@code
- * {
- *   "type": "recompile:market_offer",
- *   "blueprint": "recompile:battery",
- *   "price": 240
- * }
+ * { "type": "recompile:market_offer", "blueprint": "recompile:battery",        "price": 240 }
+ * { "type": "recompile:market_offer", "item": "minecraft:totem_of_undying",    "price": 2500 }
+ * { "type": "recompile:market_offer", "item": "recompile:rebar", "count": 8,   "price": 60 }
  * }</pre>
  *
- * <p><b>A recipe type rather than a data map</b>, because a Blueprint set is not a registry entry - it
- * is an {@link Identifier} on an item component - so there is no registry to key a data map on. A
- * recipe is the other thing a pack already writes by dropping in a file, it reloads with the world,
- * and the terminal reads the loaded set off the recipe manager when it opens. It is never matched
- * against anything: {@link #matches} is false by construction, and {@link #isSpecial} keeps it out of
- * the recipe book, where a recipe with no ingredients and no fixed result has nothing to show.
+ * <p><b>Exactly one of {@code blueprint} and {@code item}</b>, and the split is the whole design of
+ * the type. A {@code blueprint} line sells KNOWLEDGE - the sheet the fragment loop also produces,
+ * so the buyer still needs every material and the bench. An {@code item} line sells the THING, and
+ * that is a genuinely different promise: it is the only route in this mod by which an object can
+ * enter the world without being found, grown, or built. See {@code docs/market_spec.md} section 14
+ * for what that opens and what guards it.
+ *
+ * <p><b>A recipe type rather than a data map</b>, because a Blueprint set is not a registry entry -
+ * it is an {@link Identifier} on an item component - so there is no registry to key a data map on.
+ * A recipe is the other thing a pack already writes by dropping in a file, it reloads with the
+ * world, and the terminal reads the loaded set off the recipe manager when it opens. It is never
+ * matched against anything: {@link #matches} is false by construction, and {@link #isSpecial} keeps
+ * it out of the recipe book, where a recipe with no ingredients has nothing to show.
  *
  * <p><b>Priced in the balance alone</b> (owner, 2026-08-30). There is no fragment field and there is
  * not going to be one: money replaces the grind rather than discounting it.
@@ -45,24 +55,49 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
 
     public static final MapCodec<MarketOfferRecipe> CODEC =
         RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Identifier.CODEC.fieldOf("blueprint").forGetter(MarketOfferRecipe::blueprint),
+            Identifier.CODEC.optionalFieldOf("blueprint").forGetter(MarketOfferRecipe::blueprint),
+            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("item").forGetter(MarketOfferRecipe::item),
+            Codec.intRange(1, 64).optionalFieldOf("count", 1).forGetter(MarketOfferRecipe::count),
             Codec.intRange(1, Market.MAX_BALANCE).fieldOf("price").forGetter(MarketOfferRecipe::price)
         ).apply(instance, MarketOfferRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MarketOfferRecipe> STREAM_CODEC =
         ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
 
-    private final Identifier blueprint;
+    private final Optional<Identifier> blueprint;
+    private final Optional<Item> item;
+    private final int count;
     private final int price;
 
-    public MarketOfferRecipe(Identifier blueprint, int price) {
+    public MarketOfferRecipe(Optional<Identifier> blueprint, Optional<Item> item, int count,
+            int price) {
+        // Neither, or both, is an authoring mistake rather than a shape with a sensible reading, and
+        // a market line that sells nothing would be a row a player can click for their money back
+        // in silence. Recipe decoding reports the throw against the file that caused it.
+        if (blueprint.isPresent() == item.isPresent()) {
+            throw new IllegalArgumentException(
+                "a market_offer needs exactly one of 'blueprint' or 'item', got "
+                    + (blueprint.isPresent() ? "both" : "neither"));
+        }
         this.blueprint = blueprint;
+        this.item = item;
+        this.count = count;
         this.price = price;
     }
 
-    /** The Blueprint set this line sells. */
-    public Identifier blueprint() {
+    /** The Blueprint set this line sells, if it sells knowledge. */
+    public Optional<Identifier> blueprint() {
         return blueprint;
+    }
+
+    /** The item this line sells, if it sells a thing. */
+    public Optional<Item> item() {
+        return item;
+    }
+
+    /** How many per purchase. Only meaningful on an {@code item} line; a sheet is always one. */
+    public int count() {
+        return count;
     }
 
     /** What it costs, in scrip. */
@@ -70,8 +105,17 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
         return price;
     }
 
+    /**
+     * What the buyer receives, as the stack the terminal will hand over.
+     *
+     * <p>Built here rather than stored, so a blueprint line resolves {@code RCItems.BLUEPRINT} at
+     * datapack-load time rather than at class-init - the "Components not bound yet" trap.
+     */
     public Market.Offer offer() {
-        return new Market.Offer(blueprint, price);
+        ItemStack stack = blueprint
+            .map(set -> BlueprintItem.of(RCItems.BLUEPRINT.get(), set))
+            .orElseGet(() -> new ItemStack(item.orElseThrow(), count));
+        return new Market.Offer(stack, price);
     }
 
     @Override

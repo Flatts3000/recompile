@@ -118,8 +118,23 @@ public class BlueprintItem extends Item {
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
         return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
-            SPAWNER, BATTERY, SELL_TERMINAL, BUY_TERMINAL);
+            SPAWNER, BATTERY, SELL_TERMINAL, BUY_TERMINAL, POWDER_SNOW_BUCKET);
     }
+
+    /**
+     * The first blueprint that is BOUGHT rather than earned (owner, 2026-09-04).
+     *
+     * <p>Every other set here is taught by tearing down the object it came from, so knowledge has
+     * always sat downstream of a find. This one has no such object: there is no powder snow in this
+     * world, so there is no bucket of it to have dug up and taken apart. The Buy Terminal is its
+     * only source.
+     *
+     * <p>That is a real widening of what a blueprint IS rather than one more sheet, and the sweep
+     * that used to demand a teardown teacher for every shipped set now asks for a ROUTE - a teacher
+     * or a market offer - and names which. See {@code docs/market_spec.md} section 14.
+     */
+    public static final Identifier POWDER_SNOW_BUCKET =
+        Identifier.fromNamespaceAndPath("recompile", "powder_snow_bucket");
 
     /**
      * The two market terminals (spec {@code docs/market_spec.md}, #311), learned from one find.
