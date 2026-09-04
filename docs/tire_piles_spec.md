@@ -194,10 +194,17 @@ tire. That is the same shape as hand-sorting a garbage block versus hauling it t
 
 `rubber_scrap` names consistently with `scrap_metal`, `plastic_scrap` and `fiber_scrap`.
 
-**A fuel entry** in `data/neoforge/data_maps/item/furnace_fuels.json`. Tire-derived fuel is a real
-recycling stream and tires burn hot and long. The current scale is `junk` 400, `lignite` 800,
-`oily_rag` 1600; #155 proposed "above junk, below oily rag", but 800 is taken, so **1200** is the
-free slot that still reads as hotter than lignite and cooler than a solvent-soaked rag.
+**No fuel entry** (owner, 2026-09-04: "tires and rubber aren't fuel"). #155 proposed one and an earlier
+draft of this spec carried it at 1200. It is cut, and the reason is worth keeping because it is not
+about flavour: **a finite material with an infinite sink is a trap.** Piles do not replenish, fuel is
+spent inattentively and rubber is spent once, so a player who learned tires burn hot would feed a
+furnace with the same tires the Pump needs and would not notice until the dumps were gone.
+
+Nothing is lost by cutting it. `junk` at 400, `lignite` at 800 and `oily_rag` at 1600 already cover
+that tier, and none of them is finite in the way a tire is.
+
+It also happens to be true that a burning tire is a famously bad thing to burn on purpose, so the mod
+declining to treat one as a fuel is not a gameplay concession.
 
 **The steel belts.** A real tire is steel-reinforced, so an occasional `scrap_metal` alongside the
 rubber is free flavour that happens to be true.
@@ -253,6 +260,7 @@ the spec do not quietly disagree.
 | Piles in household sprawl **and the demolition yard** | Household sprawl only | Owner, 2026-09-04. |
 | Tire fire "probably cut for v1" | Fire is in v1, and eternal | Owner, 2026-09-04. It is the most recognisable thing about a tire dump. |
 | "Either keep piles off mound footprints **or** make the check narrower" | Keep them off, and do not touch the check | Still the ruling, but its reason retired with the `SortableBlock`: `isMound` never counts a plain block, so there is no Phase 5 hazard left to avoid. It stands as a design call now. See section 2. |
+| A fuel data-map entry, tires "a natural step above `junk` and below `oily_rag`" | No fuel entry, for tires or for rubber | Owner, 2026-09-04. A finite material with an infinite sink is a trap: piles do not replenish, and a furnace would drain the same tires the Pump needs, inattentively. |
 
 **One #155 point that stands unchanged and is the most important line in it:** rubber needs a use that
 does not require Create. Without a mod-side consumer, `rubber_scrap` is a dead end in every install
@@ -338,20 +346,15 @@ Leaning: particles on the top tire of a lit stack only, not on every lit tire in
 
 Everything below is reasoning rather than ruling. Two items overturn things this spec said earlier.
 
-### The fuel entry is a trap, and it should probably be cut
+### The fuel entry was a trap. DECIDED: cut, both of them
 
-#155 proposed a furnace-fuel entry for tires and section 5 carries it at 1200. **A finite material with
-an infinite sink is a trap**, and that is exactly what this would be: piles do not replenish, and a
-player who learns tires burn hot will feed a furnace with the same tires the Pump needs. They will not
-notice until the dumps are gone, because fuel is spent inattentively and rubber is spent once.
+Owner, 2026-09-04: neither tires nor rubber are fuel. Section 5 has the reasoning; the short version is
+that a finite material with an infinite sink empties the world quietly, and a furnace is an infinite
+sink. The rejected middle option, burning `rubber_scrap` only so the competition is visible, is also out.
 
-Three ways out, in order of preference:
-
-1. **Drop the fuel entry.** Tires are a material, not a fuel. The mod already has `junk`, `lignite` and
-   `oily_rag` covering that tier, so nothing is missing.
-2. **Make only `rubber_scrap` burnable**, so burning it visibly competes with the Pump and the choice is
-   in front of the player rather than behind them.
-3. **Keep it and accept it**, on the grounds that rubber demand is tiny (below) and dumps are plentiful.
+**With this cut, rubber has exactly one consumer and no leak**, which is the cleanest possible shape for
+a material that does not renew: demand is a handful of Pumps across a playthrough, supply is every dump
+in the world, and nothing else can drain it.
 
 ### Rubber demand is tiny, which defuses 8.4 almost entirely
 
