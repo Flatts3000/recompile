@@ -29,8 +29,9 @@ import net.minecraft.world.item.ItemStack;
  * slot, so a player learns an item has no price by it not going in rather than by selling it for
  * nothing.
  *
- * <p>The balance rides a {@link DataSlot} that reads the player's attachment on the server and mirrors
- * the synced value into the client player's copy, the way every other screen here moves a number.
+ * <p>The balance rides {@link DataSlot}s, the way every other screen here moves a number - but two of
+ * them rather than one, because a data slot is 16 bits on the wire and a balance is not. See
+ * {@link BalanceSync}.
  */
 public class SellTerminalMenu extends AbstractContainerMenu {
 
@@ -64,6 +65,7 @@ public class SellTerminalMenu extends AbstractContainerMenu {
     private final SimpleContainer goods = new SimpleContainer(GOODS_SLOTS);
     private final ContainerLevelAccess access;
     private final Player player;
+    private final BalanceSync balanceSync;
 
     /** Client factory: no block to stand at, the balance arrives through the data slot. */
     public SellTerminalMenu(int containerId, Inventory inventory) {
@@ -83,17 +85,10 @@ public class SellTerminalMenu extends AbstractContainerMenu {
         }));
         LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
 
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                return Market.balance(player);
-            }
-
-            @Override
-            public void set(int value) {
-                Market.setBalance(player, value);
-            }
-        });
+        // Two slots, low half then high: a data slot is 16 bits on the wire and a balance is not.
+        this.balanceSync = new BalanceSync(this.player);
+        this.addDataSlot(this.balanceSync.lowSlot());
+        this.addDataSlot(this.balanceSync.highSlot());
     }
 
     /** The goods waiting to be sold. Exposed for the tests, which fill it directly. */
@@ -106,8 +101,9 @@ public class SellTerminalMenu extends AbstractContainerMenu {
         return Market.quote(goods);
     }
 
+    /** What the screen shows: the attachment on the server, the synced halves on the client. */
     public int balance() {
-        return Market.balance(player);
+        return this.balanceSync.balance();
     }
 
     /**

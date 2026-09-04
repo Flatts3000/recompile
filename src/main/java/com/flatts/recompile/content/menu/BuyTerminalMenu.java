@@ -13,7 +13,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -50,9 +49,18 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
         .playerInventory(148)
         .build();
 
+    /**
+     * The player's own slots are the only ones here, so the ranges are named rather than typed
+     * inline - the sibling Sell Terminal names its own, and two menus disagreeing about where the
+     * hotbar starts is the class of bug the GUI framework exists to prevent.
+     */
+    private static final int BACKPACK_END = 27;
+    private static final int HOTBAR_END = 36;
+
     private final List<Market.Offer> offers;
     private final ContainerLevelAccess access;
     private final Player player;
+    private final BalanceSync balanceSync;
 
     /** Client factory with nothing on the shelf, for the geometry sweep. */
     public BuyTerminalMenu(int containerId, Inventory inventory) {
@@ -74,17 +82,10 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
 
         LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
 
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                return Market.balance(player);
-            }
-
-            @Override
-            public void set(int value) {
-                Market.setBalance(player, value);
-            }
-        });
+        // Two slots, low half then high: a data slot is 16 bits on the wire and a balance is not.
+        this.balanceSync = new BalanceSync(this.player);
+        this.addDataSlot(this.balanceSync.lowSlot());
+        this.addDataSlot(this.balanceSync.highSlot());
     }
 
     /** Everything for sale, in the order the screen draws it. */
@@ -92,8 +93,9 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
         return offers;
     }
 
+    /** What the screen shows: the attachment on the server, the synced halves on the client. */
     public int balance() {
-        return Market.balance(player);
+        return this.balanceSync.balance();
     }
 
     /**
@@ -132,11 +134,11 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
         }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
-        if (index < 27) {
-            if (!this.moveItemStackTo(stack, 27, 36, false)) {
+        if (index < BACKPACK_END) {
+            if (!this.moveItemStackTo(stack, BACKPACK_END, HOTBAR_END, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (!this.moveItemStackTo(stack, 0, 27, false)) {
+        } else if (!this.moveItemStackTo(stack, 0, BACKPACK_END, false)) {
             return ItemStack.EMPTY;
         }
         if (stack.isEmpty()) {

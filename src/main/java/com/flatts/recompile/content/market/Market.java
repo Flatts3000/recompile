@@ -69,6 +69,36 @@ public final class Market {
         return true;
     }
 
+    // ---------------- moving a balance to a screen ----------------
+
+    /**
+     * The low 16 bits of a balance, for a menu data slot.
+     *
+     * <p><b>A data slot is a short on the wire.</b> {@code ClientboundContainerSetDataPacket} declares
+     * its value an {@code int} and then writes it with {@code writeShort}, so anything over 32,767
+     * arrives wrapped and anything over 65,535 arrives truncated, silently. A balance runs to
+     * {@link #MAX_BALANCE}, so it travels as two slots and is put back together with
+     * {@link #fromSync}. See {@code BalanceSync}, which is the only caller.
+     */
+    public static int syncLow(int balance) {
+        return balance & 0xFFFF;
+    }
+
+    /** The high 16 bits of a balance. */
+    public static int syncHigh(int balance) {
+        return (balance >>> 16) & 0xFFFF;
+    }
+
+    /**
+     * The two halves put back together.
+     *
+     * <p>Both are masked because {@code readShort} sign-extends: a low half of 59,392 arrives as
+     * -6,144, and adding that to a shifted high half would come out short by 65,536.
+     */
+    public static int fromSync(int low, int high) {
+        return ((high & 0xFFFF) << 16) | (low & 0xFFFF);
+    }
+
     // ---------------- selling ----------------
 
     /** What one of this item pays, or 0 for anything unpriced. */

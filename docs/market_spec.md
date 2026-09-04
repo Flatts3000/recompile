@@ -277,6 +277,15 @@ as one - it reads as the shop being broken.
 **The balance has to reach the client** for either screen to draw it. A menu data slot is how every
 other screen here moves a number, and it keeps the value out of the attachment-sync path entirely.
 
+**It takes TWO data slots, and that is not an implementation detail.** A data slot is 16 bits on the
+wire whatever its Java type says: `ClientboundContainerSetDataPacket` keeps an `int` in its field and
+then writes it with `writeShort`. A balance over 32,767 arrives wrapped negative and one over 65,535
+arrives truncated, with nothing logged and the server still right, so the only symptom is a screen
+quoting a number the player knows is wrong. Nothing in this mod had met that ceiling before, because
+every other synced value here is a tank or a buffer capped at 20,000 or less. The balance travels as
+a low half and a high half, recombined on the client (`BalanceSync`, arithmetic on `Market` so a unit
+test can drive it without a menu).
+
 **Both screens go through the GUI framework**: a `ScreenLayout` declared once in common code, rendering
 as a client-side visitor over it. `GuiFrameworkDisciplineTest` fails the build if either screen
 mentions a pipeline, a blit or even `leftPos`.
@@ -304,6 +313,10 @@ which is the same shape `fragment_assembly` already produces. It does not need a
 - **Buying a Blueprint spends the balance and yields a sheet with the right component**, and buying
   with an insufficient balance spends nothing and yields nothing. Paired, because "it produced no
   sheet" passes just as well on a terminal that never works.
+- **A balance survives the trip to the screen**, at 32,768 and either side of it. A unit test rather
+  than a GameTest, because the failure is arithmetic and the fix is arithmetic; it drives the same
+  `(short)` narrowing the packet performs, so it tests the real failure and not the encoding in
+  isolation.
 
 ---
 
