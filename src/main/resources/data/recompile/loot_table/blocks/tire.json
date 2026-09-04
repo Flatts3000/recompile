@@ -9,8 +9,11 @@
     "the knife entry must come first; with the tire first, a knife would yield a tire and the gate",
     "would silently not exist.",
     "",
-    "A double slab is two tires, so the count doubles. Vanilla's own slab tables do this with an",
-    "explicit block_state_property check rather than by halving anything."
+    "A double slab is two tires, so BOTH children add exactly one on double. The rubber child added",
+    "TWO until #353, which paid 1.5 rubber per tire against the single slab's 1.0 - and because",
+    "stack() lays a double for every pair and a bottom slab only for an odd remainder, nearly every",
+    "tire in a dump is half of a double, so the inflated rate was effectively the real rate. The",
+    "test beside it was named a_double_tire_pays_out_twice and asserted three."
   ],
   "type": "minecraft:block",
   "pools": [
@@ -43,7 +46,7 @@
                 },
                 {
                   "function": "minecraft:set_count",
-                  "count": 2,
+                  "count": 1,
                   "add": true,
                   "conditions": [
                     {
