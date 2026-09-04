@@ -10,8 +10,8 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 |---|---|
 | Minecraft version | 26.1.2 |
 | Catalogued | 886 |
-| **Reachable in Recompile** | **784 (88%)** |
-| Not reachable | 102 |
+| **Reachable in Recompile** | **795 (90%)** |
+| Not reachable | 91 |
 | Mobs obtainable | 59 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
@@ -33,7 +33,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 | Domain | Reachable | Total |
 |---|---:|---:|
-| Wood | 58 | 66 |
+| Wood | 64 | 66 |
 | Overworld - General Surface | 94 | 99 |
 | Forest | 10 | 10 |
 | Jungle | 6 | 6 |
@@ -47,7 +47,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | River | 2 | 2 |
 | Ocean | 67 | 95 |
 | Cave & Underground | 107 | 128 |
-| Nether | 73 | 82 |
+| Nether | 78 | 82 |
 | End | 11 | 25 |
 | Structures & Chest Loot | 224 | 238 |
 | Trading | 62 | 62 |
@@ -58,7 +58,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ---
 
-## Wood  <sub>58/66</sub>
+## Wood  <sub>64/66</sub>
 
 *Every log/leaf/sapling family, plus the stripped variants (axe on a log).*
 
@@ -68,7 +68,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [ ] `azalea_leaves` - no lush caves generate
 - [x] `birch_leaves` - grow birch sapling
 - [x] `cherry_leaves` - grow cherry sapling
-- [ ] `crimson_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `crimson_stem` - bone meal a crimson fungus on crimson nylium into a huge one
 - [x] `dark_oak_leaves` - grow dark oak sapling
 - [ ] `flowering_azalea_leaves` - no lush caves generate
 - [x] `jungle_leaves` - grow jungle sapling
@@ -79,7 +79,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `stripped_acacia_log` - use an axe on an acacia log
 - [x] `stripped_oak_log` - use an axe on an oak log
 - [x] `stripped_spruce_log` - use an axe on a spruce log
-- [ ] `warped_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `warped_stem` - bone meal a warped fungus on warped nylium into a huge one
 
 ### Mob & entity drops
 
@@ -94,8 +94,8 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `stripped_birch_wood` `(c)` - crafted from stripped birch log
 - [x] `stripped_cherry_log` - use an axe on a cherry log
 - [x] `stripped_cherry_wood` `(c)` - crafted from stripped cherry log
-- [ ] `stripped_crimson_hyphae` `(c)` - the compacted depths has no nylium - only slag rubble and lava break the fill
-- [ ] `stripped_crimson_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `stripped_crimson_hyphae` `(c)` - crafted from stripped crimson stem
+- [x] `stripped_crimson_stem` - use an axe on a crimson stem
 - [x] `stripped_dark_oak_log` - use an axe on a dark oak log
 - [x] `stripped_dark_oak_wood` `(c)` - crafted from stripped dark oak log
 - [x] `stripped_jungle_log` - use an axe on a jungle log
@@ -104,8 +104,8 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `stripped_mangrove_wood` `(c)` - crafted from stripped mangrove log
 - [x] `stripped_pale_oak_log` - use an axe on a pale oak log
 - [x] `stripped_pale_oak_wood` `(c)` - crafted from stripped pale oak log
-- [ ] `stripped_warped_hyphae` `(c)` - the compacted depths has no nylium - only slag rubble and lava break the fill
-- [ ] `stripped_warped_stem` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `stripped_warped_hyphae` `(c)` - crafted from stripped warped stem
+- [x] `stripped_warped_stem` - use an axe on a warped stem
 
 ### Structure chests
 
@@ -259,7 +259,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 - [x] `clay` `(c)` - crafted from clay ball
 - [x] `firefly_bush` - buy from a wandering trader
-- [x] `pale_hanging_moss` - buy from a wandering trader
+- [x] `pale_hanging_moss` - mine pale_hanging_moss (the Municipal Aquarium's centrepiece tank)
 - [x] `sugar_cane` - Hydroponics Bay seedling
 
 
@@ -651,7 +651,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Nether  <sub>73/82</sub>
+## Nether  <sub>78/82</sub>
 
 *The Nether dimension, its biomes, fortresses, bastions, and piglin bartering.*
 
@@ -660,17 +660,17 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `basalt` - mine basalt (bastion remnant)
 - [ ] `nether_gold_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
 - [ ] `nether_quartz_ore` `(finite)` - the garbage world generates no ore; metal comes from scrap instead
-- [ ] `nether_sprouts` - the compacted depths has no nylium - only slag rubble and lava break the fill
-- [x] `nether_wart_block` `(c)` - crafted from nether wart
+- [x] `nether_sprouts` - bone meal on warped nylium
+- [x] `nether_wart_block` `(c)` - bone meal a crimson fungus on crimson nylium into a huge one
 - [x] `netherrack` - mine netherrack (bastion remnant)
-- [ ] `shroomlight` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `shroomlight` - bone meal a crimson fungus on crimson nylium into a huge one
 - [x] `soul_soil` - crafted from soul soil shard
-- [ ] `twisting_vines` - the compacted depths has no nylium - only slag rubble and lava break the fill
-- [ ] `warped_fungus` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [ ] `twisting_vines` - reachable only through a growth mechanic the closure does not model (bone meal), so not verified either way
+- [x] `warped_fungus` - bone meal on warped nylium
 - [x] `warped_nylium` - crafted from warped nylium shard
-- [ ] `warped_roots` - the compacted depths has no nylium - only slag rubble and lava break the fill
-- [ ] `warped_wart_block` - the compacted depths has no nylium - only slag rubble and lava break the fill
-- [ ] `weeping_vines` - the compacted depths has no nylium - only slag rubble and lava break the fill
+- [x] `warped_roots` - bone meal on warped nylium
+- [x] `warped_wart_block` - bone meal a warped fungus on warped nylium into a huge one
+- [ ] `weeping_vines` - reachable only through a growth mechanic the closure does not model (bone meal), so not verified either way
 
 ### Mob & entity drops
 
@@ -1094,18 +1094,18 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ## What Recompile cannot give you
 
-The 102 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+The 91 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
 of the vanilla economy, not an oversight, unless noted.
 
 - **28** - no ocean, monument, shipwreck or ocean ruin generates
 - **21** - the garbage world generates no ore; metal comes from scrap instead
 - **14** - the End is locked - RCDimensionLockout blocks travel and portal formation
-- **13** - the compacted depths has no nylium - only slag rubble and lava break the fill
 - **10** - no trial chambers generate
 - **4** - no amethyst geodes generate
 - **4** - no lush caves generate
 - **4** - the structure that carries it (ancient city / stronghold / trail ruins) is absent
 - **2** - no raids: evokers and pillagers never spawn
+- **2** - reachable only through a growth mechanic the closure does not model (bone meal), so not verified either way
 - **1** - needs a charged creeper to kill another player
 - **1** - no powder snow in this world
 

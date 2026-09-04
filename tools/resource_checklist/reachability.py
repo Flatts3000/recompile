@@ -159,6 +159,9 @@ VANILLA_IN_WORLD = {
     # rather than patched here one block at a time.
     "moss_block": "the Municipal Aquarium's filtration hall",
     "pale_moss_block": "the Municipal Aquarium's centrepiece tank",
+    # AquariumPalette places this in the centrepiece tank alongside the pale moss it hangs from. It
+    # was the only one of the three moss entries still crediting a wandering trader.
+    "pale_hanging_moss": "the Municipal Aquarium's centrepiece tank",
 }
 SB = json.load(open(SP + "/structblocks.json"))
 for b in SB.get("bastion", []):
@@ -388,6 +391,38 @@ INTERACT = [(["minecraft:coarse_dirt"], "minecraft:grass_block",
             (["minecraft:bucket"], "minecraft:lava_bucket",
              "fill a bucket from lava in the compacted depths"),
             ]
+
+# THE NETHER FLORA IS BOOTSTRAPPED, and the closure could not see it. Nothing generates nylium in the
+# compacted depths - the fill is solid - so both nyliums are CRAFTED from shards, and the whole crimson
+# and warped families hang off bone meal applied to them. Reachability is derived from recipes and loot
+# and bone meal is neither, so all 13 dependents were reported unreachable with a reason string saying
+# the depths have no nylium, in a document that marked both nyliums reachable two hundred lines away.
+#
+# It cost a wrong issue: #329 was filed asserting both Nether wood families were lost, a fortnight
+# AFTER the recipes shipped, written entirely off that reason string.
+#
+# EVERY EDGE BELOW IS MEASURED, not reasoned about. This file's own hazard is that a hand-declared
+# INTERACT route is a claim nothing re-checks, unlike a derived stage which is recomputed each run - so
+# the claims are pinned by GameTests instead: bone_meal_on_crafted_nylium_grows_the_nether_flora and
+# a_fungus_on_its_nylium_grows_a_huge_fungus in CompactedDepthsTests. Change one of these lines and
+# that pair is what should be re-run.
+for _hue, _fungus, _stem, _hat in (("crimson", "crimson_fungus", "crimson_stem", "nether_wart_block"),
+                                   ("warped", "warped_fungus", "warped_stem", "warped_wart_block")):
+    _nylium = "minecraft:%s_nylium" % _hue
+    INTERACT.append((["minecraft:bone_meal", _nylium], "minecraft:%s_roots" % _hue,
+                     "bone meal on %s nylium" % _hue))
+    INTERACT.append((["minecraft:bone_meal", _nylium], "minecraft:" + _fungus,
+                     "bone meal on %s nylium" % _hue))
+    # The huge fungus is what carries the wood. It needs the fungus standing on its OWN nylium.
+    for _out in ("minecraft:" + _stem, "minecraft:" + _hat, "minecraft:shroomlight"):
+        INTERACT.append((["minecraft:bone_meal", _nylium, "minecraft:" + _fungus], _out,
+                         "bone meal a %s fungus on %s nylium into a huge one" % (_hue, _hue)))
+INTERACT.append((["minecraft:bone_meal", "minecraft:warped_nylium"], "minecraft:nether_sprouts",
+                 "bone meal on warped nylium"))
+
+# NOT DECLARED: twisting_vines and weeping_vines. They plausibly come off the same two mechanics and
+# they were NOT asserted by either test, so they stay unreachable here rather than being claimed on a
+# hunch. That is the whole point of the paragraph above.
 for w in ("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry", "pale_oak"):
     _a = "an" if w[0] in "aeiou" else "a"
     INTERACT.append((["minecraft:%s_log" % w], "minecraft:stripped_%s_log" % w,
