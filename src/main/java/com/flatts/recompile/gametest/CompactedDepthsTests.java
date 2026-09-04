@@ -1,5 +1,14 @@
 package com.flatts.recompile.gametest;
 
+import java.util.Set;
+import java.util.HashSet;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import com.flatts.recompile.Recompile;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,5 +144,151 @@ final class CompactedDepthsTests {
                     + "never generate there and nothing will say so: " + missing);
             helper.succeed();
         });
+
+        // THE NETHER FLORA IS BOOTSTRAPPED, AND THIS IS WHAT MAKES THAT A FACT RATHER THAN A CLAIM.
+        // Nothing generates nylium here - the depths are solid fill - so both nyliums are crafted from
+        // shards, and everything else in the crimson and warped families hangs off bone meal applied to
+        // them. That chain was asserted in a comment, in a loot table's prose, and in the resource
+        // checklist's reason strings, and measured by none of them. It cost a wrong issue (#329, filed
+        // saying 13 resources were unreachable, two weeks after the recipes shipped) and a wrong reason
+        // string that is still generated (#360).
+        //
+        // Driven through performBonemeal directly rather than through a player holding bone meal: the
+        // question is whether the BLOCK grows, and a player click also tests aim. Verified by hand in a
+        // running client first, which is where the first stage was confirmed and the second stage's
+        // click kept landing on the ground instead of the fungus.
+        RCGameTests.test("bone_meal_on_crafted_nylium_grows_the_nether_flora", 300, helper -> {
+            ServerLevel level = helper.getLevel();
+            // WHAT IT ACTUALLY YIELDS, measured, because the resource checklist is about to declare
+            // these as reachability edges and a hand-declared edge is a claim nothing re-checks. That
+            // is how #329 came to assert 13 unreachable resources two weeks after the recipes shipped.
+            Set<Block> crimson = sprout(helper, level, Blocks.CRIMSON_NYLIUM);
+            Set<Block> warped = sprout(helper, level, Blocks.WARPED_NYLIUM);
+
+            helper.assertTrue(crimson.contains(Blocks.CRIMSON_ROOTS),
+                "bone meal on crimson nylium grew no crimson roots");
+            helper.assertTrue(crimson.contains(Blocks.CRIMSON_FUNGUS),
+                "bone meal on crimson nylium grew no crimson fungus, so the crimson wood family has "
+                    + "nothing to start from");
+            helper.assertTrue(warped.contains(Blocks.WARPED_ROOTS),
+                "bone meal on warped nylium grew no warped roots");
+            helper.assertTrue(warped.contains(Blocks.WARPED_FUNGUS),
+                "bone meal on warped nylium grew no warped fungus, so the warped wood family has "
+                    + "nothing to start from");
+            helper.assertTrue(warped.contains(Blocks.NETHER_SPROUTS),
+                "bone meal on warped nylium grew no nether sprouts, which have no other source here");
+            helper.succeed();
+        });
+
+        // AND THE SECOND STAGE, which is the one that carries the wood. A fungus standing on its own
+        // nylium grows a HUGE fungus, and that is where crimson_stem, shroomlight and the wart block
+        // come from. Without it the first stage only yields decoration and #329's list stands.
+        RCGameTests.test("a_fungus_on_its_nylium_grows_a_huge_fungus", 400, helper -> {
+            ServerLevel level = helper.getLevel();
+            // BOTH COLOURS, and the whole product set of each, because that set is exactly what the
+            // resource checklist's reachability edges claim. Asserting only the stem would leave
+            // shroomlight and the two wart blocks resting on the same untested assumption that
+            // produced #329's wrong list.
+            grow(helper, level, new BlockPos(2, 1, 2), Blocks.CRIMSON_NYLIUM, Blocks.CRIMSON_FUNGUS,
+                Blocks.CRIMSON_STEM, Blocks.NETHER_WART_BLOCK);
+            grow(helper, level, new BlockPos(2, 1, 2), Blocks.WARPED_NYLIUM, Blocks.WARPED_FUNGUS,
+                Blocks.WARPED_STEM, Blocks.WARPED_WART_BLOCK);
+            helper.succeed();
+        });
     }
+
+    /**
+     * Plant {@code fungus} on its own nylium and bone-meal it until a huge fungus stands, then assert
+     * its stem, its hat and a shroomlight are all present.
+     *
+     * <p>Retried rather than called once because {@code FungusBlock.isBonemealSuccess} is a dice roll,
+     * and cleared overhead first because a huge fungus refuses without headroom - a failure that would
+     * otherwise read as "the mechanic does not work in this world", which is the exact wrong conclusion
+     * these two tests exist to prevent.
+     */
+    private static void grow(GameTestHelper helper, ServerLevel level, BlockPos soil,
+            Block nyliumBlock, Block fungusBlock, Block stem, Block hat) {
+        boolean sawStem = false;
+        boolean sawHat = false;
+        boolean sawShroomlight = false;
+
+        // GROW SEVERAL, not one. The stem and the hat come with every huge fungus; SHROOMLIGHT IS A
+        // PROBABILISTIC DECORATOR and a single fungus routinely has none - asserting it on one failed
+        // here first. A player grows a grove, so the test does too, and the claim being checked is
+        // "this is reachable from a nylium and bone meal", not "every fungus carries one".
+        for (int attempt = 0; attempt < 24 && !(sawStem && sawHat && sawShroomlight); attempt++) {
+            for (int y = 2; y <= 14; y++) {
+                for (int dx = -3; dx <= 3; dx++) {
+                    for (int dz = -3; dz <= 3; dz++) {
+                        helper.setBlock(new BlockPos(soil.getX() + dx, y, soil.getZ() + dz),
+                            Blocks.AIR);
+                    }
+                }
+            }
+            helper.setBlock(soil, nyliumBlock);
+            BlockPos cap = soil.above();
+            BlockPos absCap = helper.absolutePos(cap);
+
+            boolean grew = false;
+            for (int i = 0; i < 40 && !grew; i++) {
+                helper.setBlock(cap, fungusBlock);
+                ((BonemealableBlock) fungusBlock).performBonemeal(
+                    level, level.getRandom(), absCap, level.getBlockState(absCap));
+                for (int dy = 1; dy <= 8 && !grew; dy++) {
+                    grew = level.getBlockState(helper.absolutePos(soil.above(dy))).is(stem);
+                }
+            }
+            if (!grew) {
+                continue;
+            }
+            for (int dy = 1; dy <= 12; dy++) {
+                for (int dx = -3; dx <= 3; dx++) {
+                    for (int dz = -3; dz <= 3; dz++) {
+                        BlockState at = level.getBlockState(
+                            helper.absolutePos(soil.offset(dx, dy, dz)));
+                        sawStem |= at.is(stem);
+                        sawHat |= at.is(hat);
+                        sawShroomlight |= at.is(Blocks.SHROOMLIGHT);
+                    }
+                }
+            }
+        }
+
+        helper.assertTrue(sawStem, "bone meal on a fungus standing on its own nylium grew no "
+            + stem.getName().getString() + ", so that whole wood family has no source in this world");
+        helper.assertTrue(sawHat, "no huge fungus grew a " + hat.getName().getString());
+        helper.assertTrue(sawShroomlight,
+            "twenty-four huge fungi grew no shroomlight, which has no other source here");
+    }
+
+
+    /** Bone-meal a nylium many times over and return every distinct block that came up on it. */
+    private static Set<Block> sprout(GameTestHelper helper, ServerLevel level, Block nyliumBlock) {
+        Set<Block> seen = new HashSet<>();
+        BlockPos soil = new BlockPos(2, 1, 2);
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                helper.setBlock(new BlockPos(soil.getX() + dx, 1, soil.getZ() + dz), nyliumBlock);
+                helper.setBlock(new BlockPos(soil.getX() + dx, 2, soil.getZ() + dz), Blocks.AIR);
+            }
+        }
+        BlockPos abs = helper.absolutePos(soil);
+        BonemealableBlock nylium = (BonemealableBlock) nyliumBlock;
+        // Many passes: the spread is random and scatters over a radius, so one call proves nothing
+        // about what the block CAN produce.
+        for (int i = 0; i < 60; i++) {
+            nylium.performBonemeal(level, level.getRandom(), abs, level.getBlockState(abs));
+            for (int dx = -4; dx <= 4; dx++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    BlockState at = level.getBlockState(helper.absolutePos(soil.offset(dx, 1, dz)));
+                    if (!at.isAir()) {
+                        seen.add(at.getBlock());
+                    }
+                    helper.setBlock(new BlockPos(soil.getX() + dx, 2, soil.getZ() + dz), Blocks.AIR);
+                }
+            }
+        }
+        return seen;
+    }
+
 }

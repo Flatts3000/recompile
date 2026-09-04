@@ -89,11 +89,15 @@ def why_not(item, r):
     if n in ("nether_gold_ore", "nether_quartz_ore"):
         return "the depths are solid techno-organic waste - no ore blocks generate (the quartz " \
                "ITEM still comes from bartering)"
-    if n in ("warped_stem", "crimson_stem", "stripped_warped_stem", "stripped_crimson_stem",
-             "stripped_warped_hyphae", "stripped_crimson_hyphae", "warped_roots", "warped_fungus",
-             "nether_sprouts", "shroomlight", "twisting_vines", "weeping_vines",
-             "warped_wart_block"):
-        return "the compacted depths has no nylium - only slag rubble and lava break the fill"
+    if n in ("twisting_vines", "weeping_vines"):
+        # The rest of this group moved to reachable when the bone-meal edges were added to
+        # reachability.INTERACT. These two are held back deliberately: they were not asserted by
+        # the GameTests that back those edges, and this string used to claim the whole family was
+        # lost because the depths grow no nylium - which was false, since both nyliums are crafted
+        # from shards. Saying "not modelled" rather than "no source" is the honest form, and the
+        # distinction is the one that produced a wrong issue when it was missing.
+        return "reachable only through a growth mechanic the closure does not model (bone meal), " \
+               "so not verified either way"
     if n.startswith(("azalea", "flowering_azalea")) or n in (
             "big_dripleaf", "hanging_roots", "spore_blossom", "glow_lichen"):
         return "no lush caves generate"
