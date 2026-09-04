@@ -59,26 +59,33 @@ public class AquariumStructure extends Structure {
     public static final int CLEAR_ABOVE = 28;
 
     /**
-     * How far {@link #claims} looks. Sixteen is a Building Husk at full size, which is the longest
-     * reach of any feature this mod places from its origin.
-     */
-    private static final int REACH = 18;
-
-    /**
      * Whether this structure has claimed the ground around {@code pos}, for the yard's tall features to
      * ask before they place. A structure start's box is known at the structure_starts stage, which is
      * before any feature runs, so a feature can decline to put a husk where a room is about to be.
      *
-     * <p><b>Checks a grid, not the one point, and not a symmetric ring either.</b> A feature's origin
-     * is its MINIMUM CORNER rather than its centre: {@code BuildingHuskFeature} lays columns at
-     * {@code origin + gx * 4} for up to four bays, so a husk reaches sixteen blocks in +X and +Z and
-     * nothing at all the other way. A symmetric ten-block ring therefore missed every husk originating
-     * eleven to sixteen blocks to the west or north - the two sides it grows toward - which is the
-     * shape of overlap this check exists to stop.
+     * <p><b>The feature's own position and nowhere else, and that is a correctness bound rather than a
+     * frugality.</b> A structure lookup reads the chunk at {@code ChunkStatus.STRUCTURE_REFERENCES}, and
+     * {@code WorldGenRegion.getChunk} allows a status that DEGRADES with distance from the chunk being
+     * generated: {@code directDependencies().get(distance)}. Only distance zero is guaranteed to be far
+     * enough along to answer. Probing further crashed real world generation with "Requested chunk
+     * unavailable during world generation" the first time a tailings heap rolled next to an aquarium.
      *
-     * <p>Probes outside the region's own chunks are skipped rather than read: a {@code WorldGenRegion}
-     * throws on a chunk it is not holding, and a feature asking about one is asking about a chunk that
-     * has not been generated yet.
+     * <p><b>{@code hasChunk} is NOT the guard for this, which is what made the crash look impossible.</b>
+     * It tests only {@code distance < directDependencies().size()} and says nothing about the status
+     * that distance permits, so a probe can pass it and still throw inside {@code getChunk}. There is no
+     * public accessor for the step's dependency list, so there is no distance-aware guard to write; the
+     * bound is the origin.
+     *
+     * <p><b>What that gives up, and why little is lost.</b> A feature's origin is its minimum corner, so
+     * a Building Husk originating up to sixteen blocks west or north of the footprint reaches into it
+     * and is not caught here. The visible result is still handled, by the two mechanisms that do the
+     * work: the building generates at {@code top_layer_modification}, AFTER every feature, so its shell
+     * overwrites anything standing inside a room's box; and each room clears the column above its own
+     * roof, so anything left overhead goes too. This check is the cheap first pass, not the guarantee.
+     *
+     * <p><b>A worldgen change of this shape cannot be proven by the GameTest harness</b>, which builds
+     * pieces into a flat test plot and never runs a feature through real chunk generation. It took a
+     * client boot to find, and it wants one again.
      */
     public static boolean claims(WorldGenLevel level, BlockPos pos) {
         // A WorldGenLevel carries no structure manager of its own in 26.1. Vanilla's decoration
@@ -94,20 +101,7 @@ public class AquariumStructure extends Structure {
         }
         Structure s = structure.get().value();
         StructureManager manager = region.getLevel().structureManager().forWorldGenRegion(region);
-        // Step 6 over the reach: the smallest room is six wide and the whole footprint is thirty-plus,
-        // so a grid this fine cannot step over the building.
-        for (int dx = -REACH; dx <= REACH; dx += 6) {
-            for (int dz = -REACH; dz <= REACH; dz += 6) {
-                BlockPos probe = pos.offset(dx, 0, dz);
-                if (!region.hasChunk(probe.getX() >> 4, probe.getZ() >> 4)) {
-                    continue;
-                }
-                if (manager.getStructureAt(probe, s).isValid()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return manager.getStructureAt(pos, s).isValid();
     }
 
     /**
