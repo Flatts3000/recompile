@@ -677,8 +677,20 @@ WALL_MACHINES = {
 
     (COLS[0], ROWS[2]): "recompile:mechanical_waste",
     (COLS[1], ROWS[2]): "recompile:garbage_block",
+    # The two conveyor machines that share the Separator's contract, put beside the gap it stands in.
+    (COLS[2], ROWS[2]): "recompile:trommel[facing=south,active=false,formed=false]",
+    (COLS[3], ROWS[2]): "recompile:pulverizer[facing=south,active=false,formed=false]",
     (COLS[4], ROWS[2]): "recompile:trash_bag",
     (COLS[5], ROWS[2]): "recompile:compacted_bale",
+
+    # THE BOTTOM COURSE, which the Separator has had to itself. It is three wide and centred at
+    # COLS[2..3], so four cells flank it and four machines were missing a place to stand. Facing SOUTH
+    # for the same reason every other directional block on this wall does: the camera looks down -z, so
+    # a default-facing furnace would present its back to it.
+    (COLS[0], 1): "recompile:slag_furnace[facing=south,lit=true]",
+    (COLS[1], 1): "recompile:sintering_kiln[facing=south,lit=true]",
+    (COLS[4], 1): "recompile:sequencer[facing=south]",
+    (COLS[5], 1): "recompile:charging_station",
 }
 
 
