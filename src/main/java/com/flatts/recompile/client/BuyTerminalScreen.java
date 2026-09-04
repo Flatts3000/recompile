@@ -7,7 +7,12 @@ import com.flatts.recompile.content.market.Market;
 import com.flatts.recompile.content.menu.BuyTerminalMenu;
 import com.flatts.recompile.gui.GuiTheme;
 import com.flatts.recompile.registry.RCItems;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -38,18 +43,26 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
                 GuiTheme.TEXT_MUTED);
         }
         int hovered = painter.overIndex("offers", shown, mouseX, mouseY);
+        Font font = painter.font();
         for (int row = 0; row < shown; row++) {
             Market.Offer offer = offers.get(scroll + row);
             if (row == hovered) {
                 painter.tintPadded("offers", row, 1, GuiTheme.HOVER_ROW);
             }
             painter.item("offers", row, BlueprintItem.of(RCItems.BLUEPRINT.get(), offer.blueprint()));
-            painter.textIn("offers", row, 20, 4, BlueprintItem.setName(offer.blueprint()).getString(),
-                GuiTheme.TEXT_LABEL);
-            painter.textIn("offers", row, 110, 4,
-                Component.translatable("container.recompile.offer_price",
-                    String.format("%,d", offer.price())).getString(),
+            // The price is right-aligned to the row's edge and the name gets whatever is left, cut
+            // with an ellipsis. "Netherite Upgrade Pattern" at "1,500 scrip" ran through the price
+            // and out of the panel when both were placed at fixed columns; the unit lives on the
+            // balance line and the hover tooltip, so the column is the bare number.
+            int width = painter.at("offers", row).width();
+            String price = String.format("%,d", offer.price());
+            int priceWidth = font.width(price);
+            painter.textIn("offers", row, width - priceWidth, 4, price,
                 offer.price() <= balance ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_WARN);
+            painter.textIn("offers", row, NAME_X, 4,
+                fit(font, BlueprintItem.setName(offer.blueprint()).getString(),
+                    width - NAME_X - priceWidth - GAP),
+                GuiTheme.TEXT_LABEL);
         }
         // The tail line sits in the extrapolated cell under the last row, which a single-column
         // run answers for on purpose - see ScreenLayout.Group.cell.
@@ -68,8 +81,48 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
             String.format("%,d", balance)).getString(), GuiTheme.TEXT_LABEL);
     }
 
+    /** Where a row's name starts: past the sheet icon. */
+    private static final int NAME_X = 20;
+    /** Air between the end of a name and the start of its price. */
+    private static final int GAP = 6;
+    private static final String ELLIPSIS = "...";
+
+    /** A string cut to a width, with an ellipsis if anything was cut. */
+    private static String fit(Font font, String text, int width) {
+        if (font.width(text) <= width) {
+            return text;
+        }
+        return font.plainSubstrByWidth(text, Math.max(0, width - font.width(ELLIPSIS))).stripTrailing()
+            + ELLIPSIS;
+    }
+
     private int shown(int total) {
         return Math.max(0, Math.min(BuyTerminalMenu.ROWS, total - scroll));
+    }
+
+    /**
+     * Hover a row for the whole story: the full name, the price with its unit, and how short you
+     * are if you cannot afford it. The row itself is cut to fit; this is where nothing is.
+     */
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
+        List<Market.Offer> offers = this.menu.offers();
+        int row = overIndex("offers", shown(offers.size()), mouseX, mouseY);
+        if (row < 0) {
+            return;
+        }
+        Market.Offer offer = offers.get(scroll + row);
+        List<Component> lines = new ArrayList<>();
+        lines.add(BlueprintItem.setName(offer.blueprint()));
+        lines.add(Component.translatable("container.recompile.offer_price",
+            String.format("%,d", offer.price())).withStyle(ChatFormatting.GRAY));
+        int shortBy = offer.price() - this.menu.balance();
+        if (shortBy > 0) {
+            lines.add(Component.translatable("tooltip.recompile.market_short",
+                String.format("%,d", shortBy)).withStyle(ChatFormatting.RED));
+        }
+        graphics.setTooltipForNextFrame(this.font, lines, Optional.empty(), mouseX, mouseY);
     }
 
     @Override
