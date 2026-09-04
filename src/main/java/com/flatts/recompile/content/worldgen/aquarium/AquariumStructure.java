@@ -16,6 +16,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -291,6 +295,60 @@ public class AquariumStructure extends Structure {
         }
         return all;
     }
+
+    /**
+     * Every VANILLA block this building places, declared once because a tool outside the game needs
+     * to know and cannot find out for itself.
+     *
+     * <p><b>Why this exists.</b> {@code tools/resource_checklist} decides whether a vanilla resource
+     * is reachable by closing over loot tables, recipes and a few declared interactions. It reads
+     * structure NBT palettes to learn what a structure places - and this building has no NBT, because
+     * it is procedural Java. So every vanilla block that exists in the world ONLY because this
+     * building places it read as unreachable, and the generated checklist confidently said so: the
+     * heart of the sea on the centrepiece pedestal, prismarine crystals off the sea lanterns, and
+     * the sponges, all filed under "no ocean, monument, shipwreck or ocean ruin generates". That was
+     * #366.
+     *
+     * <p><b>The earlier decision this reverses, and why.</b> Three moss entries were patched into the
+     * Python by hand with a comment saying the wider gap would be "recorded in the pipeline's README
+     * rather than patched here one block at a time". The README half was right and stays. The
+     * objection was to unbounded hand-patching, and the answer to that is not to patch less but to
+     * declare the whole set ONCE, here, next to the geometry it belongs to, and to guard it - which
+     * is what {@code the_aquarium_places_exactly_the_vanilla_blocks_it_declares} does, in both
+     * directions, so this list cannot silently gain or lose a member.
+     *
+     * <p><b>Vanilla only.</b> The building also places Leachate, Reinforced Concrete, Steel I-Beams
+     * and a Display Pedestal; those are this mod's own and the checklist does not track them.
+     */
+    public static final Set<Block> VANILLA_PLACED = Set.of(
+        Blocks.PRISMARINE, Blocks.PRISMARINE_BRICKS, Blocks.DARK_PRISMARINE, Blocks.SEA_LANTERN,
+        Blocks.SPONGE, Blocks.WET_SPONGE,
+        Blocks.GLASS, Blocks.TINTED_GLASS, Blocks.SMOOTH_STONE, Blocks.STONE_BRICKS,
+        Blocks.MOSSY_STONE_BRICKS, Blocks.CRACKED_STONE_BRICKS, Blocks.IRON_BARS, Blocks.COBWEB,
+        Blocks.SAND, Blocks.SUSPICIOUS_SAND, Blocks.SUSPICIOUS_GRAVEL, Blocks.WATER,
+        Blocks.CHEST,
+        // The guardian and drowned spawners. Declared because the building genuinely places
+        // it and this list means "what is placed", not "what can be carried away" - a
+        // spawner drops nothing even to silk touch, so the checklist credits its empty loot
+        // table and nothing changes. Leaving it out would make the guard lie by omission.
+        Blocks.SPAWNER,
+        Blocks.MOSS_BLOCK, Blocks.MOSS_CARPET, Blocks.PALE_MOSS_BLOCK, Blocks.PALE_MOSS_CARPET,
+        Blocks.PALE_HANGING_MOSS,
+        Blocks.DEAD_TUBE_CORAL, Blocks.DEAD_TUBE_CORAL_FAN, Blocks.DEAD_TUBE_CORAL_BLOCK,
+        Blocks.DEAD_BRAIN_CORAL, Blocks.DEAD_BRAIN_CORAL_FAN, Blocks.DEAD_BRAIN_CORAL_BLOCK,
+        Blocks.DEAD_BUBBLE_CORAL, Blocks.DEAD_BUBBLE_CORAL_FAN, Blocks.DEAD_BUBBLE_CORAL_BLOCK,
+        Blocks.DEAD_FIRE_CORAL, Blocks.DEAD_FIRE_CORAL_FAN, Blocks.DEAD_FIRE_CORAL_BLOCK,
+        Blocks.DEAD_HORN_CORAL, Blocks.DEAD_HORN_CORAL_FAN, Blocks.DEAD_HORN_CORAL_BLOCK);
+
+    /**
+     * Vanilla ITEMS this building puts into the world inside a block entity, as opposed to placing
+     * as a block.
+     *
+     * <p>Separate from {@link #VANILLA_PLACED} because a block sweep cannot see them and because
+     * they are reached differently: you break the pedestal and pick the item up. The curator chest
+     * is NOT here - its contents are an ordinary loot table, which the checklist already reads.
+     */
+    public static final Set<Item> VANILLA_ITEMS_PLACED = Set.of(Items.HEART_OF_THE_SEA);
 
     /** One piece per room, which is what generation adds and what the GameTests build. */
     public static List<StructurePiece> pieces(int ox, int base, int oz) {
