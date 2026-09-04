@@ -191,6 +191,18 @@ MANUAL.update({
     "minecraft:tadpole_bucket": ("Swamp", "bucket a tadpole"),
     "minecraft:mushroom_stew": ("Mushroom Fields", "milk a mooshroom with a bowl"),
     "minecraft:ominous_banner": ("Structures & Chest Loot", "kill a raid captain"),
+    # DRY SPONGE, and the reason is that its wet twin already has a row. Vanilla generates only
+    # WET sponge (monument sponge rooms, elder guardians) and dry sponge is one furnace step away,
+    # so the domain pass finds no natural source and throws it out as a crafted good. That is
+    # defensible for a button or a sign and indefensible here: `wet_sponge` is listed and `sponge`
+    # was not listed at all, which reads as the catalogue not knowing the item exists.
+    #
+    # It is also wrong for THIS mod specifically. The Municipal Aquarium places dry sponge in the
+    # filtration hall and the curator chest carries it, so it is a block you mine rather than
+    # something you manufacture - see AquariumStructure.VANILLA_PLACED. The route below is the
+    # vanilla one because this table is the VANILLA catalogue; the row's displayed reason comes
+    # from the reachability pass, which credits the aquarium.
+    "minecraft:sponge": ("Ocean", "smelt a wet sponge"),
 })
 
 # Routes the loot data cannot express, appended to rows that already exist.

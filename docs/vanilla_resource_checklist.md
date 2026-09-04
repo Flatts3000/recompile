@@ -9,8 +9,8 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 | | |
 |---|---|
 | Minecraft version | 26.1.2 |
-| Catalogued | 886 |
-| **Reachable in Recompile** | **815 (92%)** |
+| Catalogued | 887 |
+| **Reachable in Recompile** | **816 (92%)** |
 | Not reachable | 71 |
 | Mobs obtainable | 59 |
 
@@ -62,7 +62,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Mountain | 1 | 1 |
 | Mushroom Fields | 5 | 5 |
 | River | 2 | 2 |
-| Ocean | 85 | 95 |
+| Ocean | 86 | 96 |
 | Cave & Underground | 107 | 128 |
 | Nether | 78 | 82 |
 | End | 11 | 25 |
@@ -445,7 +445,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `salmon_bucket` - bucket a salmon
 
 
-## Ocean  <sub>85/95</sub>
+## Ocean  <sub>86/96</sub>
 
 *Oceans and their structures: monuments, shipwrecks, ocean ruins, buried treasure.*
 
@@ -537,6 +537,10 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `purple_glazed_terracotta` `(c)` - smelted from purple terracotta
 - [x] `sea_pickle` - Hydroponics Bay seedling
 - [x] `tube_coral_block` - buy from a wandering trader
+
+### Other
+
+- [x] `sponge` `(c)` - mine sponge (the Municipal Aquarium's filtration hall)
 
 <details><summary>Also mineable from structures here, but craftable (21, 21 reachable) - decoration, not a resource</summary>
 
@@ -1181,7 +1185,7 @@ Items are filed above by *where*; this lists them by *how*. `~` marks one not re
 
 ## Appendix: excluded from the catalogue
 
-383 items are excluded because their only loot table is the block dropping itself, and nothing in
+382 items are excluded because their only loot table is the block dropping itself, and nothing in
 worldgen, a structure, a mob, a chest or a trade produces one. Those are crafted goods, not
 resources. Also excluded: everything with no survival source in any version (bedrock, barrier,
 command blocks, spawn eggs, `budding_amethyst`, `petrified_oak_slab`), and the three pottery
