@@ -4,11 +4,13 @@
 **deadline-driven plan to submit Recompile to ModJam 2026 and place well** - a different shape (fixed
 date, judging criteria, presentation) that ends on September 1, 2026.
 
-> **That date has passed.** Everything below is written in the future tense against a deadline of
-> 2026-09-01; it is now a record of the plan rather than a live one. What this repo can show is
-> that v0.18.0 released on 2026-09-04. **Whether the entry was submitted, and how it placed, is
-> recorded nowhere in this repository** - so this banner deliberately does not say. Someone who
-> knows should write the outcome here and mark the milestones hit or missed.
+> **THE ENTRY WAS SUBMITTED** (owner, 2026-09-04). The deadline of 2026-09-01 has passed and
+> Recompile went in, so everything below is the record of the plan that got it there rather
+> than a live one; read the future tense accordingly. Development did not stop at the
+> deadline - v0.18.0 released on 2026-09-04, after submission.
+>
+> **The result is not recorded here**, because it is not known to this repository. Whoever
+> learns how it placed should write it in this banner.
 
 ## The jam concept: bring a dead world back to life
 
