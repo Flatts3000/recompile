@@ -419,6 +419,16 @@ public final class AquariumPieces {
                     this.placeBlock(level, coral, x, base + 1, floor, limit);
                 }
             }
+            // Moss creeping out of the bays onto the gallery floor, which is where the leaks were.
+            for (int x = ox - 9; x <= ox + 8; x++) {
+                for (int z : new int[]{oz - 2, oz + 1}) {
+                    if (AquariumPalette.sparseMossy(x, base, z)
+                            && level.getBlockState(new BlockPos(x, base, z)).is(AquariumPalette.FLOOR.getBlock())) {
+                        this.placeBlock(level, AquariumPalette.MOSS, x, base, z, limit);
+                    }
+                }
+            }
+
             // The roof girders. Placed as members of a Z run, then their joints resolved through the
             // block's own updateState - worldgen places with flag 2, which skips neighbour updates, so
             // a beam left in its placed state never notices the beam beside it and renders as a stub.
@@ -492,6 +502,23 @@ public final class AquariumPieces {
         @Override
         protected void dress(WorldGenLevel level, BoundingBox limit, RandomSource random,
                 int ox, int base, int oz) {
+            // PALE MOSS, and only here. This tank has been glassed in and unlit for forty years, which
+            // is the one condition in the building that reads as a pale garden rather than as damp.
+            BoundingBox tank = room().interior(ox, base, oz);
+            for (int x = tank.minX(); x <= tank.maxX(); x++) {
+                for (int z = tank.minZ(); z <= tank.maxZ(); z++) {
+                    int floorY = tank.minY() - 1;
+                    if (AquariumPalette.mossy(x, floorY, z)) {
+                        this.placeBlock(level, AquariumPalette.PALE_MOSS, x, floorY, z, limit);
+                    } else if (AquariumPalette.sparseMossy(x, floorY + 1, z)) {
+                        this.placeBlock(level, AquariumPalette.PALE_MOSS_CARPET, x, floorY + 1, z, limit);
+                    }
+                    if (AquariumPalette.sparseMossy(x, tank.maxY(), z)) {
+                        this.placeBlock(level, AquariumPalette.PALE_HANGING_MOSS, x, tank.maxY(), z, limit);
+                    }
+                }
+            }
+
             BlockPos at = AquariumStructure.pedestal(ox, base, oz);
             this.placeBlock(level, AquariumPalette.PEDESTAL, at.getX(), at.getY(), at.getZ(), limit);
             if (limit.isInside(at) && level.getBlockEntity(at) instanceof DisplayPedestalBlockEntity pedestal) {
@@ -592,6 +619,27 @@ public final class AquariumPieces {
                     deposit(level, limit, s, x, silt.minY(), z, random);
                 }
             }
+            // MOSS, because this is the wettest room in the building: the ramp down, the sump, and a
+            // silt bed that has been damp for forty years. It takes the floor rather than the walls so it
+            // reads as growing up out of the standing water.
+            BoundingBox hall = room().interior(ox, base, oz);
+            for (int x = hall.minX(); x <= hall.maxX(); x++) {
+                for (int z = hall.minZ(); z <= hall.maxZ(); z++) {
+                    BlockPos floorCell = new BlockPos(x, hall.minY() - 1, z);
+                    if (!level.getBlockState(floorCell).is(AquariumPalette.FLOOR.getBlock())) {
+                        continue;   // never over the sump, the silt or the ramp
+                    }
+                    if (AquariumPalette.mossy(x, floorCell.getY(), z)) {
+                        this.placeBlock(level, AquariumPalette.MOSS, x, floorCell.getY(), z, limit);
+                    } else if (AquariumPalette.sparseMossy(x, floorCell.getY() + 1, z)) {
+                        this.placeBlock(level, AquariumPalette.MOSS_CARPET, x, floorCell.getY() + 1, z, limit);
+                    }
+                    if (AquariumPalette.sparseMossy(x, hall.maxY(), z)) {
+                        this.placeBlock(level, AquariumPalette.PALE_HANGING_MOSS, x, hall.maxY(), z, limit);
+                    }
+                }
+            }
+
             // The filter bank on the north wall.
             for (int x = ox - 20; x <= ox - 14; x += 2) {
                 for (int y = base - 3; y <= base - 1; y++) {
