@@ -95,7 +95,19 @@ public final class TirePileTests {
             helper.assertTrue(tires == 2, "a double tire must give two tires, got " + tires);
             int rubber = dropsWith(helper, doubled, new ItemStack(RCItems.SCRAP_KNIFE.get())).stream()
                 .filter(s -> s.is(RCItems.RUBBER_SCRAP.get())).mapToInt(ItemStack::getCount).sum();
-            helper.assertTrue(rubber == 3, "a double tire knifed must give three rubber, got " + rubber);
+            helper.assertTrue(rubber == 2, "a double tire knifed must give two rubber, got " + rubber);
+
+            // AND A SINGLE PAYS ONE, which is the assertion that gives the line above a meaning. Two
+            // and three both look plausible in isolation; what makes three wrong is that it is not
+            // twice one. Asserting the pair is what would have caught #353, where this test carried
+            // the name a_double_tire_pays_out_twice and asserted three.
+            BlockState single = RCBlocks.TIRE.get().defaultBlockState();
+            int one = dropsWith(helper, single, new ItemStack(RCItems.SCRAP_KNIFE.get())).stream()
+                .filter(s -> s.is(RCItems.RUBBER_SCRAP.get())).mapToInt(ItemStack::getCount).sum();
+            helper.assertTrue(one == 1, "a single tire knifed must give one rubber, got " + one);
+            helper.assertTrue(rubber == one * 2,
+                "a double is two tires, so it must pay exactly twice a single: got " + rubber
+                    + " against " + one);
             helper.succeed();
         });
 
