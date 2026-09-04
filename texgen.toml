@@ -2576,18 +2576,19 @@ source = "item/battery"
 # The market (docs/market_spec.md, #311): two terminals and the find they are learned from
 # ---------------------------------------------------------------------------
 #
-# SEVEN SURFACES FOR THE TWO TERMINALS, ONE OF THEM SHARED (owner, 2026-09-04). Each block owns a
-# front, a side and a top; the two share one bottom. That is exactly orientable_with_bottom, and the
-# shared bottom is ONE surface both models point at rather than two kept in sync, so it cannot drift.
-# The front is what tells the two apart across a room, so the fronts differ most and the flanks share
-# a material language: the same dark scrap-steel casing the Sequencer and the Charging Station wear,
-# because these sit in the same base.
+# THE FRONTS ARE SCREENS (owner, 2026-09-04): a terminal is a thing you read, so the face you read
+# the block by is a display in a bezel, lit green on the block where you sell and amber on the one
+# where you buy. The find is the same screen, dead.
 #
-# The Broken Terminal is the find. It reuses the Sell Terminal's side and top - it IS one of these,
-# dead - and owns only a front, which is where "dead" shows.
+# THE SIDES AND TOPS ARE ONE DRAWING (owner, 2026-09-04). The Sell Terminal's side and top are
+# generated; the Buy Terminal's are RETINTS of them, so the two blocks are the same casing in two
+# colours rather than two casings that happen to resemble each other. The retint reads the promoted
+# sell face, so re-selecting the sell side re-promotes the buy side for free and they cannot drift.
+# The bottom is one surface both models point at. So the owner selects five faces (three fronts,
+# one side, one top) plus the bottom; everything else derives.
 #
-# Every surface below is pending until the owner runs `select`; the procedural art that ships in the
-# meantime is a placeholder and its ids stay out of gen/approved.json.
+# Every generated surface is pending until the owner runs `select`; what ships meanwhile is the
+# assistant's pick and stays out of gen/approved.json.
 
 [surface.sell_terminal]
 kind = "block_multiface"
@@ -2595,9 +2596,9 @@ backend = "ai"
 size = 16
 faces = ["front", "side", "top"]
 [surface.sell_terminal.prompt]
-front = "a full-bleed Minecraft block face of a scrap-built shop counter terminal where goods are handed IN: dark riveted steel panel with a wide horizontal intake slot across the lower half, a small green-lit price readout strip above it showing a short row of digits, an arrow pointing INTO the slot, bold and simple, high contrast"
-side = "a full-bleed Minecraft block face of a plain dark riveted scrap steel machine panel: flat scrap steel with a bolt at each corner, one thin green stripe running vertically near one edge, faint rust streaks, deliberately plainer than the front, NO lights and NO slot"
-top = "a full-bleed top-down Minecraft block face of a dark scrap steel terminal lid: riveted plate with a shallow rectangular tray recessed in the centre and a green painted stripe along one edge, a few grime smudges, bold and simple"
+front = "a full-bleed Minecraft block face of a scrap-built computer terminal seen straight on: a dark riveted steel bezel around one large square screen that fills most of the face, the screen glowing dim green and showing three short rows of glowing green text-like dashes with a small bright cursor block, a narrow strip of tiny keys along the bottom edge under the screen, bold and simple, high contrast, no perspective"
+side = "a full-bleed Minecraft block face of a plain dark riveted scrap steel machine panel: flat scrap steel with a bolt at each corner, one thin pale stripe running vertically near one edge, faint rust streaks, deliberately plain, NO lights and NO slot"
+top = "a full-bleed top-down Minecraft block face of a dark scrap steel terminal lid: riveted plate with a shallow rectangular tray recessed in the centre and a pale painted stripe along one edge, a few grime smudges, bold and simple"
 [surface.sell_terminal.procedural]
 style = "rubble"
 palette = ["#2a2d31", "#3a3e44", "#4a4f56", "#22252a", "#5c6168", "#2f7a3a", "#1c1f23"]
@@ -2606,14 +2607,34 @@ palette = ["#2a2d31", "#3a3e44", "#4a4f56", "#22252a", "#5c6168", "#2f7a3a", "#1
 kind = "block_multiface"
 backend = "ai"
 size = 16
-faces = ["front", "side", "top"]
+faces = ["front"]
 [surface.buy_terminal.prompt]
-front = "a full-bleed Minecraft block face of a scrap-built vending terminal where goods are handed OUT: dark riveted steel panel with a small glass display window in the upper half showing a rolled paper sheet inside lit pale amber, a narrow dispensing slot below it with an arrow pointing OUT, a tiny keypad of buttons to one side, bold and simple, high contrast"
-side = "a full-bleed Minecraft block face of a plain dark riveted scrap steel machine panel: flat scrap steel with a bolt at each corner, one thin amber stripe running vertically near one edge, faint rust streaks, deliberately plainer than the front, NO lights and NO slot"
-top = "a full-bleed top-down Minecraft block face of a dark scrap steel terminal lid: riveted plate with a small round amber indicator lamp in the centre and an amber painted stripe along one edge, a few grime smudges, bold and simple"
+front = "a full-bleed Minecraft block face of a scrap-built computer terminal seen straight on: a dark riveted steel bezel around one large square screen that fills most of the face, the screen glowing warm amber and showing a short list of three glowing amber text-like rows with the middle row highlighted as a bright bar, a narrow strip of tiny keys along the bottom edge under the screen, bold and simple, high contrast, no perspective"
 [surface.buy_terminal.procedural]
 style = "rubble"
 palette = ["#2a2d31", "#3a3e44", "#4a4f56", "#22252a", "#5c6168", "#b8862b", "#1c1f23"]
+
+# The buy casing: the sell casing, recoloured warm. Sources are this mod's own promoted faces, which
+# the retint backend falls back to when a ref is not a vanilla texture.
+[surface.buy_terminal_side]
+kind = "block"
+backend = "retint"
+size = 16
+tint = "#a8967a"
+# Colorising onto a warm mid-tone drops the mean luma from 57 to 34 (measured); this puts it back
+# so the two casings read as one material in two colours rather than one in light and one in shade.
+brightness = 1.67
+source = "block/sell_terminal_side"
+
+[surface.buy_terminal_top]
+kind = "block"
+backend = "retint"
+size = 16
+tint = "#a8967a"
+# Colorising onto a warm mid-tone drops the mean luma from 57 to 34 (measured); this puts it back
+# so the two casings read as one material in two colours rather than one in light and one in shade.
+brightness = 1.67
+source = "block/sell_terminal_top"
 
 # Nobody sees it, and two terminals from one company should agree somewhere.
 [surface.terminal_bottom]
@@ -2631,7 +2652,7 @@ backend = "ai"
 size = 16
 faces = ["front"]
 [surface.broken_terminal.prompt]
-front = "a full-bleed Minecraft block face of a dead scrap-built shop terminal: dark riveted steel panel with a wide horizontal slot across the lower half jammed with debris, a cracked dark unlit readout strip above it, one panel corner bent outward with rust blooming along the tear, dust and grime everywhere, NO lit lights anywhere, bold and simple, high contrast"
+front = "a full-bleed Minecraft block face of a dead scrap-built computer terminal seen straight on: a dark riveted steel bezel around one large square screen that fills most of the face, the screen DARK and unlit with a long diagonal crack across the glass and a few dead grey pixels, one bezel corner bent outward with orange rust blooming along the tear, a narrow strip of tiny keys along the bottom edge with two keys missing, dust and grime, NO glow anywhere, bold and simple, high contrast, no perspective"
 [surface.broken_terminal.procedural]
 style = "rubble"
 palette = ["#2a2d31", "#3a3e44", "#22252a", "#6b4a2a", "#1c1f23", "#4a4f56"]

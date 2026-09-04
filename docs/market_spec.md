@@ -174,18 +174,19 @@ Each block owns a **front**, a **side** and a **top**. The two **share one botto
 
 | Surface | Count | Why |
 |---|---|---|
-| front | 2, one each | The face you read the block by. It is what tells the two apart across a room. |
-| side | 2, one each | |
-| top | 2, one each | |
+| front | 2, one each | The face you read the block by. It is what tells the two apart across a room. **A screen** (owner, 2026-09-04, second ruling): a terminal is a thing you read, so the front is a display in a bezel, lit green where you sell and amber where you buy. |
+| side | **1 drawn, 1 retint** | The Buy Terminal's side is a recolour of the Sell Terminal's, so the two casings match exactly rather than resembling each other (owner, 2026-09-04). |
+| top | **1 drawn, 1 retint** | Same. |
 | bottom | **1, shared** | Nobody sees it, and two terminals from one company should agree somewhere. |
 
 **That is exactly `minecraft:block/orientable_with_bottom`**, whose four texture slots are front, side,
 top and bottom, and which is already on `RegistryCompletenessTests.VANILLA_PARENTS` so it needs no
 allowlist change. The shared bottom is one texgen surface that both models point at rather than two
-surfaces held in sync, so it cannot drift.
+surfaces held in sync, and the retints read the promoted sell faces, so neither can drift: re-select
+the sell side and the buy side re-promotes from it.
 
-Seven surfaces to declare in `texgen.toml`, and the owner approves each with `select` before any of
-them is in `gen/approved.json`. An assistant `select` while generating is not approval.
+Six faces for the owner to `select` (two fronts, one side, one top, the bottom, and the find's dead
+front); the two retints derive. An assistant `select` while generating is not approval.
 
 **A front face means the block is directional**, so it carries `BlockStateProperties.HORIZONTAL_FACING`
 set from placement. In 26.1 that is an `EnumProperty<Direction>`; `DirectionProperty` does not exist and
@@ -348,7 +349,7 @@ to ship, and is the first thing to revisit if it reads wrong.
 | How the stock reaches the client | Written into the menu's **open buffer**, the way the Scrap Crafting Table sends its position | The screen draws exactly the list the server sells from, and no second sync path exists to drift. The balance is a menu data slot, per section 10. |
 | Q4: the ratio | First-pass offers from 120 (Bulb) to 1,500 (the spawner cage and the netherite pattern), against sell prices of 5 to 45 per item | Each sheet is priced at roughly what selling its fragment count's worth of teardown yield would take, so scrip is an alternative to the grind without being faster for every sheet; region-gating sheets sit past a casual balance. The RATIO is design and the numbers are #36's. |
 | The sell list at ship | The eight machine parts plus every Clean Mattress, via `#recompile:clean_mattresses` | "Components and finished goods with a real assembly step." `nothing_sellable_is_raw_scrap_or_one_step_from_junk` is the ruling made mechanical: nothing binnable, and nothing craftable from binnable inputs alone. |
-| The art | Seven surfaces declared in `texgen.toml` exactly as section 5 lays out, plus one front for the Broken Terminal, which reuses the Sell Terminal's flanks | Procedural placeholders ship so the blocks render; none is in `gen/approved.json` until the owner runs `select`. |
+| The art | Declared in `texgen.toml` as section 5 lays out after the second ruling: screen fronts, the buy side and top as retints of the sell ones, one shared bottom, and a dead-screen front for the Broken Terminal, which reuses the Sell Terminal's flanks | AI candidates are generated and one per face is promoted so the blocks render as terminals; none is in `gen/approved.json` until the owner runs `select`. |
 
 **What the build did not do, on purpose.** No JEI category for the offers (the info panels on the
 three blocks say where the stock is), no Jade provider (there is no state on the block to show), and
