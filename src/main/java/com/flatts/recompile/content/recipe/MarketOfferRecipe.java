@@ -71,14 +71,32 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
 
     public MarketOfferRecipe(Optional<Identifier> blueprint, Optional<Item> item, int count,
             int price) {
-        // Neither, or both, is an authoring mistake rather than a shape with a sensible reading, and
-        // a market line that sells nothing would be a row a player can click for their money back
-        // in silence. Recipe decoding reports the throw against the file that caused it.
+        // AN IllegalArgumentException SPECIFICALLY, and that is load-bearing rather than a default.
+        // SimpleJsonResourceReloadListener.scanDirectory wraps each file in
+        // `catch (IllegalArgumentException | IOException | JsonParseException)`, so throwing one
+        // here logs "Couldn't parse data file" against the offending file and skips it. Any other
+        // unchecked type escapes that catch and takes the whole reload down, which would turn one
+        // bad line in a pack into a broken world rather than one missing row.
+        //
+        // Neither field, or both, is an authoring mistake rather than a shape with a sensible
+        // reading: a line that sells nothing is a row a player can click for silence.
         if (blueprint.isPresent() == item.isPresent()) {
             throw new IllegalArgumentException(
                 "a market_offer needs exactly one of 'blueprint' or 'item', got "
                     + (blueprint.isPresent() ? "both" : "neither"));
         }
+        // A sheet does not stack (BlueprintItem is stacksTo(1)), so a count on a blueprint line is
+        // a request the terminal cannot honour. Refused rather than silently handing over one.
+        if (blueprint.isPresent() && count != 1) {
+            throw new IllegalArgumentException(
+                "a market_offer selling a blueprint cannot set 'count' (got " + count
+                    + "); a Blueprint does not stack");
+        }
+        // NO ItemStack IS BUILT HERE, AND IT CANNOT BE. Recipes are decoded before item components
+        // are bound, so `new ItemStack(item)` in a recipe constructor throws "Components not bound
+        // yet" and takes the whole reload down - which is how the count-against-max-stack-size check
+        // that used to live here was written and immediately reverted. The clamp lives in offer()
+        // instead, which runs when a screen opens and so is long past that boundary.
         this.blueprint = blueprint;
         this.item = item;
         this.count = count;
@@ -114,7 +132,11 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
     public Market.Offer offer() {
         ItemStack stack = blueprint
             .map(set -> BlueprintItem.of(RCItems.BLUEPRINT.get(), set))
-            .orElseGet(() -> new ItemStack(item.orElseThrow(), count));
+            .orElseGet(() -> new ItemStack(item.orElseThrow()));
+        // Clamped rather than refused at parse, because deciding it needs the item's components and
+        // a recipe is decoded before those are bound - see the constructor. `count` is already
+        // bounded to 1..64 by the codec, so this only bites an item that stacks to less.
+        stack.setCount(Math.min(count, stack.getMaxStackSize()));
         return new Market.Offer(stack, price);
     }
 
