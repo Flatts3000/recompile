@@ -142,7 +142,7 @@ directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
-**931 lines as of 2026-09-04** (884 in the three unreachable packages, plus 47 in three `Dist.CLIENT` classes that sit outside `client/**`), all at 0%, excluded from the actionable figure rather than counted as
+**931 lines as of 2026-09-04**: 887 in the three unreachable packages (`compat/jei` 446, `client` 288, `client/gui` 153) plus 44 in the `Dist.CLIENT` classes outside `client/**` (`MultiblockPlacementPreview` 26, `RCFuelTooltip` 12, `RCBlockColors` and its inner class 3 each). The first write of this line said 884 and 47, which summed to the right headline out of two cancelling errors, on the page that calls itself the one place the subtraction is stated, all at 0%, excluded from the actionable figure rather than counted as
 debt. *(These grow with the code; they were 771 at v0.14.0. This is the one place they are stated -
 anywhere else that quotes a total is a second source waiting to drift from this one.)*
 
@@ -150,7 +150,7 @@ anywhere else that quotes a total is a second source waiting to drift from this 
   BlockEntityRenderer. A GameTest server has no client and JUnit loads none. `CLAUDE.md` already says
   screens are the layer both test layers are blind to; `python tools/shoot_screens.py` against a
   running `runClient` is the acceptance evidence for them, not a coverage number.
-- **`compat/jei` (443 lines)** - categories and renderers. JEI's own registration only happens
+- **`compat/jei` (446 lines)** - categories and renderers. JEI's own registration only happens
   client-side. `SortingData` is the server-safe half and is covered by `SortingDataTests`, which is
   exactly why that split exists.
 

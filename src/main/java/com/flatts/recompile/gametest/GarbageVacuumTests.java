@@ -678,9 +678,14 @@ final class GarbageVacuumTests {
                     + "chest nothing can get back out of");
             helper.assertBlockPresent(Blocks.STONE, DOCK.north());
 
-            // Creative keeps its copy, the standard creative contract. makeMockServerPlayerInLevel is
-            // left creative here deliberately: this is the one assertion that is ABOUT instabuild.
+            // Creative keeps its copy, the standard creative contract. The ability is SET rather than
+            // relied on: makeMockServerPlayerInLevel does default to instabuild, so this worked either
+            // way, but an assertion that is ABOUT that flag should not be one implicit-default change
+            // away from silently testing the survival path instead. The mattress test in this same
+            // pass failed for exactly that reason, one branch over.
             ServerPlayer creative = helper.makeMockServerPlayerInLevel();
+            creative.getAbilities().instabuild = true;
+            creative.onUpdateAbilities();
             creative.setItemInHand(InteractionHand.MAIN_HAND,
                 vacuum(RCItems.COPPER_GARBAGE_VACUUM, 0));
             helper.useBlock(DOCK, creative);

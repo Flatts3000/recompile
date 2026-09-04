@@ -38,7 +38,11 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * and nothing written outside a plot is cleaned up between tests, so two wide builds at a common height
  * write through each other's neighbours. Spoken for elsewhere: 0/40/80/120/160/240 by the aquarium
  * builds (38 blocks wide, clearing 28 above) and 40/80/120 by the tire dumps (14 blocks out). This file
- * takes <b>200, 208 and 216</b> for the three tailings tests, whose footprint is 35 blocks across.
+ * takes <b>200, 216 and 232</b> for the three tailings tests, whose footprint is 35 blocks across.
+ * <b>Sixteen apart rather than eight, and the gap is set by the MEASUREMENT window rather than by the
+ * build.</b> A pile is about six tall, so eight looked ample; the drums test scans ten blocks to catch
+ * a drum sitting on the skirt, and at eight it was reading the next band's drums as its own. It passed
+ * on registration order alone.
  *
  * <p>The mycelium and yard-pile tests take no band at all, on purpose: they reach at most three blocks
  * from their origin and plots are a dozen apart, so no number of them can touch a neighbour. Lifting
@@ -337,10 +341,16 @@ final class ScatterFeatureTests {
         // read as decorated cake. A drum in the wrong place fails nothing, logs nothing, and comes out
         // identical in a block census - it can only be seen.
         //
-        // Band 208. See the class note.
+        // Band 216. See the class note.
         RCGameTests.test("tailings_drums_land_at_the_toe_and_never_on_the_summit", 100, helper -> {
             ServerLevel level = helper.getLevel();
-            final int floor = 208;
+            // BAND 216, NOT 208. Eight blocks of separation is not enough for THIS test: it scans
+            // dy -1..8, a ten-block window, and the neighbouring stain test drops Waste Drums one
+            // above its own field. At 208 this test's window reached 217 and the stain test's drums
+            // sat at 217, horizontally inside this sweep because plots are about ten blocks apart.
+            // It passed only because the three run in registration order inside one batch tick;
+            // adding a fourth tailings test or letting the batch split would have broken it.
+            final int floor = 216;
             BlockPos origin = helper.absolutePos(new BlockPos(2, floor + 1, 2));
             layField(level, origin, Blocks.COARSE_DIRT, 17);
 
@@ -407,7 +417,9 @@ final class ScatterFeatureTests {
         // Band 216. See the class note.
         RCGameTests.test("a_tailings_stain_never_eats_a_neighbours_tailings", 100, helper -> {
             ServerLevel level = helper.getLevel();
-            final int floor = 216;
+            // BAND 232. The drums test below it now measures up to 225, so eight is no longer
+            // clear of it; sixteen is.
+            final int floor = 232;
             BlockPos origin = helper.absolutePos(new BlockPos(2, floor + 1, 2));
             // The field IS the neighbour: a flat sheet of the block an earlier pile would have left.
             layField(level, origin, RCBlocks.MILL_TAILINGS.get(), 17);
