@@ -76,34 +76,59 @@ the shape is not new here.
 - **They do not fall.** Gravity belongs to the garbage blocks; a stack of tires is stable, and a falling
   tire would be a different mechanic asking to be explained.
 - **No `sorted` progress and no crumble window.** See section 7 for why this departs from #155.
+- **And no `LIT` state either.** Ruling 4 puts a real fire block above a burning tire, so the tire
+  carries no fire state of its own and needs no second model.
 
 ---
 
 ## 4. The fire
 
-**Some tires generate alight, and they never go out.**
+**DECIDED, and nonnegotiable (owner, 2026-09-04): a tire behaves with fire exactly as netherrack does.**
+Some tires generate with a real fire burning on them, and that fire never goes out.
 
-**Recommendation: a `LIT` blockstate on the tire itself, and no vanilla fire block anywhere.** This is
-the single most consequential build decision in the spec and it is worth arguing rather than assuming:
+**The mechanism is `isFireSource`, not the tag.** NeoForge routes the eternal-fire question through the
+block: `FireBlock.tick` asks `belowState.isFireSource(level, pos.below(), Direction.UP)`, whose default
+implementation consults the dimension's infiniburn tag. A mod block can answer directly, which is the
+better of the two routes here:
 
-- **Vanilla fire spreads**, and the P2 pressure-loop rule is explicit that a hazard must never threaten
-  builds or cleared land. A real fire block on a tire dump next to a player's base is precisely that,
-  and containing it would mean overriding flammability on every neighbour rather than on the tire.
-- **"Never goes out" is free with a blockstate** and costs a tag plus a fire block without one. There is
-  nothing to burn out because there is no fire entity to tick.
-- **It is the mod's own idiom.** `sorted` on `SortableBlock` and `HEIGHT` on `MoundGroundBlock` are both
-  palette flyweights carrying state on a bulk block for exactly this reason, and a dump full of tires is
-  a bulk block.
-- **It is deterministic at generation**, so which tires are alight does not depend on fire ticking
-  having run, which worldgen cannot wait for.
+- **Override `isFireSource` on the tire** to return true. Block-scoped, needs no vanilla-namespace tag
+  file, and cannot be broken by a datapack editing `#minecraft:infiniburn_overworld` for other reasons.
+- Joining `#minecraft:infiniburn_overworld` (netherrack and magma block today; this mod does not touch
+  it) reaches the same place with a file the mod does not otherwise own.
 
-**The alternative, recorded so nobody has to rediscover its cost.** Vanilla's eternal fire is
-`#minecraft:infiniburn_overworld`, which holds netherrack and magma block and which this mod does not
-use at all today. Putting the tire in it and placing a real fire block on top would give genuine vanilla
-behaviour, at the price of spread and of a fire block per lit tire. Not recommended.
+**Four consequences, all of them netherrack's, and all intended:**
 
-**What a lit tire does:** emits light, emits smoke, and is hot to stand in. What it must not do is
-spread, consume its neighbours, or reach anything the player built.
+1. **It never self-extinguishes, including in rain.** `FireBlock.tick` skips its rain-extinguish branch
+   when the block below is a fire source. Worth stating because this world rains and the Rain Collector
+   depends on it: a downpour will not clear a tire dump.
+2. **The fire does not consume the tire.** Netherrack is absent from the flammable registrations and the
+   tire must be too, or a pile slowly eats itself and the resource decays on a timer the player cannot
+   see. The rubber is still there under the flames.
+3. **A player can still put it out**, with water or by breaking the fire block. That is netherrack as
+   well: eternal means it does not go out on its own, not that it cannot be dealt with.
+4. **Fire spreads by ordinary vanilla rules**, which is the half worth reading carefully. See below.
+
+**On spread, which is the concern this ruling overrides, and which is smaller here than in a vanilla
+world.** Measured rather than assumed:
+
+- The sprawl's surface is **coarse dirt**, which is not flammable.
+- **This mod registers no flammable blocks at all** (no `setFlammable`, no `getFlammability` override
+  anywhere in the sources), so weedgrass, fireweed and the rest cannot catch either.
+- So a pile standing in unreclaimed sprawl has **nothing to spread to** and is self-contained by the
+  terrain rather than by a rule.
+
+What can burn is what the **player** brings: reclaimed grass, a grown tree, a wooden build. That is a
+proximity the player chooses, and "do not build against a burning tire dump" is a fair thing for a game
+to expect. It does mean the P2 pressure-loop rule is satisfied by circumstance rather than by design
+here, which is worth knowing if the sprawl ever gains a flammable block.
+
+**A `LIT` blockstate with no fire block was considered and rejected** (owner). It would have made spread
+impossible by construction, at the cost of the fire not being real: no water interaction, no
+extinguishing, no light and smoke from vanilla's own fire, and a hazard that behaves like nothing else
+in the game. Recorded because this repo records reversals, not to reopen it.
+
+**What a lit tire does:** carries a vanilla fire block above it, which lights and smokes on its own. The
+tire itself needs no `LIT` state and no extra model.
 
 ---
 
@@ -180,17 +205,21 @@ The one thing #155 says must not be skipped, and still open.
 
 Recommendation: the Pump, with the recipe change made explicitly and noted in the changelog.
 
-### 8.2 Does fire destroy the rubber, and can a player put it out?
+### 8.2 Does a burning tire still yield its rubber?
 
-The answer decides whether fire is scenery or a mechanic.
+**Mostly answered by ruling 4.** Netherrack semantics settle the two halves that mattered: the fire does
+not consume the tire, so the rubber survives, and a player can put the fire out with water, so a burning
+pile is workable rather than lost.
 
-**Recommendation: a lit tire yields nothing, and water puts it out.** That turns a burning pile into a
-cost rather than a decoration: the rubber is there, you can see it, and taking it means spending water
-from a Rain Collector or the sewers. It ties tires to the P1.10 water economy the way the fridge ice
-ruling ties ice to it, and it gives the eternal fire a reason to exist beyond looking right.
+What is still open is one number: whether breaking a tire **while it is burning** yields the same rubber
+as a cold one.
 
-The alternative, that lit tires burn away over time, is worse: it makes the resource decay on a timer
-the player cannot see and did not cause.
+- **Same yield** is the simplest and follows from ruling 4, since the tire is not damaged.
+- **Reduced yield** would make extinguishing worth the water it costs and tie tires to the P1.10 economy
+  the way the fridge ice ruling ties ice to it. It is also the reading a player would guess.
+
+Leaning toward reduced, but this is a balance dial rather than a design question, so it belongs with
+#36 unless somebody feels strongly.
 
 ### 8.3 Do tires also appear in the pull streams?
 
@@ -208,14 +237,14 @@ whether a stream runs out belongs to the balance pass (#36), answered once for t
 once per material. Worth stating in the guidebook so a player who strips their local piles knows to
 travel rather than assuming the material is gone.
 
-### 8.5 What does a burning pile do to a player standing in it?
+### 8.5 Does a burning pile need anything beyond the fire itself?
 
-`RCLeachateContact` is the precedent for a contact effect and it does real damage. The P2 rule
-constrains threats to builds and cleared land and says nothing about the player, so damage is available.
+Ruling 4 gives the player vanilla fire damage for free, which is already a hazard they can see and walk
+around. So the open question is only whether anything is added on top.
 
-Leaning: fire damage only while inside a lit tire's own block, no smoke inhalation effect, no lingering
-debuff. A hazard the player can see and walk around is fair; an area effect around a dump is a mechanic
-that wants its own design.
+`RCLeachateContact` is the precedent for a contact effect and it does real damage, so a smoke effect
+around a burning pile is available. Leaning against: vanilla fire is legible and an invisible area
+effect around a dump is a mechanic that wants its own design and its own config gate.
 
 ### 8.6 Shape of a pile
 
@@ -242,7 +271,11 @@ Leaning: particles on the top tire of a lit stack only, not on every lit tire in
   the circle and the height falloff are pure arithmetic and want measuring without booting anything.
 - **A GameTest that a pile never stands on Mound Ground or in a mound**, which is rule 1 and is the one
   that silently corrupts Phase 5 regrowth if it regresses.
-- **A GameTest that a lit tire stays lit**, since "never goes out" is the claim a player would notice
-  breaking and nothing else would.
+- **A GameTest that fire on a tire survives what puts ordinary fire out**, since "never goes out" is the
+  claim a player would notice breaking and nothing else would. Rain is the case worth asserting: this
+  world rains, and `FireBlock` only skips its rain-extinguish branch when the block below answers
+  `isFireSource`. A test that only waits for the fire tick would pass on a broken implementation.
+- **A GameTest that fire does not consume the tire**, which is the other half of netherrack and the one
+  that would turn every pile into a slow leak of the only rubber in the game.
 - Textures are generated, never hand-drawn: a `tire` surface in `texgen.toml`, and a lit variant if the
   model needs one.
