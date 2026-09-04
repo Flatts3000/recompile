@@ -1,6 +1,6 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether shipped 2026-08-19** (pulled forward - see that phase). **v0.17.0 is released** (2026-09-03, the Garbage Vacuum, its Charging Station and the battery chain - see "The powered-tool tier" below; v0.16.0 2026-08-31 two landmark structures and cardboard; v0.15.0 2026-08-30 spawn eggs via amber and the Sequencer, the radioactive dump as the second frontier region, and AE2 made playable; v0.14.0 2026-08-21 Ancient Sculk, the two cross-mod stopgaps and the recipe-collision fix; v0.13.0 2026-08-20 brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 2026-08-18 the sewers, v0.10.0 2026-08-17, v0.9.0 2026-08-12, v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27). **Phase 6 (the full loop) is what remains.**
+**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether shipped 2026-08-19** (pulled forward - see that phase). **v0.18.0 is released** (2026-09-04, the **Municipal Aquarium** and **tire dumps** - the only prismarine, coral, sponge, sea lantern and guardian in the game, the only rubber, and the Dried Bouquet that brings back the four tall flowers; v0.17.0 2026-09-03 the Garbage Vacuum, its Charging Station and the battery chain - see "The powered-tool tier" below; v0.16.0 2026-08-31 two landmark structures and cardboard; v0.15.0 2026-08-30 spawn eggs via amber and the Sequencer, the radioactive dump as the second frontier region, and AE2 made playable; v0.14.0 2026-08-21 Ancient Sculk, the two cross-mod stopgaps and the recipe-collision fix; v0.13.0 2026-08-20 brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 2026-08-18 the sewers, v0.10.0 2026-08-17, v0.9.0 2026-08-12, v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27). **Phase 6 (the full loop) is what remains.**
 the latter as the CurseForge ModJam 2026 entry). The mod is a
 playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
 Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
@@ -463,6 +463,43 @@ not silent about it.
 
 Spec: [`garbage_vacuum_spec.md`](garbage_vacuum_spec.md). Deferred from it: the upgrade matrix
 (filter / void / network link) as data components, tracked in #338.
+
+---
+
+## The market  *(shipped to main 2026-09-04, unreleased, outside the phase order)*
+
+Not a phase. A pair of workstations the owner called for (#311), recorded here because it added a
+**third way to hold a thing** and every rule in the mod above was written when there were two.
+
+- **Two terminals and an account.** The **Sell Terminal** quotes what a load pays before you sell it
+  and credits **company scrip**; the **Buy Terminal** spends that balance. Neither has a block
+  entity, a container or power: the balance is a data attachment on the player and the sell grid is
+  menu-local like a crafting grid, so both sit outside `MachineParityTests` by construction. Scrip is
+  never an item, so it cannot be dropped, chested, or hoppered.
+- **They are the ninth and tenth custom screens, and one recorded reversal rather than two.** The
+  earlier proposal was GUI-less selling plus recipe-based buying, specifically to avoid minting
+  screens. It was reversed because **no vanilla screen shows a price**: a chest screen would show the
+  goods and hide the only number that matters.
+- **Found, built, and now purchased.** A `recompile:market_offer` line sells either `blueprint`
+  (KNOWLEDGE - the specced shortcut past the fragment grind, still wanting every material and the
+  bench) or `item` (THE THING, the only route in this mod by which an object enters the world without
+  being found, grown or built). Two ship on it, both chosen because
+  `vanilla_resource_checklist.md` already listed them unreachable: a **Totem of Undying** outright
+  and a **Bucket of Powder Snow** as knowledge.
+- **One invariant had to give and one guard had to be written.** "Every shipped blueprint is taught
+  by a teardown" is no longer true, so
+  `every_shipped_blueprint_has_a_name_a_recipe_and_a_teacher` is now `..._and_a_route` (a teardown
+  teacher **or** a market offer). And found-only is enforced by a sweep over RECIPES, which a shop
+  counter is not, so `the_market_never_sells_what_is_meant_to_be_found` fails the build on an offer
+  selling a `#recompile:found_only` item or the knowledge to make one.
+- **Both are learned from a Broken Terminal** pried out of Bulky Waste and torn down. One find
+  teaches both sets.
+
+Spec: [`market_spec.md`](market_spec.md), section 14 for the acquisition axis. Open from it: the
+scrip-vs-fragment ratio is still unsettled (section 12, question 4), and the balance's 16-bit sync
+ceiling turned up the same latent exposure in the Hydroponics Bay, tracked in #369. What is
+deliberately unguarded and worth watching: a future sheet whose materials are all household-side
+would genuinely sell a region gate. The two that exist do not.
 
 ---
 

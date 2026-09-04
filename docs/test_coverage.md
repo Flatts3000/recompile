@@ -54,7 +54,7 @@ argued with.
 57.6 to 63.1 across two passes; branch is the number that moved most in this one, which is what you
 would expect from a pass that went after guards rather than after happy paths.
 
-687 GameTests (686 of them this mod's) and 105 JUnit tests, both layers green.
+709 GameTests (708 of them this mod's) and 108 JUnit tests, both layers green, measured 2026-09-04. **The percentages above belong to that COVER pass and were not re-measured since** - the market (#368, #370) has added tests to both layers, so treat them as a floor rather than as today's number.
 
 **What this pass added, and it is worth reading as a list of what was NOT proven before:** the Garbage
 Vacuum's entire hold-to-vacuum loop (`onUseTick` was 0/19 lines, so the headline tool of v0.17.0 had

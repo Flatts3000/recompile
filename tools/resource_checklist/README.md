@@ -96,7 +96,8 @@ and the diff would mean nothing.
 ## When the mod changes
 
 `reachability.py` reads the mod's data directly, so new loot tables, recipes and tags are picked up
-with no edit. Three things are hand-maintained in it and will drift silently:
+with no edit - as long as the recipe's TYPE is one it already knows. Four things are
+hand-maintained in it and will drift silently:
 
 - `MOBS` - which mobs can exist, and why. **Every entry is hand-declared, including the biome
   spawners**: `reachability.py` never opens a biome file. So adding a mob to a biome's spawner list
@@ -106,3 +107,11 @@ with no edit. Three things are hand-maintained in it and will drift silently:
 - `VANILLA_IN_WORLD` - the vanilla blocks the mod's code-generated structures place. Sewers, cooling
   towers and smokestacks build from Java, so their palettes cannot be read from data.
 - `INTERACT` - the non-recipe routes described above.
+- **The recipe-type dispatch itself.** `recipe_rules` is one `if`/`elif` chain over `type`, so a
+  recipe whose type has no arm contributes NOTHING and says nothing about it: the file parses, the
+  run is green, and whatever it produces reads as unreachable. Not hypothetical - the market (#370)
+  shipped `recompile:market_offer`, and until an arm was added the two items whose only source is
+  the Buy Terminal came out unreachable, which is this tool's own failure mode pointed the wrong
+  way. **Adding a recipe type to the mod means adding an arm here.** The eight it understands today
+  are `blueprint_crafting`, `teardown`, `separating`, `pulverizing`, `vitrifying`, `sintering`,
+  `fragment_assembly` and `market_offer`, alongside the vanilla ones.
