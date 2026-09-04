@@ -597,9 +597,11 @@ final class MarketTests {
                 } else {
                     things++;
                 }
-                // Keyed on what the row IS rather than on a set id, since an item row has none.
-                if (!seen.add(offer.displayName().getString())) {
-                    dead.add(offer.displayName().getString() + " is on the shelf twice");
+                // Keyed on identity rather than the display name: two item lines selling the same
+                // thing at different counts are a single and a bulk row, which is what `count`
+                // exists for, and a name-keyed check called them one row listed twice.
+                if (!seen.add(offer.identity())) {
+                    dead.add(offer.identity() + " is on the shelf twice");
                 }
             }
             helper.assertTrue(knowledge > 0 && things > 0,
@@ -671,27 +673,50 @@ final class MarketTests {
             List<Market.Offer> offers = MarketTerminalBlock.Buy.offers(level.getServer());
             helper.assertTrue(!offers.isEmpty(), "no offers loaded - this would check nothing");
 
-            java.util.Map<Identifier, Item> unlocks = new java.util.HashMap<>();
+            // A LIST PER SET, not one item. `put` on a plain map is last-wins, and a pack may add a
+            // second blueprint_crafting recipe to a set the terminal already sells - the overwritten
+            // one would then go unchecked.
+            java.util.Map<Identifier, List<Item>> unlocks = new java.util.HashMap<>();
+            Set<Item> gatedResults = new HashSet<>();
             for (RecipeHolder<BlueprintCraftingRecipe> holder : level.recipeAccess().recipeMap()
                     .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
-                unlocks.put(holder.value().blueprint(), holder.value().result().item());
+                Item result = holder.value().result().item();
+                unlocks.computeIfAbsent(holder.value().blueprint(), k -> new ArrayList<>())
+                    .add(result);
+                gatedResults.add(result);
             }
+            helper.assertTrue(!gatedResults.isEmpty(),
+                "no blueprint-gated results found - the gate check below would pass against "
+                    + "anything");
 
             List<String> leaks = new ArrayList<>();
             for (Market.Offer offer : offers) {
+                Identifier set = offer.blueprint();
+
                 if (offer.stack().is(RCTags.FOUND_ONLY)) {
-                    leaks.add(offer.displayName().getString() + " is sold outright while being in "
+                    leaks.add(offer.identity() + " is sold outright while being in "
                         + "#recompile:found_only");
                 }
-                Identifier set = offer.blueprint();
-                Item unlocked = set == null ? null : unlocks.get(set);
-                if (unlocked != null && unlocked.builtInRegistryHolder().is(RCTags.FOUND_ONLY)) {
-                    leaks.add(set + " is sold and unlocks "
-                        + BuiltInRegistries.ITEM.getKey(unlocked) + ", which is found-only");
+                // AND IT MAY NOT SELL WHAT A BLUEPRINT GATES, which is the same hole seen from the
+                // other side. a_blueprint_result_has_no_other_route finds second sources by reading
+                // each recipe's display(), and a market_offer has none - so a line selling
+                // minecraft:spawner outright would skip the compacted depths with every existing
+                // guard staying green. Selling the SHEET is the whole feature; selling the thing
+                // the sheet exists to gate is not.
+                if (set == null && gatedResults.contains(offer.stack().getItem())) {
+                    leaks.add(offer.identity() + " is sold outright while being a blueprint-gated "
+                        + "result, so buying it skips the gate the blueprint is");
+                }
+
+                for (Item unlocked : unlocks.getOrDefault(set, List.of())) {
+                    if (unlocked.builtInRegistryHolder().is(RCTags.FOUND_ONLY)) {
+                        leaks.add(set + " is sold and unlocks "
+                            + BuiltInRegistries.ITEM.getKey(unlocked) + ", which is found-only");
+                    }
                 }
             }
             helper.assertTrue(leaks.isEmpty(),
-                "the market undercuts the found-only rule, which no recipe sweep can see: " + leaks);
+                "the market undercuts a rule no recipe sweep can see: " + leaks);
             helper.succeed();
         });
     }

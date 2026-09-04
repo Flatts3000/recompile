@@ -31,7 +31,7 @@ import net.minecraft.world.level.Level;
  * <pre>{@code
  * { "type": "recompile:market_offer", "blueprint": "recompile:battery",        "price": 240 }
  * { "type": "recompile:market_offer", "item": "minecraft:totem_of_undying",    "price": 2500 }
- * { "type": "recompile:market_offer", "item": "recompile:rebar", "count": 8,   "price": 60 }
+ * { "type": "recompile:market_offer", "item": "recompile:copper_pipe", "count": 8, "price": 45 }
  * }</pre>
  *
  * <p><b>Exactly one of {@code blueprint} and {@code item}</b>, and the split is the whole design of
@@ -50,6 +50,13 @@ import net.minecraft.world.level.Level;
  *
  * <p><b>Priced in the balance alone</b> (owner, 2026-08-30). There is no fragment field and there is
  * not going to be one: money replaces the grind rather than discounting it.
+ *
+ * <p><b>Two things an {@code item} line may not sell</b>, both enforced by
+ * {@code the_market_never_sells_what_is_meant_to_be_found}: anything in
+ * {@code #recompile:found_only}, and anything a Blueprint gates. The bulk example above used to
+ * name {@code recompile:rebar}, which is found-only - a pack author copying the schema's own
+ * example would have landed on the invariant, and in a pack with no tests would have put a second
+ * source on a found item in silence.
  */
 public class MarketOfferRecipe implements Recipe<RecipeInput> {
 

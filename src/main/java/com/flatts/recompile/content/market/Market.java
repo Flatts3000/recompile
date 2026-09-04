@@ -170,5 +170,27 @@ public final class Market {
         public @org.jspecify.annotations.Nullable Identifier blueprint() {
             return com.flatts.recompile.content.item.BlueprintItem.blueprintOf(stack);
         }
+
+        /**
+         * What this row IS, as a stable string: the set id for knowledge, the item id and count for
+         * a thing.
+         *
+         * <p><b>Not the display name</b>, which was the first cut and is wrong twice. It resolves
+         * through the SERVER's language while each client renders the row with its own, so an order
+         * sorted on it is not alphabetical for a non-English player and shifts when a translation is
+         * missing. And it cannot tell a single from a bulk line of the same item apart, which is the
+         * whole reason {@code count} exists - two such rows read as one row listed twice.
+         *
+         * <p>Used for the shelf's tie-break and for the duplicate check, so those two cannot
+         * disagree about when two rows are the same row.
+         */
+        public String identity() {
+            Identifier set = blueprint();
+            if (set != null) {
+                return "blueprint:" + set;
+            }
+            return net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem())
+                + "#" + stack.getCount();
+        }
     }
 }
