@@ -351,6 +351,7 @@ a player wants. Exhibit stock, dive kit, the gift shop's inventory, the archive.
 |---|---|---|
 | **Armor trim smithing templates** | 16 | **reverses ruling 8.4**, see below |
 | **Wetlands-wing plants** | 6 | `glow_lichen`, `big_dripleaf`, `spore_blossom`, `hanging_roots`, `azalea`, `flowering_azalea` |
+| **Arid vivarium** | 5 | `bush`, `cactus_flower`, `short_dry_grass`, `dead_bush`, `pink_petals` - added 2026-09-04, the last five plants in the game with no source (#331). A reptile house is as ordinary a room in a public aquarium as the tank hall. |
 | **Sponges** | 2 | also placed in the filtration hall; the chest carries spares |
 | **`turtle_scute`** | 1 | its only route in the game, see #345 |
 | **Enchanted books** | 0 | flavour rather than a gap: already reachable from a librarian |

@@ -136,7 +136,7 @@
       ]
     },
     {
-      "_comment": "Exhibit stock: the wetlands wing, spare sponges, and the one scute in the game.",
+      "_comment": "Exhibit stock: the wetlands wing, the arid vivarium, spare sponges, and the one scute in the game. The arid five (#331) are here because a public aquarium is a small zoo: the reptile vivarium is as ordinary a room in one as the tank hall, and these are the last plants in the game with no source. dead_bush carries the extra weight of the five - it is the only one of them that does anything, being a fuel and the one stick that needs no wood.",
       "rolls": {
         "type": "minecraft:uniform",
         "min": 2,
@@ -265,6 +265,81 @@
           "functions": [
             {
               "function": "minecraft:enchant_randomly"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bush",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cactus_flower",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:short_dry_grass",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:dead_bush",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:pink_petals",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 4
+              }
             }
           ]
         }

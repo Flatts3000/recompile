@@ -39,7 +39,7 @@ Three tables, and one of them is not where you would look for it:
 
 | Table | Fills |
 |---|---|
-| `recompile:chests/aquarium_curator` | the curator's chest in Back of House: the four nautilus armours, the sixteen trim templates, the wetlands plants, spare sponges, turtle scute |
+| `recompile:chests/aquarium_curator` | the curator's chest in Back of House: the four nautilus armours, the sixteen trim templates, the wetlands plants, the arid vivarium's five, spare sponges, turtle scute |
 | `recompile:archaeology/aquarium_silt` | the filtration hall's brushable silt bed: the nineteen pottery sherds the sewers do not carry |
 
 Same mechanism as the sewers (`setBlockEntityLootTable` / `setLootTable` at generation, resolved live
