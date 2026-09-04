@@ -2,13 +2,19 @@ package com.flatts.recompile.content.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * A tire (spec {@code docs/tire_piles_spec.md}, #155). Slab-shaped so two make a metre and a heap is a
  * column of them, circular in model, and found in clustered dumps across the household sprawl.
+ *
+ * <p><b>A tire is a FULL half block</b> (owner, 2026-09-04). The circle is the TEXTURE and not carved
+ * geometry: the first model was four bars around a hollow centre and only four pixels tall against an
+ * eight-pixel slab collision box, so it read as a thin frame you could see daylight through and did not
+ * fill the space it occupied. The models are vanilla's {@code slab}, {@code slab_top} and
+ * {@code cube_bottom_top} now, which is also why this block does NOT ask for {@code noOcclusion} - see
+ * the note in {@code RCBlocks}.
  *
  * <p><b>It is a plain block, not a {@code SortableBlock}</b> (owner, 2026-09-04: "a tire is not a
  * sortable block, that wouldn't make any sense"). There is no {@code sorted} progress, no crumble
@@ -53,17 +59,7 @@ public class TireBlock extends SlabBlock {
         return true;
     }
 
-    /**
-     * A tire is mostly hole, so it must not be treated as a solid face for spawning or for support.
-     * The model is a ring; {@code noOcclusion()} on the properties handles the rendering half.
-     */
-    @Override
-    protected boolean isPathfindable(BlockState state, net.minecraft.world.level.pathfinder.PathComputationType type) {
-        return false;
-    }
-
-    @Override
-    protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
-        return 1.0F;
-    }
+    // NO isPathfindable OR getShadeBrightness OVERRIDE. Both were here to describe a block that was
+    // mostly hole, and a full half block is not one - so a tire shades and paths exactly as any vanilla
+    // slab does. Leaving them would have been a stated reason that had stopped being true.
 }
