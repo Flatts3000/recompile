@@ -179,14 +179,35 @@ final class MattressTests {
             helper.succeed();
         });
 
-        // THE CREATIVE-BREAK TEST LIVES IN #357, NOT HERE. It was written in this pass, it fails, and
-        // it fails against real behaviour rather than against the harness: with `abilities.instabuild`
-        // set directly (not via setGameMode, which does not reach that field on a mock) a creative
-        // break of the foot still leaves one Dirty Mattress on the floor. That is duplication - the
-        // player keeps their inventory and gains a mattress - and it contradicts the javadoc on
-        // MattressBlock.playerWillDestroy, which says in as many words that it exists to stop exactly
-        // this. It is held out of the suite rather than shipped red, and rather than "fixed" by
-        // guessing at a mechanism that static reading did not settle. The body is in the issue.
+        // CREATIVE-BREAKING THE FOOT DROPS NOTHING. This is #357, and it failed for a fortnight of
+        // nothing, because the survival case paid exactly one and looked right. The mechanism: a
+        // creative break runs playerWillDestroy, which removes the HEAD; that neighbour update makes
+        // the foot's updateShape return AIR, and updateOrDestroy rolls the foot's loot on the way out.
+        // With the table conditioned on `part=foot` the foot was the dropping half, so it paid out and
+        // the player kept their item too. Conditioned on `part=head`, as vanilla's beds are, the half
+        // that self-destructs is the silent one.
+        //
+        // Driven through gameMode.destroyBlock rather than Level.destroyBlock because that is the only
+        // path that calls playerWillDestroy at all; Level.destroyBlock drops unconditionally and would
+        // assert nothing about creative.
+        RCGameTests.test("creative_breaking_a_mattress_foot_drops_nothing", 60, helper -> {
+            BlockPos foot = new BlockPos(1, 1, 1);
+            BlockPos head = foot.south();
+            layHalves(helper, foot, head);
+
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            // SET THE ABILITY, NOT THE GAME MODE. Player.preventsBlockDrops reads abilities.instabuild
+            // and nothing else, and setGameMode re-derives abilities through updatePlayerAbilities,
+            // which does not leave it set on a player with no registered connection.
+            player.getAbilities().instabuild = true;
+            player.onUpdateAbilities();
+            player.gameMode.destroyBlock(helper.absolutePos(foot));
+
+            helper.assertBlockPresent(Blocks.AIR, foot);
+            helper.assertBlockPresent(Blocks.AIR, head);
+            helper.succeedWhen(() ->
+                helper.assertItemEntityCountIs(RCItems.MATTRESS.get(), foot, 3.0, 0));
+        });
 
         // ...and its opposite, which is the half that makes the creative test mean something: a survival
         // break of the same cell hands back EXACTLY one. Two rolls fire on a break here - the half the

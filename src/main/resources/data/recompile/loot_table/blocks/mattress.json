@@ -4,16 +4,36 @@
     {
       "rolls": 1,
       "conditions": [
-        { "condition": "minecraft:survives_explosion" },
+        {
+          "condition": "minecraft:survives_explosion"
+        },
         {
           "condition": "minecraft:block_state_property",
           "block": "recompile:mattress",
-          "properties": { "part": "foot" }
+          "properties": {
+            "part": "head"
+          }
         }
       ],
       "entries": [
-        { "type": "minecraft:item", "name": "recompile:mattress" }
+        {
+          "type": "minecraft:item",
+          "name": "recompile:mattress"
+        }
       ]
     }
+  ],
+  "_comment": [
+    "THE DROPPING HALF IS THE HEAD, and it has to be that one rather than the foot (#357).",
+    "",
+    "A two-block block drops from exactly one of its halves or a break pays twice. Which half is not",
+    "arbitrary, because MattressBlock.playerWillDestroy removes the HEAD first when the breaker is",
+    "creative. Removing it sends a neighbour update to the foot, the foot's updateShape sees its",
+    "partner gone and returns AIR, and updateOrDestroy rolls the foot's table on the way out.",
+    "",
+    "So with the condition on `foot`, a creative break of the foot dropped a mattress the player then",
+    "kept as well - duplication, and silent, because the survival case still paid exactly one and",
+    "looked correct. Vanilla's beds condition on `head` for this reason; ours said `foot` and the",
+    "javadoc on playerWillDestroy described the vanilla arrangement the whole time."
   ]
 }
