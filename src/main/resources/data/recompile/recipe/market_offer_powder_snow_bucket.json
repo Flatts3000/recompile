@@ -1,0 +1,9 @@
+{
+  "type": "recompile:market_offer",
+  "_comment": [
+    "Knowledge, so the buyer still needs a bucket and four snowballs and the bench. Priced",
+    "under the region-gating sheets because what it unlocks is a utility rather than a tier."
+  ],
+  "blueprint": "recompile:powder_snow_bucket",
+  "price": 600
+}

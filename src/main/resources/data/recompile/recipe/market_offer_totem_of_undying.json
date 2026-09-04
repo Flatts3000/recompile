@@ -1,0 +1,14 @@
+{
+  "type": "recompile:market_offer",
+  "_comment": [
+    "THE THING, NOT THE KNOWLEDGE (owner, 2026-09-04), and the first item in the mod that",
+    "enters the world by purchase. A totem drops from an evoker and this world has no raids,",
+    "so nothing else here can produce one at any price - which is the point of it being on the",
+    "shelf rather than in a loot table.",
+    "",
+    "Dearer than any sheet because a sheet is bought once and a totem is spent. First-pass;",
+    "tuning belongs with the balance pass (#36)."
+  ],
+  "item": "minecraft:totem_of_undying",
+  "price": 2500
+}

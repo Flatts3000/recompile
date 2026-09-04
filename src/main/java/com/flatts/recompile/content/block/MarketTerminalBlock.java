@@ -140,8 +140,12 @@ public abstract class MarketTerminalBlock extends HorizontalDirectionalBlock {
                     : server.getRecipeManager().recipeMap().byType(RCRecipeTypes.MARKET_OFFER.get())) {
                 offers.add(holder.value().offer());
             }
+            // Cheapest first, then by what the row IS, so the shelf order is stable across reloads
+            // AND across languages. Tie-breaking on the display name was the first cut and resolved
+            // through the server's language while each client renders its own, so equal-priced rows
+            // came out in an order that was alphabetical for nobody but the server.
             offers.sort(Comparator.comparingInt(Market.Offer::price)
-                .thenComparing(offer -> offer.blueprint().toString()));
+                .thenComparing(Market.Offer::identity));
             return offers;
         }
     }

@@ -10,8 +10,8 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 |---|---|
 | Minecraft version | 26.1.2 |
 | Catalogued | 886 |
-| **Reachable in Recompile** | **795 (90%)** |
-| Not reachable | 91 |
+| **Reachable in Recompile** | **797 (90%)** |
+| Not reachable | 89 |
 | Mobs obtainable | 59 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
@@ -41,7 +41,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Badlands | 4 | 4 |
 | Taiga | 2 | 2 |
 | Swamp | 9 | 9 |
-| Snowy | 5 | 6 |
+| Snowy | 6 | 6 |
 | Mountain | 1 | 1 |
 | Mushroom Fields | 5 | 5 |
 | River | 2 | 2 |
@@ -49,7 +49,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Cave & Underground | 107 | 128 |
 | Nether | 78 | 82 |
 | End | 11 | 25 |
-| Structures & Chest Loot | 224 | 238 |
+| Structures & Chest Loot | 225 | 238 |
 | Trading | 62 | 62 |
 | Fishing | 1 | 1 |
 | Archaeology | 36 | 38 |
@@ -378,7 +378,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Snowy  <sub>5/6</sub>
+## Snowy  <sub>6/6</sub>
 
 ### Mine / break a block
 
@@ -393,7 +393,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Other
 
-- [ ] `powder_snow_bucket` - no powder snow in this world
+- [x] `powder_snow_bucket` - crafted from a Blueprint at the Scrap Crafting Table from snowball + bucket
 
 
 ## Mountain  <sub>1/1</sub>
@@ -790,7 +790,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Structures & Chest Loot  <sub>224/238</sub>
+## Structures & Chest Loot  <sub>225/238</sub>
 
 *Only reachable from a generated structure's chest or block palette.*
 
@@ -807,7 +807,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [ ] `ominous_banner` `(finite)` - no raids: evokers and pillagers never spawn
 - [ ] `ominous_bottle` - no trial chambers generate
 - [x] `saddle` `(c)` - bastion remnant chest
-- [ ] `totem_of_undying` - no raids: evokers and pillagers never spawn
+- [x] `totem_of_undying` - bought for scrip from buy terminal
 - [x] `trident` - a naturally-spawned drowned drops its trident
 
 ### Harvest & interact
@@ -1094,7 +1094,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ## What Recompile cannot give you
 
-The 91 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+The 89 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
 of the vanilla economy, not an oversight, unless noted.
 
 - **28** - no ocean, monument, shipwreck or ocean ruin generates
@@ -1104,10 +1104,9 @@ of the vanilla economy, not an oversight, unless noted.
 - **4** - no amethyst geodes generate
 - **4** - no lush caves generate
 - **4** - the structure that carries it (ancient city / stronghold / trail ruins) is absent
-- **2** - no raids: evokers and pillagers never spawn
 - **2** - reachable only through a growth mechanic the closure does not model (bone meal), so not verified either way
 - **1** - needs a charged creeper to kill another player
-- **1** - no powder snow in this world
+- **1** - no raids: evokers and pillagers never spawn
 
 Two are worth calling out because they are one flower away from being reachable, and both now are:
 

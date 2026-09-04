@@ -629,6 +629,22 @@ def load_recipes(root, ns, disabled=()):
             add_rule([{"recompile:idea_fragment"}], ["recompile:blueprint"],
                      "assembled at the Scrap Crafting Table")
             continue
+        elif t == "recompile:market_offer":
+            # THE THIRD ACQUISITION AXIS, and the closure was blind to it (docs/market_spec.md
+            # section 14). A market line is neither a loot table nor a recipe with ingredients, so
+            # without this the two things whose ONLY source is the Buy Terminal read as unreachable
+            # - which is the exact failure mode this whole tool exists to catch, pointed the wrong
+            # way. An `item` line hands over the thing; a `blueprint` line hands over a sheet, which
+            # the closure models as the single `recompile:blueprint` item that gates every
+            # blueprint_crafting recipe.
+            #
+            # The terminal is the prerequisite rather than nothing at all: scrip is not an item, so
+            # there is no currency to require, but you cannot buy without the block.
+            ings = [{"recompile:buy_terminal"}]
+            outs = ([j["item"]] if "item" in j else ["recompile:blueprint"])
+            # The renderer appends "from <prerequisites>", so the label must not name the
+            # terminal again or the row reads "bought at the Buy Terminal from buy terminal".
+            label = "bought for scrip"
         elif t == "recompile:spawn_egg_crafting":
             continue
         else:

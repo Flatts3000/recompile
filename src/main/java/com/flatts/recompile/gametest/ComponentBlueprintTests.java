@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.item.BlueprintItem;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
+import com.flatts.recompile.content.recipe.MarketOfferRecipe;
 import com.flatts.recompile.content.recipe.TeardownRecipe;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
@@ -308,7 +309,7 @@ final class ComponentBlueprintTests {
          * missing its lang key renders the raw key to the player, which is silent in exactly the same
          * way.
          */
-        RCGameTests.test("every_shipped_blueprint_has_a_name_a_recipe_and_a_teacher", 20, helper -> {
+        RCGameTests.test("every_shipped_blueprint_has_a_name_a_recipe_and_a_route", 20, helper -> {
             List<String> broken = new ArrayList<>();
 
             for (Identifier blueprint : BlueprintItem.shipped()) {
@@ -338,9 +339,22 @@ final class ComponentBlueprintTests {
                         }
                     }
                 }
-                if (!taught) {
-                    broken.add(blueprint + " is taught by no teardown, so it can only ever be a "
-                        + "creative-tab item");
+                // OR SOLD. Until the market every blueprint was earned by tearing down the object
+                // it came from, so this asked for a teacher and that was the whole of it. A sheet
+                // may now be BOUGHT instead, and one of them (the powder snow bucket) has no
+                // teaching object because the thing it makes does not exist in this world to be
+                // found. What still has to hold is that a shipped sheet has SOME route, or it is a
+                // creative-tab item wearing a progression system's clothes.
+                boolean sold = false;
+                for (RecipeHolder<MarketOfferRecipe> holder : helper.getLevel().recipeAccess()
+                        .recipeMap().byType(RCRecipeTypes.MARKET_OFFER.get())) {
+                    if (holder.value().blueprint().filter(blueprint::equals).isPresent()) {
+                        sold = true;
+                    }
+                }
+                if (!taught && !sold) {
+                    broken.add(blueprint + " is taught by no teardown and sold by no terminal, so "
+                        + "it can only ever be a creative-tab item");
                 }
             }
 

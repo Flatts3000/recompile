@@ -19,6 +19,11 @@
 - **Every sellable thing carries its price on its own tooltip**, per item and per stack, so you can
   tell what is worth carrying home without walking to a terminal. Nothing shows on things the market
   will not take.
+- **The Buy Terminal also sells a few things outright, not just the knowledge to make them.** A
+  **Totem of Undying** (2,500 scrip) has no other source in this world at all - totems come off
+  evokers and there are no raids here. A **Bucket of Powder Snow** is sold as knowledge instead
+  (600 scrip): buy the sheet, then make one from a bucket and four snowballs, which is the first
+  blueprint in the game that is bought rather than earned by tearing something down.
 - **A pack changes all of it without a mod release**: what sells is `#recompile:sellable`, what it
   pays is the `recompile:scrip_value` data map, and every line of the Buy Terminal's stock is one
   `recompile:market_offer` recipe file.

@@ -3,6 +3,7 @@ package com.flatts.recompile.compat;
 import com.flatts.recompile.registry.RCItems;
 import java.util.List;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
 /**
@@ -86,6 +87,14 @@ public final class JeiInfoPanels {
             // item, a tag that says what sells - no recipe can express.
             new Panel(RCItems.BROKEN_TERMINAL.get(), "broken_terminal"),
             new Panel(RCItems.SELL_TERMINAL.get(), "sell_terminal"),
-            new Panel(RCItems.BUY_TERMINAL.get(), "buy_terminal"));
+            new Panel(RCItems.BUY_TERMINAL.get(), "buy_terminal"),
+
+            // The two things whose only source is a purchase. Exactly the case at the top of this
+            // list - an item JEI can find no recipe for - except the invisible origin is a shop
+            // counter rather than a block drop. A market_offer IS a recipe object, but it is
+            // isSpecial with no display, so a player looking up a totem sees nothing at all and no
+            // hint that a terminal sells one. These two panels are the only thing that says so.
+            new Panel(Items.TOTEM_OF_UNDYING, "totem_of_undying"),
+            new Panel(Items.POWDER_SNOW_BUCKET, "powder_snow_bucket"));
     }
 }

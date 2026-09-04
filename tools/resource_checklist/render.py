@@ -82,7 +82,11 @@ def why_not(item, r):
              "guster_banner_pattern", "music_disc_creator", "music_disc_creator_music_box",
              "music_disc_precipice", "lingering_potion"):
         return "no trial chambers generate"
-    if n in ("totem_of_undying", "ominous_banner"):
+    if n == "ominous_banner":
+        # totem_of_undying used to share this line and no longer belongs to it: the Buy Terminal
+        # sells one outright (docs/market_spec.md section 14), so it is reachable and this string
+        # would never be reached for it. A dead name in a reason list is how the nylium string went
+        # on claiming a whole family was lost after half of it had shipped.
         return "no raids: evokers and pillagers never spawn"
     if n in ("disc_fragment_5", "music_disc_otherside", "music_disc_relic", "sniffer_egg"):
         return "the structure that carries it (ancient city / stronghold / trail ruins) is absent"
@@ -105,8 +109,6 @@ def why_not(item, r):
         return "no amethyst geodes generate"
     if n == "player_head":
         return "needs a charged creeper to kill another player"
-    if n == "powder_snow_bucket":
-        return "no powder snow in this world"
     if n == "large_fern":
         return "needs a fern, which nothing here provides"
     return "nothing in this world, its structures, its mobs or its recipes produces one"

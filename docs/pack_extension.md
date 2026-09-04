@@ -103,7 +103,7 @@ Eight public recipe types. A pack writes these the way it writes a vanilla one, 
 | `recompile:sintering` | vanilla's cooking schema; the Sintering Kiln |
 | `recompile:blueprint_crafting` | a grid recipe gated on holding a Blueprint |
 | `recompile:spawn_egg_crafting` | a grid recipe whose result is read off a Blueprint IN the grid |
-| `recompile:market_offer` | one line of the Buy Terminal's stock: a Blueprint set and its price in scrip |
+| `recompile:market_offer` | one line of the Buy Terminal's stock: a price, plus exactly one of a Blueprint set (`blueprint`) or an item (`item` + optional `count`) |
 
 `docs/teardown_schema_spec.md` is the reference for the first one and is treated as public API.
 
@@ -156,6 +156,17 @@ is the authority.
 | `#recompile:dump_plants` | **block** tag; this mod's own ground cover (weedgrass, fireweed), and a member of `#frontier_cover` |
 | `#recompile:pigeon_forageable` | **block** tag; what a pigeon will pick at |
 | `#recompile:has_structure/{sewer,cooling_tower,smokestack,municipal_aquarium}` | **worldgen/biome** tags. See below - these are the landmark dial |
+
+**A `market_offer` can sell an ITEM, not just knowledge, and that is the one extension point here
+that adds a wholly new way to obtain something** (`docs/market_spec.md` section 14). `"blueprint"`
+sells a sheet, so the buyer still needs the materials and the bench; `"item"` sells the thing itself,
+which is the only route in this mod by which an object enters the world without being found, grown or
+built. Use it for what this world genuinely cannot produce - the two shipped lines are a Totem of
+Undying and, as knowledge, a Bucket of Powder Snow, both of which
+`docs/vanilla_resource_checklist.md` lists as unreachable. **Two guards bind a pack here**: nothing in
+`#recompile:found_only` may be sold, nor the knowledge to make it (the found-only rule is enforced by
+a sweep over recipes, and a shop counter is not a recipe), and a line must carry exactly one of
+`blueprint` or `item` or it is refused at parse.
 
 **The market is three files a pack can touch and nothing it cannot** (`docs/market_spec.md`).
 `tags/item/sellable.json` says what the Sell Terminal takes; `data_maps/item/scrip_value.json` says
