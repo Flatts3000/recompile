@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:getting_started/tires",
+  "category": "recompile:getting_started",
+  "name": "book.recompile.guide.getting_started.tires.name",
+  "icon": {
+    "id": "recompile:tire"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "parents": [
+    {
+      "entry": "recompile:getting_started/materials"
+    }
+  ],
+  "x": 4,
+  "y": 0
+}

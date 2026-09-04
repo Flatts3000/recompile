@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased
+
+### Tire dumps
+
+- **Somebody tipped a few thousand tires across the household sprawl.** Circular heaps, stacked, and
+  some of them are burning. Nothing regrows one, so a dump you strip is a dump you leave.
+- **A tire fire never goes out.** Not in rain, not with time. It does not eat the tires either, and
+  there is nothing on bare dump ground for it to spread to, so a burning heap is a hazard you walk
+  around rather than a loss. Water still puts it out.
+- **Break a tire by hand and you get the tire. Break it with a Scrap Knife and you get the rubber.**
+- **Carrying them home pays better.** Tear a tire down at the Teardown Workbench with the knife for
+  three rubber and, often, the steel belts out of the middle. Cutting one where it stands cannot reach
+  the wire. A Pulverizer shreds them in bulk and loses the wire too.
+
+### The Pump takes rubber now
+
+- **The Pump recipe wants Rubber Scrap in the bottom cell instead of Plastic Scrap.** A pump seals with
+  rubber. If you already hold the blueprint, the sheet is unchanged and the ingredient is not, so check
+  it before you go hunting for plastic. Plastic still builds the Cutting Torch, the Plastic Panel and
+  the Rain Collector Funnel.
+
+### Guide
+
+- **A Tire Dumps entry** covering the fire, the tool split, and where the rubber goes.
+
 ## v0.17.0
 
 **Clearing a mound stops being a mining job.** v0.16.0 put things on the skyline to walk toward. This

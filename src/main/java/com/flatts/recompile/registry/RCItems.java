@@ -729,6 +729,20 @@ public final class RCItems {
     public static final DeferredItem<Item> QUARTZ_GRIT = ITEMS.registerItem("quartz_grit", Item::new);
 
     /**
+     * Rubber Scrap, cut out of a tire (spec {@code docs/tire_piles_spec.md}, #155).
+     *
+     * <p><b>It closes the oldest orphan in the material economy.</b> `material_economy.md` has listed
+     * rubber as an intermediate beside scrap, cullet, muck and plastic sheet since P2.2, and unlike all
+     * four it had no origin at all until tires.
+     *
+     * <p><b>It is deliberately not a fuel</b> (owner, 2026-09-04). Tire dumps do not replenish, and a
+     * furnace is an infinite sink: a finite material burnable inattentively empties the world quietly.
+     * Its one consumer is the {@link RCBlocks#PUMP}, which is a durable component rather than a
+     * consumable, so demand is a handful across a playthrough and supply is every dump there is.
+     */
+    public static final DeferredItem<Item> RUBBER_SCRAP = ITEMS.registerItem("rubber_scrap", Item::new);
+
+    /**
      * Prismarine Grit: the manufactured half of the prismarine route (owner, 2026-09-03; the Municipal
      * Aquarium spec, 8.6). A Mill Tailings find that the Separator divides into a prismarine shard.
      *
@@ -797,6 +811,10 @@ public final class RCItems {
      * because nobody makes a dead bouquet on purpose.
      */
     public static final DeferredItem<Item> DRIED_BOUQUET = ITEMS.registerItem("dried_bouquet", Item::new);
+
+    /** The tire itself, which a hand gets and a knife does not (the drop is tool-gated in loot). */
+    public static final DeferredItem<BlockItem> TIRE =
+        ITEMS.registerSimpleBlockItem("tire", RCBlocks.TIRE);
 
 
     /** Sorted in the order the Separator will consume them. */

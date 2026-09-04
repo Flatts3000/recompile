@@ -42,6 +42,17 @@ Three tables, and one of them is not where you would look for it:
 | `recompile:chests/aquarium_curator` | the curator's chest in Back of House: the four nautilus armours, the sixteen trim templates, four wetlands plants, the arid vivarium's five, spare sponges, turtle scute |
 | `recompile:archaeology/aquarium_silt` | the filtration hall's brushable silt bed: the nineteen pottery sherds the sewers do not carry |
 
+### Tires
+
+`recompile:blocks/tire` is worth reading before retuning: **what a tire drops is tool-gated inside the
+loot table**, with a `match_tool` on the Scrap Knife choosing rubber over the tire itself. The order of
+the `alternatives` children is load-bearing - the knife entry must come first, or a knife yields a tire
+and the gate silently does not exist. A pack that reorders them will not get an error.
+
+`recompile:rubber_scrap` is deliberately **not** in `furnace_fuels`. Tire dumps do not replenish, so a
+fuel entry would pair a finite material with an infinite sink; a pack adding one is choosing to let
+players burn the only rubber in the game.
+
 Same mechanism as the sewers (`setBlockEntityLootTable` / `setLootTable` at generation, resolved live
 when opened or brushed). **Several of these entries are the item's only source in the game** - the
 nautilus armours, the trim templates, `turtle_scute`, and eighteen of the nineteen sherds - so a pack

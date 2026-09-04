@@ -9,6 +9,7 @@ import com.flatts.recompile.content.worldgen.RubblePileFeature;
 import com.flatts.recompile.content.worldgen.TailingsHeapFeature;
 import com.flatts.recompile.content.worldgen.BuildingHuskFeature;
 import com.flatts.recompile.content.worldgen.SteelStackFeature;
+import com.flatts.recompile.content.worldgen.TirePileFeature;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -48,6 +49,10 @@ public final class RCFeatures {
     /** Stacked salvage steel: the survival source of beams, reinforced concrete and copper pipe. */
     public static final Supplier<Feature<NoneFeatureConfiguration>> STEEL_STACK =
         FEATURES.register("steel_stack", SteelStackFeature::new);
+
+    /** Clustered tire dumps in the household sprawl (#155) - the only rubber in the game. */
+    public static final Supplier<Feature<NoneFeatureConfiguration>> TIRE_PILE =
+        FEATURES.register("tire_pile", TirePileFeature::new);
 
     /** Sparse pools of leachate in the sprawl and the yard (#156) - the dump's own runoff. */
     public static final Supplier<Feature<NoneFeatureConfiguration>> LEACHATE_POOL =

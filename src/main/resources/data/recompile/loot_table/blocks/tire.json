@@ -1,0 +1,89 @@
+{
+  "_comment": [
+    "WHAT IT DROPS DEPENDS ON WHAT BREAKS IT (owner, 2026-09-04). A hand gives the tire; a Scrap",
+    "Knife gives rubber straight out of the block. That is the whole tool gate, and it is a loot",
+    "condition rather than code - vanilla does exactly this to make dead coral drop only to silk",
+    "touch.",
+    "",
+    "ORDER IS LOAD-BEARING. minecraft:alternatives takes the FIRST child whose conditions pass, so",
+    "the knife entry must come first; with the tire first, a knife would yield a tire and the gate",
+    "would silently not exist.",
+    "",
+    "A double slab is two tires, so the count doubles. Vanilla's own slab tables do this with an",
+    "explicit block_state_property check rather than by halving anything."
+  ],
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "recompile:rubber_scrap",
+              "conditions": [
+                {
+                  "condition": "minecraft:match_tool",
+                  "predicate": {
+                    "items": "recompile:scrap_knife"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "function": "minecraft:set_count",
+                  "count": 1
+                },
+                {
+                  "function": "minecraft:set_count",
+                  "count": 2,
+                  "add": true,
+                  "conditions": [
+                    {
+                      "condition": "minecraft:block_state_property",
+                      "block": "recompile:tire",
+                      "properties": {
+                        "type": "double"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "recompile:tire",
+              "functions": [
+                {
+                  "function": "minecraft:set_count",
+                  "count": 1
+                },
+                {
+                  "function": "minecraft:set_count",
+                  "count": 1,
+                  "add": true,
+                  "conditions": [
+                    {
+                      "condition": "minecraft:block_state_property",
+                      "block": "recompile:tire",
+                      "properties": {
+                        "type": "double"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

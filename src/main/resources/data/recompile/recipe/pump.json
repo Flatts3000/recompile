@@ -4,7 +4,7 @@
   "key": {
     "C": "minecraft:copper_ingot",
     "M": "recompile:scrap_metal",
-    "P": "recompile:plastic_scrap"
+    "P": "recompile:rubber_scrap"
   },
   "pattern": [
     " C ",
@@ -13,5 +13,16 @@
   ],
   "result": {
     "item": "recompile:pump"
-  }
+  },
+  "_comment": [
+    "RUBBER, NOT PLASTIC, IN THE BOTTOM CELL (owner, 2026-09-04). A pump's diaphragm and seals are",
+    "rubber and plastic never was the part doing that job, so this reads correct as well as giving",
+    "rubber the consumer it needed - without one it would be a dead end in every install lacking Create.",
+    "",
+    "This EDITS A SHIPPED RECIPE and players holding the blueprint will find it wants a different",
+    "ingredient; that belongs in the changelog rather than in a silent substitution.",
+    "",
+    "Plastic is not devalued by the swap: the Cutting Torch, the Plastic Panel and the Rain Collector",
+    "Funnel still consume it, and the Panel is an open-ended building sink."
+  ]
 }

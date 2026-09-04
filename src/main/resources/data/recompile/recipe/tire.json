@@ -1,0 +1,39 @@
+{
+  "_comment": [
+    "The patient route, and the only one that recovers the steel belts. Cutting a tire open at a",
+    "bench lets you take the wire out; slicing it where it stands does not, which is what stops the",
+    "knife-in-place drop from dominating.",
+    "",
+    "The Clean Mattress idiom exactly: an object you carry home and cut apart with the knife."
+  ],
+  "type": "recompile:teardown",
+  "input": "recompile:tire",
+  "station": "recompile:workbench",
+  "tool": "recompile:scrap_knife",
+  "ticks": 60,
+  "pools": [
+    {
+      "_comment": "The carcass. Three draws of rubber, which beats the one a knife-break gives.",
+      "rolls": 3,
+      "entries": [
+        {
+          "item": "recompile:rubber_scrap",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "_comment": "The steel belts. A real tire is wire-reinforced and this is the only way to it.",
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 2
+        },
+        {
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}
