@@ -320,6 +320,26 @@ public class AquariumStructure extends Structure {
      * <p><b>Vanilla only.</b> The building also places Leachate, Reinforced Concrete, Steel I-Beams
      * and a Display Pedestal; those are this mod's own and the checklist does not track them.
      */
+    /**
+     * The members of {@link #VANILLA_PLACED} whose placement is a function of ABSOLUTE position, so
+     * a single building may legitimately contain none of them.
+     *
+     * <p>{@code AquariumPalette.mossy} is {@code hash(x, y, z) % 5 == 0} and {@code sparseMossy} is
+     * {@code % 11 == 0}, both on world coordinates rather than on a seeded {@code RandomSource}. A
+     * GameTest plot lands wherever the harness puts it, so whether any given building grows a moss
+     * carpet depends on where it was built - and asserting one is present is a position-dependent
+     * assertion, which is a flaky test wearing a guard's clothes. The manifest test caught exactly
+     * that on itself: {@code pale_moss_carpet} was present on one plot and absent on the next.
+     *
+     * <p>They stay in {@link #VANILLA_PLACED} because the checklist's question is "can a player get
+     * this here", and a block that appears in most buildings is a real source. What they are exempt
+     * from is the must-be-present half of the guard. The must-not-be-undeclared half still covers
+     * them, and that is the half that matters: it is the direction #366 failed in.
+     */
+    public static final Set<Block> VANILLA_PLACED_SPARSE = Set.of(
+        Blocks.MOSS_BLOCK, Blocks.MOSS_CARPET, Blocks.PALE_MOSS_BLOCK, Blocks.PALE_MOSS_CARPET,
+        Blocks.PALE_HANGING_MOSS);
+
     public static final Set<Block> VANILLA_PLACED = Set.of(
         Blocks.PRISMARINE, Blocks.PRISMARINE_BRICKS, Blocks.DARK_PRISMARINE, Blocks.SEA_LANTERN,
         Blocks.SPONGE, Blocks.WET_SPONGE,

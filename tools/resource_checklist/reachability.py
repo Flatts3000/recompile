@@ -180,9 +180,11 @@ def _aquarium_blocks() -> set:
                          "record of what the Municipal Aquarium places; without it every vanilla "
                          "block whose sole source is that building silently reads as unreachable "
                          "(#366). Fix this parse rather than deleting it.")
-    end = text.find(");", start)
-    body = text[start:end]
-    body = " ".join(line.split("//")[0] for line in body.splitlines())
+    # Comments are stripped BEFORE the terminator is located. Finding ");" in the raw text lets a
+    # future comment containing one truncate the list silently, and a truncation that still leaves
+    # 20+ blocks slips past the guard below - an under-read that reintroduces #366 for the tail.
+    clean = " ".join(line.split("//")[0] for line in text[start:].splitlines())
+    body = clean[:clean.find(");")]
     found = set(re.findall(r"Blocks\.([A-Z0-9_]+)", body))
     if len(found) < 20:
         raise SystemExit("only %d blocks parsed out of AquariumStructure.VANILLA_PLACED, which is "
@@ -203,8 +205,39 @@ AQUARIUM_DETAIL = {
     "prismarine_bricks": "the Municipal Aquarium's cladding",
     "dark_prismarine": "the Municipal Aquarium's cladding",
 }
+def _silk_touch_only(block: str) -> bool:
+    """True when every pool of a block's vanilla loot table is gated on Silk Touch.
+
+    WITHOUT THIS THE FIX IS WORSE THAN THE BUG. `walk_items` ignores loot conditions, so seeding a
+    block simply credits whatever its table names - and ten of the forty are silk-touch-only (the
+    five dead coral plants and their five fans, plus glass and tinted glass). The doc would have
+    printed "mine dead_brain_coral (the Municipal Aquarium)" to a player who breaks one and gets
+    nothing. That is the direction this whole guard exists to prevent: a reachable-looking row
+    nothing in the game will ever contradict.
+
+    They are still credited, because Silk Touch is obtainable here and so the resource genuinely is.
+    What changes is that the row SAYS so.
+    """
+    path = os.path.join(MC, "loot_table", "blocks", block + ".json")
+    try:
+        table = json.load(open(path, encoding="utf-8"))
+    except OSError:
+        return False
+    pools = table.get("pools") or []
+    if not pools:
+        return False
+    for pool in pools:
+        conditions = json.dumps(pool.get("conditions") or [])
+        if "silk_touch" not in conditions:
+            return False
+    return True
+
+
 for _b in _aquarium_blocks():
-    VANILLA_IN_WORLD.setdefault(_b, AQUARIUM_DETAIL.get(_b, "the Municipal Aquarium"))
+    _why = AQUARIUM_DETAIL.get(_b, "the Municipal Aquarium")
+    if _silk_touch_only(_b):
+        _why += ", with Silk Touch"
+    VANILLA_IN_WORLD.setdefault(_b, _why)
 
 SB = json.load(open(SP + "/structblocks.json"))
 for b in SB.get("bastion", []):
@@ -362,7 +395,12 @@ def gain(item, why, from_loot=False):
     return False
 
 
-LATE = ("fishing", "Hero of the Village")
+# "Municipal Aquarium" is LATE for the reason the other two are: these tables should fill a gap,
+# never win a race. Seeded in phase 1 they beat the recipe closure - `gain` is first-wins - and
+# `glass` regressed from "smelted from red sand" to "mine it in the aquarium", which is true and
+# useless. Late, the building only supplies what nothing else does, and the closure still runs to
+# a fixpoint afterwards so its downstream chains (a sea lantern into prismarine crystals) close.
+LATE = ("fishing", "Hero of the Village", "Municipal Aquarium")
 
 
 def seed(late):
@@ -400,8 +438,8 @@ def _aquarium_items() -> set:
     start = text.find("VANILLA_ITEMS_PLACED = Set.of(")
     if start == -1:
         raise SystemExit("AquariumStructure.VANILLA_ITEMS_PLACED is gone or renamed (#366).")
-    body = text[start:text.find(");", start)]
-    body = " ".join(line.split("//")[0] for line in body.splitlines())
+    clean = " ".join(line.split("//")[0] for line in text[start:].splitlines())
+    body = clean[:clean.find(");")]
     found = re.findall(r"Items\.([A-Z0-9_]+)", body)
     if not found:
         raise SystemExit("no items parsed out of AquariumStructure.VANILLA_ITEMS_PLACED.")
@@ -789,8 +827,21 @@ def _registered_recipe_types() -> list:
 
 
 def _handled_recipe_types() -> set:
+    """Types `recipe_rules` actually dispatches on.
+
+    Scoped to the dispatch lines rather than the whole file. Grepping every "recompile:<name>"
+    literal counts item ids (`recompile:blueprint`, `recompile:amber`) and anything written in a
+    comment as handled, so a newly registered type whose name collided with an item id, or one
+    merely mentioned in a TODO, would be reported as covered while having no arm - precisely the
+    silent hole this cross-check exists to catch.
+    """
     mine = open(os.path.abspath(__file__), encoding="utf-8").read()
-    return {name for name in re.findall(r'"recompile:([a-z_]+)"', mine)}
+    handled = set()
+    for line in mine.splitlines():
+        stripped = line.split("//")[0].strip()
+        if stripped.startswith(("if t ==", "elif t ==", "if t in", "elif t in")):
+            handled.update(re.findall(r'"recompile:([a-z_]+)"', stripped))
+    return handled
 
 
 RECIPE_TYPES = _registered_recipe_types()

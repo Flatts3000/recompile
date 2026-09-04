@@ -13,7 +13,14 @@ RJ = json.load(open(SP + "/reach.json"))
 R, MOBS = RJ["reach"], RJ["mobs"]
 # Derived rather than retyped (#371): the sentence below describes the run printed beside it, so
 # the number belongs to the code that produced it.
-RECIPE_TYPES = RJ.get("recipe_types", [])
+# Raise rather than degrade. run.py supports --from render, so a reach.json written before these
+# keys existed would render "its 0 custom recipe types" - the same class of silently-wrong number
+# that #371 was.
+if "recipe_types" not in RJ:
+    raise SystemExit("reach.json has no recipe_types: it predates this renderer. Re-run the reach "
+                     "stage (python tools/resource_checklist/run.py --from reach) rather than "
+                     "rendering a number this file would have to invent.")
+RECIPE_TYPES = RJ["recipe_types"]
 UNHANDLED = RJ.get("unhandled_recipe_types", [])
 WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven",
          8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve"}
@@ -158,10 +165,9 @@ A("%s custom recipe types - until nothing new appeared. Interactions that are ne
 A("recipe are encoded explicitly (bucket fills, axe-stripping, oxidation, the Compost Heap volunteer,")
 A("the Sequencer's byproduct, the Dry Clay Body cauldron step).")
 A("")
-A("**What this cannot see, so read an unreachable row as a floor rather than a verdict.** The")
-A("closure models loot tables, recipes and the interactions declared above. Three things sit")
-A("outside it, and each one makes a REACHABLE resource read as unreachable rather than the other")
-A("way round:")
+A("**What this cannot see, so read any row as a best effort rather than a verdict.** The closure")
+A("models loot tables, recipes and the interactions declared above. Three things sit outside it,")
+A("and they usually make a REACHABLE resource read as unreachable:")
 A("")
 A("- **A mod placing a vanilla block.** The closure knows what generates and what drops, not what")
 A("  this mod's own code puts in the world. Where that is the only source, it has to be declared by")
@@ -172,6 +178,12 @@ A("  directions. Anything of that shape that is NOT declared is invisible here."
 A("- **Growth and other mechanics.** Bone meal is modelled; the two vine rows below say plainly")
 A("  that they are not verified either way rather than claiming a verdict.")
 A("- **Anything held in a block entity** that is not filled from a loot table.")
+A("")
+A("**It can also err the other way, which is worse, so the checked boxes are not a guarantee")
+A("either.** Loot CONDITIONS are not modelled: a table is credited with everything it names,")
+A("whatever gate it sits behind. Where that gate is Silk Touch the row says so, because ten of the")
+A("aquarium's blocks are silk-touch-only and would otherwise have told a player to break a dead")
+A("coral and collect nothing. Any other condition is currently invisible.")
 A("")
 if UNHANDLED:
     A("> **This run had %d registered recipe type(s) the closure cannot read: %s.** Anything they"

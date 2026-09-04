@@ -23,10 +23,9 @@ eight custom recipe types - until nothing new appeared. Interactions that are ne
 recipe are encoded explicitly (bucket fills, axe-stripping, oxidation, the Compost Heap volunteer,
 the Sequencer's byproduct, the Dry Clay Body cauldron step).
 
-**What this cannot see, so read an unreachable row as a floor rather than a verdict.** The
-closure models loot tables, recipes and the interactions declared above. Three things sit
-outside it, and each one makes a REACHABLE resource read as unreachable rather than the other
-way round:
+**What this cannot see, so read any row as a best effort rather than a verdict.** The closure
+models loot tables, recipes and the interactions declared above. Three things sit outside it,
+and they usually make a REACHABLE resource read as unreachable:
 
 - **A mod placing a vanilla block.** The closure knows what generates and what drops, not what
   this mod's own code puts in the world. Where that is the only source, it has to be declared by
@@ -37,6 +36,12 @@ way round:
 - **Growth and other mechanics.** Bone meal is modelled; the two vine rows below say plainly
   that they are not verified either way rather than claiming a verdict.
 - **Anything held in a block entity** that is not filled from a loot table.
+
+**It can also err the other way, which is worse, so the checked boxes are not a guarantee
+either.** Loot CONDITIONS are not modelled: a table is credited with everything it names,
+whatever gate it sits behind. Where that gate is Silk Touch the row says so, because ten of the
+aquarium's blocks are silk-touch-only and would otherwise have told a player to break a dead
+coral and collect nothing. Any other condition is currently invisible.
 
 **Where the mobs come from.** The starting biome carries nothing that feeds you by design (an
 empty `monster` list; cat, wolf and pigeon do spawn and none of them yields meat), so the
@@ -276,7 +281,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 - [x] `clay` `(c)` - crafted from clay ball
 - [x] `firefly_bush` - buy from a wandering trader
-- [x] `pale_hanging_moss` - mine pale_hanging_moss (the Municipal Aquarium's centrepiece tank)
+- [x] `pale_hanging_moss` - mine pale_hanging_moss (the Municipal Aquarium's centrepiece tank, with Silk Touch)
 - [x] `sugar_cane` - Hydroponics Bay seedling
 
 
@@ -455,21 +460,21 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [ ] `brain_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `bubble_coral` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `bubble_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
-- [x] `dead_brain_coral` - mine dead_brain_coral (the Municipal Aquarium)
+- [x] `dead_brain_coral` - mine dead_brain_coral (the Municipal Aquarium, with Silk Touch)
 - [x] `dead_brain_coral_block` - mine dead_brain_coral_block (the Municipal Aquarium)
-- [x] `dead_brain_coral_fan` - mine dead_brain_coral_fan (the Municipal Aquarium)
-- [x] `dead_bubble_coral` - mine dead_bubble_coral (the Municipal Aquarium)
+- [x] `dead_brain_coral_fan` - mine dead_brain_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_bubble_coral` - mine dead_bubble_coral (the Municipal Aquarium, with Silk Touch)
 - [x] `dead_bubble_coral_block` - mine dead_bubble_coral_block (the Municipal Aquarium)
-- [x] `dead_bubble_coral_fan` - mine dead_bubble_coral_fan (the Municipal Aquarium)
-- [x] `dead_fire_coral` - mine dead_fire_coral (the Municipal Aquarium)
+- [x] `dead_bubble_coral_fan` - mine dead_bubble_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_fire_coral` - mine dead_fire_coral (the Municipal Aquarium, with Silk Touch)
 - [x] `dead_fire_coral_block` - mine dead_fire_coral_block (the Municipal Aquarium)
-- [x] `dead_fire_coral_fan` - mine dead_fire_coral_fan (the Municipal Aquarium)
-- [x] `dead_horn_coral` - mine dead_horn_coral (the Municipal Aquarium)
+- [x] `dead_fire_coral_fan` - mine dead_fire_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_horn_coral` - mine dead_horn_coral (the Municipal Aquarium, with Silk Touch)
 - [x] `dead_horn_coral_block` - mine dead_horn_coral_block (the Municipal Aquarium)
-- [x] `dead_horn_coral_fan` - mine dead_horn_coral_fan (the Municipal Aquarium)
-- [x] `dead_tube_coral` - mine dead_tube_coral (the Municipal Aquarium)
+- [x] `dead_horn_coral_fan` - mine dead_horn_coral_fan (the Municipal Aquarium, with Silk Touch)
+- [x] `dead_tube_coral` - mine dead_tube_coral (the Municipal Aquarium, with Silk Touch)
 - [x] `dead_tube_coral_block` - mine dead_tube_coral_block (the Municipal Aquarium)
-- [x] `dead_tube_coral_fan` - mine dead_tube_coral_fan (the Municipal Aquarium)
+- [x] `dead_tube_coral_fan` - mine dead_tube_coral_fan (the Municipal Aquarium, with Silk Touch)
 - [ ] `fire_coral` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `fire_coral_fan` - no ocean, monument, shipwreck or ocean ruin generates
 - [ ] `horn_coral` - no ocean, monument, shipwreck or ocean ruin generates
@@ -489,7 +494,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `salmon` - kill a polar bear (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `seagrass` - kill a turtle (sewer resident)
 - [x] `tide_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
-- [x] `wet_sponge` `(finite)` - mine wet_sponge (the Municipal Aquarium's filtration hall)
+- [x] `wet_sponge` `(finite)` - chests/aquarium_curator
 
 ### Piglin bartering
 
@@ -540,7 +545,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ### Other
 
-- [x] `sponge` `(c)` - mine sponge (the Municipal Aquarium's filtration hall)
+- [x] `sponge` `(c)` - chests/aquarium_curator
 
 <details><summary>Also mineable from structures here, but craftable (21, 21 reachable) - decoration, not a resource</summary>
 
@@ -647,7 +652,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `cornflower` - buy from a wandering trader
 - [x] `cyan_carpet` `(c)` - crafted from cyan wool
 - [x] `dripstone_block` `(c)` - buy from a mason
-- [x] `glass` `(c)` - mine glass (the Municipal Aquarium)
+- [x] `glass` `(c)` - smelted from red sand
 - [x] `gray_carpet` `(c)` - crafted from gray wool
 - [x] `light_blue_carpet` `(c)` - crafted from light blue wool
 - [x] `orange_tulip` - buy from a wandering trader
@@ -901,10 +906,10 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `shears` `(c)` - household pull stream (sort garbage)
 - [x] `shield` `(c)` - crafted from bamboo planks + iron ingot
 - [x] `silence_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
-- [x] `smooth_stone` `(c)` - mine smooth_stone (the Municipal Aquarium)
+- [x] `smooth_stone` `(c)` - smelted from stone
 - [x] `soul_torch` `(c)` - crafted from stick + soul sand
 - [x] `spruce_sign` `(c)` - crafted from spruce planks + stick
-- [x] `stone_bricks` `(c)` - mine stone_bricks (the Municipal Aquarium)
+- [x] `stone_bricks` `(c)` - crafted from stone
 - [x] `stone_pickaxe` `(c)` - crafted from stick + blackstone
 - [x] `tall_grass` - bone meal on grass
 - [x] `tnt` `(c)` - crafted from red sand + gunpowder
@@ -927,7 +932,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `brown_carpet` `(c)` - crafted from brown wool
 - [x] `brown_terracotta` `(c)` - crafted from terracotta + brown dye
 - [x] `chainmail_helmet` - Hero of the Village gift
-- [x] `chiseled_stone_bricks` `(c)` - cut on a stonecutter from stone bricks
+- [x] `chiseled_stone_bricks` `(c)` - cut on a stonecutter from stone
 - [x] `cooked_beef` `(c)` - smelted from beef
 - [x] `cooked_chicken` `(c)` - smelted from chicken
 - [x] `cyan_bed` `(c)` - crafted from cyan dye + black bed

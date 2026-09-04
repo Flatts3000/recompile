@@ -496,6 +496,10 @@ public final class AquariumTests {
 
             java.util.List<String> missing = new java.util.ArrayList<>();
             for (Block declared : AquariumStructure.VANILLA_PLACED) {
+                // Position-hashed decoration is exempt from this half: see VANILLA_PLACED_SPARSE.
+                if (AquariumStructure.VANILLA_PLACED_SPARSE.contains(declared)) {
+                    continue;
+                }
                 if (!seen.contains(declared)) {
                     missing.add(BuiltInRegistries.BLOCK.getKey(declared).toString());
                 }
@@ -511,7 +515,8 @@ public final class AquariumTests {
 
             helper.assertTrue(missing.isEmpty(), "AquariumStructure.VANILLA_PLACED declares blocks the "
                 + "building does not place, so the resource checklist credits it with sources it does "
-                + "not have: " + missing);
+                + "not have: " + missing + ". If the block is position-hashed decoration, it belongs "
+                + "in VANILLA_PLACED_SPARSE rather than being deleted.");
             helper.assertTrue(undeclared.isEmpty(), "the building places vanilla blocks that "
                 + "AquariumStructure.VANILLA_PLACED does not declare, so the resource checklist will "
                 + "call them unreachable (this is #366's failure mode): " + undeclared);
