@@ -53,6 +53,12 @@ is the whole avoidance mechanism, and it is worth being explicit about why it is
 2. **No Mound Ground is written under a pile.** Tires are not garbage and the ground does not remember
    them.
 3. **Piles do not replenish.** What you take is gone. Section 8.4 is the ruling that follows from this.
+4. **They arrive as a DUMP, not as a tire** (owner, 2026-09-04). One roll of the feature places a
+   cluster of piles rather than a single stack, and the roll itself is well below the mound's 5%.
+   A real tire dump is many piles in one place, and a lone stack on a hillside reads as clutter
+   rather than as somewhere. Proposed: three to six piles inside a radius, so the site has a shape
+   and an edge; the exact numbers are a playtest dial and the mound's 5% is explicitly not to be
+   retuned to match.
 
 **Rule 1 is load-bearing beyond tidiness**, and #155 spotted why: `MoundGroundBlock.isMound` counts
 `SortableBlock` and `BulkyWasteBlock` when it measures a column, so anything of that kind standing on
@@ -155,6 +161,33 @@ free slot that still reads as hotter than lignite and cooler than a solvent-soak
 **The steel belts.** A real tire is steel-reinforced, so an occasional `scrap_metal` alongside the
 rubber is free flavour that happens to be true.
 
+### 5.1 What spends it: the Pump
+
+**DECIDED (owner, 2026-09-04).** A pump without a seal is the most obvious rubber part in the building,
+and the Pump already gates the Rain Collector and the Hydroponics Bay, so rubber lands upstream of the
+entire water tier rather than in a cul-de-sac. That answers the one thing #155 said must not be skipped.
+
+The Pump ships today as a `recompile:blueprint_crafting` recipe:
+
+```
+ C        C = minecraft:copper_ingot
+CMC       M = recompile:scrap_metal
+ P        P = recompile:plastic_scrap
+```
+
+**Proposed change: the bottom cell becomes `recompile:rubber_scrap`.** One key, same pattern, same
+shape on the bench, and it reads correct - a pump's diaphragm and seals are rubber, and plastic never
+was the part doing that job.
+
+**Two things this costs, both to be handled rather than discovered:**
+
+- **It edits a shipped recipe.** Players who already hold the Pump blueprint will find it wants a
+  different ingredient. That needs a changelog line in the player's voice, not a silent substitution.
+- **It removes a `plastic_scrap` sink, and that was checked rather than left as a worry.** Four recipes
+  consume plastic scrap today: the Cutting Torch, the Plastic Panel, the Rain Collector Funnel and the
+  Pump. Taking the Pump leaves three, and the Panel is an open-ended building-block sink, so plastic is
+  not devalued by the swap. Worth re-checking if that ever drops to one.
+
 ---
 
 ## 6. What this does to the checklist
@@ -188,22 +221,12 @@ without that mod, which is worse than not shipping it. See 8.1.
 
 ## 8. Open questions
 
-### 8.1 What consumes rubber, standalone? (load-bearing)
+### 8.1 What consumes rubber, standalone? DECIDED: the Pump
 
-The one thing #155 says must not be skipped, and still open.
-
-- **The Pump** is #155's candidate and still the best one: it already gates the Rain Collector and the
-  Hydroponics Bay, and a pump without a seal is the most obvious rubber part in the building. Its
-  recipe today is `blueprint_crafting`, ` C ` / `CMC` / ` P `, copper plus scrap metal plus plastic
-  scrap. **The cost is that this edits a shipped recipe**, which every existing world's players have
-  learned, so it wants a deliberate ruling rather than a quiet substitution.
-- **A new component** (a gasket, a seal) that the Pump then needs is the same change with an extra
-  item and an extra step.
-- **The Garbage Vacuum is a tempting third option and should probably be resisted.** It shipped in
-  v0.17.0 with `copper_pipe` in the hose slot, so retrofitting rubber there rewrites a recipe from the
-  most recent release.
-
-Recommendation: the Pump, with the recipe change made explicitly and noted in the changelog.
+Owner, 2026-09-04. Section 5.1 has the recipe and the two costs. The gasket-component variant was
+declined as two new items for one material, and the Garbage Vacuum was never a candidate worth taking:
+it shipped in v0.17.0 with `copper_pipe` in its hose slot, and retrofitting rubber there would rewrite a
+recipe from the current release.
 
 ### 8.2 Does a burning tire still yield its rubber?
 
@@ -211,21 +234,28 @@ Recommendation: the Pump, with the recipe change made explicitly and noted in th
 not consume the tire, so the rubber survives, and a player can put the fire out with water, so a burning
 pile is workable rather than lost.
 
-What is still open is one number: whether breaking a tire **while it is burning** yields the same rubber
-as a cold one.
+**DECIDED (owner, 2026-09-04): the same yield, burning or not.** It follows directly from ruling 4 -
+the fire does not damage the tire, so it does not damage what the tire gives - and it is the simplest
+thing to build and to explain.
 
-- **Same yield** is the simplest and follows from ruling 4, since the tire is not damaged.
-- **Reduced yield** would make extinguishing worth the water it costs and tie tires to the P1.10 economy
-  the way the fridge ice ruling ties ice to it. It is also the reading a player would guess.
+**One consequence to be clear about rather than to discover.** Putting a fire out now has no economic
+reason. A player will mostly harvest straight through the flames and eat the fire damage, because that
+is cheaper than a bucket. Extinguishing survives as a choice about comfort and safety rather than about
+yield: stop burning while you work, and stop the fire reaching anything of yours.
 
-Leaning toward reduced, but this is a balance dial rather than a design question, so it belongs with
-#36 unless somebody feels strongly.
+That makes the eternal fire a hazard and a light source rather than a cost, which is a coherent thing
+for it to be. It does mean tires are NOT tied to the P1.10 water economy, which the rejected
+reduced-yield option would have done.
 
-### 8.3 Do tires also appear in the pull streams?
+### 8.3 Do tires also appear in the pull streams? DECIDED: no
 
-#155's own open question, unchanged. A tire in `household_pulls` would make rubber available before a
-player finds a pile, at the cost of making the piles less of a destination. Leaning no: the pile is the
-point, and a find that duplicates a landmark weakens it.
+Owner, 2026-09-04. Piles only. #155's own open question, closed the way it leaned: the pile is the
+point, a find that duplicates a landmark weakens it, and rubber stays behind travel the way the mod
+gates its other materials by region.
+
+**Note what this makes true.** The Pump is now gated on finding a tire dump, and the Pump gates the Rain
+Collector and the Hydroponics Bay. Rubber is not a side material any more; it is on the critical path
+to the water tier, and 8.4's finiteness question inherits that weight.
 
 ### 8.4 Rubber is finite. Is that acceptable?
 
@@ -248,12 +278,13 @@ effect around a dump is a mechanic that wants its own design and its own config 
 
 ### 8.6 Shape of a pile
 
-Circular in plan is decided. Open: whether the height falls off toward the rim the way `MoundFeature`
-does (`height * (1 - dist/radius)`), or whether tires stack to a flat top like a real dumped heap. The
-falloff reads more natural at distance and reuses arithmetic that already exists.
+**Density is decided** (owner, 2026-09-04): a dump, clustered, rare. See placement rule 4.
 
-Also open: how many piles per chunk and at what spacing. Mounds are 5% and playtested; tires should be
-rarer, because a landmark you travel to beats scenery you walk past.
+**Still open, and small:** whether a single pile's height falls off toward the rim the way
+`MoundFeature` does (`height * (1 - dist/radius)`), or whether tires stack to a flat top like a heap
+somebody actually tipped. The falloff reads more natural at distance and reuses arithmetic that already
+exists; the flat top reads more like human dumping. Either is a few lines, and it is the kind of thing
+to settle by looking at one in the world rather than by argument.
 
 ### 8.7 Smoke at dump scale
 
