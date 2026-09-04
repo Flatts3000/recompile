@@ -1021,6 +1021,17 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> WASHING_MACHINE =
         ITEMS.registerSimpleBlockItem("washing_machine", RCBlocks.WASHING_MACHINE);
 
+    /** The find both market terminals are learned from (spec {@code docs/market_spec.md}). */
+    public static final DeferredItem<BlockItem> BROKEN_TERMINAL =
+        ITEMS.registerSimpleBlockItem("broken_terminal", RCBlocks.BROKEN_TERMINAL);
+
+    /** The market's two terminals: where the player sells, and where the player buys. */
+    public static final DeferredItem<BlockItem> SELL_TERMINAL =
+        ITEMS.registerSimpleBlockItem("sell_terminal", RCBlocks.SELL_TERMINAL);
+
+    public static final DeferredItem<BlockItem> BUY_TERMINAL =
+        ITEMS.registerSimpleBlockItem("buy_terminal", RCBlocks.BUY_TERMINAL);
+
     public static final DeferredItem<BlockItem> PRINTER =
         ITEMS.registerSimpleBlockItem("printer", RCBlocks.PRINTER);
 

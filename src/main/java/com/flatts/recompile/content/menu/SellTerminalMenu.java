@@ -1,0 +1,184 @@
+package com.flatts.recompile.content.menu;
+
+import com.flatts.recompile.content.market.Market;
+import com.flatts.recompile.gui.GuiTheme;
+import com.flatts.recompile.gui.ScreenLayout;
+import com.flatts.recompile.registry.RCBlocks;
+import com.flatts.recompile.registry.RCMenus;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+
+/**
+ * The Sell Terminal's menu: a grid of goods, a quote, a Sell button and the balance.
+ *
+ * <p><b>The goods grid is menu-local, like a crafting grid.</b> It belongs to this open screen and to
+ * nobody else: closing the screen hands everything back ({@link #removed}), and nothing in the world
+ * can see it. That is what makes the block a terminal rather than a container - there is no block
+ * entity for a hopper to find - and it is why the spec's "selling cannot be automated" needed no
+ * rule to be true.
+ *
+ * <p><b>The quote is computed on both sides from the same synced data</b> (the tag and the data map
+ * are both synced), so the screen shows what the sale will pay before the player commits, and the
+ * server charges the same number when they do. {@code mayPlace} refuses anything unsellable at the
+ * slot, so a player learns an item has no price by it not going in rather than by selling it for
+ * nothing.
+ *
+ * <p>The balance rides {@link DataSlot}s, the way every other screen here moves a number - but two of
+ * them rather than one, because a data slot is 16 bits on the wire and a balance is not. See
+ * {@link BalanceSync}.
+ */
+public class SellTerminalMenu extends AbstractContainerMenu {
+
+    /** The button id the screen sends to sell everything in the grid. */
+    public static final int SELL_BUTTON = 0;
+
+    public static final int GOODS_SLOTS = 9;
+
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 184)
+        .panel()
+        .slotGrid("goods", 3, 3, 8, 17)
+        // The quote sits beside the grid, not under it: "what will this pay" is answered next to
+        // the things being asked about. Three lines tall, because every string drawn here fits three
+        // lines at 98px and a fourth would disappear under the button rather than fail anything -
+        // which it did, until the screenshot pass caught it.
+        .region("quote", 70, 17, 98, 30)
+        // The button is a backdrop with its label as a region on top, which is the only way a
+        // labelled surface passes the overlap sweep; the sweep is right that a label over a plain
+        // region would be a bug, and a backdrop is the declared exception for exactly this.
+        .backdrop("sell", 70, 50, 60, 18)
+        .region("sell_label", 76, 55, 48, 9)
+        .region("balance", 8, 76, 160, 9)
+        .playerInventory(102)
+        .build();
+
+    private static final int INV_START = GOODS_SLOTS;
+    private static final int INV_MAIN_END = INV_START + 27;
+    private static final int INV_END = INV_START + 36;
+
+    private final SimpleContainer goods = new SimpleContainer(GOODS_SLOTS);
+    private final ContainerLevelAccess access;
+    private final BalanceSync balanceSync;
+
+    /** Client factory: no block to stand at, and the balance arrives through the data slots. */
+    public SellTerminalMenu(int containerId, Inventory inventory) {
+        this(containerId, inventory, ContainerLevelAccess.NULL);
+    }
+
+    public SellTerminalMenu(int containerId, Inventory inventory, ContainerLevelAccess access) {
+        super(RCMenus.SELL_TERMINAL.get(), containerId);
+        this.access = access;
+
+        LAYOUT.forEachSlot("goods", (index, x, y) -> this.addSlot(new Slot(goods, index, x, y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return Market.isSellable(stack);
+            }
+        }));
+        LAYOUT.forEachPlayerSlot((index, x, y) -> this.addSlot(new Slot(inventory, index, x, y)));
+
+        // Two slots, low half then high: a data slot is 16 bits on the wire and a balance is not.
+        this.balanceSync = new BalanceSync(inventory.player);
+        this.addDataSlot(this.balanceSync.lowSlot());
+        this.addDataSlot(this.balanceSync.highSlot());
+    }
+
+    /** The goods waiting to be sold. Exposed for the tests, which fill it directly. */
+    public SimpleContainer goods() {
+        return goods;
+    }
+
+    /** What the grid would pay right now. */
+    public int quote() {
+        return Market.quote(goods);
+    }
+
+    /** What the screen shows: the attachment on the server, the synced halves on the client. */
+    public int balance() {
+        return this.balanceSync.balance();
+    }
+
+    /**
+     * The sale. Everything in the grid goes and the balance goes up by the quote; an empty grid is a
+     * refused click rather than a zero-scrip sale.
+     */
+    @Override
+    public boolean clickMenuButton(Player clicker, int id) {
+        if (id != SELL_BUTTON) {
+            return false;
+        }
+        int total = Market.quote(goods);
+        if (total <= 0) {
+            return false;
+        }
+        // TAKE ONLY WHAT WAS PAID FOR. clearContent() also deleted anything unsellable sitting in
+        // the grid, and a stack CAN get there: mayPlace keeps them out at the slot, but a /reload
+        // that drops an item from #recompile:sellable or from the price map while the screen is
+        // open strands one, worth 0 to the quote and silently destroyed by the next sale. What is
+        // left behind now goes home through removed().
+        for (int slot = 0; slot < goods.getContainerSize(); slot++) {
+            if (Market.isSellable(goods.getItem(slot))) {
+                goods.setItem(slot, ItemStack.EMPTY);
+            }
+        }
+        Market.credit(clicker, total);
+        this.broadcastChanges();
+        return true;
+    }
+
+    @Override
+    public void removed(Player closer) {
+        super.removed(closer);
+        this.clearContainer(closer, goods);
+    }
+
+    @Override
+    public boolean stillValid(Player user) {
+        return stillValid(this.access, user, RCBlocks.SELL_TERMINAL.get());
+    }
+
+    /** Shift-click: sellable goods go to the grid, everything else is refused, grid empties home. */
+    @Override
+    public ItemStack quickMoveStack(Player mover, int index) {
+        Slot slot = this.slots.get(index);
+        if (!slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = slot.getItem();
+        ItemStack original = stack.copy();
+        if (index < INV_START) {
+            if (!this.moveItemStackTo(stack, INV_START, INV_END, true)) {
+                return ItemStack.EMPTY;
+            }
+        } else {
+            // Try the grid first, then fall through to vanilla's backpack/hotbar shuffle. The
+            // fallthrough is NESTED rather than an `else if` on purpose: as a sibling branch, a
+            // sellable stack shift-clicked against a full grid took the sell branch, failed, and
+            // returned EMPTY - so it neither sold nor moved, and the click did nothing at all.
+            // BurnerGeneratorMenu has the same shape for the same reason.
+            boolean stored = Market.isSellable(stack)
+                && this.moveItemStackTo(stack, 0, GOODS_SLOTS, false);
+            if (!stored) {
+                if (index < INV_MAIN_END) {
+                    if (!this.moveItemStackTo(stack, INV_MAIN_END, INV_END, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(stack, INV_START, INV_MAIN_END, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+        }
+
+        if (stack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        return original;
+    }
+}

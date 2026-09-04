@@ -1,7 +1,9 @@
 # The market: selling products, and buying back knowledge
 
-**Status: SPEC, unbuilt.** Issue #311. Rulings 2026-08-30 and 2026-09-04 are marked with their date;
-everything else is derivation and is arguable.
+**Status: BUILT 2026-09-04, on the branch for #311.** Rulings 2026-08-30 and 2026-09-04 are marked
+with their date; everything else is derivation and is arguable. Section 13 records what the build
+decided where this document had left a choice open, and each of those is the assistant's call rather
+than the owner's.
 
 **This document is lore-free on purpose, and that is a hard constraint rather than an oversight.** The
 market block is Recompile, which is a system; what it MEANS is Trashlands, which is curation. The
@@ -172,18 +174,19 @@ Each block owns a **front**, a **side** and a **top**. The two **share one botto
 
 | Surface | Count | Why |
 |---|---|---|
-| front | 2, one each | The face you read the block by. It is what tells the two apart across a room. |
-| side | 2, one each | |
-| top | 2, one each | |
+| front | 2, one each | The face you read the block by. It is what tells the two apart across a room. **A screen** (owner, 2026-09-04, second ruling): a terminal is a thing you read, so the front is a display in a bezel, lit green where you sell and amber where you buy. |
+| side | **1 drawn, 1 retint** | The Buy Terminal's side is a recolour of the Sell Terminal's, so the two casings match exactly rather than resembling each other (owner, 2026-09-04). |
+| top | **1 drawn, 1 retint** | Same. |
 | bottom | **1, shared** | Nobody sees it, and two terminals from one company should agree somewhere. |
 
 **That is exactly `minecraft:block/orientable_with_bottom`**, whose four texture slots are front, side,
 top and bottom, and which is already on `RegistryCompletenessTests.VANILLA_PARENTS` so it needs no
 allowlist change. The shared bottom is one texgen surface that both models point at rather than two
-surfaces held in sync, so it cannot drift.
+surfaces held in sync, and the retints read the promoted sell faces, so neither can drift: re-select
+the sell side and the buy side re-promotes from it.
 
-Seven surfaces to declare in `texgen.toml`, and the owner approves each with `select` before any of
-them is in `gen/approved.json`. An assistant `select` while generating is not approval.
+Six faces for the owner to `select` (two fronts, one side, one top, the bottom, and the find's dead
+front); the two retints derive. An assistant `select` while generating is not approval.
 
 **A front face means the block is directional**, so it carries `BlockStateProperties.HORIZONTAL_FACING`
 set from placement. In 26.1 that is an `EnumProperty<Direction>`; `DirectionProperty` does not exist and
@@ -220,6 +223,27 @@ Two surfaces, deliberately:
 
 A tag member with no price is a bug, so the sweep in section 10 **fails the build on one** rather than
 letting it sell for nothing. See the open question in section 12 about collapsing the two.
+
+### "One press" is the rule, and a transitive reading is not (2026-09-04)
+
+Review of the build read the exclusion as reaching all the way down, and reported the sell list as a
+junk sink: a Solar Panel is panes and plating, which are glass shards and scrap metal, so scrap
+becomes scrip at about three each with no cap.
+
+**That reading cannot be the rule, because every material in this world descends from a pull
+stream.** Applied transitively it empties the sell list and deletes the feature. Two things make the
+narrow reading the right one, and both were measured rather than argued:
+
+- **`recompile:junk` still has no price and no path to one.** It is consumed by exactly two recipes
+  in the mod, the schema's example door and Pressed Junk, and neither is sellable. Its only sink is
+  still the Burn Barrel, which is what section 8 actually refuses.
+- **Scrip flowing from renewable scrap is section 4 in as many words** - *a Blueprint's price is a
+  time cost and not a scarcity cost* - rather than a leak in section 6.
+
+What the review was right about is that the sweep enforcing this was checking less than it claimed:
+it read only `minecraft:crafting` recipes, so the Pump, Motor, Bulb and Battery were never inspected
+at all. It reads blueprint recipes now and **asserts it saw every member produced**, so a member the
+sweep cannot read fails the build instead of passing invisibly. All nine clear the one-press rule.
 
 ---
 
@@ -274,6 +298,15 @@ as one - it reads as the shop being broken.
 **The balance has to reach the client** for either screen to draw it. A menu data slot is how every
 other screen here moves a number, and it keeps the value out of the attachment-sync path entirely.
 
+**It takes TWO data slots, and that is not an implementation detail.** A data slot is 16 bits on the
+wire whatever its Java type says: `ClientboundContainerSetDataPacket` keeps an `int` in its field and
+then writes it with `writeShort`. A balance over 32,767 arrives wrapped negative and one over 65,535
+arrives truncated, with nothing logged and the server still right, so the only symptom is a screen
+quoting a number the player knows is wrong. Nothing in this mod had met that ceiling before, because
+every other synced value here is a tank or a buffer capped at 20,000 or less. The balance travels as
+a low half and a high half, recombined on the client (`BalanceSync`, arithmetic on `Market` so a unit
+test can drive it without a menu).
+
 **Both screens go through the GUI framework**: a `ScreenLayout` declared once in common code, rendering
 as a client-side visitor over it. `GuiFrameworkDisciplineTest` fails the build if either screen
 mentions a pipeline, a blit or even `leftPos`.
@@ -301,6 +334,10 @@ which is the same shape `fragment_assembly` already produces. It does not need a
 - **Buying a Blueprint spends the balance and yields a sheet with the right component**, and buying
   with an insufficient balance spends nothing and yields nothing. Paired, because "it produced no
   sheet" passes just as well on a terminal that never works.
+- **A balance survives the trip to the screen**, at 32,768 and either side of it. A unit test rather
+  than a GameTest, because the failure is arithmetic and the fix is arithmetic; it drives the same
+  `(short)` narrowing the packet performs, so it tests the real failure and not the encoding in
+  isolation.
 
 ---
 
@@ -328,3 +365,27 @@ which is the same shape `fragment_assembly` already produces. It does not need a
 4. **Is there a floor on what a Blueprint costs relative to its fragment count?** Pricing is tuning, but
    the RATIO between the two routes is design: if scrip is much faster than fragments for every
    blueprint, the fragment loop is dead content rather than an alternative.
+
+---
+
+## 13. As built (2026-09-04)
+
+Where the spec left a choice open, the build made one. Every item here is the assistant's call, made
+to ship, and is the first thing to revisit if it reads wrong.
+
+| Open point | What was built | Why |
+|---|---|---|
+| Names (section 5) | `sell_terminal` / **Sell Terminal** and `buy_terminal` / **Buy Terminal** | The player's verb, literally. "Sell Terminal" is already how section 5 refers to it. |
+| Q2: which find, which stream | **Broken Terminal**, weight 1 in `gameplay/bulky_spine` beside the Broken Hydroponics Bay | Bulky Waste is where finds live and the guidebook sweep already reads that table; a machine in Mechanical Waste would be a second convention for one thing. |
+| Q3: one find or two | **One find, two Blueprint sets** (`recompile:sell_terminal`, `recompile:buy_terminal`), both taught by the one teardown at four fragments each | A set has exactly one `blueprint_crafting` recipe (`the_clean_mattress_blueprint_recipe_loads` counts on it), and the two blocks are two recipes. One teardown carrying two `teaches` lines gives the cheaper reading the question wanted without bending that. |
+| Q1: tag and data map | Kept as two surfaces, exactly as section 6 says | The redundancy is deliberate, and `every_sellable_item_has_a_price` is what makes it safe. |
+| Where the Buy Terminal's stock lives | A **`recompile:market_offer` recipe type**: `{"blueprint": ..., "price": N}`, one file per line of stock | A Blueprint set is an id on a component, not a registry entry, so no data map can key on it. A recipe is the other thing a pack adds by dropping in a file, it reloads with the world, and the terminal reads the loaded set when it opens. It is never matched against anything and is `isSpecial`, so no recipe book or viewer lists it as a craft. |
+| How the stock reaches the client | Written into the menu's **open buffer**, the way the Scrap Crafting Table sends its position | The screen draws exactly the list the server sells from, and no second sync path exists to drift. The balance is a menu data slot, per section 10. |
+| Q4: the ratio | First-pass offers from 120 (Bulb) to 1,500 (the spawner cage and the netherite pattern), against sell prices of 5 to 45 per item | Each sheet is priced at roughly what selling its fragment count's worth of teardown yield would take, so scrip is an alternative to the grind without being faster for every sheet; region-gating sheets sit past a casual balance. The RATIO is design and the numbers are #36's. |
+| The sell list at ship | The eight machine parts plus every Clean Mattress, via `#recompile:clean_mattresses` | "Components and finished goods with a real assembly step." `nothing_sellable_is_raw_scrap_or_one_step_from_junk` is the ruling made mechanical: nothing binnable, and nothing craftable from binnable inputs alone. |
+| The art | Declared in `texgen.toml` as section 5 lays out after the second ruling: screen fronts, the buy side and top as retints of the sell ones, one shared bottom, and a dead-screen front for the Broken Terminal, which reuses the Sell Terminal's flanks | AI candidates are generated and one per face is promoted so the blocks render as terminals; none is in `gen/approved.json` until the owner runs `select`. |
+
+**What the build did not do, on purpose.** No JEI category for the offers (the info panels on the
+three blocks say where the stock is), no Jade provider (there is no state on the block to show), and
+no automation of any kind. Bulk orders and disposal remain exactly where sections 3.2 and 3.3 left
+them.

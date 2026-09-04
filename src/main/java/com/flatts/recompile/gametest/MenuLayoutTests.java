@@ -98,7 +98,13 @@ final class MenuLayoutTests {
             inv -> new com.flatts.recompile.content.menu.SlagFurnaceMenu(0, inv)),
         new Screen("sintering_kiln",
             () -> com.flatts.recompile.content.menu.SinteringKilnMenu.LAYOUT,
-            inv -> new com.flatts.recompile.content.menu.SinteringKilnMenu(0, inv)));
+            inv -> new com.flatts.recompile.content.menu.SinteringKilnMenu(0, inv)),
+        new Screen("sell_terminal",
+            () -> com.flatts.recompile.content.menu.SellTerminalMenu.LAYOUT,
+            inv -> new com.flatts.recompile.content.menu.SellTerminalMenu(0, inv)),
+        new Screen("buy_terminal",
+            () -> com.flatts.recompile.content.menu.BuyTerminalMenu.LAYOUT,
+            inv -> new com.flatts.recompile.content.menu.BuyTerminalMenu(0, inv)));
 
     /**
      * The machines that hand JEI raw slot indices for its transfer button, and the ranges they hand it.
@@ -207,7 +213,9 @@ final class MenuLayoutTests {
                     CupolaFurnaceMenu.class, SlagFurnaceMenu.class, BurnerGeneratorMenu.class,
                     HydroponicsBayMenu.class, TreeNurseryMenu.class, ScrapCraftingStationMenu.class,
                     com.flatts.recompile.content.menu.SinteringKilnMenu.class,
-                    com.flatts.recompile.content.menu.SequencerMenu.class);
+                    com.flatts.recompile.content.menu.SequencerMenu.class,
+                    com.flatts.recompile.content.menu.SellTerminalMenu.class,
+                    com.flatts.recompile.content.menu.BuyTerminalMenu.class);
             int registered = com.flatts.recompile.registry.RCMenus.MENUS.getEntries().size();
             helper.assertTrue(candidates.size() >= registered,
                 "this sweep considers " + candidates.size() + " menu classes while " + registered

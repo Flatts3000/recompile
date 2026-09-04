@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SequencerBlock;
 import com.flatts.recompile.content.block.TireBlock;
 import com.flatts.recompile.content.block.ManholeBlock;
+import com.flatts.recompile.content.block.MarketTerminalBlock;
 import com.flatts.recompile.content.block.FilingCabinetBlock;
 import com.flatts.recompile.content.block.PulverizerCoreBlock;
 import com.flatts.recompile.content.block.PulverizerPartBlock;
@@ -767,6 +768,50 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_GRAY)
             .strength(1.4F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
+     * Broken Terminal: the Bulky Waste find the two market terminals are learned from (spec
+     * {@code docs/market_spec.md}, owner 2026-08-30: "teardown").
+     *
+     * <p>You are not manufacturing a company terminal out of nothing; you dug one up, took it apart at
+     * the Workbench and built both ends of it from what you learned. One find teaches both sets, so a
+     * player who recovers one is on the way to the whole market rather than half of it.
+     * A found appliance like the washing machine: a facing, four-face art, and no behaviour.
+     */
+    public static final DeferredBlock<FoundApplianceBlock> BROKEN_TERMINAL = BLOCKS.registerBlock(
+        "broken_terminal",
+        FoundApplianceBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .strength(1.4F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
+     * The market's two terminals (spec {@code docs/market_spec.md}, #311). The Sell Terminal is where
+     * the player sells and the balance goes up; the Buy Terminal is where the player buys Blueprints
+     * and it goes down. Named from the PLAYER's verb, because "the block that sells" reads both ways.
+     *
+     * <p>No block entity, no container, no power: a terminal against someone else's ledger. Blueprint
+     * gated, learned from the Broken Terminal above.
+     */
+    public static final DeferredBlock<MarketTerminalBlock.Sell> SELL_TERMINAL = BLOCKS.registerBlock(
+        "sell_terminal",
+        MarketTerminalBlock.Sell::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
+            .sound(SoundType.METAL)
+    );
+
+    public static final DeferredBlock<MarketTerminalBlock.Buy> BUY_TERMINAL = BLOCKS.registerBlock(
+        "buy_terminal",
+        MarketTerminalBlock.Buy::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(2.0F)
             .sound(SoundType.METAL)
     );
 

@@ -80,6 +80,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.FILING_CABINET.get());
                     output.accept(RCItems.PRINTER.get());
                     output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
+                    output.accept(RCItems.BROKEN_TERMINAL.get());
 
                     // --- 3. Tools ---
                     RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
@@ -139,6 +140,9 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.BLAZE_BRIQUETTE.get());
                     output.accept(RCItems.PROPELLANT_BRIQUETTE.get());
                     output.accept(RCItems.CUPOLA_FURNACE.get());
+                    // The market: where you sell, then where you spend it.
+                    output.accept(RCItems.SELL_TERMINAL.get());
+                    output.accept(RCItems.BUY_TERMINAL.get());
 
                     // --- 7. Knowledge (#95): fragments, the sheets they become, what they unlock ---
                     com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->

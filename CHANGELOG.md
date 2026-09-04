@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### The market
+
+- **Two terminals and an account.** The **Sell Terminal** buys components and finished goods - a
+  Pump, a Motor, a Bulb, a Battery, a Clean Mattress, the machine parts - and credits your balance
+  in **company scrip**. The **Buy Terminal** sells **Blueprints** against that balance. Scrip is
+  never an item: it cannot be dropped, stored in a chest or lost on death, and a hopper cannot sell
+  for you.
+- **The screen quotes what a load pays before you sell it.** Raw scrap and anything pressed straight
+  from junk are refused at the slot, so junk still has no price and its only sink is still the Burn
+  Barrel.
+- **A bought Blueprint is the same sheet fragments make.** You still need every material and the
+  Scrap Crafting Table; you are paying past the fragment grind, not past the gate.
+- **Both are learned from a Broken Terminal** pried out of Bulky Waste and torn down at the
+  Teardown Workbench. One find teaches both.
+- **Every sellable thing carries its price on its own tooltip**, per item and per stack, so you can
+  tell what is worth carrying home without walking to a terminal. Nothing shows on things the market
+  will not take.
+- **A pack changes all of it without a mod release**: what sells is `#recompile:sellable`, what it
+  pays is the `recompile:scrip_value` data map, and every line of the Buy Terminal's stock is one
+  `recompile:market_offer` recipe file.
+
 ## v0.18.0
 
 **The sea, and the tires.** v0.17.0 was about clearing mounds faster. This one is about two places

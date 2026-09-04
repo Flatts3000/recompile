@@ -57,6 +57,11 @@ SCREENS = [
     # MenuLayoutTests measures slot geometry and cannot see a pixel. It was missing from this list
     # when it shipped, along with the Kiln above.
     ("sequencer", "recompile:sequencer"),
+    # The market's two terminals (docs/market_spec.md). No gauge on either, but a quote, a price
+    # column coloured by whether you can afford it, and a balance line - all text the layout sweep
+    # cannot read. Both open with an empty balance here, which is the state a new player sees.
+    ("sell_terminal", "recompile:sell_terminal"),
+    ("buy_terminal", "recompile:buy_terminal"),
 ]
 
 FOCUS_PS = """
@@ -159,8 +164,13 @@ def main():
             failures.append("%s: crosshair is not on the block\n%s" % (name, looking))
             continue
 
-        powershell(CLICK_PS)
-        time.sleep(1.2)
+        # devbridge's own right-click (0.6.0): a real use through vanilla's ordering, which waits for
+        # the container screen to arrive on its packet. It replaced an OS-level mouse event that
+        # needed the game window foregrounded and silently did nothing when it was not - which is
+        # how a run of this tool reported every screen as "opened nothing" while the game sat behind
+        # a terminal. The focus dance above is kept only so the window is visible for the grab.
+        bridge("use")
+        time.sleep(0.8)
         opened = bridge("screen")
         if "Screen" not in opened:
             failures.append("%s: right-click opened nothing\n%s" % (name, opened))

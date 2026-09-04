@@ -69,6 +69,30 @@ public final class RCDataMaps {
         .synced(Crop.CODEC, true)
         .build();
 
+    /**
+     * What the Sell Terminal pays for one of an item, in company scrip (spec
+     * {@code docs/market_spec.md}, #311).
+     *
+     * <p>Ships in {@code data/recompile/data_maps/item/scrip_value.json}. A bare integer per entry,
+     * and a tag key works the way it does in any data map, which is how sixteen colours of Clean
+     * Mattress are one line.
+     *
+     * <p><b>Membership is the tag, not this map.</b> {@code #recompile:sellable} says what may be sold
+     * because that is the ruling and a tag is what a pack already knows how to extend; this says what
+     * it is worth because a tag cannot carry a number. A tag member with no entry here is a build
+     * failure ({@code every_sellable_item_has_a_price}) and is refused at the slot, never bought for
+     * nothing. Prices are flat per product and first-pass; tuning belongs with the balance pass (#36).
+     *
+     * <p><b>Synced</b>, because the sell screen quotes the price before the sale and the slot refuses
+     * unpriced goods on both sides. Without the sync the client would read null and every item would
+     * be refused at the client while the server accepted it.
+     */
+    public static final DataMapType<Item, Integer> SCRIP_VALUE = DataMapType
+        .builder(Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "scrip_value"),
+            Registries.ITEM, Codec.intRange(1, com.flatts.recompile.content.market.Market.MAX_BALANCE))
+        .synced(Codec.INT, true)
+        .build();
+
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(RCDataMaps::onRegisterDataMaps);
     }
@@ -76,6 +100,7 @@ public final class RCDataMaps {
     private static void onRegisterDataMaps(RegisterDataMapTypesEvent event) {
         event.register(BAIT_WEIGHT);
         event.register(HYDROPONIC_CROP);
+        event.register(SCRIP_VALUE);
     }
 
     /**

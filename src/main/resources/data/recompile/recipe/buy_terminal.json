@@ -1,0 +1,18 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "blueprint": "recompile:buy_terminal",
+  "key": {
+    "S": "recompile:scrap_metal",
+    "B": "recompile:bulb",
+    "E": "recompile:e_scrap",
+    "P": "recompile:plastic_scrap"
+  },
+  "pattern": [
+    "SBS",
+    "EPE",
+    "SSS"
+  ],
+  "result": {
+    "item": "recompile:buy_terminal"
+  }
+}

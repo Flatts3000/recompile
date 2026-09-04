@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "selling",
+  "sort_number": 1,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.workstations.market.selling.text",
+  "title": "book.recompile.guide.workstations.market.selling.title"
+}

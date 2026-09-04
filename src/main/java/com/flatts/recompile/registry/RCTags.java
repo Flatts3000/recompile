@@ -357,6 +357,24 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "undiscoverable"));
 
     /**
+     * What the Sell Terminal will buy (spec {@code docs/market_spec.md}, owner 2026-08-30 and
+     * 2026-09-04): components and finished goods with a real assembly step behind them - the Pump, the
+     * Motor, the Bulb, the Battery, the Clean Mattress and their kin.
+     *
+     * <p><b>It excludes anything one press away from raw junk, and that exclusion is the whole
+     * ruling.</b> Pressed Junk is a building family made straight from the commonest thing in the
+     * household stream; a price on it would hand junk a price through the back door, which is
+     * precisely the sink the market refuses to be. {@code nothing_sellable_is_raw_scrap_or_one_step_from_junk}
+     * makes that mechanical: nothing in here may be binnable, and nothing in here may be craftable
+     * from binnable inputs alone.
+     *
+     * <p>What each member pays is the {@code recompile:scrip_value} data map; a member with no price
+     * fails the build rather than selling for nothing.
+     */
+    public static final TagKey<Item> SELLABLE = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "sellable"));
+
+    /**
      * What a Garbage Vacuum of a given tier is rated to take (#336, owner 2026-09-03): one block tag
      * per tier, named for the tier, each including the band below it.
      *
