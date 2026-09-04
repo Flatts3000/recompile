@@ -1,0 +1,23 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "_comment": [
+    "A counter with a readout: a Bulb behind a scrap-steel case, e-scrap for the ledger, a",
+    "plastic keypad. Both terminals share the case and differ in the arrangement, so the two",
+    "shaped patterns cannot collide at the bench."
+  ],
+  "blueprint": "recompile:sell_terminal",
+  "key": {
+    "S": "recompile:scrap_metal",
+    "B": "recompile:bulb",
+    "E": "recompile:e_scrap",
+    "P": "recompile:plastic_scrap"
+  },
+  "pattern": [
+    "SBS",
+    "SES",
+    "SPS"
+  ],
+  "result": {
+    "item": "recompile:sell_terminal"
+  }
+}

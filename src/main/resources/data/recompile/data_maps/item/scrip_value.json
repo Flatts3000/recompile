@@ -1,0 +1,19 @@
+{
+  "_comment": [
+    "What the Sell Terminal pays for ONE of each, in company scrip. Membership is the",
+    "#recompile:sellable tag; this is only the number. A tag member with no line here fails the",
+    "build (every_sellable_item_has_a_price) and is refused at the slot, never bought for zero.",
+    "First-pass prices, ordered by how much work sits behind each; tuning belongs to #36."
+  ],
+  "values": {
+    "recompile:copper_pipe": 5,
+    "recompile:bulb": 10,
+    "recompile:machine_frame": 15,
+    "recompile:battery": 25,
+    "recompile:pump": 30,
+    "recompile:motor": 30,
+    "#recompile:clean_mattresses": 30,
+    "recompile:water_tank": 40,
+    "recompile:solar_panel": 45
+  }
+}

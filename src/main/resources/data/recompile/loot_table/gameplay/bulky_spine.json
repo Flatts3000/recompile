@@ -33,6 +33,11 @@
           "type": "minecraft:item",
           "name": "recompile:fridge",
           "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "recompile:broken_terminal",
+          "weight": 1
         }
       ]
     }

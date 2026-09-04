@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "recompile:copper_pipe",
+    "recompile:machine_frame",
+    "recompile:bulb",
+    "recompile:battery",
+    "recompile:pump",
+    "recompile:motor",
+    "recompile:water_tank",
+    "recompile:solar_panel",
+    "#recompile:clean_mattresses"
+  ]
+}

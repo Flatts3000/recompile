@@ -1,6 +1,7 @@
 package com.flatts.recompile;
 
 import com.flatts.recompile.gametest.RCGameTests;
+import com.flatts.recompile.registry.RCAttachments;
 import com.flatts.recompile.registry.RCBiomeSources;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCBlocks;
@@ -48,6 +49,8 @@ public final class Recompile {
         RCBlocks.register(modEventBus);
         RCItems.register(modEventBus);
         RCDataComponents.register(modEventBus);
+        // The market's scrip balance: the first data attachment this mod has ever registered.
+        RCAttachments.register(modEventBus);
         RCBlockEntities.register(modEventBus);
 
         // The mod's first entity layer (#78). After items: the spawn egg is an item.

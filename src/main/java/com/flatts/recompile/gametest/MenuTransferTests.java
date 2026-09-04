@@ -249,7 +249,11 @@ final class MenuTransferTests {
                     new ItemStack(RCItems.FERTILIZER.get(), 32)),
                 new Menu("cupola_furnace", inv ->
                     new CupolaFurnaceMenu(0, inv),
-                    new ItemStack(RCItems.SCRAP_METAL.get(), 64)));
+                    new ItemStack(RCItems.SCRAP_METAL.get(), 64)),
+                // The Sell Terminal's grid takes what #recompile:sellable names and has a price.
+                new Menu("sell_terminal", inv ->
+                    new com.flatts.recompile.content.menu.SellTerminalMenu(0, inv),
+                    new ItemStack(RCItems.PUMP.get(), 16)));
 
             List<String> problems = new ArrayList<>();
             for (Menu m : menus) {
@@ -327,13 +331,18 @@ final class MenuTransferTests {
         RCGameTests.test("every_bespoke_menu_transfer_is_covered", 20, helper -> {
             java.util.Set<String> covered = java.util.Set.of(
                 "BurnerGeneratorMenu", "HydroponicsBayMenu", "SequencerMenu", "TreeNurseryMenu",
-                "CupolaFurnaceMenu");
+                "CupolaFurnaceMenu", "SellTerminalMenu");
             java.util.Map<String, String> excused = java.util.Map.of(
                 "ScrapCraftingStationMenu",
                 "its result path calls player.drop, so it deliberately moves items OUT of the menu's "
                     + "slot set and a conservation check over slots is the wrong instrument for it. "
                     + "Its result-slot behaviour is pinned by CraftingTableTests."
-                    + "one_shift_click_crafts_one_batch_not_the_whole_network");
+                    + "one_shift_click_crafts_one_batch_not_the_whole_network",
+                "BuyTerminalMenu",
+                "it has no machine slot at all - only the player's own 36 - so the sweep above, "
+                    + "whose second scenario needs a machine slot at index 0, cannot be run on it. "
+                    + "Its backpack-to-hotbar move is pinned by MarketTests."
+                    + "buy_terminal_shift_click_moves_between_backpack_and_hotbar");
 
             List<String> uncovered = new ArrayList<>();
             List<Class<?>> found = menuClasses();

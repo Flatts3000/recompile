@@ -1,0 +1,13 @@
+{
+  "type": "recompile:market_offer",
+  "blueprint": "recompile:bulb",
+  "price": 120,
+  "_comment": [
+    "THE RATIO IS THE DESIGN, THE NUMBER IS TUNING (docs/market_spec.md, open question 4).",
+    "Each sheet is priced at roughly what selling its fragments' worth of teardown yield",
+    "would take, times the fragment count, so scrip is a real alternative to the grind",
+    "without being faster than it for every sheet. Sheets whose result gates a region",
+    "(the spawner cage, the netherite pattern) are priced past a casual balance. Every",
+    "offer is one file; a pack retunes or removes any of them without a mod release."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:workstations/market",
+  "category": "recompile:workstations",
+  "name": "book.recompile.guide.workstations.market.name",
+  "icon": {
+    "id": "recompile:sell_terminal"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 1,
+  "y": 2,
+  "parents": [
+    {
+      "entry": "recompile:workstations/blueprints"
+    }
+  ]
+}

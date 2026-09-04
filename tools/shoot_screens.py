@@ -57,6 +57,11 @@ SCREENS = [
     # MenuLayoutTests measures slot geometry and cannot see a pixel. It was missing from this list
     # when it shipped, along with the Kiln above.
     ("sequencer", "recompile:sequencer"),
+    # The market's two terminals (docs/market_spec.md). No gauge on either, but a quote, a price
+    # column coloured by whether you can afford it, and a balance line - all text the layout sweep
+    # cannot read. Both open with an empty balance here, which is the state a new player sees.
+    ("sell_terminal", "recompile:sell_terminal"),
+    ("buy_terminal", "recompile:buy_terminal"),
 ]
 
 FOCUS_PS = """

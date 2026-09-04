@@ -1,0 +1,5 @@
+{
+  "type": "recompile:market_offer",
+  "blueprint": "recompile:clean_mattress",
+  "price": 320
+}

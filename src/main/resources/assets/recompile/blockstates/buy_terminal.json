@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "recompile:block/buy_terminal"
+    },
+    "facing=east": {
+      "model": "recompile:block/buy_terminal",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "recompile:block/buy_terminal",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "recompile:block/buy_terminal",
+      "y": 270
+    }
+  }
+}

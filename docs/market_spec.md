@@ -1,7 +1,9 @@
 # The market: selling products, and buying back knowledge
 
-**Status: SPEC, unbuilt.** Issue #311. Rulings 2026-08-30 and 2026-09-04 are marked with their date;
-everything else is derivation and is arguable.
+**Status: BUILT 2026-09-04, on the branch for #311.** Rulings 2026-08-30 and 2026-09-04 are marked
+with their date; everything else is derivation and is arguable. Section 13 records what the build
+decided where this document had left a choice open, and each of those is the assistant's call rather
+than the owner's.
 
 **This document is lore-free on purpose, and that is a hard constraint rather than an oversight.** The
 market block is Recompile, which is a system; what it MEANS is Trashlands, which is curation. The
@@ -328,3 +330,27 @@ which is the same shape `fragment_assembly` already produces. It does not need a
 4. **Is there a floor on what a Blueprint costs relative to its fragment count?** Pricing is tuning, but
    the RATIO between the two routes is design: if scrip is much faster than fragments for every
    blueprint, the fragment loop is dead content rather than an alternative.
+
+---
+
+## 13. As built (2026-09-04)
+
+Where the spec left a choice open, the build made one. Every item here is the assistant's call, made
+to ship, and is the first thing to revisit if it reads wrong.
+
+| Open point | What was built | Why |
+|---|---|---|
+| Names (section 5) | `sell_terminal` / **Sell Terminal** and `buy_terminal` / **Buy Terminal** | The player's verb, literally. "Sell Terminal" is already how section 5 refers to it. |
+| Q2: which find, which stream | **Broken Terminal**, weight 1 in `gameplay/bulky_spine` beside the Broken Hydroponics Bay | Bulky Waste is where finds live and the guidebook sweep already reads that table; a machine in Mechanical Waste would be a second convention for one thing. |
+| Q3: one find or two | **One find, two Blueprint sets** (`recompile:sell_terminal`, `recompile:buy_terminal`), both taught by the one teardown at four fragments each | A set has exactly one `blueprint_crafting` recipe (`the_clean_mattress_blueprint_recipe_loads` counts on it), and the two blocks are two recipes. One teardown carrying two `teaches` lines gives the cheaper reading the question wanted without bending that. |
+| Q1: tag and data map | Kept as two surfaces, exactly as section 6 says | The redundancy is deliberate, and `every_sellable_item_has_a_price` is what makes it safe. |
+| Where the Buy Terminal's stock lives | A **`recompile:market_offer` recipe type**: `{"blueprint": ..., "price": N}`, one file per line of stock | A Blueprint set is an id on a component, not a registry entry, so no data map can key on it. A recipe is the other thing a pack adds by dropping in a file, it reloads with the world, and the terminal reads the loaded set when it opens. It is never matched against anything and is `isSpecial`, so no recipe book or viewer lists it as a craft. |
+| How the stock reaches the client | Written into the menu's **open buffer**, the way the Scrap Crafting Table sends its position | The screen draws exactly the list the server sells from, and no second sync path exists to drift. The balance is a menu data slot, per section 10. |
+| Q4: the ratio | First-pass offers from 120 (Bulb) to 1,500 (the spawner cage and the netherite pattern), against sell prices of 5 to 45 per item | Each sheet is priced at roughly what selling its fragment count's worth of teardown yield would take, so scrip is an alternative to the grind without being faster for every sheet; region-gating sheets sit past a casual balance. The RATIO is design and the numbers are #36's. |
+| The sell list at ship | The eight machine parts plus every Clean Mattress, via `#recompile:clean_mattresses` | "Components and finished goods with a real assembly step." `nothing_sellable_is_raw_scrap_or_one_step_from_junk` is the ruling made mechanical: nothing binnable, and nothing craftable from binnable inputs alone. |
+| The art | Seven surfaces declared in `texgen.toml` exactly as section 5 lays out, plus one front for the Broken Terminal, which reuses the Sell Terminal's flanks | Procedural placeholders ship so the blocks render; none is in `gen/approved.json` until the owner runs `select`. |
+
+**What the build did not do, on purpose.** No JEI category for the offers (the info panels on the
+three blocks say where the stock is), no Jade provider (there is no state on the block to show), and
+no automation of any kind. Bulk orders and disposal remain exactly where sections 3.2 and 3.3 left
+them.

@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.content.recipe.SpawnEggCraftingRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
+import com.flatts.recompile.content.recipe.MarketOfferRecipe;
 import com.flatts.recompile.content.recipe.PulverizingRecipe;
 import com.flatts.recompile.content.recipe.SinteringRecipe;
 import com.flatts.recompile.content.recipe.VitrifyingRecipe;
@@ -139,6 +140,19 @@ public final class RCRecipeTypes {
     public static final Supplier<RecipeSerializer<SinteringRecipe>> SINTERING_SERIALIZER =
         RECIPE_SERIALIZERS.register("sintering",
             () -> new RecipeSerializer<>(SinteringRecipe.CODEC, SinteringRecipe.STREAM_CODEC));
+
+    /**
+     * The Buy Terminal's stock (spec {@code docs/market_spec.md}): one Blueprint set at one price.
+     * A recipe type because a Blueprint set is an id on a component rather than a registry entry,
+     * so no data map can key on it; a recipe is the other thing a pack extends by adding a file.
+     */
+    public static final Supplier<RecipeType<MarketOfferRecipe>> MARKET_OFFER =
+        RECIPE_TYPES.register("market_offer", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "market_offer")));
+
+    public static final Supplier<RecipeSerializer<MarketOfferRecipe>> MARKET_OFFER_SERIALIZER =
+        RECIPE_SERIALIZERS.register("market_offer",
+            () -> new RecipeSerializer<>(MarketOfferRecipe.CODEC, MarketOfferRecipe.STREAM_CODEC));
 
     private RCRecipeTypes() {
         // utility class

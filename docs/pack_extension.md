@@ -91,7 +91,7 @@ item in a hand.
 
 ## Recipes
 
-Seven public recipe types. A pack writes these the way it writes a vanilla one, in
+Eight public recipe types. A pack writes these the way it writes a vanilla one, in
 `data/<pack>/recipe/`:
 
 | Type | Shape |
@@ -103,6 +103,7 @@ Seven public recipe types. A pack writes these the way it writes a vanilla one, 
 | `recompile:sintering` | vanilla's cooking schema; the Sintering Kiln |
 | `recompile:blueprint_crafting` | a grid recipe gated on holding a Blueprint |
 | `recompile:spawn_egg_crafting` | a grid recipe whose result is read off a Blueprint IN the grid |
+| `recompile:market_offer` | one line of the Buy Terminal's stock: a Blueprint set and its price in scrip |
 
 `docs/teardown_schema_spec.md` is the reference for the first one and is treated as public API.
 
@@ -141,6 +142,7 @@ is the authority.
 | Tag | Means |
 |---|---|
 | `#recompile:found_only` | no recipe may produce this; it is found. Two tests enforce both halves |
+| `#recompile:sellable` | what the Sell Terminal will buy. Membership only; the price is the `recompile:scrip_value` data map, and a member with no price fails the build. Nothing binnable, and nothing craftable from binnable inputs alone - `nothing_sellable_is_raw_scrap_or_one_step_from_junk` enforces both |
 | `#recompile:binnable` | a Scrap Bin will accept it |
 | `#recompile:scrap_connectable` | **block** tag; placed touching, these form one Scrap Network cluster |
 | `#recompile:vitrifiable` / `#recompile:sinterable` | what those two machines accept on a shift-click |
@@ -154,6 +156,13 @@ is the authority.
 | `#recompile:dump_plants` | **block** tag; this mod's own ground cover (weedgrass, fireweed), and a member of `#frontier_cover` |
 | `#recompile:pigeon_forageable` | **block** tag; what a pigeon will pick at |
 | `#recompile:has_structure/{sewer,cooling_tower,smokestack,municipal_aquarium}` | **worldgen/biome** tags. See below - these are the landmark dial |
+
+**The market is three files a pack can touch and nothing it cannot** (`docs/market_spec.md`).
+`tags/item/sellable.json` says what the Sell Terminal takes; `data_maps/item/scrip_value.json` says
+what each pays, as a bare integer per item or tag; and every line of the Buy Terminal's stock is one
+`recompile:market_offer` recipe, `{"blueprint": "<set>", "price": N}`, so a pack adds, reprices or
+removes an offer by adding, editing or overriding one file. The balance itself is a data attachment
+on the player and is not reachable from data, which is the point of it.
 
 **Every landmark structure is retargetable from data.** All four of `worldgen/structure/*.json` set
 `"biomes"` to `#recompile:has_structure/<name>` rather than naming a biome, so overriding one biome

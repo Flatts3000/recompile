@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "top": "recompile:block/sell_terminal_top",
+    "bottom": "recompile:block/terminal_bottom",
+    "front": "recompile:block/sell_terminal_front",
+    "side": "recompile:block/sell_terminal_side"
+  }
+}

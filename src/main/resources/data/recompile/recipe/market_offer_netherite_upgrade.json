@@ -1,0 +1,5 @@
+{
+  "type": "recompile:market_offer",
+  "blueprint": "recompile:netherite_upgrade",
+  "price": 1500
+}

@@ -80,6 +80,12 @@ public final class JeiInfoPanels {
             // is the defect this class exists to make impossible - a player looking up the one find
             // that gates the dye set, or the one that teaches the Hydroponics Bay, got nothing.
             new Panel(RCItems.PRINTER.get(), "printer"),
-            new Panel(RCItems.BROKEN_HYDROPONICS_BAY.get(), "broken_hydroponics_bay"));
+            new Panel(RCItems.BROKEN_HYDROPONICS_BAY.get(), "broken_hydroponics_bay"),
+
+            // The market: a find, and two terminals whose whole mechanic - a balance that is not an
+            // item, a tag that says what sells - no recipe can express.
+            new Panel(RCItems.BROKEN_TERMINAL.get(), "broken_terminal"),
+            new Panel(RCItems.SELL_TERMINAL.get(), "sell_terminal"),
+            new Panel(RCItems.BUY_TERMINAL.get(), "buy_terminal"));
     }
 }

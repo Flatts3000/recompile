@@ -2571,3 +2571,67 @@ size = 16
 tint = "#c2b096"
 brightness = 1.3
 source = "item/battery"
+
+# ---------------------------------------------------------------------------
+# The market (docs/market_spec.md, #311): two terminals and the find they are learned from
+# ---------------------------------------------------------------------------
+#
+# SEVEN SURFACES FOR THE TWO TERMINALS, ONE OF THEM SHARED (owner, 2026-09-04). Each block owns a
+# front, a side and a top; the two share one bottom. That is exactly orientable_with_bottom, and the
+# shared bottom is ONE surface both models point at rather than two kept in sync, so it cannot drift.
+# The front is what tells the two apart across a room, so the fronts differ most and the flanks share
+# a material language: the same dark scrap-steel casing the Sequencer and the Charging Station wear,
+# because these sit in the same base.
+#
+# The Broken Terminal is the find. It reuses the Sell Terminal's side and top - it IS one of these,
+# dead - and owns only a front, which is where "dead" shows.
+#
+# Every surface below is pending until the owner runs `select`; the procedural art that ships in the
+# meantime is a placeholder and its ids stay out of gen/approved.json.
+
+[surface.sell_terminal]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front", "side", "top"]
+[surface.sell_terminal.prompt]
+front = "a full-bleed Minecraft block face of a scrap-built shop counter terminal where goods are handed IN: dark riveted steel panel with a wide horizontal intake slot across the lower half, a small green-lit price readout strip above it showing a short row of digits, an arrow pointing INTO the slot, bold and simple, high contrast"
+side = "a full-bleed Minecraft block face of a plain dark riveted scrap steel machine panel: flat scrap steel with a bolt at each corner, one thin green stripe running vertically near one edge, faint rust streaks, deliberately plainer than the front, NO lights and NO slot"
+top = "a full-bleed top-down Minecraft block face of a dark scrap steel terminal lid: riveted plate with a shallow rectangular tray recessed in the centre and a green painted stripe along one edge, a few grime smudges, bold and simple"
+[surface.sell_terminal.procedural]
+style = "rubble"
+palette = ["#2a2d31", "#3a3e44", "#4a4f56", "#22252a", "#5c6168", "#2f7a3a", "#1c1f23"]
+
+[surface.buy_terminal]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front", "side", "top"]
+[surface.buy_terminal.prompt]
+front = "a full-bleed Minecraft block face of a scrap-built vending terminal where goods are handed OUT: dark riveted steel panel with a small glass display window in the upper half showing a rolled paper sheet inside lit pale amber, a narrow dispensing slot below it with an arrow pointing OUT, a tiny keypad of buttons to one side, bold and simple, high contrast"
+side = "a full-bleed Minecraft block face of a plain dark riveted scrap steel machine panel: flat scrap steel with a bolt at each corner, one thin amber stripe running vertically near one edge, faint rust streaks, deliberately plainer than the front, NO lights and NO slot"
+top = "a full-bleed top-down Minecraft block face of a dark scrap steel terminal lid: riveted plate with a small round amber indicator lamp in the centre and an amber painted stripe along one edge, a few grime smudges, bold and simple"
+[surface.buy_terminal.procedural]
+style = "rubble"
+palette = ["#2a2d31", "#3a3e44", "#4a4f56", "#22252a", "#5c6168", "#b8862b", "#1c1f23"]
+
+# Nobody sees it, and two terminals from one company should agree somewhere.
+[surface.terminal_bottom]
+kind = "block"
+backend = "ai"
+size = 16
+prompt = "a full-bleed Minecraft block face of a plain heavy scrap steel base plate: flat dark grey metal, one large bolt in each corner, a stencilled company stamp faintly visible in the centre, oil stains and grime, deliberately plain and uncluttered"
+[surface.terminal_bottom.procedural]
+style = "rubble"
+palette = ["#2a2d31", "#3a3e44", "#22252a", "#1c1f23", "#454a50"]
+
+[surface.broken_terminal]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front"]
+[surface.broken_terminal.prompt]
+front = "a full-bleed Minecraft block face of a dead scrap-built shop terminal: dark riveted steel panel with a wide horizontal slot across the lower half jammed with debris, a cracked dark unlit readout strip above it, one panel corner bent outward with rust blooming along the tear, dust and grime everywhere, NO lit lights anywhere, bold and simple, high contrast"
+[surface.broken_terminal.procedural]
+style = "rubble"
+palette = ["#2a2d31", "#3a3e44", "#22252a", "#6b4a2a", "#1c1f23", "#4a4f56"]

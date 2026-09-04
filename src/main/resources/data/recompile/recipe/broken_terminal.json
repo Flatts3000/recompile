@@ -1,0 +1,52 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:broken_terminal",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 120,
+  "pools": [
+    {
+      "_comment": [
+        "The carcass of a company terminal: sheet steel, the board, the screen glass. Four",
+        "draws, no filler, so a teardown always hands something back.",
+        "",
+        "NO COMPONENT IN THIS POOL, deliberately. A pool that yields a Bulb would make this the",
+        "second object that yields one, and the one that yields a component is meant to be the",
+        "one that teaches it (ComponentBlueprintTests). What this find teaches is the two",
+        "terminals, declared at the top level so the fragment is granted without the pool having",
+        "to draw the thing it teaches."
+      ],
+      "rolls": 4,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 3
+        },
+        {
+          "item": "recompile:e_scrap",
+          "weight": 3
+        },
+        {
+          "item": "recompile:glass_shards",
+          "weight": 2
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:sell_terminal",
+      "chance": 1.0,
+      "scraps_required": 4
+    },
+    {
+      "recipe": "recompile:buy_terminal",
+      "chance": 1.0,
+      "scraps_required": 4
+    }
+  ]
+}

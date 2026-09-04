@@ -1,0 +1,5 @@
+{
+  "type": "recompile:market_offer",
+  "blueprint": "recompile:spawner",
+  "price": 1500
+}

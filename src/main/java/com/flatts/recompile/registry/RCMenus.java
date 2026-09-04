@@ -1,6 +1,8 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.menu.BuyTerminalMenu;
+import com.flatts.recompile.content.menu.SellTerminalMenu;
 import com.flatts.recompile.content.menu.SequencerMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
 import com.flatts.recompile.content.menu.BurnerGeneratorMenu;
@@ -99,6 +101,20 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<SinteringKilnMenu>> SINTERING_KILN =
         MENUS.register("sintering_kiln", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new SinteringKilnMenu(id, inventory)));
+
+    /**
+     * The two market terminals (spec {@code docs/market_spec.md}, #311): the ninth and tenth custom
+     * screens, and one recorded reversal between them. The justification is the shape every other
+     * exception here has - no vanilla screen shows a price. Neither holds a container: the sell
+     * screen's grid is menu-local and the buy screen's stock arrives in the open buffer.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<SellTerminalMenu>> SELL_TERMINAL =
+        MENUS.register("sell_terminal", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new SellTerminalMenu(id, inventory)));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<BuyTerminalMenu>> BUY_TERMINAL =
+        MENUS.register("buy_terminal", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new BuyTerminalMenu(id, inventory, buffer)));
 
     private RCMenus() {
     }

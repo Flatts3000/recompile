@@ -118,8 +118,22 @@ public class BlueprintItem extends Item {
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
         return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
-            SPAWNER, BATTERY);
+            SPAWNER, BATTERY, SELL_TERMINAL, BUY_TERMINAL);
     }
+
+    /**
+     * The two market terminals (spec {@code docs/market_spec.md}, #311), learned from one find.
+     *
+     * <p>Two sets rather than one, because a set has exactly one {@code blueprint_crafting} recipe
+     * and the two blocks are two recipes. The Broken Terminal teaches both, so a single teardown
+     * fragment stream leads to the whole market - you recovered their terminal and built both ends of
+     * it. The Buy Terminal sells both sheets too, which is circular and harmless: a second terminal.
+     */
+    public static final Identifier SELL_TERMINAL =
+        Identifier.fromNamespaceAndPath("recompile", "sell_terminal");
+
+    public static final Identifier BUY_TERMINAL =
+        Identifier.fromNamespaceAndPath("recompile", "buy_terminal");
 
     /**
      * How a spawner cage is built (#294), learned from a Broken Spawner found in the depths.
