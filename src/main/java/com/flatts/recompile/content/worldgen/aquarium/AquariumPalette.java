@@ -63,6 +63,27 @@ public final class AquariumPalette {
     /** The only water in the building (ruling 8.1). */
     public static final BlockState TANK_WATER = Blocks.WATER.defaultBlockState();
 
+    /**
+     * Forty years of damp (owner, 2026-09-04). <b>Moss where it is WET and pale moss where it is DARK</b>,
+     * which is a rule a player can read off the building rather than a scatter: the filtration hall and
+     * the gallery's bay floors take ordinary moss, and the sealed centrepiece tank - glass on three
+     * sides, lit by nothing, shut for four decades - takes the pale.
+     *
+     * <p>It also gives both a route that is not the wandering trader. Moss was purchasable and nothing
+     * else; now it is mineable out of a building, which is the difference between a trade and a find.
+     */
+    public static final BlockState MOSS = Blocks.MOSS_BLOCK.defaultBlockState();
+    public static final BlockState MOSS_CARPET = Blocks.MOSS_CARPET.defaultBlockState();
+    public static final BlockState PALE_MOSS = Blocks.PALE_MOSS_BLOCK.defaultBlockState();
+    public static final BlockState PALE_MOSS_CARPET = Blocks.PALE_MOSS_CARPET.defaultBlockState();
+    /**
+     * Hangs from any face solid enough to attach to, which a concrete roof is. The pale-oak test in
+     * {@code HangingMossBlock} is in {@code animateTick} and only decides whether it makes a sound; its
+     * {@code canSurvive} is {@code MultifaceBlock.canAttachTo} upward, so this does not pop off a ceiling
+     * the first time something updates near it.
+     */
+    public static final BlockState PALE_HANGING_MOSS = Blocks.PALE_HANGING_MOSS.defaultBlockState();
+
     public static final BlockState AGE = Blocks.COBWEB.defaultBlockState();
     public static final BlockState HOLLOW = Blocks.AIR.defaultBlockState();
     public static final BlockState PEDESTAL = RCBlocks.DISPLAY_PEDESTAL.get().defaultBlockState();
@@ -76,6 +97,16 @@ public final class AquariumPalette {
             int x, int y, int z) {
         int h = hash(x, y, z) % 9;
         return h < 5 ? fresh : h < 7 ? aged : wet;
+    }
+
+    /** True where damp has taken a cell. Deterministic, for the reason {@link #weathered} is. */
+    public static boolean mossy(int x, int y, int z) {
+        return hash(x, y, z) % 5 == 0;
+    }
+
+    /** True where damp has taken a cell, sparsely: ceilings and the drier rooms. */
+    public static boolean sparseMossy(int x, int y, int z) {
+        return hash(x, y, z) % 11 == 0;
     }
 
     /** True where a glass cell is missing; one in six, and only above anything that could leak. */

@@ -348,6 +348,33 @@ public final class AquariumTests {
             helper.succeed();
         });
 
+        // BOTH MOSSES ARE ACTUALLY PLACED. Moss was purchasable from a wandering trader and nothing
+        // else before this building; the filtration hall and the centrepiece tank are what make it a
+        // find rather than a trade, so a refactor that stopped placing either would quietly take a route
+        // back out of the game.
+        RCGameTests.test("the_building_grows_moss_and_pale_moss", 200, helper -> {
+            BlockPos o = build(helper, 240);
+            var level = helper.getLevel();
+            BoundingBox all = AquariumStructure.footprint(o.getX(), o.getY(), o.getZ());
+            Set<Block> seen = new HashSet<>();
+            for (int x = all.minX(); x <= all.maxX(); x++) {
+                for (int y = all.minY(); y <= all.maxY(); y++) {
+                    for (int z = all.minZ(); z <= all.maxZ(); z++) {
+                        seen.add(level.getBlockState(new BlockPos(x, y, z)).getBlock());
+                    }
+                }
+            }
+            List<String> missing = new ArrayList<>();
+            for (Block b : List.of(Blocks.MOSS_BLOCK, Blocks.PALE_MOSS_BLOCK)) {
+                if (!seen.contains(b)) {
+                    missing.add(b.toString());
+                }
+            }
+            helper.assertTrue(missing.isEmpty(),
+                "the aquarium places no " + missing + ", so mining one is not a route after all");
+            helper.succeed();
+        });
+
         // The revival chain (spec section 4): fifteen dead forms, each growable in the bay and each
         // yielding its own live counterpart. Data only, so this is the whole proof it is wired.
         RCGameTests.test("every_dead_coral_revives_into_its_own_colour_in_the_bay", 20, helper -> {

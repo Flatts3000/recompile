@@ -143,6 +143,16 @@ VANILLA_IN_WORLD = {
     "cracked_stone_bricks": "sewers", "iron_bars": "sewers", "ladder": "sewers",
     "lantern": "sewers", "campfire": "sewers", "barrel": "sewers",
     "suspicious_sand": "sewer silt", "suspicious_gravel": "sewer silt",
+    # The Municipal Aquarium places these and nothing else in the game does. Both were purchasable
+    # from a wandering trader and by no other route, so without these two lines the doc asserts the
+    # opposite of the feature: moss becomes a find rather than a trade.
+    #
+    # Only these two, deliberately. The building also places prismarine, sponges, fifteen dead corals
+    # and the heart of the sea, and the index cannot see any of it - it reads structure NBT palettes
+    # and this structure is procedural Java. That wider gap is recorded in this pipeline's README
+    # rather than patched here one block at a time.
+    "moss_block": "the Municipal Aquarium's filtration hall",
+    "pale_moss_block": "the Municipal Aquarium's centrepiece tank",
 }
 SB = json.load(open(SP + "/structblocks.json"))
 for b in SB.get("bastion", []):

@@ -208,6 +208,8 @@ the way the sewer has one.
 | Silt | `suspicious_gravel`, `suspicious_sand` | brushable, and the same pair `SewerPalette` calls SILT and FINE_SILT |
 | Standing fluid | `recompile:leachate` | everywhere except the guardian tank |
 | Guardian tank | `water` | the only water in the building, ruling 8.1 |
+| Damp | `moss_block`, `moss_carpet` | the filtration hall's floor and the gallery's bay edges |
+| Dark | `pale_moss_block`, `pale_moss_carpet`, `pale_hanging_moss` | the centrepiece tank alone, sealed and unlit for forty years |
 | Age | `cobweb` | corners and dead tanks |
 
 **The crack rule, because "cracked glass" named a block that does not exist.** Vanilla has no cracked
