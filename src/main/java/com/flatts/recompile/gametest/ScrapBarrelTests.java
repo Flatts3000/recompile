@@ -1,5 +1,8 @@
 package com.flatts.recompile.gametest;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import com.flatts.recompile.content.block.ScrapBarrelBlock;
 import com.flatts.recompile.content.block.entity.ScrapBarrelBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
@@ -87,5 +90,71 @@ final class ScrapBarrelTests {
             helper.succeed();
         });
 
+
+        // A BARREL SURVIVES A SAVE AND LOAD. The three existing barrel tests put items in and take them
+        // out live, which never serialises anything: a wrong ValueOutput/ValueInput pairing silently
+        // empties the mod's bulk store on the next world load and no live test can see it. This drives
+        // the real round trip, saveCustomOnly into loadCustomOnly, the way a chunk save does.
+        //
+        // IT IS A GAMETEST AND NOT A UNIT TEST, deliberately. Written first in src/test/java beside
+        // ScrapBinContentsCodecTest, which is where a pure codec round trip belongs, it threw
+        // "Components not bound yet" on every case that held a real ItemStack while the empty case
+        // passed - the JUnit layer's documented static-init fragility. Data components are bound by
+        // the server, so the round trip has to run on one.
+        RCGameTests.test("a_scrap_barrel_survives_a_save_and_load", 40, helper -> {
+            BlockPos pos = new BlockPos(1, 1, 1);
+            helper.setBlock(pos, RCBlocks.SCRAP_BARREL.get());
+            BlockPos abs = helper.absolutePos(pos);
+            var level = helper.getLevel();
+            if (!(level.getBlockEntity(abs) instanceof ScrapBarrelBlockEntity barrel)) {
+                helper.fail("the scrap barrel has no BlockEntity");
+                return;
+            }
+
+            // Slot 0, the LAST slot, and a stack carrying a component. The last slot is here because a
+            // size mismatch between save and load truncates from the end and nothing else would notice.
+            ItemStack knife = new ItemStack(RCItems.SCRAP_KNIFE.get());
+            knife.setDamageValue(7);
+            barrel.setItem(0, new ItemStack(RCItems.SCRAP_METAL.get(), 42));
+            barrel.setItem(barrel.getContainerSize() - 1, new ItemStack(RCItems.REBAR.get(), 3));
+            barrel.setItem(5, knife);
+
+            CompoundTag saved = barrel.saveCustomOnly(level.registryAccess());
+
+            // A SECOND barrel, so this proves a load rather than the first object still holding state.
+            BlockPos other = new BlockPos(3, 1, 1);
+            helper.setBlock(other, RCBlocks.SCRAP_BARREL.get());
+            if (!(level.getBlockEntity(helper.absolutePos(other)) instanceof ScrapBarrelBlockEntity fresh)) {
+                helper.fail("the second scrap barrel has no BlockEntity");
+                return;
+            }
+            // Something in every slot first, so a load that MERGES instead of replacing is caught. The
+            // rebuild line in loadAdditional is the only thing standing between us and ghost stacks.
+            for (int i = 0; i < fresh.getContainerSize(); i++) {
+                fresh.setItem(i, new ItemStack(RCItems.PLASTIC_SCRAP.get(), 1));
+            }
+            fresh.loadCustomOnly(TagValueInput.create(
+                ProblemReporter.DISCARDING, level.registryAccess(), saved));
+
+            helper.assertTrue(fresh.getItem(0).is(RCItems.SCRAP_METAL.get())
+                    && fresh.getItem(0).getCount() == 42,
+                "slot 0 came back as " + fresh.getItem(0) + " rather than 42 scrap metal");
+            ItemStack last = fresh.getItem(fresh.getContainerSize() - 1);
+            helper.assertTrue(last.is(RCItems.REBAR.get()) && last.getCount() == 3,
+                "the last slot came back as " + last + ", so the save truncated from the end");
+            helper.assertTrue(fresh.getItem(5).is(RCItems.SCRAP_KNIFE.get())
+                    && fresh.getItem(5).getDamageValue() == 7,
+                "the knife came back as " + fresh.getItem(5) + " rather than damaged 7, so stack "
+                    + "components did not ride along");
+            for (int i = 0; i < fresh.getContainerSize(); i++) {
+                if (i == 0 || i == 5 || i == fresh.getContainerSize() - 1) {
+                    continue;
+                }
+                helper.assertTrue(fresh.getItem(i).isEmpty(),
+                    "slot " + i + " still holds " + fresh.getItem(i) + ", so the load merged into the "
+                        + "old contents instead of replacing them");
+            }
+            helper.succeed();
+        });
     }
 }
