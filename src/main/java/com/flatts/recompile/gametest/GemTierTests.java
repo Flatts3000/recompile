@@ -277,6 +277,21 @@ final class GemTierTests {
             // is a useless message when the machine never started.
             helper.runAfterDelay(20, () -> {
                 BlockState now = helper.getLevel().getBlockState(helper.absolutePos(core));
+                // IDENTITY BEFORE PROPERTY, and this is here because of #364. This assertion used to
+                // read ACTIVE straight off `now`, so on the one occasion the cell held something
+                // else the test died inside getValue with "Cannot get property ACTIVE on
+                // minecraft:bricks" - a message that names neither the position nor the test that
+                // put it there, which is why the cause is still unknown. Both tests that could
+                // plausibly be involved write plot-RELATIVE, so neither can reach into the other's
+                // plot, and the hypothesis in #364 does not survive that. Rather than guess at a
+                // fix for something that has not reproduced, fail here with everything the next
+                // occurrence will need: what was found, and where.
+                helper.assertTrue(now.is(RCBlocks.SEPARATOR.get()),
+                    "the Separator core at " + helper.absolutePos(core) + " (plot-relative " + core
+                        + ") is no longer a Separator - it holds " + now
+                        + ". Nothing in this test replaces it, so something outside the test wrote "
+                        + "into this plot. See #364, and record what you find there rather than "
+                        + "re-running until it passes.");
                 helper.assertTrue(now.getValue(SeparatorCoreBlock.ACTIVE),
                     "the Separator never started: formed=" + now.getValue(MultiblockCoreBlock.FORMED)
                         + ", stored FE=" + be.battery().getAmountAsInt()
