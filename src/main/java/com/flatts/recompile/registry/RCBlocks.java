@@ -1290,6 +1290,11 @@ public final class RCBlocks {
         // engine must not treat it as a full cube for face culling - it would cull the neighbouring
         // block's face and you would see through the ground. COLLISION is still the plain slab box,
         // which is what lets a player walk up a pile.
+        //
+        // IT ALSO MEANS A TIRE BLOCKS NO LIGHT, since this clears canOcclude: skylight reaches the
+        // ground under a pile and a tall stack casts no shadow. Correct for something with a hole
+        // through it, and worth stating because sky light is load-bearing elsewhere here - the solar
+        // panel and encroachment both read it.
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_BLACK)
             .strength(0.6F)

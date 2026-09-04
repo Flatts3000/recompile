@@ -209,6 +209,12 @@ public final class TirePileTests {
         // reason anybody looked.
         RCGameTests.test("a_tire_dump_never_stands_in_a_mound", 60, helper -> {
             var level = helper.getLevel();
+            // ITS OWN Y BAND. These three tests each lay a field WIDER than the shared plot, and the
+            // harness sets plots about a dozen blocks apart, so at a common height their footprints
+            // overlap each other's neighbours - and nothing outside a plot is cleaned up between runs.
+            // A leftover tire under this one would be found by groundAt, permitted by clear(), and
+            // would flip the assertion below. Bands of 40 keep them apart, the way the aquarium's
+            // builds already do.
             final int floor = 40;
             for (int x = -12; x <= 14; x++) {
                 for (int z = -12; z <= 14; z++) {
@@ -237,7 +243,7 @@ public final class TirePileTests {
         // is wider than a harness plot; at that height the neighbouring plots are open air.
         RCGameTests.test("a_tire_dump_lands_on_mound_ground_and_retires_it", 100, helper -> {
             var level = helper.getLevel();
-            final int lift = 40;
+            final int lift = 80;   // its own band - see a_tire_dump_never_stands_in_a_mound
             for (int x = -10; x <= 12; x++) {
                 for (int z = -10; z <= 12; z++) {
                     level.setBlock(helper.absolutePos(new BlockPos(x, lift, z)),
@@ -287,7 +293,7 @@ public final class TirePileTests {
         // every fire wants one too.
         RCGameTests.test("nothing_in_a_tire_dump_floats", 100, helper -> {
             var level = helper.getLevel();
-            final int lift = 40;
+            final int lift = 120;  // its own band - see a_tire_dump_never_stands_in_a_mound
             for (int x = -10; x <= 12; x++) {
                 for (int z = -10; z <= 12; z++) {
                     level.setBlock(helper.absolutePos(new BlockPos(x, lift, z)),

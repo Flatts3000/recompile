@@ -9,12 +9,19 @@ import net.minecraft.world.level.block.state.BlockState;
  * A tire (spec {@code docs/tire_piles_spec.md}, #155). Slab-shaped so two make a metre and a heap is a
  * column of them, circular in model, and found in clustered dumps across the household sprawl.
  *
- * <p><b>A tire is a FULL half block</b> (owner, 2026-09-04). The circle is the TEXTURE and not carved
- * geometry: the first model was four bars around a hollow centre and only four pixels tall against an
- * eight-pixel slab collision box, so it read as a thin frame you could see daylight through and did not
- * fill the space it occupied. The models are vanilla's {@code slab}, {@code slab_top} and
- * {@code cube_bottom_top} now, which is also why this block does NOT ask for {@code noOcclusion} - see
- * the note in {@code RCBlocks}.
+ * <p><b>The model is a real torus, and it took three passes to get there</b> (owner, 2026-09-04, from
+ * screenshots). It was first four bars around a hollow centre and only four pixels tall against an
+ * eight-pixel slab collision box, so it read as a thin frame with daylight through it that did not fill
+ * its own space. It was then a plain full half block, which fixed the height and lost the circle. What
+ * ships is an octagonal ring: four straight segments plus <b>the same four boxes rotated 45 degrees
+ * about Y</b>, which is the one rotation a model element may carry that yields an octagon's diagonals.
+ * Each segment is 6 long and 3 thick with its outer face 7 from centre, putting its corners at
+ * {@code sqrt(3^2 + 7^2) = 7.62}, and the rotated copies land theirs at 7.62 too - which is what stops
+ * the diagonals bulging past the flats. The hole is 8 across the flats.
+ *
+ * <p><b>So this block DOES ask for {@code noOcclusion}</b>, because the model has a hole through it -
+ * see the note in {@code RCBlocks}. Collision is still the plain slab box, which is what lets a player
+ * walk up a pile.
  *
  * <p><b>It is a plain block, not a {@code SortableBlock}</b> (owner, 2026-09-04: "a tire is not a
  * sortable block, that wouldn't make any sense"). There is no {@code sorted} progress, no crumble
@@ -59,7 +66,8 @@ public class TireBlock extends SlabBlock {
         return true;
     }
 
-    // NO isPathfindable OR getShadeBrightness OVERRIDE. Both were here to describe a block that was
-    // mostly hole, and a full half block is not one - so a tire shades and paths exactly as any vanilla
-    // slab does. Leaving them would have been a stated reason that had stopped being true.
+    // NO isPathfindable OR getShadeBrightness OVERRIDE, even though the model is mostly hole again.
+    // Both used to force values that described the MODEL, and neither question is about the model:
+    // pathfinding and support read the COLLISION shape, which is the plain slab box either way. So a
+    // tire paths and shades as any vanilla slab does, which is what a block you can walk up should do.
 }
