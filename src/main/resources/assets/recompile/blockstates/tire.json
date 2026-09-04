@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "recompile:block/tire"
+    },
+    "type=top": {
+      "model": "recompile:block/tire_top"
+    },
+    "type=double": {
+      "model": "recompile:block/tire_double"
+    }
+  }
+}

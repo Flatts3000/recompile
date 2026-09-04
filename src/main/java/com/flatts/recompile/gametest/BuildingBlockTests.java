@@ -71,11 +71,25 @@ final class BuildingBlockTests {
                 new Family("stairs", StairBlock.class, BlockTags.STAIRS, ItemTags.STAIRS),
                 new Family("slab", SlabBlock.class, BlockTags.SLABS, ItemTags.SLABS));
 
+            // THE ONE EXEMPTION, and it is a justified entry rather than a loosened check. A tire
+            // (#155) is a SlabBlock because that is the shape and the stacking behaviour it wants, and
+            // it is not a building family member: it is a found object out of a dump, it has no block,
+            // stairs or wall siblings, and nothing should be able to stonecut or craft with it as if it
+            // were masonry. Putting it in #minecraft:slabs would tell every mod reading that family
+            // that a tire is a building slab, which is the opposite of true.
+            //
+            // Add here only for a block that reuses a family CLASS without joining the family. Anything
+            // that is actually a building block belongs in the tag, which is what this sweep is for.
+            List<String> notABuildingFamily = List.of("recompile:tire");
+
             List<String> missing = new ArrayList<>();
             int checked = 0;
             for (Block block : BuiltInRegistries.BLOCK) {
                 Identifier id = BuiltInRegistries.BLOCK.getKey(block);
                 if (id == null || !Recompile.MOD_ID.equals(id.getNamespace())) {
+                    continue;
+                }
+                if (notABuildingFamily.contains(id.toString())) {
                     continue;
                 }
                 for (Family family : families) {

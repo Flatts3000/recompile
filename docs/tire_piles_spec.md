@@ -262,6 +262,43 @@ the spec do not quietly disagree.
 | "Either keep piles off mound footprints **or** make the check narrower" | Keep them off, and do not touch the check | Still the ruling, but its reason retired with the `SortableBlock`: `isMound` never counts a plain block, so there is no Phase 5 hazard left to avoid. It stands as a design call now. See section 2. |
 | A fuel data-map entry, tires "a natural step above `junk` and below `oily_rag`" | No fuel entry, for tires or for rubber | Owner, 2026-09-04. A finite material with an infinite sink is a trap: piles do not replenish, and a furnace would drain the same tires the Pump needs, inattentively. |
 
+### 7.1 The mound-ground rule, measured
+
+**Written 2026-09-04, after the first build of the feature generated nothing at all.**
+
+The rule above ("no Mound Ground under a pile") was implemented as a survey: a pile refuses any cell
+whose ground is Mound Ground. That reads exactly like the owner's ruling and is in practice a total
+ban. A census of two freshly generated household chunks:
+
+| Chunk centre | Columns with Mound Ground, out of 1024 |
+|---|---|
+| 391, 580 | 943 |
+| 580, -391 | 884 |
+
+**So 86 to 92 percent of the sprawl surface is mound memory**, which is unsurprising once stated -
+`MoundFeature` writes Mound Ground under every footprint cell it lays, and mounds are what the sprawl
+is made of. The smallest pile here is a radius-1 disc of five cells, so requiring all five to be clear
+of it is about a 3-in-a-million placement. Nothing errored. Six hand-placed features in a row returned
+false, which is indistinguishable from a feature that is merely rare, and a scan of 128 freshly
+generated sprawl chunks found zero tires and read as bad luck.
+
+**What ships instead: a dump RETIRES the ground it stands on.** The survey no longer refuses Mound
+Ground; the write pass converts it to plain coarse dirt under every cell it lays a tire on. Both halves
+of the owner's ruling then hold literally rather than by avoidance - there is no Mound Ground under a
+dump, and nothing regrows one - and it fixes a real defect rather than only an aesthetic one, because
+Mound Ground left in place would keep random-ticking and drop Blocks of Garbage onto the tires from
+above. Coarse dirt is the same revert target encroachment uses for a retired patch, so a dump retires
+ground the way greening it does. Piles still refuse an actual mound, Bulky Waste and leachate.
+
+**The test that was supposed to catch this had the same blind spot.**
+`a_tire_dump_never_stands_in_a_mound` laid garbage across a 5x5 plot while a dump scatters piles up to
+seven blocks out, so most piles landed on bare floor past the garbage and the test was passing on the
+ground probe's reach rather than on the mound rule. Widening that probe is what made it fail, which is
+the only reason anybody looked at it. It now lays a field wider than the scatter, and
+`a_tire_dump_lands_on_mound_ground_and_retires_it` is its positive twin.
+
+---
+
 **One #155 point that stands unchanged and is the most important line in it:** rubber needs a use that
 does not require Create. Without a mod-side consumer, `rubber_scrap` is a dead end in every install
 without that mod, which is worse than not shipping it. See 8.1.

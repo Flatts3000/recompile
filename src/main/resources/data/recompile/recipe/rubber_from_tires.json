@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "The bulk route. Shredding scrap tires into crumb rubber is a real industry and size reduction",
+    "is the Pulverizer's whole verb, so this needs no new machine.",
+    "",
+    "It gets no steel belts: a mill does not sort, it reduces. The hand route keeps that advantage,",
+    "which is what gives it a reason to exist after the machine is built.",
+    "",
+    "COUNT IS 1, and must be (owner, 2026-08-19): a GUI-less machine cannot take N > 1 inputs to",
+    "make an output, because a partial batch is invisible and unrecoverable."
+  ],
+  "type": "recompile:pulverizing",
+  "input": "recompile:tire",
+  "count": 1,
+  "result": {
+    "item": "recompile:rubber_scrap",
+    "count": 2
+  },
+  "ticks": 80,
+  "energy": 20
+}

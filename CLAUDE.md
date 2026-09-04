@@ -110,7 +110,7 @@ Anything (collectibles the star use) displays on the **Display Pedestal** (`cont
 - **A static `LAYOUT` that transitively touches a registry-backed class cannot be named from another class's static initialiser during mod construction.** `MenuLayoutTests` referencing `TreeNurseryMenu.LAYOUT` eagerly pulled in `TreeNurseryBlockEntity`, whose static `FluidResource.of(Fluids.WATER)` throws *"Components not bound yet"* - and the whole mod fails to load with a bare `ExceptionInInitializerError`. Hold suppliers, not layouts.
 - **26.1 renders through a retained-mode "extract" model, and exactly one class still knows it.** `GuiGraphicsExtractor`, drawing in `extractBackground(...)` (not `renderBg`), `blit` with a `RenderPipelines` pipeline + explicit atlas dims. That lives in `client/gui/VanillaGui`, which is also the only place a screen's chrome comes from; `GuiFrameworkDisciplineTest` fails the build if a screen mentions a pipeline, a blit, or even `leftPos`. Before it, three screens carried a private `panel()`/`slot()`/`recess()` that approximated vanilla rather than borrowing it, so the mod shipped two panels that did not look alike.
 
-**Screens are the one layer GameTest and JUnit are blind to.** Geometry is asserted server-side and the layout algebra has unit tests, but a gauge filled from the wrong end passes both. `python tools/shoot_screens.py` opens all eight in a running `runClient` and screenshots them - that is the acceptance evidence. **The guidebook was in the same blind spot and is now covered too**, by `python tools/shoot_guidebook.py`, which walks all 11 categories and all 72 entries and fails if any of them does not open as ITSELF (#259). That gap is how #241 went unnoticed: every paragraph break in all 71 of the book's text pages was swallowed, so paragraphs ran together, and it shipped that way for releases while `GuidebookTests` - which proves a lang key exists and an icon resolves - passed throughout.
+**Screens are the one layer GameTest and JUnit are blind to.** Geometry is asserted server-side and the layout algebra has unit tests, but a gauge filled from the wrong end passes both. `python tools/shoot_screens.py` opens all eight in a running `runClient` and screenshots them - that is the acceptance evidence. **The guidebook was in the same blind spot and is now covered too**, by `python tools/shoot_guidebook.py`, which walks all 11 categories and all 73 entries and fails if any of them does not open as ITSELF (#259). That gap is how #241 went unnoticed: every paragraph break in all 71 of the book's text pages was swallowed, so paragraphs ran together, and it shipped that way for releases while `GuidebookTests` - which proves a lang key exists and an icon resolves - passed throughout.
 
 **`tools/resource_checklist/` generates `docs/vanilla_resource_checklist.md`** (#323): every resource vanilla gives you, checked against what this mod can actually reach. It is a pipeline rather than a one-shot script, and its own README is the reference. The batch of `question` issues about unreachable vanilla items came out of it.
 
@@ -321,6 +321,19 @@ Pulverizer shipped with zero Jade providers against the Separator's four.
   plasticity has to come from the bentonite in cat litter. The two halves are useless apart. It
   unlocks 43 vanilla items, and it needed a source added for sherds: this world has no archaeology, so
   they were unobtainable and the whole chain was a dead end until one entered `household_pulls`.
+- **Rubber** (#155): tire dumps in the household sprawl. `material_economy.md` has listed rubber as an
+  intermediate since P2.2 and it was the only one of the five with no origin at all. A tire is a plain
+  slab-shaped block rather than a `SortableBlock` (owner: a tire is not something you pick through), and
+  **what it drops is decided by the tool in the loot table** - bare hand gives the tire, a Scrap Knife
+  gives the rubber, which is a `minecraft:match_tool` condition and no Java. Fire on a tire is
+  netherrack's, through `IBlockExtension.isFireSource` rather than an `infiniburn` tag, so it survives
+  rain and does not consume the block. Two things about the FEATURE are worth keeping. **The sprawl
+  surface is 86 to 92 percent Mound Ground** (measured: 943 and 884 of 1024 columns in two fresh
+  chunks), so the owner's "no Mound Ground under a pile" rule implemented as a survey is not rarity, it
+  is a total ban - the dump **retires** the ground instead, converting it to coarse dirt, which is also
+  a correctness fix because live Mound Ground would drop Blocks of Garbage onto the tires. And **each
+  pile retries its offset** ten times, because piles refuse actual mounds and the first build put all
+  of a dump's tires in one blob.
   **The cauldron interaction now has a sibling that runs the other way** (#331, #335, 2026-09-03): a
   **Dried Bouquet** from `household_pulls` rehydrates into one of the five two-block plants - the four
   tall flowers and the large fern - or tears down for Fiber Scrap. **The five are missing for two

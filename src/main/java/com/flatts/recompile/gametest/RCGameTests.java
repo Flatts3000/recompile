@@ -126,6 +126,7 @@ public final class RCGameTests {
         ClayChainTests.register();
         DriedBouquetTests.register();
         AquariumTests.register();
+        TirePileTests.register();
         ComponentTests.register();
         LeachateTests.register();
         FoundNotCraftedTests.register();

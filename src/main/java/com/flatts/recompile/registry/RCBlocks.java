@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.SequencerBlock;
+import com.flatts.recompile.content.block.TireBlock;
 import com.flatts.recompile.content.block.ManholeBlock;
 import com.flatts.recompile.content.block.FilingCabinetBlock;
 import com.flatts.recompile.content.block.PulverizerCoreBlock;
@@ -1273,6 +1274,23 @@ public final class RCBlocks {
         RCBlocks::pressedJunkProps);
     public static final DeferredBlock<WallBlock> PRESSED_JUNK_WALL = BLOCKS.registerBlock(
         "pressed_junk_wall", WallBlock::new, RCBlocks::pressedJunkProps);
+
+    /**
+     * A tire (spec {@code docs/tire_piles_spec.md}). Slab-shaped, circular in model, found in clustered
+     * dumps across the household sprawl.
+     *
+     * <p>{@code noOcclusion()} is not optional: a ring model on a block without it culls the neighbour's
+     * face and punches a hole in the world, which is one of the two traps CLAUDE.md names. Rubber is
+     * soft, so this is a hand-breakable block rather than a tool-gated one; what it DROPS is tool-gated,
+     * and that lives in the loot table.
+     */
+    public static final DeferredBlock<TireBlock> TIRE = BLOCKS.registerBlock(
+        "tire", TireBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_BLACK)
+            .strength(0.6F)
+            .sound(SoundType.WOOL)
+            .noOcclusion());
 
     public static final DeferredBlock<Block> SCRAP_PLATING = BLOCKS.registerBlock(
         "scrap_plating", Block::new, RCBlocks::metalBuildProps);
