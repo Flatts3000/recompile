@@ -10,8 +10,8 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 |---|---|
 | Minecraft version | 26.1.2 |
 | Catalogued | 886 |
-| **Reachable in Recompile** | **778 (88%)** |
-| Not reachable | 108 |
+| **Reachable in Recompile** | **784 (88%)** |
+| Not reachable | 102 |
 | Mobs obtainable | 59 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
@@ -34,17 +34,17 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Domain | Reachable | Total |
 |---|---:|---:|
 | Wood | 58 | 66 |
-| Overworld - General Surface | 93 | 99 |
-| Forest | 9 | 10 |
+| Overworld - General Surface | 94 | 99 |
+| Forest | 10 | 10 |
 | Jungle | 6 | 6 |
-| Desert | 5 | 7 |
+| Desert | 7 | 7 |
 | Badlands | 4 | 4 |
 | Taiga | 2 | 2 |
 | Swamp | 9 | 9 |
 | Snowy | 5 | 6 |
-| Mountain | 0 | 1 |
+| Mountain | 1 | 1 |
 | Mushroom Fields | 5 | 5 |
-| River | 1 | 2 |
+| River | 2 | 2 |
 | Ocean | 67 | 95 |
 | Cave & Underground | 107 | 128 |
 | Nether | 73 | 82 |
@@ -141,7 +141,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Overworld - General Surface  <sub>93/99</sub>
+## Overworld - General Surface  <sub>94/99</sub>
 
 *Found across three or more surface biomes, so not biome-specific.*
 
@@ -248,7 +248,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 - [x] `apple` - grow oak sapling
 - [x] `dandelion` - buy from a wandering trader
-- [ ] `dead_bush` `(finite)` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `dead_bush` `(finite)` - chests/aquarium_curator
 - [x] `pumpkin` - grow pumpkin seeds
 - [x] `resin_clump` `(c)` - crafted from spent amber + turpentine
 - [x] `sand` - mine sand (sewers)
@@ -263,11 +263,11 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `sugar_cane` - Hydroponics Bay seedling
 
 
-## Forest  <sub>9/10</sub>
+## Forest  <sub>10/10</sub>
 
 ### Mine / break a block
 
-- [ ] `closed_eyeblossom` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `closed_eyeblossom` - sewer chest
 - [x] `leaf_litter` `(c)` - smelted from acacia leaves
 - [x] `lilac` - gameplay/dried_bouquet
 - [x] `pale_moss_carpet` `(c)` - crafted from pale moss block
@@ -302,12 +302,12 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Desert  <sub>5/7</sub>
+## Desert  <sub>7/7</sub>
 
 ### Mine / break a block
 
-- [ ] `cactus_flower` - nothing in this world, its structures, its mobs or its recipes produces one
-- [ ] `short_dry_grass` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `cactus_flower` - chests/aquarium_curator
+- [x] `short_dry_grass` - chests/aquarium_curator
 
 ### Structure chests
 
@@ -396,11 +396,11 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [ ] `powder_snow_bucket` - no powder snow in this world
 
 
-## Mountain  <sub>0/1</sub>
+## Mountain  <sub>1/1</sub>
 
 ### Mine / break a block
 
-- [ ] `pink_petals` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `pink_petals` - chests/aquarium_curator
 
 
 ## Mushroom Fields  <sub>5/5</sub>
@@ -417,11 +417,11 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `mushroom_stew` `(c)` - crafted from brown mushroom + red mushroom
 
 
-## River  <sub>1/2</sub>
+## River  <sub>2/2</sub>
 
 ### Mine / break a block
 
-- [ ] `bush` - nothing in this world, its structures, its mobs or its recipes produces one
+- [x] `bush` - chests/aquarium_curator
 
 ### Other
 
@@ -993,7 +993,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `globe_banner_pattern` - buy from a cartographer
 - [x] `golden_dandelion` `(c)` - buy from a wandering trader
 - [x] `gray_banner` `(c)` - crafted from gray wool + stick
-- [x] `gray_dye` `(c)` - torn down at the Recompile Workbench from printer
+- [x] `gray_dye` `(c)` - crafted from closed eyeblossom
 - [x] `gray_glazed_terracotta` `(c)` - smelted from gray terracotta
 - [x] `green_banner` `(c)` - crafted from green wool + stick
 - [x] `green_glazed_terracotta` `(c)` - smelted from green terracotta
@@ -1015,7 +1015,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `orange_dye` `(c)` - crafted from torchflower
 - [x] `painting` `(c)` - break a mod block
 - [x] `pink_banner` `(c)` - crafted from pink wool + stick
-- [x] `pink_dye` `(c)` - crafted from peony
+- [x] `pink_dye` `(c)` - crafted from cactus flower
 - [x] `pink_glazed_terracotta` `(c)` - smelted from pink terracotta
 - [x] `pink_terracotta` `(c)` - crafted from terracotta + pink dye
 - [x] `pufferfish_bucket` - buy from a wandering trader
@@ -1094,7 +1094,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ## What Recompile cannot give you
 
-The 108 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+The 102 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
 of the vanilla economy, not an oversight, unless noted.
 
 - **28** - no ocean, monument, shipwreck or ocean ruin generates
@@ -1102,7 +1102,6 @@ of the vanilla economy, not an oversight, unless noted.
 - **14** - the End is locked - RCDimensionLockout blocks travel and portal formation
 - **13** - the compacted depths has no nylium - only slag rubble and lava break the fill
 - **10** - no trial chambers generate
-- **6** - nothing in this world, its structures, its mobs or its recipes produces one
 - **4** - no amethyst geodes generate
 - **4** - no lush caves generate
 - **4** - the structure that carries it (ancient city / stronghold / trail ruins) is absent
@@ -1146,9 +1145,9 @@ Items are filed above by *where*; this lists them by *how*. `~` marks one not re
 
 `pitcher_plant`, `pitcher_pod`, `torchflower`, `torchflower_seeds`
 
-**Archaeology (brushing)** <sub>64, 61 reachable</sub>
+**Archaeology (brushing)** <sub>64, 62 reachable</sub>
 
-`angler_pottery_sherd`, `archer_pottery_sherd`, `armadillo_scute`, `arms_up_pottery_sherd`, `beetroot_seeds`, `blade_pottery_sherd`, `blue_dye`, `blue_stained_glass_pane`, `brewer_pottery_sherd`, `brick`, `brown_candle`, `burn_pottery_sherd`, `clay`, `coal`, `danger_pottery_sherd`, `dead_bush`~, `diamond`, `emerald`, `explorer_pottery_sherd`, `flower_pot`, `friend_pottery_sherd`, `gold_nugget`, `green_candle`, `gunpowder`, `heart_pottery_sherd`, `heartbreak_pottery_sherd`, `host_armor_trim_smithing_template`, `howl_pottery_sherd`, `iron_axe`, `lead`, `light_blue_dye`, `light_blue_stained_glass_pane`, `magenta_stained_glass_pane`, `miner_pottery_sherd`, `mourner_pottery_sherd`, `music_disc_relic`~, `oak_hanging_sign`, `orange_dye`, `pink_stained_glass_pane`, `plenty_pottery_sherd`, `prize_pottery_sherd`, `purple_candle`, `purple_stained_glass_pane`, `raiser_armor_trim_smithing_template`, `red_candle`, `red_stained_glass_pane`, `shaper_armor_trim_smithing_template`, `sheaf_pottery_sherd`, `shelter_pottery_sherd`, `skull_pottery_sherd`, `sniffer_egg`~, `snort_pottery_sherd`, `spruce_hanging_sign`, `stick`, `string`, `suspicious_stew`, `tnt`, `wayfinder_armor_trim_smithing_template`, `wheat`, `wheat_seeds`, `white_dye`, `wooden_hoe`, `yellow_dye`, `yellow_stained_glass_pane`
+`angler_pottery_sherd`, `archer_pottery_sherd`, `armadillo_scute`, `arms_up_pottery_sherd`, `beetroot_seeds`, `blade_pottery_sherd`, `blue_dye`, `blue_stained_glass_pane`, `brewer_pottery_sherd`, `brick`, `brown_candle`, `burn_pottery_sherd`, `clay`, `coal`, `danger_pottery_sherd`, `dead_bush`, `diamond`, `emerald`, `explorer_pottery_sherd`, `flower_pot`, `friend_pottery_sherd`, `gold_nugget`, `green_candle`, `gunpowder`, `heart_pottery_sherd`, `heartbreak_pottery_sherd`, `host_armor_trim_smithing_template`, `howl_pottery_sherd`, `iron_axe`, `lead`, `light_blue_dye`, `light_blue_stained_glass_pane`, `magenta_stained_glass_pane`, `miner_pottery_sherd`, `mourner_pottery_sherd`, `music_disc_relic`~, `oak_hanging_sign`, `orange_dye`, `pink_stained_glass_pane`, `plenty_pottery_sherd`, `prize_pottery_sherd`, `purple_candle`, `purple_stained_glass_pane`, `raiser_armor_trim_smithing_template`, `red_candle`, `red_stained_glass_pane`, `shaper_armor_trim_smithing_template`, `sheaf_pottery_sherd`, `shelter_pottery_sherd`, `skull_pottery_sherd`, `sniffer_egg`~, `snort_pottery_sherd`, `spruce_hanging_sign`, `stick`, `string`, `suspicious_stew`, `tnt`, `wayfinder_armor_trim_smithing_template`, `wheat`, `wheat_seeds`, `white_dye`, `wooden_hoe`, `yellow_dye`, `yellow_stained_glass_pane`
 
 **Hero of the Village gifts** <sub>47, 47 reachable</sub>
 

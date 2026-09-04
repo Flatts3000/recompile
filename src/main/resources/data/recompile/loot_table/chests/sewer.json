@@ -121,10 +121,16 @@
           "weight": 3
         },
         {
+          "type": "minecraft:item",
+          "name": "minecraft:closed_eyeblossom",
+          "weight": 3
+        },
+        {
           "type": "minecraft:empty",
           "weight": 20
         }
-      ]
+      ],
+      "_comment": "The closed eyeblossom (#331) is here rather than in the aquarium because it is the one of the six that wants the dark: it is the night form, its open twin is already reachable, and the conversion between them is pale-garden gated so owning one never yields the other. A flower that blooms with the lights off belongs in the one permanently unlit place this world has."
     },
     {
       "rolls": 1,

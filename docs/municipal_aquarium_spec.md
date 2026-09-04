@@ -350,9 +350,10 @@ a player wants. Exhibit stock, dive kit, the gift shop's inventory, the archive.
 | Group | Count | Note |
 |---|---|---|
 | **Armor trim smithing templates** | 16 | **reverses ruling 8.4**, see below |
-| **Wetlands-wing plants** | 6 | `glow_lichen`, `big_dripleaf`, `spore_blossom`, `hanging_roots`, `azalea`, `flowering_azalea` |
+| **Wetlands-wing plants** | 4 | `glow_lichen`, `big_dripleaf`, `spore_blossom`, `hanging_roots`. **Not the two azaleas**: they are in `#minecraft:saplings`, which `StripSaplingsModifier` removes from every loot roll including chest loot, so they were eight weight that could never pay out. Saplings belong to the Tree Nursery by design, and neither azalea is one of its species - a real gap, and not one a chest can close. |
+| **Arid vivarium** | 5 | `bush`, `cactus_flower`, `short_dry_grass`, `dead_bush`, `pink_petals`. Owner ruling 2026-09-04, after this table's other rows: put the six left over from #331 into aquarium or sewer loot. In a pool of its own so it does not dilute the row above, which is the only route to everything in it. |
 | **Sponges** | 2 | also placed in the filtration hall; the chest carries spares |
-| **`turtle_scute`** | 1 | its only route in the game, see #345 |
+| **`turtle_scute`** | 1 | a second route rather than the only one, corrected on #345: den turtles can be bred and lay on their own sand, because the `y < seaLevel + 4` rule is on turtle SPAWNING and not on egg-laying |
 | **Enchanted books** | 0 | flavour rather than a gap: already reachable from a librarian |
 | **The four nautilus armours** | 4 | this is what "ocean-related resources" resolves to; nothing else in the game can source them |
 

@@ -136,7 +136,7 @@
       ]
     },
     {
-      "_comment": "Exhibit stock: the wetlands wing, spare sponges, and the one scute in the game.",
+      "_comment": "Exhibit stock: the wetlands wing, spare sponges, and the one scute in the game. FOUR wetlands plants, not six: azalea and flowering_azalea are members of #minecraft:saplings, and StripSaplingsModifier removes that tag from every loot roll in the game INCLUDING chest loot, so entries for them were eight weight that could never hand anything over. Saplings are the Tree Nursery's by design; a chest is the one place they cannot come from.",
       "rolls": {
         "type": "minecraft:uniform",
         "min": 2,
@@ -205,36 +205,6 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:azalea",
-          "weight": 4,
-          "functions": [
-            {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 1,
-                "max": 3
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:flowering_azalea",
-          "weight": 4,
-          "functions": [
-            {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 1,
-                "max": 3
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:sponge",
           "weight": 3
         },
@@ -267,6 +237,101 @@
               "function": "minecraft:enchant_randomly"
             }
           ]
+        }
+      ]
+    },
+    {
+      "_comment": [
+        "The arid vivarium (#331, owner 2026-09-04): the last five plants in the game with no source. A public aquarium is a small zoo and a reptile house is as ordinary a room in one as the tank hall.",
+        "",
+        "ITS OWN POOL, not the exhibit stock's. That pool is the only route in the game to glow lichen, big dripleaf, spore blossom, hanging roots and both sponges, and adding five entries to it would have cut each of those by about a third at unchanged rolls. Riding along in a new pool instead of displacing a weighted sibling is the shape #276 settled.",
+        "",
+        "dead_bush carries the heaviest weight of the five because it is the only one that does anything: a fuel, and the one stick in this world that needs no wood."
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bush",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cactus_flower",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:short_dry_grass",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:dead_bush",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:pink_petals",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 6
         }
       ]
     }
