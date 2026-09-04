@@ -16,6 +16,9 @@
   Scrap Crafting Table; you are paying past the fragment grind, not past the gate.
 - **Both are learned from a Broken Terminal** pried out of Bulky Waste and torn down at the
   Teardown Workbench. One find teaches both.
+- **Every sellable thing carries its price on its own tooltip**, per item and per stack, so you can
+  tell what is worth carrying home without walking to a terminal. Nothing shows on things the market
+  will not take.
 - **A pack changes all of it without a mod release**: what sells is `#recompile:sellable`, what it
   pays is the `recompile:scrip_value` data map, and every line of the Buy Terminal's stock is one
   `recompile:market_offer` recipe file.

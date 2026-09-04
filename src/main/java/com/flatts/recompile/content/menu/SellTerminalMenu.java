@@ -116,7 +116,16 @@ public class SellTerminalMenu extends AbstractContainerMenu {
         if (total <= 0) {
             return false;
         }
-        goods.clearContent();
+        // TAKE ONLY WHAT WAS PAID FOR. clearContent() also deleted anything unsellable sitting in
+        // the grid, and a stack CAN get there: mayPlace keeps them out at the slot, but a /reload
+        // that drops an item from #recompile:sellable or from the price map while the screen is
+        // open strands one, worth 0 to the quote and silently destroyed by the next sale. What is
+        // left behind now goes home through removed().
+        for (int slot = 0; slot < goods.getContainerSize(); slot++) {
+            if (Market.isSellable(goods.getItem(slot))) {
+                goods.setItem(slot, ItemStack.EMPTY);
+            }
+        }
         Market.credit(clicker, total);
         this.broadcastChanges();
         return true;
@@ -146,16 +155,23 @@ public class SellTerminalMenu extends AbstractContainerMenu {
             if (!this.moveItemStackTo(stack, INV_START, INV_END, true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (Market.isSellable(stack)) {
-            if (!this.moveItemStackTo(stack, 0, GOODS_SLOTS, false)) {
-                return ItemStack.EMPTY;
+        } else {
+            // Try the grid first, then fall through to vanilla's backpack/hotbar shuffle. The
+            // fallthrough is NESTED rather than an `else if` on purpose: as a sibling branch, a
+            // sellable stack shift-clicked against a full grid took the sell branch, failed, and
+            // returned EMPTY - so it neither sold nor moved, and the click did nothing at all.
+            // BurnerGeneratorMenu has the same shape for the same reason.
+            boolean stored = Market.isSellable(stack)
+                && this.moveItemStackTo(stack, 0, GOODS_SLOTS, false);
+            if (!stored) {
+                if (index < INV_MAIN_END) {
+                    if (!this.moveItemStackTo(stack, INV_MAIN_END, INV_END, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(stack, INV_START, INV_MAIN_END, false)) {
+                    return ItemStack.EMPTY;
+                }
             }
-        } else if (index < INV_MAIN_END) {
-            if (!this.moveItemStackTo(stack, INV_MAIN_END, INV_END, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (!this.moveItemStackTo(stack, INV_START, INV_MAIN_END, false)) {
-            return ItemStack.EMPTY;
         }
 
         if (stack.isEmpty()) {

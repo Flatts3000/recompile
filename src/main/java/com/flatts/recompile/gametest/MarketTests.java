@@ -19,6 +19,7 @@ import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,6 +30,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -103,8 +105,27 @@ final class MarketTests {
 
         /*
          * Section 6 of the spec made mechanical: the market buys products, never refuse. Nothing
-         * sellable may be raw scrap (binnable), and nothing sellable may be craftable from binnable
-         * inputs alone - which is what "one press away from junk" means, and what Pressed Junk is.
+         * sellable may itself be raw scrap, and nothing sellable may be craftable from binnable
+         * inputs ALONE - which is what the owner's "one press away from raw junk" means, and what
+         * Pressed Junk is.
+         *
+         * ONE PRESS IS THE RULE, AND A TRANSITIVE CLOSURE DELIBERATELY IS NOT. Review of #368 read
+         * the rule as reaching all the way down and reported the sell list as a junk sink, on the
+         * grounds that a Solar Panel is panes and plating which are glass shards and scrap metal.
+         * That reading cannot be the rule, because EVERY material in this world descends from a
+         * pull stream - applied transitively it empties the sell list and deletes the feature. What
+         * section 8 refuses is a price on `recompile:junk`, the 30-percent landfill item, and that
+         * holds: junk is consumed by exactly two recipes in the mod (the schema's example door and
+         * Pressed Junk) and neither is sellable, so its only sink is still the Burn Barrel. Scrip
+         * flowing from renewable scrap is section 4 in as many words - "a Blueprint's price is a
+         * time cost and not a scarcity cost" - rather than a leak.
+         *
+         * IT COVERS BLUEPRINT RECIPES TOO, and it did not until review caught it: the sweep took
+         * only RecipeType.CRAFTING, so the Pump, Motor, Bulb and Battery - four of the nine members
+         * - were never inspected at all and the test went green without looking at them. The
+         * coverage assertion at the bottom is the real fix: a member this sweep never saw PRODUCED
+         * fails, so a sellable item whose only recipe is of a type not read here can no longer pass
+         * by being invisible.
          */
         RCGameTests.test("nothing_sellable_is_raw_scrap_or_one_step_from_junk", 40, helper -> {
             ServerLevel level = helper.getLevel();
@@ -118,40 +139,74 @@ final class MarketTests {
                 }
             }
 
+            Set<Item> seenProduced = new HashSet<>();
             int swept = 0;
             int junkOnly = 0;
+
             for (RecipeHolder<?> holder : level.getServer().getRecipeManager().recipeMap().values()) {
-                if (holder.value().getType() != RecipeType.CRAFTING) {
+                List<Ingredient> inputs = new ArrayList<>();
+                List<Item> results = new ArrayList<>();
+
+                if (holder.value() instanceof BlueprintCraftingRecipe blueprint) {
+                    // Its placementInfo is NOT_PLACEABLE, so the vanilla route reads no ingredients
+                    // from it at all - which is exactly how these four hid.
+                    blueprint.ingredients().forEach(slot -> slot.ifPresent(inputs::add));
+                    results.add(blueprint.result().item());
+                } else if (holder.value().getType() == RecipeType.CRAFTING) {
+                    PlacementInfo placement = holder.value().placementInfo();
+                    if (placement.isImpossibleToPlace()) {
+                        // A special recipe computes its result, so there is nothing to read. The
+                        // coverage assertion below is what stops that being a silent hole.
+                        continue;
+                    }
+                    inputs.addAll(placement.ingredients());
+                    for (RecipeDisplay display : holder.value().display()) {
+                        for (ItemStack stack : display.result().resolveForStacks(context)) {
+                            results.add(stack.getItem());
+                        }
+                    }
+                } else {
+                    continue;
+                }
+                if (inputs.isEmpty() || results.isEmpty()) {
                     continue;
                 }
                 swept++;
-                PlacementInfo placement = holder.value().placementInfo();
-                if (placement.isImpossibleToPlace() || placement.ingredients().isEmpty()) {
-                    continue;
-                }
-                boolean allJunk = placement.ingredients().stream().allMatch(
+                results.stream().filter(sellable::contains).forEach(seenProduced::add);
+
+                boolean allJunk = inputs.stream().allMatch(
                     ingredient -> ingredient.items().allMatch(h -> h.is(RCTags.BINNABLE)));
                 if (!allJunk) {
                     continue;
                 }
                 junkOnly++;
-                for (RecipeDisplay display : holder.value().display()) {
-                    for (ItemStack result : display.result().resolveForStacks(context)) {
-                        if (sellable.contains(result.getItem())) {
-                            broken.add(holder.id().identifier() + " makes "
-                                + BuiltInRegistries.ITEM.getKey(result.getItem())
-                                + " from binnable inputs alone");
-                        }
+                for (Item result : results) {
+                    if (sellable.contains(result)) {
+                        broken.add(holder.id().identifier() + " makes "
+                            + BuiltInRegistries.ITEM.getKey(result) + " from binnable inputs alone");
                     }
                 }
             }
+
             helper.assertTrue(swept > 100,
-                "only " + swept + " crafting recipes swept - the sweep is broken");
+                "only " + swept + " readable recipes swept - the sweep is broken");
             // Pressed Junk is junk-only by construction, so a sweep that finds no such recipe is
             // not looking at ingredients at all.
             helper.assertTrue(junkOnly > 0,
                 "no recipe was recognised as junk-only, but Pressed Junk exists - the ingredient "
                     + "walk is broken and this test would pass against anything");
+
+            // THE COVERAGE HALF, and the one that would have caught the gap review found. Finding
+            // no violation means nothing unless every member was actually looked at.
+            List<String> unseen = new ArrayList<>();
+            for (Item item : sellable) {
+                if (!seenProduced.contains(item)) {
+                    unseen.add(String.valueOf(BuiltInRegistries.ITEM.getKey(item)));
+                }
+            }
+            helper.assertTrue(unseen.isEmpty(),
+                "these sellable items are produced by no recipe this sweep can read, so the check "
+                    + "above says nothing about them: " + unseen);
             helper.assertTrue(broken.isEmpty(),
                 "the sell list hands junk a price (" + broken.size() + "): " + broken);
             helper.succeed();
@@ -399,6 +454,110 @@ final class MarketTests {
                 "expected all 40 back in the backpack, got " + backpack);
             helper.assertTrue(menu.quickMoveStack(player, 27).isEmpty(),
                 "shift-clicking an empty slot must return EMPTY, or vanilla's caller loops forever");
+            helper.succeed();
+        });
+
+        /*
+         * The scrip tooltip's strings resolve.
+         *
+         * <p>The handler itself is Dist.CLIENT and no test layer here can render a tooltip, but the
+         * failure that costs a player something is the cheap one: a missing lang key renders the raw
+         * key, so the line reads "tooltip.recompile.scrip_value" on every sellable item in the game.
+         * Both forms are checked, because the stack form only ever shows on a count above one and so
+         * would go unnoticed longest. Same guard the guidebook keys get.
+         */
+        RCGameTests.test("the_scrip_tooltip_has_something_to_say", 20, helper -> {
+            List<String> raw = new ArrayList<>();
+            for (String key : List.of("tooltip.recompile.scrip_value",
+                    "tooltip.recompile.scrip_value_stack")) {
+                if (Component.translatable(key).getString().equals(key)) {
+                    raw.add(key);
+                }
+            }
+            helper.assertTrue(raw.isEmpty(),
+                "these render as their own key on every sellable item: " + raw);
+
+            // And the tooltip's predicate is the terminal's, so the two cannot disagree about what
+            // is worth something. A tag member with no price must show no line AND be refused.
+            helper.assertTrue(Market.isSellable(new ItemStack(RCItems.PUMP.get())),
+                "a priced tag member must be sellable, or its tooltip would say nothing");
+            helper.assertTrue(!Market.isSellable(new ItemStack(RCItems.JUNK.get())),
+                "junk must not be sellable, or its tooltip would quote a price the terminal refuses");
+            helper.succeed();
+        });
+
+        /*
+         * A sale takes what it paid for and nothing else.
+         *
+         * <p>The grid used to be cleared wholesale, which deleted anything unsellable sitting in it.
+         * mayPlace keeps such a stack out at the slot, so the way one gets there is a /reload that
+         * drops an item from #recompile:sellable or from the price map while the screen is open -
+         * narrow, but silent item loss, and a pack editing either surface is the likely trigger.
+         * Written to the container directly, which is exactly the state that reload leaves behind.
+         */
+        RCGameTests.test("selling_leaves_an_unsellable_stack_alone", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            Market.setBalance(player, 0);
+            SellTerminalMenu menu = new SellTerminalMenu(0, player.getInventory(),
+                ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)));
+
+            menu.goods().setItem(0, new ItemStack(RCItems.PUMP.get(), 2));
+            menu.goods().setItem(1, new ItemStack(RCItems.JUNK.get(), 5));
+            int expected = 2 * Market.priceOf(RCItems.PUMP.get());
+
+            helper.assertTrue(menu.quote() == expected,
+                "junk in the grid changed the quote to " + menu.quote());
+            helper.assertTrue(menu.clickMenuButton(player, SellTerminalMenu.SELL_BUTTON),
+                "the sale was refused");
+            helper.assertTrue(Market.balance(player) == expected,
+                "credited " + Market.balance(player) + " for a quote of " + expected);
+            helper.assertTrue(menu.goods().getItem(0).isEmpty(),
+                "the Pumps were paid for and not taken");
+            helper.assertTrue(menu.goods().getItem(1).is(RCItems.JUNK.get())
+                    && menu.goods().getItem(1).getCount() == 5,
+                "the junk was destroyed by a sale that did not pay for it, got "
+                    + menu.goods().getItem(1));
+            helper.succeed();
+        });
+
+        /*
+         * A full grid must not swallow the click. Shift-clicking a sellable stack with all nine
+         * goods slots taken used to do nothing at all - the sell branch was tried, failed, and
+         * returned EMPTY as a sibling of the backpack/hotbar shuffle rather than falling through to
+         * it. No loss, but a dead click on a screen whose whole job is to take that item.
+         */
+        RCGameTests.test("a_full_grid_still_shift_clicks_within_the_inventory", 20, helper -> {
+            ServerLevel level = helper.getLevel();
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.getInventory().clearContent();
+            SellTerminalMenu menu = new SellTerminalMenu(0, player.getInventory(),
+                ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)));
+
+            for (int slot = 0; slot < SellTerminalMenu.GOODS_SLOTS; slot++) {
+                menu.goods().setItem(slot, new ItemStack(RCItems.PUMP.get(), 1));
+            }
+            // Menu slot 36 is hotbar slot 0: past INV_MAIN_END, so the fallthrough is the backpack.
+            int hotbar = 36;
+            menu.slots.get(hotbar).set(new ItemStack(RCItems.MOTOR.get(), 3));
+
+            ItemStack moved = menu.quickMoveStack(player, hotbar);
+            helper.assertTrue(!moved.isEmpty(),
+                "a sellable stack shift-clicked against a full grid did nothing at all");
+            helper.assertTrue(menu.slots.get(hotbar).getItem().isEmpty(),
+                "it stayed in the hotbar: " + menu.slots.get(hotbar).getItem());
+
+            int inBackpack = 0;
+            for (int slot = 9; slot < 36; slot++) {
+                if (menu.slots.get(slot).getItem().is(RCItems.MOTOR.get())) {
+                    inBackpack += menu.slots.get(slot).getItem().getCount();
+                }
+            }
+            helper.assertTrue(inBackpack == 3,
+                "expected all 3 Motors in the backpack, found " + inBackpack);
+            // And the grid was not disturbed by the attempt.
+            helper.assertTrue(menu.goods().getItem(0).is(RCItems.PUMP.get()),
+                "the failed store emptied a goods slot");
             helper.succeed();
         });
 

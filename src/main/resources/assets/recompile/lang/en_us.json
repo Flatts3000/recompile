@@ -744,5 +744,7 @@
   "book.recompile.guide.bulky_waste.broken_terminal.intro.title": "Broken Terminal",
   "book.recompile.guide.bulky_waste.broken_terminal.intro.text": "A company terminal, dead. Tear it down at the Teardown Workbench for scrap and an Idea Fragment towards both the Sell Terminal and the Buy Terminal. Four fragments of each make the Blueprint.",
   "container.recompile.scroll_up": "(scroll up for more)",
-  "tooltip.recompile.market_short": "Short by %s scrip"
+  "tooltip.recompile.market_short": "Short by %s scrip",
+  "tooltip.recompile.scrip_value": "Sells for %s scrip",
+  "tooltip.recompile.scrip_value_stack": "Sells for %s scrip each (%s total)"
 }

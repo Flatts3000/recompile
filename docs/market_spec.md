@@ -224,6 +224,27 @@ Two surfaces, deliberately:
 A tag member with no price is a bug, so the sweep in section 10 **fails the build on one** rather than
 letting it sell for nothing. See the open question in section 12 about collapsing the two.
 
+### "One press" is the rule, and a transitive reading is not (2026-09-04)
+
+Review of the build read the exclusion as reaching all the way down, and reported the sell list as a
+junk sink: a Solar Panel is panes and plating, which are glass shards and scrap metal, so scrap
+becomes scrip at about three each with no cap.
+
+**That reading cannot be the rule, because every material in this world descends from a pull
+stream.** Applied transitively it empties the sell list and deletes the feature. Two things make the
+narrow reading the right one, and both were measured rather than argued:
+
+- **`recompile:junk` still has no price and no path to one.** It is consumed by exactly two recipes
+  in the mod, the schema's example door and Pressed Junk, and neither is sellable. Its only sink is
+  still the Burn Barrel, which is what section 8 actually refuses.
+- **Scrip flowing from renewable scrap is section 4 in as many words** - *a Blueprint's price is a
+  time cost and not a scarcity cost* - rather than a leak in section 6.
+
+What the review was right about is that the sweep enforcing this was checking less than it claimed:
+it read only `minecraft:crafting` recipes, so the Pump, Motor, Bulb and Battery were never inspected
+at all. It reads blueprint recipes now and **asserts it saw every member produced**, so a member the
+sweep cannot read fails the build instead of passing invisibly. All nine clear the one-press rule.
+
 ---
 
 ## 7. Prices are flat per product
