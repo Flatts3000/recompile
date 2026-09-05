@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### The Sledgehammer swings back
+
+- **The Sledgehammer is a weapon now, not only a demolition tool.** It always hit harder than a sword
+  per swing, but it swings half as often, so it lost every fight it started. The hit is heavier to pay
+  for the wait, and it knocks what it hits away from you, further the better the head.
+
 ### The market
 
 - **Two terminals and an account.** The **Sell Terminal** buys components and finished goods - a
