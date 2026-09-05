@@ -76,6 +76,7 @@ public final class RCGameTests {
         BuildingBlockTests.register();
         SortingDataTests.register();
         SinteringKilnTests.register();
+        SledgehammerCombatTests.register();
         AncientSculkTests.register();
         RecipeReachabilityTests.register();
         MenuTransferTests.register();

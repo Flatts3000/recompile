@@ -33,6 +33,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
 import com.flatts.recompile.content.menu.TreeNurseryMenu;
+import com.flatts.recompile.content.menu.WideSync;
 
 /**
  * The Tree Nursery's contents (reclamation rung 4, spec {@code docs/tree_nursery_spec.md}): the
@@ -60,12 +61,31 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
     private static final int SLOTS = 3;
 
     // ContainerData indices - what the GUI reads (water gauge, progress arrow, selected species).
-    public static final int DATA_COOK = 0;
-    public static final int DATA_COOK_TOTAL = 1;
-    public static final int DATA_WATER = 2;
-    public static final int DATA_WATER_CAP = 3;
-    public static final int DATA_SPECIES = 4;
-    private static final int DATA_SIZE = 5;
+    /**
+     * The screen's slots, every one of them shaped for a 16-BIT wire rather than for the field behind
+     * it (#369). {@code treeNurseryCookTicks} allows 240,000 and {@code treeNurseryTankCapacity} a
+     * million; a data slot carries a signed short, so both used to arrive wrapped with nothing logged.
+     *
+     * <p>What each one carries follows from what the screen DISPLAYS. The arrow draws a proportion, so
+     * a proportion travels and one slot always suffices. The countdown prints seconds, so seconds
+     * travel - at most 12,000 of them, which fits. The water tooltip prints millibuckets, so those go
+     * as two halves. See {@link WideSync}.
+     */
+    public static final int DATA_COOK_PERMILLE = 0;
+    public static final int DATA_COOK_SECONDS_LEFT = 1;
+    public static final int DATA_WATER_LOW = 2;
+    public static final int DATA_WATER_HIGH = 3;
+    public static final int DATA_WATER_CAP_LOW = 4;
+    public static final int DATA_WATER_CAP_HIGH = 5;
+    public static final int DATA_SPECIES = 6;
+    /**
+     * Public because the MENU needs it. Its client-side constructor builds its own
+     * {@code SimpleContainerData}, and that was written as a literal {@code 5}: when #369 widened this
+     * to 7 the number drifted, the screen opened, and reading slot 5 threw
+     * {@code IndexOutOfBoundsException} on the render thread. Neither test layer saw it - the layout
+     * tests check geometry and never read a slot - and it took opening the screen in a client.
+     */
+    public static final int DATA_SIZE = 7;
 
     /**
      * The saplings the nursery can raise, in picker order. <b>Vanilla saplings only</b> - the global
@@ -98,10 +118,12 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
         @Override
         public int get(int index) {
             return switch (index) {
-                case DATA_COOK -> cookProgress;
-                case DATA_COOK_TOTAL -> cookTicks();
-                case DATA_WATER -> tank.getAmountAsInt(0);
-                case DATA_WATER_CAP -> tankCapacity();
+                case DATA_COOK_PERMILLE -> WideSync.permille(cookProgress, cookTicks());
+                case DATA_COOK_SECONDS_LEFT -> secondsLeft();
+                case DATA_WATER_LOW -> WideSync.low(tank.getAmountAsInt(0));
+                case DATA_WATER_HIGH -> WideSync.high(tank.getAmountAsInt(0));
+                case DATA_WATER_CAP_LOW -> WideSync.low(tankCapacity());
+                case DATA_WATER_CAP_HIGH -> WideSync.high(tankCapacity());
                 case DATA_SPECIES -> selectedSpecies;
                 default -> 0;
             };
@@ -110,7 +132,11 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
         @Override
         public void set(int index, int value) {
             switch (index) {
-                case DATA_COOK -> cookProgress = value;
+                // Only the species is written back. Cook progress used to be, and the client then read
+                // its TOTAL straight off the config - which NeoForge does not sync for a COMMON spec, so
+                // a client with a different config file drew the arrow against a number the server never
+                // agreed to. The proportion and the countdown are both computed server-side now, so
+                // there is nothing left for the client to get wrong.
                 case DATA_SPECIES -> selectedSpecies = value;
                 default -> { }
             }
@@ -136,6 +162,17 @@ public class TreeNurseryBlockEntity extends BlockEntity implements WorldlyContai
 
     private static int cookTicks() {
         return RCConfig.TREE_NURSERY_COOK_TICKS.get();
+    }
+
+    /**
+     * Whole seconds until this sapling is done, rounded up, computed HERE so the client never has to
+     * know the goal. Twenty ticks a second against a 240,000-tick ceiling is 12,000, which fits a slot
+     * with room to spare; the ticks themselves do not.
+     */
+    private int secondsLeft() {
+        int total = Math.max(1, cookTicks());
+        int done = Math.max(0, Math.min(cookProgress, total));
+        return (total - done + 19) / 20;
     }
 
     /** The capability handed to pipes, pumps, and bucket interactions. */

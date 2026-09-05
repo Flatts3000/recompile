@@ -15,6 +15,9 @@ import com.flatts.recompile.content.item.VacuumTier;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
@@ -27,6 +30,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.component.Weapon;
 import net.neoforged.bus.api.IEventBus;
@@ -507,18 +511,99 @@ public final class RCItems {
     // Slow, hard-hitting: high attack damage, negative speed. Mines only #recompile:mineable/sledgehammer.
     // The full tier ladder ships; copper + iron are reachable now, diamond + netherite light up when their
     // materials do (the crystals gap #46 / the Nether unlock) - a designed ladder, top rungs future-gated.
+
+    /**
+     * Four swings a second minus this, so 0.8 - a swing and a quarter every two seconds.
+     *
+     * <p>Deliberately unchanged by #379. A sledgehammer that swings at sword speed is a sword, and the
+     * slow heavy hit is the whole identity of the tool; what #379 fixed is that the hit was not heavy
+     * enough to pay for the wait.
+     */
+    private static final float SLEDGE_SPEED = -3.2F;
+
+    /**
+     * Seconds a hit locks a shield out, which is vanilla's axe number exactly (owner, 2026-09-05).
+     *
+     * <p>{@code Properties.axe} passes 5.0 into the same {@code tool} argument, so this is not "about
+     * like an axe", it is the axe's own figure. A hammer to a shield is at least an axe.
+     */
+    private static final float SLEDGE_SHIELD_DISABLE_SECONDS = 5.0F;
+
+    // The melee durability cost is left at tool()'s Weapon(2) rather than pinned back to Weapon(1) the
+    // way the PRYBAR above is, and that is a decision rather than an omission (raised in review of
+    // #379). The prybar needs its pin because it swings at roughly sword speed and would genuinely pay
+    // twice for the same fight. This does not: two durability at 0.8 swings a second is 1.6 a second,
+    // and a sword's one at 1.6 swings is also 1.6, so the wear rate already matches. Same axis as
+    // everything else in #379 - per second, not per swing. It is also what a vanilla axe does, which is
+    // the weapon-tool the owner named when ruling on shield-disabling.
+    // `a_sledgehammer_wears_out_in_melee_at_a_swords_rate` fails if the swing speed ever moves without
+    // the melee cost moving with it.
+
+    /**
+     * The extra knockback a Sledgehammer carries, as an item attribute (#379, owner 2026-09-05).
+     *
+     * <p>No Java runs for this: {@code Player.attack} reads {@link Attributes#ATTACK_KNOCKBACK} through
+     * {@code LivingEntity.getKnockback} and then adds the sprint bonus and the Knockback enchantment on
+     * top, so declaring it composes with vanilla instead of competing with it. For scale, vanilla puts
+     * nothing on any weapon and one level of Knockback is worth 1.0, so copper hits about as hard as a
+     * Knockback I sword and netherite about as hard as Knockback II.
+     *
+     * <p>The top rung jumps rather than continuing the step, because netherite is the end of the ladder
+     * and should feel like arriving somewhere.
+     */
+    private static final Identifier SLEDGE_KNOCKBACK_ID =
+        Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "sledgehammer_knockback");
+
     public static final DeferredItem<Item> COPPER_SLEDGEHAMMER = ITEMS.registerItem(
         "copper_sledgehammer",
-        props -> new Item(props.tool(COPPER_TIER, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 5.0F, -3.2F, 0.0F)));
+        props -> new Item(sledgehammer(props, COPPER_TIER, 7.5F, 1.0)));
     public static final DeferredItem<Item> IRON_SLEDGEHAMMER = ITEMS.registerItem(
         "iron_sledgehammer",
-        props -> new Item(props.tool(ToolMaterial.IRON, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 6.0F, -3.2F, 0.0F)));
+        props -> new Item(sledgehammer(props, ToolMaterial.IRON, 9.0F, 1.25)));
     public static final DeferredItem<Item> DIAMOND_SLEDGEHAMMER = ITEMS.registerItem(
         "diamond_sledgehammer",
-        props -> new Item(props.tool(ToolMaterial.DIAMOND, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 7.0F, -3.2F, 0.0F)));
+        props -> new Item(sledgehammer(props, ToolMaterial.DIAMOND, 10.0F, 1.5)));
     public static final DeferredItem<Item> NETHERITE_SLEDGEHAMMER = ITEMS.registerItem(
         "netherite_sledgehammer",
-        props -> new Item(props.tool(ToolMaterial.NETHERITE, RCTags.MINEABLE_WITH_SLEDGEHAMMER, 8.0F, -3.2F, 0.0F)));
+        props -> new Item(sledgehammer(props, ToolMaterial.NETHERITE, 11.0F, 2.0)));
+
+    /**
+     * A Sledgehammer: the tool properties, then the attribute block rebuilt to add knockback.
+     *
+     * <p><b>Why the attributes are rebuilt rather than appended to.</b> {@code Properties.tool} writes
+     * the ATTRIBUTE_MODIFIERS component itself and {@code Properties} exposes no getter, so there is
+     * nothing to append to - a later {@code attributes(...)} replaces the component wholesale. That
+     * means this method owns all three modifiers, and it has to fold in the material's own
+     * {@code attackDamageBonus} by hand, because that is what {@code tool} was doing inside the value it
+     * wrote. Getting that wrong is silent: the item still works, it just hits for the wrong number.
+     *
+     * <p>Everything else {@code tool} sets - durability, the mining TOOL component, the WEAPON
+     * component, repairability, the correct-for-drops tag - is left alone, which is why it is still
+     * called first.
+     *
+     * @param damage    the modifier BEFORE the material bonus, the same value {@code tool} takes
+     * @param knockback extra knockback in the same units as a level of the Knockback enchantment
+     */
+    private static Item.Properties sledgehammer(
+            Item.Properties props, ToolMaterial material, float damage, double knockback) {
+        return props
+            .tool(material, RCTags.MINEABLE_WITH_SLEDGEHAMMER, damage, SLEDGE_SPEED,
+                SLEDGE_SHIELD_DISABLE_SECONDS)
+            .attributes(ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE,
+                    new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID,
+                        damage + material.attackDamageBonus(), AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED,
+                    new AttributeModifier(Item.BASE_ATTACK_SPEED_ID, SLEDGE_SPEED,
+                        AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_KNOCKBACK,
+                    new AttributeModifier(SLEDGE_KNOCKBACK_ID, knockback,
+                        AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND)
+                .build());
+    }
 
     /** The Sledgehammer tier ladder, in creative-tab order. */
     public static final List<DeferredItem<Item>> SLEDGEHAMMERS = List.of(

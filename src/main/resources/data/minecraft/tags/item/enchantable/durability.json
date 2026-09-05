@@ -1,0 +1,11 @@
+{
+  "_comment": [
+    "Unbreaking and Mending, and Curse of Vanishing follows because vanilla's vanishing tag includes",
+    "this one. Every other tool in the game that wears out can be kept going; this one was in no",
+    "enchantable tag at all before #379, so it accepted nothing whatsoever."
+  ],
+  "replace": false,
+  "values": [
+    "#recompile:sledgehammer"
+  ]
+}

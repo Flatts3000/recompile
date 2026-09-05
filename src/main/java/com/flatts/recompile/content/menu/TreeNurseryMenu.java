@@ -74,12 +74,20 @@ public class TreeNurseryMenu extends AbstractContainerMenu {
 
     /** Client factory: a dummy container + data, filled by the sync (see {@link RCMenus}). */
     public TreeNurseryMenu(int containerId, Inventory inventory) {
-        this(containerId, inventory, new SimpleContainer(MACHINE_SLOTS), new SimpleContainerData(5));
+        this(containerId, inventory, new SimpleContainer(MACHINE_SLOTS),
+            new SimpleContainerData(TreeNurseryBlockEntity.DATA_SIZE));
     }
 
     public TreeNurseryMenu(int containerId, Inventory inventory, Container container, ContainerData data) {
         super(RCMenus.TREE_NURSERY.get(), containerId);
         checkContainerSize(container, MACHINE_SLOTS);
+        // Assert the DATA count too, not just the container's. This is the guard the Tree Nursery
+        // did not have when #369 widened it: its client-side constructor sized its own data with a
+        // literal, the number drifted, and the mismatch surfaced as an IndexOutOfBoundsException on
+        // the render thread rather than as a message naming both numbers here. Vanilla's furnace
+        // menus have always done this, which is why the Cupola and the two furnace subclasses were
+        // never exposed to it.
+        checkContainerDataCount(data, TreeNurseryBlockEntity.DATA_SIZE);
         this.container = container;
         this.data = data;
 
@@ -183,20 +191,29 @@ public class TreeNurseryMenu extends AbstractContainerMenu {
 
     // ---------------- screen readouts ----------------
 
+    /** Thousandths of the current sapling, already scaled by the server. */
     public int cookProgress() {
-        return this.data.get(TreeNurseryBlockEntity.DATA_COOK);
+        return this.data.get(TreeNurseryBlockEntity.DATA_COOK_PERMILLE);
     }
 
+    /** Whole seconds left, computed server-side; see {@code TreeNurseryBlockEntity.secondsLeft}. */
+    public int secondsLeft() {
+        return this.data.get(TreeNurseryBlockEntity.DATA_COOK_SECONDS_LEFT);
+    }
+
+    /** What {@link #cookProgress()} is out of: a constant, because progress arrives pre-scaled. */
     public int cookTotal() {
-        return this.data.get(TreeNurseryBlockEntity.DATA_COOK_TOTAL);
+        return WideSync.PERMILLE;
     }
 
     public int water() {
-        return this.data.get(TreeNurseryBlockEntity.DATA_WATER);
+        return WideSync.combine(this.data.get(TreeNurseryBlockEntity.DATA_WATER_LOW),
+            this.data.get(TreeNurseryBlockEntity.DATA_WATER_HIGH));
     }
 
     public int waterCapacity() {
-        return this.data.get(TreeNurseryBlockEntity.DATA_WATER_CAP);
+        return WideSync.combine(this.data.get(TreeNurseryBlockEntity.DATA_WATER_CAP_LOW),
+            this.data.get(TreeNurseryBlockEntity.DATA_WATER_CAP_HIGH));
     }
 
     public int selectedSpecies() {

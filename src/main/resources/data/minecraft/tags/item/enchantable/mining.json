@@ -1,0 +1,12 @@
+{
+  "_comment": [
+    "Efficiency. A Sledgehammer is a mining tool and there is no reason it should not be a faster one.",
+    "",
+    "Note what is deliberately NOT here: mining_loot.json, which is where vanilla keys Silk Touch and",
+    "Fortune. See that decision recorded in SledgehammerCombatTests."
+  ],
+  "replace": false,
+  "values": [
+    "#recompile:sledgehammer"
+  ]
+}
