@@ -72,6 +72,15 @@ public class ScrapHaulerEntity extends PathfinderMob {
     /** Ticks between scans while parked with nothing to do: the self-waking pump, without being a cost. */
     public static final int IDLE_SCAN_TICKS = 40;
 
+    /**
+     * How often the idle hum is retriggered, in ticks. This is exactly the length of
+     * {@code entity/scrap_hauler/idle.ogg} (1.6 s), which is what makes repeated one-shots read as
+     * one unbroken loop rather than as a sound that restarts: the file is synthesised to be seamless
+     * end to end AND to be a whole number of ticks long, so play N butts against play N+1 with
+     * nothing audible in between. Sourced audio cannot easily be both.
+     */
+    public static final int IDLE_SOUND_TICKS = 32;
+
     /** Charge below which it parks, and the level it waits for before moving again. */
     public static final int FLAT_BELOW = VacuumTier.costFor(4);
     public static final int WAKE_AT = ScrapHaulerItem.CAPACITY / 10;
@@ -323,6 +332,7 @@ public class ScrapHaulerEntity extends PathfinderMob {
         if (pickupFlash > 0) {
             pickupFlash--;
         }
+        idleHum(level);
         trickle(level);
         unstick(level);
         HaulerDepotBlockEntity home = depot();
@@ -425,6 +435,26 @@ public class ScrapHaulerEntity extends PathfinderMob {
      * Whatever removes this - a recall, a {@code /kill}, another mod - the Depot hears about it, so
      * its slot is never locked against a machine that no longer exists.
      */
+    /**
+     * The working hum, and only while it is working.
+     *
+     * <p>Silent when parked, which is the whole reason this is gated on mode rather than played
+     * unconditionally: a Depot with a flat or idle Hauler sitting on it is somebody's base, and a
+     * machine that hums forever next to a bed is a bug report. Offset by entity id so two Haulers in
+     * one chunk do not phase-lock into a single louder sound.
+     */
+    private void idleHum(ServerLevel level) {
+        Mode mode = mode();
+        if (mode == Mode.PARKED_FLAT || mode == Mode.PARKED_IDLE || mode == Mode.WAITING_DEPOT) {
+            return;
+        }
+        if ((tickCount + getId()) % IDLE_SOUND_TICKS != 0) {
+            return;
+        }
+        level.playSound(null, getX(), getY(), getZ(), RCSounds.HAULER_IDLE.get(),
+            SoundSource.NEUTRAL, 0.35F, 1.0F);
+    }
+
     @Override
     public void remove(RemovalReason reason) {
         if (!recalling && !level().isClientSide()) {

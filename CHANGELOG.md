@@ -4,6 +4,10 @@
 
 ### The Scrap Hauler
 
+- **The Hauler has its own voice.** It hums while it works, thumps as it takes a block, and the Depot
+  latches audibly when it lets it out or takes it back. Recall is the deploy run backwards, so the two
+  sound like one mechanism.
+
 - **The Depot's work area is a square of chunks**, set from its screen with a plus and a minus, from just its own chunk up to a limit the pack can raise. The Hauler works the surface of those chunks: whatever sits on top of each column.
 
 - **A robot that gathers garbage for you.** Find a **Broken Hauler** in Bulky Waste, pry it out,

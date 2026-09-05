@@ -83,8 +83,33 @@ Deploy, and the entity vanishing by any route - each with its own test in `Scrap
 multiblock-disband lesson applied before the bug rather than after. It is also three firsts at once:
 the first bespoke entity model (`ScrapHaulerModel`, a `LayerDefinition` in Java, where the Roach and
 the Pigeon borrow vanilla geometry), the first entity animations (three `AnimationDefinition`s baked
-into `KeyframeAnimation`s), and the first custom sounds (`RCSounds`, four events, with `sounds.json`
-pointing each at a vanilla file until sourced audio lands). And one pathing lesson worth keeping: the
+into `KeyframeAnimation`s), and the first custom sounds (`RCSounds`, four events, backed by real
+`.ogg` files).
+
+**The audio is SYNTHESISED, and that reversed a ruling made hours earlier the same day** (owner,
+2026-09-05). The first call was "sounds we can source"; pricing it reversed it. **Licensing decided
+it**: this repo is MIT and a mod ships loose `.ogg` files inside a jar anyone can unzip, so the licence
+hands every downstream user redistribution rights that the obvious AI tool forbids - ElevenLabs'
+prohibited use policy 9(c) bars distributing sound-effect output "on a standalone basis ... including
+as isolated files, audio samples ... or other collections of sounds". A permissive licence cannot
+promise what its assets do not back, which is the Create split (MIT code, reserved assets) in a new
+place. Two more reasons made it the better answer anyway. **A loop is seamless by construction** -
+partials locked to a whole number of cycles, the noise bed an inverse FFT of exactly one period -
+where a sourced clip has to be crossfaded by hand and still drifts, and a machine loop plays for as
+long as a button is held so a seam is a click once a cycle forever. And **every sound this mod needs
+is a machine**, so one declared voice gives the Hauler and the Garbage Vacuum a character that cannot
+drift apart, and a tier ladder becomes a scalar rather than four more sourcing jobs.
+
+The generator is **`sfxgen`** (`../mc-pack-toolkit/sfxgen`, texgen's audio sibling, `pip install -e`),
+driven by `sfxgen.toml` here; `python -m sfxgen all` renders auditions and a review page into `gen/`,
+then `approve` and `promote`. Same discipline as textures: **only the finished mono 44.1 kHz Ogg is
+committed**, auditions stay in gitignored `gen/`, and **approval is explicit and never inferred from a
+file existing**. Three things it checks that are all SILENT in game: a stereo file (still plays, just
+not positioned or attenuated), a `sounds.json` naming a missing file (one startup line, then a mute
+event), and a loop seam. **Vorbis quality is load-bearing on a loop specifically** - the codec's
+reconstruction error at the file edges lands exactly on the loop point, the one place an error becomes
+a click rather than a blur, measured on the Hauler's idle at 4.59% of peak at q4 and 1.59% at q8 - so
+`sfxgen` defaults a loop to q8 and a one-shot to q6. And one pathing lesson worth keeping: the
 first build asked the navigation for a path before committing to a pile, and read a transient refusal
 - the tick after spawning, before the mob is on the ground - as "unreachable", blacklisting the
 nearest pile for twenty seconds. **Reachability is now decided by trying**: three refused `moveTo`
