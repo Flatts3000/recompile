@@ -18,7 +18,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.Weapon;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -125,6 +127,53 @@ public final class SledgehammerCombatTests {
             helper.succeed();
         });
 
+        RCGameTests.test("a_sledgehammer_locks_a_shield_out_for_as_long_as_an_axe_does", 20, helper -> {
+            // Owner, 2026-09-05. Not "about like an axe": Properties.axe passes 5.0 into the same
+            // tool() argument, so the two are compared directly and a vanilla retune moves both.
+            float axe = Items.IRON_AXE.components()
+                .getOrDefault(DataComponents.WEAPON, new Weapon(1)).disableBlockingForSeconds();
+            helper.assertTrue(axe > 0.0F, "the iron axe disables no shield, so there is nothing to match");
+            for (Rung rung : ladder()) {
+                float hammer = rung.sledgehammer().components()
+                    .getOrDefault(DataComponents.WEAPON, new Weapon(1)).disableBlockingForSeconds();
+                helper.assertTrue(hammer == axe,
+                    rung.name() + " sledgehammer locks a shield out for " + hammer
+                        + "s against an axe's " + axe + "s");
+            }
+            helper.succeed();
+        });
+
+        RCGameTests.test("a_sledgehammer_takes_the_enchantments_that_do_it_any_good", 20, helper -> {
+            // Owner, 2026-09-05: it should accept enchantments. Before this it was in no enchantable
+            // tag whatsoever, so it accepted none at all.
+            for (Rung rung : ladder()) {
+                Item item = rung.sledgehammer();
+                assertTagged(helper, rung, item, ItemTags.MELEE_WEAPON_ENCHANTABLE, "Knockback and Looting");
+                // Free through MELEE_WEAPON, and asserted anyway: the day someone reshapes these tags,
+                // the thing that breaks should say which enchantment went missing.
+                assertTagged(helper, rung, item, ItemTags.SHARP_WEAPON_ENCHANTABLE, "the Sharpness family");
+                assertTagged(helper, rung, item, ItemTags.WEAPON_ENCHANTABLE, "weapon enchantments at large");
+                assertTagged(helper, rung, item, ItemTags.FIRE_ASPECT_ENCHANTABLE, "Fire Aspect");
+                assertTagged(helper, rung, item, ItemTags.MINING_ENCHANTABLE, "Efficiency");
+                assertTagged(helper, rung, item, ItemTags.DURABILITY_ENCHANTABLE, "Unbreaking and Mending");
+                assertTagged(helper, rung, item, ItemTags.VANISHING_ENCHANTABLE, "Curse of Vanishing");
+
+                // THE ONE DELIBERATE OMISSION. mining_loot is where vanilla keys Silk Touch and
+                // Fortune, and neither does anything for this tool: a Sledgehammer mines exactly three
+                // blocks - reinforced concrete, ancient sculk and mill tailings - and not one of their
+                // loot tables branches on either enchantment, so both would be dead options a player
+                // could waste a book on. Silk Touch is worse than useless: ancient_sculk.json states
+                // that the block itself must never drop, "a seam, not a building material", and Silk
+                // Touch is precisely the mechanism that would hand it back the day anyone adds a
+                // branch for it. If a Sledgehammer ever mines something Fortune should touch, this is
+                // the line to revisit.
+                helper.assertTrue(!item.builtInRegistryHolder().is(ItemTags.MINING_LOOT_ENCHANTABLE),
+                    rung.name() + " sledgehammer is in mining_loot, which offers Silk Touch and Fortune "
+                        + "on a tool where both do nothing and Silk Touch contradicts ancient sculk");
+            }
+            helper.succeed();
+        });
+
         RCGameTests.test("a_sledgehammer_throws_a_target_further_than_a_bare_hand", 40, helper -> {
             // The attribute is declared; this is whether a BLOW carries it. Player.attack reads
             // ATTACK_KNOCKBACK through LivingEntity.getKnockback, so an attribute nobody reads would
@@ -182,6 +231,12 @@ public final class SledgehammerCombatTests {
      * player is passed in rather than made here because it must already have been holding the weapon
      * for a tick.
      */
+    private static void assertTagged(GameTestHelper helper, Rung rung, Item item,
+            net.minecraft.tags.TagKey<Item> tag, String what) {
+        helper.assertTrue(item.builtInRegistryHolder().is(tag),
+            rung.name() + " sledgehammer is not in " + tag.location() + ", so it cannot take " + what);
+    }
+
     private static double launch(GameTestHelper helper, ServerPlayer player, int zOffset) {
         Mob target = EntityType.ZOMBIE.create(helper.getLevel(), EntitySpawnReason.TRIGGERED);
         helper.assertTrue(target != null, "could not create a target");

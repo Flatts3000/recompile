@@ -513,6 +513,14 @@ public final class RCItems {
     private static final float SLEDGE_SPEED = -3.2F;
 
     /**
+     * Seconds a hit locks a shield out, which is vanilla's axe number exactly (owner, 2026-09-05).
+     *
+     * <p>{@code Properties.axe} passes 5.0 into the same {@code tool} argument, so this is not "about
+     * like an axe", it is the axe's own figure. A hammer to a shield is at least an axe.
+     */
+    private static final float SLEDGE_SHIELD_DISABLE_SECONDS = 5.0F;
+
+    /**
      * The extra knockback a Sledgehammer carries, as an item attribute (#379, owner 2026-09-05).
      *
      * <p>No Java runs for this: {@code Player.attack} reads {@link Attributes#ATTACK_KNOCKBACK} through
@@ -560,7 +568,8 @@ public final class RCItems {
     private static Item.Properties sledgehammer(
             Item.Properties props, ToolMaterial material, float damage, double knockback) {
         return props
-            .tool(material, RCTags.MINEABLE_WITH_SLEDGEHAMMER, damage, SLEDGE_SPEED, 0.0F)
+            .tool(material, RCTags.MINEABLE_WITH_SLEDGEHAMMER, damage, SLEDGE_SPEED,
+                SLEDGE_SHIELD_DISABLE_SECONDS)
             .attributes(ItemAttributeModifiers.builder()
                 .add(Attributes.ATTACK_DAMAGE,
                     new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID,
