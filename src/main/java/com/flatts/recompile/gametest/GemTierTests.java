@@ -276,7 +276,7 @@ final class GemTierTests {
             // Checked separately so a failure says WHICH half broke. "no amethyst reached the chute"
             // is a useless message when the machine never started.
             helper.runAfterDelay(20, () -> {
-                BlockState now = helper.getLevel().getBlockState(helper.absolutePos(core));
+                BlockState now = stillSeparator(helper, core);
                 helper.assertTrue(now.getValue(SeparatorCoreBlock.ACTIVE),
                     "the Separator never started: formed=" + now.getValue(MultiblockCoreBlock.FORMED)
                         + ", stored FE=" + be.battery().getAmountAsInt()
@@ -775,8 +775,7 @@ final class GemTierTests {
             drop(helper, core, new ItemStack(RCItems.QUARTZ_GRIT.get(), 1));
 
             helper.runAfterDelay(20, () -> {
-                helper.assertTrue(helper.getLevel().getBlockState(helper.absolutePos(core))
-                        .getValue(SeparatorCoreBlock.ACTIVE),
+                helper.assertTrue(stillSeparator(helper, core).getValue(SeparatorCoreBlock.ACTIVE),
                     "the core never went active");
                 for (BlockPos cell : SeparatorCoreBlock.chamberCells(
                         helper.getLevel(), helper.absolutePos(core))) {
@@ -840,8 +839,7 @@ final class GemTierTests {
             helper.runAfterDelay(60, () -> {
                 helper.assertTrue(be.queuedCount() == 1,
                     "an unpowered machine did not hold its material: " + be.queuedCount() + " queued");
-                helper.assertFalse(helper.getLevel().getBlockState(helper.absolutePos(core))
-                        .getValue(SeparatorCoreBlock.ACTIVE),
+                helper.assertFalse(stillSeparator(helper, core).getValue(SeparatorCoreBlock.ACTIVE),
                     "an unpowered machine was showing as running");
                 for (ItemEntity entity : helper.getLevel().getEntitiesOfClass(ItemEntity.class,
                         AABB.ofSize(helper.absolutePos(core).getCenter(), 12, 12, 12))) {
@@ -971,6 +969,33 @@ final class GemTierTests {
      * in a test it would drift out of the mouth and the test would fail for a reason that has nothing to
      * do with what it is checking.
      */
+    /**
+     * The core's state, having first proved it is still a Separator. Because of #364.
+     *
+     * <p>These assertions used to read {@code ACTIVE} straight off whatever occupied the cell, so on
+     * the one occasion it held something else the test died inside {@code getValue} with "Cannot get
+     * property ACTIVE on minecraft:bricks" - a message naming neither the position nor whatever put
+     * it there, which is why the cause is still unknown a release later.
+     *
+     * <p><b>It says what is known and nothing more.</b> The standing hypothesis was bleed from a
+     * neighbouring test, and it is dead twice over: every candidate writes plot-RELATIVE so none can
+     * reach another plot, and the one test that writes bricks anywhere near this height writes AIR at
+     * exactly {@code (1,2,1)}, because that cell is interior to its shell. Naming a mechanism in the
+     * failure text would send the next investigation back down the road this one already closed.
+     *
+     * <p>Shared by all three core reads deliberately. A diagnostic on one of them only helps if the
+     * flake picks that one, and nothing about the observed failure says it would.
+     */
+    private static BlockState stillSeparator(GameTestHelper helper, BlockPos core) {
+        BlockState now = helper.getLevel().getBlockState(helper.absolutePos(core));
+        helper.assertTrue(now.is(RCBlocks.SEPARATOR.get()),
+            "the cell at " + helper.absolutePos(core) + " (plot-relative " + core + ") no longer "
+                + "holds the Separator this test placed - it holds " + now + ". Nothing in this test "
+                + "replaces it and the mechanism is UNKNOWN: see #364, and record what you find "
+                + "there rather than re-running until it passes.");
+        return now;
+    }
+
     private static void drop(GameTestHelper helper, BlockPos core, ItemStack stack) {
         BlockPos into = SeparatorCoreBlock.chamberCells(
             helper.getLevel(), helper.absolutePos(core)).get(0).above();
