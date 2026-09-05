@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### The Sledgehammer swings back
+
+- **The Sledgehammer is a weapon now, not only a demolition tool.** It always hit harder than a sword
+  per swing, but it swings half as often, so it lost every fight it started. The hit is heavier to pay
+  for the wait, and it knocks what it hits away from you, further the better the head.
+- **It gets through a shield**, locking one out for the same five seconds an axe does.
+- **It takes enchantments at last**, having accepted none at all before: Sharpness and its cousins,
+  Knockback on top of the knockback it already has, Looting, Fire Aspect, Efficiency, Unbreaking and
+  Mending. Not Silk Touch or Fortune, which do nothing to any of the three blocks it mines.
+
 ### The market
 
 - **Two terminals and an account.** The **Sell Terminal** buys components and finished goods - a

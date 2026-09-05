@@ -1,0 +1,16 @@
+{
+  "_comment": [
+    "The Sledgehammer is a weapon as well as a demolition tool (#379, owner 2026-09-05), so it takes",
+    "the enchantments a weapon takes: Knockback, Looting, and Fire Aspect as a primary choice.",
+    "",
+    "MELEE_WEAPON rather than the axe's SHARP_WEAPON, and the difference is Knockback specifically.",
+    "Vanilla keys Knockback on this tag and an axe is not in it, so mirroring the axe exactly would",
+    "have left the one enchantment that stacks with the Sledgehammer's own built-in knockback off the",
+    "list. Sharpness comes free either way: SHARP_WEAPON already includes this tag, and WEAPON",
+    "includes that in turn."
+  ],
+  "replace": false,
+  "values": [
+    "#recompile:sledgehammer"
+  ]
+}
