@@ -87,6 +87,7 @@ public final class RCCreativeTabs {
                     RCItems.SLEDGEHAMMERS.forEach(hammer -> output.accept(hammer.get()));
                     output.accept(RCItems.CUTTING_TORCH.get());
                     RCItems.GARBAGE_VACUUMS.forEach(vacuum -> output.accept(vacuum.get()));
+                    output.accept(RCItems.SCRAP_HAULER.get());
 
                     // --- 4. Base materials, then the salvaged metals and stone they sit beside ---
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
@@ -124,6 +125,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.MOTOR.get());
                     output.accept(RCItems.BULB.get());
                     output.accept(RCItems.DEPLETED_BATTERY.get());
+                    output.accept(RCItems.BROKEN_HAULER.get());
                     output.accept(RCItems.BATTERY.get());
                     output.accept(RCItems.WATER_TANK.get());
                     output.accept(RCItems.SOLAR_PANEL.get());
@@ -157,6 +159,7 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.BURNER_GENERATOR.get());
                     output.accept(RCItems.SEQUENCER.get());
                     output.accept(RCItems.CHARGING_STATION.get());
+                    output.accept(RCItems.HAULER_DEPOT.get());
 
                     // --- 9. Machines, in the order a base gets them ---
                     output.accept(RCItems.RAIN_COLLECTOR.get());

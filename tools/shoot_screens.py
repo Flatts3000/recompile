@@ -62,6 +62,10 @@ SCREENS = [
     # cannot read. Both open with an empty balance here, which is the state a new player sees.
     ("sell_terminal", "recompile:sell_terminal"),
     ("buy_terminal", "recompile:buy_terminal"),
+    # The Hauler Depot (#376): the eleventh. A Hauler slot, the hold, a gauge and a Deploy button
+    # that flips to Recall - the button's state and the gauge are exactly what the layout sweep
+    # cannot see. Opens with an empty slot here, which is the first thing a new owner sees.
+    ("hauler_depot", "recompile:hauler_depot"),
 ]
 
 FOCUS_PS = """

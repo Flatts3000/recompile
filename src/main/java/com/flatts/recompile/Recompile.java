@@ -9,6 +9,7 @@ import com.flatts.recompile.registry.RCCreativeTabs;
 import com.flatts.recompile.registry.RCDataMaps;
 import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCMenus;
+import com.flatts.recompile.registry.RCSounds;
 import com.flatts.recompile.registry.RCDataComponents;
 import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCStructures;
@@ -55,6 +56,8 @@ public final class Recompile {
 
         // The mod's first entity layer (#78). After items: the spawn egg is an item.
         RCEntities.register(modEventBus);
+        // The mod's first sound events (#376).
+        RCSounds.register(modEventBus);
         RCMenus.register(modEventBus);
         RCCreativeTabs.register(modEventBus);
         RCFeatures.register(modEventBus);

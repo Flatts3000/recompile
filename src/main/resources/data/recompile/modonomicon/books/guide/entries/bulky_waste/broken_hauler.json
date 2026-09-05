@@ -1,0 +1,21 @@
+{
+  "type": "modonomicon:content",
+  "id": "recompile:bulky_waste/broken_hauler",
+  "category": "recompile:bulky_waste",
+  "name": "book.recompile.guide.bulky_waste.broken_hauler.name",
+  "icon": {
+    "id": "recompile:broken_hauler"
+  },
+  "background": {
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26,
+    "height": 26
+  },
+  "x": 4,
+  "y": 2,
+  "parents": [
+    {
+      "entry": "recompile:bulky_waste/prying"
+    }
+  ]
+}

@@ -173,7 +173,10 @@ final class JadeDataTests {
                 new Subject("CompostHeapDataProvider", RCBlocks.COMPOST_HEAP.get(), true,
                     "layer count is the whole state of a compost heap"),
                 new Subject("TreeNurseryDataProvider", RCBlocks.TREE_NURSERY.get(), true,
-                    "water and fertiliser levels, which its screen shows only while open"));
+                    "water and fertiliser levels, which its screen shows only while open"),
+                new Subject("HaulerDepotDataProvider", RCBlocks.HAULER_DEPOT.get(), false,
+                    "whether the Hauler is docked or out, and its charge either way, which nothing "
+                        + "but the screen shows and the screen shows only while open"));
 
             List<String> gaps = new ArrayList<>();
             for (Subject subject : subjects) {

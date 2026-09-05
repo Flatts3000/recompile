@@ -118,7 +118,7 @@ public class BlueprintItem extends Item {
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
         return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
-            SPAWNER, BATTERY, SELL_TERMINAL, BUY_TERMINAL, POWDER_SNOW_BUCKET);
+            SPAWNER, BATTERY, SELL_TERMINAL, BUY_TERMINAL, POWDER_SNOW_BUCKET, SCRAP_HAULER, HAULER_DEPOT);
     }
 
     /**
@@ -164,6 +164,16 @@ public class BlueprintItem extends Item {
      */
     public static final Identifier SPAWNER =
         Identifier.fromNamespaceAndPath("recompile", "spawner");
+
+    /**
+     * The Scrap Hauler and its Depot (#376, spec {@code docs/scrap_hauler_spec.md}): this mod's quarry,
+     * both halves blueprint-gated (ruling 12). One find teaches both - a Broken Hauler torn down at the
+     * Workbench - which is the Broken Terminal's shape exactly.
+     */
+    public static final Identifier SCRAP_HAULER =
+        Identifier.fromNamespaceAndPath("recompile", "scrap_hauler");
+    public static final Identifier HAULER_DEPOT =
+        Identifier.fromNamespaceAndPath("recompile", "hauler_depot");
 
     /** The proof of concept: the sheet that turns a filthy mattress into one fit to sleep on. */
     public static final Identifier CLEAN_MATTRESS =

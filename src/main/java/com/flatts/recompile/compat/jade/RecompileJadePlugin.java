@@ -49,6 +49,8 @@ public class RecompileJadePlugin implements IWailaPlugin {
         // a separate provider from the client component - since MC 1.21.6 one class cannot be both.
         registration.registerBlockDataProvider(WorkbenchDataProvider.INSTANCE, RecompileWorkbenchBlock.class);
         registration.registerBlockDataProvider(ScrapBinDataProvider.INSTANCE, ScrapBinBlock.class);
+        registration.registerBlockDataProvider(HaulerDepotDataProvider.INSTANCE,
+            com.flatts.recompile.content.block.HaulerDepotBlock.class);
         // The heap's layer state is on the core BE; the cage variant lets any hovered cell resolve it.
         registration.registerBlockDataProvider(CompostHeapDataProvider.INSTANCE, CompostHeapCoreBlock.class);
         registration.registerBlockDataProvider(CompostHeapDataProvider.INSTANCE, CompostCageBlock.class);
@@ -81,6 +83,15 @@ public class RecompileJadePlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(GeneratorProvider.INSTANCE, SequencerBlock.class);
         registration.registerBlockComponent(GeneratorProvider.INSTANCE, ChargingStationBlock.class);
+        // The Hauler Depot (#376): the generator readout for its buffer and its docked Hauler, plus a
+        // line for what the Hauler is doing. The Hauler itself is an entity and its state is synced,
+        // so its provider needs no server data - the painting's shape.
+        registration.registerBlockComponent(GeneratorProvider.INSTANCE,
+            com.flatts.recompile.content.block.HaulerDepotBlock.class);
+        registration.registerBlockComponent(HaulerDepotProvider.INSTANCE,
+            com.flatts.recompile.content.block.HaulerDepotBlock.class);
+        registration.registerEntityComponent(ScrapHaulerProvider.INSTANCE,
+            com.flatts.recompile.content.entity.ScrapHaulerEntity.class);
         registration.registerBlockComponent(ToolHintProvider.INSTANCE, SortableBlock.class);
 
         // Recovered paintings name themselves on the wall (#99). An ENTITY component, not a block

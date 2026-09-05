@@ -66,6 +66,19 @@ public final class RCDataComponents {
                 .networkSynchronized(ByteBufCodecs.VAR_INT)
                 .build());
 
+    /**
+     * A Scrap Hauler's stored charge in FE (#376): the second powered item, on the vacuum's exact
+     * terms. Read by the item, written by the Depot through {@code Capabilities.Energy.ITEM}, and
+     * copied onto the deployed entity and back so the number the field reports and the number the
+     * slot shows are one number.
+     */
+    public static final Supplier<DataComponentType<Integer>> HAULER_CHARGE =
+        DATA_COMPONENTS.register("hauler_charge",
+            () -> DataComponentType.<Integer>builder()
+                .persistent(Codec.INT)
+                .networkSynchronized(ByteBufCodecs.VAR_INT)
+                .build());
+
     /** A filled Scrap Bin's {material, count}, carried on its dropped item (P2.9). */
     public static final Supplier<DataComponentType<ScrapBinContents>> SCRAP_BIN_CONTENTS =
         DATA_COMPONENTS.register("scrap_bin_contents",

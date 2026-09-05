@@ -244,6 +244,9 @@ final class MenuTransferTests {
                     new ItemStack(RCItems.UNKNOWN_SEEDLING.get(), 16)),
                 new Menu("sequencer", inv ->
                     new com.flatts.recompile.content.menu.SequencerMenu(0, inv), stampedAmber),
+                new Menu("hauler_depot", inv ->
+                    new com.flatts.recompile.content.menu.HaulerDepotMenu(0, inv),
+                    new ItemStack(com.flatts.recompile.registry.RCBlocks.GARBAGE_BLOCK.get(), 32)),
                 new Menu("tree_nursery", inv ->
                     new com.flatts.recompile.content.menu.TreeNurseryMenu(0, inv),
                     new ItemStack(RCItems.FERTILIZER.get(), 32)),
@@ -331,7 +334,7 @@ final class MenuTransferTests {
         RCGameTests.test("every_bespoke_menu_transfer_is_covered", 20, helper -> {
             java.util.Set<String> covered = java.util.Set.of(
                 "BurnerGeneratorMenu", "HydroponicsBayMenu", "SequencerMenu", "TreeNurseryMenu",
-                "CupolaFurnaceMenu", "SellTerminalMenu");
+                "CupolaFurnaceMenu", "SellTerminalMenu", "HaulerDepotMenu");
             java.util.Map<String, String> excused = java.util.Map.of(
                 "ScrapCraftingStationMenu",
                 "its result path calls player.drop, so it deliberately moves items OUT of the menu's "

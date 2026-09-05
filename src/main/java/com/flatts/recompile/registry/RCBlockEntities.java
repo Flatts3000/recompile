@@ -13,6 +13,8 @@ import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.ChargingStationBlockEntity;
+import com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity;
+import com.flatts.recompile.content.item.ScrapHaulerItem;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
 import com.flatts.recompile.content.block.entity.SinteringKilnBlockEntity;
 import com.flatts.recompile.content.block.entity.SlagFurnaceBlockEntity;
@@ -62,6 +64,12 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "charging_station",
             () -> new BlockEntityType<>(ChargingStationBlockEntity::new, RCBlocks.CHARGING_STATION.get()));
+
+    /** The Hauler Depot (#376): a Hauler slot, a hold, and a buffer the generators fill. */
+    public static final Supplier<BlockEntityType<HaulerDepotBlockEntity>> HAULER_DEPOT =
+        BLOCK_ENTITIES.register(
+            "hauler_depot",
+            () -> new BlockEntityType<>(HaulerDepotBlockEntity::new, RCBlocks.HAULER_DEPOT.get()));
 
     /** The Filing Cabinet's blueprint shelf (#95). */
     public static final Supplier<BlockEntityType<FilingCabinetBlockEntity>> FILING_CABINET =
@@ -412,5 +420,27 @@ public final class RCBlockEntities {
             Capabilities.Item.BLOCK,
             BURNER_GENERATOR.get(),
             (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
+
+        // The Hauler Depot (#376). Three doors, each on a precedent's terms:
+        //  - power IN only, the Charging Station's consumer shape, so a Solar Panel or Burner against
+        //    any face fills the buffer and nothing pulls it back out;
+        //  - items through the sided wrapper, so a hopper or pipe can stock the hold and drain it,
+        //    while getSlotsForFace never names the Hauler slot and canTakeItemThroughFace refuses it
+        //    besides - the third row of the conservation table, held on the container itself;
+        //  - and the Hauler ITEM answers Energy.ITEM over HAULER_CHARGE exactly as the vacuums do,
+        //    which is the door the Depot charges it through.
+        event.registerBlockEntity(
+            Capabilities.Energy.BLOCK,
+            HAULER_DEPOT.get(),
+            (be, side) -> new LimitingEnergyHandler(be.battery(), Integer.MAX_VALUE, 0));
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            HAULER_DEPOT.get(),
+            (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
+        event.registerItem(
+            Capabilities.Energy.ITEM,
+            (stack, access) -> new ItemAccessEnergyHandler(
+                access, RCDataComponents.HAULER_CHARGE.get(), ScrapHaulerItem.CAPACITY),
+            RCItems.SCRAP_HAULER.get());
     }
 }

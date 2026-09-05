@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.BuyTerminalMenu;
+import com.flatts.recompile.content.menu.HaulerDepotMenu;
 import com.flatts.recompile.content.menu.SellTerminalMenu;
 import com.flatts.recompile.content.menu.SequencerMenu;
 import com.flatts.recompile.content.menu.ScrapCraftingStationMenu;
@@ -115,6 +116,15 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BuyTerminalMenu>> BUY_TERMINAL =
         MENUS.register("buy_terminal", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new BuyTerminalMenu(id, inventory, buffer)));
+
+    /**
+     * The Hauler Depot (#376): the eleventh custom screen, and a recorded reversal. The Scrap Barrel
+     * reuses ChestMenu because it is only storage and the Charging Station has no screen because it
+     * holds one item; this is both at once plus a gauge and a button, and vanilla has no such shape.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<HaulerDepotMenu>> HAULER_DEPOT =
+        MENUS.register("hauler_depot", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new HaulerDepotMenu(id, inventory)));
 
     private RCMenus() {
     }

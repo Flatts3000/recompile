@@ -22,6 +22,7 @@ import com.flatts.recompile.content.block.CompostCageBlock;
 import com.flatts.recompile.content.block.CompostHeapCoreBlock;
 import com.flatts.recompile.content.block.AnimalBaitBlock;
 import com.flatts.recompile.content.block.ChargingStationBlock;
+import com.flatts.recompile.content.block.HaulerDepotBlock;
 import com.flatts.recompile.content.block.TreeNurseryCoreBlock;
 import com.flatts.recompile.content.block.TreeNurseryTankBlock;
 import com.flatts.recompile.content.block.DisplayPedestalBlock;
@@ -532,6 +533,20 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(2.5F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
+     * The Hauler Depot (#376, spec {@code docs/scrap_hauler_spec.md}): where a Scrap Hauler lives,
+     * what deploys it, and what it brings the garbage back to. The eleventh custom screen. A full
+     * cube, so no noOcclusion; in the Scrap Network by tag.
+     */
+    public static final DeferredBlock<HaulerDepotBlock> HAULER_DEPOT = BLOCKS.registerBlock(
+        "hauler_depot",
+        HaulerDepotBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.0F)
             .sound(SoundType.METAL)
     );
 
