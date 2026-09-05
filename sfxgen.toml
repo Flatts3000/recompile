@@ -29,8 +29,11 @@ mod_id = "recompile"
 # it was a sustained PURE SINE near a kilohertz, which sits in the ear's most sensitive band
 # and never decorrelates. A real machine whine is a resonance with width, which is what
 # res_width buys. Air leads the mix and the rotor sits behind it, because a vacuum IS moving
-# air. Both the Garbage Vacuum and the Scrap Hauler run on this voice, so the mod's machines
-# audibly come from one workshop.
+# air.
+#
+# THE GARBAGE VACUUM'S VOICE, and only its. The Scrap Hauler ran on this for a day and sounded
+# like the machine that digs rather than the small thing that trundles; it has `cheerful` below.
+# Retuning this moves the vacuum's twelve sounds and nothing else.
 [voice.heavy]
 f0 = 41.0
 harmonics = [1.0, 0.55, 0.28]
@@ -92,7 +95,6 @@ seed = 23
 [sound.hauler_pickup]
 event = "entity.scrap_hauler.pickup"
 kind = "chirp"
-voice = "cheerful"
 seconds = 0.24
 points = [[0.0, 470.0], [0.30, 880.0], [1.0, 790.0]]
 harmonics = [1.0, 0.30, 0.10]
@@ -109,7 +111,6 @@ seed = 31
 [sound.hauler_deploy]
 event = "entity.scrap_hauler.deploy"
 kind = "layered"
-voice = "cheerful"
 seconds = 0.62
 [[sound.hauler_deploy.layer]]
 kind = "chirp"
@@ -138,7 +139,6 @@ seed = 53
 [sound.hauler_recall]
 event = "entity.scrap_hauler.recall"
 kind = "layered"
-voice = "cheerful"
 seconds = 0.70
 [[sound.hauler_recall.layer]]
 kind = "chirp"
