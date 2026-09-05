@@ -7,6 +7,7 @@ import com.flatts.recompile.content.block.entity.ChargingStationBlockEntity;
 import com.flatts.recompile.content.item.GarbageVacuumItem;
 import com.flatts.recompile.content.item.GarbageVacuumItem.Intake;
 import com.flatts.recompile.content.item.VacuumTier;
+import com.flatts.recompile.registry.RCSounds;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCItems;
@@ -170,6 +171,51 @@ final class GarbageVacuumTests {
     }
 
     static void register() {
+
+        RCGameTests.test("every_vacuum_tier_has_all_three_of_its_sounds", 20, helper -> {
+            // Twelve events, and a missing one is SILENT: an unregistered id throws where it is
+            // played, but a registered id with no sounds.json entry or no file behind it just does
+            // nothing, on a client, with one startup line nobody reads. The mod has shipped both of
+            // those already (#377), which is why this walks the ladder rather than naming four tiers.
+            var json = com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(
+                java.util.Objects.requireNonNull(GarbageVacuumTests.class.getResourceAsStream(
+                    "/assets/" + com.flatts.recompile.Recompile.MOD_ID + "/sounds.json")),
+                java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+
+            for (VacuumTier tier : VacuumTier.LADDER) {
+                for (String phase : java.util.List.of("rev_up", "sustain", "rev_down")) {
+                    // Called for its THROW rather than its value: an unknown key raises, and a
+                    // registered-but-unbound holder raises from get(), so a null check here could never
+                    // fail and an actual gap would surface as a raw exception rather than as the
+                    // message it was given.
+                    try {
+                        RCSounds.vacuum(tier, phase);
+                    } catch (RuntimeException missing) {
+                        helper.fail(tier.name() + "/" + phase + " is not registered: " + missing);
+                    }
+
+                    String event = "item.garbage_vacuum." + tier.name() + "." + phase;
+                    helper.assertTrue(json.has(event), "sounds.json has no entry for " + event);
+                    var entry = json.getAsJsonObject(event);
+                    helper.assertTrue(entry.has("subtitle"),
+                        event + " has no subtitle, so it is silent to anyone playing with them on");
+
+                    var names = entry.getAsJsonArray("sounds");
+                    helper.assertTrue(names != null && names.size() == 1,
+                        event + " should name exactly one file");
+                    String named = names.get(0).getAsString();
+                    String expected = "recompile:item/garbage_vacuum/" + tier.name() + "/" + phase;
+                    helper.assertTrue(named.equals(expected),
+                        event + " names " + named + ", expected " + expected);
+                    helper.assertTrue(GarbageVacuumTests.class.getResource(
+                            "/assets/recompile/sounds/item/garbage_vacuum/" + tier.name() + "/"
+                                + phase + ".ogg") != null,
+                        event + " names a file that is not in the jar; the event will be mute");
+                }
+            }
+            helper.succeed();
+        });
+
         // The type gate. Derived by class, so a pile is taken and a stone beside it is not, and the
         // block leaves the world without dropping itself on the floor - the entity carries it.
         RCGameTests.test("the_vacuum_takes_a_pile_and_leaves_the_stone_beside_it", 20, helper -> {

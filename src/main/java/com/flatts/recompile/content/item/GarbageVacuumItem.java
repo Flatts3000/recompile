@@ -4,6 +4,7 @@ import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.entity.VacuumedBlockEntity;
 import com.flatts.recompile.event.RCAnalytics;
 import com.flatts.recompile.registry.RCDataComponents;
+import com.flatts.recompile.registry.RCSounds;
 import com.flatts.recompile.registry.RCTags;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -79,7 +80,6 @@ public class GarbageVacuumItem extends Item {
     /** The bow's "indefinitely": use ends when the player lets go or the charge runs out. */
     private static final int USE_DURATION = 72_000;
 
-    private static final int SOUND_PERIOD_TICKS = 12;
 
     /** Dust motes per tick. Two, not four: see {@link #clientParticles}. */
     private static final int DUST_STREAMS = 2;
@@ -201,6 +201,16 @@ public class GarbageVacuumItem extends Item {
                 return InteractionResult.FAIL;
             }
         }
+        // THE SPIN-UP, and only once the machine has agreed to run. It played at the top of the block
+        // above, BEFORE the two refusals - so aiming a copper vacuum at a pile out of its band, or
+        // clicking with 1 to 59 FE against a 60 FE block, played 0.45 s of spin-up that was then cut
+        // off mid-ramp with no sustain and no wind-down. A truncated half-sound is the exact shape
+        // #378 existed to remove. Server-side so everyone nearby hears it; the loop that follows is
+        // the client's, and winds itself down whichever way the hold ends.
+        if (level instanceof ServerLevel sound) {
+            sound.playSound(null, player.getX(), player.getY(), player.getZ(),
+                RCSounds.vacuum(tier, "rev_up"), SoundSource.PLAYERS, 0.8F, 1.0F);
+        }
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
     }
@@ -234,10 +244,10 @@ public class GarbageVacuumItem extends Item {
         int elapsed = USE_DURATION - ticksRemaining;
         Vec3 aim = aimPoint(player);
         if (level instanceof ServerLevel server) {
-            if (elapsed % SOUND_PERIOD_TICKS == 0) {
-                server.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    SoundEvents.BREEZE_IDLE_AIR, SoundSource.PLAYERS, 0.35F, 0.85F);
-            }
+            // The running sound is a client-side LOOP now (#378), not a puff every twelve ticks
+            // from here. Repeated one-shots cannot butt together without a seam, drift out of phase
+            // between listeners, and have no notion of starting or stopping - a tap was silent and a
+            // release just left a gap. See VacuumSoundInstance.
             // elapsed 0 is the click itself, which use() has already paid for.
             if (elapsed > 0 && elapsed % INTAKE_PERIOD_TICKS == 0) {
                 Intake result = intakeOnce(server, player, stack, aim);

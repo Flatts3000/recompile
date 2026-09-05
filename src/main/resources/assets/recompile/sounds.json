@@ -22,5 +22,77 @@
     "sounds": [
       "recompile:entity/scrap_hauler/recall"
     ]
+  },
+  "item.garbage_vacuum.copper.rev_up": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_up",
+    "sounds": [
+      "recompile:item/garbage_vacuum/copper/rev_up"
+    ]
+  },
+  "item.garbage_vacuum.copper.sustain": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.sustain",
+    "sounds": [
+      "recompile:item/garbage_vacuum/copper/sustain"
+    ]
+  },
+  "item.garbage_vacuum.copper.rev_down": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_down",
+    "sounds": [
+      "recompile:item/garbage_vacuum/copper/rev_down"
+    ]
+  },
+  "item.garbage_vacuum.iron.rev_up": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_up",
+    "sounds": [
+      "recompile:item/garbage_vacuum/iron/rev_up"
+    ]
+  },
+  "item.garbage_vacuum.iron.sustain": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.sustain",
+    "sounds": [
+      "recompile:item/garbage_vacuum/iron/sustain"
+    ]
+  },
+  "item.garbage_vacuum.iron.rev_down": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_down",
+    "sounds": [
+      "recompile:item/garbage_vacuum/iron/rev_down"
+    ]
+  },
+  "item.garbage_vacuum.diamond.rev_up": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_up",
+    "sounds": [
+      "recompile:item/garbage_vacuum/diamond/rev_up"
+    ]
+  },
+  "item.garbage_vacuum.diamond.sustain": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.sustain",
+    "sounds": [
+      "recompile:item/garbage_vacuum/diamond/sustain"
+    ]
+  },
+  "item.garbage_vacuum.diamond.rev_down": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_down",
+    "sounds": [
+      "recompile:item/garbage_vacuum/diamond/rev_down"
+    ]
+  },
+  "item.garbage_vacuum.netherite.rev_up": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_up",
+    "sounds": [
+      "recompile:item/garbage_vacuum/netherite/rev_up"
+    ]
+  },
+  "item.garbage_vacuum.netherite.sustain": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.sustain",
+    "sounds": [
+      "recompile:item/garbage_vacuum/netherite/sustain"
+    ]
+  },
+  "item.garbage_vacuum.netherite.rev_down": {
+    "subtitle": "subtitles.recompile.item.garbage_vacuum.rev_down",
+    "sounds": [
+      "recompile:item/garbage_vacuum/netherite/rev_down"
+    ]
   }
 }
