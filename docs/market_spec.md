@@ -414,7 +414,7 @@ The first was the feature as specced: a shortcut past the fragment grind, not pa
 is new ground. **It is the only route in this mod by which an object enters the world without being
 found, grown or built.**
 
-### What that enables, and the two things shipped on it
+### What that enables, and the three things shipped on it
 
 Content whose only source is the market: a thing this world otherwise cannot produce at any price.
 Three ship, and all were chosen because the mod's own reachability report already listed them as
@@ -426,7 +426,8 @@ unreachable:
 - **A heavy core, sold outright** (3,000 scrip, owner 2026-09-04). A heavy core drops from a trial
   chamber vault and no trial chamber generates here. It is the mace's head, and the deliberate
   choice is that it sells the **component rather than the weapon**: the other half is a breeze rod,
-  which this world already makes by firing a Blaze Briquette in the Sintering Kiln, so one purchase
+  which this world already makes by pressing four gunpowder into a Propellant Briquette and firing
+  that in the Sintering Kiln, so one purchase
   re-opens a chain that is otherwise complete instead of skipping it. Checklist: *"no trial chambers
   generate."*
 - **A Bucket of Powder Snow, sold as knowledge** (600 scrip). There is no powder snow here to have

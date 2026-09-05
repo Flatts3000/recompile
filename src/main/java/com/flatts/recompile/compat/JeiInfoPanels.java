@@ -89,11 +89,11 @@ public final class JeiInfoPanels {
             new Panel(RCItems.SELL_TERMINAL.get(), "sell_terminal"),
             new Panel(RCItems.BUY_TERMINAL.get(), "buy_terminal"),
 
-            // The two things whose only source is a purchase. Exactly the case at the top of this
+            // The three things whose only source is a purchase. Exactly the case at the top of this
             // list - an item JEI can find no recipe for - except the invisible origin is a shop
             // counter rather than a block drop. A market_offer IS a recipe object, but it is
             // isSpecial with no display, so a player looking up a totem sees nothing at all and no
-            // hint that a terminal sells one. These two panels are the only thing that says so.
+            // hint that a terminal sells one. These panels are the only thing that says so.
             new Panel(Items.TOTEM_OF_UNDYING, "totem_of_undying"),
             new Panel(Items.POWDER_SNOW_BUCKET, "powder_snow_bucket"),
             // The heavy core is the sharpest case of the three, because JEI CAN show the
