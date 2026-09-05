@@ -333,6 +333,13 @@ public class ScrapHaulerEntity extends PathfinderMob {
             }
             return;
         }
+        if (!home.owns(getUUID())) {
+            // A Depot is there, but not the one that deployed this. The one that did was broken
+            // while this was unloaded and dropped its item; a replacement placed on the same spot
+            // must not inherit a second machine. Same fold, same reason: the item already exists.
+            foldWithoutDepot();
+            return;
+        }
         if (home.recallRequested()) {
             recallTo(home);
         }

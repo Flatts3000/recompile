@@ -152,6 +152,21 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         return recallRequested;
     }
 
+    /**
+     * Whether {@code uuid} is THE Hauler this Depot deployed.
+     *
+     * <p>Found live rather than by reasoning: a Depot broken while its Hauler was somewhere unloaded
+     * drops the Hauler item, and if a NEW Depot is then placed on the same coordinates before the old
+     * entity loads, that entity finds a Depot at its home position, adopts it, and works for it. The
+     * new Depot then has two machines in the field and one item in its slot, which is the duplication
+     * the invariant exists to prevent - measured as "hauler entity present: Count: 2" in a dev client
+     * that rebuilt its stage on the same spot. The entity asks this every tick and folds if the answer
+     * is no.
+     */
+    public boolean owns(UUID uuid) {
+        return deployed && uuid.equals(haulerUuid);
+    }
+
     public boolean hasHauler() {
         return items.get(HAULER_SLOT).getItem() instanceof ScrapHaulerItem;
     }

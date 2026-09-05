@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+### The Scrap Hauler
+
+- **A robot that gathers garbage for you.** Find a **Broken Hauler** in Bulky Waste, pry it out,
+  and tear it down at the Teardown Workbench: one find teaches both Blueprints. Craft the **Hauler
+  Depot** and the **Scrap Hauler**, place the Depot, put the Hauler in its slot and press
+  **Deploy**. It drives out, takes whole garbage blocks from around the Depot, and brings them back
+  when it is full or out of work.
+- **Whole blocks only, and only into the Depot.** It never sorts in the field, so the Trommel is
+  still the machine that does that, and the Depot pushes what comes back straight into the Scrap
+  Network. The Depot's hold is a buffer for when the network is behind, not a chest.
+- **Solar in the field, charged while docked.** It idles on sunlight and charges faster from a
+  Depot with a generator against it, but the Depot needs no power at all: a Hauler docked under
+  open sky charges from the sun the same way it does out there. When it runs flat it parks where it
+  stands and moves again once the sun has put enough back.
+- **It wakes itself.** When the mounds around the Depot regrow, it goes back to work with nobody
+  pressing anything.
+- **It cannot be destroyed, but it can get stuck.** Nothing hurts it and nothing hunts it; it keeps
+  away from fire, lava and leachate, and climbs out of anything that collapses on it. If it strands
+  itself anyway, **Recall** brings it straight home, cargo and all.
+- **One Hauler per Depot, and it stays put while it is out.** The slot locks until the machine is
+  home; breaking the Depot recalls it first, so you never lose one and never get two.
+- **Works only while the chunks are loaded.** It force-loads nothing. Walk far enough away and it
+  waits where it is until you come back.
+
 ### The market
 
 - **Two terminals and an account.** The **Sell Terminal** buys components and finished goods - a

@@ -120,6 +120,11 @@ sheets would get whichever iterated first. The sheet has to be IN the grid for t
 one they mean, which is also why this is the only recipe in the mod where a Blueprint is an input. It
 is not consumed: the table's result slot puts it back, gated on a spawn-egg recipe having matched.
 
+**Two `blueprint_crafting` sets arrived with the Scrap Hauler** (#376): `recompile:scrap_hauler` and
+`recompile:hauler_depot`, one recipe each, both taught by the `recompile:broken_hauler` teardown at
+four scraps apiece - the Broken Terminal's shape, one find teaching two sheets. A pack that wants a
+second route to either set adds a `market_offer` for it.
+
 **One rule binds all of them:** on the three GUI-less machines - Trommel, Separator, Pulverizer - a
 recipe must not consume more than one input (owner, 2026-08-19). Those machines have no screen and are
 not `Container`s, so a partial batch is invisible and unrecoverable except by breaking the block. The
@@ -144,7 +149,7 @@ is the authority.
 | `#recompile:found_only` | no recipe may produce this; it is found. Two tests enforce both halves |
 | `#recompile:sellable` | what the Sell Terminal will buy. Membership only; the price is the `recompile:scrip_value` data map, and a member with no price fails the build. Nothing binnable, and nothing craftable from binnable inputs alone - `nothing_sellable_is_raw_scrap_or_one_step_from_junk` enforces both |
 | `#recompile:binnable` | a Scrap Bin will accept it |
-| `#recompile:scrap_connectable` | **block** tag; placed touching, these form one Scrap Network cluster |
+| `#recompile:scrap_connectable` | **block** tag; placed touching, these form one Scrap Network cluster. `recompile:hauler_depot` is a member and pushes its hold into the cluster |
 | `#recompile:vitrifiable` / `#recompile:sinterable` | what those two machines accept on a shift-click |
 | `#recompile:burn_barrel_smeltable` | the Burn Barrel's refuse allowlist |
 | `#recompile:stone_shards` / `#recompile:nether_shards` | the two terrain-shard families |

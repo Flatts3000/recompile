@@ -111,7 +111,7 @@ the Scrap Network entry to the tag's placeable members.
 
 ### The Charging Station gets no screen (assistant call, 2026-09-03)
 
-All ten custom machine screens are recorded exceptions and an eleventh would need a reversal. (This said eight and a ninth; the market's two terminals shipped the next day, with the reversal recorded in `market_spec.md` section 5.) The
+All eleven custom machine screens are recorded exceptions and a twelfth would need a reversal. (This said eight and a ninth; the market's two terminals shipped the next day, with the reversal recorded in `market_spec.md` section 5, and the Hauler Depot followed as the eleventh, with its reversal recorded in `docs/scrap_hauler_spec.md` section 8.) The
 station does not get one:
 
 - **Right-click holding a vacuum** parks it in the station, swapping out whatever was there.

@@ -1,14 +1,4 @@
 {
-  "_comment": [
-    "THE MOD'S FIRST SOUNDS (#376, spec docs/scrap_hauler_spec.md section 9). Four events, the",
-    "spec's core set. The audio is SOURCED rather than generated (owner, 2026-09-05), and until",
-    "sourced files land each event REDIRECTS to a vanilla EVENT (type: event) so it resolves and",
-    "every hook in the code is exercised. A bare file path into the minecraft namespace does not",
-    "resolve from a mod's sounds.json - the SoundEngine logged 'Missing sound for event' for all",
-    "four - and an event redirect does. Swapping in the real audio is a change to this file and",
-    "nothing in Java: put the .ogg under assets/recompile/sounds/entity/scrap_hauler/ and replace",
-    "the entry with its path."
-  ],
   "entity.scrap_hauler.idle": {
     "subtitle": "subtitles.recompile.entity.scrap_hauler.idle",
     "sounds": [

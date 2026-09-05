@@ -193,6 +193,40 @@ public final class ScrapHaulerTests {
             });
         });
 
+        RCGameTests.test("a_stale_hauler_does_not_adopt_a_replacement_depot", 40, helper -> {
+            ServerLevel level = helper.getLevel();
+            HaulerDepotBlockEntity depot = docked(helper, 4_000);
+            helper.assertTrue(depot.deploy(level), "deploy refused");
+            // An orphan: bound to this Depot's position, but the Depot never deployed it. This is what
+            // an entity from a broken-and-replaced Depot looks like once it loads.
+            ScrapHaulerEntity orphan = com.flatts.recompile.registry.RCEntities.SCRAP_HAULER.get()
+                .create(level, net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+            helper.assertTrue(orphan != null, "could not create an orphan");
+            BlockPos at = helper.absolutePos(DEPOT.above());
+            orphan.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0.0F, 0.0F);
+            orphan.bind(helper.absolutePos(DEPOT));
+            orphan.setCharge(4_000);
+            orphan.addCargo(new ItemStack(RCBlocks.GARBAGE_BLOCK.get(), 3));
+            level.addFreshEntity(orphan);
+            helper.assertTrue(haulers(helper).size() == 2, "the stage did not start with two");
+            helper.runAfterDelay(5, () -> {
+                helper.assertTrue(haulers(helper).size() == 1,
+                    "the orphan adopted the Depot: " + haulers(helper).size() + " Haulers serve it");
+                helper.assertTrue(depot.deployed() && depot.owns(haulers(helper).get(0).getUUID()),
+                    "the wrong Hauler survived, or the Depot forgot its own");
+                int items = 0;
+                for (ItemEntity entity : level.getEntitiesOfClass(ItemEntity.class,
+                        AABB.ofSize(helper.absolutePos(DEPOT).getCenter(), 8, 8, 8))) {
+                    if (entity.getItem().getItem() instanceof ScrapHaulerItem) {
+                        items++;
+                    }
+                }
+                helper.assertTrue(items == 0, "the orphan dropped a Hauler item, which duplicates it: " + items);
+                helper.assertTrue(holdCount(depot) == 0, "the orphan dumped into a Depot that is not its own");
+                helper.succeed();
+            });
+        });
+
         // ---- the loop --------------------------------------------------------------------------
 
         RCGameTests.test("recall_brings_the_charge_home_into_the_item", 20, helper -> {

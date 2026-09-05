@@ -47,10 +47,19 @@ public class ScrapHaulerGoal extends Goal {
 
     private static final int PATH_FAILURES_BEFORE_BLACKLIST = 3;
 
+    /**
+     * One block per this many ticks, the Garbage Vacuum's own cadence. Without it the machine took a
+     * block every tick it stood inside a cluster - twenty a second, a full hold in three, and a trail
+     * of flying blocks it had outrun - which is both the wrong look and a rate no balance pass could
+     * reason about. The first-pass number is the vacuum's, so the two machines take at one speed.
+     */
+    private static final int INTAKE_PERIOD_TICKS = com.flatts.recompile.content.item.GarbageVacuumItem.INTAKE_PERIOD_TICKS;
+
     private final ScrapHaulerEntity hauler;
     private @Nullable BlockPos target;
     private int ticksOnTarget;
     private int pathFailures;
+    private int intakeCooldown;
     private double lastDistanceSq;
     private int timer;
     private final java.util.Map<BlockPos, Integer> blacklist = new java.util.HashMap<>();
@@ -132,9 +141,14 @@ public class ScrapHaulerGoal extends Goal {
         double distSq = hauler.distanceToSqr(centre);
         if (distSq <= REACH_SQ) {
             hauler.getNavigation().stop();
+            if (intakeCooldown > 0) {
+                intakeCooldown--;
+                return;
+            }
             if (!hauler.take(level, target)) {
                 blacklist.put(target, BLACKLIST_TICKS);
             }
+            intakeCooldown = INTAKE_PERIOD_TICKS;
             target = null;
             return;
         }
