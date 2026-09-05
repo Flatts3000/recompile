@@ -143,6 +143,34 @@ public final class SledgehammerCombatTests {
             helper.succeed();
         });
 
+        RCGameTests.test("a_sledgehammer_wears_out_in_melee_at_a_swords_rate", 20, helper -> {
+            // The one part of the weapon profile #379 did not rule on, raised in review: tool() ships
+            // Weapon(2) where sword() ships Weapon(1), so every swing costs double a sword's durability.
+            // This file records the opposite call for the PRYBAR, which pins Weapon(1) explicitly
+            // because it "is the weapon" of its trio - so the precedent had to be checked rather than
+            // assumed.
+            //
+            // It comes out right as it stands, and PER SECOND is why, which is the same axis the whole
+            // of #379 turns on. Two durability at 0.8 swings a second is 1.6 a second; a sword's one at
+            // 1.6 swings is also 1.6. The heavy swing pays double and lands half as often, so the wear
+            // rate is a sword's exactly. The prybar needed its pin because it swings at sword speed and
+            // would genuinely have paid twice.
+            double swordWear = Items.NETHERITE_SWORD.components()
+                .getOrDefault(DataComponents.WEAPON, new Weapon(1)).itemDamagePerAttack()
+                * swingsPerSecond(Items.NETHERITE_SWORD);
+            for (Rung rung : ladder()) {
+                Item item = rung.sledgehammer();
+                double wear = item.components().getOrDefault(DataComponents.WEAPON, new Weapon(1))
+                    .itemDamagePerAttack() * swingsPerSecond(item);
+                helper.assertTrue(Math.abs(wear - swordWear) < 0.001,
+                    rung.name() + " sledgehammer burns " + String.format("%.2f", wear)
+                        + " durability a second in melee against a sword's "
+                        + String.format("%.2f", swordWear)
+                        + "; if the swing speed moved, the melee cost has to move with it");
+            }
+            helper.succeed();
+        });
+
         RCGameTests.test("a_sledgehammer_takes_the_enchantments_that_do_it_any_good", 20, helper -> {
             // Owner, 2026-09-05: it should accept enchantments. Before this it was in no enchantable
             // tag whatsoever, so it accepted none at all.
@@ -221,22 +249,25 @@ public final class SledgehammerCombatTests {
         });
     }
 
-    /**
-     * Hit a fresh target with {@code weapon} and report how hard it left, measured as the horizontal
-     * speed it picks up on the tick of the blow.
-     *
-     * <p>Delta movement rather than displacement over time: knockback IS a velocity change, and reading
-     * it directly avoids waiting for the target to slide and be caught by friction, its own AI, or the
-     * floor. Each call gets its own target at its own spot so two measurements cannot interfere, and the
-     * player is passed in rather than made here because it must already have been holding the weapon
-     * for a tick.
-     */
+    /** One enchantable tag the Sledgehammer has to be in, and what a player loses if it is not. */
     private static void assertTagged(GameTestHelper helper, Rung rung, Item item,
             net.minecraft.tags.TagKey<Item> tag, String what) {
         helper.assertTrue(item.builtInRegistryHolder().is(tag),
             rung.name() + " sledgehammer is not in " + tag.location() + ", so it cannot take " + what);
     }
 
+    /**
+     * Hit a fresh target and report how hard it left, as the horizontal speed it picks up on the tick
+     * of the blow.
+     *
+     * <p>Delta movement rather than displacement over time: knockback IS a velocity change, and reading
+     * it directly avoids waiting for the target to slide and be caught by friction, its own AI, or the
+     * floor. Each call gets its own target at its own spot, so two measurements cannot interfere.
+     *
+     * <p>The player is passed in rather than made here because the CALLER owns its loadout - see the
+     * test above, which applies the knockback modifier by hand because the harness has no ticking
+     * player to run the equipment sweep.
+     */
     private static double launch(GameTestHelper helper, ServerPlayer player, int zOffset) {
         Mob target = EntityType.ZOMBIE.create(helper.getLevel(), EntitySpawnReason.TRIGGERED);
         helper.assertTrue(target != null, "could not create a target");
@@ -247,8 +278,16 @@ public final class SledgehammerCombatTests {
         target.setDeltaMovement(Vec3.ZERO);
         target.hurtMarked = false;
 
-        // A full swing. Vanilla scales the blow by how charged the attack is, and a mock player has
-        // never swung, so without this the two measurements are taken at different strengths.
+        // Both blows land at the SAME charge, which is what the comparison needs - not at a full one,
+        // which this call does not give. resetAttackStrengthTicker sets the ticker to zero, the
+        // MINIMUM: getAttackStrengthScale then returns about 0.1 and vanilla multiplies DAMAGE by
+        // roughly 0.21. Knockback is not scaled by charge at all, so the measurement below is
+        // unaffected either way.
+        //
+        // ANYONE EXTENDING THIS TO MEASURE DAMAGE MUST CHARGE THE SWING FIRST. A full swing needs the
+        // ticker at or above getCurrentItemAttackStrengthDelay, which means ticking the player rather
+        // than resetting it, and reading a fifth of the real number is the kind of wrong that looks
+        // plausible.
         player.resetAttackStrengthTicker();
         player.attack(target);
 

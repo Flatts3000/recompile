@@ -520,6 +520,16 @@ public final class RCItems {
      */
     private static final float SLEDGE_SHIELD_DISABLE_SECONDS = 5.0F;
 
+    // The melee durability cost is left at tool()'s Weapon(2) rather than pinned back to Weapon(1) the
+    // way the PRYBAR above is, and that is a decision rather than an omission (raised in review of
+    // #379). The prybar needs its pin because it swings at roughly sword speed and would genuinely pay
+    // twice for the same fight. This does not: two durability at 0.8 swings a second is 1.6 a second,
+    // and a sword's one at 1.6 swings is also 1.6, so the wear rate already matches. Same axis as
+    // everything else in #379 - per second, not per swing. It is also what a vanilla axe does, which is
+    // the weapon-tool the owner named when ruling on shield-disabling.
+    // `a_sledgehammer_wears_out_in_melee_at_a_swords_rate` fails if the swing speed ever moves without
+    // the melee cost moving with it.
+
     /**
      * The extra knockback a Sledgehammer carries, as an item attribute (#379, owner 2026-09-05).
      *
