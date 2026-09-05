@@ -29,8 +29,11 @@ mod_id = "recompile"
 # it was a sustained PURE SINE near a kilohertz, which sits in the ear's most sensitive band
 # and never decorrelates. A real machine whine is a resonance with width, which is what
 # res_width buys. Air leads the mix and the rotor sits behind it, because a vacuum IS moving
-# air. Both the Garbage Vacuum and the Scrap Hauler run on this voice, so the mod's machines
-# audibly come from one workshop.
+# air.
+#
+# THE GARBAGE VACUUM'S VOICE, and only its. The Scrap Hauler ran on this for a day and sounded
+# like the machine that digs rather than the small thing that trundles; it has `cheerful` below.
+# Retuning this moves the vacuum's twelve sounds and nothing else.
 [voice.heavy]
 f0 = 41.0
 harmonics = [1.0, 0.55, 0.28]
@@ -44,108 +47,119 @@ wobble_hz = 3.0
 wobble = 0.06
 
 # ---------------------------------------------------------------------------------------
-# The Scrap Hauler (#376, PR #377)
+# The Scrap Hauler (#376)
 #
-# Four events that shipped pointing at vanilla redirects - a beacon hum, an item pickup and
-# two piston sounds - which had nothing to do with each other or with the machine.
+# CUTE, NOT INDUSTRIAL (owner, 2026-09-05: "more cute than robotic. Sorta like wall e but not
+# copying it"). The first pass gave it the Garbage Vacuum's `heavy` voice, which made the little
+# robot sound like the machine that digs, and those are not the same character at all.
+#
+# What separates the two is INFLECTION rather than timbre. Machinery is steady: a rotor, moving air,
+# a resonance that does not move. A small creature is pitched and it BENDS - rising is a question,
+# falling is a sigh, an arc up and back is a cheerful acknowledgement. So the Hauler is built from
+# `chirp`, whose whole content is a pitch contour, and the vacuum keeps `heavy`. Two machines, two
+# voices, and now they are telling you which is which.
+#
+# Not copying WALL-E: the obvious way to chase that reference is formant synthesis driven from vowel
+# tables, which is how you build one specific fictional robot rather than a robot. This is one warm
+# resonance, a little vibrato and a breath of noise, with every sound's character coming from the
+# shape of its own contour.
 # ---------------------------------------------------------------------------------------
 
-# The machine parked and working: the vacuum's own voice, pitched down and quiet.
+# The Hauler's own voice: small, warm and tonal, where `heavy` is broad and airy. Only its idle uses
+# this - the other three are chirps, which carry their own pitch.
+[voice.cheerful]
+f0 = 196.0
+harmonics = [1.0, 0.42, 0.12]
+air_hp = 380.0
+air_lp = 2100.0
+res_hz = 780.0
+res_width = 0.85
+res_gain = 0.7
+body_mix = 1.45
+wobble_hz = 2.6
+wobble = 0.16
+
+# Working away to itself: a small warm hum with a slow warble, not a motor. Loops seamlessly.
 [sound.hauler_idle]
 event = "entity.scrap_hauler.idle"
 kind = "loop"
-voice = "heavy"
+voice = "cheerful"
 seconds = 1.6
-scale = 0.72
-power = 0.55
-level = 0.55
+scale = 1.0
+power = 0.30
+level = 0.5
 seed = 23
 
-# A block going in: a short intake whoomp with a light knock as it lands.
+# Taking a block: a quick blip up and just back down. The little rise is what makes it read as
+# pleased with itself rather than as a machine registering an event.
 [sound.hauler_pickup]
 event = "entity.scrap_hauler.pickup"
-kind = "layered"
-voice = "heavy"
-seconds = 0.26
-level = 0.95
-[[sound.hauler_pickup.layer]]
-kind = "ramp"
-gain = 0.75
-rising = true
-lo = 0.5
-hi = 1.25
-scale = 0.9
-power = 1.5
+kind = "chirp"
+seconds = 0.24
+points = [[0.0, 470.0], [0.30, 880.0], [1.0, 790.0]]
+harmonics = [1.0, 0.30, 0.10]
+formant_hz = 1150.0
+formant_gain = 0.8
+vibrato_hz = 7.5
+vibrato_cents = 26.0
+breath = 0.05
 seed = 31
-[[sound.hauler_pickup.layer]]
-kind = "impact"
-gain = 0.8
-modes = [[190.0, 0.10, 1.0], [287.0, 0.07, 0.6], [441.0, 0.045, 0.35], [658.0, 0.03, 0.2]]
-noise_ms = 5.0
-noise_gain = 0.45
-brightness = 0.95
-seed = 47
 
-# Deploying: a latch releases, a servo drives the Hauler out, the motor catches.
+# Waking up and rolling out: a rising figure that keeps climbing, which is the sound of something
+# becoming interested. The latch under it keeps the Depot mechanical - the machine is cute, the
+# hatch it comes out of is not.
 [sound.hauler_deploy]
 event = "entity.scrap_hauler.deploy"
 kind = "layered"
-voice = "heavy"
-seconds = 0.70
+seconds = 0.62
+[[sound.hauler_deploy.layer]]
+kind = "chirp"
+gain = 1.0
+seconds = 0.62
+points = [[0.0, 300.0], [0.28, 520.0], [0.62, 760.0], [1.0, 940.0]]
+harmonics = [1.0, 0.34, 0.12]
+formant_hz = 1050.0
+formant_gain = 0.75
+vibrato_hz = 6.0
+vibrato_cents = 20.0
+breath = 0.05
+seed = 37
 [[sound.hauler_deploy.layer]]
 kind = "impact"
-gain = 0.85
-modes = [[150.0, 0.14, 1.0], [233.0, 0.10, 0.7], [352.0, 0.06, 0.4], [517.0, 0.04, 0.25]]
-noise_ms = 8.0
-noise_gain = 0.6
+gain = 0.34
+seconds = 0.30
+modes = [[150.0, 0.11, 1.0], [233.0, 0.08, 0.6], [352.0, 0.05, 0.3]]
+noise_ms = 7.0
+noise_gain = 0.5
 brightness = 0.9
 seed = 53
-[[sound.hauler_deploy.layer]]
-kind = "servo"
-gain = 0.55
-f_start = 90.0
-f_end = 260.0
-seed = 59
-[[sound.hauler_deploy.layer]]
-kind = "ramp"
-gain = 0.5
-rising = true
-lo = 0.2
-hi = 0.9
-scale = 0.8
-power = 0.9
-seed = 37
 
-# Recall: the same three parts run backwards, so the pair reads as one mechanism opening and
-# closing rather than two unrelated noises. The latch is aligned to the END - it SEATS.
+# Coming home: the deploy figure inverted, settling onto a soft latch at the very end. The pair reads
+# as one small thing going out and coming back rather than as two unrelated noises.
 [sound.hauler_recall]
 event = "entity.scrap_hauler.recall"
 kind = "layered"
-voice = "heavy"
 seconds = 0.70
 [[sound.hauler_recall.layer]]
-kind = "servo"
-gain = 0.55
-f_start = 260.0
-f_end = 85.0
-seed = 59
-[[sound.hauler_recall.layer]]
-kind = "ramp"
-gain = 0.5
-rising = false
-lo = 0.9
-hi = 0.15
-scale = 0.8
-power = 0.9
-seed = 37
+kind = "chirp"
+gain = 1.0
+seconds = 0.56
+points = [[0.0, 900.0], [0.40, 660.0], [1.0, 390.0]]
+harmonics = [1.0, 0.36, 0.12]
+formant_hz = 980.0
+formant_gain = 0.75
+vibrato_hz = 5.5
+vibrato_cents = 24.0
+breath = 0.05
+seed = 41
 [[sound.hauler_recall.layer]]
 kind = "impact"
-gain = 0.9
+gain = 0.42
 align = "end"
 seconds = 0.26
-modes = [[150.0, 0.16, 1.0], [233.0, 0.11, 0.7], [352.0, 0.07, 0.4]]
-noise_ms = 9.0
-noise_gain = 0.65
+modes = [[150.0, 0.14, 1.0], [233.0, 0.10, 0.7], [352.0, 0.06, 0.35]]
+noise_ms = 8.0
+noise_gain = 0.55
 brightness = 0.85
 seed = 53
 

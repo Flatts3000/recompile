@@ -97,8 +97,18 @@ place. Two more reasons made it the better answer anyway. **A loop is seamless b
 partials locked to a whole number of cycles, the noise bed an inverse FFT of exactly one period -
 where a sourced clip has to be crossfaded by hand and still drifts, and a machine loop plays for as
 long as a button is held so a seam is a click once a cycle forever. And **every sound this mod needs
-is a machine**, so one declared voice gives the Hauler and the Garbage Vacuum a character that cannot
-drift apart, and a tier ladder becomes a scalar rather than four more sourcing jobs.
+is a machine**, so a declared voice gives a family that cannot drift apart, and a tier ladder becomes
+a scalar rather than four more sourcing jobs.
+
+*(This said one voice gives "the Hauler and the Garbage Vacuum" a shared character, and presented that
+as the benefit. The owner reversed it the same day: the little robot sounded like the machine that
+digs, because it was. **They have separate voices now** - `heavy` for the vacuum, `cheerful` for the
+Hauler - and the benefit was never the sharing, it was that one voice keeps ONE machine's own sounds
+consistent. The vacuum's twelve are still a scalar apart; the Hauler is a different character and gets
+to be one.)* **What separates them is INFLECTION rather than timbre.** Machinery is steady; a small
+creature bends its pitch, and the bend is the message - rising is a question, falling is a sigh. That
+is what `sfxgen`'s `chirp` primitive carries, and why three of the Hauler's four sounds are a pitch
+contour rather than a rotor.
 
 The generator is **`sfxgen`** (`../mc-pack-toolkit/sfxgen`, texgen's audio sibling, `pip install -e`),
 driven by `sfxgen.toml` here; `python -m sfxgen all` renders auditions and a review page into `gen/`,
