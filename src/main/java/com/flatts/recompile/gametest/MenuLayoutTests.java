@@ -64,31 +64,40 @@ final class MenuLayoutTests {
      * fails the whole mod to load. A lambda defers the load to when the test actually runs, which is what
      * the previous version of this list was accidentally doing by holding only factories.
      */
-    /** How many data slots a menu's ContainerData carries, for a failure message that names the cause. */
-    private static int menuDataCount(AbstractContainerMenu menu) {
-        for (java.lang.reflect.Field field : menu.getClass().getDeclaredFields()) {
-            if (!net.minecraft.world.inventory.ContainerData.class.isAssignableFrom(field.getType())) {
-                continue;
-            }
-            try {
-                field.setAccessible(true);
-                Object value = field.get(menu);
-                if (value instanceof net.minecraft.world.inventory.ContainerData data) {
-                    return data.getCount();
-                }
-            } catch (ReflectiveOperationException | RuntimeException ignored) {
-                // Best effort: this only enriches a message that is already failing.
-            }
-        }
-        return -1;
-    }
-
     private record Screen(String name, Supplier<ScreenLayout> layoutSource,
             Function<Inventory, AbstractContainerMenu> factory) {
 
         ScreenLayout layout() {
             return layoutSource.get();
         }
+    }
+
+    /**
+     * How many data slots a menu's ContainerData carries, for a failure message that names the cause.
+     *
+     * <p>Walks the SUPERCLASS CHAIN, not just the menu's own fields: the Slag Furnace and the Sintering
+     * Kiln declare none of their own and inherit theirs from {@code AbstractFurnaceMenu}, so a
+     * declared-fields-only scan reported "-1 slot(s)" for exactly the two menus whose failure message
+     * would need it most.
+     */
+    private static int menuDataCount(AbstractContainerMenu menu) {
+        for (Class<?> type = menu.getClass(); type != null; type = type.getSuperclass()) {
+            for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                if (!net.minecraft.world.inventory.ContainerData.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(menu);
+                    if (value instanceof net.minecraft.world.inventory.ContainerData data) {
+                        return data.getCount();
+                    }
+                } catch (ReflectiveOperationException | RuntimeException ignored) {
+                    // Best effort: this only enriches a message that is already failing.
+                }
+            }
+        }
+        return -1;
     }
 
     /**
@@ -292,12 +301,9 @@ final class MenuLayoutTests {
         });
 
         /*
-         * The structural guarantee, and the one that makes every other assertion here worth having:
-         * a menu's slots ARE its layout's slots. Before the framework a menu placed slots from its own
-         * numbers and a screen drew chrome from a second set, so the two could disagree silently - the
-         * Tree Nursery's screen declared FERT_X = 44 while its menu independently passed 44 to a Slot.
-         * With this passing, "no hardcoded slot coordinate" is enforced rather than asked for: a menu
-         * that types a number is a menu whose slots no longer match what the screen will draw under them.
+         * Every value a screen can ask its menu for, actually read. The geometry assertions around it
+         * all measure the LAYOUT and never touch a data slot, which is how a menu whose client-side
+         * ContainerData was too small passed all of them and then threw on the render thread.
          */
         RCGameTests.test("every_menu_reads_every_value_it_exposes", 20, helper -> {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
@@ -319,10 +325,18 @@ final class MenuLayoutTests {
                 // accessors goes stale exactly when someone adds a gauge, which is the case this is
                 // meant to catch.
                 for (java.lang.reflect.Method method : menu.getClass().getMethods()) {
+                    // ANY primitive, not just int. Filtering on int alone skipped precisely the shape
+                    // this test exists to guard: the Cupola reads slots 0-3 through two float accessors
+                    // and a boolean one, and the Burner Generator reads slot 1 through a boolean. Both
+                    // would have gone on passing while their screens threw.
+                    Class<?> returns = method.getReturnType();
                     if (method.getParameterCount() != 0
-                            || method.getReturnType() != int.class
-                            || method.getDeclaringClass() == Object.class
-                            || method.getDeclaringClass() == AbstractContainerMenu.class) {
+                            || !returns.isPrimitive()
+                            || returns == void.class
+                            // Only accessors this mod authored. A vanilla one may not be a pure read -
+                            // AbstractContainerMenu.incrementStateId() returns an int and mutates - and
+                            // the drift this catches is always in a menu somebody here edited.
+                            || !method.getDeclaringClass().getName().startsWith("com.flatts.recompile")) {
                         continue;
                     }
                     try {
@@ -347,6 +361,14 @@ final class MenuLayoutTests {
             helper.succeed();
         });
 
+        /*
+         * The structural guarantee, and the one that makes every other assertion here worth having:
+         * a menu's slots ARE its layout's slots. Before the framework a menu placed slots from its own
+         * numbers and a screen drew chrome from a second set, so the two could disagree silently - the
+         * Tree Nursery's screen declared FERT_X = 44 while its menu independently passed 44 to a Slot.
+         * With this passing, "no hardcoded slot coordinate" is enforced rather than asked for: a menu
+         * that types a number is a menu whose slots no longer match what the screen will draw under them.
+         */
         RCGameTests.test("every_menu_slot_comes_from_its_layout", 20, helper -> {
             List<String> wrong = new ArrayList<>();
             forEachScreen(helper, (screen, menu) -> {
