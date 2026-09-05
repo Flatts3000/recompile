@@ -73,6 +73,34 @@ final class MenuLayoutTests {
     }
 
     /**
+     * How many data slots a menu's ContainerData carries, for a failure message that names the cause.
+     *
+     * <p>Walks the SUPERCLASS CHAIN, not just the menu's own fields: the Slag Furnace and the Sintering
+     * Kiln declare none of their own and inherit theirs from {@code AbstractFurnaceMenu}, so a
+     * declared-fields-only scan reported "-1 slot(s)" for exactly the two menus whose failure message
+     * would need it most.
+     */
+    private static int menuDataCount(AbstractContainerMenu menu) {
+        for (Class<?> type = menu.getClass(); type != null; type = type.getSuperclass()) {
+            for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                if (!net.minecraft.world.inventory.ContainerData.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(menu);
+                    if (value instanceof net.minecraft.world.inventory.ContainerData data) {
+                        return data.getCount();
+                    }
+                } catch (ReflectiveOperationException | RuntimeException ignored) {
+                    // Best effort: this only enriches a message that is already failing.
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
      * <b>Hand-maintained, and that is the standing risk.</b> A menu added to the mod and not to this
      * list is a screen with no geometry checks at all - no overlap sweep, no panel-bounds sweep, no
      * grid centring - while this class's own javadoc promises "a new machine is covered on the day it
@@ -269,6 +297,67 @@ final class MenuLayoutTests {
             helper.assertTrue(missed.isEmpty(),
                 "these menus are registered but absent from SCREENS, so their geometry is swept by "
                     + "nothing in this file: " + missed);
+            helper.succeed();
+        });
+
+        /*
+         * Every value a screen can ask its menu for, actually read. The geometry assertions around it
+         * all measure the LAYOUT and never touch a data slot, which is how a menu whose client-side
+         * ContainerData was too small passed all of them and then threw on the render thread.
+         */
+        RCGameTests.test("every_menu_reads_every_value_it_exposes", 20, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            int readers = 0;
+            for (Screen screen : SCREENS) {
+                AbstractContainerMenu menu = screen.factory().apply(player.getInventory());
+
+                // Build the menu the way the CLIENT does - its own SimpleContainerData, not the block
+                // entity's - then ask it for everything a screen could ask it for.
+                //
+                // This exists because of a real failure that both test layers walked straight past.
+                // #369 widened the Tree Nursery from five data slots to seven, and its client-side
+                // constructor sized its data with a literal 5 rather than the constant. Every layout
+                // assertion still passed, because they measure GEOMETRY and never read a slot; the
+                // screen then threw IndexOutOfBoundsException on the render thread the moment it
+                // opened, and it took a runClient to see it.
+                //
+                // The readers are found by reflection rather than listed, because a hand-list of
+                // accessors goes stale exactly when someone adds a gauge, which is the case this is
+                // meant to catch.
+                for (java.lang.reflect.Method method : menu.getClass().getMethods()) {
+                    // ANY primitive, not just int. Filtering on int alone skipped precisely the shape
+                    // this test exists to guard: the Cupola reads slots 0-3 through two float accessors
+                    // and a boolean one, and the Burner Generator reads slot 1 through a boolean. Both
+                    // would have gone on passing while their screens threw.
+                    Class<?> returns = method.getReturnType();
+                    if (method.getParameterCount() != 0
+                            || !returns.isPrimitive()
+                            || returns == void.class
+                            // Only accessors this mod authored. A vanilla one may not be a pure read -
+                            // AbstractContainerMenu.incrementStateId() returns an int and mutates - and
+                            // the drift this catches is always in a menu somebody here edited.
+                            || !method.getDeclaringClass().getName().startsWith("com.flatts.recompile")) {
+                        continue;
+                    }
+                    try {
+                        method.invoke(menu);
+                        readers++;
+                    } catch (java.lang.reflect.InvocationTargetException failure) {
+                        helper.fail(screen.name() + "." + method.getName() + "() threw "
+                            + failure.getCause() + "; a screen calling it would take the client down. "
+                            + "Its ContainerData holds " + menuDataCount(menu) + " slot(s)");
+                    } catch (IllegalAccessException unreachable) {
+                        helper.fail(screen.name() + "." + method.getName() + "() is not callable");
+                    }
+                }
+            }
+            // Counted across the whole sweep, not per menu: the Scrap Crafting Station is a crafting
+            // grid with no gauges and legitimately exposes nothing to read, and asserting per menu
+            // failed on exactly that. What has to hold is that the reflection filter finds SOMETHING,
+            // or this test would go quietly vacuous the day a filter clause stops matching.
+            helper.assertTrue(readers > 0,
+                "the sweep read no accessors on any menu, so it proves nothing; the reflection "
+                    + "filter has stopped matching");
             helper.succeed();
         });
 

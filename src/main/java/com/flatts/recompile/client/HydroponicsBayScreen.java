@@ -31,11 +31,13 @@ public class HydroponicsBayScreen extends LayoutScreen<HydroponicsBayMenu> {
     protected void paint(GuiPainter painter, int mouseX, int mouseY) {
         boolean running = this.menu.progress() > 0;
         // Both capacities come off the menu, which the server fills in - never off the client's own
-        // config. See HydroponicsBayMenu.DATA_WATER_CAPACITY for the two ways recomputing them is wrong.
+        // config. See HydroponicsBayMenu.DATA_WATER_CAPACITY_LOW for the two ways recomputing them is
+        // wrong; both capacities travel as two halves because a tank may be configured to a million.
         painter.gauge("water", this.menu.water(), this.menu.waterCapacity(),
             running ? GuiTheme.WATER : GuiTheme.WATER_IDLE);
         painter.gauge("power", this.menu.energy(), this.menu.energyCapacity(),
             running ? GuiTheme.POWER : GuiTheme.POWER_IDLE);
+        // Both already thousandths: the server scaled the proportion, because ticks do not fit a slot.
         painter.arrow("grow", this.menu.progress(), this.menu.goal());
     }
 

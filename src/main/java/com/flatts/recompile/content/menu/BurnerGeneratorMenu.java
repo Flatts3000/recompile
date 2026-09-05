@@ -68,6 +68,13 @@ public class BurnerGeneratorMenu extends AbstractContainerMenu {
     public BurnerGeneratorMenu(int containerId, Inventory inventory, Container container, ContainerData data) {
         super(RCMenus.BURNER_GENERATOR.get(), containerId);
         checkContainerSize(container, FUEL_SLOTS);
+        // Assert the DATA count too, not just the container's. This is the guard the Tree Nursery
+        // did not have when #369 widened it: its client-side constructor sized its own data with a
+        // literal, the number drifted, and the mismatch surfaced as an IndexOutOfBoundsException on
+        // the render thread rather than as a message naming both numbers here. Vanilla's furnace
+        // menus have always done this, which is why the Cupola and the two furnace subclasses were
+        // never exposed to it.
+        checkContainerDataCount(data, DATA_SIZE);
         this.container = container;
         this.data = data;
 
@@ -91,6 +98,7 @@ public class BurnerGeneratorMenu extends AbstractContainerMenu {
         return BurnerGeneratorBlockEntity.CAPACITY;
     }
 
+    /** Slot 1 carries a 0/1 flag rather than the burn ticks; see the block entity for why. */
     public boolean isLit() {
         return this.data.get(1) > 0;
     }

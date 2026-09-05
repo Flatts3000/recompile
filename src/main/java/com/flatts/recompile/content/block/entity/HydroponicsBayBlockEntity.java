@@ -5,6 +5,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.HydroponicsBayBlock;
 import net.minecraft.world.level.block.Block;
 import com.flatts.recompile.content.menu.HydroponicsBayMenu;
+import com.flatts.recompile.content.menu.WideSync;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -120,24 +121,50 @@ public class HydroponicsBayBlockEntity extends BlockEntity
      * Solar Panel makes nothing at night, and a machine that stalls every dusk would read as broken.
      */
     private final SimpleEnergyHandler battery = new SimpleEnergyHandler(
-        RCConfig.HYDROPONICS_GROW_TICKS.get() * RCConfig.HYDROPONICS_FE_PER_TICK.get(),
-        Integer.MAX_VALUE, Integer.MAX_VALUE);
+        batchEnergy(), Integer.MAX_VALUE, Integer.MAX_VALUE);
+
+    /**
+     * One batch's worth of FE, and the multiplication is done in LONG on purpose.
+     *
+     * <p>Both factors are config values with generous ceilings - 240,000 ticks and 100,000 FE a tick -
+     * and their product passes {@code Integer.MAX_VALUE} at about 8,947 FE a tick, well inside what a
+     * pack may set. As an {@code int} it wrapped NEGATIVE (the two maxima multiply to 24 billion, which
+     * lands at -1,769,803,776), and a battery built with a negative capacity accepts nothing, so the
+     * bay would simply never run with nothing logged to say why. Found while fixing #369, which is the
+     * same root cause one layer up: nobody had asked what these ceilings do when a pack actually uses
+     * them. Clamped rather than widened, because {@code Integer.MAX_VALUE} is also the most two data
+     * slots can carry to the screen.
+     */
+    private static int batchEnergy() {
+        long full = (long) RCConfig.HYDROPONICS_GROW_TICKS.get() * RCConfig.HYDROPONICS_FE_PER_TICK.get();
+        return (int) Math.min(full, Integer.MAX_VALUE);
+    }
 
     public HydroponicsBayBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.HYDROPONICS_BAY.get(), pos, state);
     }
 
-    /** What the screen reads: progress, its goal, water and power, and the capacities they scale to. */
+    /**
+     * What the screen reads.
+     *
+     * <p>Every one of these is shaped for the WIRE rather than for the field behind it, because a data
+     * slot is 16 bits: progress goes as a proportion because an arrow draws one, and the four
+     * quantities the tooltips print go as two halves each. See {@link WideSync} and #369.
+     */
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
-                case HydroponicsBayMenu.DATA_PROGRESS -> progress;
-                case HydroponicsBayMenu.DATA_GOAL -> RCConfig.HYDROPONICS_GROW_TICKS.get();
-                case HydroponicsBayMenu.DATA_WATER -> tank.getAmountAsInt(0);
-                case HydroponicsBayMenu.DATA_ENERGY -> battery.getAmountAsInt();
-                case HydroponicsBayMenu.DATA_WATER_CAPACITY -> tankCapacity();
-                case HydroponicsBayMenu.DATA_ENERGY_CAPACITY -> energyCapacity();
+                case HydroponicsBayMenu.DATA_PROGRESS_PERMILLE ->
+                    WideSync.permille(progress, RCConfig.HYDROPONICS_GROW_TICKS.get());
+                case HydroponicsBayMenu.DATA_WATER_LOW -> WideSync.low(tank.getAmountAsInt(0));
+                case HydroponicsBayMenu.DATA_WATER_HIGH -> WideSync.high(tank.getAmountAsInt(0));
+                case HydroponicsBayMenu.DATA_ENERGY_LOW -> WideSync.low(battery.getAmountAsInt());
+                case HydroponicsBayMenu.DATA_ENERGY_HIGH -> WideSync.high(battery.getAmountAsInt());
+                case HydroponicsBayMenu.DATA_WATER_CAPACITY_LOW -> WideSync.low(tankCapacity());
+                case HydroponicsBayMenu.DATA_WATER_CAPACITY_HIGH -> WideSync.high(tankCapacity());
+                case HydroponicsBayMenu.DATA_ENERGY_CAPACITY_LOW -> WideSync.low(energyCapacity());
+                case HydroponicsBayMenu.DATA_ENERGY_CAPACITY_HIGH -> WideSync.high(energyCapacity());
                 default -> 0;
             };
         }

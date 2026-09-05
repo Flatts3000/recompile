@@ -37,11 +37,22 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
     /** Crop, yield, byproduct. */
     public static final int SLOTS = 3;
 
-    public static final int DATA_SIZE = 6;
-    public static final int DATA_PROGRESS = 0;
-    public static final int DATA_GOAL = 1;
-    public static final int DATA_WATER = 2;
-    public static final int DATA_ENERGY = 3;
+    public static final int DATA_SIZE = 9;
+
+    /**
+     * How far through the batch, in thousandths, NOT in ticks.
+     *
+     * <p>The arrow is the only thing that reads it and an arrow draws a proportion, so a proportion is
+     * what travels: one slot that is correct for any goal a pack can configure. Ticks needed two slots
+     * and overflowed both - {@code hydroponicsGrowTicks} allows 240,000, and a data slot carries 16
+     * bits, so the goal arrived negative, {@code GuiPainter.arrow} clamped it to 1, and the arrow read
+     * full from the first tick of a machine that was working correctly (#369).
+     */
+    public static final int DATA_PROGRESS_PERMILLE = 0;
+    public static final int DATA_WATER_LOW = 1;
+    public static final int DATA_WATER_HIGH = 2;
+    public static final int DATA_ENERGY_LOW = 3;
+    public static final int DATA_ENERGY_HIGH = 4;
     /**
      * The capacities the gauges scale against, synced rather than recomputed on the client.
      *
@@ -49,9 +60,17 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
      * them draws both bars against numbers the server never agreed to. Worse, the tank and battery are
      * sized when the block entity is built, so even in singleplayer a retune leaves placed bays at their
      * old size while a config-derived gauge scales to the new one.
+     *
+     * <p>#369 proposed reading the grow goal off the client's config as the cheap fix. That is this
+     * paragraph's mistake with a different value, and it would have been wrong the same two ways.
+     *
+     * <p>Both travel as two halves, because the tooltip prints millibuckets and FE rather than a
+     * proportion, and a pack may set a tank to a million. See {@link WideSync}.
      */
-    public static final int DATA_WATER_CAPACITY = 4;
-    public static final int DATA_ENERGY_CAPACITY = 5;
+    public static final int DATA_WATER_CAPACITY_LOW = 5;
+    public static final int DATA_WATER_CAPACITY_HIGH = 6;
+    public static final int DATA_ENERGY_CAPACITY_LOW = 7;
+    public static final int DATA_ENERGY_CAPACITY_HIGH = 8;
 
     /**
      * Panel and slot geometry, declared once and read by both the menu and the screen.
@@ -116,28 +135,30 @@ public class HydroponicsBayMenu extends AbstractContainerMenu {
         addDataSlots(data);
     }
 
+    /** Thousandths of the batch, ready for {@code painter.arrow(name, progress(), goalPermille())}. */
     public int progress() {
-        return data.get(DATA_PROGRESS);
+        return data.get(DATA_PROGRESS_PERMILLE);
     }
 
+    /** What {@link #progress()} is out of. A constant, because progress arrives pre-scaled. */
     public int goal() {
-        return data.get(DATA_GOAL);
+        return WideSync.PERMILLE;
     }
 
     public int water() {
-        return data.get(DATA_WATER);
+        return WideSync.combine(data.get(DATA_WATER_LOW), data.get(DATA_WATER_HIGH));
     }
 
     public int energy() {
-        return data.get(DATA_ENERGY);
+        return WideSync.combine(data.get(DATA_ENERGY_LOW), data.get(DATA_ENERGY_HIGH));
     }
 
     public int waterCapacity() {
-        return data.get(DATA_WATER_CAPACITY);
+        return WideSync.combine(data.get(DATA_WATER_CAPACITY_LOW), data.get(DATA_WATER_CAPACITY_HIGH));
     }
 
     public int energyCapacity() {
-        return data.get(DATA_ENERGY_CAPACITY);
+        return WideSync.combine(data.get(DATA_ENERGY_CAPACITY_LOW), data.get(DATA_ENERGY_CAPACITY_HIGH));
     }
 
     @Override

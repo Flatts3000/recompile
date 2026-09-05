@@ -179,7 +179,13 @@ public class BurnerGeneratorBlockEntity extends BaseContainerBlockEntity impleme
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
-            return index == 0 ? battery.getAmountAsInt() : burnTime;
+            // Slot 1 is a FLAG, not the tick count it used to be. The screen only asks whether the
+            // generator is lit, and burnTime comes straight from level.fuelValues().burnDuration - this
+            // mod's longest fuel is 1,600 ticks, but a pack adding one over 32,767 would have had it
+            // arrive negative on a 16-bit slot, so the screen would report an unlit generator whose FE
+            // bar was still climbing. Same silence as #369, one machine over. Jade reads the real
+            // remaining burn through its own NBT path, which is not a data slot and is unaffected.
+            return index == 0 ? battery.getAmountAsInt() : (burnTime > 0 ? 1 : 0);
         }
 
         @Override
