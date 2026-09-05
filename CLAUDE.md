@@ -32,7 +32,7 @@ Its pass count includes a vanilla built-in test: the mod's own tests run in the 
 
 CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent jobs. The `build` job name is load-bearing: main's branch protection requires that status check.
 
-`unitTest` is enabled in `build.gradle` (moddev's JUnit integration, which runs `src/test/java` against a loaded mod context) and **`./gradlew test` runs 108 tests across 26 classes**. `build` depends on `test`, so CI gates them. *(This line previously said no JUnit tests existed. That was wrong from PR #22 onward and went unnoticed until someone counted - a doc claiming a layer is empty is how it stays empty.)* **Use a unit test when the logic is pure** - `GeneratorState` (which reason a generator is idle), `ScrapBinContent` (item to bin appearance), the crumble curve's expected yield. No world, no rendering, no server means a GameTest is the wrong instrument and a slower one. GameTests remain where in-world behaviour is proven.
+`unitTest` is enabled in `build.gradle` (moddev's JUnit integration, which runs `src/test/java` against a loaded mod context) and **`./gradlew test` runs 115 tests across 28 classes**. `build` depends on `test`, so CI gates them. *(This line previously said no JUnit tests existed. That was wrong from PR #22 onward and went unnoticed until someone counted - a doc claiming a layer is empty is how it stays empty.)* **Use a unit test when the logic is pure** - `GeneratorState` (which reason a generator is idle), `ScrapBinContent` (item to bin appearance), the crumble curve's expected yield. No world, no rendering, no server means a GameTest is the wrong instrument and a slower one. GameTests remain where in-world behaviour is proven.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ collapse over a top-down peel, and `taking_the_foot_of_a_stack_lets_it_collapse`
 2026-09-05, #376, spec `docs/scrap_hauler_spec.md`). The slot a BuildCraft Quarry or a Digital Miner
 fills elsewhere: a **Hauler Depot** block holds a **Scrap Hauler** item, deploys it as an entity that
 takes whole `SortableBlock`s (anything in `#recompile:vacuumable/netherite`, the top cumulative band,
-so every pile, and it fails closed) from a radius of 16 around the Depot, and receives what it brings
+so every pile, and it fails closed) from a square of CHUNKS around the Depot - a chunk radius the player sets in the Depot's screen, up to a config ceiling, searched by heightmap so it works the surface - and receives what it brings
 back, pushing it into the Scrap Network one slot per tick. Solar in the field, charged while docked,
 RF optional; and because mounds regrow it is a pump on a renewable supply rather than a strip miner.
 It extends `PathfinderMob` because that is what paths across mound country, and **four traps fall out

@@ -42,6 +42,18 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
             live ? GuiTheme.TEXT_LABEL : GuiTheme.TEXT_MUTED);
 
         painter.text("status", status().getString(), this.menu.deployed() ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_LABEL);
+
+        // The work area. Two small buttons and the square they make, in chunks.
+        int max = com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity.maxChunkRadius();
+        int r = this.menu.chunkRadius();
+        painter.slab("radius_down", r > 0 && painter.isOver("radius_down", mouseX, mouseY)
+            ? GuiTheme.SLOT_HIGHLIGHT : (r > 0 ? GuiTheme.SLOT_FACE : GuiTheme.SLOT_SHADOW));
+        painter.text("radius_down_label", "-", r > 0 ? GuiTheme.TEXT_LABEL : GuiTheme.TEXT_MUTED);
+        painter.slab("radius_up", r < max && painter.isOver("radius_up", mouseX, mouseY)
+            ? GuiTheme.SLOT_HIGHLIGHT : (r < max ? GuiTheme.SLOT_FACE : GuiTheme.SLOT_SHADOW));
+        painter.text("radius_up_label", "+", r < max ? GuiTheme.TEXT_LABEL : GuiTheme.TEXT_MUTED);
+        int side = 2 * r + 1;
+        painter.text("radius_label", side + "x" + side, GuiTheme.TEXT_LABEL);
     }
 
     /** One line: what the Hauler is doing, or that there is none. */
@@ -66,6 +78,14 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (event.button() == 0 && isOver("radius_down", event.x(), event.y())) {
+            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, HaulerDepotMenu.RADIUS_DOWN_BUTTON);
+            return true;
+        }
+        if (event.button() == 0 && isOver("radius_up", event.x(), event.y())) {
+            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, HaulerDepotMenu.RADIUS_UP_BUTTON);
+            return true;
+        }
         if (event.button() == 0 && this.menu.hasHauler() && isOver("deploy", event.x(), event.y())) {
             // Send what the button SAID, so the server can ignore a click that no longer applies.
             this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
@@ -78,6 +98,16 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
     @Override
     protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractTooltip(graphics, mouseX, mouseY);
+        if (isOver("radius_label", mouseX, mouseY) || isOver("radius_down", mouseX, mouseY)
+                || isOver("radius_up", mouseX, mouseY)) {
+            int side = 2 * this.menu.chunkRadius() + 1;
+            int maxSide = 2 * com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity.maxChunkRadius() + 1;
+            graphics.setTooltipForNextFrame(this.font, List.of(
+                Component.translatable("container.recompile.hauler_radius", side, side),
+                Component.translatable("container.recompile.hauler_radius_max", maxSide, maxSide)),
+                Optional.empty(), mouseX, mouseY);
+            return;
+        }
         if (!isOver("power", mouseX, mouseY)) {
             return;
         }

@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.block.entity;
 
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.content.entity.ScrapHaulerEntity;
@@ -15,6 +16,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
@@ -84,7 +86,11 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
     public static final int DATA_HAULER_CHARGE = 2;
     public static final int DATA_MODE = 3;
     public static final int DATA_CARGO = 4;
-    public static final int DATA_SIZE = 5;
+    public static final int DATA_RADIUS = 5;
+    public static final int DATA_SIZE = 6;
+
+    /** A new Depot works its own chunk and the ring around it. */
+    public static final int DEFAULT_CHUNK_RADIUS = 1;
 
     private static final int[] CARGO_FACES;
 
@@ -99,6 +105,7 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
     private final SimpleEnergyHandler battery = new SimpleEnergyHandler(CAPACITY, CAPACITY, CAPACITY);
     private int savedEnergy;
 
+    private int chunkRadius = DEFAULT_CHUNK_RADIUS;
     private boolean deployed;
     private @Nullable UUID haulerUuid;
     private boolean recallRequested;
@@ -117,6 +124,7 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
                 case DATA_HAULER_CHARGE -> deployed ? fieldCharge : ScrapHaulerItem.charge(items.get(HAULER_SLOT));
                 case DATA_MODE -> deployed ? fieldMode : -1;
                 case DATA_CARGO -> deployed ? fieldCargo : 0;
+                case DATA_RADIUS -> chunkRadius();
                 default -> 0;
             };
         }
@@ -150,6 +158,28 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
 
     public boolean recallRequested() {
         return recallRequested;
+    }
+
+    /**
+     * The work area, as a chunk radius around this block (owner, 2026-09-05): 0 is this chunk, 1 is
+     * 3x3, 2 is 5x5. Set from the screen, clamped to {@link #maxChunkRadius} on every read so a
+     * lowered config ceiling takes effect on existing Depots without a migration.
+     */
+    public int chunkRadius() {
+        return Math.min(chunkRadius, maxChunkRadius());
+    }
+
+    public static int maxChunkRadius() {
+        return RCConfig.HAULER_MAX_CHUNK_RADIUS.get();
+    }
+
+    /** The screen's plus and minus. Clamped here, on the server, whatever the button believed. */
+    public void adjustRadius(int delta) {
+        int next = Mth.clamp(chunkRadius() + delta, 0, maxChunkRadius());
+        if (next != chunkRadius) {
+            chunkRadius = next;
+            setChanged();
+        }
     }
 
     /**
@@ -485,6 +515,7 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         battery.serialize(output.child("battery"));
         output.putBoolean("deployed", deployed);
         output.putBoolean("recall", recallRequested);
+        output.putInt("radius", chunkRadius);
         if (haulerUuid != null) {
             output.putString("hauler", haulerUuid.toString());
         }
@@ -499,6 +530,7 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         savedEnergy = battery.getAmountAsInt();
         deployed = input.getBooleanOr("deployed", false);
         recallRequested = input.getBooleanOr("recall", false);
+        chunkRadius = input.getIntOr("radius", DEFAULT_CHUNK_RADIUS);
         String uuid = input.getStringOr("hauler", "");
         haulerUuid = uuid.isEmpty() ? null : UUID.fromString(uuid);
     }

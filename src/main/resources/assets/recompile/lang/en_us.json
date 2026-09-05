@@ -754,6 +754,8 @@
   "container.recompile.hauler_status.dumping": "Unloading, %s / %s aboard",
   "container.recompile.hauler_status.flat": "Flat, charging in the sun",
   "container.recompile.hauler_status.idle": "Parked, nothing to gather",
+  "container.recompile.hauler_radius": "Work area: %s x %s chunks around the Depot",
+  "container.recompile.hauler_radius_max": "Up to %s x %s (config)",
   "container.recompile.offer_price": "%s scrip",
   "container.recompile.no_offers": "Nothing is for sale",
   "blueprint.recompile.sell_terminal": "Sell Terminal",

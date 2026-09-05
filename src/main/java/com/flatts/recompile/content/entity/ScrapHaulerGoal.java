@@ -10,13 +10,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
  * The Hauler's one behaviour: the fetch-and-return loop from the spec, as a state machine.
  *
- * <p>Seek a takeable block inside the Depot's work radius, take it, repeat until the hold is full or
+ * <p>Seek a takeable block inside the Depot's work area, take it, repeat until the hold is full or
  * there is nothing left, go home, dump, and either go again or park. Two things interrupt that and are
  * handled here rather than as separate goals, because they are states of the same loop: running flat
  * (park where it stands and wait for the sun) and a Depot with no room (wait beside it).
@@ -35,8 +36,19 @@ import org.jspecify.annotations.Nullable;
  */
 public class ScrapHaulerGoal extends Goal {
 
-    /** Ruling 5: a radius around the Depot, not around the Hauler. */
-    public static final int WORK_RADIUS = 16;
+    /**
+     * How far above or below the Depot a pile may be and still count. The area is chunks (owner,
+     * 2026-09-05), which have no vertical extent worth searching, and a Depot on the surface has no
+     * business sending its Hauler down a sewer or up a smokestack.
+     */
+    public static final int VERTICAL_REACH = 24;
+
+    /**
+     * How far down from the heightmap top a column is read. The top block is not always the pile:
+     * a leaf, a snow layer, a slab somebody left, or the harness's own lid over a test plot all sit in
+     * the motion-blocking heightmap above the thing underneath. Eight reads per column is still cheap.
+     */
+    public static final int COLUMN_DEPTH = 8;
 
     /** How close it has to be to act on a block or the Depot. Squared, in blocks. */
     private static final double REACH_SQ = 2.6 * 2.6;
@@ -248,28 +260,66 @@ public class ScrapHaulerGoal extends Goal {
     }
 
     /**
-     * The nearest takeable block to the Hauler inside the Depot's radius that a path can reach.
+     * Whether {@code pos} is inside the work area: the Depot's chunk and {@code chunkRadius} rings of
+     * chunks around it, on the chunk grid. Static and pure so a unit test can pin the arithmetic,
+     * negative coordinates included - {@code >> 4} floors, {@code / 16} does not.
+     */
+    public static boolean inWorkArea(BlockPos depot, int chunkRadius, BlockPos pos) {
+        return Math.abs((pos.getX() >> 4) - (depot.getX() >> 4)) <= chunkRadius
+            && Math.abs((pos.getZ() >> 4) - (depot.getZ() >> 4)) <= chunkRadius;
+    }
+
+    /**
+     * The nearest takeable block to the Hauler inside the Depot's work area.
      *
-     * <p>Nearest to the HAULER, inside a radius around the DEPOT: the site is the Depot's, the order of
+     * <p><b>Chunks, read off the heightmap</b> (owner, 2026-09-05). The area is a square of chunks
+     * around the Depot, and the search reads one column per (x, z) in it: the block under the
+     * motion-blocking heightmap. That is 256 cheap lookups per chunk rather than a cube of block
+     * reads, and it is also the right shape for what mounds are - piles of {@code FallingBlock}s
+     * whose top is always the exposed one, and whose next block is exposed the moment the top goes.
+     * A pile under a roof is invisible to it, deliberately: this machine works the surface.
+     *
+     * <p>Nearest to the HAULER, inside an area around the DEPOT: the site is the Depot's, the order of
      * work is whatever is closest to where it already is.
      */
     public @Nullable BlockPos findTarget(ServerLevel level) {
         BlockPos home = hauler.depotPos();
-        if (home == null) {
+        HaulerDepotBlockEntity depot = hauler.depot();
+        if (home == null || depot == null) {
             return null;
         }
+        int r = depot.chunkRadius();
+        int cx = home.getX() >> 4;
+        int cz = home.getZ() >> 4;
         BlockPos self = hauler.blockPosition();
         BlockPos best = null;
         double bestSq = Double.MAX_VALUE;
-        int r = WORK_RADIUS;
-        for (BlockPos pos : BlockPos.betweenClosed(home.offset(-r, -r, -r), home.offset(r, r, r))) {
-            if (!takeable(level, pos) || blacklist.containsKey(pos)) {
-                continue;
-            }
-            double d = pos.distSqr(self);
-            if (d < bestSq) {
-                bestSq = d;
-                best = pos.immutable();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        for (int chunkX = cx - r; chunkX <= cx + r; chunkX++) {
+            for (int chunkZ = cz - r; chunkZ <= cz + r; chunkZ++) {
+                if (!level.hasChunk(chunkX, chunkZ)) {
+                    continue;
+                }
+                for (int x = chunkX << 4; x < (chunkX << 4) + 16; x++) {
+                    for (int z = chunkZ << 4; z < (chunkZ << 4) + 16; z++) {
+                        int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
+                        if (Math.abs(top - home.getY()) > VERTICAL_REACH) {
+                            continue;
+                        }
+                        for (int y = top; y > top - COLUMN_DEPTH; y--) {
+                            pos.set(x, y, z);
+                            if (!takeable(level, pos) || blacklist.containsKey(pos)) {
+                                continue;
+                            }
+                            double d = pos.distSqr(self);
+                            if (d < bestSq) {
+                                bestSq = d;
+                                best = pos.immutable();
+                            }
+                            break;   // the highest takeable block in the column is the one to take
+                        }
+                    }
+                }
             }
         }
         return best;

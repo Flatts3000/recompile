@@ -4,6 +4,8 @@
 
 ### The Scrap Hauler
 
+- **The Depot's work area is a square of chunks**, set from its screen with a plus and a minus, from just its own chunk up to a limit the pack can raise. The Hauler works the surface of those chunks: whatever sits on top of each column.
+
 - **A robot that gathers garbage for you.** Find a **Broken Hauler** in Bulky Waste, pry it out,
   and tear it down at the Teardown Workbench: one find teaches both Blueprints. Craft the **Hauler
   Depot** and the **Scrap Hauler**, place the Depot, put the Hauler in its slot and press

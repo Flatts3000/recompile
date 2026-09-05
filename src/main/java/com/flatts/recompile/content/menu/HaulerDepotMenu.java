@@ -33,6 +33,8 @@ public class HaulerDepotMenu extends AbstractContainerMenu {
 
     public static final int DEPLOY_BUTTON = 0;
     public static final int RECALL_BUTTON = 1;
+    public static final int RADIUS_DOWN_BUTTON = 2;
+    public static final int RADIUS_UP_BUTTON = 3;
 
     /**
      * Taller than a furnace: a header for the Hauler slot, the button, a status line and the gauge,
@@ -45,6 +47,13 @@ public class HaulerDepotMenu extends AbstractContainerMenu {
         .slot("hauler", 8, 26)
         .backdrop("deploy", 30, 17, 60, 18)
         .region("deploy_label", 36, 22, 48, 9)
+        // The work area, as a chunk radius (owner): minus, the readout, plus. Sits between the
+        // Deploy button and the gauge, which is exactly the room the header has.
+        .backdrop("radius_down", 94, 17, 14, 18)
+        .region("radius_down_label", 98, 22, 6, 9)
+        .region("radius_label", 110, 22, 26, 9)
+        .backdrop("radius_up", 138, 17, 14, 18)
+        .region("radius_up_label", 142, 22, 6, 9)
         .region("status", 30, 40, 120, 9)
         .well("power", 154, 17, 14, 36)
         .slotGrid("cargo", 9, 3, 8, 56)
@@ -133,6 +142,11 @@ public class HaulerDepotMenu extends AbstractContainerMenu {
         return data.get(HaulerDepotBlockEntity.DATA_CARGO);
     }
 
+    /** The work area as a chunk radius; the screen shows it as the square it makes. */
+    public int chunkRadius() {
+        return data.get(HaulerDepotBlockEntity.DATA_RADIUS);
+    }
+
     /** The deployed Hauler's mode, or null when it is docked. */
     public ScrapHaulerEntity.@org.jspecify.annotations.Nullable Mode haulerMode() {
         int raw = data.get(HaulerDepotBlockEntity.DATA_MODE);
@@ -157,6 +171,14 @@ public class HaulerDepotMenu extends AbstractContainerMenu {
         return switch (id) {
             case DEPLOY_BUTTON -> depot.deploy(level);
             case RECALL_BUTTON -> depot.recall(level);
+            case RADIUS_DOWN_BUTTON -> {
+                depot.adjustRadius(-1);
+                yield true;
+            }
+            case RADIUS_UP_BUTTON -> {
+                depot.adjustRadius(1);
+                yield true;
+            }
             default -> false;
         };
     }

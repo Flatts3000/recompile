@@ -120,8 +120,9 @@ public class ScrapHaulerEntity extends PathfinderMob {
         return Mob.createMobAttributes()
             .add(Attributes.MAX_HEALTH, 20.0)
             .add(Attributes.MOVEMENT_SPEED, 0.28)
-            // The work radius plus a margin, so a target at the edge is inside pathing range.
-            .add(Attributes.FOLLOW_RANGE, 48.0)
+            // The default work area (3x3 chunks) plus a margin, so a target at its edge is inside
+            // pathing range; a Depot set wider than that leans on the blacklist for the far corners.
+            .add(Attributes.FOLLOW_RANGE, 96.0)
             // A full block: it climbs slumped garbage rather than stalling at it (spec section 10).
             .add(Attributes.STEP_HEIGHT, 1.0);
     }
