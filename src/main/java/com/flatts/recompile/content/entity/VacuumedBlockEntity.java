@@ -42,10 +42,24 @@ import org.jspecify.annotations.Nullable;
  * this flies, which is the collapse the owner chose.
  *
  * <p>It steers, it does not fall: no gravity, no collision, a speed that ramps up as it closes, a small
- * corkscrew so a stream of them spirals in rather than filing in a line. On arrival the block item goes
- * into the owner's inventory (or drops at their feet when it is full). If the owner is gone - logged
- * off, died, chunk reloaded with nobody there - it drops where it is rather than vanishing: a block
- * that has left the world owes the player an item.
+ * corkscrew so a stream of them spirals in rather than filing in a line.
+ *
+ * <p><b>It either CARRIES the block or merely depicts it, and which one is not optional.</b> For the
+ * Garbage Vacuum it carries: the world block is gone the moment it is taken, and this entity is what
+ * owes the player the item, delivering it into the inventory on arrival, dropping it at their feet if
+ * that is full, and dropping it where it stands if the owner disappears. A block that has left the
+ * world owes somebody an item.
+ *
+ * <p>For the Scrap Hauler it only depicts. That machine puts the block into its own hold BEFORE
+ * launching this, so a second delivery is not a fallback, it is DUPLICATION - and that is exactly what
+ * shipped: {@code deliver} tested {@code owner instanceof Player}, which is false for a Hauler, so it
+ * fell through to spawning a loose {@code ItemEntity} at the machine's feet for every block taken. The
+ * hold filled correctly the whole time, so nothing looked wrong until somebody noticed the floor was
+ * covered in garbage. Found by the owner in a screenshot, not by a test, because the tests asserted
+ * the block had gone and the hold had grown and never asked what else was lying about.
+ *
+ * <p>So {@link #launch} takes the question explicitly rather than inferring it from the owner's type.
+ * A future machine that reuses this animation has to answer it, which is the point.
  *
  * <p>Position is the block's CENTRE, and the renderer scales about that point, so shrinking reads as
  * the block being drawn into the hose rather than sinking into the floor.
@@ -94,10 +108,32 @@ public class VacuumedBlockEntity extends Entity {
         this.noPhysics = true;
     }
 
+    /**
+     * Whether this entity owes somebody the block it is drawing.
+     *
+     * <p>Server-side only: the client never materialises an item, so there is nothing to sync. Not
+     * final because it has to survive a reload, and true by default so the Garbage Vacuum - which
+     * relies on this entity BEING the delivery - keeps working without saying so.
+     */
+    private boolean carriesPayload = true;
+
     /** Send the block at {@code from} on its way to {@code owner}'s nozzle. */
     public static VacuumedBlockEntity launch(ServerLevel level, BlockPos from, BlockState state,
             LivingEntity owner) {
+        return launch(level, from, state, owner, true);
+    }
+
+    /**
+     * As {@link #launch}, saying whether the flight owes an item at the end of it.
+     *
+     * <p>Pass {@code false} when the caller has ALREADY taken the block into storage and wants only the
+     * picture. Pass {@code true} when this entity is the delivery. Getting it wrong duplicates the block
+     * or eats it, and neither announces itself.
+     */
+    public static VacuumedBlockEntity launch(ServerLevel level, BlockPos from, BlockState state,
+            LivingEntity owner, boolean carriesPayload) {
         VacuumedBlockEntity flying = new VacuumedBlockEntity(RCEntities.VACUUMED_BLOCK.get(), level);
+        flying.carriesPayload = carriesPayload;
         flying.setPos(from.getX() + 0.5, from.getY() + 0.5, from.getZ() + 0.5);
         flying.entityData.set(DATA_STATE, state);
         flying.entityData.set(DATA_OWNER, owner.getId());
@@ -192,7 +228,7 @@ public class VacuumedBlockEntity extends Entity {
     }
 
     private void deliver(ServerLevel level, LivingEntity owner, Vec3 nozzle) {
-        ItemStack item = asItem();
+        ItemStack item = carriesPayload ? asItem() : ItemStack.EMPTY;
         if (!item.isEmpty() && !(owner instanceof Player player && player.getInventory().add(item))) {
             level.addFreshEntity(new ItemEntity(level, owner.getX(), owner.getY(), owner.getZ(), item));
         }
@@ -204,7 +240,8 @@ public class VacuumedBlockEntity extends Entity {
     }
 
     private void dropHere(ServerLevel level) {
-        ItemStack item = asItem();
+        // A flight that never owed an item owes nothing when its owner vanishes either.
+        ItemStack item = carriesPayload ? asItem() : ItemStack.EMPTY;
         if (!item.isEmpty()) {
             Block.popResource(level, blockPosition(), item);
         }
@@ -238,6 +275,7 @@ public class VacuumedBlockEntity extends Entity {
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         output.store("BlockState", BlockState.CODEC, getBlockState());
+        output.putBoolean("Carries", carriesPayload);
         if (ownerUuid != null) {
             output.store("Owner", UUIDUtil.CODEC, ownerUuid);
         }
@@ -248,6 +286,9 @@ public class VacuumedBlockEntity extends Entity {
         entityData.set(DATA_STATE, input.read("BlockState", BlockState.CODEC)
             .orElse(Blocks.AIR.defaultBlockState()));
         ownerUuid = input.read("Owner", UUIDUtil.CODEC).orElse(null);
+        // Defaults TRUE for anything written before this flag existed: an old vacuumed block in a save
+        // is one that genuinely owes an item, and defaulting the other way would eat it.
+        carriesPayload = input.getBooleanOr("Carries", true);
         // The synced id is meaningless across a load; tick() re-resolves it from the UUID.
         entityData.set(DATA_OWNER, -1);
     }

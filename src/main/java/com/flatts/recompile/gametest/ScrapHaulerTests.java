@@ -3,6 +3,7 @@ package com.flatts.recompile.gametest;
 import com.flatts.recompile.content.block.LeachateBlock;
 import com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity;
 import com.flatts.recompile.content.entity.ScrapHaulerEntity;
+import com.flatts.recompile.content.entity.VacuumedBlockEntity;
 import com.flatts.recompile.content.entity.ScrapHaulerGoal;
 import com.flatts.recompile.content.item.ScrapHaulerItem;
 import com.flatts.recompile.content.menu.HaulerDepotMenu;
@@ -322,6 +323,36 @@ public final class ScrapHaulerTests {
                 helper.assertTrue(holdCount(depot) >= 1,
                     "the pile went but nothing reached the Depot's hold (hold=" + holdCount(depot)
                         + ", entity cargo=" + (haulers(helper, lift).isEmpty() ? -1 : haulers(helper, lift).get(0).cargoCount()) + ")");
+
+                // AND NOTHING ON THE FLOOR. The block travels twice over: once into the hold, and once
+                // as the VacuumedBlockEntity that draws it flying in. That animation entity was written
+                // for the Garbage Vacuum, where it IS the delivery - it puts the block into the player's
+                // inventory on arrival, or drops it at their feet. A Hauler is not a Player, so it took
+                // the drop branch and littered one garbage block per pile taken.
+                //
+                // The hold filled correctly throughout, which is why every assertion above passed while
+                // the machine quietly doubled its own output. Found by the owner in a screenshot of the
+                // dev client, not by this suite, because the suite asked whether the block had gone and
+                // whether the hold had grown and never asked what else was lying about.
+                AABB box = AABB.encapsulatingFullBlocks(
+                    helper.absolutePos(new BlockPos(-8, lift - 2, -8)),
+                    helper.absolutePos(new BlockPos(13, lift + 8, 13)));
+                // WAIT FOR THE FLIGHT TO LAND BEFORE JUDGING THE FLOOR. The first version of this
+                // check asserted the floor was clear as soon as the hold filled, and passed even with
+                // the bug deliberately reintroduced: the pile is adjacent to the Depot, so the machine
+                // takes it and dumps within a couple of ticks, while the block drawn flying in needs
+                // several more to arrive. The assertion was landing before the litter existed.
+                //
+                // Gating on the animation being finished makes it deterministic rather than a race: once
+                // no VacuumedBlockEntity is left in flight, whatever it was going to leave behind is
+                // already on the ground.
+                helper.assertTrue(level.getEntitiesOfClass(VacuumedBlockEntity.class, box).isEmpty(),
+                    "a block is still flying in; too early to judge the floor");
+                List<ItemEntity> litterNow = level.getEntitiesOfClass(ItemEntity.class, box);
+                helper.assertTrue(litterNow.isEmpty(),
+                    "the Hauler left " + litterNow.size() + " loose item(s) on the floor: "
+                        + litterNow.stream().map(e -> e.getItem().getItem().toString()).toList()
+                        + "; a block it takes goes into the hold and nowhere else");
             });
         });
 

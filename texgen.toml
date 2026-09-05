@@ -588,12 +588,32 @@ prompt = "the same small tracked garbage robot but dead and broken: one tread to
 # painting blind into a layout it knows nothing about. The painter reads the exact box layout the
 # Java model declares (ScrapHaulerModel: hull at (0,0) 12x8x14, head at (0,22) 8x5x6, arm at (28,22)
 # 2x2x6, treads at (0,33) 3x4x14, 64x64 atlas). kind = "entity": no crop, no downscale, quantize only.
+# The Scrap Hauler's plating, as MATERIAL rather than as a picture of a robot (owner, 2026-09-05:
+# "I would like the texture to be generated and downscaled to minecraft pixels").
+#
+# A model cannot draw an entity atlas. The Hauler's skin is a 64x64 unwrap whose regions sit wherever
+# the LayerDefinition put them - hull at 0,0, head at 0,22, arm at 28,22, treads at 0,33 - and asking
+# for that blind returns a picture of a robot rather than an atlas, which maps onto the boxes as noise.
+# What a model IS good at is what scuffed painted steel looks like up close. So this generates the
+# MATERIAL, texgen downscales it to Minecraft pixels the way it does everything else, and the
+# hauler_skin style lays it into the layout it already controls to the pixel.
+[surface.scrap_hauler_plating]
+kind = "item"
+backend = "ai"
+size = 64
+prompt = """A flat top-down swatch of scuffed painted sheet steel from a small industrial work machine.
+Close up on the metal itself: shallow dents, scratched paint showing bare metal underneath, a few rivet
+heads, faint grime settled in the low spots, light rust blooming at the edges. Neutral grey-brown
+industrial paint, matte, no gloss. Even lighting, no strong shadow, no object in frame - this is the
+surface of the panel and nothing else."""
+
 [surface.scrap_hauler_skin]
 kind = "entity"
 backend = "procedural"
 size = 64
 [surface.scrap_hauler_skin.procedural]
 style = "hauler_skin"
+material = "scrap_hauler_plating"
 
 [surface.roach]
 kind = "entity"

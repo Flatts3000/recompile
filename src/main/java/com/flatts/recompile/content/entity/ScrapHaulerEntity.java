@@ -297,7 +297,10 @@ public class ScrapHaulerEntity extends PathfinderMob {
         setCharge(charge() - cost);
         level.removeBlock(pos, false);
         RCAnalytics.broke(state.getBlock());
-        VacuumedBlockEntity.launch(level, pos, state, this);
+        // The block is ALREADY in the hold two lines up, so this flight is the picture and nothing
+        // more. Passing true here duplicates every block the machine takes onto the floor, which is
+        // what shipped until the owner spotted the litter in a screenshot.
+        VacuumedBlockEntity.launch(level, pos, state, this, false);
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state),
             pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 12, 0.3, 0.3, 0.3, 0.05);
         level.playSound(null, pos, RCSounds.HAULER_PICKUP.get(), SoundSource.NEUTRAL, 0.8F, 1.0F);
