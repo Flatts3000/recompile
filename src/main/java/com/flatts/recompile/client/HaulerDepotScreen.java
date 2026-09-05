@@ -44,7 +44,7 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
         painter.text("status", status().getString(), this.menu.deployed() ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_LABEL);
 
         // The work area. Two small buttons and the square they make, in chunks.
-        int max = com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity.maxChunkRadius();
+        int max = this.menu.maxChunkRadius();
         int r = this.menu.chunkRadius();
         painter.slab("radius_down", r > 0 && painter.isOver("radius_down", mouseX, mouseY)
             ? GuiTheme.SLOT_HIGHLIGHT : (r > 0 ? GuiTheme.SLOT_FACE : GuiTheme.SLOT_SHADOW));
@@ -104,7 +104,7 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
         if (isOver("radius_label", mouseX, mouseY) || isOver("radius_down", mouseX, mouseY)
                 || isOver("radius_up", mouseX, mouseY)) {
             int side = 2 * this.menu.chunkRadius() + 1;
-            int maxSide = 2 * com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity.maxChunkRadius() + 1;
+            int maxSide = 2 * this.menu.maxChunkRadius() + 1;
             graphics.setTooltipForNextFrame(this.font, List.of(
                 Component.translatable("container.recompile.hauler_radius", side, side),
                 Component.translatable("container.recompile.hauler_radius_max", maxSide, maxSide)),

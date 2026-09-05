@@ -85,9 +85,16 @@ public class HaulerDepotMenu extends AbstractContainerMenu {
 
         var hauler = LAYOUT.rect("hauler");
         this.addSlot(new Slot(container, HaulerDepotBlockEntity.HAULER_SLOT, hauler.x(), hauler.y()) {
+            /**
+             * Both sides agree, which they did not while this asked the CONTAINER. The client builds
+             * its menu over a plain {@code SimpleContainer}, whose {@code canPlaceItem} is
+             * unconditionally true, so a client would happily draw a second Hauler dropping into a
+             * locked slot and the server would snap it back a tick later. The synced flag is the same
+             * one {@code mayPickup} below already reads.
+             */
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return container.canPlaceItem(HaulerDepotBlockEntity.HAULER_SLOT, stack);
+                return !deployed() && stack.getItem() instanceof ScrapHaulerItem;
             }
 
             /** Ruling 13. The first conservation row. */
@@ -145,6 +152,11 @@ public class HaulerDepotMenu extends AbstractContainerMenu {
     /** The work area as a chunk radius; the screen shows it as the square it makes. */
     public int chunkRadius() {
         return data.get(HaulerDepotBlockEntity.DATA_RADIUS);
+    }
+
+    /** The ceiling the server is enforcing. Off the wire, never off the client's own config. */
+    public int maxChunkRadius() {
+        return data.get(HaulerDepotBlockEntity.DATA_MAX_RADIUS);
     }
 
     /** The deployed Hauler's mode, or null when it is docked. */

@@ -87,7 +87,17 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
     public static final int DATA_MODE = 3;
     public static final int DATA_CARGO = 4;
     public static final int DATA_RADIUS = 5;
-    public static final int DATA_SIZE = 6;
+    /**
+     * The configured ceiling, SYNCED rather than read off the client's own config.
+     *
+     * <p>{@code RCConfig} is COMMON and NeoForge does not sync those, so a client whose file differs
+     * from the server's greys the plus button at the wrong number: too low and the player cannot reach
+     * an area the server would allow, too high and the button does nothing when clicked because the
+     * server clamps and the readout never moves. This is the same mistake #369 fixed on the Hydroponics
+     * Bay, made again three files away, which is why the Bay's javadoc now says so out loud.
+     */
+    public static final int DATA_MAX_RADIUS = 6;
+    public static final int DATA_SIZE = 7;
 
     /** A new Depot works its own chunk and the ring around it. */
     public static final int DEFAULT_CHUNK_RADIUS = 1;
@@ -125,6 +135,7 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
                 case DATA_MODE -> deployed ? fieldMode : -1;
                 case DATA_CARGO -> deployed ? fieldCargo : 0;
                 case DATA_RADIUS -> chunkRadius();
+                case DATA_MAX_RADIUS -> maxChunkRadius();
                 default -> 0;
             };
         }
@@ -275,7 +286,12 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
     /** Continuous push, one slot per tick, round-robin so a stuck stack cannot starve the others. */
     private void pushOne(ServerLevel level) {
         for (int n = 0; n < CARGO_SLOTS; n++) {
-            int slot = CARGO_START + (pushCursor++ % CARGO_SLOTS);
+            // Wrapped rather than left to grow. It was `pushCursor++ % CARGO_SLOTS`, and the counter
+            // ticks 27 times a second per Depot even when every slot is empty - about 46 days of
+            // continuous ticking to overflow, which a spawn-chunk Depot on a long-lived server reaches.
+            // A negative int modulo is negative in Java, so slot went to -10 and the server tick threw.
+            pushCursor = (pushCursor + 1) % CARGO_SLOTS;
+            int slot = CARGO_START + pushCursor;
             ItemStack stack = items.get(slot);
             if (stack.isEmpty()) {
                 continue;
@@ -405,15 +421,28 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
     /**
      * Ruling 19: breaking the Depot recalls the Hauler first, then drops everything. Order matters -
      * the recall dumps into the hold, and the hold is what drops.
+     *
+     * <p><b>The super call has to come AFTER the recall, and it did not.</b>
+     * {@code BlockEntity.preRemoveSideEffects} already runs {@code Containers.dropContents} for any
+     * {@code Container}, and {@code dropItemStack} EMPTIES the source stack as it drops it. So calling
+     * super first threw the Hauler item on the floor carrying whatever charge it had at DEPLOY time,
+     * and then {@code onRecalled} wrote the real field charge into a stack that was already gone and
+     * already count-zero. Break a Depot whose Hauler has spent a full battery and you get the full
+     * battery back; break one whose Hauler charged all day in the sun and you lose the day. Neither
+     * announces itself, because the item that lands looks exactly right.
+     *
+     * <p>The existing test cannot see it: it deploys and breaks in the same tick, so the deploy-time
+     * charge and the field charge are the same number.
      */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState oldState) {
+        if (level instanceof ServerLevel server && deployed) {
+            recall(server);
+        }
+        // Now the hold holds everything, including whatever the recall just brought home, and the
+        // Hauler's stack carries the charge it actually came back with.
         super.preRemoveSideEffects(pos, oldState);
-        if (level instanceof ServerLevel server) {
-            if (deployed) {
-                recall(server);
-            }
-            Containers.dropContents(server, pos, this);
+        if (level instanceof ServerLevel) {
             items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
         }
     }

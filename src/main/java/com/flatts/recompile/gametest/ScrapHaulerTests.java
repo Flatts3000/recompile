@@ -203,6 +203,16 @@ public final class ScrapHaulerTests {
             HaulerDepotBlockEntity depot = docked(helper, 5_000, lift);
             helper.assertTrue(depot.deploy(level), "deploy refused");
             helper.assertTrue(haulers(helper, lift).size() == 1, "no Hauler out");
+
+            // SPEND SOME IN THE FIELD BEFORE BREAKING IT, which is the whole point of this assertion
+            // and what the test was missing. It used to deploy and break in the same tick, so the
+            // deploy-time charge and the field charge were the same number and the drop looked right
+            // however wrong the order was. BlockEntity.preRemoveSideEffects drops the hold itself, and
+            // dropItemStack empties the source stack as it goes - so calling super BEFORE the recall
+            // threw the item on the floor carrying its deploy-time charge and then wrote the real one
+            // into a stack that had already gone. Break a Depot whose Hauler ran itself flat and you
+            // got the full battery back.
+            haulers(helper, lift).get(0).setCharge(1_200);
             level.destroyBlock(helper.absolutePos(DEPOT.above(lift)), true);
             helper.runAfterDelay(5, () -> {
                 helper.assertTrue(haulers(helper, lift).isEmpty(),
@@ -212,8 +222,10 @@ public final class ScrapHaulerTests {
                         AABB.ofSize(helper.absolutePos(DEPOT.above(lift)).getCenter(), 8, 8, 8))) {
                     if (entity.getItem().getItem() instanceof ScrapHaulerItem) {
                         items += entity.getItem().getCount();
-                        helper.assertTrue(ScrapHaulerItem.charge(entity.getItem()) == 5_000,
-                            "the dropped Hauler lost its charge: " + ScrapHaulerItem.charge(entity.getItem()));
+                        helper.assertTrue(ScrapHaulerItem.charge(entity.getItem()) == 1_200,
+                            "the dropped Hauler carries " + ScrapHaulerItem.charge(entity.getItem())
+                                + " FE; it went out with 5,000 and came home with 1,200, so anything "
+                                + "else is charge invented or lost by the order of the drop");
                     }
                 }
                 helper.assertTrue(items == 1, "expected exactly one Scrap Hauler item on the ground, found " + items);

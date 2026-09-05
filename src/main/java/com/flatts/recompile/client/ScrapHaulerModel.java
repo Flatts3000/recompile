@@ -63,16 +63,21 @@ public class ScrapHaulerModel extends EntityModel<ScrapHaulerRenderState> {
     }
 
     /**
-     * The silhouette under review, chosen at launch: {@code -Drecompile.hauler.silhouette=N}.
+     * The shipped silhouette (owner, 2026-09-05: 0, the one every screenshot has shown).
      *
-     * <p><b>This is the texgen candidate directory, for geometry.</b> The owner asked for options on
-     * the model rather than one take, and a model cannot go on the texture review page; what it can
-     * do is be photographed in a dev client three times. Every silhouette keeps the SAME box
-     * dimensions and differs only in where the parts sit, so one procedurally painted skin fits all
-     * of them and the UV contract in the class javadoc holds for every candidate. The default, 0,
-     * is what ships; when the owner picks, that number becomes 0 and this knob can go.
+     * <p><b>This was the texgen candidate directory, for geometry.</b> The owner asked for options on
+     * the model rather than one take, and a model cannot go on the texture review page; what it can do
+     * is be photographed in a dev client three times. It was selected at launch with
+     * {@code -Drecompile.hauler.silhouette=N} while that review was open. <b>The knob is gone now the
+     * pick is made</b> - a system property that changes a shipped model is a thing a player can set by
+     * accident, and a review instrument has no business surviving the review.
+     *
+     * <p>{@link #createBodyLayer(int)} keeps all three, because every silhouette holds the SAME box
+     * dimensions and differs only in where the parts sit: one skin fits all of them, the UV contract in
+     * the class javadoc holds for every one, and the two that lost are the record of what was
+     * considered rather than dead weight.
      */
-    static final int SILHOUETTE = Integer.getInteger("recompile.hauler.silhouette", 0);
+    static final int SILHOUETTE = 0;
 
     public static LayerDefinition createBodyLayer() {
         return createBodyLayer(SILHOUETTE);

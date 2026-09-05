@@ -163,6 +163,18 @@ public class ScrapHaulerGoal extends Goal {
                 intakeCooldown--;
                 return;
             }
+            // AFFORDABILITY IS NOT A REASON TO BLACKLIST. FLAT_BELOW is the price of the CHEAPEST
+            // takeable block (a trash bag, 40 FE), so a Hauler holding 50 is not "flat" and will still
+            // drive to a Block of Garbage it cannot pay the 60 for. take() refuses, and this used to
+            // read that as a bad pile and bin a perfectly good one for twenty seconds - then pick the
+            // next, fail the same way, and grind through its own field all night with no sun to climb
+            // out on, humming the whole time.
+            if (hauler.charge() < ScrapHaulerEntity.costOf(level.getBlockState(target))) {
+                hauler.setMode(ScrapHaulerEntity.Mode.PARKED_FLAT);
+                hauler.getNavigation().stop();
+                target = null;
+                return;
+            }
             if (!hauler.take(level, target)) {
                 blacklist.put(target, BLACKLIST_TICKS);
             }

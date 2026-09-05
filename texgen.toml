@@ -598,7 +598,10 @@ prompt = "the same small tracked garbage robot but dead and broken: one tread to
 # MATERIAL, texgen downscales it to Minecraft pixels the way it does everything else, and the
 # hauler_skin style lays it into the layout it already controls to the pixel.
 [surface.scrap_hauler_plating]
-kind = "item"
+# NOT kind = "item". Vanilla's items atlas stitches textures/item/** across every namespace, so an
+# item-kinded material is baked into the item atlas for nothing - it is a generator input that no
+# model names. entity/ is loaded per file rather than atlased, which is what a material wants.
+kind = "entity"
 backend = "ai"
 size = 64
 prompt = """A flat top-down swatch of scuffed painted sheet steel from a small industrial work machine.
