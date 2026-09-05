@@ -89,9 +89,15 @@ public class TreeNurseryScreen extends LayoutScreen<TreeNurseryMenu> {
         return super.mouseClicked(event, doubleClick);
     }
 
+    /**
+     * The countdown, straight off the menu.
+     *
+     * <p>It used to be computed here from progress and total in TICKS, which was wrong twice over: the
+     * total came off the client's own COMMON config, which NeoForge does not sync, and neither number
+     * fitted the 16-bit wire once a pack raised {@code treeNurseryCookTicks} (#369). The server sends
+     * seconds now, because seconds are what this line prints.
+     */
     private int secondsLeft() {
-        int total = Math.max(1, this.menu.cookTotal());
-        int progress = Math.max(0, Math.min(this.menu.cookProgress(), total));
-        return (total - progress + 19) / 20;
+        return this.menu.secondsLeft();
     }
 }

@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.market;
 
 import com.flatts.recompile.registry.RCAttachments;
+import com.flatts.recompile.content.menu.WideSync;
 import com.flatts.recompile.registry.RCDataMaps;
 import com.flatts.recompile.registry.RCTags;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -81,12 +82,12 @@ public final class Market {
      * {@link #fromSync}. See {@code BalanceSync}, which is the only caller.
      */
     public static int syncLow(int balance) {
-        return balance & 0xFFFF;
+        return WideSync.low(balance);
     }
 
     /** The high 16 bits of a balance. */
     public static int syncHigh(int balance) {
-        return (balance >>> 16) & 0xFFFF;
+        return WideSync.high(balance);
     }
 
     /**
@@ -94,9 +95,13 @@ public final class Market {
      *
      * <p>Both are masked because {@code readShort} sign-extends: a low half of 59,392 arrives as
      * -6,144, and adding that to a shifted high half would come out short by 65,536.
+     *
+     * <p>The arithmetic moved to {@link WideSync} when #369 found four more gauges with the same
+     * problem. These three stay as the market's own vocabulary, and because
+     * {@code MarketBalanceSyncTest} proves the balance specifically.
      */
     public static int fromSync(int low, int high) {
-        return ((high & 0xFFFF) << 16) | (low & 0xFFFF);
+        return WideSync.combine(low, high);
     }
 
     // ---------------- selling ----------------

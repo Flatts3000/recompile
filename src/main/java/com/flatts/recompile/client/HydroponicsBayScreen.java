@@ -36,6 +36,7 @@ public class HydroponicsBayScreen extends LayoutScreen<HydroponicsBayMenu> {
             running ? GuiTheme.WATER : GuiTheme.WATER_IDLE);
         painter.gauge("power", this.menu.energy(), this.menu.energyCapacity(),
             running ? GuiTheme.POWER : GuiTheme.POWER_IDLE);
+        // Both already thousandths: the server scaled the proportion, because ticks do not fit a slot.
         painter.arrow("grow", this.menu.progress(), this.menu.goal());
     }
 

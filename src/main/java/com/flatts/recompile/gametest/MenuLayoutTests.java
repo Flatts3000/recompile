@@ -64,6 +64,25 @@ final class MenuLayoutTests {
      * fails the whole mod to load. A lambda defers the load to when the test actually runs, which is what
      * the previous version of this list was accidentally doing by holding only factories.
      */
+    /** How many data slots a menu's ContainerData carries, for a failure message that names the cause. */
+    private static int menuDataCount(AbstractContainerMenu menu) {
+        for (java.lang.reflect.Field field : menu.getClass().getDeclaredFields()) {
+            if (!net.minecraft.world.inventory.ContainerData.class.isAssignableFrom(field.getType())) {
+                continue;
+            }
+            try {
+                field.setAccessible(true);
+                Object value = field.get(menu);
+                if (value instanceof net.minecraft.world.inventory.ContainerData data) {
+                    return data.getCount();
+                }
+            } catch (ReflectiveOperationException | RuntimeException ignored) {
+                // Best effort: this only enriches a message that is already failing.
+            }
+        }
+        return -1;
+    }
+
     private record Screen(String name, Supplier<ScreenLayout> layoutSource,
             Function<Inventory, AbstractContainerMenu> factory) {
 
@@ -280,6 +299,54 @@ final class MenuLayoutTests {
          * With this passing, "no hardcoded slot coordinate" is enforced rather than asked for: a menu
          * that types a number is a menu whose slots no longer match what the screen will draw under them.
          */
+        RCGameTests.test("every_menu_reads_every_value_it_exposes", 20, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            int readers = 0;
+            for (Screen screen : SCREENS) {
+                AbstractContainerMenu menu = screen.factory().apply(player.getInventory());
+
+                // Build the menu the way the CLIENT does - its own SimpleContainerData, not the block
+                // entity's - then ask it for everything a screen could ask it for.
+                //
+                // This exists because of a real failure that both test layers walked straight past.
+                // #369 widened the Tree Nursery from five data slots to seven, and its client-side
+                // constructor sized its data with a literal 5 rather than the constant. Every layout
+                // assertion still passed, because they measure GEOMETRY and never read a slot; the
+                // screen then threw IndexOutOfBoundsException on the render thread the moment it
+                // opened, and it took a runClient to see it.
+                //
+                // The readers are found by reflection rather than listed, because a hand-list of
+                // accessors goes stale exactly when someone adds a gauge, which is the case this is
+                // meant to catch.
+                for (java.lang.reflect.Method method : menu.getClass().getMethods()) {
+                    if (method.getParameterCount() != 0
+                            || method.getReturnType() != int.class
+                            || method.getDeclaringClass() == Object.class
+                            || method.getDeclaringClass() == AbstractContainerMenu.class) {
+                        continue;
+                    }
+                    try {
+                        method.invoke(menu);
+                        readers++;
+                    } catch (java.lang.reflect.InvocationTargetException failure) {
+                        helper.fail(screen.name() + "." + method.getName() + "() threw "
+                            + failure.getCause() + "; a screen calling it would take the client down. "
+                            + "Its ContainerData holds " + menuDataCount(menu) + " slot(s)");
+                    } catch (IllegalAccessException unreachable) {
+                        helper.fail(screen.name() + "." + method.getName() + "() is not callable");
+                    }
+                }
+            }
+            // Counted across the whole sweep, not per menu: the Scrap Crafting Station is a crafting
+            // grid with no gauges and legitimately exposes nothing to read, and asserting per menu
+            // failed on exactly that. What has to hold is that the reflection filter finds SOMETHING,
+            // or this test would go quietly vacuous the day a filter clause stops matching.
+            helper.assertTrue(readers > 0,
+                "the sweep read no accessors on any menu, so it proves nothing; the reflection "
+                    + "filter has stopped matching");
+            helper.succeed();
+        });
+
         RCGameTests.test("every_menu_slot_comes_from_its_layout", 20, helper -> {
             List<String> wrong = new ArrayList<>();
             forEachScreen(helper, (screen, menu) -> {
