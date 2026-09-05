@@ -171,8 +171,7 @@ final class GarbageVacuumTests {
     }
 
     static void register() {
-        // The type gate. Derived by class, so a pile is taken and a stone beside it is not, and the
-        // block leaves the world without dropping itself on the floor - the entity carries it.
+
         RCGameTests.test("every_vacuum_tier_has_all_three_of_its_sounds", 20, helper -> {
             // Twelve events, and a missing one is SILENT: an unregistered id throws where it is
             // played, but a registered id with no sounds.json entry or no file behind it just does
@@ -185,8 +184,15 @@ final class GarbageVacuumTests {
 
             for (VacuumTier tier : VacuumTier.LADDER) {
                 for (String phase : java.util.List.of("rev_up", "sustain", "rev_down")) {
-                    helper.assertTrue(RCSounds.vacuum(tier, phase) != null,
-                        tier.name() + "/" + phase + " is not registered");
+                    // Called for its THROW rather than its value: an unknown key raises, and a
+                    // registered-but-unbound holder raises from get(), so a null check here could never
+                    // fail and an actual gap would surface as a raw exception rather than as the
+                    // message it was given.
+                    try {
+                        RCSounds.vacuum(tier, phase);
+                    } catch (RuntimeException missing) {
+                        helper.fail(tier.name() + "/" + phase + " is not registered: " + missing);
+                    }
 
                     String event = "item.garbage_vacuum." + tier.name() + "." + phase;
                     helper.assertTrue(json.has(event), "sounds.json has no entry for " + event);
@@ -210,6 +216,8 @@ final class GarbageVacuumTests {
             helper.succeed();
         });
 
+        // The type gate. Derived by class, so a pile is taken and a stone beside it is not, and the
+        // block leaves the world without dropping itself on the floor - the entity carries it.
         RCGameTests.test("the_vacuum_takes_a_pile_and_leaves_the_stone_beside_it", 20, helper -> {
             helper.setBlock(AIM, RCBlocks.GARBAGE_BLOCK.get());
             helper.setBlock(AIM.east(), Blocks.STONE);

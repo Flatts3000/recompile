@@ -181,12 +181,6 @@ public class GarbageVacuumItem extends Item {
             return InteractionResult.FAIL;
         }
         if (level instanceof ServerLevel server) {
-            // The spin-up, on the CLICK. Server-side so everyone nearby hears it, and before the first
-            // intake so a tap is a rev-up and a rev-down rather than silence - which is what a tap used
-            // to be, because onUseTick never runs for one. The loop that follows is the client's
-            // (VacuumSoundInstance), and it winds itself down whichever way the hold ends.
-            server.playSound(null, player.getX(), player.getY(), player.getZ(),
-                RCSounds.vacuum(tier, "rev_up"), SoundSource.PLAYERS, 0.8F, 1.0F);
             Vec3 aim = aimPoint(player);
             Intake result = intakeOnce(server, player, stack, aim);
             if (result == Intake.TOO_TOUGH) {
@@ -206,6 +200,16 @@ public class GarbageVacuumItem extends Item {
                 player.sendOverlayMessage(Component.translatable("message.recompile.vacuum_flat"));
                 return InteractionResult.FAIL;
             }
+        }
+        // THE SPIN-UP, and only once the machine has agreed to run. It played at the top of the block
+        // above, BEFORE the two refusals - so aiming a copper vacuum at a pile out of its band, or
+        // clicking with 1 to 59 FE against a 60 FE block, played 0.45 s of spin-up that was then cut
+        // off mid-ramp with no sustain and no wind-down. A truncated half-sound is the exact shape
+        // #378 existed to remove. Server-side so everyone nearby hears it; the loop that follows is
+        // the client's, and winds itself down whichever way the hold ends.
+        if (level instanceof ServerLevel sound) {
+            sound.playSound(null, player.getX(), player.getY(), player.getZ(),
+                RCSounds.vacuum(tier, "rev_up"), SoundSource.PLAYERS, 0.8F, 1.0F);
         }
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;

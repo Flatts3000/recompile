@@ -40,8 +40,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * <p>The generator is {@code sfxgen} in {@code ../mc-pack-toolkit}, texgen's audio sibling, driven by
  * {@code sfxgen.toml} in this repo. Only the finished mono 44.1 kHz Ogg files are committed.
  *
- * <p>Four, deliberately, per the spec's core set: everything else the machine does falls back to a
- * vanilla sound at the call site, the way the rest of the mod already works.
+ * <p><b>Sixteen events: the Hauler's four and the Garbage Vacuum's twelve.</b> The Hauler's are the
+ * spec's core set and everything else it does still falls back to a vanilla sound at the call site,
+ * the way the rest of the mod works. The vacuum's are four tiers by three phases; see
+ * {@link #vacuum} for why that is not three events played at four pitches.
  */
 public final class RCSounds {
 
