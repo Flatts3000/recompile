@@ -290,8 +290,10 @@ final class SortingDataTests {
             // replaced by the single Dead Fridge, which yields all three components between them.
             // Seven since 2026-09-04: the Broken Terminal, which teaches both market terminals
             // (docs/market_spec.md), joined the spine at weight 1 beside the Broken Hydroponics Bay.
-            helper.assertTrue(out.size() == 17,
-                "Bulky Waste should offer seven spine finds, four windfall finds and six paintings, "
+            // Eight since 2026-09-05: the Broken Hauler (#376), which teaches the Scrap Hauler and
+            // its Depot the same way, at the same weight.
+            helper.assertTrue(out.size() == 18,
+                "Bulky Waste should offer eight spine finds, four windfall finds and six paintings, "
                     + "got " + out.size());
 
             // The paintings' pool is gated on random_chance, and a reader that ignored that would show

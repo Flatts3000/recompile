@@ -55,6 +55,13 @@ public class LeachateBlock extends LiquidBlock {
         if (!(entity instanceof LivingEntity living)) {
             return false;
         }
+        // THE SCRAP HAULER IS EXEMPT, EXPLICITLY (#376, spec section 6). It is a Mob for the navigation
+        // and so is a LivingEntity, and invulnerability does not cover this: sickening is a mob EFFECT,
+        // and effects ignore isInvulnerable entirely. Without this line an indestructible machine
+        // would still be poisoned by a puddle.
+        if (entity instanceof com.flatts.recompile.content.entity.ScrapHaulerEntity) {
+            return false;
+        }
         // A creative player is not the subject of a hazard, the same exemption the mining gate and
         // encroachment already make. Mobs that wander through a pond are affected exactly as a
         // survival player is.

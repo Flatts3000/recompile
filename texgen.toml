@@ -556,6 +556,68 @@ size = 16
 # silhouette is deliberately its sibling's.
 prompt = "a small pressed briquette of dark grey gunpowder, a squat rectangular block of compacted charcoal-grey granules with flat pressed faces and crisp edges, faint dark seams where the press closed, simple bold Minecraft item icon silhouette, centered, plain transparent background, no scene"
 
+# ---------------------------------------------------------------------------
+# THE SCRAP HAULER AND ITS DEPOT (#376, spec docs/scrap_hauler_spec.md). A small tracked robot that
+# gathers garbage blocks, and the depot block that deploys it. WALL-E is the project's named aesthetic
+# anchor and this is the most direct expression of it the mod ships, so the brief is: a squat,
+# boxy, weathered machine on treads, sun-bleached paint over grey metal, a single sensor head.
+# ---------------------------------------------------------------------------
+
+[surface.hauler_depot]
+kind = "block_multiface"
+backend = "ai"
+faces = ["top", "bottom", "side"]
+[surface.hauler_depot.prompt]
+top = "the top face of a squat industrial depot block for a small garbage robot: a recessed square docking pad in weathered grey sheet metal, ringed by a yellow-and-black hazard stripe, a faint grid of solar cells in the pad, scuffed and sun-bleached, flat orthographic Minecraft block face, 16x16 pixel art, no scene"
+bottom = "the underside of an industrial depot block: plain weathered grey sheet metal with four rivets at the corners and a faint drainage grille, flat orthographic Minecraft block face, 16x16 pixel art, no scene"
+side = "the side of a squat industrial depot block for a small garbage robot: weathered grey sheet metal panels with a riveted seam, a small dark ventilation louvre, a strip of sun-bleached yellow paint along the bottom edge, rust creeping up from the base, flat orthographic Minecraft block face, 16x16 pixel art, no scene"
+
+[surface.scrap_hauler]
+kind = "item"
+backend = "ai"
+prompt = "a small boxy tracked robot for collecting garbage, weathered grey and sun-bleached yellow metal, two rubber treads, a single square sensor head, a short front arm, WALL-E silhouette but original design, simple bold Minecraft item icon, centered, plain transparent background, no scene"
+
+[surface.broken_hauler]
+kind = "item"
+backend = "ai"
+reference = "scrap_hauler"
+prompt = "the same small tracked garbage robot but dead and broken: one tread torn off, hull dented and rusted, sensor head dark and cracked, wires hanging out, simple bold Minecraft item icon, centered, plain transparent background, no scene"
+
+# THE ENTITY SKIN IS PROCEDURAL, and it has to be: an entity texture is UV-mapped, and this is the
+# first entity here whose UV layout was not fixed by a vanilla model, so a generator would be
+# painting blind into a layout it knows nothing about. The painter reads the exact box layout the
+# Java model declares (ScrapHaulerModel: hull at (0,0) 12x8x14, head at (0,22) 8x5x6, arm at (28,22)
+# 2x2x6, treads at (0,33) 3x4x14, 64x64 atlas). kind = "entity": no crop, no downscale, quantize only.
+# The Scrap Hauler's plating, as MATERIAL rather than as a picture of a robot (owner, 2026-09-05:
+# "I would like the texture to be generated and downscaled to minecraft pixels").
+#
+# A model cannot draw an entity atlas. The Hauler's skin is a 64x64 unwrap whose regions sit wherever
+# the LayerDefinition put them - hull at 0,0, head at 0,22, arm at 28,22, treads at 0,33 - and asking
+# for that blind returns a picture of a robot rather than an atlas, which maps onto the boxes as noise.
+# What a model IS good at is what scuffed painted steel looks like up close. So this generates the
+# MATERIAL, texgen downscales it to Minecraft pixels the way it does everything else, and the
+# hauler_skin style lays it into the layout it already controls to the pixel.
+[surface.scrap_hauler_plating]
+# NOT kind = "item". Vanilla's items atlas stitches textures/item/** across every namespace, so an
+# item-kinded material is baked into the item atlas for nothing - it is a generator input that no
+# model names. entity/ is loaded per file rather than atlased, which is what a material wants.
+kind = "entity"
+backend = "ai"
+size = 64
+prompt = """A flat top-down swatch of scuffed painted sheet steel from a small industrial work machine.
+Close up on the metal itself: shallow dents, scratched paint showing bare metal underneath, a few rivet
+heads, faint grime settled in the low spots, light rust blooming at the edges. Neutral grey-brown
+industrial paint, matte, no gloss. Even lighting, no strong shadow, no object in frame - this is the
+surface of the panel and nothing else."""
+
+[surface.scrap_hauler_skin]
+kind = "entity"
+backend = "procedural"
+size = 64
+[surface.scrap_hauler_skin.procedural]
+style = "hauler_skin"
+material = "scrap_hauler_plating"
+
 [surface.roach]
 kind = "entity"
 backend = "procedural"

@@ -141,6 +141,7 @@ public final class RCGameTests {
         WorkstationTests.register();
         GarbageVacuumTests.register();
         MarketTests.register();
+        ScrapHaulerTests.register();
         RegistryCompletenessTests.register();
         RegistryCompletenessTests.registerBlockstateCoverage();
 

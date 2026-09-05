@@ -82,6 +82,8 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue HYDROPONICS_FE_PER_TICK;
     public static final ModConfigSpec.IntValue HYDROPONICS_TANK_CAPACITY;
     public static final ModConfigSpec.IntValue HYDROPONICS_YIELD;
+    // ---- The Scrap Hauler (#376) ----
+    public static final ModConfigSpec.IntValue HAULER_MAX_CHUNK_RADIUS;
     public static final ModConfigSpec.BooleanValue VEGETATION_ENABLED;
     public static final ModConfigSpec.BooleanValue FERTILIZER_GROWTH_ENABLED;
     public static final ModConfigSpec.IntValue FERTILIZER_ATTEMPTS;
@@ -369,6 +371,12 @@ public final class RCConfig {
         // The demolition-yard machines. Their own section rather than a corner of [reclamation] -
         // the Cupola is an iron-tier machine and a server owner tuning it would look anywhere else.
         builder.push("machines");
+        HAULER_MAX_CHUNK_RADIUS = builder
+            .comment("The largest work area a Hauler Depot may be set to, as a CHUNK radius: 0 is the",
+                "Depot's own chunk, 1 is 3x3 chunks, 2 is 5x5. The setting itself lives in the Depot's",
+                "screen and is clamped to this. Each step is a bigger heightmap scan per search, so this",
+                "is a server-cost dial as much as a balance one.")
+            .defineInRange("haulerMaxChunkRadius", 2, 0, 8);
         CUPOLA_SMELTS_PER_SLAG = builder
             .comment("Smelts the Cupola completes per Slag it rakes off. 0 disables slag entirely.",
                 "8 is roughly the real ratio: an electric arc furnace makes 100-150kg of slag per",

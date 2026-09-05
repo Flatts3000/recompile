@@ -30,5 +30,6 @@ public final class RCMenuScreens {
         event.register(RCMenus.TREE_NURSERY.get(), TreeNurseryScreen::new);
         event.register(RCMenus.SELL_TERMINAL.get(), SellTerminalScreen::new);
         event.register(RCMenus.BUY_TERMINAL.get(), BuyTerminalScreen::new);
+        event.register(RCMenus.HAULER_DEPOT.get(), HaulerDepotScreen::new);
     }
 }

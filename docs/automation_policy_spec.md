@@ -61,6 +61,13 @@ each tells the player how to feed it. They were built by copying each other, whi
 agree and also how they came apart: the Pulverizer shipped with zero Jade providers against the
 Separator's four, and only an audit found it.
 
+**The Scrap Hauler is the first MOBILE collector, and this table's row shape does not describe it.**
+Every row here is a placed block with faces. The Hauler is an entity (#376, spec
+`docs/scrap_hauler_spec.md`): it exposes no `Container`, no item capability and no energy capability
+to anything in the world - it takes whole garbage blocks and hands them to its Depot, and that is all.
+So it gets no row of its own, and the **Hauler Depot** row below is the whole of its automation
+surface: feed the Depot power, drain the Depot's hold, and nothing else about the machine is
+reachable.
 
 | Block | Backing type | Hoppers | Pipes | Policy |
 |---|---|---|---|---|
@@ -78,6 +85,7 @@ Separator's four, and only an audit found it.
 | **Water Tank** | plain `BlockEntity` | n/a | fluid only, **both directions** | The one component that is not inert (#229, owner ruling from playtest: a part named for a CAPACITY that holds nothing reads as broken). `Capabilities.Fluid.BLOCK` on every side, insert and extract, because it is a store rather than a source or a sink. Holds no items, so no item capability. It had no row here, which is the same gap the Hydroponics Bay row records for itself. |
 | **Display Pedestal** | plain `BlockEntity` | **none** | **none** | Holds one item and is **never hopper-fed** by design - placing and taking is the interaction. |
 | **Charging Station** | plain `BlockEntity` | **none** | **none** | The pedestal's terms, plus power (#336): holds one Garbage Vacuum, set down and picked up by hand, no `Container` and no item capability so neither a hopper nor a pipe can lift the tool off the dock. **Energy IS exposed** (`Capabilities.Energy.BLOCK`, insert-only), the Sequencer's shape, because it has to be fed. It charges the docked item through `Capabilities.Energy.ITEM` - the first item capability in the mod - so the door any other charger would use is the door this block proves every tick. |
+| **Hauler Depot** | `WorldlyContainer` (1 Hauler slot + 27 hold slots) | **hold in + out; Hauler slot none** | **hold in + out; Hauler slot none**, **null side refused**, plus **energy in** | The Charging Station's terms for the tool and the Scrap Barrel's for the hold, in one block (#376). `getSlotsForFace` returns the 27 hold slots on every face and **never slot 0**, and `canTakeItemThroughFace` refuses slot 0 besides, so no face can lift the Hauler out in either direction, deployed or not - the third conservation row. `canPlaceItem` gates the hold to items with `SortableBlock.sortRolls > 0` and slot 0 to a Hauler while none is deployed; it is on the container, so the hand, the hopper and the pipe read one rule. A **non-sided** query gets no handler, the Burner Generator's pattern. **Energy IS exposed** (`Capabilities.Energy.BLOCK`, insert-only) and reaches the docked item through `Capabilities.Energy.ITEM`, the station's door. In `#scrap_connectable` as a **SOURCE**: it pushes the hold into the cluster one slot per tick, round-robin, so the hold is a surge tank rather than storage. `a_hopper_can_drain_the_hold_but_never_the_hauler` and `the_depot_pushes_its_hold_into_a_connected_barrel` pin both halves. |
 | **Compost Heap**, **Recompile Workbench**, **Scrap Crafting Table** | plain `BlockEntity` | n/a | n/a | Not `Container`s. Nothing to expose. |
 | **Separator** | *no container at all* | **none** | **none** | Closed on both doors, and it **joined `#scrap_connectable` anyway** (2026-08-03) without opening either. It is a SOURCE: it pushes separated material into the cluster and can never receive, because routing only ever lands in a Scrap Bin or the Scrap Barrel by block id and this machine has no `Container` to land in. Its formed cells are RELAYs, in the tag only so a bin against any face of the machine joins the cluster. **Being reachable and being writable are different questions** - the machine reaches out at both ends (it swallows what lands in its bay, drains a container on it, and pushes into the network or its chute) and is still reachable-into by nothing. |
 | **Trommel** | *no container at all* | **none** | **none** | Same terms as the Separator, and for the same reason. It swallows loose items along the drum, drains a container parked on it, and discharges off the END of the drum at drum height - into a container if one is there, thrown clear if not. A SOURCE in the network; its formed cells are RELAYs. Took automated sorting off the Separator in #187. |
@@ -116,6 +124,13 @@ satisfy the sweep and still get its faces wrong.
 5. **Test the null side.** Not just `Direction.values()`.
 
 ## Changelog
+
+- **2026-09-05** - The Hauler Depot (#376) added a row, and a paragraph above the table for the thing
+  it made necessary: the Scrap Hauler is the first collector here that is not a placed block, and the
+  table has no shape for an entity. It did not need one - the entity exposes nothing, and its Depot
+  is the whole automation surface. The row itself is the Charging Station's and the Scrap Barrel's
+  terms fused: a slot no face can reach, a hold every face can, energy in, and a SOURCE in the
+  network.
 
 - **2026-09-03** - The **Tree Nursery** was opened to hoppers and pipes, reversing its manual-only row.
   It came from a playtester asking whether items could be supplied that way (`#trashlands-playtest`);

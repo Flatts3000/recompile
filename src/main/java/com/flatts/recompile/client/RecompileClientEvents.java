@@ -31,5 +31,13 @@ public final class RecompileClientEvents {
         // A garbage block in flight to a vacuum (#336). An ENTITY renderer, so it costs no rule: the
         // block-entity-renderer exception stays scoped to the pedestal.
         event.registerEntityRenderer(RCEntities.VACUUMED_BLOCK.get(), VacuumedBlockRenderer::new);
+        // The Scrap Hauler (#376): the first entity here with geometry of its own.
+        event.registerEntityRenderer(RCEntities.SCRAP_HAULER.get(), ScrapHaulerRenderer::new);
+    }
+
+    /** The Hauler's mesh, baked once. Both existing entities borrow a vanilla layer and need nothing here. */
+    @SubscribeEvent
+    static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(ScrapHaulerModel.LAYER, ScrapHaulerModel::createBodyLayer);
     }
 }

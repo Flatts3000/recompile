@@ -19,6 +19,7 @@
     "recompile:trommel_stand",
     "recompile:trommel_chute",
     "recompile:pulverizer",
-    "recompile:pulverizer_housing"
+    "recompile:pulverizer_housing",
+    "recompile:hauler_depot"
   ]
 }

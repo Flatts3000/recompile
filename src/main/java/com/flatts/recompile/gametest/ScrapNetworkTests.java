@@ -97,6 +97,11 @@ final class ScrapNetworkTests {
             // into the cluster and can never be routed into, having no Container and no item handler.
             roles.put(RCBlocks.PULVERIZER.get(), "SOURCE");
             roles.put(RCBlocks.PULVERIZER_HOUSING.get(), "RELAY");
+            // The Hauler Depot (#376) is a SOURCE on the Trommel's terms: it pushes what the Hauler
+            // brings back into whatever bin or barrel shares a face, continuously, and the hold is
+            // only a surge tank for when downstream is backed up. The membership IS the feature -
+            // the spec's whole "close the chain" argument rests on this line being in the tag.
+            roles.put(RCBlocks.HAULER_DEPOT.get(), "SOURCE");
 
             List<String> undeclared = new ArrayList<>();
             int members = 0;

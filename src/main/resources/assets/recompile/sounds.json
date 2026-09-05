@@ -1,0 +1,26 @@
+{
+  "entity.scrap_hauler.idle": {
+    "subtitle": "subtitles.recompile.entity.scrap_hauler.idle",
+    "sounds": [
+      "recompile:entity/scrap_hauler/idle"
+    ]
+  },
+  "entity.scrap_hauler.pickup": {
+    "subtitle": "subtitles.recompile.entity.scrap_hauler.pickup",
+    "sounds": [
+      "recompile:entity/scrap_hauler/pickup"
+    ]
+  },
+  "entity.scrap_hauler.deploy": {
+    "subtitle": "subtitles.recompile.entity.scrap_hauler.deploy",
+    "sounds": [
+      "recompile:entity/scrap_hauler/deploy"
+    ]
+  },
+  "entity.scrap_hauler.recall": {
+    "subtitle": "subtitles.recompile.entity.scrap_hauler.recall",
+    "sounds": [
+      "recompile:entity/scrap_hauler/recall"
+    ]
+  }
+}

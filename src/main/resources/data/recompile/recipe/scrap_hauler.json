@@ -1,0 +1,26 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "_comment": [
+    "THE SCRAP HAULER (#376): this mod's quarry, in the hand. Blueprint-gated (ruling 12), and the",
+    "bill of materials is where the quarry's price lives alongside its rate: a Battery, which is the",
+    "battery chain end to end; a Motor, the rarest component; a Bulb for the sensor head; rubber for",
+    "the treads, which is the tire dumps; and a Machine Frame. First-pass; tuning belongs with #36."
+  ],
+  "blueprint": "recompile:scrap_hauler",
+  "key": {
+    "B": "recompile:bulb",
+    "S": "recompile:scrap_metal",
+    "M": "recompile:motor",
+    "A": "recompile:battery",
+    "R": "recompile:rubber_scrap",
+    "F": "recompile:machine_frame"
+  },
+  "pattern": [
+    " B ",
+    "SMA",
+    "RFR"
+  ],
+  "result": {
+    "item": "recompile:scrap_hauler"
+  }
+}

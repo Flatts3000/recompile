@@ -1,0 +1,24 @@
+{
+  "type": "recompile:blueprint_crafting",
+  "_comment": [
+    "THE HAULER DEPOT (#376): where a Scrap Hauler lives. Blueprint-gated (ruling 12). Plating for",
+    "the shell, a Machine Frame, a Battery for the buffer it charges the Hauler from, and copper pipe",
+    "for the bus the generators feed. Deliberately no Solar Panel: RF is optional (ruling 8) because",
+    "the docked Hauler trickles from sky light on its own, so the Depot does not need to carry one."
+  ],
+  "blueprint": "recompile:hauler_depot",
+  "key": {
+    "P": "recompile:scrap_plating",
+    "C": "recompile:copper_pipe",
+    "F": "recompile:machine_frame",
+    "A": "recompile:battery"
+  },
+  "pattern": [
+    "PCP",
+    "PFP",
+    "PAP"
+  ],
+  "result": {
+    "item": "recompile:hauler_depot"
+  }
+}

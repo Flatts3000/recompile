@@ -3,6 +3,7 @@ package com.flatts.recompile.registry;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.entity.PigeonEntity;
 import com.flatts.recompile.content.entity.RoachEntity;
+import com.flatts.recompile.content.entity.ScrapHaulerEntity;
 import com.flatts.recompile.content.entity.VacuumedBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -77,6 +78,23 @@ public final class RCEntities {
             .fireImmune()
             .build(VACUUMED_BLOCK_KEY));
 
+    private static final ResourceKey<EntityType<?>> SCRAP_HAULER_KEY = ResourceKey.create(
+        Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "scrap_hauler"));
+
+    /**
+     * The Scrap Hauler at work (#376): {@link MobCategory#MISC}, so a machine never eats spawn cap,
+     * and never in any spawner list - it only ever exists because a Depot deployed it. Fire-immune
+     * because it is indestructible anyway and should not visibly burn. About a block (ruling 27).
+     */
+    public static final Supplier<EntityType<ScrapHaulerEntity>> SCRAP_HAULER = ENTITIES.register(
+        "scrap_hauler",
+        () -> EntityType.Builder.of(ScrapHaulerEntity::new, MobCategory.MISC)
+            .sized(0.9F, 0.9F)
+            .eyeHeight(0.7F)
+            .clientTrackingRange(10)
+            .fireImmune()
+            .build(SCRAP_HAULER_KEY));
+
     private RCEntities() {
     }
 
@@ -88,5 +106,6 @@ public final class RCEntities {
     private static void onAttributes(EntityAttributeCreationEvent event) {
         event.put(ROACH.get(), RoachEntity.createAttributes().build());
         event.put(PIGEON.get(), PigeonEntity.createAttributes().build());
+        event.put(SCRAP_HAULER.get(), ScrapHaulerEntity.createAttributes().build());
     }
 }

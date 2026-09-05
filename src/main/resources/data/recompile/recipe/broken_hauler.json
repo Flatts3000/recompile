@@ -1,0 +1,51 @@
+{
+  "type": "recompile:teardown",
+  "input": "recompile:broken_hauler",
+  "station": "recompile:workbench",
+  "tool": "recompile:prybar",
+  "ticks": 120,
+  "pools": [
+    {
+      "_comment": [
+        "A dead Scrap Hauler, found in Bulky Waste: the hull, the board, the tread rubber. Four",
+        "draws, no filler, so a teardown always hands something back.",
+        "",
+        "NO COMPONENT IN THIS POOL, the Broken Terminal's rule: the thing that yields a component is",
+        "meant to be the thing that teaches it (ComponentBlueprintTests), and this teaches the two",
+        "machine sheets instead - declared at the top level so the fragments are granted without the",
+        "pool having to draw the thing they teach. ONE FIND, TWO SHEETS, exactly as broken_terminal."
+      ],
+      "rolls": 4,
+      "entries": [
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 3
+        },
+        {
+          "item": "recompile:e_scrap",
+          "weight": 2
+        },
+        {
+          "item": "recompile:rubber_scrap",
+          "weight": 2
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "teaches": [
+    {
+      "recipe": "recompile:scrap_hauler",
+      "chance": 1.0,
+      "scraps_required": 4
+    },
+    {
+      "recipe": "recompile:hauler_depot",
+      "chance": 1.0,
+      "scraps_required": 4
+    }
+  ]
+}

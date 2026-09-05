@@ -7,6 +7,7 @@ import com.flatts.recompile.content.item.AnimalBaitItem;
 import com.flatts.recompile.content.item.CuttingTorchItem;
 import com.flatts.recompile.content.item.FertilizerItem;
 import com.flatts.recompile.content.item.GarbageVacuumItem;
+import com.flatts.recompile.content.item.ScrapHaulerItem;
 import com.flatts.recompile.content.item.OpenedCanItem;
 import com.flatts.recompile.content.item.UnknownSeedlingItem;
 import com.flatts.recompile.content.item.SealedCanItem;
@@ -86,6 +87,14 @@ public final class RCItems {
      */
     public static final DeferredItem<Item> DEPLETED_BATTERY =
         ITEMS.registerItem("depleted_battery", Item::new);
+
+    /**
+     * A Scrap Hauler that will never run again (#376): the find both the Hauler and its Depot are
+     * learned from, the Broken Terminal's shape - one find, two sheets. A plain item, like the
+     * Depleted Battery, rather than a placeable carcass.
+     */
+    public static final DeferredItem<Item> BROKEN_HAULER =
+        ITEMS.registerItem("broken_hauler", Item::new);
 
     /**
      * Battery: the second CRAFTING component, and the power cell the Garbage Vacuum and the Charging
@@ -624,6 +633,14 @@ public final class RCItems {
     public static final List<DeferredItem<GarbageVacuumItem>> GARBAGE_VACUUMS = List.of(
         COPPER_GARBAGE_VACUUM, IRON_GARBAGE_VACUUM, DIAMOND_GARBAGE_VACUUM, NETHERITE_GARBAGE_VACUUM);
 
+    /**
+     * The Scrap Hauler (#376, spec {@code docs/scrap_hauler_spec.md}): this mod's quarry, in the hand.
+     * A Hauler Depot deploys it as an entity; it is never a block. The second powered item, on the
+     * vacuum's terms. Blueprint-gated, taught by tearing down a Broken Hauler.
+     */
+    public static final DeferredItem<ScrapHaulerItem> SCRAP_HAULER = ITEMS.registerItem(
+        "scrap_hauler", ScrapHaulerItem::new);
+
     // The Cutting Torch: cuts Steel I-Beams (a sledgehammer cannot - you crush concrete, you cut steel).
     // Single tool, not a tier ladder. Durability is its fuel tank (v1); the Oily Rag in its recipe is the
     // fuel. Iron in the recipe gates it one step past first-iron (rebar bootstrap).
@@ -956,6 +973,8 @@ public final class RCItems {
         ITEMS.registerSimpleBlockItem("display_pedestal", RCBlocks.DISPLAY_PEDESTAL);
     public static final DeferredItem<BlockItem> CHARGING_STATION =
         ITEMS.registerSimpleBlockItem("charging_station", RCBlocks.CHARGING_STATION);
+    public static final DeferredItem<BlockItem> HAULER_DEPOT =
+        ITEMS.registerSimpleBlockItem("hauler_depot", RCBlocks.HAULER_DEPOT);
     public static final DeferredItem<BlockItem> SCRAP_BARREL =
         ITEMS.registerSimpleBlockItem("scrap_barrel", RCBlocks.SCRAP_BARREL);
     public static final DeferredItem<BlockItem> SCRAP_BIN =
