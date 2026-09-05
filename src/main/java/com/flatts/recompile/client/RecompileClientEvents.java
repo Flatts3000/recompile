@@ -4,7 +4,9 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCEntities;
 import net.neoforged.api.distmarker.Dist;
+import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
@@ -20,6 +22,21 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 public final class RecompileClientEvents {
 
     private RecompileClientEvents() {
+    }
+
+    /**
+     * Drives the Garbage Vacuum's running loop (#378).
+     *
+     * <p>A poll rather than a packet: whether a player is using an item is already synced, so every
+     * client can see every nearby vacuum start and stop by looking, and the mod ships no networking
+     * for it at all. See {@link VacuumSoundInstance} for why the loop lives on the client.
+     */
+    @SubscribeEvent
+    static void onClientTick(ClientTickEvent.Post event) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level != null && !client.isPaused()) {
+            VacuumSoundInstance.tickAll(client.level);
+        }
     }
 
     @SubscribeEvent

@@ -1,6 +1,10 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.item.VacuumTier;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -62,6 +66,41 @@ public final class RCSounds {
 
     /** The Depot taking it back. */
     public static final Supplier<SoundEvent> HAULER_RECALL = register("entity.scrap_hauler.recall");
+
+    /**
+     * The Garbage Vacuum, three phases per tier (#378).
+     *
+     * <p><b>Twelve events rather than three played at four pitches.</b> Minecraft's pitch argument
+     * resamples, so raising a sound shortens it AND brightens it - and the vacuum's ladder rises by
+     * how much air it moves rather than by pitch, which is the whole character of the `heavy` voice.
+     * Pitch-shifting would undo at the top tier exactly what that voice was picked for. Generating
+     * twelve costs nothing; there are no files to source.
+     */
+    private static final Map<String, Supplier<SoundEvent>> VACUUM = registerVacuum();
+
+    private static Map<String, Supplier<SoundEvent>> registerVacuum() {
+        Map<String, Supplier<SoundEvent>> out = new HashMap<>();
+        for (VacuumTier tier : VacuumTier.LADDER) {
+            for (String phase : List.of("rev_up", "sustain", "rev_down")) {
+                String name = "item.garbage_vacuum." + tier.name() + "." + phase;
+                out.put(tier.name() + "." + phase, register(name));
+            }
+        }
+        return Map.copyOf(out);
+    }
+
+    /**
+     * One phase of one tier. Keyed off the tier's own name so a fifth tier needs nothing here.
+     *
+     * @param phase one of {@code rev_up}, {@code sustain}, {@code rev_down}
+     */
+    public static SoundEvent vacuum(VacuumTier tier, String phase) {
+        Supplier<SoundEvent> event = VACUUM.get(tier.name() + "." + phase);
+        if (event == null) {
+            throw new IllegalArgumentException("no vacuum sound for " + tier.name() + "/" + phase);
+        }
+        return event.get();
+    }
 
     private RCSounds() {
     }

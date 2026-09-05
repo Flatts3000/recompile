@@ -203,9 +203,15 @@ ONE BlockEntityRenderer. Entity renderers are ordinary here (Roach, Pigeon), so:
   vanilla's own `submitMovingBlock` path, scaled about its centre by distance to the mouth. The world
   block is gone the instant it is taken, so whatever stood on it falls while this flies.
 - **Dust and air.** Client-side block particles stream from the piles in range into the nozzle;
-  a puff at the mouth says the vacuum is on even over bare ground. Sound is vanilla's breeze-air
-  loop, a pop per block taken and a pickup on arrival; a bespoke suction loop would need an `.ogg`
-  the art pipeline does not produce, and is a follow-up if the vanilla sounds read wrong.
+  a puff at the mouth says the vacuum is on even over bare ground. **Sound is three synthesised
+  phases per tier** (#378) - a rev-up on the click, a client-side looping sustain, a rev-down
+  however the hold ends - replacing the one vanilla breeze-air
+  loop, plus a pop per block taken and a pickup on arrival. *(That sentence went on to say a bespoke
+  suction loop "would need an `.ogg` the art pipeline does not produce". It does now: `sfxgen` in
+  mc-pack-toolkit synthesises them, and twelve ship - four tiers by three phases. The ladder rises by
+  how much AIR the machine moves rather than by pitch, which is also why it is twelve files and not
+  one set played at four pitches: the game resamples, and resampling upward brightens exactly the
+  character the voice was chosen for.)*
 - **Delivery is a contract, not a hope.** The entity delivers to the owner's inventory (or drops at
   their feet when full) on arrival or at an 80-tick timeout, drops where it is if the owner is gone,
   and re-resolves its owner by UUID after a reload. `a_vacuumed_block_arrives_in_the_owners_inventory`
