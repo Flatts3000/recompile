@@ -1,0 +1,24 @@
+{
+  "type": "recompile:market_offer",
+  "_comment": [
+    "THE MACE'S HEAD, SOLD AS THE THING (owner, 2026-09-04), and the second object in the",
+    "mod to enter the world by purchase. A heavy core drops from a trial chamber vault and",
+    "no trial chamber generates here, so nothing else can produce one at any price - the",
+    "same reasoning as the totem, and the same reason it is on a shelf rather than in a",
+    "loot table.",
+    "",
+    "IT SELLS THE COMPONENT, NOT THE WEAPON. The other half of a mace is a breeze rod, and",
+    "this world already makes those: four GUNPOWDER press into a PROPELLANT Briquette and the",
+    "Sintering Kiln fires that. (Not the Blaze Briquette, which is four blaze powder and fires",
+    "into a blaze ROD - a different chain that does not help here.) So one purchase re-opens a",
+    "chain that is otherwise complete,",
+    "which is a better shape than selling the finished mace and skipping the kiln.",
+    "",
+    "DEARER THAN THE TOTEM, which is the top of the shelf otherwise. The totem's 2,500 is a",
+    "price you pay again every time it saves you; this is paid once and the weapon is kept.",
+    "Priced per game rather than per death. First-pass; tuning belongs with the balance",
+    "pass (#36)."
+  ],
+  "item": "minecraft:heavy_core",
+  "price": 3000
+}

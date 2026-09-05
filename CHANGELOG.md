@@ -21,7 +21,10 @@
   will not take.
 - **The Buy Terminal also sells a few things outright, not just the knowledge to make them.** A
   **Totem of Undying** (2,500 scrip) has no other source in this world at all - totems come off
-  evokers and there are no raids here. A **Bucket of Powder Snow** is sold as knowledge instead
+  evokers and there are no raids here. A **heavy core** (3,000 scrip) is the same story with trial
+  chambers, and it is the mace's head rather than the mace: the handle is a breeze rod, which you
+  already fire in the Sintering Kiln, so buying the core finishes a chain instead of skipping it.
+  A **Bucket of Powder Snow** is sold as knowledge instead
   (600 scrip): buy the sheet, then make one from a bucket and four snowballs, which is the first
   blueprint in the game that is bought rather than earned by tearing something down.
 - **A pack changes all of it without a mod release**: what sells is `#recompile:sellable`, what it

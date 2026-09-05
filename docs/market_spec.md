@@ -414,15 +414,22 @@ The first was the feature as specced: a shortcut past the fragment grind, not pa
 is new ground. **It is the only route in this mod by which an object enters the world without being
 found, grown or built.**
 
-### What that enables, and the two things shipped on it
+### What that enables, and the three things shipped on it
 
 Content whose only source is the market: a thing this world otherwise cannot produce at any price.
-Two ship, and both were chosen because the mod's own reachability report already listed them as
+Three ship, and all were chosen because the mod's own reachability report already listed them as
 unreachable:
 
 - **A Totem of Undying, sold outright** (2,500 scrip). Totems drop from evokers, and this world has
   no raids, so nothing else here makes one. `docs/vanilla_resource_checklist.md` had it as *"no
   raids: evokers and pillagers never spawn."*
+- **A heavy core, sold outright** (3,000 scrip, owner 2026-09-04). A heavy core drops from a trial
+  chamber vault and no trial chamber generates here. It is the mace's head, and the deliberate
+  choice is that it sells the **component rather than the weapon**: the other half is a breeze rod,
+  which this world already makes by pressing four gunpowder into a Propellant Briquette and firing
+  that in the Sintering Kiln, so one purchase
+  re-opens a chain that is otherwise complete instead of skipping it. Checklist: *"no trial chambers
+  generate."*
 - **A Bucket of Powder Snow, sold as knowledge** (600 scrip). There is no powder snow here to have
   found a bucket of, so there is no object to tear down and no way to learn it. Buying the sheet is
   the only route to the sheet; the recipe then wants a bucket and four snowballs, which a snow golem
@@ -430,6 +437,10 @@ unreachable:
 
 Note the asymmetry, because it is the interesting half. The totem is **spent**, so it is a repeatable
 purchase and priced above every sheet. A blueprint is bought **once** and is permanent.
+
+The heavy core is the case that sets the top of the shelf, and it does so by inverting that argument.
+It costs **more** than the totem while being bought once, because the totem's 2,500 is a price paid
+again every time it saves you and this one is paid per game. A mace is kept.
 
 ### What had to change, and it is the part to remember
 

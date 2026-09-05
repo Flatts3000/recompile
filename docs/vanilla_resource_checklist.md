@@ -10,8 +10,8 @@ go to get it - and for each one, whether a player of **Recompile standalone** ca
 |---|---|
 | Minecraft version | 26.1.2 |
 | Catalogued | 887 |
-| **Reachable in Recompile** | **816 (92%)** |
-| Not reachable | 71 |
+| **Reachable in Recompile** | **817 (92%)** |
+| Not reachable | 70 |
 | Mobs obtainable | 59 |
 
 **How the checkmarks were decided.** Not by judgement: by a reachability closure over the mod's
@@ -71,7 +71,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 | Cave & Underground | 107 | 128 |
 | Nether | 78 | 82 |
 | End | 11 | 25 |
-| Structures & Chest Loot | 225 | 238 |
+| Structures & Chest Loot | 226 | 238 |
 | Trading | 62 | 62 |
 | Fishing | 1 | 1 |
 | Archaeology | 36 | 38 |
@@ -816,7 +816,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 </details>
 
 
-## Structures & Chest Loot  <sub>225/238</sub>
+## Structures & Chest Loot  <sub>226/238</sub>
 
 *Only reachable from a generated structure's chest or block palette.*
 
@@ -887,7 +887,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `golden_horse_armor` `(finite)` - nether fortress chest
 - [x] `green_dye` `(c)` - smelted from cactus
 - [ ] `guster_banner_pattern` - no trial chambers generate
-- [ ] `heavy_core` - no trial chambers generate
+- [x] `heavy_core` - bought for scrip from buy terminal
 - [x] `honey_bottle` `(c)` - bottle a full bee nest
 - [x] `iron_axe` `(c)` - crafted from stick + iron ingot
 - [x] `iron_horse_armor` `(finite)` - nether fortress chest
@@ -1120,13 +1120,13 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 
 ## What Recompile cannot give you
 
-The 71 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
+The 70 unreachable rows, by cause. This is the interesting half: each one is a deliberate closure
 of the vanilla economy, not an oversight, unless noted.
 
 - **21** - the garbage world generates no ore; metal comes from scrap instead
 - **14** - the End is locked - RCDimensionLockout blocks travel and portal formation
 - **10** - no ocean, monument, shipwreck or ocean ruin generates
-- **10** - no trial chambers generate
+- **9** - no trial chambers generate
 - **4** - no amethyst geodes generate
 - **4** - no lush caves generate
 - **4** - the structure that carries it (ancient city / stronghold / trail ruins) is absent
@@ -1178,9 +1178,9 @@ Items are filed above by *where*; this lists them by *how*. `~` marks one not re
 
 `arrow`, `black_wool`, `blue_wool`, `book`, `bread`, `brown_wool`, `chainmail_boots`, `chainmail_chestplate`, `chainmail_helmet`, `chainmail_leggings`, `clay`, `cod`, `cooked_beef`, `cooked_chicken`, `cooked_mutton`, `cooked_porkchop`, `cooked_rabbit`, `cookie`, `cyan_wool`, `golden_axe`, `gray_wool`, `green_wool`, `iron_axe`, `lapis_lazuli`, `leather`, `light_blue_wool`, `light_gray_wool`, `lime_wool`, `magenta_wool`, `map`, `orange_wool`, `paper`, `pink_wool`, `poppy`, `pumpkin_pie`, `purple_wool`, `red_wool`, `redstone`, `salmon`, `stone_axe`, `stone_hoe`, `stone_pickaxe`, `stone_shovel`, `tipped_arrow`, `wheat_seeds`, `white_wool`, `yellow_wool`
 
-**Trial chambers** <sub>72, 63 reachable</sub>
+**Trial chambers** <sub>72, 64 reachable</sub>
 
-`acacia_planks`, `amethyst_shard`, `arrow`, `baked_potato`, `bamboo_hanging_sign`, `bamboo_planks`, `bolt_armor_trim_smithing_template`, `bone_meal`, `book`, `bow`, `bread`, `bucket`, `cake`, `chainmail_chestplate`, `chainmail_helmet`, `compass`, `cooked_beef`, `cooked_chicken`, `crossbow`, `diamond`, `diamond_axe`, `diamond_block`, `diamond_chestplate`, `diamond_helmet`, `diamond_pickaxe`, `diamond_sword`, `egg`, `emerald`, `emerald_block`, `enchanted_golden_apple`, `ender_pearl`, `fire_charge`, `flow_armor_trim_smithing_template`, `flow_banner_pattern`~, `glow_berries`, `golden_apple`, `golden_axe`, `golden_carrot`, `golden_pickaxe`, `guster_banner_pattern`~, `heavy_core`~, `honey_bottle`, `honeycomb`, `iron_axe`, `iron_block`, `iron_chestplate`, `iron_helmet`, `iron_ingot`, `iron_sword`, `lingering_potion`~, `milk_bucket`, `moss_block`, `music_disc_creator`~, `music_disc_precipice`~, `ominous_bottle`~, `ominous_trial_key`~, `potion`, `scaffolding`, `shield`, `snowball`, `splash_potion`, `stick`, `stone_axe`, `stone_pickaxe`, `tipped_arrow`, `torch`, `trial_key`~, `trident`, `tuff`, `water_bucket`, `wind_charge`, `wooden_axe`
+`acacia_planks`, `amethyst_shard`, `arrow`, `baked_potato`, `bamboo_hanging_sign`, `bamboo_planks`, `bolt_armor_trim_smithing_template`, `bone_meal`, `book`, `bow`, `bread`, `bucket`, `cake`, `chainmail_chestplate`, `chainmail_helmet`, `compass`, `cooked_beef`, `cooked_chicken`, `crossbow`, `diamond`, `diamond_axe`, `diamond_block`, `diamond_chestplate`, `diamond_helmet`, `diamond_pickaxe`, `diamond_sword`, `egg`, `emerald`, `emerald_block`, `enchanted_golden_apple`, `ender_pearl`, `fire_charge`, `flow_armor_trim_smithing_template`, `flow_banner_pattern`~, `glow_berries`, `golden_apple`, `golden_axe`, `golden_carrot`, `golden_pickaxe`, `guster_banner_pattern`~, `heavy_core`, `honey_bottle`, `honeycomb`, `iron_axe`, `iron_block`, `iron_chestplate`, `iron_helmet`, `iron_ingot`, `iron_sword`, `lingering_potion`~, `milk_bucket`, `moss_block`, `music_disc_creator`~, `music_disc_precipice`~, `ominous_bottle`~, `ominous_trial_key`~, `potion`, `scaffolding`, `shield`, `snowball`, `splash_potion`, `stick`, `stone_axe`, `stone_pickaxe`, `tipped_arrow`, `torch`, `trial_key`~, `trident`, `tuff`, `water_bucket`, `wind_charge`, `wooden_axe`
 
 **Villager & wandering trader** <sub>265, 265 reachable</sub>
 
