@@ -63,8 +63,11 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
         }
         ScrapHaulerEntity.Mode mode = this.menu.haulerMode();
         if (mode == null) {
+            // Charge only. The capacity used to be printed beside it, and "Docked, 16,000 / 16,000 FE"
+            // was the longest of the seven status lines - it ran out of its own region and under the
+            // power gauge. The gauge next to this line already shows how full it is.
             return Component.translatable("container.recompile.hauler_status.docked",
-                String.format("%,d", this.menu.haulerCharge()), String.format("%,d", this.menu.haulerCapacity()));
+                String.format("%,d", this.menu.haulerCharge()));
         }
         String key = switch (mode) {
             case SEEKING -> "container.recompile.hauler_status.seeking";

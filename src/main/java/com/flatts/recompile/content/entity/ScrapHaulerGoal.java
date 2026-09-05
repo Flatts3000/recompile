@@ -63,9 +63,15 @@ public class ScrapHaulerGoal extends Goal {
      * One block per this many ticks, the Garbage Vacuum's own cadence. Without it the machine took a
      * block every tick it stood inside a cluster - twenty a second, a full hold in three, and a trail
      * of flying blocks it had outrun - which is both the wrong look and a rate no balance pass could
-     * reason about. The first-pass number is the vacuum's, so the two machines take at one speed.
+     * reason about.
+     *
+     * <p><b>HALF the Garbage Vacuum's rate</b> (owner, 2026-09-05). The first pass matched the vacuum
+     * exactly, so the two machines took at one speed; the machine that works unattended should not keep
+     * pace with the tool a player is standing there holding. Expressed as the vacuum's number doubled
+     * rather than as a bare 8, so the relationship survives a retune of either.
      */
-    private static final int INTAKE_PERIOD_TICKS = com.flatts.recompile.content.item.GarbageVacuumItem.INTAKE_PERIOD_TICKS;
+    private static final int INTAKE_PERIOD_TICKS =
+        com.flatts.recompile.content.item.GarbageVacuumItem.INTAKE_PERIOD_TICKS * 2;
 
     private final ScrapHaulerEntity hauler;
     private @Nullable BlockPos target;

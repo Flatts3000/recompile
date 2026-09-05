@@ -4,6 +4,9 @@
 
 ### The Scrap Hauler
 
+- **The Hauler gathers at half the Garbage Vacuum's pace.** It works unattended; the tool in your hand
+  should still be the faster way to clear a pile you are standing next to.
+
 - **The Hauler has its own voice.** It hums while it works, thumps as it takes a block, and the Depot
   latches audibly when it lets it out or takes it back. Recall is the deploy run backwards, so the two
   sound like one mechanism.

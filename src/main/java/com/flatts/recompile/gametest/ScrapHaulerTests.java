@@ -11,7 +11,9 @@ import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCTags;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -289,6 +291,45 @@ public final class ScrapHaulerTests {
                 menu.clickMenuButton(player, HaulerDepotMenu.RADIUS_DOWN_BUTTON);
             }
             helper.assertTrue(depot.chunkRadius() == 0, "minus went below zero: " + depot.chunkRadius());
+            helper.succeed();
+        });
+
+        RCGameTests.test("every_status_line_fits_the_room_it_is_given", 20, helper -> {
+            // The status line ran out of its own region and under the power gauge, which is invisible
+            // to every other test here: geometry is asserted server-side and the layout algebra has
+            // unit tests, but nothing measured the STRING against the box. The owner caught
+            // "Returning, 64 / 64 aboard" spilling across the gauge in a screenshot, and
+            // "Docked, 16,000 / 16,000 FE" was longer still.
+            //
+            // Six pixels per character is Minecraft's widest standard glyph advance, so this is an
+            // upper bound rather than a guess: a line that passes here cannot overflow, though a line
+            // that fails might just fit. Erring that way is right for a guard.
+            int room = HaulerDepotMenu.LAYOUT.rect("status").width();
+            Map<String, String[]> worst = Map.of(
+                "container.recompile.hauler_status.none", new String[0],
+                "container.recompile.hauler_status.docked", new String[] {"16,000"},
+                "container.recompile.hauler_status.seeking", new String[] {"64", "64"},
+                "container.recompile.hauler_status.returning", new String[] {"64", "64"},
+                "container.recompile.hauler_status.dumping", new String[] {"64", "64"},
+                "container.recompile.hauler_status.flat", new String[0],
+                "container.recompile.hauler_status.idle", new String[0]);
+
+            List<String> keys = RegistryCompletenessTests.langKeysStartingWith(
+                "container.recompile.hauler_status.");
+            helper.assertTrue(keys.size() == worst.size(),
+                "there are " + keys.size() + " status lines but this test knows " + worst.size()
+                    + "; a new one has to be measured too: " + keys);
+
+            for (String key : keys) {
+                String[] args = worst.get(key);
+                helper.assertTrue(args != null, "no worst case declared for " + key);
+                String rendered = Component.translatable(key, (Object[]) args).getString();
+                int width = rendered.length() * 6;
+                helper.assertTrue(width <= room,
+                    key + " renders as \"" + rendered + "\" (" + rendered.length() + " chars, up to "
+                        + width + "px) but its region is only " + room + "px; it will run under the "
+                        + "power gauge the way #377's did");
+            }
             helper.succeed();
         });
 
