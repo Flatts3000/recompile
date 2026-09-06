@@ -23,6 +23,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -293,6 +294,55 @@ final class MarketTests {
             helper.assertTrue(blueprintsHeld(player.getInventory(), BlueprintItem.BATTERY) == 1,
                 "expected exactly one Battery blueprint in the inventory, found "
                     + blueprintsHeld(player.getInventory(), BlueprintItem.BATTERY));
+            helper.succeed();
+        });
+
+        RCGameTests.test("a_locked_offer_cannot_be_bought_by_a_crafted_packet", 40, helper -> {
+            // THE GATE IS SERVER-SIDE, and this is why. The screen greys a locked row, but a crafted
+            // packet never goes through the screen, so "the button was disabled" is not a permission
+            // check. Everything else about the purchase is made to succeed - the balance is ample and
+            // the offer is real - so the only thing that can refuse it is the tier.
+            ServerLevel level = helper.getLevel();
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            helper.setBlock(TERMINAL, RCBlocks.BUY_TERMINAL.get().defaultBlockState());
+
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(0);
+            // A locked line, invented here rather than depending on the shipped catalogue having one:
+            // the ladder's tier assignments are step 3's job, so this test must not wait on them.
+            List<Market.Offer> offers = List.of(
+                new Market.Offer(new ItemStack(RCItems.SCRAP_METAL.get()), 10, 4));
+
+            Market.setBalance(player, 10_000);
+            BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
+                ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)), offers);
+            helper.assertTrue(!menu.unlocked(offers.get(0)),
+                "a tier 4 offer read as unlocked at tier 0");
+            helper.assertTrue(!menu.clickMenuButton(player, 0),
+                "a locked offer was sold at tier 0");
+            helper.assertTrue(Market.balance(player) == 10_000,
+                "a refused purchase still took scrip: " + Market.balance(player));
+
+            // And it opens when the tier reaches it, or the gate is just a wall.
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(4);
+            helper.assertTrue(menu.unlocked(offers.get(0)),
+                "a tier 4 offer was still locked at tier 4");
+            helper.assertTrue(menu.clickMenuButton(player, 0),
+                "a tier 4 offer was refused at tier 4");
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(0);
+            helper.succeed();
+        });
+
+        RCGameTests.test("an_offer_with_no_tier_is_always_open", 20, helper -> {
+            // The compatibility half. Every offer written before the ladder existed omits `tier`, and
+            // absent must mean 0 or a pack's whole shelf locks itself on update.
+            ServerLevel level = helper.getLevel();
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(0);
+            for (Market.Offer offer : MarketTerminalBlock.Buy.offers(level.getServer())) {
+                helper.assertTrue(offer.tier() == 0,
+                    "a shipped offer declares tier " + offer.tier()
+                        + "; step 2 ships no tiered stock, so this is a stray edit");
+            }
             helper.succeed();
         });
 

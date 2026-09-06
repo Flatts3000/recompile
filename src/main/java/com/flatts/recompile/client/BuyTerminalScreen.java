@@ -47,20 +47,29 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
             if (row == hovered) {
                 painter.tintPadded("offers", row, 1, GuiTheme.HOVER_ROW);
             }
+            boolean unlocked = this.menu.unlocked(offer);
             painter.item("offers", row, offer.stack());
             // The price is right-aligned to the row's edge and the name gets whatever is left, cut
             // with an ellipsis. "Netherite Upgrade Pattern" at "1,500 scrip" ran through the price
             // and out of the panel when both were placed at fixed columns; the unit lives on the
             // balance line and the hover tooltip, so the column is the bare number.
             int width = painter.at("offers", row).width();
-            String price = String.format("%,d", offer.price());
-            int priceWidth = font.width(price);
-            painter.textIn("offers", row, width - priceWidth, 4, price,
-                offer.price() <= balance ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_WARN);
+            // A LOCKED ROW SHOWS THE TIER WHERE ITS PRICE WOULD GO, not the price. Hiding locked
+            // stock would make the shop look complete and the ladder invisible, and with no recipe
+            // book in this mod this is the only surface that teaches the ladder exists. Showing a
+            // price you cannot pay for a reason that is not money would be the wrong answer to
+            // "why will it not sell me this".
+            String right = unlocked
+                ? String.format("%,d", offer.price())
+                : Component.translatable("container.recompile.locked_tier", offer.tier()).getString();
+            int rightWidth = font.width(right);
+            int rightColour = !unlocked ? GuiTheme.TEXT_MUTED
+                : offer.price() <= balance ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_WARN;
+            painter.textIn("offers", row, width - rightWidth, 4, right, rightColour);
             painter.textIn("offers", row, NAME_X, 4,
                 fit(font, offer.displayName().getString(),
-                    width - NAME_X - priceWidth - GAP),
-                GuiTheme.TEXT_LABEL);
+                    width - NAME_X - rightWidth - GAP),
+                unlocked ? GuiTheme.TEXT_LABEL : GuiTheme.TEXT_MUTED);
         }
         // The tail line sits in the extrapolated cell under the last row, which a single-column
         // run answers for on purpose - see ScreenLayout.Group.cell.

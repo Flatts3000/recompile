@@ -32,7 +32,16 @@ import net.minecraft.world.level.Level;
  * { "type": "recompile:market_offer", "blueprint": "recompile:battery",        "price": 240 }
  * { "type": "recompile:market_offer", "item": "minecraft:totem_of_undying",    "price": 2500 }
  * { "type": "recompile:market_offer", "item": "recompile:copper_pipe", "count": 8, "price": 45 }
+ * { "type": "recompile:market_offer", "blueprint": "recompile:mattress", "price": 300, "tier": 3 }
  * }</pre>
+ *
+ * <p><b>{@code tier} is optional and absent means 0</b> (#388): the freight tier that opens this line,
+ * where 0 is always available. Every offer written before the freight ladder existed keeps working
+ * with no edit, which is the only reason the field could be added to a schema packs already write. A
+ * line above the world's tier is LISTED on the shelf, greyed, with the tier that opens it where its
+ * price would go - hiding it would make the shop look complete and the ladder invisible, and this mod
+ * has no recipe book to teach the ladder anywhere else. The refusal is enforced server-side in
+ * {@code BuyTerminalMenu.clickMenuButton}, because a greyed button is not a permission check.
  *
  * <p><b>Exactly one of {@code blueprint} and {@code item}</b>, and the split is the whole design of
  * the type. A {@code blueprint} line sells KNOWLEDGE - the sheet the fragment loop also produces,
@@ -65,7 +74,11 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
             Identifier.CODEC.optionalFieldOf("blueprint").forGetter(MarketOfferRecipe::blueprint),
             BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("item").forGetter(MarketOfferRecipe::item),
             Codec.intRange(1, 64).optionalFieldOf("count", 1).forGetter(MarketOfferRecipe::count),
-            Codec.intRange(1, Market.MAX_BALANCE).fieldOf("price").forGetter(MarketOfferRecipe::price)
+            Codec.intRange(1, Market.MAX_BALANCE).fieldOf("price").forGetter(MarketOfferRecipe::price),
+            // ABSENT MEANS TIER 0, always available. Every offer shipped before the freight ladder
+            // existed keeps working with no edit, which is the only reason this could be added to a
+            // public schema without breaking every pack that already writes one.
+            Codec.intRange(0, 64).optionalFieldOf("tier", 0).forGetter(MarketOfferRecipe::tier)
         ).apply(instance, MarketOfferRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MarketOfferRecipe> STREAM_CODEC =
@@ -75,9 +88,10 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
     private final Optional<Item> item;
     private final int count;
     private final int price;
+    private final int tier;
 
     public MarketOfferRecipe(Optional<Identifier> blueprint, Optional<Item> item, int count,
-            int price) {
+            int price, int tier) {
         // AN IllegalArgumentException SPECIFICALLY, and that is load-bearing rather than a default.
         // SimpleJsonResourceReloadListener.scanDirectory wraps each file in
         // `catch (IllegalArgumentException | IOException | JsonParseException)`, so throwing one
@@ -108,6 +122,7 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
         this.item = item;
         this.count = count;
         this.price = price;
+        this.tier = tier;
     }
 
     /** The Blueprint set this line sells, if it sells knowledge. */
@@ -131,6 +146,15 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
     }
 
     /**
+     * The freight tier that opens this line, or 0 for always available (#388).
+     *
+     * <p>Absent in JSON means 0, so every offer written before the ladder existed is unaffected.
+     */
+    public int tier() {
+        return tier;
+    }
+
+    /**
      * What the buyer receives, as the stack the terminal will hand over.
      *
      * <p>Built here rather than stored, so a blueprint line resolves {@code RCItems.BLUEPRINT} at
@@ -144,7 +168,7 @@ public class MarketOfferRecipe implements Recipe<RecipeInput> {
         // a recipe is decoded before those are bound - see the constructor. `count` is already
         // bounded to 1..64 by the codec, so this only bites an item that stacks to less.
         stack.setCount(Math.min(count, stack.getMaxStackSize()));
-        return new Market.Offer(stack, price);
+        return new Market.Offer(stack, price, tier);
     }
 
     @Override

@@ -247,6 +247,30 @@ sweep cannot read fails the build instead of passing invisibly. All nine clear t
 
 ---
 
+## 6.5 Offers are gated by freight tier (added 2026-09-06, #388)
+
+`market_offer` carries an optional **`tier`**: the freight rung that opens that line, 0 (the default)
+meaning always available. This is what makes the market the ladder's knowledge half under P3.10 -
+climbing the freight ladder is what opens new Blueprints to buy.
+
+**Absent means 0, and that is load-bearing rather than a convenience.** Every offer written before the
+ladder existed omits the field, and a pack whose entire shelf locked itself on update would be a worse
+failure than the feature is worth.
+
+**A locked line is listed, greyed, with its tier where the price would go.** Hiding locked stock would
+make the shop look complete and the ladder invisible, and this mod has no recipe book to teach the
+ladder anywhere else. Showing a price you cannot pay, for a reason that is not money, would be the
+wrong answer to "why will it not sell me this" - which is the question section 5 says the terminals
+exist to answer.
+
+**The gate is server-side.** `BuyTerminalMenu.clickMenuButton` refuses a line above the world's tier
+before it debits anything. The greyed row is presentation; a crafted packet never goes through the
+screen, and `a_locked_offer_cannot_be_bought_by_a_crafted_packet` is what pins that.
+
+**The tier is a live data slot, not part of the open buffer**, unlike the stock beside it. Stock cannot
+change while the shop is open but the tier can - somebody else's factory completes a phase - and a
+shelf that stayed locked after the rung landed would read as broken.
+
 ## 7. Prices are flat per product
 
 Predictable, no new state, no rotating want-list, nothing to sync beyond the balance. Tuning the

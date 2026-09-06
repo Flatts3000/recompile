@@ -462,6 +462,7 @@
   "container.recompile.hauler_status.returning": "Returning %s/%s",
   "container.recompile.hauler_status.seeking": "Gathering %s/%s",
   "container.recompile.hydroponics_bay": "Hydroponics Bay",
+  "container.recompile.locked_tier": "Tier %s",
   "container.recompile.more": "+%s more",
   "container.recompile.more_scroll": "+%s more (scroll)",
   "container.recompile.needs_blueprint": "No blueprint in your inventory or attached storage",
