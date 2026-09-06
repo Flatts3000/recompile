@@ -96,9 +96,15 @@ recovered masterworks and a shelf of found objects. See
 **No title and no hero image.** CurseForge puts the project name and the gallery carousel directly
 above the description, so both were being shown twice. The page opens on the first line of prose.
 
-**The description carries images now, and it did not before.** Eighteen screenshots sat in the
-gallery tab while the description was an unbroken wall of text - which is the half of a CurseForge
-page a judge or a browsing player actually reads. The gallery is a tab you have to click.
+**The description carries images now, and it did not before.** The screenshots all sat in the gallery
+tab while the description was an unbroken wall of text - which is the half of a CurseForge page a
+judge or a browsing player actually reads. The gallery is a tab you have to click.
+
+**The gallery tab's contents are NOT tracked here, and this sentence used to imply they were.** It
+gave a count ("eighteen screenshots"), which was true when written and then quietly went stale as
+uploads happened; on 2026-09-05 it was read back as the live figure and produced a confident, wrong
+statement about what the gallery was missing. The gallery had 23. Count it on the site - the public
+`/gallery` tab lists every filename - or query it; never quote a number from this file.
 
 They are served from this repo rather than from CurseForge's own CDN, because a gallery upload's URL
 is only knowable after the upload and cannot be written down here in advance:

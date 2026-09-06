@@ -32,6 +32,24 @@ Its pass count includes a vanilla built-in test: the mod's own tests run in the 
 
 CI (`.github/workflows/ci.yml`) runs `build` and `gameTest` as two independent jobs. The `build` job name is load-bearing: main's branch protection requires that status check.
 
+**Releasing is a TAG PUSH, and nothing else.** `.github/workflows/release.yml` triggers on `push` of
+a `v*` tag: it builds the jar, creates the GitHub release, and POSTs to
+`https://minecraft.curseforge.com/api/projects/$CF_PROJECT_ID/upload-file` with an `X-Api-Token`
+header (repo secret `CF_API_TOKEN`, repo variable `CF_PROJECT_ID`), resolving game version ids from
+the live `api/game/versions` endpoint and setting the display name and changelog itself. So cutting a
+release is: bump `mod_version`, turn `## Unreleased` into `## vX.Y.Z` in `CHANGELOG.md`, update the
+status lines here and in `README.md` and `docs/roadmap.md`, commit, tag, push both. Confirm with
+`gh run list --workflow=release.yml`; the log line `HTTP 200: {"id":...}` is the CurseForge file id.
+If the upload step alone fails, re-run via `workflow_dispatch` with `ref=<tag>` and **do not move the
+tag** - the workflow says so in its own error.
+
+**Do not upload a jar through the CurseForge website** (owner, 2026-09-05: *"Release using the api and
+never the browser"*). It is not a second route, it is a duplicate: v0.19.0 was tagged, the workflow
+uploaded file 8818977 correctly, and a manual browser upload of the same jar minutes later put a
+second 0.19.0 on the project - the workflow's carrying the display name and changelog, the manual one
+carrying neither. The manual one had to be archived. The browser is for page COPY (description,
+summary, gallery), and `docs/curseforge_page.md` is the source of truth for that.
+
 `unitTest` is enabled in `build.gradle` (moddev's JUnit integration, which runs `src/test/java` against a loaded mod context) and **`./gradlew test` runs 132 tests across 30 classes**. `build` depends on `test`, so CI gates them. *(This line previously said no JUnit tests existed. That was wrong from PR #22 onward and went unnoticed until someone counted - a doc claiming a layer is empty is how it stays empty.)* **Use a unit test when the logic is pure** - `GeneratorState` (which reason a generator is idle), `ScrapBinContent` (item to bin appearance), the crumble curve's expected yield. No world, no rendering, no server means a GameTest is the wrong instrument and a slower one. GameTests remain where in-world behaviour is proven.
 
 ## Architecture
