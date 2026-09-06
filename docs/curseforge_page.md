@@ -29,10 +29,34 @@ line does not stop being true when something new ships, it just stops being the 
 nothing reads as wrong. **Re-read this page on every minor release**, against `CHANGELOG.md`, not only
 when a claim looks stale.
 
-**Three of the sections below have no screenshot**, because `docs/cf_image_gallery/` has no frame of
-the vacuum, the aquarium or a tire dump. Do not invent a filename to fill the gap: an image link that
-does not resolve renders as alt text and a half-link on the live page. Shoot them, commit them, push
-them, then add the link.
+**Reordered 2026-09-05 to lead with the three things that pull people in now** (owner): the Garbage
+Vacuum, the Scrap Hauler, and the structures. Nothing was deleted for it. Teardown is still what the
+mod IS and still carries the summary, but it is no longer what a reader meets first, because the
+opening premise hands off to clearing the piles rather than to a workbench. The structures were
+scattered across six sections in world order; they are one run now, because a reader deciding whether
+to install this is deciding about them as a group.
+
+**The Scrap Hauler is the one section on this page that is NOT in the current release**, and it is
+marked as such in its own last line. It is built and merged, sitting under `## Unreleased` in
+`CHANGELOG.md`, so the claim discipline above is satisfied by the marker rather than by omission.
+**Delete that line when v0.19.0 ships** - a "not yet" that outlives the release it describes is
+worse than never having written it.
+
+**Three sections still have no screenshot**, because `docs/cf_image_gallery/` has no frame of the
+vacuum, the aquarium or a tire dump. Do not invent a filename to fill the gap: an image link that does
+not resolve renders as alt text and a half-link on the live page. Shoot them, commit them, push them,
+then add the link.
+
+**The cooling tower and smokestack frames were already in the gallery and had never been linked**,
+which is a quieter version of the same failure: the images existed, the sections did not, so nothing
+looked missing from either side. The Scrap Hauler's frame was shot for this pass with
+`gamebridge`, against a `runClient`, and the first two attempts at it are worth recording because both
+produce a picture that looks fine until you ask what it shows. A crop of an existing tour screenshot
+had the camera above the machine, where it reads as a grey box rather than as a robot. Aiming the
+replacement with fixed world coordinates left the machine at the edge of frame, because it had walked.
+What works is `execute at @e[type=recompile:scrap_hauler,limit=1] run tp @s ^x ^y ^z` followed by
+`facing entity`, with a POSITIVE local z - negative is behind the machine, which is how four
+consecutive frames came back photographing its back.
 
 ---
 
@@ -40,15 +64,17 @@ them, then add the link.
 
 | Field | Value |
 |---|---|
-| **Summary** | `A world buried under its own rubbish, where the recipes went in the bin with everything else. Tear found objects apart to relearn them, and heal the ground a tier at a time.` |
+| **Summary** | `A world buried under its own rubbish, where the recipes went in the bin with everything else. Vacuum the piles up, tear your finds apart to relearn them, and go looking through the sewers, a drained aquarium and a cooling tower for the rest.` |
 | **Categories** | Processing, World Gen, Technology |
 | **License** | MIT |
 | **Source / issues** | `https://github.com/Flatts3000/recompile` |
 
 The first summary sold the premise ("...and reclaim the wasteland back to life"). The second stated
 the mechanic and nothing else, which is the opposite failure: it named the material source and left
-out what the mod is *about*. This one leads with the loss and still names the two axes, teardown and
-reclamation.
+out what the mod is *about*. The third led with the loss and named teardown and reclamation. This one
+keeps the loss and the teardown and swaps reclamation for the two things people actually arrive for,
+because reclamation is a slow arc that reads as a chore in one line and the structures are the half a
+browsing player can picture. The Scrap Hauler is deliberately absent from it until it ships.
 
 **Written for ModJam 2026 ("Echoes of the Past"), and that is a deliberate reframing rather than a
 rewrite of the mod.** Theme Fit is one of the three judging pillars, every worked example the
@@ -56,8 +82,6 @@ organisers gave is literal history, and ours is interpretive - so the interpreta
 page instead of in a design doc. The literal half was already built and buried under "Also in": six
 recovered masterworks and a shelf of found objects. See
 `../mod-jam-2026/round_1_rewards_analysis.md`.
-
----
 
 ---
 
@@ -92,6 +116,44 @@ thrown away by somebody who lived here first.
 You start by pulling things out of the mounds with your hands. A block gives up one item at a time and
 crumbles after a few pulls.
 
+## Then you stop doing it by hand
+
+Hold right-click with a Garbage Vacuum and the piles in front of you leave the ground and fly into the
+nozzle, about five a second. It takes whole blocks, not what is inside them, so you still sort them
+afterwards.
+
+Take a mound from the bottom and the rest comes down on top of you. That is the fast way to clear one.
+
+It runs on power, and a bigger block costs more. Each one is rated for the waste it was built for:
+copper handles household rubbish, iron adds the demolition yard, diamond the tailings out past it, and
+only a netherite one will touch the Nether. Point one at something out of its league and it tells you
+what the pile is instead of doing nothing.
+
+It charges on a Charging Station with a generator touching it. Set the vacuum down on the station,
+pick it back up when it is full. There is no screen and nothing can reach in and take it off the dock.
+
+## And then you stop doing it at all
+
+![A Scrap Hauler standing on a road at the edge of the sprawl, with mounds to the horizon.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/24-scrap-hauler.png)
+
+Place a Hauler Depot, put a Scrap Hauler in its slot, press Deploy. It walks out to the nearest pile,
+takes the block off the top of it, brings it back and drops it in the hold. Then it goes again.
+
+It works a square of chunks around the Depot and you set how many from the Depot's screen. The
+smallest is the three by three the Depot sits in the middle of.
+
+It runs on sun out in the field and charges off the Depot while it is docked. Nothing in this world can
+destroy it, which means the way it goes wrong is getting stuck rather than dying, and Recall brings it
+back from wherever that is.
+
+The hold is twenty-seven slots, and it pushes what is in it into any bins and barrels touching the
+Depot. Park a Depot against your sorting wall and the wall fills itself.
+
+There is only ever one of it. It is the item sitting in the Depot or the machine out in the field,
+never both at once.
+
+*Not in a release yet. It lands in the next one.*
+
 ## The recipes went in the bin too
 
 ![Bulky waste opened with a prybar: a washing machine, a printer, a filing cabinet.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/06-bulky-waste-finds.png)
@@ -113,48 +175,12 @@ everything you sort goes where it belongs.
 
 Later you throw the garbage at a machine and walk away, and it is sorted when you come back.
 
-## Clearing a mound stops being a mining job
+## Things are standing in the dump
 
-Hold right-click with a Garbage Vacuum and the piles in front of you leave the ground and fly into the
-nozzle, about five a second. It takes whole blocks, not what is inside them, so you still sort them
-afterwards.
+Somebody built here before it was a dump, and some of it is still up. None of it is decoration: every
+one of these is the only source of something.
 
-Take a mound from the bottom and the rest comes down on top of you. That is the fast way to clear one.
-
-It runs on power, and a bigger block costs more. Each one is rated for the waste it was built for:
-copper handles household rubbish, iron adds the demolition yard, diamond the tailings out past it, and
-only a netherite one will touch the Nether. Point one at something out of its league and it tells you
-what the pile is instead of doing nothing.
-
-It charges on a Charging Station with a generator touching it. Set the vacuum down on the station,
-pick it back up when it is full. There is no screen and nothing can reach in and take it off the dock.
-
-## A few thousand tires
-
-Somebody tipped tires across the sprawl in circular heaps, and some of them are burning. A tire fire
-does not go out in rain and does not go out with time. It does not eat the tires either, and there is
-nothing on bare dump ground for it to spread to. Water still puts it out.
-
-Break a tire by hand and you get the tire. Break it with a Scrap Knife and you get the rubber. Carry it
-home and take it apart at the workbench instead and you get more, plus the steel belts out of the
-middle.
-
-Nothing regrows a tire. A dump you strip is a dump you leave.
-
-## Ground you can stand on
-
-![Grass spreading back, with the dump still standing behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/07-machines-on-reclaimed-grass.png)
-
-Grass does not grow here. A Grass Spreader puts it down, and it goes back to coarse dirt at the edges
-unless something holds the line: plants, then wet farmland, then trees.
-
-Trees hold it permanently. Getting a tree means a Tree Nursery, because no sapling can be found
-anywhere in this world.
-
-Once there is grass, leave bait on it and walk away. Nothing comes while you are standing there. What
-turns up depends on the bait and on what is growing around it.
-
-## Down the manhole
+### Down the manhole
 
 ![A sewer run. Leachate down the middle, dry brick either side, silt in the corners.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/14-sewer-corridor.png)
 
@@ -172,7 +198,7 @@ nowhere else in the world.
 
 Turtles and frogs live down there, in rooms of sand and mud off the corridors.
 
-## The aquarium closed a long time ago
+### The aquarium closed a long time ago
 
 Out in the demolition yard there is a public aquarium with the water let out of it. Seven rooms:
 a forecourt, a lobby, a gallery of tank bays, a centrepiece tank, a guardian tank, a filtration hall
@@ -189,7 +215,17 @@ rather than a fixed stock. Bucket it dry and you have ended that.
 Put a dead coral in a Hydroponics Bay and it comes back alive. The bay does not use up what you put in
 it, so one of each colour is all you will ever need.
 
-## Out past the yard
+### The chimneys over the yard
+
+![A brick smokestack standing over the demolition yard.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/23-smokestack.png)
+
+Brick chimneys stand over the demolition yard, thirty to forty-eight blocks of them, and some are
+still smoking. There is no door and no ladder, because a chimney is a flue and not a room.
+
+A husk spawner sits at the foot of each one and its range reaches out past the brick, so passing a
+chimney is an encounter rather than a view.
+
+### Out past the yard
 
 ![Tailings impoundments with decant ponds, drums at the toe.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/17-radioactive-dump.png)
 
@@ -203,13 +239,50 @@ A radium dial clock. A smoke detector. Thoriated welding rods. Uranium glass.
 
 Nothing out here grows back. You strip a dump and move to the next one.
 
-## The Nether is solid
+### The cooling tower
+
+![A decrepit cooling tower in the radioactive dump.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/21-cooling-tower.png)
+
+There is a cooling tower out here, with its shell torn open at the top. It stands on legs over an open
+basin and narrows to a throat about three quarters of the way up, the way one does when it is built
+out of straight rods.
+
+![Inside the tower shell, looking up from the basin.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/22-cooling-tower-inside.jpg)
+
+You can walk in under the legs. There is a spawner down in the basin.
+
+### A few thousand tires
+
+Somebody tipped tires across the sprawl in circular heaps, and some of them are burning. A tire fire
+does not go out in rain and does not go out with time. It does not eat the tires either, and there is
+nothing on bare dump ground for it to spread to. Water still puts it out.
+
+Break a tire by hand and you get the tire. Break it with a Scrap Knife and you get the rubber. Carry it
+home and take it apart at the workbench instead and you get more, plus the steel belts out of the
+middle.
+
+Nothing regrows a tire. A dump you strip is a dump you leave.
+
+### The Nether is solid
 
 The overworld is a dump you clear. The Nether is a dump you mine.
 
 Every column is full, floor to ceiling. No caverns, no lava sea, nothing to fall off. Fortresses and
 bastions are down there, buried in it, and the only way in is obsidian you made yourself out of the
 slag your own furnace rakes off.
+
+## Ground you can stand on
+
+![Grass spreading back, with the dump still standing behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/07-machines-on-reclaimed-grass.png)
+
+Grass does not grow here. A Grass Spreader puts it down, and it goes back to coarse dirt at the edges
+unless something holds the line: plants, then wet farmland, then trees.
+
+Trees hold it permanently. Getting a tree means a Tree Nursery, because no sapling can be found
+anywhere in this world.
+
+Once there is grass, leave bait on it and walk away. Nothing comes while you are standing there. What
+turns up depends on the bait and on what is growing around it.
 
 ## Machines
 
