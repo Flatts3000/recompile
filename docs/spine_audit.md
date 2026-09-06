@@ -142,6 +142,10 @@ tier quota. A player will not distinguish them by looking, and putting a load in
 silent mistake with no feedback. Either they merge into one block with two modes, or the freight side
 needs a visibly different object.
 
+**Reopened and re-ruled 2026-09-06**: the Scrap Network DOES gain a third sink, conditional on the
+current phase. See finding 5's sibling below and #393. The automation split stands; what changed is
+that the network can now route to the terminal as well as pipes feeding it.
+
 **Ruled: separate blocks, split on AUTOMATION** (Jason, 2026-09-06). **The Sell Terminal takes no pipe
 input** and stays manual-only, which is what it already is - no block entity, no container, a
 menu-local grid. **The Freight Terminal takes pipe input**: hoppers, AE2 and the Scrap Network can all
@@ -181,6 +185,13 @@ pressure now comes from the economy instead: healing removes garbage supply whil
 require grown goods, so the contest is between two economies rather than against an eroding frontier.
 Encroachment moves to the decorative list above in spirit; it is left in this section so the reasoning
 survives.
+
+### 5. Family 5 is unpromoted, so the structures' best property goes unused - PARKED, not closed
+
+**Re-ruled 2026-09-06.** This was recorded as a deliberate loss and it is now a **parked candidate**
+instead: look again once the ladder is playable and you can feel whether the structures read as flat.
+Restoration was one of the three things the owner named as the mod's pull, so writing it off before
+anyone has played the spine would be premature. The text below is the original finding.
 
 ### 5. Family 5 is unpromoted, so the structures' best property goes unused
 

@@ -173,6 +173,44 @@ to be true per member, not in general.
 
 ---
 
+## 2.5 Rulings taken 2026-09-06, after step 2 shipped
+
+Fifteen open questions were cleared in one pass. The ones that change this spec:
+
+**Tiers are assigned by IMPACT, not by materials.** A Blueprint's tier is set by how much it changes
+the game rather than by where its parts come from, so the Hauler and the Hydroponics Bay sit late as
+rewards even though their materials are cheap. This is a judgement call by construction and cannot be
+derived, so step 3 drafts the nine with reasoning and stops for sign-off before proceeding.
+
+**The second phase of each region must demand a machine.** The first of a pair is satisfiable from that
+region's ordinary output; the second wants something only a built production chain yields. That is the
+property section 4 says stops a phase being a wait rather than a problem, and it is now a requirement
+on the phase data rather than an aspiration.
+
+**The Scrap Network gains a conditional third sink** (#393): the Freight Terminal accepts a route only
+for goods the CURRENT PHASE is asking for, and everything else flows past to the bins and the barrel.
+That solves the priority problem by making it conditional rather than ordered. The cost is recorded:
+routing now depends on live phase state, which nothing else in `ScrapNetwork` does, so
+`insertFromMember` gains its first read of world state.
+
+**Completion grants eight advancements, one per tier, under a shared root.** Not a custom criterion
+trigger - a plain named advancement per rung, which FTB Quests can already watch and which needs no new
+API surface. The root exists so they group in the advancement screen instead of appearing as eight
+orphans. This supersedes the bus-event deviation recorded in `FreightCompletion`; the event stays, the
+advancements are what the pack actually hooks.
+
+**Teardown yields a signature component PLUS ordinary salvage** (step 4): the working part in
+`results`, weighted scrap in `extras`. A teardown is then never a total loss once you already have the
+part, which is also the shape the existing twelve teardowns already have.
+
+**Find-only is the Motor alone** (step 5). One member, P1.4's own worked example, and the smallest
+reversal of #228 that proves the mechanic. Recorded as deliberately narrow rather than as a first
+instalment: widening it is a separate decision with the playtest that produced #228 arguing against.
+
+**The release waits for all five steps.** v0.20.0 ships the whole conversion, so players never meet a
+half-converted state where teardown still teaches AND the market sells the same knowledge. Art and the
+CurseForge page's three missing screenshots ride the same release.
+
 ## 3. Out of scope, and why
 
 - **The Gate itself** is pack content. The engine ships the signal in phase 1 and stops.
