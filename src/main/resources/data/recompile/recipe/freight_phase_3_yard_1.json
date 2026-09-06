@@ -1,0 +1,15 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 3,
+  "name": "freight.recompile.phase.3",
+  "requires": [
+    {
+      "item": "recompile:stone_shard",
+      "count": 96
+    },
+    {
+      "item": "recompile:reinforced_concrete",
+      "count": 48
+    }
+  ]
+}

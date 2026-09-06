@@ -1,6 +1,7 @@
 package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.FreightTerminalBlock;
 import com.flatts.recompile.content.block.SequencerBlock;
 import com.flatts.recompile.content.block.TireBlock;
 import com.flatts.recompile.content.block.ManholeBlock;
@@ -827,6 +828,19 @@ public final class RCBlocks {
         () -> BlockBehaviour.Properties.of()
             .mapColor(MapColor.METAL)
             .strength(2.0F)
+            .sound(SoundType.METAL)
+    );
+
+    /**
+     * The Freight Terminal (#387): the tier ladder's input, and the one terminal that takes pipes.
+     * The Sell Terminal above deliberately does not - that is the ruled distinction between them.
+     */
+    public static final DeferredBlock<FreightTerminalBlock> FREIGHT_TERMINAL = BLOCKS.registerBlock(
+        "freight_terminal",
+        FreightTerminalBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL)
+            .strength(3.0F)
             .sound(SoundType.METAL)
     );
 

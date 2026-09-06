@@ -1,0 +1,15 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 7,
+  "name": "freight.recompile.phase.7",
+  "requires": [
+    {
+      "item": "recompile:sculk_powder",
+      "count": 24
+    },
+    {
+      "item": "minecraft:obsidian",
+      "count": 16
+    }
+  ]
+}

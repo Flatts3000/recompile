@@ -2718,3 +2718,33 @@ front = "a full-bleed Minecraft block face of a dead scrap-built computer termin
 [surface.broken_terminal.procedural]
 style = "rubble"
 palette = ["#2a2d31", "#3a3e44", "#22252a", "#6b4a2a", "#1c1f23", "#4a4f56"]
+
+# The Freight Terminal (#387). ART IS PENDING: the shipped model borrows the Sell Terminal's shell so
+# the block reads as a terminal and every completeness check passes, and these two surfaces are
+# declared so it sits in the review queue rather than the borrowing going unnoticed. The bottom is
+# shared with the market terminals (terminal_bottom) and needs nothing new.
+#
+# It should NOT look like the market's terminals beyond the family resemblance. Those are counters a
+# player walks up to; this one is fed by pipes and runs unattended, so the face wants a loading hatch
+# and a manifest plate rather than a screen and a keypad.
+[surface.freight_terminal_top]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front"]
+[surface.freight_terminal_top.prompt]
+front = "a full-bleed Minecraft block face seen straight down onto the top of a scrap-built freight intake: a wide dark steel hatch opening in the middle with its cover hinged back, heavy riveted plating around it, two short guide rails either side of the opening, a small stencilled manifest plate in one corner, worn paint, bold and simple, high contrast, no perspective"
+[surface.freight_terminal_top.procedural]
+style = "rubble"
+palette = ["#2a2d31", "#3a3e44", "#4a4f56", "#22252a", "#5c6168", "#7d5a2b", "#1c1f23"]
+
+[surface.freight_terminal_side]
+kind = "block_multiface"
+backend = "ai"
+size = 16
+faces = ["front"]
+[surface.freight_terminal_side.prompt]
+front = "a full-bleed Minecraft block face of the side of a scrap-built freight intake: heavy riveted steel plating with a broad horizontal band of faded warning stripes across the middle, a small stencilled number plate near the top corner, scuffs and rust streaks where crates have been dragged against it, bold and simple, high contrast, no perspective"
+[surface.freight_terminal_side.procedural]
+style = "rubble"
+palette = ["#2a2d31", "#3a3e44", "#4a4f56", "#22252a", "#5c6168", "#7d5a2b", "#1c1f23"]

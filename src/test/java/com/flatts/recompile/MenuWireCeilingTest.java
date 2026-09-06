@@ -97,6 +97,32 @@ class MenuWireCeilingTest {
         }
     }
 
+    /**
+     * A freight quota at the codec's ceiling (#387).
+     *
+     * <p>This is the value most likely to be pushed past the wire by a PACK rather than by us: the
+     * shipped phases ask for tens, and `FreightPhaseRecipe` allows up to 100,000 because a pack
+     * designing a long ladder will want big numbers. A quota is also exactly the sort of thing that
+     * looks fine in testing and breaks only for the person who retuned it.
+     */
+    @Test
+    void a_freight_quota_survives_two_slots_at_the_codec_ceiling() {
+        int maxQuota = 100_000;      // FreightPhaseRecipe.Requirement's upper bound
+        assertEquals(maxQuota, roundTrip(maxQuota),
+            "a freight quota at the codec ceiling does not survive the wire");
+        assertEquals(maxQuota - 1, roundTrip(maxQuota - 1));
+        assertEquals(0, roundTrip(0));
+    }
+
+    @Test
+    void a_freight_quota_would_be_wrong_in_one_slot() {
+        // The counter-check, in the shape this file already uses for the tank: prove the naive
+        // encoding really is broken, so the two-slot version is not cargo cult.
+        int maxQuota = 100_000;
+        assertNotEquals(maxQuota, wire(maxQuota),
+            "if one slot carried a quota this large, the two-slot split would be unnecessary");
+    }
+
     @Test
     void a_battery_survives_two_slots_at_its_configured_maximum() {
         // Sized at one batch: growTicks x fePerTick, clamped to Integer.MAX_VALUE because that is both

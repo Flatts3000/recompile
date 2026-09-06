@@ -1,0 +1,15 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 5,
+  "name": "freight.recompile.phase.5",
+  "requires": [
+    {
+      "item": "recompile:prismarine_grit",
+      "count": 32
+    },
+    {
+      "item": "minecraft:oak_log",
+      "count": 64
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.recipe.BlueprintCraftingRecipe;
 import com.flatts.recompile.content.recipe.SpawnEggCraftingRecipe;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
+import com.flatts.recompile.content.recipe.FreightPhaseRecipe;
 import com.flatts.recompile.content.recipe.MarketOfferRecipe;
 import com.flatts.recompile.content.recipe.PulverizingRecipe;
 import com.flatts.recompile.content.recipe.SinteringRecipe;
@@ -157,6 +158,19 @@ public final class RCRecipeTypes {
     private RCRecipeTypes() {
         // utility class
     }
+
+    /**
+     * {@code recompile:freight_phase} (#387): one rung of the freight ladder, and the second type
+     * here that is never matched against anything. See {@link FreightPhaseRecipe} for why a phase is
+     * a recipe rather than a data map - the same argument {@code market_offer} makes.
+     */
+    public static final Supplier<RecipeType<FreightPhaseRecipe>> FREIGHT_PHASE =
+        RECIPE_TYPES.register("freight_phase", () -> RecipeType.simple(
+            Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "freight_phase")));
+
+    public static final Supplier<RecipeSerializer<FreightPhaseRecipe>> FREIGHT_PHASE_SERIALIZER =
+        RECIPE_SERIALIZERS.register("freight_phase",
+            () -> new RecipeSerializer<>(FreightPhaseRecipe.CODEC, FreightPhaseRecipe.STREAM_CODEC));
 
     public static void register(IEventBus modEventBus) {
         RECIPE_TYPES.register(modEventBus);

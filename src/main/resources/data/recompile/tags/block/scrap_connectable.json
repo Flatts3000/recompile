@@ -20,6 +20,7 @@
     "recompile:trommel_chute",
     "recompile:pulverizer",
     "recompile:pulverizer_housing",
-    "recompile:hauler_depot"
+    "recompile:hauler_depot",
+    "recompile:freight_terminal"
   ]
 }

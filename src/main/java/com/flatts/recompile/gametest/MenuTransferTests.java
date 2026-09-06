@@ -256,7 +256,13 @@ final class MenuTransferTests {
                 // The Sell Terminal's grid takes what #recompile:sellable names and has a price.
                 new Menu("sell_terminal", inv ->
                     new com.flatts.recompile.content.menu.SellTerminalMenu(0, inv),
-                    new ItemStack(RCItems.PUMP.get(), 16)));
+                    new ItemStack(RCItems.PUMP.get(), 16)),
+                // The Freight Terminal's strip. Built here with a dummy container, so its live
+                // "only what the phase wants" predicate is not what is under test - the slot RANGES
+                // are, which is exactly what this sweep exists for.
+                new Menu("freight_terminal", inv ->
+                    new com.flatts.recompile.content.menu.FreightTerminalMenu(0, inv),
+                    new ItemStack(RCItems.SCRAP_METAL.get(), 32)));
 
             List<String> problems = new ArrayList<>();
             for (Menu m : menus) {
@@ -334,7 +340,8 @@ final class MenuTransferTests {
         RCGameTests.test("every_bespoke_menu_transfer_is_covered", 20, helper -> {
             java.util.Set<String> covered = java.util.Set.of(
                 "BurnerGeneratorMenu", "HydroponicsBayMenu", "SequencerMenu", "TreeNurseryMenu",
-                "CupolaFurnaceMenu", "SellTerminalMenu", "HaulerDepotMenu");
+                "CupolaFurnaceMenu", "SellTerminalMenu", "HaulerDepotMenu",
+                "FreightTerminalMenu");
             java.util.Map<String, String> excused = java.util.Map.of(
                 "ScrapCraftingStationMenu",
                 "its result path calls player.drop, so it deliberately moves items OUT of the menu's "

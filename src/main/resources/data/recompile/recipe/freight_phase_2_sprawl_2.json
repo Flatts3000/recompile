@@ -1,0 +1,15 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 2,
+  "name": "freight.recompile.phase.2",
+  "requires": [
+    {
+      "item": "minecraft:copper_ingot",
+      "count": 24
+    },
+    {
+      "item": "recompile:rubber_scrap",
+      "count": 32
+    }
+  ]
+}

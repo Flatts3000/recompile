@@ -1,0 +1,15 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 6,
+  "name": "freight.recompile.phase.6",
+  "requires": [
+    {
+      "item": "recompile:circuit_powder",
+      "count": 24
+    },
+    {
+      "item": "minecraft:wheat",
+      "count": 96
+    }
+  ]
+}

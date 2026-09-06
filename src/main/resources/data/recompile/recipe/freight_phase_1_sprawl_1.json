@@ -1,0 +1,15 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 1,
+  "name": "freight.recompile.phase.1",
+  "requires": [
+    {
+      "item": "recompile:pressed_junk_block",
+      "count": 64
+    },
+    {
+      "item": "recompile:scrap_metal",
+      "count": 32
+    }
+  ]
+}

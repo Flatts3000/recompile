@@ -1,0 +1,15 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 8,
+  "name": "freight.recompile.phase.8",
+  "requires": [
+    {
+      "item": "recompile:slag",
+      "count": 64
+    },
+    {
+      "item": "minecraft:leather",
+      "count": 32
+    }
+  ]
+}
