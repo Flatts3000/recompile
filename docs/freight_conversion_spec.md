@@ -2,8 +2,12 @@
 
 **What this is.** The build plan for P3.10 (`../trashlands/docs/design_decisions.md`), which made the
 economy the spine: tiers open by shipping named processed goods, the market is the only source of tier
-knowledge, teardown yields function, and sorting yields bulk. Five phases, each one shippable on its
-own, ordered so the game is never broken between them.
+knowledge, teardown yields function, and sorting yields bulk. Five build **steps**, each one shippable
+on its own, ordered so the game is never broken between them.
+
+**"Phase" means the in-game freight phase throughout** (there are eight, section 1.5). The build work is
+numbered in **steps** (there are five, section 2). The first draft used "phase" for both and it was
+unreadable.
 
 **The audit it comes out of** is [`spine_audit.md`](spine_audit.md). Findings 1 and 2 are ruled;
 findings 3, 4 and 5 are referenced below where they bite.
@@ -51,7 +55,7 @@ the other thing a pack already extends by dropping a file in.
 ```
 
 **Counts are first-pass placeholders**, like every other number in this mod, and belong to the balance
-pass (#36) rather than to this spec.
+pass (#36) rather than to this spec. **Eight phase files ship**, two per region, per section 1.5.
 
 ### 1.3 The terminal consumes on insert, and REFUSES what the phase does not want
 
@@ -70,7 +74,32 @@ labelled with the tier that opens it**. Hiding them would make the shop look com
 invisible; showing them is what teaches the player the ladder exists at all. It is also the only
 teaching surface this gets, because the mod has no recipe book by standing decision.
 
-### 1.5 The final phase emits a signal and nothing more
+### 1.5 Eight phases, two per region (owner, 2026-09-06)
+
+Sprawl, demolition yard, radioactive dump, depths, two apiece. Eight unlock moments across a
+playthrough, which is roughly Satisfactory's cadence and about twice what one-per-region would give.
+
+The first of each pair should be satisfiable from that region's ordinary output; the second should
+want something the region only yields once you have built for it. That is what stops a phase being a
+wait rather than a problem, which is the failure mode section 4 warns about.
+
+### 1.6 Late phases require GROWN goods, and this is what makes reclamation load-bearing
+
+**Owner, 2026-09-06.** The late phases ask for wood, crops and animal products alongside processed
+scrap. You cannot finish the ladder without healing land.
+
+**This closes a gap the first draft of this spec admitted to** ("nothing here creates a reason to heal
+the land") and it closes it in the engine rather than in the pack, so it works standalone. It also
+does something bigger: it makes quarry-versus-heal a **live balance** rather than a deferred one.
+Healing a region retires its mounds and removes its garbage supply; the same act creates the only
+supply of grown goods. Late in the ladder you need both at once, so the player is running two economies
+against each other rather than picking one.
+
+**Ordering consequence for the phase data**: grown goods cannot appear before the reclamation ladder is
+reachable, so they belong in phases 5 through 8 at the earliest. A phase 2 that wants wheat is a
+softlock.
+
+### 1.7 The final phase emits a signal and nothing more
 
 Completing the last phase fires an advancement and a game event. **The engine attaches no meaning to
 it.** What that completion triggers is pack content and lives in Trashlands. This is the standing
@@ -80,13 +109,13 @@ is for.
 
 ---
 
-## 2. The phases
+## 2. The build steps
 
 Ordered by what breaks. **The load-bearing constraint is finding 3**: nine teardown recipes are
 currently the only route to what they teach, so the market must stock those Blueprints *before*
 teardown stops teaching them, or the items become unreachable and `FoundNotCraftedTests`' twin goes red.
 
-### Phase 1 - The Freight Terminal exists and does nothing yet
+### Step 1 - The Freight Terminal exists and does nothing yet
 
 - `recompile:freight_terminal` block: a `Container` with open faces, joined to
   `#recompile:scrap_connectable` so the Scrap Network routes into it. **This is the ruled distinction
@@ -99,7 +128,7 @@ teardown stops teaching them, or the items become unreachable and `FoundNotCraft
 
 **Shippable and inert.** Tiers advance and unlock nothing. Nothing else in the mod changes.
 
-### Phase 2 - Tiers gate the Buy Terminal
+### Step 2 - Tiers gate the Buy Terminal
 
 - `market_offer` gains an optional `tier` (absent means tier 0, always available).
 - The Buy Terminal reads world tier, lists locked offers greyed with their tier named, and refuses
@@ -108,16 +137,16 @@ teardown stops teaching them, or the items become unreachable and `FoundNotCraft
 
 **Now the ladder means something.** Still nothing removed.
 
-### Phase 3 - The market stocks everything teardown teaches
+### Step 3 - The market stocks everything teardown teaches
 
 - Add a `market_offer` for each of the nine Blueprints currently taught by teardown, each with a price
   and a tier: `broken_hauler`, `broken_hydroponics_bay`, `broken_spawner`, `broken_terminal`,
   `depleted_battery`, `fridge`, `mattress`, `washing_machine`, `worn_forging_die`.
-- Deliberately redundant for one phase: both routes work.
+- Deliberately redundant for one step: both routes work.
 
-**This is the phase that makes phase 4 safe.** It must land first.
+**This is the step that makes step 4 safe.** It must land first.
 
-### Phase 4 - Teardown becomes function
+### Step 4 - Teardown becomes function
 
 - Strip `teaches` from those nine recipes; give each component outputs instead (`results`/`extras`).
 - Delete the Idea Fragment item, the `recompile:fragment_assembly` recipe type and its one recipe.
@@ -127,15 +156,15 @@ teardown stops teaching them, or the items become unreachable and `FoundNotCraft
 
 **The point of no return.** After this the market is the only source of tier knowledge.
 
-### Phase 5 - Tier-gating components go find-only
+### Step 5 - Tier-gating components go find-only
 
-The narrow reversal of #228. **#228 still binds on every component this phase does not name.**
+The narrow reversal of #228. **#228 still binds on every component this step does not name.**
 
 - A new tag, `#recompile:function_only`, for components that exist only via teardown.
 - Remove the `blueprint_crafting` recipes for its members.
 - A test in the shape of `FoundNotCraftedTests`: nothing in the tag is craftable, and everything in it
   has a teardown route.
-- Membership is deliberately left to the phase rather than fixed here. The Motor is the obvious first
+- Membership is deliberately left to the step rather than fixed here. The Motor is the obvious first
   member and is P1.4's own example.
 
 **Renewability is the safety check.** A find-only component must come from something a mound regrows,
@@ -164,5 +193,12 @@ hundred of something you already automate, the tier is a wait rather than a prob
 non-substitutable-regions property in P3.10 is the lever: a phase should want goods from places you
 have not been.
 
-**Nothing here creates a reason to heal the land.** Reclamation is the secondary spine and the freight
-ladder does not touch it. That gap is real and is the next design question after this ships.
+**~~Nothing here creates a reason to heal the land.~~ Closed 2026-09-06 by section 1.6**: late phases
+require grown goods, so the ladder cannot be finished without reclamation. Left visible rather than
+deleted because it was the largest hole in the first draft and the fix is the most interesting decision
+in the spec.
+
+**What is still unsolved is the balance between the two economies.** Healing removes garbage supply and
+creates grown supply, and nothing here says at what rate. Get it wrong one way and players strip
+everything and stall at phase 7; wrong the other way and healing is free. That is #36's problem and it
+is now a harder one than it was.

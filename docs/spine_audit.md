@@ -85,7 +85,7 @@ every object worth hoovering. Family 4 was explicitly not promoted, so that obje
 | Animals (rung 5), Animal Bait | Reclamation | SERVES |
 | Compost Heap, Hydroponics Bay | Reclamation | SERVES |
 | Rain Collector | Reclamation (water) | SERVES |
-| Encroachment | Reclamation (pressure) | **RESCOPE - see finding 4** |
+| Encroachment | Reclamation (pressure) | **DECORATIVE** - ruled flavour, finding 4 |
 
 ## Worldgen
 
@@ -110,8 +110,8 @@ No job, no rescope, kept anyway, and recorded here so nobody re-audits them:
 
 ## Findings
 
-**1 and 2 are ruled** (2026-09-06) and their resolutions are recorded inline below. **3, 4 and 5 remain
-open**: 3 is implementation planning, 4 and 5 are design questions with no ruling yet.
+**1, 2 and 4 are ruled** (2026-09-06), recorded inline below. **3** is implementation planning and is
+now issue #389. **5** is recorded as a deliberate loss rather than an open question.
 
 ### 1. The Sequencer is a second source of knowledge - RESOLVED 2026-09-06
 
@@ -165,7 +165,7 @@ Blueprint added to the Buy Terminal's stock at a price, or the thing it taught b
 a twin that fails the build when a tagged item has no route at all, so this will surface as a red test
 rather than as a silent gap - but it has to be planned, not discovered.
 
-### 4. Encroachment now serves the secondary spine and is too weak for the job
+### 4. Encroachment now serves the secondary spine and is too weak for the job - RULED 2026-09-06
 
 It was audited as family 6 (holding ground) and family 6 was not promoted. But under family 2 it is the
 *pressure* that makes reclamation a contest rather than a checklist, which is a real job on the
@@ -173,6 +173,14 @@ secondary spine. As built it is local, slow, permanently defeated by trees, and 
 investment in exactly one place (wet farmland holds, dry farmland is taken). If reclamation is the
 second act, this is the thing that has to push back during it, and it currently cannot take anything a
 player would mourn.
+
+**Ruled: accept it as flavour** (Jason, 2026-09-06). It stays mild on purpose, costs nothing to leave,
+and the reclamation ladder still reads as progress without it. **Stop auditing it** - this finding is
+closed rather than deferred, so a future pass should not rediscover it as a defect. Reclamation's
+pressure now comes from the economy instead: healing removes garbage supply while late freight phases
+require grown goods, so the contest is between two economies rather than against an eroding frontier.
+Encroachment moves to the decorative list above in spirit; it is left in this section so the reasoning
+survives.
 
 ### 5. Family 5 is unpromoted, so the structures' best property goes unused
 
