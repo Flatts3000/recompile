@@ -69,6 +69,29 @@ public class FreightTerminalBlockEntity extends BlockEntity
 
     private NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
 
+    /**
+     * The current phase, resolved once a tick rather than once a question.
+     *
+     * <p><b>This is a real hot path, not a micro-optimisation.</b> {@link FreightPhases#sorted} scans
+     * the recipe map, sorts it and copies the list twice, and without a cache that ran on every
+     * hopper insert attempt via {@link #canPlaceItem}, and THIRTEEN TIMES A TICK per open screen via
+     * the data slots - each of which also called {@link FreightPhases#length} for a second scan. One
+     * open screen was twenty-six full scans a tick.
+     *
+     * <p>Refreshed unconditionally from {@link #serverTick}, so it is at most one tick stale and a
+     * {@code /reload} is picked up on the next tick without any reload hook.
+     */
+    private FreightManifest cached = FreightManifest.NONE;
+
+    /**
+     * Whether {@link #cached} has ever been built.
+     *
+     * <p>A separate flag rather than testing {@code cached == NONE}, because NONE is a legitimate
+     * RESULT - it is what a finished ladder looks like - and using it as "not yet computed" would
+     * re-scan on every call for the rest of the save once the last phase landed.
+     */
+    private boolean primed;
+
     public FreightTerminalBlockEntity(BlockPos pos, BlockState state) {
         super(RCBlockEntities.FREIGHT_TERMINAL.get(), pos, state);
     }
@@ -90,6 +113,8 @@ public class FreightTerminalBlockEntity extends BlockEntity
         }
         FreightState freight = FreightState.of(server);
         int tier = freight.tier();
+        // The one place the ladder is actually scanned. Everything else reads the cache.
+        terminal.refresh(server, tier);
         Optional<FreightPhaseRecipe> maybePhase = FreightPhases.current(server, tier);
         if (maybePhase.isEmpty()) {
             return;      // the ladder is finished, or a pack shipped none
@@ -121,6 +146,9 @@ public class FreightTerminalBlockEntity extends BlockEntity
 
         if (isSatisfied(freight, phase) && freight.completePhase(tier)) {
             FreightCompletion.onPhaseCompleted(server, pos, phase, tier + 1);
+            // Immediately, not next tick: otherwise the strip would keep accepting the finished
+            // phase's goods for a tick and the open screen would draw the old manifest.
+            terminal.refresh(server, freight.tier());
         }
     }
 
@@ -142,13 +170,19 @@ public class FreightTerminalBlockEntity extends BlockEntity
         if (!(level instanceof ServerLevel server)) {
             return false;
         }
-        FreightState freight = FreightState.of(server);
-        Optional<FreightPhaseRecipe> phase = FreightPhases.current(server, freight.tier());
-        if (phase.isEmpty()) {
+        // Off the cache. A hopper asks this on every insert attempt, so a recipe-map scan here is
+        // the difference between a cheap block and one that costs a scan per hopper per tick.
+        FreightManifest manifest = manifest();
+        if (manifest.isEmpty()) {
             return false;
         }
-        int wanted = phase.get().required(stack.getItem());
-        return wanted > 0 && freight.delivered(stack.getItem()) < wanted;
+        FreightState freight = FreightState.of(server);
+        for (FreightManifest.Line line : manifest.lines()) {
+            if (line.item() == stack.getItem()) {
+                return freight.delivered(line.item()) < line.required();
+            }
+        }
+        return false;
     }
 
     @Override
@@ -226,13 +260,20 @@ public class FreightTerminalBlockEntity extends BlockEntity
      * every tick through the 16-bit data channel - where a count of 100,000 would not fit anyway.
      */
     public FreightManifest manifest() {
-        if (!(level instanceof ServerLevel server)) {
-            return FreightManifest.NONE;
+        if (level instanceof ServerLevel server && !primed) {
+            // Lazily populate for the window between placement and the first tick, and for a screen
+            // opened in that window.
+            refresh(server, FreightState.of(server).tier());
         }
-        int tier = FreightState.of(server).tier();
-        return FreightPhases.current(server, tier)
+        return cached;
+    }
+
+    /** Rebuild the cached manifest. The only caller that scans the ladder. */
+    private void refresh(ServerLevel server, int tier) {
+        cached = FreightPhases.current(server, tier)
             .map(phase -> FreightManifest.of(phase, tier, FreightPhases.length(server)))
             .orElse(FreightManifest.NONE);
+        primed = true;
     }
 
     /** Delivered counts as low/high pairs, then the tier. See {@code FreightTerminalMenu}. */

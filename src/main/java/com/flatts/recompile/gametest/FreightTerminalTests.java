@@ -168,6 +168,26 @@ public final class FreightTerminalTests {
             helper.succeed();
         });
 
+        RCGameTests.test("the_manifest_follows_the_tier_rather_than_going_stale", 60, helper -> {
+            // The phase is CACHED on the block entity, because resolving it scans and sorts the
+            // recipe map and that ran on every hopper insert and thirteen times a tick per open
+            // screen. A cache that did not follow a completed phase would leave the strip accepting
+            // the old phase's goods and the screen drawing the old manifest.
+            ServerLevel level = helper.getLevel();
+            FreightTerminalBlockEntity terminal = terminal(helper, 5);
+            helper.assertTrue(terminal.manifest().tier() == 0,
+                "a fresh terminal did not report tier 0");
+
+            FreightState.of(level).setTier(1);
+            BlockPos world = helper.absolutePos(at(5));
+            FreightTerminalBlockEntity.serverTick(level, world, level.getBlockState(world), terminal);
+            helper.assertTrue(terminal.manifest().tier() == 1,
+                "the manifest still reports tier " + terminal.manifest().tier()
+                    + " after the world moved to tier 1");
+            FreightState.of(level).setTier(0);
+            helper.succeed();
+        });
+
         RCGameTests.test("progress_resets_when_a_phase_completes", 60, helper -> {
             // Otherwise leftover progress on a shared item would part-fill the next phase for free.
             ServerLevel level = helper.getLevel();
