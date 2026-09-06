@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.block.entity;
 
+import com.flatts.recompile.content.block.ScrapNetwork;
 import com.flatts.recompile.content.freight.FreightManifest;
 import com.flatts.recompile.content.menu.FreightTerminalMenu;
 import com.flatts.recompile.content.menu.WideSync;
@@ -22,6 +23,7 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -39,13 +41,12 @@ import org.jetbrains.annotations.Nullable;
  * container at all, so the distinction is mechanical rather than cosmetic and a player finds it by
  * trying to automate one. Hoppers, pipes and AE2 all reach it through the item capability.
  *
- * <p><b>The Scrap Network does NOT route here, and an earlier version of this javadoc said it did.</b>
- * {@code ScrapNetwork.insertFromMember} lands only in a Scrap Bin or the Scrap Barrel; every other
- * member of {@code #recompile:scrap_connectable} is a conductor that lets a cluster span it. So the
- * terminal is a RELAY, and a Depot face-adjacent to nothing but a terminal pushes nothing. Whether
- * the network should gain a third sink is a real design question - it needs a priority against the
- * bins, and getting that wrong would divert a player's sorted materials into freight - so it is filed
- * rather than guessed at here.
+ * <p><b>The Scrap Network routes here, and it is the third sink</b> (#393). It is also the only
+ * CONDITIONAL one: it claims a route solely for goods the current phase is waiting on, and only up to
+ * the outstanding count, so freight can sit ahead of the bins without swallowing a player's sorted
+ * materials. This javadoc has now said all three things - that the network routed here (#387, false),
+ * that it did not (#392, true at the time), and that it does (#393) - which is why the claim is
+ * stated against the code rather than against the intent.
  *
  * <p><b>Deliveries are consumed, not stored.</b> The slots are a landing strip: the ticker drains
  * them into {@link FreightState} and there is no way to get goods back out. That is Satisfactory's
@@ -161,12 +162,87 @@ public class FreightTerminalBlockEntity extends BlockEntity
             terminal.setChanged();
         }
 
+        // ANYTHING THE PHASE NO LONGER WANTS GOES BACK OUT. Overshoot is possible from any door the
+        // terminal does not control - a pipe or an AE2 export moving a whole stack against a boolean
+        // canPlaceItem, or a phase completing while goods sit on the strip - and without this it
+        // stranded in a block whose faces hand nothing back. Routed to the cluster rather than
+        // dropped: the terminal refuses it itself, so it flows on to the bins and the barrel.
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            ItemStack waiting = terminal.items.get(slot);
+            if (waiting.isEmpty() || phase.required(waiting.getItem()) > 0) {
+                continue;
+            }
+            ItemStack rest = ScrapNetwork.insertFromMember(server, pos, waiting, false);
+            terminal.items.set(slot, rest);
+            terminal.setChanged();
+        }
+
         if (isSatisfied(freight, phase) && freight.completePhase(tier)) {
             FreightCompletion.onPhaseCompleted(server, pos, phase, tier + 1);
             // Immediately, not next tick: otherwise the strip would keep accepting the finished
             // phase's goods for a tick and the open screen would draw the old manifest.
             terminal.refresh(server, freight.tier());
         }
+    }
+
+    /**
+     * How many more of {@code item} this terminal can usefully take, counting what is already on its
+     * own strip.
+     *
+     * <p><b>A COUNT, not a boolean, and that distinction is the bug this replaced.</b>
+     * {@link #canPlaceItem} answers "is any more wanted", which is right for a hopper because a hopper
+     * moves one item per transfer. The Scrap Network moves a whole stack once the gate says yes, so a
+     * 64 stack routed at a phase wanting 24 put all 64 on the strip and stranded 40 of them - the
+     * exact "swallow a player's sorted materials" failure the conditional sink exists to prevent.
+     */
+    public int outstandingFor(Item item) {
+        FreightPhaseRecipe phase = phase();
+        if (phase == null || !(level instanceof ServerLevel server)) {
+            return 0;
+        }
+        int wanted = phase.required(item);
+        if (wanted == 0) {
+            return 0;
+        }
+        int inbound = 0;
+        for (ItemStack waiting : items) {
+            if (waiting.getItem() == item) {
+                inbound += waiting.getCount();
+            }
+        }
+        return Math.max(0, wanted - FreightState.of(server).delivered(item) - inbound);
+    }
+
+    /**
+     * Take up to {@code limit} from {@code stack} onto the strip, returning how many were taken.
+     *
+     * <p>Mutates {@code stack}. Used by the Scrap Network so routing can move exactly the outstanding
+     * amount rather than a whole stack.
+     */
+    public int accept(ItemStack stack, int limit) {
+        int budget = Math.min(limit, stack.getCount());
+        int taken = 0;
+        for (int slot = 0; slot < SLOT_COUNT && budget > 0; slot++) {
+            ItemStack existing = items.get(slot);
+            if (existing.isEmpty()) {
+                int move = Math.min(budget, stack.getMaxStackSize());
+                items.set(slot, stack.split(move));
+                taken += move;
+                budget -= move;
+            } else if (ItemStack.isSameItemSameComponents(existing, stack)) {
+                int move = Math.min(budget, existing.getMaxStackSize() - existing.getCount());
+                if (move > 0) {
+                    existing.grow(move);
+                    stack.shrink(move);
+                    taken += move;
+                    budget -= move;
+                }
+            }
+        }
+        if (taken > 0) {
+            setChanged();
+        }
+        return taken;
     }
 
     /** Whether every line of {@code phase} has been delivered. */

@@ -51,7 +51,7 @@ final class ScrapNetworkTests {
         // one, which is a two-line change that forces the question "and what does it actually do?" to
         // be answered rather than assumed.
         RCGameTests.test("every_scrap_network_member_has_a_declared_role", 20, helper -> {
-            // SINK   - a route can end here (only two, deliberately; see ScrapNetwork)
+            // SINK   - a route can end here (three; the third is conditional, see ScrapNetwork)
             // SOURCE - it pushes its own output into the network
             // READER - it reads the cluster rather than moving anything
             // RELAY  - it is a member only so a cluster can span it
@@ -102,11 +102,12 @@ final class ScrapNetworkTests {
             // only a surge tank for when downstream is backed up. The membership IS the feature -
             // the spec's whole "close the chain" argument rests on this line being in the tag.
             roles.put(RCBlocks.HAULER_DEPOT.get(), "SOURCE");
-            // RELAY, not SINK, and it was declared SINK for one review cycle. insertFromMember only
-            // ever lands in a bin or the barrel, so nothing routes here; the terminal is fed by
-            // hoppers, pipes and AE2 through its item capability instead. It is in the tag so a
-            // cluster can span it (#387).
-            roles.put(RCBlocks.FREIGHT_TERMINAL.get(), "RELAY");
+            // SINK, and the third one, after a round trip: declared SINK in #387 when nothing routed
+            // here, corrected to RELAY on review, and now genuinely a sink under #393. It is the only
+            // CONDITIONAL sink - it accepts a route solely for what the current freight phase wants
+            // and refuses everything else at the slot, which is what made a third sink possible when
+            // no fixed priority against the bins looked right.
+            roles.put(RCBlocks.FREIGHT_TERMINAL.get(), "SINK");
 
             List<String> undeclared = new ArrayList<>();
             int members = 0;
