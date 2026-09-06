@@ -13,6 +13,7 @@ import com.flatts.recompile.content.block.entity.TrommelBlockEntity;
 import com.flatts.recompile.content.block.entity.SolarPanelBlockEntity;
 import com.flatts.recompile.content.block.entity.BurnerGeneratorBlockEntity;
 import com.flatts.recompile.content.block.entity.ChargingStationBlockEntity;
+import com.flatts.recompile.content.block.entity.FreightTerminalBlockEntity;
 import com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity;
 import com.flatts.recompile.content.item.ScrapHaulerItem;
 import com.flatts.recompile.content.block.entity.RainCollectorBlockEntity;
@@ -70,6 +71,13 @@ public final class RCBlockEntities {
         BLOCK_ENTITIES.register(
             "hauler_depot",
             () -> new BlockEntityType<>(HaulerDepotBlockEntity::new, RCBlocks.HAULER_DEPOT.get()));
+
+    /** The Freight Terminal's landing strip and drain (#387). */
+    public static final Supplier<BlockEntityType<FreightTerminalBlockEntity>> FREIGHT_TERMINAL =
+        BLOCK_ENTITIES.register(
+            "freight_terminal",
+            () -> new BlockEntityType<>(FreightTerminalBlockEntity::new,
+                RCBlocks.FREIGHT_TERMINAL.get()));
 
     /** The Filing Cabinet's blueprint shelf (#95). */
     public static final Supplier<BlockEntityType<FilingCabinetBlockEntity>> FILING_CABINET =
@@ -322,6 +330,18 @@ public final class RCBlockEntities {
             Capabilities.Item.BLOCK,
             SCRAP_BIN.get(),
             (be, side) -> be.storageHandler());
+        // The Freight Terminal's door, and the whole reason it is a separate block from the Sell
+        // Terminal (#387): freight is fed by a factory, selling is done by hand.
+        //
+        // NULL SIDE GETS NOTHING, for the Tree Nursery's reason rather than a new one:
+        // WorldlyContainerWrapper.extract is guarded by `side != null &&`, so a non-sided caller
+        // would skip canTakeItemThroughFace and could pull a delivery back out mid-drain. That is
+        // the one thing this block must never allow, so it is closed by handing such a caller no
+        // handler at all rather than by documenting the hole.
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            FREIGHT_TERMINAL.get(),
+            (be, side) -> side == null ? null : new WorldlyContainerWrapper(be, side));
         // The Tree Nursery's ITEMS, opened 2026-09-03 by owner reversal - it was manual-only and a
         // playtester asked why a hopper would not feed it. Sided: inputs from the sides, saplings out
         // of the bottom.

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "S": "recompile:scrap_metal",
+    "R": "recompile:rebar",
+    "P": "recompile:plastic_scrap"
+  },
+  "pattern": [
+    "SSS",
+    "RPR",
+    "SSS"
+  ],
+  "result": {
+    "id": "recompile:freight_terminal",
+    "count": 1
+  }
+}

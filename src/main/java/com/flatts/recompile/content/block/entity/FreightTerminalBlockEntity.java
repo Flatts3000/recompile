@@ -1,0 +1,227 @@
+package com.flatts.recompile.content.block.entity;
+
+import com.flatts.recompile.content.freight.FreightPhases;
+import com.flatts.recompile.content.freight.FreightState;
+import com.flatts.recompile.content.recipe.FreightPhaseRecipe;
+import com.flatts.recompile.registry.RCBlockEntities;
+import java.util.Optional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * The Freight Terminal: goods in, tier out (#387, spec {@code docs/freight_conversion_spec.md}).
+ *
+ * <p><b>It takes pipe input, and that is the whole reason it is a separate block from the Sell
+ * Terminal</b> (owner, 2026-09-06). Selling is a thing you walk up and do; freight is bulk and
+ * sustained and is meant to be fed by a factory. The Sell Terminal has no block entity and no
+ * container at all, so the distinction is mechanical rather than cosmetic and a player finds it by
+ * trying to automate one. Membership in {@code #recompile:scrap_connectable} is the other half:
+ * it lets the Scrap Network route here, which is what finally gives the Hauler and the Depot
+ * somewhere for their output to end up.
+ *
+ * <p><b>Deliveries are consumed, not stored.</b> The slots are a landing strip: the ticker drains
+ * them into {@link FreightState} and there is no way to get goods back out. That is Satisfactory's
+ * behaviour and it avoids a chest-sized hole in the middle of the machine.
+ *
+ * <p><b>The safety is REFUSAL, not a buffer.</b> An item the current phase does not want is rejected
+ * at the slot by {@link #canPlaceItem}, so a hopper backs up where the player can see it rather than
+ * the terminal quietly eating a stack of something valuable. This mod fails closed and says why; the
+ * vacuum naming a pile it cannot take is the same idea.
+ *
+ * <p><b>Nothing is taken out through a face, ever.</b> {@link #canTakeItemThroughFace} is false for
+ * every slot, so a hopper under the terminal cannot pull a delivery back out mid-drain, which would
+ * otherwise be a way to launder progress out of a phase.
+ */
+public class FreightTerminalBlockEntity extends BlockEntity implements WorldlyContainer {
+
+    /** A landing strip rather than a hold. Wide enough that one hopper never throttles a factory. */
+    public static final int SLOT_COUNT = 9;
+
+    private static final int[] ALL_SLOTS = new int[SLOT_COUNT];
+
+    static {
+        for (int i = 0; i < SLOT_COUNT; i++) {
+            ALL_SLOTS[i] = i;
+        }
+    }
+
+    private NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
+
+    public FreightTerminalBlockEntity(BlockPos pos, BlockState state) {
+        super(RCBlockEntities.FREIGHT_TERMINAL.get(), pos, state);
+    }
+
+    // ---- the drain -----------------------------------------------------------------------------
+
+    /**
+     * Move whatever the current phase wants out of the slots and into the world's progress.
+     *
+     * <p><b>The completion check re-reads the tier rather than trusting the one it captured</b>, via
+     * {@link FreightState#completePhase(int)}. Two full slots draining on the same tick would
+     * otherwise each see a satisfied phase and advance it twice, which is the acceptance criterion
+     * this guard exists for.
+     */
+    public static void serverTick(Level level, BlockPos pos, BlockState state,
+            FreightTerminalBlockEntity terminal) {
+        if (!(level instanceof ServerLevel server)) {
+            return;
+        }
+        FreightState freight = FreightState.of(server);
+        int tier = freight.tier();
+        Optional<FreightPhaseRecipe> maybePhase = FreightPhases.current(server, tier);
+        if (maybePhase.isEmpty()) {
+            return;      // the ladder is finished, or a pack shipped none
+        }
+        FreightPhaseRecipe phase = maybePhase.get();
+
+        boolean changed = false;
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            ItemStack stack = terminal.items.get(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            int wanted = phase.required(stack.getItem());
+            if (wanted == 0) {
+                continue;      // refused at the slot normally; this covers a /setblock or a reload
+            }
+            int outstanding = wanted - freight.delivered(stack.getItem());
+            if (outstanding <= 0) {
+                continue;      // that line is already satisfied, so leave the stack visible
+            }
+            int taken = Math.min(outstanding, stack.getCount());
+            freight.deliver(stack.getItem(), taken);
+            stack.shrink(taken);
+            changed = true;
+        }
+        if (changed) {
+            terminal.setChanged();
+        }
+
+        if (isSatisfied(freight, phase) && freight.completePhase(tier)) {
+            FreightCompletion.onPhaseCompleted(server, pos, phase, tier + 1);
+        }
+    }
+
+    /** Whether every line of {@code phase} has been delivered. */
+    public static boolean isSatisfied(FreightState freight, FreightPhaseRecipe phase) {
+        for (FreightPhaseRecipe.Requirement requirement : phase.requires()) {
+            if (freight.delivered(requirement.item()) < requirement.count()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // ---- the container -------------------------------------------------------------------------
+
+    /** Only what the current phase still wants. Everything else backs the pipe up. */
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        if (!(level instanceof ServerLevel server)) {
+            return false;
+        }
+        FreightState freight = FreightState.of(server);
+        Optional<FreightPhaseRecipe> phase = FreightPhases.current(server, freight.tier());
+        if (phase.isEmpty()) {
+            return false;
+        }
+        int wanted = phase.get().required(stack.getItem());
+        return wanted > 0 && freight.delivered(stack.getItem()) < wanted;
+    }
+
+    @Override
+    public int[] getSlotsForFace(Direction side) {
+        return ALL_SLOTS;
+    }
+
+    @Override
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
+        return canPlaceItem(slot, stack);
+    }
+
+    /** Nothing comes back out. A delivery is spent the moment it lands. */
+    @Override
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
+        return false;
+    }
+
+    @Override
+    public int getContainerSize() {
+        return SLOT_COUNT;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return items.stream().allMatch(ItemStack::isEmpty);
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        return items.get(slot);
+    }
+
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
+        ItemStack removed = ContainerHelper.removeItem(items, slot, amount);
+        if (!removed.isEmpty()) {
+            setChanged();
+        }
+        return removed;
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        return ContainerHelper.takeItem(items, slot);
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        items.set(slot, stack);
+        stack.limitSize(getMaxStackSize());
+        setChanged();
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return Container.stillValidBlockEntity(this, player);
+    }
+
+    @Override
+    public void clearContent() {
+        items.clear();
+        setChanged();
+    }
+
+    public Component getDisplayName() {
+        return Component.translatable("container.recompile.freight_terminal");
+    }
+
+    // ---- persistence ---------------------------------------------------------------------------
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, items);
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(input, items);
+    }
+}

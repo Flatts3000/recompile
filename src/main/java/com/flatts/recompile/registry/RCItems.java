@@ -1136,6 +1136,9 @@ public final class RCItems {
     public static final DeferredItem<BlockItem> BUY_TERMINAL =
         ITEMS.registerSimpleBlockItem("buy_terminal", RCBlocks.BUY_TERMINAL);
 
+    public static final DeferredItem<BlockItem> FREIGHT_TERMINAL =
+        ITEMS.registerSimpleBlockItem("freight_terminal", RCBlocks.FREIGHT_TERMINAL);
+
     public static final DeferredItem<BlockItem> PRINTER =
         ITEMS.registerSimpleBlockItem("printer", RCBlocks.PRINTER);
 
