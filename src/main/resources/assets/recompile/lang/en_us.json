@@ -470,6 +470,7 @@
   "container.recompile.not_connected": "No storage connected",
   "container.recompile.nursery_water": "Water: %s / %s mB",
   "container.recompile.offer_count": "%s per purchase",
+  "container.recompile.offer_locked": "Opens at freight tier %s",
   "container.recompile.offer_price": "%s scrip",
   "container.recompile.plus_barrel": "+ barrel",
   "container.recompile.scrap_barrel": "Scrap Barrel",

@@ -333,6 +333,35 @@ final class MarketTests {
             helper.succeed();
         });
 
+        RCGameTests.test("a_client_menu_reads_the_tier_it_was_sent", 20, helper -> {
+            // THE BUG THIS PINS, and nothing in the first version of this feature could see it. The
+            // tier slot's set() was a no-op "because the client only reads this", and the client's
+            // menu is built with ContainerLevelAccess.NULL, whose evaluate returns empty. So the
+            // client answered tier 0 forever: every tiered row rendered locked on every client for
+            // the rest of the save, while clicking one still WORKED, because the server reads the
+            // real tier. The screen saying locked while the purchase goes through is the worst of
+            // both, and no server-side test can see it.
+            //
+            // NULL access is exactly what the client factory passes, so this drives the client path
+            // without a client.
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+            List<Market.Offer> offers = List.of(
+                new Market.Offer(new ItemStack(RCItems.SCRAP_METAL.get()), 10, 3));
+            BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
+                ContainerLevelAccess.NULL, offers);
+
+            helper.assertTrue(menu.tier() == 0, "a menu with no world did not start at tier 0");
+            helper.assertTrue(!menu.unlocked(offers.get(0)), "a tier 3 offer read as open at tier 0");
+
+            menu.setData(BuyTerminalMenu.TIER_SLOT_INDEX, 3);
+            helper.assertTrue(menu.tier() == 3,
+                "the synced tier was discarded; tier() answered " + menu.tier() + " after a sync of 3");
+            helper.assertTrue(menu.unlocked(offers.get(0)),
+                "a tier 3 offer was still locked after the tier synced to 3");
+            helper.succeed();
+        });
+
         RCGameTests.test("an_offer_with_no_tier_is_always_open", 20, helper -> {
             // The compatibility half. Every offer written before the ladder existed omits `tier`, and
             // absent must mean 0 or a pack's whole shelf locks itself on update.

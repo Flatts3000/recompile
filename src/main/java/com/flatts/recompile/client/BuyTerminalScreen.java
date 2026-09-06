@@ -130,6 +130,16 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
         }
         lines.add(Component.translatable("container.recompile.offer_price",
             String.format("%,d", offer.price())).withStyle(ChatFormatting.GRAY));
+        // A LOCKED ROW STOPS HERE. Below this the tooltip would tell a player at tier 0 that they are
+        // short of scrip for a tier 3 line, which is both false and the exact "answer that is not the
+        // real reason" the row's colouring exists to avoid. Money is not the obstacle yet.
+        if (!this.menu.unlocked(offer)) {
+            lines.add(Component.translatable("container.recompile.offer_locked", offer.tier())
+                .withStyle(ChatFormatting.RED));
+            graphics.setTooltipForNextFrame(this.font, lines, java.util.Optional.empty(),
+                mouseX, mouseY);
+            return;
+        }
         int shortBy = offer.price() - this.menu.balance();
         if (shortBy > 0) {
             lines.add(Component.translatable("tooltip.recompile.market_short",
@@ -153,6 +163,12 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
         if (event.button() == 0 && this.minecraft != null && this.minecraft.gameMode != null) {
             int row = overIndex("offers", shown(this.menu.offers().size()), event.x(), event.y());
             if (row >= 0) {
+                // A locked row is not sent. The server would refuse it anyway, but this class exists
+                // so "why will it not sell me this" is answered BEFORE the click rather than by a
+                // click that does nothing - which is what an unconditional send produces.
+                if (!this.menu.unlocked(this.menu.offers().get(scroll + row))) {
+                    return true;
+                }
                 // The vanilla Stonecutter/Loom path: the id travels as a VAR_INT, no custom packet.
                 this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
                     scroll + row);
