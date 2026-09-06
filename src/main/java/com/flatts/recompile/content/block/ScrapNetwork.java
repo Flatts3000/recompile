@@ -26,7 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * {@link RCTags#SCRAP_CONNECTABLE} and reads the members live. Clusters are small and interactions are
  * user-paced, so a fresh flood per call is cheap.
  *
- * <p><b>Only two of the six member types are routing sinks.</b> A {@link ScrapBinBlockEntity} (bind /
+ * <p><b>Only three of the six member types are routing sinks.</b> A {@link ScrapBinBlockEntity} (bind /
  * deposit) and the Scrap Barrel (its {@link Container}, matched by block id). The Burn Barrel is in
  * the tag so a smelter wired into the cluster still conducts, but it is a furnace
  * {@link net.minecraft.world.WorldlyContainer} - routing must never land in its smelt slots, so it is
@@ -133,11 +133,19 @@ public final class ScrapNetwork {
     }
 
     /**
-     * Route a stack into the connected storage from a member block: a bin already bound to the item
-     * first, then (only if {@code autoBind}) an empty bin that binds to it, then a barrel. Mutates the
-     * stack and returns it - empty if fully stored, otherwise the remainder (all storage full, or no
-     * network / no storage, in which case the stack is unchanged and the caller does its standalone
-     * thing).
+     * Route a stack out of a member block. Mutates the stack and returns it - empty if fully placed,
+     * otherwise the remainder (everything full, or no network at all, in which case the stack is
+     * unchanged and the caller does its standalone thing).
+     *
+     * <p>The order is: a <b>Freight Terminal</b> first and only for what the current phase is waiting
+     * on, and only up to the outstanding count; then a <b>bound bin</b> matching the item; then (only
+     * if {@code autoBind}) an <b>empty bin</b> that binds to it; then the <b>Scrap Barrel</b>.
+     *
+     * <p><b>Freight is first but cannot monopolise</b>, which is what let a third sink exist at all: a
+     * terminal claims only goods a rung is actively waiting on and only until that line is met, after
+     * which it refuses and the same item flows to the bins. "Connected storage" is deliberately not
+     * the phrase any more - a terminal is a sink but not storage, and {@link #reachesStorage} still
+     * ignores it.
      */
     public static ItemStack insertFromMember(Level level, BlockPos member, ItemStack stack, boolean autoBind) {
         if (stack.isEmpty()) {
@@ -152,8 +160,20 @@ public final class ScrapNetwork {
         // - only the specific goods a rung is waiting on, and only until that line is satisfied,
         // after which canPlaceItem starts refusing and the same item flows to the bins again. That
         // self-limiting property is why freight can sit ahead of storage without starving it.
+        // EXACTLY THE OUTSTANDING AMOUNT, not a whole stack. insertIntoContainer moves as much as
+        // will fit once a boolean gate says yes, which put 64 on a strip that wanted 24 and stranded
+        // the other 40 in a block whose faces hand nothing back.
+        //
+        // `committed` runs across the whole call so two terminals in one cluster cannot each claim
+        // the same outstanding count: a terminal only sees its OWN strip when it works out what is
+        // left to want, so without this the second one double-books deterministically.
+        int committed = 0;
         for (FreightTerminalBlockEntity terminal : freightTerminals(level, members)) {
-            insertIntoContainer(terminal, stack);
+            int room = terminal.outstandingFor(stack.getItem()) - committed;
+            if (room <= 0) {
+                continue;
+            }
+            committed += terminal.accept(stack, room);
             if (stack.isEmpty()) {
                 return stack;
             }

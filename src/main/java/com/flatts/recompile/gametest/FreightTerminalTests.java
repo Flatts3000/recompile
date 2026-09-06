@@ -81,6 +81,13 @@ public final class FreightTerminalTests {
             helper.assertTrue(left.isEmpty(),
                 "the network did not route " + wanted + " into the terminal; " + left.getCount()
                     + " came back");
+            // DISARM IT. The block ticks for real, so goods left on the strip would drain into the
+            // shared per-world FreightState on some later tick, outside any test's control - and
+            // a_delivery_is_counted_and_the_stack_is_spent asserts an exact delivered count. This
+            // file's own header names that hazard; leaving a live terminal loaded would have been
+            // creating it.
+            terminal.clearContent();
+            FreightState.of(level).setTier(0);
             helper.succeed();
         });
 
@@ -92,14 +99,80 @@ public final class FreightTerminalTests {
             terminal(helper, 7);
             FreightPhaseRecipe phase = firstPhase(helper);
 
-            ItemStack unwanted = new ItemStack(Items.DIAMOND, 8);
-            if (phase.required(unwanted.getItem()) == 0) {
-                ItemStack left = ScrapNetwork.insertFromMember(
-                    level, helper.absolutePos(at(7)), unwanted, false);
-                helper.assertTrue(left.getCount() == 8,
-                    "the terminal absorbed " + (8 - left.getCount())
-                        + " of an item no phase line asks for");
+            // THE ITEM IS FOUND, NOT ASSUMED. The first version guarded on
+            // `if (phase.required(DIAMOND) == 0)` and then succeeded unconditionally, so a pack - or
+            // one edit to phase one - that added a diamond line would have made this assert nothing
+            // and still pass green. That is the exact vacuity the PR claimed to have checked for, and
+            // checking the current data is not the same as checking the structure.
+            Item unwantedItem = null;
+            for (Item candidate : new Item[] {Items.DIAMOND, Items.EMERALD, Items.GOLD_INGOT,
+                    Items.NETHER_STAR, Items.FEATHER}) {
+                if (phase.required(candidate) == 0) {
+                    unwantedItem = candidate;
+                    break;
+                }
             }
+            helper.assertTrue(unwantedItem != null,
+                "no candidate item is outside phase one's manifest, so this test cannot assert "
+                    + "anything; pick a different candidate rather than letting it pass green");
+
+            ItemStack unwanted = new ItemStack(unwantedItem, 8);
+            ItemStack left = ScrapNetwork.insertFromMember(
+                level, helper.absolutePos(at(7)), unwanted, false);
+            helper.assertTrue(left.getCount() == 8,
+                "the terminal absorbed " + (8 - left.getCount()) + " of "
+                    + unwantedItem + ", which no phase line asks for");
+            helper.succeed();
+        });
+
+        RCGameTests.test("routing_takes_only_what_the_rung_is_short_of", 40, helper -> {
+            // THE BUG THIS PINS. canPlaceItem is a boolean - "is any more wanted" - which is right
+            // for a hopper, because a hopper moves one item per transfer. The network moves a whole
+            // stack once the gate says yes, so a 64 stack routed at a phase wanting 32 put all 64 on
+            // the strip and stranded the excess in a block whose faces hand nothing back. That is the
+            // precise "swallow a player's sorted materials" failure the conditional sink exists to
+            // prevent, so the sink was not conditional at all until this.
+            ServerLevel level = helper.getLevel();
+            FreightTerminalBlockEntity terminal = terminal(helper, 9);
+            FreightPhaseRecipe phase = firstPhase(helper);
+            // THE LINE MUST NOT BE A WHOLE NUMBER OF STACKS, and the first version of this test did
+            // not check that. Phase one's first line wants 64 pressed junk and a stack IS 64, so the
+            // old whole-stack path coincidentally moved exactly the right amount and the test passed
+            // against the very bug it was written for. Verified by reintroducing the bug: it stayed
+            // green. Pick a line that can actually discriminate, and say so if none can.
+            FreightPhaseRecipe.Requirement line = null;
+            for (FreightPhaseRecipe.Requirement candidate : phase.requires()) {
+                int max = new ItemStack(candidate.item()).getMaxStackSize();
+                if (candidate.count() % max != 0) {
+                    line = candidate;
+                    break;
+                }
+            }
+            helper.assertTrue(line != null,
+                "every line of phase one wants a whole number of stacks, so this test cannot tell "
+                    + "exact-amount routing from whole-stack routing; give a phase line a count that "
+                    + "is not a multiple of its stack size");
+
+            int want = line.count();
+            int offered = want + 40;
+            ItemStack routed = new ItemStack(line.item(), offered);
+            ItemStack left = ScrapNetwork.insertFromMember(
+                level, helper.absolutePos(at(9)), routed, false);
+
+            helper.assertTrue(left.getCount() == offered - want,
+                "routing should have taken exactly the " + want + " outstanding and returned "
+                    + (offered - want) + "; it returned " + left.getCount());
+
+            int onStrip = 0;
+            for (int slot = 0; slot < FreightTerminalBlockEntity.SLOT_COUNT; slot++) {
+                onStrip += terminal.getItem(slot).getCount();
+            }
+            helper.assertTrue(onStrip == want,
+                "the strip holds " + onStrip + " but the rung was only short of " + want
+                    + "; the excess would strand");
+
+            terminal.clearContent();
+            FreightState.of(level).setTier(0);
             helper.succeed();
         });
 

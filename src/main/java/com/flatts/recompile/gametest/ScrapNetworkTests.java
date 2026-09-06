@@ -51,7 +51,7 @@ final class ScrapNetworkTests {
         // one, which is a two-line change that forces the question "and what does it actually do?" to
         // be answered rather than assumed.
         RCGameTests.test("every_scrap_network_member_has_a_declared_role", 20, helper -> {
-            // SINK   - a route can end here (only two, deliberately; see ScrapNetwork)
+            // SINK   - a route can end here (three; the third is conditional, see ScrapNetwork)
             // SOURCE - it pushes its own output into the network
             // READER - it reads the cluster rather than moving anything
             // RELAY  - it is a member only so a cluster can span it
