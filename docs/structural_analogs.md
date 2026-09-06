@@ -5,8 +5,9 @@ have one picked. This file lists the candidates so the choice can be made agains
 than re-argued from taste (owner, 2026-09-05: *"I feel like we have a lot of distinct features but
 it's not a 'game' yet. Theme is the only thing holding these features together."*).
 
-**It does not make the ruling.** It is the input to one. The decision itself belongs in
-`../trashlands/docs/design_decisions.md`, because that is where feature design lives.
+**It was written as the input to a ruling, and the ruling was made on 2026-09-06** (see the last
+section). The decision itself lives in `../trashlands/docs/design_decisions.md` as P3.10, because that
+is where feature design lives; what is here is the survey it was chosen against.
 
 **The question this is downstream of has been open since 2026-07-15** and is recorded in
 `../trashlands/docs/concept.md` under Open questions, tagged "the big one":
@@ -34,10 +35,13 @@ and what Recompile would have to become to fit.
 elevator).
 **Recompile would need:** a deeper graph and a terminal goal big enough to justify climbing it.
 
-**The honest problem.** This is the family Recompile has drifted into, and it is the worst fit of the
-six. The graph is shallow, and there is no capstone: automating garbage collection currently ends in
-more garbage collection. A ladder with nothing at the top reads as a chore list, which is close to the
-symptom being diagnosed.
+**Corrected 2026-09-06.** This paragraph originally called family 1 the worst fit of the six on the
+grounds that the ladder had no capstone, so automating garbage collection ended in more garbage
+collection. That was wrong, and wrong in the way this whole file warns about: the capstone was designed
+and simply not built, so reading the build told me the opposite of reading the design. See
+`../../trashlands/docs/the_twist.md` and P3.10 in
+[`design_decisions.md`](../../trashlands/docs/design_decisions.md). The graph being shallow still
+stands, and the freight ladder is what deepens it.
 
 ### 2. World-state transformation
 
@@ -163,6 +167,29 @@ so theme is the only thing left doing the work.
 system against them. Anything that serves neither is either rescoped or accepted as explicitly
 decorative. The balance pass (#36) should wait for this, because it would otherwise tune the throughput
 of a game whose problem is that throughput is all it has.
+
+---
+
+## The ruling (2026-09-06)
+
+**Primary: family 1, the tech ladder. Secondary: family 2, world-state transformation.** Locked as
+P3.10 in [`design_decisions.md`](../../trashlands/docs/design_decisions.md).
+
+The ladder is a **freight** ladder: each tier opens by shipping named processed goods to the off-site
+buyer, rather than by accumulating a scrip balance. Delivery and not currency, because a currency gate
+is fungible - the optimal play under one is to find the best scrip-per-hour source and farm only that,
+which makes every other system a worse way to get the same number and flattens the regions and
+structures into interchangeable payout piles. Satisfactory is the reference and it gates on Space
+Elevator part deliveries while keeping its actual currency deliberately optional.
+
+**Family 3 (knowledge recovery) is retained as an explicit side track**, off the critical path, in the
+role Satisfactory gives the MAM and its hard drives. Teardown is demoted rather than deleted: it is the
+mod's namesake and its only mechanic that nothing else on CurseForge has, where a purchased tech ladder
+is well-trodden.
+
+**Families 4, 5 and 6 are not promoted** and are now the audit list. The filter, restoration and
+holding-ground are each either rescoped to serve the primary or accepted as decorative, and that audit
+has not been done yet.
 
 ---
 
