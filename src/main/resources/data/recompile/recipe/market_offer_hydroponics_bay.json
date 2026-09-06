@@ -1,5 +1,6 @@
 {
   "type": "recompile:market_offer",
   "blueprint": "recompile:hydroponics_bay",
-  "price": 900
+  "price": 900,
+  "tier": 5
 }

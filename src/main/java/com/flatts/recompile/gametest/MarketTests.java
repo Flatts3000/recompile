@@ -284,6 +284,9 @@ final class MarketTests {
 
             Market.setBalance(player, 0);
             Market.credit(player, price + 100);
+            // The Battery is tier 2 since #389, so open the ladder far enough for this to be a test
+            // about SPENDING rather than an accidental second test of the tier gate.
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(8);
             BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
                 ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)), offers);
             helper.assertTrue(menu.clickMenuButton(player, index),
@@ -362,16 +365,37 @@ final class MarketTests {
             helper.succeed();
         });
 
+        RCGameTests.test("every_offer_opens_somewhere_on_the_shipped_ladder", 20, helper -> {
+            // REWRITTEN IN #389. This asserted the catalogue was entirely tier 0, which was the right
+            // guard while step 2 shipped no tiered stock and is now exactly what step 3 changes. The
+            // claim worth making instead is that no offer is stranded ABOVE the ladder: a line at a
+            // tier the ladder cannot reach is unbuyable forever, with nothing logged and a shelf that
+            // simply never opens.
+            ServerLevel level = helper.getLevel();
+            int rungs = com.flatts.recompile.content.freight.FreightPhases.length(level);
+            helper.assertTrue(rungs > 0, "no freight phases loaded, so no offer can ever open");
+            for (Market.Offer offer : MarketTerminalBlock.Buy.offers(level.getServer())) {
+                helper.assertTrue(offer.tier() <= rungs,
+                    "an offer sits at tier " + offer.tier() + " but the ladder only has " + rungs
+                        + " rungs, so it can never be bought");
+            }
+            helper.succeed();
+        });
+
         RCGameTests.test("an_offer_with_no_tier_is_always_open", 20, helper -> {
-            // The compatibility half. Every offer written before the ladder existed omits `tier`, and
-            // absent must mean 0 or a pack's whole shelf locks itself on update.
+            // The compatibility half, which still matters: every offer written before the ladder
+            // existed omits `tier`, and absent must mean 0 or a pack's whole shelf locks itself on
+            // update. Asserted on a synthetic offer rather than on the catalogue, so it keeps testing
+            // the DEFAULT rather than whatever the shipped stock happens to be.
             ServerLevel level = helper.getLevel();
             com.flatts.recompile.content.freight.FreightState.of(level).setTier(0);
-            for (Market.Offer offer : MarketTerminalBlock.Buy.offers(level.getServer())) {
-                helper.assertTrue(offer.tier() == 0,
-                    "a shipped offer declares tier " + offer.tier()
-                        + "; step 2 ships no tiered stock, so this is a stray edit");
-            }
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            List<Market.Offer> untiered = List.of(
+                new Market.Offer(new ItemStack(RCItems.SCRAP_METAL.get()), 10, 0));
+            BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
+                ContainerLevelAccess.NULL, untiered);
+            helper.assertTrue(menu.unlocked(untiered.get(0)),
+                "an offer with tier 0 was locked at tier 0, so absent-means-0 is broken");
             helper.succeed();
         });
 
@@ -389,6 +413,8 @@ final class MarketTests {
             int price = offers.get(index).price();
 
             Market.setBalance(player, price - 1);
+            // Open the ladder, so a refusal here can only be about the balance.
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(8);
             BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
                 ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)), offers);
             helper.assertTrue(!menu.clickMenuButton(player, index),

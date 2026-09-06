@@ -1,0 +1,18 @@
+{
+  "type": "recompile:market_offer",
+  "_comment": [
+    "TIER 8, THE TOP OF THE LADDER AS IT STANDS. Automating collection outright is the",
+    "biggest single change in the mod, so it is what finishing the freight ladder buys.",
+    "",
+    "The tier is PROVISIONAL (owner, 2026-09-06): the End dimension and later-game content",
+    "are still to come, and the ladder is expected to grow past eight. Anything reasoning",
+    "from 'tier 8 is the finale' is reasoning from a temporary fact.",
+    "",
+    "The Depot is the cheaper half deliberately - it is useless alone, so pricing it low",
+    "does not hand anything over early, and it lets a player commit to the pad before the",
+    "machine."
+  ],
+  "blueprint": "recompile:scrap_hauler",
+  "price": 2200,
+  "tier": 8
+}

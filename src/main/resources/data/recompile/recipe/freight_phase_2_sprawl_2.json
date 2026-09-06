@@ -4,8 +4,8 @@
   "name": "freight.recompile.phase.2",
   "requires": [
     {
-      "item": "minecraft:copper_ingot",
-      "count": 24
+      "item": "recompile:plastic_scrap",
+      "count": 48
     },
     {
       "item": "recompile:rubber_scrap",

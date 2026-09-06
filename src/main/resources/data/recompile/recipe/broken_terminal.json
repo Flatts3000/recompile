@@ -37,16 +37,12 @@
       ]
     }
   ],
-  "teaches": [
-    {
-      "recipe": "recompile:sell_terminal",
-      "chance": 1.0,
-      "scraps_required": 4
-    },
-    {
-      "recipe": "recompile:buy_terminal",
-      "chance": 1.0,
-      "scraps_required": 4
-    }
+  "_comment": [
+    "TEACHES NOTHING (2026-09-06). It taught the two market terminals, and those no longer have",
+    "blueprint sets - they craft plainly, because the market being the only source of knowledge",
+    "made a Blueprint-gated Buy Terminal a deadlock on a fresh world.",
+    "",
+    "So this is a pure salvage teardown ahead of the rest of step 4, which is where every other",
+    "teardown stops teaching."
   ]
 }
