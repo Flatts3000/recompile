@@ -2,6 +2,10 @@ package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.content.block.entity.FreightTerminalBlockEntity;
 import com.flatts.recompile.registry.RCBlockEntities;
+import com.flatts.recompile.content.freight.FreightManifest;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -47,6 +51,24 @@ public class FreightTerminalBlock extends BaseEntityBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new FreightTerminalBlockEntity(pos, state);
+    }
+
+    /**
+     * Open the manifest.
+     *
+     * <p>The two-argument {@code openMenu} carries the phase's requirements in the open buffer, which
+     * is the Buy Terminal's pattern: the client screen lists exactly what the server resolved and no
+     * second sync path exists to drift from it.
+     */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+            Player player, BlockHitResult hit) {
+        if (!level.isClientSide()
+                && level.getBlockEntity(pos) instanceof FreightTerminalBlockEntity terminal) {
+            player.openMenu(terminal,
+                buffer -> FreightManifest.STREAM_CODEC.encode(buffer, terminal.manifest()));
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override

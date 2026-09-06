@@ -1,5 +1,11 @@
 package com.flatts.recompile.content.block.entity;
 
+import com.flatts.recompile.content.freight.FreightManifest;
+import com.flatts.recompile.content.menu.FreightTerminalMenu;
+import com.flatts.recompile.content.menu.WideSync;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import com.flatts.recompile.content.freight.FreightPhases;
 import com.flatts.recompile.content.freight.FreightState;
 import com.flatts.recompile.content.recipe.FreightPhaseRecipe;
@@ -12,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -46,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
  * every slot, so a hopper under the terminal cannot pull a delivery back out mid-drain, which would
  * otherwise be a way to launder progress out of a phase.
  */
-public class FreightTerminalBlockEntity extends BlockEntity implements WorldlyContainer {
+public class FreightTerminalBlockEntity extends BlockEntity
+        implements WorldlyContainer, MenuProvider {
 
     /** A landing strip rather than a hold. Wide enough that one hopper never throttles a factory. */
     public static final int SLOT_COUNT = 9;
@@ -206,8 +214,61 @@ public class FreightTerminalBlockEntity extends BlockEntity implements WorldlyCo
         setChanged();
     }
 
+    @Override
     public Component getDisplayName() {
         return Component.translatable("container.recompile.freight_terminal");
+    }
+
+    /**
+     * The manifest the screen draws, resolved server-side and sent in the open buffer.
+     *
+     * <p>Requirements do not change while a screen is open, so they travel once here rather than
+     * every tick through the 16-bit data channel - where a count of 100,000 would not fit anyway.
+     */
+    public FreightManifest manifest() {
+        if (!(level instanceof ServerLevel server)) {
+            return FreightManifest.NONE;
+        }
+        int tier = FreightState.of(server).tier();
+        return FreightPhases.current(server, tier)
+            .map(phase -> FreightManifest.of(phase, tier, FreightPhases.length(server)))
+            .orElse(FreightManifest.NONE);
+    }
+
+    /** Delivered counts as low/high pairs, then the tier. See {@code FreightTerminalMenu}. */
+    private final ContainerData data = new ContainerData() {
+        @Override
+        public int get(int index) {
+            if (!(level instanceof ServerLevel server)) {
+                return 0;
+            }
+            FreightState freight = FreightState.of(server);
+            if (index == FreightTerminalMenu.TIER_INDEX) {
+                return freight.tier();
+            }
+            int line = index / 2;
+            FreightManifest current = manifest();
+            if (line >= current.lines().size()) {
+                return 0;
+            }
+            int delivered = freight.delivered(current.lines().get(line).item());
+            return index % 2 == 0 ? WideSync.low(delivered) : WideSync.high(delivered);
+        }
+
+        @Override
+        public void set(int index, int value) {
+            // Server-authoritative: the client never writes progress.
+        }
+
+        @Override
+        public int getCount() {
+            return FreightTerminalMenu.DATA_SIZE;
+        }
+    };
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        return new FreightTerminalMenu(containerId, inventory, this, data, manifest());
     }
 
     // ---- persistence ---------------------------------------------------------------------------

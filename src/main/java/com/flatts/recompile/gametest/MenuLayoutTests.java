@@ -112,6 +112,9 @@ final class MenuLayoutTests {
     private static final List<Screen> SCREENS = List.of(
         new Screen("hauler_depot", () -> com.flatts.recompile.content.menu.HaulerDepotMenu.LAYOUT,
             inv -> new com.flatts.recompile.content.menu.HaulerDepotMenu(0, inv)),
+        new Screen("freight_terminal",
+            () -> com.flatts.recompile.content.menu.FreightTerminalMenu.LAYOUT,
+            inv -> new com.flatts.recompile.content.menu.FreightTerminalMenu(0, inv)),
         new Screen("sequencer", () -> com.flatts.recompile.content.menu.SequencerMenu.LAYOUT,
             inv -> new com.flatts.recompile.content.menu.SequencerMenu(0, inv)),
         new Screen("burner_generator", () -> BurnerGeneratorMenu.LAYOUT,
@@ -246,7 +249,8 @@ final class MenuLayoutTests {
                     com.flatts.recompile.content.menu.SequencerMenu.class,
                     com.flatts.recompile.content.menu.SellTerminalMenu.class,
                     com.flatts.recompile.content.menu.BuyTerminalMenu.class,
-                    com.flatts.recompile.content.menu.HaulerDepotMenu.class);
+                    com.flatts.recompile.content.menu.HaulerDepotMenu.class,
+                    com.flatts.recompile.content.menu.FreightTerminalMenu.class);
             int registered = com.flatts.recompile.registry.RCMenus.MENUS.getEntries().size();
             helper.assertTrue(candidates.size() >= registered,
                 "this sweep considers " + candidates.size() + " menu classes while " + registered

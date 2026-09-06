@@ -2,6 +2,7 @@ package com.flatts.recompile.registry;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.menu.BuyTerminalMenu;
+import com.flatts.recompile.content.menu.FreightTerminalMenu;
 import com.flatts.recompile.content.menu.HaulerDepotMenu;
 import com.flatts.recompile.content.menu.SellTerminalMenu;
 import com.flatts.recompile.content.menu.SequencerMenu;
@@ -116,6 +117,16 @@ public final class RCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BuyTerminalMenu>> BUY_TERMINAL =
         MENUS.register("buy_terminal", () -> IMenuTypeExtension.create(
             (id, inventory, buffer) -> new BuyTerminalMenu(id, inventory, buffer)));
+
+    /**
+     * The Freight Terminal (#387): the twelfth custom screen, and a recorded exception like the
+     * eleven before it. No vanilla screen shows a delivery manifest, and a chest screen would show
+     * the goods while hiding the only numbers that matter - the argument that earned the market its
+     * two terminals, applied a third time.
+     */
+    public static final DeferredHolder<MenuType<?>, MenuType<FreightTerminalMenu>> FREIGHT_TERMINAL =
+        MENUS.register("freight_terminal", () -> IMenuTypeExtension.create(
+            (id, inventory, buffer) -> new FreightTerminalMenu(id, inventory, buffer)));
 
     /**
      * The Hauler Depot (#376): the eleventh custom screen, and a recorded reversal. The Scrap Barrel

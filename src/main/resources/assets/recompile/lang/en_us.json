@@ -445,6 +445,8 @@
   "container.recompile.connected": "Connected",
   "container.recompile.cupola_furnace": "Cupola Furnace",
   "container.recompile.filing_cabinet": "Filing Cabinet",
+  "container.recompile.freight.nothing_wanted": "Nothing is wanted. The manifest is closed.",
+  "container.recompile.freight.phase_of": "%s (%s of %s)",
   "container.recompile.freight_terminal": "Freight Terminal",
   "container.recompile.hauler_deploy": "Deploy",
   "container.recompile.hauler_depot": "Hauler Depot",
