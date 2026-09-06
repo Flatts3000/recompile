@@ -295,49 +295,92 @@ public class ScrapHaulerGoal extends Goal {
     }
 
     /**
-     * Every column on the square ring {@code ring} steps out from {@code (cx, cz)}, handed to
-     * {@code visit} one at a time.
+     * Every column on the square ring {@code ring} steps out from {@code (cx, cz)} that also lies
+     * inside the box, handed to {@code visit} one at a time.
      *
      * <p>Chebyshev rings: ring 0 is the centre alone, and ring n is the 8n cells on the perimeter of
-     * the (2n+1) square. Extracted and public so {@code ScrapHaulerRingTest} can prove the thing that
-     * actually matters about a ring search, which is that it MISSES nothing - rings 0..n visit every
-     * cell of the square exactly once, and never the same cell twice.
+     * the (2n+1) square.
+     *
+     * <p><b>Clipped to the box rather than filtered after the fact.</b> The rings are centred on the
+     * MACHINE and the work area is a box around the DEPOT, so a Hauler standing in a corner of its
+     * area - the ordinary state right after it clears that corner - needs rings reaching the far side,
+     * and a square of twice the side has four times the cells. Enumerating those and rejecting them
+     * one at a time made the empty-field case about four times MORE expensive than the sweep this
+     * replaced, at the very radius the change exists to make usable. Clipping each of the ring's four
+     * segments to the box costs nothing and leaves only cells that could actually pay.
+     *
+     * <p>Extracted and public so {@code ScrapHaulerRingTest} can prove the thing that actually matters
+     * about a ring search, which is that it MISSES nothing.
      */
-    public static void forEachOnRing(int cx, int cz, int ring, java.util.function.IntBinaryOperator visit) {
+    public static void forEachOnRing(int cx, int cz, int ring, int minX, int maxX, int minZ, int maxZ,
+            java.util.function.IntBinaryOperator visit) {
         if (ring == 0) {
-            visit.applyAsInt(cx, cz);
+            if (cx >= minX && cx <= maxX && cz >= minZ && cz <= maxZ) {
+                visit.applyAsInt(cx, cz);
+            }
             return;
         }
-        for (int dx = -ring; dx <= ring; dx++) {
-            visit.applyAsInt(cx + dx, cz - ring);
-            visit.applyAsInt(cx + dx, cz + ring);
+        int loX = Math.max(cx - ring, minX);
+        int hiX = Math.min(cx + ring, maxX);
+        // The two rows, corners included.
+        for (int z : new int[] {cz - ring, cz + ring}) {
+            if (z < minZ || z > maxZ) {
+                continue;
+            }
+            for (int x = loX; x <= hiX; x++) {
+                visit.applyAsInt(x, z);
+            }
         }
-        // The sides, with the corners already covered by the rows above.
-        for (int dz = -ring + 1; dz <= ring - 1; dz++) {
-            visit.applyAsInt(cx - ring, cz + dz);
-            visit.applyAsInt(cx + ring, cz + dz);
+        // The two sides, corners already covered by the rows.
+        int loZ = Math.max(cz - ring + 1, minZ);
+        int hiZ = Math.min(cz + ring - 1, maxZ);
+        for (int x : new int[] {cx - ring, cx + ring}) {
+            if (x < minX || x > maxX) {
+                continue;
+            }
+            for (int z = loZ; z <= hiZ; z++) {
+                visit.applyAsInt(x, z);
+            }
         }
+    }
+
+    /**
+     * How many rings around {@code self} are needed to reach every column of the work area.
+     *
+     * <p>Pure and public because this, not the ring walker, is the arithmetic that can silently drop
+     * a pile: a bound that forgot one of its four terms would skip everything on one side of the
+     * machine and still pass every test about ring shape. {@code ScrapHaulerRingTest} asserts that
+     * rings 0 through this number really do cover the whole box.
+     */
+    public static int ringsToCover(BlockPos home, int chunkRadius, BlockPos self) {
+        int minX = ((home.getX() >> 4) - chunkRadius) << 4;
+        int maxX = (((home.getX() >> 4) + chunkRadius) << 4) + 15;
+        int minZ = ((home.getZ() >> 4) - chunkRadius) << 4;
+        int maxZ = (((home.getZ() >> 4) + chunkRadius) << 4) + 15;
+        return Math.max(
+            Math.max(Math.abs(self.getX() - minX), Math.abs(self.getX() - maxX)),
+            Math.max(Math.abs(self.getZ() - minZ), Math.abs(self.getZ() - maxZ)));
     }
 
     /**
      * The nearest takeable block to the Hauler inside the Depot's work area.
      *
-     * <p><b>Searched OUTWARD FROM THE MACHINE, stopping at the first ring that has anything</b>
-     * (#382). It used to sweep the whole area after every single block taken, with nothing carried
-     * between takes: 256 columns a chunk, up to {@link #COLUMN_DEPTH} block reads each, plus six
-     * neighbour reads and a fluid check per candidate - about 18,000 lookups a scan at the default
-     * radius and 590,000 at the config ceiling, every eight ticks, per Hauler. The work area is a
-     * server-cost dial by design; the per-take rescan was the multiplier that made the top of it
-     * unusable.
+     * <p><b>Searched OUTWARD FROM THE MACHINE</b> (#382). It used to sweep the whole area after every
+     * single block taken, with nothing carried between takes: 256 columns a chunk, up to
+     * {@link #COLUMN_DEPTH} block reads each, plus six neighbour reads and a fluid check per
+     * candidate - about 18,000 lookups a scan at the default radius and 590,000 at the config ceiling,
+     * every eight ticks, per Hauler. The work area is a server-cost dial by design; the per-take
+     * rescan was the multiplier that made the top of it unusable.
      *
-     * <p>The goal always wanted the nearest pile to the machine, so expanding rings give that ordering
-     * for free and let it stop as soon as a ring pays out. A pile three blocks away now costs about
-     * fifty columns instead of two thousand. The empty-area worst case is unchanged - every column,
-     * because there is genuinely nothing to find - and that case is already throttled to one scan
-     * every {@link ScrapHaulerEntity#IDLE_SCAN_TICKS} ticks by {@code parkedIdle}.
+     * <p><b>It returns the same block the full sweep did.</b> Stopping at the first ring that pays
+     * would NOT: a ring is a square, so a hit on ring 3 can sit 4.24 blocks away while ring 4 holds one
+     * at 4.00, and an earlier draft of this claimed the orderings matched when they did not. A hit at
+     * ring r is at least r away, so once the rings pass the best distance found nothing can beat it -
+     * and searching that far is usually one ring more than the first hit. Exact, and still cheap.
      *
-     * <p>Within a ring it still picks the Euclidean-nearest hit, so the ordering is the same one the
-     * full sweep produced rather than merely close to it.
+     * <p>Distance is measured in three dimensions, as the sweep measured it, and the stopping rule
+     * still holds: a candidate's 3D distance is never less than its horizontal one, which is never less
+     * than its ring.
      *
      * <p><b>Columns, read off the heightmap.</b> One lookup per (x, z) for the block under
      * {@code MOTION_BLOCKING}, then a few blocks down: the top of a column is not always the pile - a
@@ -352,27 +395,32 @@ public class ScrapHaulerGoal extends Goal {
         }
         int r = depot.chunkRadius();
         BlockPos self = hauler.blockPosition();
-
-        // How far out the rings need to go: the furthest corner of the area from where it stands, and
-        // not one ring further. Deriving it beats guessing a bound that is either short (and misses
-        // piles in a corner) or generous (and scans empty rings forever when the field is bare).
         int minX = ((home.getX() >> 4) - r) << 4;
         int maxX = (((home.getX() >> 4) + r) << 4) + 15;
         int minZ = ((home.getZ() >> 4) - r) << 4;
         int maxZ = (((home.getZ() >> 4) + r) << 4) + 15;
-        int rings = Math.max(
-            Math.max(Math.abs(self.getX() - minX), Math.abs(self.getX() - maxX)),
-            Math.max(Math.abs(self.getZ() - minZ), Math.abs(self.getZ() - maxZ)));
+        int rings = ringsToCover(home, r, self);
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         // Holders because the ring walker takes a lambda and a lambda cannot assign a local.
         BlockPos[] best = {null};
         double[] bestSq = {Double.MAX_VALUE};
+        // One chunk-presence answer reused across a whole row. The sweep asked once per CHUNK; asking
+        // once per column would be 73,984 calls a scan at the ceiling, in the loop this change is about.
+        long[] lastChunk = {Long.MIN_VALUE};
+        boolean[] lastLoaded = {false};
+
         for (int ring = 0; ring <= rings; ring++) {
-            best[0] = null;
-            bestSq[0] = Double.MAX_VALUE;
-            forEachOnRing(self.getX(), self.getZ(), ring, (x, z) -> {
-                if (!inWorkArea(home, r, x, z) || !level.hasChunk(x >> 4, z >> 4)) {
+            if (best[0] != null && ring > Math.sqrt(bestSq[0])) {
+                break;      // no column further out can be nearer than what is already in hand
+            }
+            forEachOnRing(self.getX(), self.getZ(), ring, minX, maxX, minZ, maxZ, (x, z) -> {
+                long chunk = (((long) (x >> 4)) << 32) ^ (z >> 4);
+                if (chunk != lastChunk[0]) {
+                    lastChunk[0] = chunk;
+                    lastLoaded[0] = level.hasChunk(x >> 4, z >> 4);
+                }
+                if (!lastLoaded[0]) {
                     return 0;
                 }
                 BlockPos hit = topTakeable(level, home, x, z, pos);
@@ -385,12 +433,8 @@ public class ScrapHaulerGoal extends Goal {
                 }
                 return 0;
             });
-            // The whole point: stop at the first ring that pays out, rather than sweeping on.
-            if (best[0] != null) {
-                return best[0];
-            }
         }
-        return null;
+        return best[0];
     }
 
     /**

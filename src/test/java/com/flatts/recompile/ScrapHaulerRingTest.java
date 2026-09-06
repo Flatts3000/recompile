@@ -3,37 +3,50 @@ package com.flatts.recompile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity;
 import com.flatts.recompile.content.entity.ScrapHaulerGoal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
 /**
- * The Scrap Hauler's search walks outward in rings and stops at the first one that pays out (#382).
+ * The Scrap Hauler's search walks outward in rings from the machine (#382).
  *
  * <p><b>The risk of a ring search is not that it is slow, it is that it MISSES.</b> The sweep it
  * replaced was obviously complete: two nested loops over every column in the area. Rings are not
- * obviously anything - the corners are the easy thing to double-count and the sides are the easy thing
- * to skip, and either mistake is invisible in play. A skipped column is a pile the machine drives past
- * forever; a doubled corner is a column read twice, which costs nothing and hides the first bug by
- * making the totals look plausible.
+ * obviously anything - the corners are the easy thing to double-count and the sides the easy thing to
+ * skip, and either mistake is invisible in play. A skipped column is a pile the machine drives past
+ * forever; a doubled corner costs nothing and makes the totals look plausible enough to hide the first
+ * bug.
  *
- * <p>So this pins completeness rather than speed: rings 0 through n visit every cell of the
- * (2n+1) square exactly once, and each ring is exactly the cells at that Chebyshev distance. Speed is
- * a consequence of stopping early, and stopping early is only safe if nothing is missed.
+ * <p><b>Two separate pieces can drop a column, and the first draft of this file only tested one.</b>
+ * The ring walker is the mechanical half. The other is the BOUND - how many rings are needed to reach
+ * the whole work area - and a bound written with one of its four terms missing would silently skip
+ * everything on one side of the machine while passing every test about ring shape. Both are pure
+ * statics for that reason, and both are pinned here.
  */
 class ScrapHaulerRingTest {
 
+    /** A box wide enough that clipping never bites, for the tests about ring shape alone. */
+    private static final int WIDE = 1 << 20;
+
     private static List<long[]> ring(int cx, int cz, int n) {
+        return ring(cx, cz, n, -WIDE, WIDE, -WIDE, WIDE);
+    }
+
+    private static List<long[]> ring(int cx, int cz, int n, int minX, int maxX, int minZ, int maxZ) {
         List<long[]> out = new ArrayList<>();
-        ScrapHaulerGoal.forEachOnRing(cx, cz, n, (x, z) -> {
+        ScrapHaulerGoal.forEachOnRing(cx, cz, n, minX, maxX, minZ, maxZ, (x, z) -> {
             out.add(new long[] {x, z});
             return 0;
         });
         return out;
     }
+
+    // ---- the walker ---------------------------------------------------------------------
 
     @Test
     void ring_zero_is_the_centre_alone() {
@@ -83,34 +96,99 @@ class ScrapHaulerRingTest {
     }
 
     @Test
-    void stopping_early_is_what_makes_it_cheap() {
-        // The claim in #382, as a number rather than an assertion. The old search read every column in
-        // the work area after every single block taken; the new one stops at the first ring holding a
-        // pile. A pile three blocks from the machine therefore costs the rings up to it.
-        int visited = 0;
-        for (int r = 0; r <= 3; r++) {
-            visited += ring(0, 0, r).size();
-        }
-        assertEquals(49, visited, "rings 0..3");
-
-        int fullAreaAtDefaultRadius = (3 * 16) * (3 * 16);      // 3x3 chunks of 16x16 columns
-        assertEquals(2304, fullAreaAtDefaultRadius);
-        assertTrue(visited * 40 < fullAreaAtDefaultRadius,
-            "the early exit should be worth more than an order of magnitude on a near pile");
-
-        // And the guarantee that makes it safe to stop: a ring is only reached once every nearer one
-        // has been fully searched, so the first hit really is the nearest.
-        assertEquals(1 + 8 + 16 + 24, visited);
-    }
-
-    @Test
     void negative_coordinates_are_not_a_special_case() {
-        // The whole search runs in world coordinates, which are as often negative as not, and the
-        // work-area test around it uses >> 4 precisely because arithmetic here is easy to get wrong.
         List<long[]> cells = ring(-1000, -1000, 3);
         assertEquals(24, cells.size());
         for (long[] cell : cells) {
             assertEquals(3, Math.max(Math.abs((int) cell[0] + 1000), Math.abs((int) cell[1] + 1000)));
         }
+    }
+
+    // ---- the clip -----------------------------------------------------------------------
+
+    @Test
+    void clipping_yields_exactly_the_ring_inside_the_box() {
+        // Clipping is an optimisation, so the only thing it may do is drop cells that are outside the
+        // box. Anything else is a miss, which is the failure this whole file is about.
+        int minX = -5, maxX = 12, minZ = 3, maxZ = 20;
+        for (int n = 0; n <= 25; n++) {
+            Set<String> clipped = new HashSet<>();
+            for (long[] c : ring(2, 8, n, minX, maxX, minZ, maxZ)) {
+                assertTrue(c[0] >= minX && c[0] <= maxX && c[1] >= minZ && c[1] <= maxZ,
+                    "clipped ring emitted (" + c[0] + ", " + c[1] + "), which is outside the box");
+                assertTrue(clipped.add(c[0] + "," + c[1]), "clipped ring emitted a cell twice");
+            }
+            Set<String> expected = new HashSet<>();
+            for (long[] c : ring(2, 8, n)) {
+                if (c[0] >= minX && c[0] <= maxX && c[1] >= minZ && c[1] <= maxZ) {
+                    expected.add(c[0] + "," + c[1]);
+                }
+            }
+            assertEquals(expected, clipped, "ring " + n + " clipped wrongly");
+        }
+    }
+
+    @Test
+    void a_machine_outside_its_own_area_costs_nothing_per_ring() {
+        // The radius is adjustable from the Depot screen while the Hauler is out, so it can find itself
+        // well outside the box it is meant to work. Every ring that misses the box entirely must emit
+        // nothing rather than 8n cells to be rejected one at a time.
+        int emitted = 0;
+        for (int n = 0; n <= 60; n++) {
+            emitted += ring(500, 500, n, -20, 20, -20, 20).size();
+        }
+        assertEquals(0, emitted, "a ring that cannot touch the box should emit nothing at all");
+    }
+
+    // ---- the bound ----------------------------------------------------------------------
+
+    @Test
+    void the_bound_reaches_every_column_of_the_work_area() {
+        // The piece a shape test cannot catch. A bound missing one of its four terms skips everything
+        // on one side of the machine, silently, and every test above still passes.
+        BlockPos home = new BlockPos(37, 70, -114);
+        for (int radius = 0; radius <= 3; radius++) {
+            int minX = ((home.getX() >> 4) - radius) << 4;
+            int maxX = (((home.getX() >> 4) + radius) << 4) + 15;
+            int minZ = ((home.getZ() >> 4) - radius) << 4;
+            int maxZ = (((home.getZ() >> 4) + radius) << 4) + 15;
+            int columns = (maxX - minX + 1) * (maxZ - minZ + 1);
+
+            // From each corner and the middle, which is where an asymmetric bound goes wrong.
+            for (BlockPos self : List.of(new BlockPos(minX, 70, minZ), new BlockPos(maxX, 70, maxZ),
+                    new BlockPos(minX, 70, maxZ), new BlockPos(maxX, 70, minZ), home,
+                    new BlockPos(maxX + 300, 70, minZ - 250))) {
+                Set<String> seen = new HashSet<>();
+                int rings = ScrapHaulerGoal.ringsToCover(home, radius, self);
+                for (int n = 0; n <= rings; n++) {
+                    for (long[] c : ring(self.getX(), self.getZ(), n, minX, maxX, minZ, maxZ)) {
+                        seen.add(c[0] + "," + c[1]);
+                    }
+                }
+                assertEquals(columns, seen.size(),
+                    "radius " + radius + " from " + self.toShortString() + ": the bound of " + rings
+                        + " rings left " + (columns - seen.size()) + " column(s) unsearched");
+            }
+        }
+    }
+
+    @Test
+    void stopping_early_is_what_makes_it_cheap() {
+        // The claim in #382, as a number rather than an assertion. The old search read every column in
+        // the work area after every block taken; the new one stops once the rings pass the best hit.
+        int visited = 0;
+        for (int r = 0; r <= 3; r++) {
+            visited += ring(0, 0, r).size();
+        }
+        assertEquals(1 + 8 + 16 + 24, visited);
+        assertEquals(49, visited, "rings 0..3");
+
+        // Derived from the shipped default rather than typed, so this keeps describing the real
+        // default if that ever moves.
+        int side = (2 * HaulerDepotBlockEntity.DEFAULT_CHUNK_RADIUS + 1) * 16;
+        int fullArea = side * side;
+        assertEquals(2304, fullArea, "the default work area, in columns");
+        assertTrue(visited * 40 < fullArea,
+            "the early exit should be worth more than an order of magnitude on a near pile");
     }
 }
