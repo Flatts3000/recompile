@@ -143,7 +143,7 @@ public final class Market {
      * open buffer, so the screen draws exactly the list the server will sell from and no second sync
      * path exists.
      */
-    public record Offer(ItemStack stack, int price) {
+    public record Offer(ItemStack stack, int price, int tier) {
 
         /**
          * The stack itself travels, components and all.
@@ -158,6 +158,7 @@ public final class Market {
             StreamCodec.composite(
                 ItemStack.STREAM_CODEC, Offer::stack,
                 ByteBufCodecs.VAR_INT, Offer::price,
+                ByteBufCodecs.VAR_INT, Offer::tier,
                 Offer::new);
 
         public static final StreamCodec<RegistryFriendlyByteBuf, java.util.List<Offer>>

@@ -1,5 +1,7 @@
 package com.flatts.recompile.content.menu;
 
+import com.flatts.recompile.content.freight.FreightState;
+import net.minecraft.server.level.ServerLevel;
 import com.flatts.recompile.content.market.Market;
 import com.flatts.recompile.gui.GuiTheme;
 import com.flatts.recompile.gui.ScreenLayout;
@@ -59,6 +61,40 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
     private final BalanceSync balanceSync;
 
+    /**
+     * The client's copy of the world's freight tier, filled by the data slot.
+     *
+     * <p><b>A stored field, and the first version of this had no such thing.</b> It read the tier
+     * through {@code access} in {@code get()} and made {@code set()} a no-op "because the client only
+     * reads this" - but the client's menu is built by the buffer factory with
+     * {@code ContainerLevelAccess.NULL}, whose {@code evaluate} returns empty, so client-side
+     * {@code tier()} answered 0 forever while {@code set} threw the synced value away. Every tiered
+     * row would have rendered locked on every client for the rest of the save, and clicking one would
+     * still have worked, because the server reads the real tier. The screen saying locked while the
+     * purchase goes through is the worst of both.
+     */
+    private int clientTier;
+
+    /**
+     * The world's freight tier. Small enough for one slot.
+     *
+     * <p>The split is {@code BalanceSync}'s, which is the working pattern next door: the server
+     * answers from the truth, the client answers from what it was sent.
+     */
+    private final net.minecraft.world.inventory.DataSlot tierSlot =
+        new net.minecraft.world.inventory.DataSlot() {
+            @Override
+            public int get() {
+                return access.evaluate((level, pos) -> level instanceof ServerLevel server
+                    ? FreightState.of(server).tier() : 0).orElse(0);
+            }
+
+            @Override
+            public void set(int value) {
+                BuyTerminalMenu.this.clientTier = value;
+            }
+        };
+
     /** Client factory with nothing on the shelf, for the geometry sweep. */
     public BuyTerminalMenu(int containerId, Inventory inventory) {
         this(containerId, inventory, ContainerLevelAccess.NULL, List.of());
@@ -82,11 +118,38 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
         this.balanceSync = new BalanceSync(inventory.player);
         this.addDataSlot(this.balanceSync.lowSlot());
         this.addDataSlot(this.balanceSync.highSlot());
+        // A LIVE slot rather than the open buffer, unlike the stock beside it. The stock cannot
+        // change while the shop is open but the tier can - somebody else's factory completes a phase
+        // - and a shelf that stayed locked after the rung landed would read as broken.
+        this.addDataSlot(this.tierSlot);
     }
 
     /** Everything for sale, in the order the screen draws it. */
     public List<Market.Offer> offers() {
         return offers;
+    }
+
+    /**
+     * The world's freight tier. An offer above it is listed but cannot be bought.
+     *
+     * <p><b>The fallback is on the ACCESS, not on {@code isClientSide}</b>, and that is what makes it
+     * testable: a menu built with {@link ContainerLevelAccess#NULL} - which is exactly what the client
+     * factory passes - falls through to the synced value with no client needed to prove it. All three
+     * cases land correctly: a server menu has a real access and answers from the world, a client menu
+     * has NULL and answers from what it was sent, and a client menu that somehow had an access would
+     * see a {@code ClientLevel} rather than a {@code ServerLevel} and still answer from the sync.
+     */
+    public int tier() {
+        return this.access.evaluate((level, pos) -> level instanceof ServerLevel server
+            ? FreightState.of(server).tier() : this.clientTier).orElse(this.clientTier);
+    }
+
+    /** For tests: the index of the tier slot among this menu's data slots. */
+    public static final int TIER_SLOT_INDEX = 2;
+
+    /** Whether {@code offer} is open at the world's current tier. */
+    public boolean unlocked(Market.Offer offer) {
+        return offer.tier() <= tier();
     }
 
     /** What the screen shows: the attachment on the server, the synced halves on the client. */
@@ -104,6 +167,11 @@ public class BuyTerminalMenu extends AbstractContainerMenu {
             return false;
         }
         Market.Offer offer = offers.get(id);
+        // THE TIER GATE, SERVER-SIDE. The screen greys a locked row, but a crafted packet does not
+        // go through the screen, and "the button was disabled" is not a permission check.
+        if (offer.tier() > tier()) {
+            return false;
+        }
         if (!Market.debit(buyer, offer.price())) {
             return false;
         }

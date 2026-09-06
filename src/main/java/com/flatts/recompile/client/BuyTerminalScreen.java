@@ -47,20 +47,29 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
             if (row == hovered) {
                 painter.tintPadded("offers", row, 1, GuiTheme.HOVER_ROW);
             }
+            boolean unlocked = this.menu.unlocked(offer);
             painter.item("offers", row, offer.stack());
             // The price is right-aligned to the row's edge and the name gets whatever is left, cut
             // with an ellipsis. "Netherite Upgrade Pattern" at "1,500 scrip" ran through the price
             // and out of the panel when both were placed at fixed columns; the unit lives on the
             // balance line and the hover tooltip, so the column is the bare number.
             int width = painter.at("offers", row).width();
-            String price = String.format("%,d", offer.price());
-            int priceWidth = font.width(price);
-            painter.textIn("offers", row, width - priceWidth, 4, price,
-                offer.price() <= balance ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_WARN);
+            // A LOCKED ROW SHOWS THE TIER WHERE ITS PRICE WOULD GO, not the price. Hiding locked
+            // stock would make the shop look complete and the ladder invisible, and with no recipe
+            // book in this mod this is the only surface that teaches the ladder exists. Showing a
+            // price you cannot pay for a reason that is not money would be the wrong answer to
+            // "why will it not sell me this".
+            String right = unlocked
+                ? String.format("%,d", offer.price())
+                : Component.translatable("container.recompile.locked_tier", offer.tier()).getString();
+            int rightWidth = font.width(right);
+            int rightColour = !unlocked ? GuiTheme.TEXT_MUTED
+                : offer.price() <= balance ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_WARN;
+            painter.textIn("offers", row, width - rightWidth, 4, right, rightColour);
             painter.textIn("offers", row, NAME_X, 4,
                 fit(font, offer.displayName().getString(),
-                    width - NAME_X - priceWidth - GAP),
-                GuiTheme.TEXT_LABEL);
+                    width - NAME_X - rightWidth - GAP),
+                unlocked ? GuiTheme.TEXT_LABEL : GuiTheme.TEXT_MUTED);
         }
         // The tail line sits in the extrapolated cell under the last row, which a single-column
         // run answers for on purpose - see ScreenLayout.Group.cell.
@@ -121,6 +130,16 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
         }
         lines.add(Component.translatable("container.recompile.offer_price",
             String.format("%,d", offer.price())).withStyle(ChatFormatting.GRAY));
+        // A LOCKED ROW STOPS HERE. Below this the tooltip would tell a player at tier 0 that they are
+        // short of scrip for a tier 3 line, which is both false and the exact "answer that is not the
+        // real reason" the row's colouring exists to avoid. Money is not the obstacle yet.
+        if (!this.menu.unlocked(offer)) {
+            lines.add(Component.translatable("container.recompile.offer_locked", offer.tier())
+                .withStyle(ChatFormatting.RED));
+            graphics.setTooltipForNextFrame(this.font, lines, java.util.Optional.empty(),
+                mouseX, mouseY);
+            return;
+        }
         int shortBy = offer.price() - this.menu.balance();
         if (shortBy > 0) {
             lines.add(Component.translatable("tooltip.recompile.market_short",
@@ -144,6 +163,12 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
         if (event.button() == 0 && this.minecraft != null && this.minecraft.gameMode != null) {
             int row = overIndex("offers", shown(this.menu.offers().size()), event.x(), event.y());
             if (row >= 0) {
+                // A locked row is not sent. The server would refuse it anyway, but this class exists
+                // so "why will it not sell me this" is answered BEFORE the click rather than by a
+                // click that does nothing - which is what an unconditional send produces.
+                if (!this.menu.unlocked(this.menu.offers().get(scroll + row))) {
+                    return true;
+                }
                 // The vanilla Stonecutter/Loom path: the id travels as a VAR_INT, no custom packet.
                 this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
                     scroll + row);
