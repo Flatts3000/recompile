@@ -64,7 +64,7 @@ consecutive frames came back photographing its back.
 
 | Field | Value |
 |---|---|
-| **Summary** | `A world buried under its own rubbish, where the recipes went in the bin with everything else. Vacuum the piles up, tear your finds apart to relearn them, and go looking through the sewers, a drained aquarium and a cooling tower for the rest.` |
+| **Summary** | `A world buried under its own rubbish, where the recipes went in the bin with everything else. Vacuum the piles up or send a robot to do it, tear your finds apart to relearn them, and go looking through the sewers and a drained aquarium for the rest.` |
 | **Categories** | Processing, World Gen, Technology |
 | **License** | MIT |
 | **Source / issues** | `https://github.com/Flatts3000/recompile` |
@@ -72,9 +72,15 @@ consecutive frames came back photographing its back.
 The first summary sold the premise ("...and reclaim the wasteland back to life"). The second stated
 the mechanic and nothing else, which is the opposite failure: it named the material source and left
 out what the mod is *about*. The third led with the loss and named teardown and reclamation. This one
-keeps the loss and the teardown and swaps reclamation for the two things people actually arrive for,
+keeps the loss and the teardown and swaps reclamation for the things people actually arrive for,
 because reclamation is a slow arc that reads as a chore in one line and the structures are the half a
-browsing player can picture. The Scrap Hauler is deliberately absent from it until it ships.
+browsing player can picture.
+
+**It names the robot, and the draft written an hour earlier did not.** That draft left the Hauler out
+on the grounds that it had not shipped, which was true when it was written and false by the time the
+summary was pasted, because v0.19.0 went out in between. The cooling tower came out to make room, and
+it is the right thing to drop: it is the one item on that list a reader has no picture of yet. 256
+characters is the field's hard cap and this runs to 249, so there is no room to have kept both.
 
 **Written for ModJam 2026 ("Echoes of the Past"), and that is a deliberate reframing rather than a
 rewrite of the mod.** Theme Fit is one of the three judging pillars, every worked example the
