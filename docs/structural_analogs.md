@@ -182,10 +182,17 @@ which makes every other system a worse way to get the same number and flattens t
 structures into interchangeable payout piles. Satisfactory is the reference and it gates on Space
 Elevator part deliveries while keeping its actual currency deliberately optional.
 
-**Family 3 (knowledge recovery) is retained as an explicit side track**, off the critical path, in the
-role Satisfactory gives the MAM and its hard drives. Teardown is demoted rather than deleted: it is the
-mod's namesake and its only mechanic that nothing else on CurseForge has, where a purchased tech ladder
-is well-trodden.
+**Family 3 (knowledge recovery) is DROPPED, not retained.** This section said "retained as an explicit
+side track" for about four hours on 2026-09-06 and the refinement that afternoon removed it: knowledge
+now comes only from the market, and **purchase is not discovery**. Teardown survives with a different
+job - it yields *function*, the working components you cannot forge from scrap - which is a scarcity
+gate inside family 1 rather than a knowledge mechanic.
+
+**That is the real cost of the ruling and it should not be glossed.** Knowledge-recovery was the mod's
+most distinctive family, the one thing here that nothing else on CurseForge does. It was traded for
+coherence. The trade is judged worth it because teardown-for-function is still uncommon, the narrative
+layer supplies distinctiveness, and five spines at twenty percent each was the complaint that started
+this.
 
 **Families 4, 5 and 6 are not promoted** and are now the audit list. The filter, restoration and
 holding-ground are each either rescoped to serve the primary or accepted as decorative, and that audit
