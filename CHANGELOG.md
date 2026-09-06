@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## v0.19.0
+
+**Something else does the clearing.** v0.17.0 made clearing a mound fast and v0.18.0 gave you places
+to walk to. This one takes the job off your hands: a machine that works a square of chunks while you
+are somewhere else. There is also a counter that pays scrip for what you build, and the Sledgehammer
+can finally win a fight it starts.
 
 ### The Sledgehammer swings back
 

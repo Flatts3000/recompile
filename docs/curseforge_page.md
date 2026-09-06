@@ -36,11 +36,11 @@ opening premise hands off to clearing the piles rather than to a workbench. The 
 scattered across six sections in world order; they are one run now, because a reader deciding whether
 to install this is deciding about them as a group.
 
-**The Scrap Hauler is the one section on this page that is NOT in the current release**, and it is
-marked as such in its own last line. It is built and merged, sitting under `## Unreleased` in
-`CHANGELOG.md`, so the claim discipline above is satisfied by the marker rather than by omission.
-**Delete that line when v0.19.0 ships** - a "not yet" that outlives the release it describes is
-worse than never having written it.
+**Brought current to v0.19.0 (2026-09-05).** The Scrap Hauler section was written while the machine
+was still sitting under `## Unreleased`, and carried a line saying so; cutting v0.19.0 the same day
+made the line false, so it is gone. That is the shortest a "not yet" has ever lived here, and it only
+worked because the release and the page moved together. A marker that outlives the release it
+describes is worse than never having written one.
 
 **Three sections still have no screenshot**, because `docs/cf_image_gallery/` has no frame of the
 vacuum, the aquarium or a tire dump. Do not invent a filename to fill the gap: an image link that does
@@ -151,8 +151,6 @@ Depot. Park a Depot against your sorting wall and the wall fills itself.
 
 There is only ever one of it. It is the item sitting in the Depot or the machine out in the field,
 never both at once.
-
-*Not in a release yet. It lands in the next one.*
 
 ## The recipes went in the bin too
 
