@@ -1,6 +1,7 @@
 package com.flatts.recompile.content.block;
 
 import com.flatts.recompile.Recompile;
+import com.flatts.recompile.content.block.entity.FreightTerminalBlockEntity;
 import com.flatts.recompile.content.block.entity.ScrapBinBlockEntity;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCTags;
@@ -86,6 +87,25 @@ public final class ScrapNetwork {
         return bins;
     }
 
+    /**
+     * The Freight Terminals among the given members (#393).
+     *
+     * <p><b>The third sink, and the first that is conditional.</b> The other two take anything they
+     * are bound to or have room for; a terminal takes only what the CURRENT FREIGHT PHASE is asking
+     * for, and refuses everything else at the slot. That is what made a third sink possible at all:
+     * the priority question that blocked it - bins first or freight first - stops mattering when the
+     * terminal can only ever claim goods a rung is actually waiting on.
+     */
+    public static List<FreightTerminalBlockEntity> freightTerminals(Level level, List<BlockPos> members) {
+        List<FreightTerminalBlockEntity> terminals = new ArrayList<>();
+        for (BlockPos pos : members) {
+            if (level.getBlockEntity(pos) instanceof FreightTerminalBlockEntity terminal) {
+                terminals.add(terminal);
+            }
+        }
+        return terminals;
+    }
+
     /** The barrels among the given members - only the Scrap Barrel, never any other container. */
     public static List<Container> barrels(Level level, List<BlockPos> members) {
         List<Container> barrels = new ArrayList<>();
@@ -99,7 +119,14 @@ public final class ScrapNetwork {
         return barrels;
     }
 
-    /** True when the cluster reached from {@code member} contains any storage sink (bin or barrel). */
+    /**
+     * True when the cluster reached from {@code member} contains any STORAGE sink (bin or barrel).
+     *
+     * <p><b>A Freight Terminal is deliberately not storage</b>, even though it is now a routing
+     * target. Callers use this to decide whether there is anywhere to keep things; a terminal
+     * consumes rather than keeps, and a machine that reported "yes, storage" because a terminal was
+     * adjacent would be telling its user that output is safe when it is being spent.
+     */
     public static boolean reachesStorage(Level level, BlockPos member) {
         List<BlockPos> members = collect(level, member);
         return !bins(level, members).isEmpty() || !barrels(level, members).isEmpty();
@@ -119,6 +146,17 @@ public final class ScrapNetwork {
         List<BlockPos> members = collect(level, member);
         if (members.isEmpty()) {
             return stack;
+        }
+        // FREIGHT FIRST, and only for what the current phase wants (#393). A terminal refuses
+        // everything else at the slot, so this cannot swallow a player's sorted materials in general
+        // - only the specific goods a rung is waiting on, and only until that line is satisfied,
+        // after which canPlaceItem starts refusing and the same item flows to the bins again. That
+        // self-limiting property is why freight can sit ahead of storage without starving it.
+        for (FreightTerminalBlockEntity terminal : freightTerminals(level, members)) {
+            insertIntoContainer(terminal, stack);
+            if (stack.isEmpty()) {
+                return stack;
+            }
         }
         List<ScrapBinBlockEntity> bins = bins(level, members);
         for (ScrapBinBlockEntity bin : bins) {
@@ -153,7 +191,14 @@ public final class ScrapNetwork {
         int size = container.getContainerSize();
         for (int slot = 0; slot < size && !stack.isEmpty(); slot++) {
             ItemStack existing = container.getItem(slot);
-            if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack)) {
+            // canPlaceItem on the MERGE path too, not just on the empty-slot path below. It was only
+            // on the latter, which was harmless while every sink accepted everything: a bin is bound
+            // to the item already and a barrel takes anything, so a matching stack was proof enough.
+            // The Freight Terminal broke that (#393) - after a phase completes, leftover goods sit in
+            // the strip, and merging into them would let a route push in an item the NEW phase does
+            // not want, straight past the filter that is the whole reason freight can be a sink.
+            if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack)
+                    && container.canPlaceItem(slot, stack)) {
                 int cap = Math.min(existing.getMaxStackSize(), container.getMaxStackSize());
                 int move = Math.min(cap - existing.getCount(), stack.getCount());
                 if (move > 0) {

@@ -1,6 +1,8 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.entity.FreightTerminalBlockEntity;
+import com.flatts.recompile.content.block.ScrapNetwork;
+import net.minecraft.world.item.Items;
 import com.flatts.recompile.content.freight.FreightPhases;
 import com.flatts.recompile.content.freight.FreightState;
 import com.flatts.recompile.content.recipe.FreightPhaseRecipe;
@@ -62,6 +64,53 @@ public final class FreightTerminalTests {
             helper.assertTrue(
                 RCBlocks.FREIGHT_TERMINAL.get().defaultBlockState().is(RCTags.SCRAP_CONNECTABLE),
                 "the Freight Terminal is not in #recompile:scrap_connectable, so nothing can route to it");
+            helper.succeed();
+        });
+
+        RCGameTests.test("the_network_routes_wanted_goods_into_the_terminal", 40, helper -> {
+            // The third sink (#393). A Depot pushing into a cluster that contains a terminal must
+            // actually reach it, which is the claim #387 made, had corrected on review because it was
+            // false, and now finally implements.
+            ServerLevel level = helper.getLevel();
+            FreightTerminalBlockEntity terminal = terminal(helper, 6);
+            FreightPhaseRecipe phase = firstPhase(helper);
+            Item wanted = phase.requires().get(0).item();
+
+            ItemStack routed = new ItemStack(wanted, 8);
+            ItemStack left = ScrapNetwork.insertFromMember(level, helper.absolutePos(at(6)), routed, false);
+            helper.assertTrue(left.isEmpty(),
+                "the network did not route " + wanted + " into the terminal; " + left.getCount()
+                    + " came back");
+            helper.succeed();
+        });
+
+        RCGameTests.test("the_network_does_not_route_what_the_phase_does_not_want", 40, helper -> {
+            // The conditional half, and the whole reason a third sink was acceptable. Without it the
+            // terminal would swallow a player's sorted materials, which is why every FIXED priority
+            // against the bins was rejected.
+            ServerLevel level = helper.getLevel();
+            terminal(helper, 7);
+            FreightPhaseRecipe phase = firstPhase(helper);
+
+            ItemStack unwanted = new ItemStack(Items.DIAMOND, 8);
+            if (phase.required(unwanted.getItem()) == 0) {
+                ItemStack left = ScrapNetwork.insertFromMember(
+                    level, helper.absolutePos(at(7)), unwanted, false);
+                helper.assertTrue(left.getCount() == 8,
+                    "the terminal absorbed " + (8 - left.getCount())
+                        + " of an item no phase line asks for");
+            }
+            helper.succeed();
+        });
+
+        RCGameTests.test("a_terminal_is_not_storage_even_though_it_is_a_sink", 20, helper -> {
+            // reachesStorage answers "is there anywhere to KEEP this", and a terminal spends rather
+            // than keeps. A machine told yes because a terminal was adjacent would be telling its
+            // user their output is safe while it is being consumed.
+            ServerLevel level = helper.getLevel();
+            terminal(helper, 8);
+            helper.assertTrue(!ScrapNetwork.reachesStorage(level, helper.absolutePos(at(8))),
+                "a lone Freight Terminal reported itself as storage");
             helper.succeed();
         });
 

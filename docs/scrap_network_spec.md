@@ -164,3 +164,27 @@ sift's own loot roll is random and covered by `SortingTarpTests`):
 3. `runClient` - place a sorter next to a bin next to a barrel; sift and watch junk file into the bin
    then overflow to the barrel; break the middle block and confirm the halves stop sharing; hold a Rain
    Collector / Grass Spreader core and confirm the green/red guideline footprint still shows.
+
+## The third sink (added 2026-09-06, #393)
+
+The Freight Terminal is a routing target, and the **only conditional one**: it accepts a route solely
+for goods the current freight phase is asking for and refuses everything else at the slot.
+
+**That conditionality is what made a third sink possible at all.** A fixed priority was wrong in both
+directions - freight ahead of the bins swallows a player's sorted materials, freight behind the barrel
+never sees anything, because the barrel absorbs almost everything. When the terminal can only claim
+what a rung is actively waiting on, and only until that line is satisfied, the ordering stops carrying
+the weight. It sits first and is still self-limiting.
+
+**Two costs, recorded rather than hidden:**
+
+- `insertFromMember` now reads **live world state**. Nothing else in this system does, and it means
+  routing behaviour changes the moment a phase completes.
+- `insertIntoContainer`'s **merge** path gained a `canPlaceItem` check. It only had one on the
+  empty-slot path, which was harmless while every sink accepted anything - a bin is already bound to
+  the item, a barrel takes all. Leftover goods sitting in a terminal's strip after a phase completed
+  would otherwise have let a route merge straight past the phase filter.
+
+**`reachesStorage` still ignores terminals**, deliberately. It answers "is there anywhere to keep
+this", and a terminal spends rather than keeps; a machine told yes because a terminal was adjacent
+would be telling its user their output is safe while it is being consumed.
