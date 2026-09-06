@@ -108,9 +108,12 @@ No job, no rescope, kept anyway, and recorded here so nobody re-audits them:
 
 ---
 
-## Findings that need a ruling
+## Findings
 
-### 1. The Sequencer is a second source of knowledge, and that contradicts the market rule
+**1 and 2 are ruled** (2026-09-06) and their resolutions are recorded inline below. **3, 4 and 5 remain
+open**: 3 is implementation planning, 4 and 5 are design questions with no ruling yet.
+
+### 1. The Sequencer is a second source of knowledge - RESOLVED 2026-09-06
 
 `recompile:spawn_egg_crafting` reads a Blueprint out of the grid, and the Sequencer is what produces
 those Blueprints from stamped amber. P3.10 says **the market is the only source of knowledge, one
@@ -127,13 +130,30 @@ Three ways out, in the order I would take them:
 3. **Rescope the Sequencer to yield function.** It reads amber and returns *the creature*, not the
    knowledge of it. Consistent with teardown-as-function. Largest change.
 
-### 2. The Sell Terminal and the freight terminal will read as the same block
+**Ruled: option 1** (Jason, 2026-09-06). The Sequencer is a sanctioned exception and the rule narrows
+to **tier knowledge**: the market is the only source of *progression* Blueprints. Creature Blueprints
+gate nothing and buy nothing, so they sit off the ladder and cannot short-circuit it. The amber chain
+and the Spent Amber feeding the resin family both survive untouched.
+
+### 2. The Sell Terminal and the freight terminal will read as the same block - RESOLVED 2026-09-06
 
 Both take goods and both send them off-site. One pays scrip for an optional shop; the other satisfies a
 tier quota. A player will not distinguish them by looking, and putting a load in the wrong one is a
 silent mistake with no feedback. Either they merge into one block with two modes, or the freight side
-needs a visibly different object. **This is a design question that should be settled before the freight
-terminal is specced**, because it decides whether the spec is a new block or a second tab.
+needs a visibly different object.
+
+**Ruled: separate blocks, split on AUTOMATION** (Jason, 2026-09-06). **The Sell Terminal takes no pipe
+input** and stays manual-only, which is what it already is - no block entity, no container, a
+menu-local grid. **The Freight Terminal takes pipe input**: hoppers, AE2 and the Scrap Network can all
+push into it, because quotas are bulk and sustained and are meant to be fed by a factory rather than by
+hand. The distinction is mechanical rather than cosmetic, so a player learns it by trying to automate
+one, and it is already an idiom here - the Burn Barrel returns an empty `getSlotsForFace` to be
+manual-only, and membership in `#recompile:scrap_connectable` is the switch that decides whether items
+route to a block at all.
+
+**It also gives the logistics tier a terminus.** Scrap Hauler collects, Depot pushes into the Scrap
+Network, the machines process, the Network routes to the Freight Terminal, the tier advances. Every
+logistics feature shipped in the last month gains an end it did not have.
 
 ### 3. Nine teardown recipes are currently the only route to what they teach
 
