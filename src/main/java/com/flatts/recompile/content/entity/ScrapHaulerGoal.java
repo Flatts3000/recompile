@@ -278,27 +278,71 @@ public class ScrapHaulerGoal extends Goal {
     }
 
     /**
-     * Whether {@code pos} is inside the work area: the Depot's chunk and {@code chunkRadius} rings of
-     * chunks around it, on the chunk grid. Static and pure so a unit test can pin the arithmetic,
-     * negative coordinates included - {@code >> 4} floors, {@code / 16} does not.
+     * Whether the column at {@code (x, z)} is inside the work area: the Depot's chunk and
+     * {@code chunkRadius} rings of chunks around it, on the chunk grid.
+     *
+     * <p>Static and pure so a unit test can pin the arithmetic, negative coordinates included -
+     * {@code >> 4} floors, {@code / 16} does not.
      */
+    public static boolean inWorkArea(BlockPos depot, int chunkRadius, int x, int z) {
+        return Math.abs((x >> 4) - (depot.getX() >> 4)) <= chunkRadius
+            && Math.abs((z >> 4) - (depot.getZ() >> 4)) <= chunkRadius;
+    }
+
+    /** As {@link #inWorkArea(BlockPos, int, int, int)}, for a whole position. */
     public static boolean inWorkArea(BlockPos depot, int chunkRadius, BlockPos pos) {
-        return Math.abs((pos.getX() >> 4) - (depot.getX() >> 4)) <= chunkRadius
-            && Math.abs((pos.getZ() >> 4) - (depot.getZ() >> 4)) <= chunkRadius;
+        return inWorkArea(depot, chunkRadius, pos.getX(), pos.getZ());
+    }
+
+    /**
+     * Every column on the square ring {@code ring} steps out from {@code (cx, cz)}, handed to
+     * {@code visit} one at a time.
+     *
+     * <p>Chebyshev rings: ring 0 is the centre alone, and ring n is the 8n cells on the perimeter of
+     * the (2n+1) square. Extracted and public so {@code ScrapHaulerRingTest} can prove the thing that
+     * actually matters about a ring search, which is that it MISSES nothing - rings 0..n visit every
+     * cell of the square exactly once, and never the same cell twice.
+     */
+    public static void forEachOnRing(int cx, int cz, int ring, java.util.function.IntBinaryOperator visit) {
+        if (ring == 0) {
+            visit.applyAsInt(cx, cz);
+            return;
+        }
+        for (int dx = -ring; dx <= ring; dx++) {
+            visit.applyAsInt(cx + dx, cz - ring);
+            visit.applyAsInt(cx + dx, cz + ring);
+        }
+        // The sides, with the corners already covered by the rows above.
+        for (int dz = -ring + 1; dz <= ring - 1; dz++) {
+            visit.applyAsInt(cx - ring, cz + dz);
+            visit.applyAsInt(cx + ring, cz + dz);
+        }
     }
 
     /**
      * The nearest takeable block to the Hauler inside the Depot's work area.
      *
-     * <p><b>Chunks, read off the heightmap</b> (owner, 2026-09-05). The area is a square of chunks
-     * around the Depot, and the search reads one column per (x, z) in it: the block under the
-     * motion-blocking heightmap. That is 256 cheap lookups per chunk rather than a cube of block
-     * reads, and it is also the right shape for what mounds are - piles of {@code FallingBlock}s
-     * whose top is always the exposed one, and whose next block is exposed the moment the top goes.
-     * A pile under a roof is invisible to it, deliberately: this machine works the surface.
+     * <p><b>Searched OUTWARD FROM THE MACHINE, stopping at the first ring that has anything</b>
+     * (#382). It used to sweep the whole area after every single block taken, with nothing carried
+     * between takes: 256 columns a chunk, up to {@link #COLUMN_DEPTH} block reads each, plus six
+     * neighbour reads and a fluid check per candidate - about 18,000 lookups a scan at the default
+     * radius and 590,000 at the config ceiling, every eight ticks, per Hauler. The work area is a
+     * server-cost dial by design; the per-take rescan was the multiplier that made the top of it
+     * unusable.
      *
-     * <p>Nearest to the HAULER, inside an area around the DEPOT: the site is the Depot's, the order of
-     * work is whatever is closest to where it already is.
+     * <p>The goal always wanted the nearest pile to the machine, so expanding rings give that ordering
+     * for free and let it stop as soon as a ring pays out. A pile three blocks away now costs about
+     * fifty columns instead of two thousand. The empty-area worst case is unchanged - every column,
+     * because there is genuinely nothing to find - and that case is already throttled to one scan
+     * every {@link ScrapHaulerEntity#IDLE_SCAN_TICKS} ticks by {@code parkedIdle}.
+     *
+     * <p>Within a ring it still picks the Euclidean-nearest hit, so the ordering is the same one the
+     * full sweep produced rather than merely close to it.
+     *
+     * <p><b>Columns, read off the heightmap.</b> One lookup per (x, z) for the block under
+     * {@code MOTION_BLOCKING}, then a few blocks down: the top of a column is not always the pile - a
+     * leaf, a snow layer, or the test harness's own lid over a plot all sit above it. A pile under a
+     * roof is invisible to this, deliberately: the machine works the surface.
      */
     public @Nullable BlockPos findTarget(ServerLevel level) {
         BlockPos home = hauler.depotPos();
@@ -307,40 +351,66 @@ public class ScrapHaulerGoal extends Goal {
             return null;
         }
         int r = depot.chunkRadius();
-        int cx = home.getX() >> 4;
-        int cz = home.getZ() >> 4;
         BlockPos self = hauler.blockPosition();
-        BlockPos best = null;
-        double bestSq = Double.MAX_VALUE;
+
+        // How far out the rings need to go: the furthest corner of the area from where it stands, and
+        // not one ring further. Deriving it beats guessing a bound that is either short (and misses
+        // piles in a corner) or generous (and scans empty rings forever when the field is bare).
+        int minX = ((home.getX() >> 4) - r) << 4;
+        int maxX = (((home.getX() >> 4) + r) << 4) + 15;
+        int minZ = ((home.getZ() >> 4) - r) << 4;
+        int maxZ = (((home.getZ() >> 4) + r) << 4) + 15;
+        int rings = Math.max(
+            Math.max(Math.abs(self.getX() - minX), Math.abs(self.getX() - maxX)),
+            Math.max(Math.abs(self.getZ() - minZ), Math.abs(self.getZ() - maxZ)));
+
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (int chunkX = cx - r; chunkX <= cx + r; chunkX++) {
-            for (int chunkZ = cz - r; chunkZ <= cz + r; chunkZ++) {
-                if (!level.hasChunk(chunkX, chunkZ)) {
-                    continue;
+        // Holders because the ring walker takes a lambda and a lambda cannot assign a local.
+        BlockPos[] best = {null};
+        double[] bestSq = {Double.MAX_VALUE};
+        for (int ring = 0; ring <= rings; ring++) {
+            best[0] = null;
+            bestSq[0] = Double.MAX_VALUE;
+            forEachOnRing(self.getX(), self.getZ(), ring, (x, z) -> {
+                if (!inWorkArea(home, r, x, z) || !level.hasChunk(x >> 4, z >> 4)) {
+                    return 0;
                 }
-                for (int x = chunkX << 4; x < (chunkX << 4) + 16; x++) {
-                    for (int z = chunkZ << 4; z < (chunkZ << 4) + 16; z++) {
-                        int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
-                        if (Math.abs(top - home.getY()) > VERTICAL_REACH) {
-                            continue;
-                        }
-                        for (int y = top; y > top - COLUMN_DEPTH; y--) {
-                            pos.set(x, y, z);
-                            if (!takeable(level, pos) || blacklist.containsKey(pos)) {
-                                continue;
-                            }
-                            double d = pos.distSqr(self);
-                            if (d < bestSq) {
-                                bestSq = d;
-                                best = pos.immutable();
-                            }
-                            break;   // the highest takeable block in the column is the one to take
-                        }
+                BlockPos hit = topTakeable(level, home, x, z, pos);
+                if (hit != null) {
+                    double d = hit.distSqr(self);
+                    if (d < bestSq[0]) {
+                        bestSq[0] = d;
+                        best[0] = hit;
                     }
                 }
+                return 0;
+            });
+            // The whole point: stop at the first ring that pays out, rather than sweeping on.
+            if (best[0] != null) {
+                return best[0];
             }
         }
-        return best;
+        return null;
+    }
+
+    /**
+     * The highest takeable block in one column, or null. The column is rejected outright when its
+     * surface is further than {@link #VERTICAL_REACH} from the Depot, which is one heightmap read
+     * rather than {@link #COLUMN_DEPTH} block reads for the columns that cannot qualify.
+     */
+    private @Nullable BlockPos topTakeable(ServerLevel level, BlockPos home, int x, int z,
+            BlockPos.MutableBlockPos pos) {
+        int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
+        if (Math.abs(top - home.getY()) > VERTICAL_REACH) {
+            return null;
+        }
+        for (int y = top; y > top - COLUMN_DEPTH; y--) {
+            pos.set(x, y, z);
+            if (takeable(level, pos) && !blacklist.containsKey(pos)) {
+                return pos.immutable();
+            }
+        }
+        return null;
     }
 
     /**
