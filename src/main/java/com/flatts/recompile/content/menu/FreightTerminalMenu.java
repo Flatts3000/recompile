@@ -35,16 +35,18 @@ public class FreightTerminalMenu extends AbstractContainerMenu {
 
     public static final int TIER_INDEX = FreightManifest.MAX_LINES * 2;
 
-    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 222)
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 228)
         .panel()
         // Which rung this is, above the lines. Without it the screen is a list of goods with no
         // indication that a ladder exists at all.
         .region("phase", 8, 17, 160, 10)
         .rows("manifest", FreightManifest.MAX_LINES, 8, 30, 160, 12, 13)
         // ONE ROW rather than a 3x3. The strip is a landing pad the ticker empties, not storage, so
-        // giving it the footprint of a chest would suggest it holds things. Nine wide also lines up
-        // under the hotbar, which is where a player drops a stack from.
-        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, 7, 112)
+        // giving it the footprint of a chest would suggest it holds things. Nine wide at
+        // INVENTORY_X so it really does line up with the hotbar under it - it was at x=7 for one
+        // review cycle, one pixel off the inventory it claimed to match, which no sweep catches
+        // because the centring check only covers CELL groups.
+        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, GuiTheme.INVENTORY_X, 112)
         .playerInventory(146)
         .build();
 

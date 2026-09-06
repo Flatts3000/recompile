@@ -11,6 +11,7 @@ import com.flatts.recompile.content.freight.FreightState;
 import com.flatts.recompile.content.recipe.FreightPhaseRecipe;
 import com.flatts.recompile.registry.RCBlockEntities;
 import java.util.Optional;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -36,9 +37,15 @@ import org.jetbrains.annotations.Nullable;
  * Terminal</b> (owner, 2026-09-06). Selling is a thing you walk up and do; freight is bulk and
  * sustained and is meant to be fed by a factory. The Sell Terminal has no block entity and no
  * container at all, so the distinction is mechanical rather than cosmetic and a player finds it by
- * trying to automate one. Membership in {@code #recompile:scrap_connectable} is the other half:
- * it lets the Scrap Network route here, which is what finally gives the Hauler and the Depot
- * somewhere for their output to end up.
+ * trying to automate one. Hoppers, pipes and AE2 all reach it through the item capability.
+ *
+ * <p><b>The Scrap Network does NOT route here, and an earlier version of this javadoc said it did.</b>
+ * {@code ScrapNetwork.insertFromMember} lands only in a Scrap Bin or the Scrap Barrel; every other
+ * member of {@code #recompile:scrap_connectable} is a conductor that lets a cluster span it. So the
+ * terminal is a RELAY, and a Depot face-adjacent to nothing but a terminal pushes nothing. Whether
+ * the network should gain a third sink is a real design question - it needs a priority against the
+ * bins, and getting that wrong would divert a player's sorted materials into freight - so it is filed
+ * rather than guessed at here.
  *
  * <p><b>Deliveries are consumed, not stored.</b> The slots are a landing strip: the ticker drains
  * them into {@link FreightState} and there is no way to get goods back out. That is Satisfactory's
@@ -84,6 +91,17 @@ public class FreightTerminalBlockEntity extends BlockEntity
     private FreightManifest cached = FreightManifest.NONE;
 
     /**
+     * The current phase, UNTRUNCATED.
+     *
+     * <p><b>Admission must read this and never the manifest.</b> {@link FreightManifest} truncates to
+     * {@code MAX_LINES} because that is what the screen can draw, and an earlier version of the cache
+     * filtered {@link #canPlaceItem} off the manifest instead. A pack shipping a seven-line phase then
+     * got a terminal that silently refused the seventh item while {@link #isSatisfied} still waited
+     * for it: the hopper backs up, nothing is logged, and the ladder is stuck for good.
+     */
+    private FreightPhaseRecipe cachedPhase;
+
+    /**
      * Whether {@link #cached} has ever been built.
      *
      * <p>A separate flag rather than testing {@code cached == NONE}, because NONE is a legitimate
@@ -115,11 +133,10 @@ public class FreightTerminalBlockEntity extends BlockEntity
         int tier = freight.tier();
         // The one place the ladder is actually scanned. Everything else reads the cache.
         terminal.refresh(server, tier);
-        Optional<FreightPhaseRecipe> maybePhase = FreightPhases.current(server, tier);
-        if (maybePhase.isEmpty()) {
+        FreightPhaseRecipe phase = terminal.cachedPhase;
+        if (phase == null) {
             return;      // the ladder is finished, or a pack shipped none
         }
-        FreightPhaseRecipe phase = maybePhase.get();
 
         boolean changed = false;
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
@@ -170,19 +187,27 @@ public class FreightTerminalBlockEntity extends BlockEntity
         if (!(level instanceof ServerLevel server)) {
             return false;
         }
-        // Off the cache. A hopper asks this on every insert attempt, so a recipe-map scan here is
-        // the difference between a cheap block and one that costs a scan per hopper per tick.
-        FreightManifest manifest = manifest();
-        if (manifest.isEmpty()) {
+        // Off the cache, and off the PHASE rather than the manifest: the manifest is truncated for
+        // the screen and admission must see every line. A hopper asks this on every insert attempt,
+        // so a recipe-map scan here would cost a scan per hopper per tick.
+        FreightPhaseRecipe phase = phase();
+        if (phase == null) {
             return false;
         }
-        FreightState freight = FreightState.of(server);
-        for (FreightManifest.Line line : manifest.lines()) {
-            if (line.item() == stack.getItem()) {
-                return freight.delivered(line.item()) < line.required();
+        int wanted = phase.required(stack.getItem());
+        if (wanted == 0) {
+            return false;
+        }
+        // Count what is already waiting on the strip, not just what has been delivered. Without this
+        // a bank of pipes fills all nine slots on the tick before the last few are taken, and the
+        // remainder is stranded in a block that hands nothing back through a face.
+        int inbound = 0;
+        for (ItemStack waiting : items) {
+            if (waiting.getItem() == stack.getItem()) {
+                inbound += waiting.getCount();
             }
         }
-        return false;
+        return FreightState.of(server).delivered(stack.getItem()) + inbound < wanted;
     }
 
     @Override
@@ -270,10 +295,23 @@ public class FreightTerminalBlockEntity extends BlockEntity
 
     /** Rebuild the cached manifest. The only caller that scans the ladder. */
     private void refresh(ServerLevel server, int tier) {
-        cached = FreightPhases.current(server, tier)
-            .map(phase -> FreightManifest.of(phase, tier, FreightPhases.length(server)))
-            .orElse(FreightManifest.NONE);
+        // ONE scan. The first version called FreightPhases.current and FreightPhases.length here and
+        // then current() again from the ticker - three scans a tick, in the commit that claimed to
+        // have reduced it to one.
+        List<FreightPhaseRecipe> ladder = FreightPhases.sorted(server);
+        cachedPhase = tier >= 0 && tier < ladder.size() ? ladder.get(tier) : null;
+        cached = cachedPhase == null
+            ? FreightManifest.NONE
+            : FreightManifest.of(cachedPhase, tier, ladder.size());
         primed = true;
+    }
+
+    /** The untruncated phase behind {@link #manifest()}, or null when the ladder is done. */
+    public @Nullable FreightPhaseRecipe phase() {
+        if (level instanceof ServerLevel server && !primed) {
+            refresh(server, FreightState.of(server).tier());
+        }
+        return cachedPhase;
     }
 
     /** Delivered counts as low/high pairs, then the tier. See {@code FreightTerminalMenu}. */

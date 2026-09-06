@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.flatts.recompile.content.freight.FreightManifest;
 import com.flatts.recompile.content.freight.FreightPhases;
 import com.flatts.recompile.content.recipe.FreightPhaseRecipe;
 import java.util.List;
@@ -85,6 +86,33 @@ class FreightLadderTest {
             () -> new FreightPhaseRecipe(1, "freight.test.dupe", List.of(
                 new FreightPhaseRecipe.Requirement(Items.IRON_INGOT, 4),
                 new FreightPhaseRecipe.Requirement(Items.IRON_INGOT, 8))));
+    }
+
+    @Test
+    void a_phase_may_have_more_lines_than_the_screen_draws() {
+        // THE REGRESSION THIS PINS. FreightManifest truncates to MAX_LINES because that is what the
+        // screen can draw, and for one commit the terminal filtered ADMISSION off the manifest too.
+        // A pack shipping a seven-line phase then got a terminal that silently refused the seventh
+        // item while isSatisfied still waited for it: hopper backs up, nothing logged, ladder stuck.
+        // `required` is what admission reads, so it must answer for every line regardless of MAX_LINES.
+        List<FreightPhaseRecipe.Requirement> many = List.of(
+            new FreightPhaseRecipe.Requirement(Items.IRON_INGOT, 1),
+            new FreightPhaseRecipe.Requirement(Items.GOLD_INGOT, 2),
+            new FreightPhaseRecipe.Requirement(Items.COPPER_INGOT, 3),
+            new FreightPhaseRecipe.Requirement(Items.DIAMOND, 4),
+            new FreightPhaseRecipe.Requirement(Items.EMERALD, 5),
+            new FreightPhaseRecipe.Requirement(Items.COAL, 6),
+            new FreightPhaseRecipe.Requirement(Items.REDSTONE, 7));
+        assertTrue(many.size() > FreightManifest.MAX_LINES,
+            "this test is vacuous unless it uses more lines than the screen draws");
+
+        FreightPhaseRecipe phase = new FreightPhaseRecipe(1, "freight.test.many", many);
+        assertEquals(7, phase.required(Items.REDSTONE),
+            "the last line is invisible to admission, so the phase can never be completed");
+
+        // And the manifest really does truncate, which is the other half of the pair.
+        assertEquals(FreightManifest.MAX_LINES,
+            FreightManifest.of(phase, 0, 1).lines().size());
     }
 
     @Test

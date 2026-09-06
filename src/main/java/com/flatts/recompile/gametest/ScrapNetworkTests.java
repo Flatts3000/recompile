@@ -102,9 +102,11 @@ final class ScrapNetworkTests {
             // only a surge tank for when downstream is backed up. The membership IS the feature -
             // the spec's whole "close the chain" argument rests on this line being in the tag.
             roles.put(RCBlocks.HAULER_DEPOT.get(), "SOURCE");
-            // The far end of everything the Depot pushes: a route can end here, and unlike the two
-            // storage sinks what lands is SPENT rather than stored (#387).
-            roles.put(RCBlocks.FREIGHT_TERMINAL.get(), "SINK");
+            // RELAY, not SINK, and it was declared SINK for one review cycle. insertFromMember only
+            // ever lands in a bin or the barrel, so nothing routes here; the terminal is fed by
+            // hoppers, pipes and AE2 through its item capability instead. It is in the tag so a
+            // cluster can span it (#387).
+            roles.put(RCBlocks.FREIGHT_TERMINAL.get(), "RELAY");
 
             List<String> undeclared = new ArrayList<>();
             int members = 0;

@@ -27,13 +27,30 @@ public class FreightTerminalScreen extends LayoutScreen<FreightTerminalMenu> {
 
     private static final int GAP = 4;
 
+    /** The tier the manifest was drawn for. See {@link #paint}. */
+    private final int openedAtTier;
+
     public FreightTerminalScreen(FreightTerminalMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, FreightTerminalMenu.LAYOUT);
+        this.openedAtTier = menu.manifest().tier();
     }
 
     @Override
     protected void paint(GuiPainter painter, int mouseX, int mouseY) {
         FreightManifest manifest = this.menu.manifest();
+
+        // THE MANIFEST IS SENT ONCE, IN THE OPEN BUFFER, AND THE NUMBERS BESIDE IT ARE LIVE.
+        // Completing a phase with the screen open is the ordinary case - you are watching the last
+        // line fill - and after it the server resolves delivered-by-index against the NEW phase while
+        // the client still holds the old one's names and quotas. Lines would render green for goods
+        // that are no longer wanted, and the strip would refuse what the screen still listed. The
+        // tier is synced for exactly this; say so and stop drawing rather than draw a lie.
+        if (this.menu.tier() != openedAtTier) {
+            painter.wrapped("manifest",
+                Component.translatable("container.recompile.freight.phase_moved"),
+                GuiTheme.TEXT_GOOD);
+            return;
+        }
 
         if (manifest.isEmpty()) {
             // The ladder is finished, or a pack shipped no phases. Both are real states and neither

@@ -29,7 +29,7 @@ import net.minecraft.world.level.Level;
  * {
  *   "type": "recompile:freight_phase",
  *   "tier": 3,
- *   "name": "recompile.freight.phase.3",
+ *   "name": "freight.recompile.phase.3",
  *   "requires": [
  *     { "item": "recompile:reinforced_concrete", "count": 200 },
  *     { "item": "recompile:steel_offcut",        "count": 50  }
