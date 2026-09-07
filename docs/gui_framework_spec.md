@@ -1,6 +1,6 @@
 # GUI framework spec
 
-**Status: built and shipped** (2026-08-08, issue #164). All eleven screens run on it. Owner call the
+**Status: built and shipped** (2026-08-08, issue #164). All twelve screens run on it. Owner call the
 same day: a real GUI framework is the thing holding back several features, because a high-quality
 screen was expensive enough that the honest answer was usually "don't build one".
 
@@ -33,7 +33,7 @@ The cost of the launch four:
 | Burner Generator | 149 | 153 |
 | Hydroponics Bay | 134 | 199 |
 
-**2032 lines for the four screens it launched with** (eleven today), and the count is misleading in the wrong direction: most of what a
+**2032 lines for the four screens it launched with** (twelve today), and the count is misleading in the wrong direction: most of what a
 new screen costs is not in these files at all, it is in re-learning how any of it works.
 
 Three costs repeat every time.
