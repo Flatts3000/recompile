@@ -44,8 +44,12 @@ import net.minecraft.world.item.crafting.RecipeHolder;
  * {@code a_component_from_a_teardown_is_never_a_dice_roll} pins the fact the argument got wrong so
  * nobody re-derives the original claim from a green suite.
  *
- * <p>The Motor and the Bulb keep their <b>sorting</b> sources as well (Mechanical Waste and household
- * pulls), so those two have three routes rather than two. Only the Pump depends on a single object.
+ * <p>The Bulb keeps its <b>sorting</b> source as well (household pulls), so it has three routes
+ * rather than two. The Pump depends on a single object.
+ *
+ * <p><b>The Motor left this file's subject entirely</b> (#391): it is {@code function_only} now, so
+ * it has no blueprint at all and the assertions here would fail on it correctly. Its own guarantees
+ * live in {@code FunctionOnlyTests}, which asserts the opposite property - that it CANNOT be made.
  */
 final class ComponentBlueprintTests {
 
@@ -53,7 +57,7 @@ final class ComponentBlueprintTests {
     }
 
     /**
-     * The three components that are salvage first and blueprint second.
+     * The components that are salvage first and blueprint second.
      *
      * <p>All of #160's subjects, finished across three PRs: the Pump out of a Washing Machine, and
      * then the Motor and the Bulb once each was given a found object to be torn out of - a Broken Fan

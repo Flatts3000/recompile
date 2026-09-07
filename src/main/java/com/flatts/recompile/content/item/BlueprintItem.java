@@ -229,8 +229,16 @@ public class BlueprintItem extends Item {
      * {@code recompile:teardown} only - there was nothing to attach. Owner ruling 2026-08-08: give each
      * a found object that tears down into it, which is the Broken Fan and the Light Fixture.
      *
-     * <p>All three components are therefore <b>salvage first and blueprint second</b>, unlike the Clean
+     * <p>The Pump and the Bulb are <b>salvage first and blueprint second</b>, unlike the Clean
      * Mattress and the Hydroponics Bay which exist nowhere but the bench.
+     *
+     * <p><b>THE MOTOR IS NEITHER ANY MORE</b> (#391). It is {@code #recompile:function_only}: salvage
+     * and nothing else, with no recipe and no market offer, so this constant names a set that nothing
+     * in the mod ships. It is deliberately kept rather than deleted, because a pack may re-open the
+     * route by shipping its own {@code blueprint_crafting} recipe and dropping the Motor from the tag,
+     * and because {@code blueprint.recompile.motor} still has to name a sheet a legacy save is
+     * holding. It is out of {@link #shipped()}, which is what keeps
+     * {@code every_shipped_blueprint_has_a_name_a_recipe_and_a_route} honest.
      */
     public static final Identifier MOTOR =
         Identifier.fromNamespaceAndPath("recompile", "motor");

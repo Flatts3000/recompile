@@ -55,28 +55,19 @@ public final class FunctionOnlyTests {
                     + "at nothing. The Motor is meant to be in it (#391)");
 
             List<String> broken = new ArrayList<>();
-            int swept = 0;
+            java.util.Set<String> unreadable = new java.util.TreeSet<>();
+            int readable = 0;
+
             for (RecipeHolder<?> holder : level.getServer().getRecipeManager().recipeMap().values()) {
-                swept++;
-                // A BLUEPRINT RECIPE IS READ EXPLICITLY, and the first version of this test did not
-                // do that and was VACUOUS because of it: BlueprintCraftingRecipe's placementInfo is
-                // NOT_PLACEABLE, so display() is empty and the generic walk below sees no result at
-                // all. Restoring recipe/motor.json - the very route this tag exists to close - left
-                // the test green. MarketTests carries the same special case for the same reason;
-                // this one was written after reading that comment and still walked into it.
-                List<Item> results = new ArrayList<>();
-                if (holder.value() instanceof com.flatts.recompile.content.recipe
-                        .BlueprintCraftingRecipe blueprint) {
-                    results.add(blueprint.result().item());
-                } else {
-                    for (var display : holder.value().display()) {
-                        for (ItemStack stack : display.result().resolveForStacks(
-                                net.minecraft.world.item.crafting.display.SlotDisplayContext
-                                    .fromLevel(level))) {
-                            results.add(stack.getItem());
-                        }
-                    }
+                List<Item> results = resultsOf(holder.value(), level);
+                if (results == null) {
+                    // The type's results cannot be read at all. Recorded rather than skipped - see
+                    // the assertion below.
+                    unreadable.add(String.valueOf(BuiltInRegistries.RECIPE_TYPE
+                        .getKey(holder.value().getType())));
+                    continue;
                 }
+                readable++;
                 for (Item result : results) {
                     if (members.contains(result)) {
                         broken.add(holder.id().identifier() + " crafts "
@@ -85,8 +76,25 @@ public final class FunctionOnlyTests {
                     }
                 }
             }
-            helper.assertTrue(swept > 100,
-                "only " + swept + " recipes swept - the sweep is broken and this proves nothing");
+
+            // COUNTS READABLE RESULTS, NOT RECIPES. Incrementing before resolving would keep this
+            // number at ~1500 even if every type stopped resolving, which is the failure it claims
+            // to detect - MarketTests counts after the same check for the same reason.
+            helper.assertTrue(readable > 100,
+                "only " + readable + " recipes had readable results - the sweep is blind and this "
+                    + "test proves nothing");
+
+            // THE BLINDNESS ITSELF FAILS, which is FoundNotCraftedTests' pattern and the reason this
+            // file needed rewriting. The first version special-cased blueprint recipes only, so
+            // `recompile:separating` and `recompile:pulverizing` - both of which return an empty
+            // display() - were silently unexamined. Separating Mechanical Waste into a Motor is the
+            // most plausible future recipe there is, since Mechanical Waste is already a Motor
+            // source, and it would have passed.
+            helper.assertTrue(unreadable.isEmpty(),
+                "these recipe types do not expose their results to this sweep, so it is silently "
+                    + "blind to them - read them in resultsOf() or add the type to "
+                    + "RESULT_NOT_READABLE with a reason: " + unreadable);
+
             helper.assertTrue(broken.isEmpty(), String.join("; ", broken));
             helper.succeed();
         });
@@ -112,12 +120,37 @@ public final class FunctionOnlyTests {
                 // Selling the KNOWLEDGE is the same leak wearing a different hat: a sheet whose
                 // recipe makes a function_only component reopens the manufacturing route the tag
                 // exists to close.
+                //
+                // RESOLVED THROUGH THE RECIPE, not by comparing the set id to the item id. Those two
+                // happen to share a path for the Motor - `recompile:motor` names both the set and
+                // the item - so a name comparison passes here by coincidence and would miss a set
+                // called anything else whose recipe yields a function_only part.
                 offer.blueprint().ifPresent(set -> {
+                    // TWO CHECKS, AND NEITHER ALONE IS ENOUGH. Resolving the set through its recipe
+                    // catches a set named anything at all whose recipe yields a function_only part.
+                    // But after this PR the Motor's recipe is DELETED, so that resolution finds
+                    // nothing and an offer for `recompile:motor` sails through - which is exactly
+                    // the state a regression would restore, and the negative control caught this
+                    // file passing it. The id comparison covers that second case.
+                    for (RecipeHolder<com.flatts.recompile.content.recipe.BlueprintCraftingRecipe> bp
+                            : helper.getLevel().recipeAccess().recipeMap()
+                                .byType(RCRecipeTypes.BLUEPRINT_CRAFTING.get())) {
+                        if (!bp.value().blueprint().equals(set)) {
+                            continue;
+                        }
+                        Item made = bp.value().result().item();
+                        if (members.contains(made)) {
+                            broken.add(holder.id().identifier() + " sells the blueprint " + set
+                                + ", whose recipe makes " + BuiltInRegistries.ITEM.getKey(made)
+                                + ", which is function_only");
+                        }
+                    }
                     for (Item member : members) {
-                        Identifier id = BuiltInRegistries.ITEM.getKey(member);
-                        if (set.equals(id)) {
-                            broken.add(holder.id().identifier() + " sells the blueprint for "
-                                + id + ", which is function_only");
+                        if (set.equals(BuiltInRegistries.ITEM.getKey(member))) {
+                            broken.add(holder.id().identifier() + " sells the blueprint " + set
+                                + ", which names the function_only item "
+                                + BuiltInRegistries.ITEM.getKey(member)
+                                + ". Its recipe is gone, so the sheet would craft nothing anyway");
                         }
                     }
                 });
@@ -141,29 +174,40 @@ public final class FunctionOnlyTests {
                                 .forEach(h -> inputs.add(h.value()));
                         }
                     }
-                    if (inputs.isEmpty()) {
-                        broken.add(name + " comes out of no teardown at all. Disabling its recipe "
-                            + "without a source does not make it found, it makes it unobtainable");
+                    // A teardown is the headline route but not the only legitimate one: an item
+                    // that drops straight out of a pull stream is just as found. What is fatal is
+                    // having NEITHER, which is the "disabling a recipe without adding a source makes
+                    // it unobtainable" failure FoundNotCraftedTests already names.
+                    if (inputs.isEmpty() && !renewablySorted(member)) {
+                        broken.add(name + " comes out of no teardown and no pull stream. Disabling "
+                            + "its recipe without a source does not make it found, it makes it "
+                            + "unobtainable");
                         continue;
                     }
 
-                    // THE RENEWABILITY HALF. Bulky Waste is placed by MoundFeature and mounds regrow
-                    // (Phase 5, MoundGroundBlock), so a find that comes out of Bulky Waste refills.
-                    // A find that came only from a hand-placed structure would not, and would be a
+                    // THE RENEWABILITY HALF. Everything checked here is placed by MoundFeature and
+                    // mounds regrow (Phase 5, MoundGroundBlock), so any of these routes refills. A
+                    // find that came only from a hand-placed structure would not, and would be a
                     // wall rather than a rate limit - which is the one thing separating this from
                     // the #228 complaint.
-                    boolean renewable = false;
+                    //
+                    // A DIRECT SORTING ROUTE COUNTS, and the first version of this test did not let
+                    // it: it demanded a teardown whose INPUT was in Bulky Waste, so the Motor's own
+                    // other two sources - Mechanical Waste out in the demolition yard, and sewer
+                    // crates - counted for nothing. A future member sourced the way the Motor
+                    // actually is would have been failed as "a wall" while being renewable.
+                    boolean renewable = renewablySorted(member);
                     for (Item input : inputs) {
-                        if (yieldedByBulkyWaste(input)) {
+                        if (renewablySorted(input)) {
                             renewable = true;
                         }
                     }
                     if (!renewable) {
-                        broken.add(name + " is salvaged only from " + inputs.size() + " input(s) "
-                            + inputs.stream()
+                        broken.add(name + " has no renewable source: neither it nor any of its "
+                            + "teardown inputs " + inputs.stream()
                                 .map(i -> String.valueOf(BuiltInRegistries.ITEM.getKey(i)))
                                 .toList()
-                            + ", none of which comes out of Bulky Waste. A find-only component "
+                            + " comes out of a pull stream or Bulky Waste. A find-only component "
                             + "whose source does not regrow is a wall, not a gate");
                     }
                 }
@@ -173,23 +217,105 @@ public final class FunctionOnlyTests {
     }
 
     /**
-     * True if breaking Bulky Waste can hand over this item.
+     * True if any renewable source can hand this item over.
      *
-     * <p>Reads the BUNDLED loot JSON through {@code SortingData}, which is the same reader JEI and the
-     * rate census use, and which evaluates {@code neoforge:conditions} and strip modifiers itself - so
-     * a mod-gated find is not counted as a route in a default install.
+     * <p>All five are placed by {@code MoundFeature} or are {@code SortableBlock}s standing on mound
+     * country, so all five refill. Reads the BUNDLED loot JSON through {@code SortingData}, the same
+     * reader JEI and the rate census use, which evaluates {@code neoforge:conditions} and strip
+     * modifiers itself - so a mod-gated find is not counted as a route in a default install.
      */
-    private static boolean yieldedByBulkyWaste(Item find) {
-        List<com.flatts.recompile.compat.SortingData.Weighted> drops =
-            com.flatts.recompile.compat.SortingData.outputs(
-                com.flatts.recompile.compat.SortingData.BULKY);
+    private static boolean renewablySorted(Item find) {
+        String[] streams = {
+            com.flatts.recompile.compat.SortingData.BULKY,
+            com.flatts.recompile.compat.SortingData.HOUSEHOLD,
+            com.flatts.recompile.compat.SortingData.BAG,
+            com.flatts.recompile.compat.SortingData.MECHANICAL,
+            com.flatts.recompile.compat.SortingData.RUBBLE,
+        };
+        int seen = 0;
+        for (String stream : streams) {
+            List<com.flatts.recompile.compat.SortingData.Weighted> drops =
+                com.flatts.recompile.compat.SortingData.outputs(stream);
+            seen += drops.size();
+            if (drops.stream().anyMatch(w -> w.stack().getItem() == find)) {
+                return true;
+            }
+        }
         // Fail LOUD on an empty read rather than quietly reporting "not renewable": a moved file
         // would otherwise read as a design violation and send the next reader after the data.
-        if (drops.isEmpty()) {
-            throw new IllegalStateException("bulky_waste read as empty, so this check would call "
-                + "every find non-renewable");
+        if (seen == 0) {
+            throw new IllegalStateException("every pull stream read as empty, so this check would "
+                + "call every find non-renewable");
         }
-        return drops.stream().anyMatch(w -> w.stack().getItem() == find);
+        return false;
+    }
+
+    /**
+     * Types whose results genuinely cannot be read, each with the reason.
+     *
+     * <p>Same shape and same bar as {@code FoundNotCraftedTests.RESULT_NOT_READABLE}: a type belongs
+     * here only when it has no fixed result BY CONSTRUCTION, never because reading it is awkward.
+     * Adding one to dodge a failure is how this sweep goes quietly blind.
+     */
+    private static final java.util.Set<String> RESULT_NOT_READABLE = java.util.Set.of(
+        // Takes an object apart. Its outputs are materials and are the very route this tag requires,
+        // so a teardown producing a function_only item is the intended state rather than a leak.
+        "recompile:teardown",
+        // One line of shop stock, matched against nothing. Covered by its own test below, which is
+        // the only place that can see it.
+        "recompile:market_offer",
+        // The result is read off a Blueprint sitting in the grid, so there is no fixed result to
+        // compare. It only ever produces a spawn egg.
+        "recompile:spawn_egg_crafting",
+        // Fragments assemble into a Blueprint and nothing else.
+        "recompile:fragment_assembly",
+        // One rung of the freight ladder: a manifest of what a tier DEMANDS, matched against
+        // nothing and producing nothing. Caught by this very assertion on its first run, which is
+        // the argument for the assertion existing.
+        "recompile:freight_phase");
+
+    /**
+     * Every item this recipe can produce, or {@code null} if this sweep cannot tell.
+     *
+     * <p><b>Three modded types return an empty {@code display()}</b> and so are invisible to the
+     * ordinary route: {@code blueprint_crafting} (its placementInfo is NOT_PLACEABLE),
+     * {@code separating} and {@code pulverizing} (both override {@code isSpecial()}). Each is read
+     * through its own accessor here. Returning null rather than an empty list is the point: an empty
+     * list reads as "makes nothing" and passes, null reads as "I could not look" and fails.
+     */
+    private static List<Item> resultsOf(net.minecraft.world.item.crafting.Recipe<?> recipe,
+            ServerLevel level) {
+        List<Item> out = new ArrayList<>();
+        if (recipe instanceof com.flatts.recompile.content.recipe.BlueprintCraftingRecipe blueprint) {
+            out.add(blueprint.result().item());
+            return out;
+        }
+        if (recipe instanceof com.flatts.recompile.content.recipe.SeparatingRecipe separating) {
+            separating.results().forEach(r -> out.add(r.item()));
+            separating.byproducts().forEach(r -> out.add(r.item()));
+            return out;
+        }
+        if (recipe instanceof com.flatts.recompile.content.recipe.PulverizingRecipe pulverizing) {
+            out.add(pulverizing.result().item());
+            return out;
+        }
+        for (var display : recipe.display()) {
+            for (ItemStack stack : display.result().resolveForStacks(
+                    net.minecraft.world.item.crafting.display.SlotDisplayContext.fromLevel(level))) {
+                out.add(stack.getItem());
+            }
+        }
+        if (out.isEmpty()) {
+            String type = String.valueOf(BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType()));
+            // A VANILLA special recipe (armour dyeing, map cloning, firework assembly) computes its
+            // result and legitimately shows none. Those are minecraft: types and are not this mod's
+            // to fix; a MODDED type reaching here is a real hole.
+            if (RESULT_NOT_READABLE.contains(type) || type.startsWith("minecraft:")) {
+                return out;
+            }
+            return null;
+        }
+        return out;
     }
 
 }
