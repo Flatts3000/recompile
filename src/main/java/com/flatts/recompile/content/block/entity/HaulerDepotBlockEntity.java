@@ -367,47 +367,77 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
 
 
     /**
-     * Where the Hauler comes out, or {@code null} if there is nowhere it fits.
+     * Where the Hauler comes out: the best of the 26 blocks around the Depot, or {@code null} only if
+     * every one of them is occupied.
      *
      * <p><b>This used to be {@code worldPosition.above()} with no check at all</b>, which is fine
      * until somebody puts something on the Depot. Reported from playtest (2026-09-06): a Solar Panel
-     * placed on the Depot and then Deploy pressed leaves the Hauler stranded on top of the panel, on
-     * a one-block pillar it will not path down from. <b>The reporter guessed half-blocks and that is
-     * not it</b> - the panel is a {@code box(0, 0, 0, 16, 6, 16)}, so it happens to leave standing
-     * room, but a full block above would have spawned the machine INSIDE it and any block at all
-     * reproduces the fault. The bug is that deploy never asked whether the space was free.
+     * placed on the Depot and then Deploy pressed leaves the Hauler stranded on top of the panel.
+     * <b>The reporter guessed half-blocks and that is not it</b> - the panel is a
+     * {@code box(0, 0, 0, 16, 6, 16)}, so it happens to leave standing room, but a full block above
+     * would have spawned the machine INSIDE it and any block at all reproduces the fault. The bug was
+     * that deploy never asked whether the space was free.
      *
-     * <p>Directly above stays first, because that is the dock exit and it is right in every ordinary
-     * case. The fallbacks step out horizontally rather than up: the Hauler's job is on the ground,
-     * and putting it on the roof of whatever was stacked here is the failure being fixed.
+     * <p><b>A fixed fallback order was the second wrong answer</b> (owner, 2026-09-07: place it
+     * smartly rather than always in one position). An ordered list still cannot tell a spot the
+     * machine can stand on from one it will fall out of, so it scores every neighbour instead:
      *
-     * <p><b>Refusing is better than spawning it somewhere wrong.</b> The item is locked in the slot
-     * while deployed, so a Hauler that comes out stuck takes the Depot with it until somebody works
-     * out that Recall teleports.
+     * <ul>
+     *   <li><b>It must fit</b>, asked with the entity's own spawn box rather than by reasoning about
+     *       block shapes - which is exactly what "it must be a half-block problem" got wrong.
+     *   <li><b>Standing room beats a drop.</b> A spot with a sturdy face underneath is worth more than
+     *       anything else here, because a machine that comes out falling is the same report in a
+     *       different shape.
+     *   <li><b>Ground level beside the Depot beats the roof.</b> The Hauler's job is on the ground, and
+     *       the roof is where whatever the player stacked on the Depot lives.
+     *   <li>A cardinal neighbour beats a diagonal, and dry beats standing in fluid.
+     * </ul>
+     *
+     * <p><b>Refusal is exactly "all 26 are occupied"</b> (owner). Short of that the machine comes out
+     * somewhere, because refusing while a free block exists would strand the Depot for a reason the
+     * player cannot see: the item is locked in the slot while deployed.
      */
     private static @Nullable Vec3 spawnSpot(ServerLevel level, BlockPos depot) {
-        List<BlockPos> candidates = new ArrayList<>();
-        candidates.add(depot.above());
-        // Ground level beside the Depot BEFORE the row above it: a spot next to whatever is stacked
-        // on the Depot is free but in mid-air, and a machine that comes out falling is the same
-        // report again in a different shape.
-        for (Direction dir : Direction.Plane.HORIZONTAL) {
-            candidates.add(depot.relative(dir));
-        }
-        for (Direction dir : Direction.Plane.HORIZONTAL) {
-            candidates.add(depot.above().relative(dir));
-        }
-        for (BlockPos pos : candidates) {
-            double x = pos.getX() + 0.5;
-            double y = pos.getY();
-            double z = pos.getZ() + 0.5;
-            // The entity's own spawn box, so this asks the question the game will ask rather than
-            // guessing at a block shape - which is what "it must be a half-block problem" was.
-            if (level.noCollision(RCEntities.SCRAP_HAULER.get().getSpawnAABB(x, y, z))) {
-                return new Vec3(x, y, z);
+        BlockPos best = null;
+        int bestScore = Integer.MIN_VALUE;
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    BlockPos pos = depot.offset(dx, dy, dz);
+                    double x = pos.getX() + 0.5;
+                    double y = pos.getY();
+                    double z = pos.getZ() + 0.5;
+                    if (!level.noCollision(RCEntities.SCRAP_HAULER.get().getSpawnAABB(x, y, z))) {
+                        continue;
+                    }
+                    int score = 0;
+                    BlockPos below = pos.below();
+                    if (level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)) {
+                        score += 100;
+                    }
+                    score += switch (dy) {
+                        case 0 -> 40;
+                        case 1 -> 30;
+                        default -> 0;
+                    };
+                    if (Math.abs(dx) + Math.abs(dz) == 1) {
+                        score += 10;
+                    }
+                    if (level.getFluidState(pos).isEmpty()) {
+                        score += 20;
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        best = pos;
+                    }
+                }
             }
         }
-        return null;
+        return best == null ? null
+            : new Vec3(best.getX() + 0.5, best.getY(), best.getZ() + 0.5);
     }
 
     /**

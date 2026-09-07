@@ -160,24 +160,46 @@ public final class ScrapHaulerTests {
          * destination was never checked at all, so this pins the general case with a FULL block -
          * which the old code would have spawned the machine inside - and the reported case below.
          */
-        RCGameTests.test("deploy_refuses_to_put_the_hauler_inside_a_block_above_the_depot", 20, helper -> {
+        /*
+         * PLAYTEST REPORT, 2026-09-06: a Solar Panel placed on the Depot, then Deploy, left the
+         * Hauler stranded on top of the panel. Deploy used worldPosition.above() with no check that
+         * anything was there.
+         *
+         * THE REPORTER'S DIAGNOSIS WAS WRONG AND THESE TESTS SAY SO: it was guessed as a half-block
+         * problem, and the panel's box(0, 0, 0, 16, 6, 16) is a red herring. The fault was that the
+         * destination was never checked at all, so the general case below uses FULL blocks - which
+         * the old code would have spawned the machine inside.
+         */
+        RCGameTests.test("deploy_refuses_only_when_all_26_neighbours_are_occupied", 20, helper -> {
             final int lift = lift(0);
             ServerLevel level = helper.getLevel();
             HaulerDepotBlockEntity depot = docked(helper, ScrapHaulerItem.CAPACITY, lift);
-            // Box the Depot in completely: above and all four sides.
-            helper.setBlock(DEPOT.above(lift + 1), Blocks.STONE);
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                helper.setBlock(DEPOT.above(lift).relative(dir), Blocks.STONE);
-                helper.setBlock(DEPOT.above(lift + 1).relative(dir), Blocks.STONE);
+            BlockPos at = DEPOT.above(lift);
+            // Seal the whole 3x3x3 shell, which is the owner's stated refusal condition.
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (dx == 0 && dy == 0 && dz == 0) {
+                            continue;
+                        }
+                        helper.setBlock(at.offset(dx, dy, dz), Blocks.STONE);
+                    }
+                }
             }
             helper.assertTrue(!depot.deploy(level),
-                "the Depot deployed into a sealed box - the Hauler had nowhere to fit and deploy "
-                    + "must refuse rather than spawn it inside a block");
+                "the Depot deployed while sealed in on all 26 sides - there was nowhere the Hauler "
+                    + "could fit and deploy must refuse rather than spawn it inside a block");
             helper.assertTrue(!depot.deployed(),
                 "a refused deploy still marked the Depot deployed, which locks the slot on a Hauler "
                     + "that does not exist");
             helper.assertTrue(haulers(helper, lift).isEmpty(),
                 "a Hauler was spawned despite deploy refusing");
+
+            // One block back out and it must deploy again: refusal is total enclosure, nothing less.
+            helper.setBlock(at.north(), Blocks.AIR);
+            helper.assertTrue(depot.deploy(level),
+                "the Depot still refused with a free neighbour open - refusing while somewhere is "
+                    + "free strands the Depot for a reason the player cannot see");
             helper.succeed();
         });
 
@@ -190,19 +212,45 @@ public final class ScrapHaulerTests {
             helper.assertTrue(depot.deploy(level), "the Depot refused to deploy with room beside it");
             List<ScrapHaulerEntity> out = haulers(helper, lift);
             helper.assertTrue(out.size() == 1, "expected one Hauler, found " + out.size());
-            ScrapHaulerEntity hauler = out.get(0);
+            BlockPos where = out.get(0).blockPosition();
             BlockPos panel = helper.absolutePos(DEPOT.above(lift + 1));
-            BlockPos out1 = hauler.blockPosition();
             // THE COLUMN IS THE TEST, NOT THE HEIGHT. The first version asserted y <= panel.y and
             // was VACUOUS: with the bug the Hauler spawns at worldPosition.above(), which IS the
             // panel's own block, so its y EQUALS the panel's and the assertion passed against the
             // exact defect it was written for. Only re-running it against the reintroduced bug
-            // showed that - the sibling test above failed and this one did not.
-            boolean inPanelColumn = out1.getX() == panel.getX() && out1.getZ() == panel.getZ();
-            helper.assertTrue(!(inPanelColumn && out1.getY() >= panel.getY()),
-                "the Hauler came out at " + out1 + ", in the panel's own column at " + panel
-                    + " - that is the reported bug: it ends up standing on the panel on a one-block "
-                    + "pillar it will not path down from");
+            // showed that - the sibling test failed and this one did not.
+            boolean inPanelColumn = where.getX() == panel.getX() && where.getZ() == panel.getZ();
+            helper.assertTrue(!(inPanelColumn && where.getY() >= panel.getY()),
+                "the Hauler came out at " + where + ", in the panel's own column at " + panel
+                    + " - that is the reported bug: it ends up on the panel on a one-block pillar "
+                    + "it will not path down from");
+            helper.succeed();
+        });
+
+        /*
+         * The owner's ruling that a fixed fallback order was not enough: placement has to prefer a
+         * spot the machine can stand on. Fitting is not the same question as standing.
+         */
+        RCGameTests.test("deploy_prefers_standing_room_over_a_hole", 20, helper -> {
+            final int lift = lift(2);
+            ServerLevel level = helper.getLevel();
+            HaulerDepotBlockEntity depot = docked(helper, ScrapHaulerItem.CAPACITY, lift);
+            BlockPos at = DEPOT.above(lift);
+            // Roof the Depot, and dig away the floor under three of its four ground neighbours so
+            // those spots FIT but have nothing underneath. One supported side is left.
+            helper.setBlock(at.above(), Blocks.STONE);
+            for (Direction dir : new Direction[] {Direction.NORTH, Direction.EAST, Direction.WEST}) {
+                helper.setBlock(at.relative(dir).below(), Blocks.AIR);
+            }
+            helper.assertTrue(depot.deploy(level), "the Depot refused with a supported side free");
+            List<ScrapHaulerEntity> out = haulers(helper, lift);
+            helper.assertTrue(out.size() == 1, "expected one Hauler, found " + out.size());
+            BlockPos where = out.get(0).blockPosition();
+            BlockPos supported = helper.absolutePos(at.south());
+            helper.assertTrue(where.equals(supported),
+                "the Hauler came out at " + where + " rather than the one neighbour with ground "
+                    + "under it at " + supported + " - fitting is not standing, and a machine that "
+                    + "comes out falling is the reported bug in a different shape");
             helper.succeed();
         });
 
