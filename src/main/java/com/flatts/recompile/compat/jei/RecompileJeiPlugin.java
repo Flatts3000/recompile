@@ -181,42 +181,37 @@ public class RecompileJeiPlugin implements IModPlugin {
         // Each category is sized from the same bundled data its recipes are built from, so a table that
         // grows cannot outgrow its own panel. The alternative - a number written here - is what let the
         // seedling lottery draw its third row through the bottom of the box.
+        // ORDER IS PLAY ORDER, and it was build order until #410: the two newest categories sat
+        // first, SORTING - the first thing a player ever does - came third, and GROWING came last.
+        //
+        // KNOW WHAT THIS ACTUALLY CONTROLS BEFORE RELYING ON IT. JEI persists category order per
+        // install in config/jei/recipe-category-sort-order.ini and that file wins, so this decides
+        // only where a category lands the FIRST time a client sees it. An existing install keeps
+        // whatever it already wrote - measured on a real instance, where this mod's categories sit in
+        // three clusters matching when each one shipped rather than in any order declared here. So
+        // fixing this helps a fresh install and nobody else, which is worth doing and is not worth
+        // mistaking for control. The ingredient list is the opposite: that order comes from
+        // RCCreativeTabs and the mod owns it outright.
         registration.addRecipeCategories(
-            // One certain output, so no odds column: a stamped amber always reads as its own species.
-            new SalvageCategory(SEQUENCING, Component.translatable("jei.recompile.sequencing"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.AMBER.get())), false, 2),
-            new SpawnEggCategory(SPAWN_EGG, Component.translatable("jei.recompile.spawn_egg"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
+            // What you do by hand and with a tool, which is where a run starts.
             new SalvageCategory(SORTING, Component.translatable("jei.recompile.sorting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SORTING_TARP.get())), true,
                 widest(SortingData.HOUSEHOLD, SortingData.BAG, SortingData.RUBBLE)),
-            new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false, 1),
-            new SalvageCategory(BURNING, Component.translatable("jei.recompile.burning"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.BURN_BARREL.get())), false, 1),
-            new SalvageCategory(TORCH_CUTTING, Component.translatable("jei.recompile.torch_cutting"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true,
-                widest(SortingData.STEEL_BEAM)),
             new SalvageCategory(PRYING, Component.translatable("jei.recompile.prying"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.PRYBAR.get())), true,
                 widest(SortingData.BULKY)),
+            new SalvageCategory(CUTTING, Component.translatable("jei.recompile.cutting"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SCRAP_KNIFE.get())), false, 1),
+            new SalvageCategory(TORCH_CUTTING, Component.translatable("jei.recompile.torch_cutting"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.CUTTING_TORCH.get())), true,
+                widest(SortingData.STEEL_BEAM)),
+            // The bench.
             new SalvageCategory(TEARDOWN, Component.translatable("jei.recompile.teardown"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.RECOMPILE_WORKBENCH.get())), true,
                 TeardownData.all().stream().mapToInt(e -> e.outputs().size()).max().orElse(1)),
-            new SalvageCategory(SEPARATING, Component.translatable("jei.recompile.separating"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.SEPARATOR.get())), false,
-                com.flatts.recompile.compat.SeparatingData.all().stream()
-                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
-            // showChance TRUE since the bouquet joined (#344 review): the clay row is a certainty and
-            // draws no tooltip either way (SalvageCategory gates on chance < 1.0), but the bouquet is a
-            // one-in-five draw and false made five plants read as all five at once.
-            new SalvageCategory(HYDRATING, Component.translatable("jei.recompile.hydrating"),
-                gui.createDrawableItemStack(new ItemStack(Items.WATER_BUCKET)), true,
-                widest(SortingData.BOUQUET)),
-            new SalvageCategory(PULVERIZING, Component.translatable("jei.recompile.pulverizing"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
-                com.flatts.recompile.compat.PulverizingData.all().stream()
-                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            // Heat, in the order the machines unlock.
+            new SalvageCategory(BURNING, Component.translatable("jei.recompile.burning"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BURN_BARREL.get())), false, 1),
             new CupolaCategory(CUPOLA, Component.translatable("jei.recompile.cupola"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.CUPOLA_FURNACE.get()))),
             new SalvageCategory(VITRIFYING, Component.translatable("jei.recompile.vitrifying"),
@@ -227,11 +222,33 @@ public class RecompileJeiPlugin implements IModPlugin {
                 gui.createDrawableItemStack(new ItemStack(RCItems.SINTERING_KILN.get())), false,
                 com.flatts.recompile.compat.SinteringData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            // Powered processing.
+            new SalvageCategory(SEPARATING, Component.translatable("jei.recompile.separating"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SEPARATOR.get())), false,
+                com.flatts.recompile.compat.SeparatingData.all().stream()
+                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            // showChance TRUE since the bouquet joined (#344 review): the clay row is a certainty and
+            // draws no tooltip either way (SalvageCategory gates on chance < 1.0), but the bouquet is a
+            // one-in-five draw and false made five plants read as all five at once.
+            new SalvageCategory(PULVERIZING, Component.translatable("jei.recompile.pulverizing"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
+                com.flatts.recompile.compat.PulverizingData.all().stream()
+                    .mapToInt(e -> e.outputs().size()).max().orElse(1)),
+            // Knowledge, in the order one piece becomes the next.
+            // One certain output, so no odds column: a stamped amber always reads as its own species.
+            new SalvageCategory(SEQUENCING, Component.translatable("jei.recompile.sequencing"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.AMBER.get())), false, 2),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.SPAWN_EGG_FRAGMENT.get())), 4),
             new BlueprintCraftingCategory(BLUEPRINT_CRAFTING,
                 Component.translatable("jei.recompile.blueprint_crafting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
+            new SpawnEggCategory(SPAWN_EGG, Component.translatable("jei.recompile.spawn_egg"),
+                gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
+            // Green.
+            new SalvageCategory(HYDRATING, Component.translatable("jei.recompile.hydrating"),
+                gui.createDrawableItemStack(new ItemStack(Items.WATER_BUCKET)), true,
+                widest(SortingData.BOUQUET)),
             new SalvageCategory(GROWING, Component.translatable("jei.recompile.growing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.HYDROPONICS_BAY.get())), true,
                 widest(SortingData.SEEDLING)));
