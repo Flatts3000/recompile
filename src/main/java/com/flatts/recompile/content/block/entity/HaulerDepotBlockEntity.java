@@ -9,10 +9,13 @@ import com.flatts.recompile.content.menu.HaulerDepotMenu;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCSounds;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -336,12 +339,15 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         if (deployed || !(stack.getItem() instanceof ScrapHaulerItem)) {
             return false;
         }
-        BlockPos at = worldPosition.above();
         ScrapHaulerEntity hauler = RCEntities.SCRAP_HAULER.get().create(level, EntitySpawnReason.TRIGGERED);
         if (hauler == null) {
             return false;
         }
-        hauler.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextFloat() * 360.0F, 0.0F);
+        Vec3 at = spawnSpot(level, worldPosition);
+        if (at == null) {
+            return false;
+        }
+        hauler.snapTo(at.x, at.y, at.z, level.getRandom().nextFloat() * 360.0F, 0.0F);
         hauler.bind(worldPosition);
         hauler.setCharge(ScrapHaulerItem.charge(stack));
         hauler.setMode(ScrapHaulerEntity.Mode.SEEKING);
@@ -357,6 +363,51 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         level.playSound(null, worldPosition, RCSounds.HAULER_DEPLOY.get(), SoundSource.BLOCKS, 0.8F, 1.0F);
         setChanged();
         return true;
+    }
+
+
+    /**
+     * Where the Hauler comes out, or {@code null} if there is nowhere it fits.
+     *
+     * <p><b>This used to be {@code worldPosition.above()} with no check at all</b>, which is fine
+     * until somebody puts something on the Depot. Reported from playtest (2026-09-06): a Solar Panel
+     * placed on the Depot and then Deploy pressed leaves the Hauler stranded on top of the panel, on
+     * a one-block pillar it will not path down from. <b>The reporter guessed half-blocks and that is
+     * not it</b> - the panel is a {@code box(0, 0, 0, 16, 6, 16)}, so it happens to leave standing
+     * room, but a full block above would have spawned the machine INSIDE it and any block at all
+     * reproduces the fault. The bug is that deploy never asked whether the space was free.
+     *
+     * <p>Directly above stays first, because that is the dock exit and it is right in every ordinary
+     * case. The fallbacks step out horizontally rather than up: the Hauler's job is on the ground,
+     * and putting it on the roof of whatever was stacked here is the failure being fixed.
+     *
+     * <p><b>Refusing is better than spawning it somewhere wrong.</b> The item is locked in the slot
+     * while deployed, so a Hauler that comes out stuck takes the Depot with it until somebody works
+     * out that Recall teleports.
+     */
+    private static @Nullable Vec3 spawnSpot(ServerLevel level, BlockPos depot) {
+        List<BlockPos> candidates = new ArrayList<>();
+        candidates.add(depot.above());
+        // Ground level beside the Depot BEFORE the row above it: a spot next to whatever is stacked
+        // on the Depot is free but in mid-air, and a machine that comes out falling is the same
+        // report again in a different shape.
+        for (Direction dir : Direction.Plane.HORIZONTAL) {
+            candidates.add(depot.relative(dir));
+        }
+        for (Direction dir : Direction.Plane.HORIZONTAL) {
+            candidates.add(depot.above().relative(dir));
+        }
+        for (BlockPos pos : candidates) {
+            double x = pos.getX() + 0.5;
+            double y = pos.getY();
+            double z = pos.getZ() + 0.5;
+            // The entity's own spawn box, so this asks the question the game will ask rather than
+            // guessing at a block shape - which is what "it must be a half-block problem" was.
+            if (level.noCollision(RCEntities.SCRAP_HAULER.get().getSpawnAABB(x, y, z))) {
+                return new Vec3(x, y, z);
+            }
+        }
+        return null;
     }
 
     /**

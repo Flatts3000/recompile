@@ -150,6 +150,62 @@ public final class ScrapHaulerTests {
             helper.succeed();
         });
 
+        /*
+         * PLAYTEST REPORT, 2026-09-06: a Solar Panel placed on the Depot, then Deploy, left the
+         * Hauler stranded on top of the panel. Deploy used worldPosition.above() with no check that
+         * anything was there.
+         *
+         * THE REPORTER'S DIAGNOSIS WAS WRONG AND THE TEST SAYS SO: it was guessed as a half-block
+         * problem, and the panel's box(0, 0, 0, 16, 6, 16) is a red herring. The fault is that the
+         * destination was never checked at all, so this pins the general case with a FULL block -
+         * which the old code would have spawned the machine inside - and the reported case below.
+         */
+        RCGameTests.test("deploy_refuses_to_put_the_hauler_inside_a_block_above_the_depot", 20, helper -> {
+            final int lift = lift(0);
+            ServerLevel level = helper.getLevel();
+            HaulerDepotBlockEntity depot = docked(helper, ScrapHaulerItem.CAPACITY, lift);
+            // Box the Depot in completely: above and all four sides.
+            helper.setBlock(DEPOT.above(lift + 1), Blocks.STONE);
+            for (Direction dir : Direction.Plane.HORIZONTAL) {
+                helper.setBlock(DEPOT.above(lift).relative(dir), Blocks.STONE);
+                helper.setBlock(DEPOT.above(lift + 1).relative(dir), Blocks.STONE);
+            }
+            helper.assertTrue(!depot.deploy(level),
+                "the Depot deployed into a sealed box - the Hauler had nowhere to fit and deploy "
+                    + "must refuse rather than spawn it inside a block");
+            helper.assertTrue(!depot.deployed(),
+                "a refused deploy still marked the Depot deployed, which locks the slot on a Hauler "
+                    + "that does not exist");
+            helper.assertTrue(haulers(helper, lift).isEmpty(),
+                "a Hauler was spawned despite deploy refusing");
+            helper.succeed();
+        });
+
+        RCGameTests.test("a_solar_panel_on_the_depot_does_not_strand_the_hauler", 20, helper -> {
+            final int lift = lift(1);
+            ServerLevel level = helper.getLevel();
+            HaulerDepotBlockEntity depot = docked(helper, ScrapHaulerItem.CAPACITY, lift);
+            // The exact reported setup.
+            helper.setBlock(DEPOT.above(lift + 1), RCBlocks.SOLAR_PANEL.get());
+            helper.assertTrue(depot.deploy(level), "the Depot refused to deploy with room beside it");
+            List<ScrapHaulerEntity> out = haulers(helper, lift);
+            helper.assertTrue(out.size() == 1, "expected one Hauler, found " + out.size());
+            ScrapHaulerEntity hauler = out.get(0);
+            BlockPos panel = helper.absolutePos(DEPOT.above(lift + 1));
+            BlockPos out1 = hauler.blockPosition();
+            // THE COLUMN IS THE TEST, NOT THE HEIGHT. The first version asserted y <= panel.y and
+            // was VACUOUS: with the bug the Hauler spawns at worldPosition.above(), which IS the
+            // panel's own block, so its y EQUALS the panel's and the assertion passed against the
+            // exact defect it was written for. Only re-running it against the reintroduced bug
+            // showed that - the sibling test above failed and this one did not.
+            boolean inPanelColumn = out1.getX() == panel.getX() && out1.getZ() == panel.getZ();
+            helper.assertTrue(!(inPanelColumn && out1.getY() >= panel.getY()),
+                "the Hauler came out at " + out1 + ", in the panel's own column at " + panel
+                    + " - that is the reported bug: it ends up standing on the panel on a one-block "
+                    + "pillar it will not path down from");
+            helper.succeed();
+        });
+
         RCGameTests.test("a_second_deploy_does_not_make_a_second_hauler", 20, helper -> {
             final int lift = lift(1);
             ServerLevel level = helper.getLevel();
