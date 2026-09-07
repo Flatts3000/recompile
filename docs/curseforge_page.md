@@ -42,10 +42,17 @@ made the line false, so it is gone. That is the shortest a "not yet" has ever li
 worked because the release and the page moved together. A marker that outlives the release it
 describes is worse than never having written one.
 
-**Three sections still have no screenshot**, because `docs/cf_image_gallery/` has no frame of the
-vacuum, the aquarium or a tire dump. Do not invent a filename to fill the gap: an image link that does
-not resolve renders as alt text and a half-link on the live page. Shoot them, commit them, push them,
-then add the link.
+**All three of the sections that had no screenshot now have one** (2026-09-07): the vacuum, the
+aquarium and a tire dump were shot against a `runClient` over `gamebridge` and are 25 through 28 in
+`docs/cf_image_gallery/`. The rule that produced them still stands for the next gap: do not invent a
+filename, because an image link that does not resolve renders as alt text and a half-link on the live
+page. Shoot it, commit it, push it, then add the link.
+
+**The tire frame is the weakest of the four and it is worth saying why.** No naturally generated pile
+could be found to shoot despite a 1-in-34-chunk rarity - they are small, dark and swallowed by the
+mounds from any useful altitude - so it was placed with `/place feature recompile:tire_pile`, which
+runs the real worldgen feature rather than building one by hand. It landed in a tight gap between
+mounds, so the heap is smaller in frame than it should be. Reshoot it on open ground when convenient.
 
 **The cooling tower and smokestack frames were already in the gallery and had never been linked**,
 which is a quieter version of the same failure: the images existed, the sections did not, so nothing
@@ -134,6 +141,8 @@ Hold right-click with a Garbage Vacuum and the piles in front of you leave the g
 nozzle, about five a second. It takes whole blocks, not what is inside them, so you still sort them
 afterwards.
 
+![Holding right-click with a Copper Garbage Vacuum: a bite taken out of the mound ahead and the collected garbage stacking up in the hotbar.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/25-garbage-vacuum.png)
+
 Take a mound from the bottom and the rest comes down on top of you. That is the fast way to clear one.
 
 It runs on power, and a bigger block costs more. Each one is rated for the waste it was built for:
@@ -218,6 +227,10 @@ where the tanks leaked.
 It is the only prismarine, coral, sponge and sea lantern in the world, and there is a heart of the sea
 still on its stand in the middle.
 
+![The Municipal Aquarium in the demolition yard: prismarine cladding, sea lanterns on the roof, building husks and a smokestack behind it.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/26-municipal-aquarium.png)
+
+![Closer on the aquarium: the lit tank behind cracked glass and the prismarine front.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/27-aquarium-tank.png)
+
 One tank still holds water, and there is a guardian in it. That is not decoration. Every prismarine
 block is made from what a guardian drops, so the tank is the only reason the whole family is renewable
 rather than a fixed stock. Bucket it dry and you have ended that.
@@ -266,6 +279,8 @@ You can walk in under the legs. There is a spawner down in the basin.
 Somebody tipped tires across the sprawl in circular heaps, and some of them are burning. A tire fire
 does not go out in rain and does not go out with time. It does not eat the tires either, and there is
 nothing on bare dump ground for it to spread to. Water still puts it out.
+
+![A heap of tires tipped on bare dump ground between the mounds.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/28-tire-dump.png)
 
 Break a tire by hand and you get the tire. Break it with a Scrap Knife and you get the rubber. Carry it
 home and take it apart at the workbench instead and you get more, plus the steel belts out of the
