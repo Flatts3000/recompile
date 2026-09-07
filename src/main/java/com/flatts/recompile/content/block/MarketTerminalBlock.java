@@ -130,9 +130,15 @@ public abstract class MarketTerminalBlock extends HorizontalDirectionalBlock {
         }
 
         /**
-         * Everything on sale, cheapest first and by id within a price so the order is stable across
-         * reloads. Read fresh each time the screen opens, so a pack that adds an offer is on the
-         * shelf after a reload without a restart.
+         * Everything on sale, <b>by tier first</b>, then cheapest, then by id so the order is stable
+         * across reloads. Read fresh each time the screen opens, so a pack that adds an offer is on
+         * the shelf after a reload without a restart.
+         *
+         * <p><b>Tier leads because tier is the gate</b> (owner, playtest 2026-09-07: "order these by
+         * tier"). Sorting on price alone interleaved them - the shelf opened on Tier 0, Tier 2,
+         * Tier 3, Tier 1 - so a player scanning it could not see where the line between what they
+         * can buy and what they cannot actually falls. Price is a number you compare; a tier is a
+         * wall, and the wall should be one place in the list rather than four.
          */
         public static List<Market.Offer> offers(MinecraftServer server) {
             List<Market.Offer> offers = new ArrayList<>();
@@ -140,11 +146,12 @@ public abstract class MarketTerminalBlock extends HorizontalDirectionalBlock {
                     : server.getRecipeManager().recipeMap().byType(RCRecipeTypes.MARKET_OFFER.get())) {
                 offers.add(holder.value().offer());
             }
-            // Cheapest first, then by what the row IS, so the shelf order is stable across reloads
-            // AND across languages. Tie-breaking on the display name was the first cut and resolved
-            // through the server's language while each client renders its own, so equal-priced rows
+            // Tier, then cheapest, then by what the row IS - so the shelf order is stable across
+            // reloads AND across languages. Tie-breaking on the display name was the first cut and
+            // resolved through the server's language while each client renders its own, so rows
             // came out in an order that was alphabetical for nobody but the server.
-            offers.sort(Comparator.comparingInt(Market.Offer::price)
+            offers.sort(Comparator.comparingInt(Market.Offer::tier)
+                .thenComparingInt(Market.Offer::price)
                 .thenComparing(Market.Offer::identity));
             return offers;
         }

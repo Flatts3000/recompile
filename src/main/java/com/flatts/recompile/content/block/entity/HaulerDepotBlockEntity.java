@@ -330,7 +330,20 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         }
     }
 
-    /** Keep the screen's picture of the field current while the Hauler is out. */
+    /**
+     * Keep the screen's picture of the field current while the Hauler is out.
+     *
+     * <p><b>And the item in the slot with it</b> (owner, playtest 2026-09-07: "the UI in the depot is
+     * stale"). The charge component was written at deploy and again by {@link #onRecalled}, and
+     * nowhere between - so while the machine was out working, its own tooltip in the Depot's slot
+     * quoted whatever it had left with. The report that led here was "the Scrap Hauler doesn't use RF
+     * power": it does, and the number that said otherwise was the docked item's, frozen, while Jade
+     * on the entity three blocks away read the truth. Two surfaces disagreeing about one machine is
+     * worse than either being wrong, because it makes the player debug the mod.
+     *
+     * <p>Guarded on an actual change and mirroring {@link #markBufferDirty}, so this is the same
+     * save-churn shape the battery already has rather than a {@code setChanged} every tick.
+     */
     private void watchField(ServerLevel level) {
         if (!deployed || haulerUuid == null) {
             return;
@@ -339,6 +352,12 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
             fieldCharge = hauler.charge();
             fieldMode = hauler.mode().ordinal();
             fieldCargo = hauler.cargoCount();
+            ItemStack docked = items.get(HAULER_SLOT);
+            if (docked.getItem() instanceof ScrapHaulerItem
+                    && ScrapHaulerItem.charge(docked) != hauler.charge()) {
+                ScrapHaulerItem.setCharge(docked, hauler.charge());
+                setChanged();
+            }
         }
     }
 

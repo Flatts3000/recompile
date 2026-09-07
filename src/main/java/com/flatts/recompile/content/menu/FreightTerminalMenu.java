@@ -35,19 +35,24 @@ public class FreightTerminalMenu extends AbstractContainerMenu {
 
     public static final int TIER_INDEX = FreightManifest.MAX_LINES * 2;
 
-    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 228)
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 258)
         .panel()
         // Which rung this is, above the lines. Without it the screen is a list of goods with no
         // indication that a ladder exists at all.
         .region("phase", 8, 17, 160, 10)
-        .rows("manifest", FreightManifest.MAX_LINES, 8, 30, 160, 12, 13)
+        // 16 high with an 18 pitch, which is the Buy Terminal's shelf and for the same reason:
+        // an item icon is 16 pixels, so a 13 pitch overlapped consecutive rows by three and the
+        // manifest read as one smudged column (owner, playtest 2026-09-07). Six rows at 18 do
+        // not fit the old 228 panel, so the panel grew by 30 and the strip and inventory moved
+        // down with it - the gap is not free and pretending otherwise is what made it 13.
+        .rows("manifest", FreightManifest.MAX_LINES, 8, 30, 160, 16, 18)
         // ONE ROW rather than a 3x3. The strip is a landing pad the ticker empties, not storage, so
         // giving it the footprint of a chest would suggest it holds things. Nine wide at
         // INVENTORY_X so it really does line up with the hotbar under it - it was at x=7 for one
         // review cycle, one pixel off the inventory it claimed to match, which no sweep catches
         // because the centring check only covers CELL groups.
-        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, GuiTheme.INVENTORY_X, 112)
-        .playerInventory(146)
+        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, GuiTheme.INVENTORY_X, 142)
+        .playerInventory(176)
         .build();
 
     private static final int STRIP_END = FreightTerminalBlockEntity.SLOT_COUNT;
