@@ -4,12 +4,12 @@
   "name": "freight.recompile.phase.8",
   "requires": [
     {
-      "item": "recompile:slag",
-      "count": 64
+      "item": "minecraft:obsidian",
+      "count": 16
     },
     {
-      "item": "minecraft:leather",
-      "count": 32
+      "item": "minecraft:blaze_rod",
+      "count": 8
     }
   ]
 }

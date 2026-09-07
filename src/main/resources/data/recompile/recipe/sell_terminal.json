@@ -1,11 +1,16 @@
 {
-  "type": "recompile:blueprint_crafting",
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "_comment": [
-    "A counter with a readout: a Bulb behind a scrap-steel case, e-scrap for the ledger, a",
-    "plastic keypad. Both terminals share the case and differ in the arrangement, so the two",
-    "shaped patterns cannot collide at the bench."
+    "PLAIN CRAFTING, NOT blueprint_crafting (owner, 2026-09-06). The two terminals used to",
+    "sit behind a Blueprint taught by tearing down a Broken Terminal. Once the market became",
+    "the only source of knowledge that deadlocked a fresh world: you would have needed the",
+    "Buy Terminal to buy the Buy Terminal's own sheet, and the Sell Terminal to earn any",
+    "scrip at all. The entry to the economy cannot sit behind the economy.",
+    "",
+    "Craftable rather than carved out of the market rule, so that rule keeps no exceptions.",
+    "The two patterns still differ so they cannot collide at the bench."
   ],
-  "blueprint": "recompile:sell_terminal",
   "key": {
     "S": "recompile:scrap_metal",
     "B": "recompile:bulb",
@@ -18,6 +23,7 @@
     "SPS"
   ],
   "result": {
-    "item": "recompile:sell_terminal"
+    "id": "recompile:sell_terminal",
+    "count": 1
   }
 }

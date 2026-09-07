@@ -118,7 +118,7 @@ public class BlueprintItem extends Item {
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
         return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
-            SPAWNER, BATTERY, SELL_TERMINAL, BUY_TERMINAL, POWDER_SNOW_BUCKET, SCRAP_HAULER, HAULER_DEPOT);
+            SPAWNER, BATTERY, POWDER_SNOW_BUCKET, SCRAP_HAULER, HAULER_DEPOT);
     }
 
     /**
@@ -136,19 +136,21 @@ public class BlueprintItem extends Item {
     public static final Identifier POWDER_SNOW_BUCKET =
         Identifier.fromNamespaceAndPath("recompile", "powder_snow_bucket");
 
-    /**
-     * The two market terminals (spec {@code docs/market_spec.md}, #311), learned from one find.
+    /*
+     * THE TWO MARKET TERMINALS NO LONGER HAVE BLUEPRINT SETS (owner, 2026-09-06). They craft
+     * plainly now.
      *
-     * <p>Two sets rather than one, because a set has exactly one {@code blueprint_crafting} recipe
-     * and the two blocks are two recipes. The Broken Terminal teaches both, so a single teardown
-     * fragment stream leads to the whole market - you recovered their terminal and built both ends of
-     * it. The Buy Terminal sells both sheets too, which is circular and harmless: a second terminal.
+     * The sets were removed rather than left unused because of what this javadoc used to say: "The
+     * Buy Terminal sells both sheets too, which is circular and harmless: a second terminal." That
+     * was true only while teardown ALSO taught them. Once P3.10 made the market the sole source of
+     * knowledge the circularity stopped being harmless and became a hard deadlock - you would have
+     * needed the Buy Terminal to buy the Buy Terminal's sheet, and the Sell Terminal to earn any
+     * scrip at all, so a fresh world could never reach the economy at all.
+     *
+     * The entry to an economy cannot sit behind that economy. Left as a comment rather than deleted
+     * because the reasoning is the point: a circular dependency that is harmless today can be fatal
+     * after an unrelated ruling, and nothing about the terminals themselves changed.
      */
-    public static final Identifier SELL_TERMINAL =
-        Identifier.fromNamespaceAndPath("recompile", "sell_terminal");
-
-    public static final Identifier BUY_TERMINAL =
-        Identifier.fromNamespaceAndPath("recompile", "buy_terminal");
 
     /**
      * How a spawner cage is built (#294), learned from a Broken Spawner found in the depths.

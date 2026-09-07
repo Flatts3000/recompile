@@ -284,6 +284,16 @@ final class MarketTests {
 
             Market.setBalance(player, 0);
             Market.credit(player, price + 100);
+            // The Battery is tier 2 since #389, so open the ladder far enough for this to be a test
+            // about SPENDING rather than an accidental second test of the tier gate.
+            //
+            // RESTORED BEFORE succeed(), like every other tier-mutating test here. FreightState is
+            // one SavedData shared by the whole run, MarketTests registers before FreightTerminalTests,
+            // and those assume tier 0 - at tier 8 the current phase is null, so the terminal refuses
+            // everything and two of them cannot pass at all. Leaving it set would have broken tests
+            // in a different file, which is the worst shape of test pollution because the failure
+            // names the innocent one.
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(8);
             BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
                 ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)), offers);
             helper.assertTrue(menu.clickMenuButton(player, index),
@@ -294,6 +304,7 @@ final class MarketTests {
             helper.assertTrue(blueprintsHeld(player.getInventory(), BlueprintItem.BATTERY) == 1,
                 "expected exactly one Battery blueprint in the inventory, found "
                     + blueprintsHeld(player.getInventory(), BlueprintItem.BATTERY));
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(0);
             helper.succeed();
         });
 
@@ -362,15 +373,51 @@ final class MarketTests {
             helper.succeed();
         });
 
-        RCGameTests.test("an_offer_with_no_tier_is_always_open", 20, helper -> {
-            // The compatibility half. Every offer written before the ladder existed omits `tier`, and
-            // absent must mean 0 or a pack's whole shelf locks itself on update.
+        RCGameTests.test("every_offer_opens_somewhere_on_the_shipped_ladder", 20, helper -> {
+            // REWRITTEN IN #389. This asserted the catalogue was entirely tier 0, which was the right
+            // guard while step 2 shipped no tiered stock and is now exactly what step 3 changes. The
+            // claim worth making instead is that no offer is stranded ABOVE the ladder: a line at a
+            // tier the ladder cannot reach is unbuyable forever, with nothing logged and a shelf that
+            // simply never opens.
             ServerLevel level = helper.getLevel();
-            com.flatts.recompile.content.freight.FreightState.of(level).setTier(0);
+            int rungs = com.flatts.recompile.content.freight.FreightPhases.length(level);
+            helper.assertTrue(rungs > 0, "no freight phases loaded, so no offer can ever open");
             for (Market.Offer offer : MarketTerminalBlock.Buy.offers(level.getServer())) {
-                helper.assertTrue(offer.tier() == 0,
-                    "a shipped offer declares tier " + offer.tier()
-                        + "; step 2 ships no tiered stock, so this is a stray edit");
+                helper.assertTrue(offer.tier() <= rungs,
+                    "an offer sits at tier " + offer.tier() + " but the ladder only has " + rungs
+                        + " rungs, so it can never be bought");
+            }
+            helper.succeed();
+        });
+
+        RCGameTests.test("an_offer_with_no_tier_loads_at_tier_zero", 20, helper -> {
+            // THE CODEC DEFAULT IS WHAT IS UNDER TEST, and the first version of this could not fail.
+            // It built `new Market.Offer(stack, 10, 0)` in Java with an explicit 0 and read it back
+            // through a menu with ContainerLevelAccess.NULL, so the assertion reduced to 0 <= 0 and
+            // MarketOfferRecipe.CODEC's optionalFieldOf("tier", 0) was never exercised at all.
+            // Changing that default to 1 would have left it green.
+            //
+            // So this reads the REAL catalogue. Several shipped offers carry no `tier` key, and if
+            // the default moved they would come back non-zero and every one of them would lock
+            // itself on update - which is the regression this exists to catch.
+            ServerLevel level = helper.getLevel();
+            List<Market.Offer> offers = MarketTerminalBlock.Buy.offers(level.getServer());
+            helper.assertTrue(!offers.isEmpty(), "no market offers loaded at all");
+
+            long untiered = offers.stream().filter(o -> o.tier() == 0).count();
+            helper.assertTrue(untiered > 0,
+                "every shipped offer declares a tier, so this test cannot see the codec default any "
+                    + "more; leave at least one line untiered or assert the default another way");
+
+            // Named rather than counted, so tiering one of these later fails here loudly instead of
+            // quietly reducing what the test covers.
+            for (Market.Offer offer : offers) {
+                String name = offer.stack().getItem().toString();
+                if (name.contains("totem_of_undying") || name.contains("heavy_core")) {
+                    helper.assertTrue(offer.tier() == 0,
+                        name + " ships with no tier key but loaded at tier " + offer.tier()
+                            + "; the absent-means-0 default has moved");
+                }
             }
             helper.succeed();
         });
@@ -389,6 +436,8 @@ final class MarketTests {
             int price = offers.get(index).price();
 
             Market.setBalance(player, price - 1);
+            // Open the ladder, so a refusal here can only be about the balance. Restored below.
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(8);
             BuyTerminalMenu menu = new BuyTerminalMenu(0, player.getInventory(),
                 ContainerLevelAccess.create(level, helper.absolutePos(TERMINAL)), offers);
             helper.assertTrue(!menu.clickMenuButton(player, index),
@@ -400,6 +449,7 @@ final class MarketTests {
             // And an index off the end of the list is a refusal, not a crash.
             helper.assertTrue(!menu.clickMenuButton(player, offers.size()),
                 "an out-of-range row bought something");
+            com.flatts.recompile.content.freight.FreightState.of(level).setTier(0);
             helper.succeed();
         });
 

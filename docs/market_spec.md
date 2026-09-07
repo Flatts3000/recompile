@@ -271,6 +271,24 @@ screen, and `a_locked_offer_cannot_be_bought_by_a_crafted_packet` is what pins t
 change while the shop is open but the tier can - somebody else's factory completes a phase - and a
 shelf that stayed locked after the rung landed would read as broken.
 
+## 6.6 The terminals are not gated by a Blueprint, and this reverses Q3 (2026-09-06, #389)
+
+Both terminals craft plainly at a bench. They have no Blueprint sets and nothing teaches them.
+
+**Q3's answer created a deadlock that only appeared once P3.10 landed.** It was sound while teardown
+also taught them: one find, two sets, four fragments each. But P3.10 made the market the sole source
+of knowledge, and at that moment you needed the **Buy Terminal to buy the Buy Terminal's own sheet**,
+and the **Sell Terminal to earn any scrip at all**. A fresh world could never have reached the economy.
+
+**The entry to an economy cannot sit behind that economy.** `BlueprintItem`'s javadoc for those sets
+used to say the circularity was "harmless: a second terminal", and it was - right up until an
+unrelated ruling removed the other route. That is the lesson worth keeping from this: a circular
+dependency that is harmless today is a latent deadlock, and nothing about the terminals themselves
+changed between the two states.
+
+**Craftable rather than a carve-out from the market rule**, so that rule keeps no exceptions: the
+market is the only source of tier knowledge, full stop, and the terminals simply are not knowledge.
+
 ## 7. Prices are flat per product
 
 Predictable, no new state, no rotating want-list, nothing to sync beyond the balance. Tuning the
@@ -401,7 +419,7 @@ to ship, and is the first thing to revisit if it reads wrong.
 |---|---|---|
 | Names (section 5) | `sell_terminal` / **Sell Terminal** and `buy_terminal` / **Buy Terminal** | The player's verb, literally. "Sell Terminal" is already how section 5 refers to it. |
 | Q2: which find, which stream | **Broken Terminal**, weight 1 in `gameplay/bulky_spine` beside the Broken Hydroponics Bay | Bulky Waste is where finds live and the guidebook sweep already reads that table; a machine in Mechanical Waste would be a second convention for one thing. |
-| Q3: one find or two | **One find, two Blueprint sets** (`recompile:sell_terminal`, `recompile:buy_terminal`), both taught by the one teardown at four fragments each | A set has exactly one `blueprint_crafting` recipe (`the_clean_mattress_blueprint_recipe_loads` counts on it), and the two blocks are two recipes. One teardown carrying two `teaches` lines gives the cheaper reading the question wanted without bending that. |
+| Q3: one find or two | ~~**One find, two Blueprint sets**, both taught by the one teardown~~ **REVERSED 2026-09-06 (#389): the terminals have no Blueprint sets and craft plainly.** See section 6.6. | A set has exactly one `blueprint_crafting` recipe (`the_clean_mattress_blueprint_recipe_loads` counts on it), and the two blocks are two recipes. One teardown carrying two `teaches` lines gives the cheaper reading the question wanted without bending that. |
 | Q1: tag and data map | Kept as two surfaces, exactly as section 6 says | The redundancy is deliberate, and `every_sellable_item_has_a_price` is what makes it safe. |
 | Where the Buy Terminal's stock lives | A **`recompile:market_offer` recipe type**: `{"blueprint": ..., "price": N}`, one file per line of stock | A Blueprint set is an id on a component, not a registry entry, so no data map can key on it. A recipe is the other thing a pack adds by dropping in a file, it reloads with the world, and the terminal reads the loaded set when it opens. It is never matched against anything and is `isSpecial`, so no recipe book or viewer lists it as a craft. |
 | How the stock reaches the client | Written into the menu's **open buffer**, the way the Scrap Crafting Table sends its position | The screen draws exactly the list the server sells from, and no second sync path exists to drift. The balance is a menu data slot, per section 10. |

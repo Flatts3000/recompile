@@ -1,6 +1,16 @@
 {
-  "type": "recompile:blueprint_crafting",
-  "blueprint": "recompile:buy_terminal",
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "_comment": [
+    "PLAIN CRAFTING, NOT blueprint_crafting (owner, 2026-09-06). The two terminals used to",
+    "sit behind a Blueprint taught by tearing down a Broken Terminal. Once the market became",
+    "the only source of knowledge that deadlocked a fresh world: you would have needed the",
+    "Buy Terminal to buy the Buy Terminal's own sheet, and the Sell Terminal to earn any",
+    "scrip at all. The entry to the economy cannot sit behind the economy.",
+    "",
+    "Craftable rather than carved out of the market rule, so that rule keeps no exceptions.",
+    "The two patterns still differ so they cannot collide at the bench."
+  ],
   "key": {
     "S": "recompile:scrap_metal",
     "B": "recompile:bulb",
@@ -9,10 +19,11 @@
   },
   "pattern": [
     "SBS",
-    "EPE",
-    "SSS"
+    "SPS",
+    "SES"
   ],
   "result": {
-    "item": "recompile:buy_terminal"
+    "id": "recompile:buy_terminal",
+    "count": 1
   }
 }

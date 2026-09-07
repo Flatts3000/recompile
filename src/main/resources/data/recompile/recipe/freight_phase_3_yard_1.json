@@ -4,12 +4,12 @@
   "name": "freight.recompile.phase.3",
   "requires": [
     {
-      "item": "recompile:stone_shard",
-      "count": 96
-    },
-    {
       "item": "recompile:reinforced_concrete",
       "count": 48
+    },
+    {
+      "item": "recompile:steel_offcut",
+      "count": 40
     }
   ]
 }

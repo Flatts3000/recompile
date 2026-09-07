@@ -4,12 +4,12 @@
   "name": "freight.recompile.phase.4",
   "requires": [
     {
-      "item": "recompile:steel_offcut",
-      "count": 40
-    },
-    {
       "item": "minecraft:iron_ingot",
       "count": 32
+    },
+    {
+      "item": "recompile:glass_shards",
+      "count": 48
     }
   ]
 }

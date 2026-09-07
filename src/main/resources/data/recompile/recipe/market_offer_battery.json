@@ -1,5 +1,6 @@
 {
   "type": "recompile:market_offer",
   "blueprint": "recompile:battery",
-  "price": 240
+  "price": 240,
+  "tier": 2
 }

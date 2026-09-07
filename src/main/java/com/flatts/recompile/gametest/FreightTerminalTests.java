@@ -5,6 +5,10 @@ import com.flatts.recompile.content.block.ScrapNetwork;
 import net.minecraft.world.item.Items;
 import com.flatts.recompile.content.freight.FreightPhases;
 import com.flatts.recompile.content.freight.FreightState;
+import com.flatts.recompile.content.recipe.PulverizingRecipe;
+import com.flatts.recompile.content.recipe.SeparatingRecipe;
+import com.flatts.recompile.registry.RCRecipeTypes;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import com.flatts.recompile.content.recipe.FreightPhaseRecipe;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCTags;
@@ -196,6 +200,70 @@ public final class FreightTerminalTests {
                 int tier = phases.get(i).tier();
                 helper.assertTrue(tier == i + 1,
                     "the ladder is not dense: position " + i + " is tier " + tier);
+            }
+            helper.succeed();
+        });
+
+        RCGameTests.test("every_second_phase_of_a_region_demands_a_machine", 20, helper -> {
+            // The ruling: the first phase of a region is satisfiable from its ordinary output, the
+            // second wants something only a built production chain yields. That is what stops a rung
+            // being a wait rather than a problem.
+            //
+            // ASSERTED AGAINST THE LIVE RECIPE MANAGER, not against a comment. The PR that added
+            // these manifests said the property was "asserted at generation time"; it was checked in
+            // a throwaway script and nothing in the repo enforced it. Phase 2 shipped asking for
+            // plastic scrap, whose only machine route is a byproduct behind a mod_loaded ae2
+            // condition - so in a default install it demanded no production at all, and the claim was
+            // false in exactly the install almost everyone runs. Asking the MANAGER is what makes
+            // this honest: a conditional recipe that did not load is simply absent from it.
+            ServerLevel level = helper.getLevel();
+            java.util.Set<Item> machineMade = new java.util.HashSet<>();
+            for (RecipeHolder<SeparatingRecipe> h
+                    : level.recipeAccess().recipeMap().byType(RCRecipeTypes.SEPARATING.get())) {
+                h.value().results().forEach(r -> machineMade.add(r.item()));
+                h.value().byproducts().forEach(r -> machineMade.add(r.item()));
+            }
+            for (RecipeHolder<PulverizingRecipe> h
+                    : level.recipeAccess().recipeMap().byType(RCRecipeTypes.PULVERIZING.get())) {
+                machineMade.add(h.value().result().item());
+            }
+            // Sintering and Vitrifying are AbstractCookingRecipe subclasses, so they assemble the
+            // same way blasting does. Leaving them out is what made this test fail on phase 8 the
+            // first time it ran - the phase was right and the scan was short, which is the better
+            // way round for a guard to be wrong.
+            for (RecipeHolder<? extends net.minecraft.world.item.crafting.AbstractCookingRecipe> h
+                    : level.recipeAccess().recipeMap().byType(RCRecipeTypes.SINTERING.get())) {
+                machineMade.add(h.value().assemble(
+                    new net.minecraft.world.item.crafting.SingleRecipeInput(ItemStack.EMPTY))
+                    .getItem());
+            }
+            for (RecipeHolder<? extends net.minecraft.world.item.crafting.AbstractCookingRecipe> h
+                    : level.recipeAccess().recipeMap().byType(RCRecipeTypes.VITRIFYING.get())) {
+                machineMade.add(h.value().assemble(
+                    new net.minecraft.world.item.crafting.SingleRecipeInput(ItemStack.EMPTY))
+                    .getItem());
+            }
+            for (RecipeHolder<net.minecraft.world.item.crafting.BlastingRecipe> h
+                    : level.recipeAccess().recipeMap().byType(
+                        net.minecraft.world.item.crafting.RecipeType.BLASTING)) {
+                // result() is protected on SingleItemRecipe, so the output is read by assembling
+                // against an empty input - blasting ignores the input when building its result.
+                machineMade.add(h.value().assemble(
+                    new net.minecraft.world.item.crafting.SingleRecipeInput(ItemStack.EMPTY))
+                    .getItem());
+            }
+
+            List<FreightPhaseRecipe> ladder = FreightPhases.sorted(level);
+            for (FreightPhaseRecipe phase : ladder) {
+                if (phase.tier() % 2 != 0) {
+                    continue;      // the first of each pair may be raw regional output
+                }
+                boolean hasMachineLine = phase.requires().stream()
+                    .anyMatch(r -> machineMade.contains(r.item()));
+                helper.assertTrue(hasMachineLine,
+                    "freight phase " + phase.tier() + " is the second of its region and asks for "
+                        + phase.requires().stream().map(r -> r.item().toString()).toList()
+                        + ", none of which any LOADED machine recipe produces");
             }
             helper.succeed();
         });

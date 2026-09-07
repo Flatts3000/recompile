@@ -1,5 +1,6 @@
 {
   "type": "recompile:market_offer",
   "blueprint": "recompile:netherite_upgrade",
-  "price": 1500
+  "price": 1500,
+  "tier": 6
 }

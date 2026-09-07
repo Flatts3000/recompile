@@ -1,5 +1,6 @@
 {
   "type": "recompile:market_offer",
   "blueprint": "recompile:motor",
-  "price": 300
+  "price": 300,
+  "tier": 3
 }
