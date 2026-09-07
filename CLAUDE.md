@@ -779,6 +779,28 @@ Feature design is decided there, not here. Read before changing gameplay:
 - Conventional commits (`feat(food):`, `fix(...)`, `docs:`). Phases land as squash-merged PRs.
 - The mod was working-named "Salvage" during design; renamed because several materials-recovery mods already own that name on CurseForge/Modrinth - exactly the mods this would be confused with.
 
+**`RCCreativeTabs` order is public output, it diverges every release, and a SCRUB here must check it**
+(owner, 2026-09-07: *"something that we need to do regularly as it always diverges"*). JEI's default
+`ingredientSortStages` ends in `CREATIVE_MENU`, so within this mod **the JEI panel's order IS the
+creative tab's order** - that file is what a player scrolls, not an internal list. It has now drifted
+three times (roaches under Workstations and stone shards under Blueprints the first time, a dozen
+items the third, #410), because `every_mod_item_is_in_the_creative_tab` guards **membership only**: an
+item in the wrong group is invisible to every test and obvious to every player.
+
+**Group by KIND, order by progression inside the group** (owner delegated the call, 2026-09-07). Both
+halves matter and the second is what makes the first affordable. A tempting alternative is grouping a
+region's output together - the radioactive dump's finds did exactly that and dragged building blocks
+and finds into the raw-garbage section with them. It does not scale: every new region forks every
+kind, so four regions times the kinds is a combinatorial tab, and a player hunting a building block
+has to know which region it came from before they can find it. Progression order *within* a kind
+carries the region anyway, since household comes before the yard comes before the dump. So the
+region reads down a column instead of across the tab, and one principle applies everywhere.
+
+Two things not to "fix" while doing it. The formed multiblock cells interleaved among the machine
+cores look like a mess in the tab and are **already hidden from JEI** by `MultiblockParts`, so that
+section is nine clean machines where it counts. And an out-of-group item that carries a comment
+saying why is a decision, not drift - the missing comment is the tell.
+
 ## Driving a running game from outside (gamebridge / devbridge)
 
 **devbridge is its own repo** (`F:\devbridge`, MIT), and its onboarding doc (`docs/onboarding.md`
