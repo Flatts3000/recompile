@@ -201,6 +201,14 @@ final class MarketTests {
             // no violation means nothing unless every member was actually looked at.
             List<String> unseen = new ArrayList<>();
             for (Item item : sellable) {
+                // A FUNCTION_ONLY item is produced by no recipe ON PURPOSE (#391) - it comes out of
+                // a teardown or not at all. It cannot be "one press from junk" when it cannot be
+                // pressed from anything, so this half has nothing to say about it. Exempted here
+                // rather than by loosening the rule, and the positive obligation is asserted
+                // instead by FunctionOnlyTests: every member must have a real teardown route.
+                if (item.builtInRegistryHolder().is(RCTags.FUNCTION_ONLY)) {
+                    continue;
+                }
                 if (!seenProduced.contains(item)) {
                     unseen.add(String.valueOf(BuiltInRegistries.ITEM.getKey(item)));
                 }

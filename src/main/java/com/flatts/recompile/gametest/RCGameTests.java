@@ -143,6 +143,7 @@ public final class RCGameTests {
         MarketTests.register();
         ScrapHaulerTests.register();
         FreightTerminalTests.register();
+        FunctionOnlyTests.register();
         RegistryCompletenessTests.register();
         RegistryCompletenessTests.registerBlockstateCoverage();
 

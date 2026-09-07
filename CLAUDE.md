@@ -8,10 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Teardown yields function rather than materials, and the distinction is the whole point.** Sorting already pulls materials off a loot table, so teardown-for-materials would be the same verb with a different animation. *In an infinite dump materials are worthless and function is precious: there is infinite scrap, and no infinite supply of working motors.* You tear down a washing machine for the motor. It also inherits what the knowledge gate never had - **"do you have a motor" is mod-proof**, where the player-scoped recipe gate structurally could not see AE2 autocrafting.
 
-**This reverses #228 narrowly** (see the components section below): tier-gating components become find-only. It reconciles because mounds regrow, so a find-only component is renewable and merely rate-limited, and a rate limit is what a progression gate is. Every other component keeps both routes.
+**This reverses #228 narrowly** (see the components section below), and the carve-out is **one item wide**: the **Motor** is `#recompile:function_only` - no recipe, no market offer, salvaged or nothing. It reconciles because mounds regrow, so a find-only component is renewable and merely rate-limited, and a rate limit is what a progression gate is. **The Pump was deliberately left out** (owner, 2026-09-06): the Motor and the Pump were tier 3's only two shelf lines, so taking both would have made a rung of the freight ladder unlock an empty shop. Every other component keeps both routes.
 
-**Steps 1 through 4 are built** (#387, #388, #393, #390); step 5 (tier-gating components go find-only,
-#391) is what remains. `docs/structural_analogs.md` carries the survey the ruling was made against and
+**All five steps are built** (#387, #388, #393, #390, #391). `docs/structural_analogs.md` carries the survey the ruling was made against and
 `docs/freight_conversion_spec.md` the build order.
 
 **Two things the spec got wrong and the build corrected.** It said to delete the Idea Fragment item and

@@ -205,8 +205,14 @@ over is a con, and this one does not need its interface to be one as well.
 extendable by a pack without a mod release. The curated-versus-everything argument becomes data rather
 than code, which is how every extension point here works.
 
-**At ship it holds components and finished goods only** (owner, 2026-09-04): the Pump, Motor, Bulb,
-Battery, Clean Mattress and their kin. Things with a real assembly step behind them.
+**At ship it holds components and finished goods only** (owner, 2026-09-04): the Pump, Bulb, Battery,
+Clean Mattress and their kin. Things with a real assembly step behind them.
+
+**The Motor is the one component it deliberately does NOT stock** (#391, owner 2026-09-06). It is
+`#recompile:function_only`: no recipe and no offer, salvaged or nothing. The shelf listed it until step
+5 of #386 removed the line, and `nothing_function_only_is_sold_at_the_market` now fails the build on any
+offer that puts it back - including one selling the knowledge rather than the thing, which the
+recipe-side sweep in `FoundNotCraftedTests` structurally cannot see (section 14).
 
 **It explicitly excludes anything one press away from raw junk**, and that exclusion is the whole
 ruling rather than a detail. Pressed Junk is a building family made directly from the commonest thing
