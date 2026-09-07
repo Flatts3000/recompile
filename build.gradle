@@ -334,6 +334,21 @@ tasks.processResources {
             neoforge_version: neoforge_version
         )
     }
+
+    // TEXGEN MATERIALS ARE BUILD INPUTS, NOT GAME ASSETS, and this is the one place that can tell
+    // them apart. `scrap_hauler_skin` is a procedural surface whose `material` is the AI-generated
+    // `scrap_hauler_plating`, and texgen resolves a material by reading the PROMOTED png out of the
+    // assets tree - so the file has to live there or `promote` fails with "material does not exist
+    // yet". Nothing loads it at runtime: the Hauler's renderer names scrap_hauler_skin.png, and a
+    // material is sampled at generation time for its grain and rivets.
+    //
+    // It shipped anyway from v0.19.0, at 526,990 bytes - the largest single file in a 3.3MB jar,
+    // four times the next largest asset, downloaded by everyone and drawn for nobody. Excluding it
+    // keeps the generator working and takes it out of the download.
+    //
+    // EntityTextureReachabilityTest pins both halves: a texture no renderer names must be declared
+    // as a material, and a material must be excluded here.
+    exclude 'assets/recompile/textures/entity/scrap_hauler_plating.png'
 }
 
 tasks.withType(JavaCompile).configureEach {
