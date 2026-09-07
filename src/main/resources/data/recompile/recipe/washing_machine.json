@@ -1,24 +1,32 @@
 {
   "type": "recompile:teardown",
+  "_comment": [
+    "THE MOTOR. P1.4's own worked example: in an infinite dump materials are worthless and function is precious, and there is no infinite supply of working motors.",
+    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge.",
+    "ONE COMPONENT, NOT TWO. This yielded a Pump before the Motor became its signature, and keeping both would have doubled its component yield AND left the Broken Hydroponics Bay's own signature identifying nothing. A washer holds a pump too; the Bay is where you go for one."
+  ],
   "input": "recompile:washing_machine",
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 120,
-  "pools": [
+  "results": [
     {
-      "_comment": "The component, and the knowledge follows it. A single-entry teaching pool behaves exactly as the old results+teaches pair did - stated in the new form so every appliance reads the same way.",
-      "rolls": 1,
-      "teaches": true,
-      "scraps_required": 4,
-      "entries": [
-        { "item": "recompile:pump" }
-      ]
-    },
+      "item": "recompile:motor",
+      "count": 1
+    }
+  ],
+  "pools": [
     {
       "rolls": 5,
       "entries": [
-        { "item": "recompile:scrap_metal", "weight": 3 },
-        { "item": "recompile:plastic_scrap", "weight": 2 }
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 3
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 2
+        }
       ]
     }
   ]

@@ -1762,7 +1762,7 @@ side = "a full-bleed Minecraft block face: the plain side panel of a discarded b
 top = "a full-bleed top-down Minecraft block face: the top of a discarded beige plastic office printer, a flat hinged scanner lid with a shallow recessed paper feed tray along one edge, a few loose yellowed sheets of paper and dust on it, sun-faded plastic and scuffs, muted, flat, no perspective, fills the whole tile"
 
 
-# The Idea Fragment (#95). It is deliberately NOT a piece of the blueprint, and that is a reversal.
+# The Spawn Egg Fragment (#95, renamed in #390). It is deliberately NOT a piece of the blueprint, and that is a reversal.
 #
 # It was first declared with reference = "blueprint" so the two would read as one document torn in
 # half. The owner rejected that on the art and gave the better reason (2026-08-02): a fragment is an
@@ -1773,7 +1773,7 @@ top = "a full-bleed top-down Minecraft block face: the top of a discarded beige 
 # The shipped PNG was generated from the blueprint before that call, so a regeneration WILL come back
 # different. Promote re-finalises from art_src with no API call, so the shipped art is safe; only a
 # fresh generate would change it.
-[surface.idea_fragment]
+[surface.spawn_egg_fragment]
 kind = "item"
 backend = "ai"
 size = 16

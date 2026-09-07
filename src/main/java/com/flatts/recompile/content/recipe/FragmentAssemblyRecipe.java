@@ -1,7 +1,7 @@
 package com.flatts.recompile.content.recipe;
 
 import com.flatts.recompile.content.item.BlueprintItem;
-import com.flatts.recompile.content.item.IdeaFragmentItem;
+import com.flatts.recompile.content.item.SpawnEggFragmentItem;
 import com.flatts.recompile.registry.RCItems;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import net.minecraft.resources.Identifier;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Enough Idea Fragments about one thing become the Blueprint for it (#95, spec
+ * Enough Spawn Egg Fragments about one thing become the Blueprint for it (#95, spec
  * {@code docs/blueprints_spec.md}).
  *
  * <p><b>A special recipe, because the ingredients are not a fixed list.</b> Every blueprint the mod or
@@ -81,7 +81,7 @@ public class FragmentAssemblyRecipe extends CustomRecipe {
             if (stack.isEmpty()) {
                 continue;
             }
-            Identifier towards = IdeaFragmentItem.towards(stack);
+            Identifier towards = SpawnEggFragmentItem.towards(stack);
             if (towards == null) {
                 return null;   // something in the grid is not a fragment at all
             }

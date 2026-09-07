@@ -66,59 +66,25 @@ final class BlueprintTests {
                     + BlueprintItem.NETHERITE_UPGRADE + ", so the blueprint a player can earn does not "
                     + "open it");
 
-            // 2. a teardown teaches that blueprint, at a chance that can actually fire
-            List<String> teachers = new ArrayList<>();
-            List<String> problems = new ArrayList<>();
-            for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
-                    : recipes.recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                for (var taught : holder.value().teaches()) {
-                    if (!BlueprintItem.NETHERITE_UPGRADE.equals(taught.recipe())) {
-                        continue;
-                    }
-                    // CHANCE, not just the id. TeachEntry's codec defaults chance to 0.0 and the bench
-                    // skips any entry at or below zero, so a `teaches` block that omits the field is
-                    // declared, loads without complaint, appears in this list, and grants a fragment
-                    // never. Matching on the id alone would go green on exactly the silent break this
-                    // test exists to catch.
-                    if (taught.chance() <= 0.0F) {
-                        problems.add(holder.id() + " declares it at chance " + taught.chance()
-                            + ", so the bench will never grant a fragment for it");
-                        continue;
-                    }
-                    teachers.add(holder.id().toString());
+            // 2. SOMETHING gives that blueprint. It used to have to be a teardown; since #390
+            // teardown yields function rather than knowledge, so the route is the market. The claim
+            // worth guarding is unchanged - netherite must be reachable without a bastion - only the
+            // door has moved, and asserting the OLD door would have been asserting the old design.
+            boolean sold = false;
+            for (RecipeHolder<com.flatts.recompile.content.recipe.MarketOfferRecipe> holder
+                    : recipes.recipeMap().byType(RCRecipeTypes.MARKET_OFFER.get())) {
+                if (BlueprintItem.NETHERITE_UPGRADE.equals(
+                        holder.value().blueprint().orElse(null))) {
+                    sold = true;
                 }
             }
-            helper.assertTrue(problems.isEmpty(),
-                "declared but dead: " + problems);
-            helper.assertTrue(!teachers.isEmpty(),
-                "no teardown teaches " + BlueprintItem.NETHERITE_UPGRADE + ", so the blueprint cannot "
-                    + "be earned and the gated recipe above is unreachable");
-
-            // 3. and the thing you tear down is actually findable
-            var table = com.flatts.recompile.content.block.SortableBlock.pullTableOf(
-                com.flatts.recompile.registry.RCBlocks.TECHNO_ORGANIC_WASTE.get());
-            boolean findable = false;
-            for (var weighted : com.flatts.recompile.compat.SortingData.outputs(
-                    com.flatts.recompile.compat.SortingData.pathFor(table))) {
-                if (weighted.stack().is(RCItems.WORN_FORGING_DIE.get())) {
-                    findable = true;
-                }
-            }
-            helper.assertTrue(findable,
-                "a Worn Forging Die is not in the compacted depths' pull stream, so nothing can be "
-                    + "torn down to learn the pattern and the whole chain is decorative");
+            helper.assertTrue(sold,
+                "nothing sells the Netherite Upgrade blueprint and no teardown teaches it any more, "
+                    + "so the template is unreachable and netherite gear is gated behind a bastion "
+                    + "this world does not generate");
             helper.succeed();
         });
 
-        // THE GATE. Nothing in the crafting recipe manager may produce a Clean Mattress: the blueprint
-        // bench is the only route, and that is the entire proposition of the feature.
-        //
-        // READ THE SCOPE BEFORE TRUSTING A GREEN HERE. This sweeps CRAFTING routes, via display(), and
-        // TeardownRecipe does not implement display() - so it is structurally blind to salvage. That is
-        // correct for the two blueprints that are genuinely exclusive, and says nothing at all about the
-        // Pump, which is deliberately reachable both ways (#160). A component that gains a blueprint
-        // while staying a find passes this test without being tested by it; ComponentBlueprintTests is
-        // where that pairing is actually pinned.
         RCGameTests.test("a_blueprint_result_has_no_other_route", 20, helper -> {
             // EVERY blueprint-gated result, not one named item. The Hydroponics Bay moved behind a
             // blueprint after this test was written, and a mattress-only sweep would have said nothing
@@ -329,60 +295,59 @@ final class BlueprintTests {
         // The chance is 0.25, so this drives the roll a hundred times rather than once. A single
         // attempt would fail three runs in four and teach everyone to re-run the suite until it
         // passed, which is worse than having no test.
-        RCGameTests.test("tearing_down_a_mattress_can_teach_the_clean_mattress_idea", 60, helper -> {
-            var recipes = helper.getLevel().recipeAccess().recipeMap()
-                .byType(RCRecipeTypes.TEARDOWN.get());
-            var teaching = new ArrayList<com.flatts.recompile.content.recipe.TeardownRecipe>();
-            recipes.forEach(holder -> {
+        RCGameTests.test("the_knowledge_axis_lives_in_the_sequencer_now", 60, helper -> {
+            // REPLACES tearing_down_a_mattress_can_teach_the_clean_mattress_idea (#390). That test
+            // asserted "some teardown must carry a teaches entry, or the knowledge axis is still
+            // dormant", which was the right guard for four releases and is now exactly backwards:
+            // teardown yields FUNCTION, and no teardown teaches anything on purpose.
+            //
+            // The axis is not gone, though, and asserting nothing would have quietly retired a real
+            // invariant. Fragments survive in the Sequencer, which is the one sanctioned exception to
+            // "the market is the only source of knowledge" - creature Blueprints gate nothing and buy
+            // nothing, so they cannot short-circuit the ladder. This checks the axis is alive THERE.
+            var recipes = helper.getLevel().recipeAccess().recipeMap();
+
+            List<String> teachers = new ArrayList<>();
+            for (RecipeHolder<com.flatts.recompile.content.recipe.TeardownRecipe> holder
+                    : recipes.byType(RCRecipeTypes.TEARDOWN.get())) {
                 if (!holder.value().teaches().isEmpty()) {
-                    teaching.add(holder.value());
-                }
-            });
-            helper.assertTrue(!teaching.isEmpty(),
-                "some teardown must carry a teaches entry, or the knowledge axis is still dormant");
-
-            var toMattress = teaching.stream()
-                .flatMap(r -> r.teaches().stream())
-                .filter(e -> e.recipe().equals(BlueprintItem.CLEAN_MATTRESS))
-                .findFirst().orElse(null);
-            helper.assertTrue(toMattress != null,
-                "something must teach the Clean Mattress idea, or the blueprint is unreachable");
-            helper.assertTrue(toMattress.chance() >= 1.0f,
-                "every teardown teaches (owner, 2026-08-02). A chance below 1 turns a four-teardown "
-                    + "cost into a dice game, and the thing that ends the grind is knowing the recipe, "
-                    + "not getting lucky - got " + toMattress.chance());
-            helper.assertTrue(toMattress.scrapsRequired() > 1,
-                "scraps_required is the whole reason fragments exist - at 1 the fragment is the sheet");
-
-            // EVERY teaches entry must name a blueprint that exists. This is the general form of a bug
-            // this change created: teaches had been parsed and ignored since Phase 0, so the schema's
-            // own EXAMPLE recipe carried a teaches pointing at minecraft:iron_door and nothing noticed
-            // for months. Reading the field turned that dormant example into live content - a fragment
-            // toward a blueprint the mod does not ship, which can never be assembled into anything.
-            List<String> dangling = new ArrayList<>();
-            for (var recipe : teaching) {
-                for (var teach : recipe.teaches()) {
-                    if (!BlueprintItem.shipped().contains(teach.recipe())) {
-                        dangling.add(teach.recipe().toString());
-                    }
+                    teachers.add(holder.value().toString());
                 }
             }
-            helper.assertTrue(dangling.isEmpty(),
-                "these teardowns teach a blueprint that does not exist, so the fragments they grant can "
-                    + "never be assembled: " + dangling);
+            helper.assertTrue(teachers.isEmpty(),
+                "a teardown still teaches a blueprint (" + teachers.size() + "), but since #390 "
+                    + "knowledge comes from the market and teardown yields function");
+
+            // The fragment path itself must still exist, or the Sequencer's amber chain is dead and
+            // spawn eggs became unreachable without anyone noticing.
+            // fragment_assembly is a SPECIAL CRAFTING recipe - it registers a serializer against
+            // vanilla's crafting type rather than owning a RecipeType - so it is found by looking for
+            // the class among loaded crafting recipes.
+            boolean assemblyLoaded = false;
+            for (RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe> holder
+                    : recipes.byType(net.minecraft.world.item.crafting.RecipeType.CRAFTING)) {
+                if (holder.value() instanceof
+                        com.flatts.recompile.content.recipe.FragmentAssemblyRecipe) {
+                    assemblyLoaded = true;
+                    break;
+                }
+            }
+            helper.assertTrue(assemblyLoaded,
+                "no fragment_assembly recipe is loaded, so four fragments cannot become a sheet and "
+                    + "the Sequencer's spawn-egg chain is broken");
+            helper.assertTrue(!new ItemStack(RCItems.SPAWN_EGG_FRAGMENT.get()).isEmpty(),
+                "the Spawn Egg Fragment item is gone, but the Sequencer still grants one per read");
             helper.succeed();
         });
 
-        // A fragment names what it is an idea ABOUT, which is what stops one easy teardown unlocking
-        // everything. Two fragments toward different blueprints must not pile up together.
-        RCGameTests.test("idea_fragments_are_specific_to_their_blueprint", 20, helper -> {
-            ItemStack toMattress = com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 1);
-            ItemStack toSomethingElse = com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(),
+        RCGameTests.test("spawn_egg_fragments_are_specific_to_their_blueprint", 20, helper -> {
+            ItemStack toMattress = com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 1);
+            ItemStack toSomethingElse = com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(),
                 Identifier.fromNamespaceAndPath("recompile", "something_else"), 1);
 
-            helper.assertTrue(com.flatts.recompile.content.item.IdeaFragmentItem.towards(toMattress)
+            helper.assertTrue(com.flatts.recompile.content.item.SpawnEggFragmentItem.towards(toMattress)
                     .equals(BlueprintItem.CLEAN_MATTRESS),
                 "a fragment must name the blueprint it leads to");
             helper.assertFalse(ItemStack.isSameItemSameComponents(toMattress, toSomethingElse),
@@ -469,24 +434,24 @@ final class BlueprintTests {
             helper.assertTrue(assembly != null, "the fragment assembly recipe must be loaded");
 
             int need = 4;   // mattress.json's scraps_required
-            ItemStack frags = com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, need);
+            ItemStack frags = com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, need);
             helper.assertTrue(assembly.matches(input(frags), helper.getLevel()),
                 "enough fragments of one idea must assemble");
             ItemStack made = assembly.assemble(input(frags));
             helper.assertTrue(BlueprintItem.CLEAN_MATTRESS.equals(BlueprintItem.blueprintOf(made)),
                 "and produce the blueprint they were fragments of, got " + made);
 
-            ItemStack tooFew = com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, need - 1);
+            ItemStack tooFew = com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, need - 1);
             helper.assertFalse(assembly.matches(input(tooFew), helper.getLevel()),
                 "one short must make nothing - a threshold that rounds down is not a threshold");
 
             // Mixing ideas is a mistake, not a partial match. Without this a player could pool
             // unrelated fragments into whichever blueprint they wanted, and earning each separately
             // is the entire reason a fragment names its target.
-            ItemStack other = com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(),
+            ItemStack other = com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(),
                 Identifier.fromNamespaceAndPath("recompile", "something_else"), 1);
             helper.assertFalse(assembly.matches(input(tooFew, other), helper.getLevel()),
                 "fragments toward different blueprints must not top each other up");
@@ -639,8 +604,8 @@ final class BlueprintTests {
                 helper.getLevel().getBlockEntity(helper.absolutePos(pos));
 
             // One short: it must sit there. Accumulating is the mechanic, so a near miss is untouched.
-            cabinet.setItem(0, com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 3));
+            cabinet.setItem(0, com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 3));
             tickCabinet(helper, pos, cabinet);
             helper.assertFalse(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
                 "three of four must not assemble anything");
@@ -648,8 +613,8 @@ final class BlueprintTests {
                 "and the fragments must be left exactly alone, not consumed toward nothing");
 
             // The fourth completes it.
-            cabinet.setItem(1, com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 1));
+            cabinet.setItem(1, com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 1));
             tickCabinet(helper, pos, cabinet);
             helper.assertTrue(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
                 "four fragments must become the blueprint");
@@ -668,8 +633,8 @@ final class BlueprintTests {
                 helper.getLevel().getBlockEntity(helper.absolutePos(pos));
 
             for (int slot = 0; slot < cabinet.getContainerSize(); slot++) {
-                cabinet.setItem(slot, com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                    RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 64));
+                cabinet.setItem(slot, com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                    RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 64));
             }
             tickCabinet(helper, pos, cabinet);
             helper.assertTrue(cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
@@ -686,8 +651,8 @@ final class BlueprintTests {
             helper.setBlock(pos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
             var cabinet = (com.flatts.recompile.content.block.entity.FilingCabinetBlockEntity)
                 helper.getLevel().getBlockEntity(helper.absolutePos(pos));
-            cabinet.setItem(0, com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 8));
+            cabinet.setItem(0, com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 8));
 
             helper.succeedWhen(() -> helper.assertTrue(
                 cabinet.holds(BlueprintItem.CLEAN_MATTRESS),
@@ -731,12 +696,12 @@ final class BlueprintTests {
                 helper.getLevel().getBlockEntity(helper.absolutePos(pos));
 
             cabinet.setItem(0, BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
-            cabinet.setItem(1, com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 7));
+            cabinet.setItem(1, com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), BlueprintItem.CLEAN_MATTRESS, 7));
             // A fragment toward a DIFFERENT blueprint, which must survive untouched.
             Identifier other = Identifier.fromNamespaceAndPath("recompile", "something_else");
-            cabinet.setItem(2, com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                RCItems.IDEA_FRAGMENT.get(), other, 2));
+            cabinet.setItem(2, com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), other, 2));
 
             tickCabinet(helper, pos, cabinet);
             helper.assertTrue(cabinet.getItem(1).isEmpty(),

@@ -11,7 +11,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import org.jspecify.annotations.Nullable;
 
 /**
- * An Idea Fragment: part of working out how something used to be made (#95, spec
+ * An Spawn Egg Fragment: part of working out how something used to be made (#95, spec
  * {@code docs/blueprints_spec.md}).
  *
  * <p><b>It is an idea, not a piece of paper.</b> The first art derived it from the Blueprint so the two
@@ -29,15 +29,15 @@ import org.jspecify.annotations.Nullable;
  * whole mechanic is watching a pile grow toward a threshold - which is the opposite of the blueprint,
  * where presence is the question and a count would be noise.
  */
-public class IdeaFragmentItem extends Item {
+public class SpawnEggFragmentItem extends Item {
 
-    public IdeaFragmentItem(Properties properties) {
+    public SpawnEggFragmentItem(Properties properties) {
         super(properties);
     }
 
     /** Which blueprint this fragment leads to, or null if it names none. */
     public static @Nullable Identifier towards(ItemStack stack) {
-        return stack.getItem() instanceof IdeaFragmentItem
+        return stack.getItem() instanceof SpawnEggFragmentItem
             ? stack.get(RCDataComponents.BLUEPRINT.get())
             : null;
     }

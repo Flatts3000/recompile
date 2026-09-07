@@ -1,5 +1,8 @@
 {
   "type": "recompile:teardown",
+  "_comment": [
+    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge. The pools below are unchanged - a teardown is never a total loss once you already have the part."
+  ],
   "input": "recompile:mattress",
   "station": "recompile:workbench",
   "tool": "recompile:scrap_knife",
@@ -9,13 +12,19 @@
       "_comment": "Seven draws of stuffing and ticking. Same expected yield as the fixed 4/2/1 pile it replaces, but a mattress never comes apart the same way twice.",
       "rolls": 7,
       "entries": [
-        { "item": "minecraft:string", "weight": 4 },
-        { "item": "recompile:fiber_scrap", "weight": 2 },
-        { "item": "recompile:scrap_metal", "weight": 1 }
+        {
+          "item": "minecraft:string",
+          "weight": 4
+        },
+        {
+          "item": "recompile:fiber_scrap",
+          "weight": 2
+        },
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 1
+        }
       ]
     }
-  ],
-  "teaches": [
-    { "recipe": "recompile:clean_mattress", "chance": 1.0, "scraps_required": 4 }
   ]
 }

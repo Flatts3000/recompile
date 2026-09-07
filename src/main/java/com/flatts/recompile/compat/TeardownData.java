@@ -111,7 +111,7 @@ public final class TeardownData {
                     }
                 }
             }
-            // What it TEACHES is an output too (#95). A mattress teardown hands back an Idea Fragment
+            // What it TEACHES is an output too (#95). A mattress teardown hands back an Spawn Egg Fragment
             // as reliably as it hands back string, and a category that lists the string but not the
             // fragment tells a player the knowledge came from somewhere else - which is the one thing
             // about this mechanic that is hard to work out by playing.
@@ -124,8 +124,8 @@ public final class TeardownData {
                         continue;
                     }
                     outputs.add(new SortingData.Weighted(
-                        com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                            com.flatts.recompile.registry.RCItems.IDEA_FRAGMENT.get(), set, 1),
+                        com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                            com.flatts.recompile.registry.RCItems.SPAWN_EGG_FRAGMENT.get(), set, 1),
                         chance));
                 }
             }
@@ -174,8 +174,8 @@ public final class TeardownData {
                             // A teaching pool hands over the fragment for whatever it drew, so the
                             // fragment is exactly as likely as the component beside it.
                             outputs.add(new SortingData.Weighted(
-                                com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                                    com.flatts.recompile.registry.RCItems.IDEA_FRAGMENT.get(),
+                                com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                                    com.flatts.recompile.registry.RCItems.SPAWN_EGG_FRAGMENT.get(),
                                     net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item),
                                     1),
                                 chance));

@@ -69,7 +69,7 @@ final class ResinTests {
                 "reading an amber left " + husk + " rather than a Spent Amber, so the resin chain has "
                     + "no input and the only way to make one would be to spend a second whole amber");
             helper.assertTrue(machine.getItem(SequencerBlockEntity.OUTPUT_SLOT)
-                    .is(RCItems.IDEA_FRAGMENT.get()),
+                    .is(RCItems.SPAWN_EGG_FRAGMENT.get()),
                 "the fragment must still come out - the husk is a byproduct, not a replacement");
             helper.succeed();
         });
@@ -110,7 +110,7 @@ final class ResinTests {
                 "the read did not happen with a blocked byproduct slot, so the machine stalls for a "
                     + "slot the player may not care about - the Cupola's reverted mistake");
             helper.assertTrue(machine.getItem(SequencerBlockEntity.OUTPUT_SLOT)
-                    .is(RCItems.IDEA_FRAGMENT.get()),
+                    .is(RCItems.SPAWN_EGG_FRAGMENT.get()),
                 "and the fragment must still come out, which is what the player is actually watching");
 
             // NOW CLEAR IT. The husk owed while the slot was blocked has to arrive, or the debt is

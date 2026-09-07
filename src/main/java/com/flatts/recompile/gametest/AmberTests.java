@@ -214,7 +214,7 @@ final class AmberTests {
             // THE FRAGMENT NAMES ITS CREATURE TOO, and this is the surface a player actually sorts by:
             // fragments for different species do not stack, so telling four cow fragments from three
             // cow and one pig is the whole mechanic. It shipped reading the raw set id, because the
-            // computed name was written for the SHEET and IdeaFragmentItem kept its own copy of the
+            // computed name was written for the SHEET and SpawnEggFragmentItem kept its own copy of the
             // key derivation. One method now, asked by both.
             Identifier set = Identifier.fromNamespaceAndPath("recompile",
                 com.flatts.recompile.content.item.BlueprintItem.SPAWN_EGG_PREFIX + "minecraft/cow");
@@ -542,8 +542,8 @@ final class AmberTests {
                 com.flatts.recompile.content.block.entity.SequencerBlockEntity.OUTPUT_SLOT);
             helper.assertTrue(!out.isEmpty(),
                 "a full battery and " + ticks + " ticks produced no fragment");
-            helper.assertTrue(out.is(RCItems.IDEA_FRAGMENT.get()),
-                "the sequencer produced " + out + " rather than an Idea Fragment");
+            helper.assertTrue(out.is(RCItems.SPAWN_EGG_FRAGMENT.get()),
+                "the sequencer produced " + out + " rather than an Spawn Egg Fragment");
             Identifier set = out.get(RCDataComponents.BLUEPRINT.get());
             helper.assertTrue(set != null && set.getPath().endsWith("/cow"),
                 "the fragment names " + set + ", which does not carry the cow that was in the amber - "

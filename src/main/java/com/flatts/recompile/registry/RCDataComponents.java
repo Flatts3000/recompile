@@ -122,7 +122,7 @@ public final class RCDataComponents {
                 .build());
 
     /**
-     * Which blueprint set an Idea Fragment or a Blueprint belongs to.
+     * Which blueprint set an Spawn Egg Fragment or a Blueprint belongs to.
      *
      * <p>An {@link Identifier} rather than anything registry-backed for the same reason
      * {@link #SPECIES} is: a datapack that removes a recipe must not turn every blueprint a player is

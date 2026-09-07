@@ -1,7 +1,7 @@
 package com.flatts.recompile.content.block.entity;
 
 import com.flatts.recompile.content.item.BlueprintItem;
-import com.flatts.recompile.content.item.IdeaFragmentItem;
+import com.flatts.recompile.content.item.SpawnEggFragmentItem;
 import com.flatts.recompile.content.recipe.FragmentAssemblyRecipe;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCItems;
@@ -95,7 +95,7 @@ public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
     public boolean canPlaceItem(int slot, ItemStack stack) {
         return stack.isEmpty()
             || stack.getItem() instanceof BlueprintItem
-            || stack.getItem() instanceof IdeaFragmentItem;
+            || stack.getItem() instanceof SpawnEggFragmentItem;
     }
 
     /**
@@ -138,7 +138,7 @@ public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
     private void condense(Level level) {
         Map<Identifier, Integer> fragments = new java.util.HashMap<>();
         for (ItemStack stack : items) {
-            Identifier set = IdeaFragmentItem.towards(stack);
+            Identifier set = SpawnEggFragmentItem.towards(stack);
             if (set != null) {
                 fragments.merge(set, stack.getCount(), Integer::sum);
             }
@@ -214,7 +214,7 @@ public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
     private boolean discardFragments(Identifier set) {
         boolean removed = false;
         for (int slot = 0; slot < items.size(); slot++) {
-            if (set.equals(IdeaFragmentItem.towards(items.get(slot)))) {
+            if (set.equals(SpawnEggFragmentItem.towards(items.get(slot)))) {
                 items.set(slot, ItemStack.EMPTY);
                 removed = true;
             }

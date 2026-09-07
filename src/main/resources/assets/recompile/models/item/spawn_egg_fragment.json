@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "recompile:item/idea_fragment"
+    "layer0": "recompile:item/spawn_egg_fragment"
   }
 }

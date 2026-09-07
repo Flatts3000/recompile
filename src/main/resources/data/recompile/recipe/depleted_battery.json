@@ -1,5 +1,8 @@
 {
   "type": "recompile:teardown",
+  "_comment": [
+    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge. The pools below are unchanged - a teardown is never a total loss once you already have the part."
+  ],
   "input": "recompile:depleted_battery",
   "station": "recompile:workbench",
   "tool": "recompile:scrap_knife",
@@ -11,11 +14,9 @@
         "because a battery is a small object and a pile of scrap out of one would read as",
         "alchemy.",
         "",
-        "NO BATTERY IN THIS POOL, deliberately, which is the whole point of the chain. The",
-        "knowledge is declared at the top level instead, where it is granted WITHOUT the pool",
-        "having to draw the thing it teaches - a pool marked `teaches: true` grants the",
-        "fragment for whatever item it drew, so saying it that way would have handed back a",
-        "live battery for tearing up a dead one."
+        "NO BATTERY IN THIS POOL, and none at the top level either. A dead cell is not a live",
+        "one, which is the whole point of the chain: the live Battery is manufactured, never",
+        "salvaged. This find is materials and nothing else."
       ],
       "rolls": 3,
       "entries": [
@@ -32,13 +33,6 @@
           "weight": 1
         }
       ]
-    }
-  ],
-  "teaches": [
-    {
-      "recipe": "recompile:battery",
-      "chance": 1.0,
-      "scraps_required": 4
     }
   ]
 }

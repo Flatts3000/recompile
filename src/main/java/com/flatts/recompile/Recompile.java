@@ -15,6 +15,7 @@ import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCStructures;
 import com.flatts.recompile.registry.RCFluids;
 import com.flatts.recompile.registry.RCItems;
+import com.flatts.recompile.registry.RCRegistryAliases;
 import com.flatts.recompile.registry.RCLootModifiers;
 import com.flatts.recompile.registry.RCRecipeTypes;
 import net.neoforged.bus.api.IEventBus;
@@ -49,6 +50,8 @@ public final class Recompile {
         RCFluids.register(modEventBus);
         RCBlocks.register(modEventBus);
         RCItems.register(modEventBus);
+        // Old ids for renamed items, before anything can load a world holding one (#390).
+        RCRegistryAliases.register();
         RCDataComponents.register(modEventBus);
         // The market's scrip balance: the first data attachment this mod has ever registered.
         RCAttachments.register(modEventBus);

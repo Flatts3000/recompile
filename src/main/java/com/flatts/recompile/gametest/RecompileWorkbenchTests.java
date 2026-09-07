@@ -123,7 +123,7 @@ final class RecompileWorkbenchTests {
                         .isEmpty(),
                     "the knife teardown should have dropped the mattress pile");
                 // Same reason as above: fiber is weight 2 of 7 now, not a fixed pair. Counted by
-                // KIND rather than by entity, because the mattress also teaches, so an Idea Fragment
+                // KIND rather than by entity, because the mattress also teaches, so an Spawn Egg Fragment
                 // lands in the pile and a blanket count reads eight.
                 int pile = 0;
                 for (Item kind : List.of(Items.STRING, RCItems.FIBER_SCRAP.get(),

@@ -42,7 +42,7 @@ import net.minecraft.world.level.Level;
  *
  * <p><b>Why this is not a {@code blueprint_crafting} recipe, which is where it started.</b> A spawn
  * egg needs one blueprint SET PER SPECIES - that is what makes "four fragments of one species" mean
- * anything, and {@code idea_fragments_are_specific_to_their_blueprint} enforces it. Writing that as
+ * anything, and {@code spawn_egg_fragments_are_specific_to_their_blueprint} enforces it. Writing that as
  * one {@code blueprint_crafting} recipe per species gives 29 recipes sharing one 3x3 arrangement, and
  * the bench resolves a blueprint recipe by looping until it finds one whose sheet is reachable: a
  * player holding a cow sheet and a pig sheet would get whichever iterated first. Non-deterministic,

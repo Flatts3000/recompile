@@ -711,10 +711,13 @@ def load_recipes(root, ns, disabled=()):
         elif t == "recompile:teardown":
             ings = [ing_options(j.get("input"))]
             outs = sorted(collect_out(j))
-            # A pool marked `teaches` grants an Idea Fragment for whatever it drew, and fragments
-            # are the only route to a Blueprint. Without this the whole knowledge tier is invisible.
-            if "teaches" in json.dumps(j):
-                outs = sorted(set(outs) | {"recompile:idea_fragment"})
+            # A pool marked `teaches` still grants a fragment, so a PACK that writes the field keeps
+            # working. No shipped teardown does since #390 - teardown yields function and the market
+            # is the only source of knowledge - so this branch is dormant against this repo's data.
+            # The item is spawn_egg_fragment now; naming the old id emitted a node for an item the
+            # registry no longer has.
+            if any(pool.get("teaches") for pool in j.get("pools", [])) or j.get("teaches"):
+                outs = sorted(set(outs) | {"recompile:spawn_egg_fragment"})
             label = "torn down at the Recompile Workbench"
         elif t == "recompile:separating":
             ings = [ing_options(j.get("input") or j.get("ingredient"))]
@@ -732,7 +735,7 @@ def load_recipes(root, ns, disabled=()):
             label = "fired in the Sintering Kiln"
         elif t == "recompile:fragment_assembly":
             # A bare marker type; the fragments-to-sheet logic lives in Java.
-            add_rule([{"recompile:idea_fragment"}], ["recompile:blueprint"],
+            add_rule([{"recompile:spawn_egg_fragment"}], ["recompile:blueprint"],
                      "assembled at the Scrap Crafting Table")
             continue
         elif t == "recompile:market_offer":

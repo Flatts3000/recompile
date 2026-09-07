@@ -1,29 +1,49 @@
 {
   "type": "recompile:teardown",
+  "_comment": [
+    "THE PUMP. The Bay circulates water; nothing else it is made of is irreplaceable.",
+    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge. The pools below are unchanged - a teardown is never a total loss once you already have the part."
+  ],
   "input": "recompile:broken_hydroponics_bay",
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 140,
+  "results": [
+    {
+      "item": "recompile:pump",
+      "count": 1
+    }
+  ],
   "pools": [
-    { "rolls": 1, "entries": [ { "item": "recompile:copper_pipe" } ] },
     {
       "rolls": 4,
       "entries": [
-        { "item": "recompile:glass_shards", "weight": 2 },
-        { "item": "recompile:scrap_metal", "weight": 2 }
+        {
+          "item": "recompile:glass_shards",
+          "weight": 2
+        },
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 2
+        }
       ]
     },
     {
       "_comment": "One salvage draw replacing two independent extras (e_scrap 0.5, plastic 0.35). Same 0.85 expected items, but you get one thing or nothing rather than occasionally both.",
       "rolls": 1,
       "entries": [
-        { "item": "recompile:e_scrap", "weight": 50 },
-        { "item": "recompile:plastic_scrap", "weight": 35 },
-        { "weight": 15 }
+        {
+          "item": "recompile:e_scrap",
+          "weight": 50
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 35
+        },
+        {
+          "weight": 15
+        }
       ]
     }
-  ],
-  "teaches": [
-    { "recipe": "recompile:hydroponics_bay", "chance": 1.0, "scraps_required": 6 }
   ]
 }

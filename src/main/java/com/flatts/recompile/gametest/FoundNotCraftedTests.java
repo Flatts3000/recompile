@@ -53,7 +53,7 @@ final class FoundNotCraftedTests {
      * exactly why they return no display.
      */
     private static final Set<String> RESULT_NOT_READABLE = Set.of(
-        // Teardown takes an object apart. Its results are materials and Idea Fragments by construction,
+        // Teardown takes an object apart. Its results are materials and Spawn Egg Fragments by construction,
         // and it is the one schema packs extend - a pack that made a bucket this way is out of scope.
         "recompile:teardown",
         // Fragments assemble into a Blueprint and nothing else.
