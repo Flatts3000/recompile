@@ -68,7 +68,10 @@ final class ComponentBlueprintTests {
      * to call time is the fix in both places.
      */
     private static List<Item> gatedComponents() {
-        return List.of(RCItems.PUMP.get(), RCItems.MOTOR.get(), RCItems.BULB.get());
+        // NO MOTOR since #391. This list means "salvaged AND manufacturable", and the Motor is
+        // `#recompile:function_only` now: found or nothing. It is still covered, by
+        // FunctionOnlyTests, which asserts the opposite property - that it can NOT be crafted.
+        return List.of(RCItems.PUMP.get(), RCItems.BULB.get());
     }
 
     static void register() {
@@ -131,17 +134,23 @@ final class ComponentBlueprintTests {
          * gated component must be certain to produce one of them.
          */
         RCGameTests.test("a_component_teardown_always_yields_a_component", 20, helper -> {
+            // The FULL vocabulary, not gatedComponents(). "You must not come away with none" is
+            // about components, and a component does not stop being one because it has no blueprint:
+            // once the Motor became function_only (#391) the narrow list read the fridge's own
+            // motor entry as a blank slot beside a pump and a bulb, and failed a pool that has no
+            // filler and never could draw nothing.
+            List<Item> components = componentVocabulary();
             List<String> rolled = new ArrayList<>();
             for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                     .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
                 for (TeardownRecipe.Pool pool : holder.value().pools()) {
                     boolean hasComponent = pool.entries().stream()
-                        .anyMatch(e -> e.item().isPresent() && gatedComponents().contains(e.item().get()));
+                        .anyMatch(e -> e.item().isPresent() && components.contains(e.item().get()));
                     if (!hasComponent) {
                         continue;
                     }
                     boolean everyEntryIsAComponent = pool.entries().stream()
-                        .allMatch(e -> e.item().isPresent() && gatedComponents().contains(e.item().get()));
+                        .allMatch(e -> e.item().isPresent() && components.contains(e.item().get()));
                     if (!everyEntryIsAComponent || pool.rolls() < 1) {
                         rolled.add(holder.id() + " can draw a blank where a component should be");
                     }
@@ -154,7 +163,7 @@ final class ComponentBlueprintTests {
             for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                     .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
                 for (TeardownRecipe.ChanceResult extra : holder.value().extras()) {
-                    if (gatedComponents().contains(extra.item()) && extra.chance() < 1.0F) {
+                    if (components.contains(extra.item()) && extra.chance() < 1.0F) {
                         rolled.add(holder.id() + " offers "
                             + BuiltInRegistries.ITEM.getKey(extra.item())
                             + " as a chance extra, not a certainty");

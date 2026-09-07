@@ -117,7 +117,11 @@ public class BlueprintItem extends Item {
 
     /** Blueprints in the creative tab, one per set the mod ships. */
     public static List<Identifier> shipped() {
-        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, MOTOR, BULB, NETHERITE_UPGRADE,
+        // NO MOTOR (#391). The Motor is `#recompile:function_only`: it has no blueprint_crafting
+        // recipe and no market offer, so a MOTOR set here would be a sheet naming a recipe that does
+        // not exist, which every_shipped_blueprint_has_a_name_a_recipe_and_a_route exists to catch.
+        // The constant stays for the alias and for any pack that wants to re-open the route.
+        return List.of(CLEAN_MATTRESS, HYDROPONICS_BAY, PUMP, BULB, NETHERITE_UPGRADE,
             SPAWNER, BATTERY, POWDER_SNOW_BUCKET, SCRAP_HAULER, HAULER_DEPOT);
     }
 

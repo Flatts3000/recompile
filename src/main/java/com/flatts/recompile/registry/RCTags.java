@@ -273,6 +273,36 @@ public final class RCTags {
         Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "found_only"));
 
     /**
+     * Components that can only be SALVAGED - no recipe, no market offer, found or nothing (#391).
+     *
+     * <p><b>This narrowly reverses #228, and the carve-out is one item wide.</b> #228 locked components
+     * as craftable on the reasoning that an input you cannot manufacture is a rate limit on everything
+     * downstream of it, and that reasoning is correct - it came out of a playtest where a gated Bulb
+     * read as a bug. What makes the reversal survivable here is that <b>mounds regrow</b>, so a
+     * find-only component is renewable and merely rate-limited, and a rate limit is what a progression
+     * gate IS. Every component this tag does not name still keeps both routes.
+     *
+     * <p><b>The Motor is the only member, and it is P1.4's own worked example.</b> In an infinite dump
+     * materials are worthless and function is precious: there is infinite scrap and no infinite supply
+     * of working motors. You tear down a washing machine for the motor. It also inherits what the old
+     * knowledge gate never had - "do you have a motor" is mod-proof, where a player-scoped recipe gate
+     * structurally could not see AE2 autocrafting.
+     *
+     * <p><b>The Pump was deliberately NOT included</b> (owner, 2026-09-06). Making both find-only would
+     * have emptied tier 3 of the Buy Terminal entirely - the Motor and the Pump were its only two lines
+     * - so a rung of the freight ladder would have unlocked a shelf with nothing on it. The Pump also
+     * gates the Grass Spreader, which is rung 1.
+     *
+     * <p>Enforcement is {@code FunctionOnlyTests}, and it is three assertions rather than one: nothing
+     * here is craftable, nothing here is sold, and everything here has a real teardown route. The
+     * middle one exists because the market is a shop counter rather than a recipe, so the sweep that
+     * enforces {@link #FOUND_ONLY} structurally cannot see it - the same blind spot recorded in
+     * {@code market_spec.md} section 14.
+     */
+    public static final TagKey<Item> FUNCTION_ONLY = TagKey.create(
+        Registries.ITEM, Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "function_only"));
+
+    /**
      * What the Compost Heap will take as feed (Mod Jam - the fertilizer tier). Ships with the two organics
      * the dump yields ({@code organic_muck}, {@code fiber_scrap}) plus the obvious vanilla compostables -
      * leaves, saplings, flowers, grasses and ferns, the small mushrooms, and crop matter (crops, seeds,
