@@ -7,14 +7,11 @@
   "pools": [
     {
       "_comment": [
-        "The carcass of a company terminal: sheet steel, the board, the screen glass. Four",
-        "draws, no filler, so a teardown always hands something back.",
+        "NO BULB IN THIS POOL, deliberately: the object that yields a component should be the",
+        "one that teaches it, and the Bulb belongs to the lamp rather than to the terminal.",
         "",
-        "NO COMPONENT IN THIS POOL, deliberately. A pool that yields a Bulb would make this the",
-        "second object that yields one, and the one that yields a component is meant to be the",
-        "one that teaches it (ComponentBlueprintTests). What this find teaches is the two",
-        "terminals, declared at the top level so the fragment is granted without the pool having",
-        "to draw the thing it teaches."
+        "The clause that used to sit here - about what this find teaches being declared at the",
+        "top level - is gone with the teaching itself (2026-09-06)."
       ],
       "rolls": 4,
       "entries": [

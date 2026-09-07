@@ -4,12 +4,22 @@
   "name": "freight.recompile.phase.2",
   "requires": [
     {
-      "item": "recompile:plastic_scrap",
-      "count": 48
-    },
-    {
       "item": "recompile:rubber_scrap",
       "count": 32
+    },
+    {
+      "item": "recompile:fertilizer",
+      "count": 48
     }
+  ],
+  "_comment": [
+    "BOTH LINES HAVE AN UNCONDITIONAL MACHINE ROUTE, which the first draft of this phase did not.",
+    "It asked for plastic scrap, whose only machine route is the Separator's silicon byproduct -",
+    "and that byproduct is behind a mod_loaded ae2 condition, so in a default install plastic scrap",
+    "is a teardown find and this phase demanded no production at all.",
+    "",
+    "Rubber comes off the Pulverizer from tires; Fertilizer comes off the Pulverizer too. Both are",
+    "in the base game with no mod present. every_second_phase_of_a_region_demands_a_machine now",
+    "checks this against the live recipe manager rather than trusting a comment."
   ]
 }
