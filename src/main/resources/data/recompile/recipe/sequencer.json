@@ -3,7 +3,11 @@
   "_comment": [
     "Gem tier on purpose. The Sequencer is the only route to a spawn egg, and a spawn egg is the",
     "only route to a working spawner, so this recipe is the second gate on that whole chain -",
-    "the first being four Broken Spawners out of the depths."
+    "the first being the Broken Spawner the cage recipe consumes, 1 in 2000 depths pulls.",
+    "",
+    "That last clause read 'four Broken Spawners out of the depths' until 2026-09-07, describing a",
+    "world where teardown taught the sheet. #390 ended teardown teaching anything and the sheet is",
+    "bought from the Buy Terminal now, so for a while the sentence named a route that did not exist."
   ],
   "pattern": [
     "SGS",

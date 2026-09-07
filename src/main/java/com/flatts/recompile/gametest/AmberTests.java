@@ -144,7 +144,9 @@ final class AmberTests {
         // parses, it is a spawner to look at, and `TrialSpawnerBlockEntity` also implements
         // {@code Spawner}, so a spawn egg retypes it just the same and the chain appears to work. It
         // is a completely different machine: one-shot, ejects its loot, resets itself, and cannot be
-        // taken away again. A player would earn the blueprint over four Broken Spawners and get
+        // taken away again. A player would buy the blueprint and spend a Broken Spawner on the
+        // cage - this said "earn the blueprint over four Broken Spawners" until 2026-09-07, from
+        // a time when teardown taught it - and get
         // something that behaves nothing like what the guidebook describes.
         //
         // <p>The BlockItem assertion covers the other half: everything past this point is "place it,

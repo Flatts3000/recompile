@@ -527,7 +527,7 @@ region-gating sheets, and it survives on their **materials** rather than on thei
 
 | Sheet | Ingredients | So buying it does not skip |
 |---|---|---|
-| Spawner Cage | rebar, soul sand, sculk catalyst | the compacted depths |
+| Spawner Cage | rebar, soul sand, sculk catalyst, a Broken Spawner | the compacted depths |
 | Netherite Upgrade Pattern | diamond, netherite scrap, netherrack | the compacted depths |
 
 Buy either sheet with household scrip and you still cannot build the thing until you have been to
