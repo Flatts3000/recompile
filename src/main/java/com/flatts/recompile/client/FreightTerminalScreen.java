@@ -68,8 +68,10 @@ public class FreightTerminalScreen extends LayoutScreen<FreightTerminalMenu> {
             Component.translatable(manifest.name()),
             manifest.tier() + 1, manifest.ladderLength()).getString(), GuiTheme.TEXT_LABEL);
 
-        for (int row = 0; row < manifest.lines().size(); row++) {
-            FreightManifest.Line line = manifest.lines().get(row);
+        int total = manifest.lines().size();
+        int shown = Math.max(0, Math.min(FreightTerminalMenu.VISIBLE_LINES, total - scroll));
+        for (int row = 0; row < shown; row++) {
+            FreightManifest.Line line = manifest.lines().get(scroll + row);
             int delivered = Math.min(this.menu.delivered(row), line.required());
             boolean done = delivered >= line.required();
 
@@ -81,14 +83,40 @@ public class FreightTerminalScreen extends LayoutScreen<FreightTerminalMenu> {
             int width = painter.at("manifest", row).width();
             String count = String.format("%,d / %,d", delivered, line.required());
             int countWidth = font.width(count);
-            painter.textIn("manifest", row, width - countWidth, 2, count,
+            painter.textIn("manifest", row, width - countWidth, 4, count,
                 done ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_LABEL);
-            painter.textIn("manifest", row, NAME_X, 2,
+            painter.textIn("manifest", row, NAME_X, 4,
                 fit(font, new ItemStack(line.item()).getHoverName().getString(),
                     width - NAME_X - countWidth - GAP),
                 done ? GuiTheme.TEXT_GOOD : GuiTheme.TEXT_LABEL);
         }
+
+        // Say what is off the bottom rather than just ending. Four rows is what the window's
+        // guaranteed 240 logical pixels leaves for the list - see the note on the layout - and a
+        // manifest that quietly stopped at four would read as a phase asking for less than it does.
+        int hidden = total - scroll - shown;
+        if (hidden > 0) {
+            painter.textIn("manifest", FreightTerminalMenu.VISIBLE_LINES - 1, NAME_X, 12,
+                Component.translatable("container.recompile.more_scroll", hidden).getString(),
+                GuiTheme.TEXT_MUTED);
+        } else if (scroll > 0) {
+            painter.textIn("manifest", FreightTerminalMenu.VISIBLE_LINES - 1, NAME_X, 12,
+                Component.translatable("container.recompile.scroll_up").getString(),
+                GuiTheme.TEXT_MUTED);
+        }
     }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        FreightManifest manifest = this.menu.manifest();
+        if (manifest != null) {
+            int max = Math.max(0, manifest.lines().size() - FreightTerminalMenu.VISIBLE_LINES);
+            this.scroll = Math.max(0, Math.min(max, this.scroll - (int) Math.signum(scrollY)));
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    private int scroll;
 
     private static String fit(Font font, String text, int width) {
         if (font.width(text) <= width) {

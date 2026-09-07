@@ -35,24 +35,40 @@ public class FreightTerminalMenu extends AbstractContainerMenu {
 
     public static final int TIER_INDEX = FreightManifest.MAX_LINES * 2;
 
-    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 258)
+    /** Manifest lines on screen at once; the rest scroll. See the note on the layout. */
+    public static final int VISIBLE_LINES = 4;
+
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 220)
         .panel()
         // Which rung this is, above the lines. Without it the screen is a list of goods with no
         // indication that a ladder exists at all.
         .region("phase", 8, 17, 160, 10)
-        // 16 high with an 18 pitch, which is the Buy Terminal's shelf and for the same reason:
-        // an item icon is 16 pixels, so a 13 pitch overlapped consecutive rows by three and the
-        // manifest read as one smudged column (owner, playtest 2026-09-07). Six rows at 18 do
-        // not fit the old 228 panel, so the panel grew by 30 and the strip and inventory moved
-        // down with it - the gap is not free and pretending otherwise is what made it 13.
-        .rows("manifest", FreightManifest.MAX_LINES, 8, 30, 160, 16, 18)
+        // 16 HIGH ON AN 18 PITCH, FOUR OF THEM, AND EVERY ONE OF THOSE NUMBERS IS PINNED.
+        //
+        // An item icon is 16 pixels and this was 12 high on a 13 pitch, so consecutive rows
+        // overlapped by three and the manifest read as one smudged column (owner, 2026-09-07).
+        // 16 high on an 18 pitch is the Buy Terminal's shelf, and 16 is the floor.
+        //
+        // THE CEILING IS THE WINDOW, which the first fix walked into: six rows at 18 put the panel
+        // at 258. Minecraft's auto GUI scale guarantees only 320x240 LOGICAL pixels,
+        // AbstractContainerScreen centres with topPos = (240 - height) / 2 and never clamps, so a
+        // 258 panel renders its title nine pixels above the top of the window and loses the bottom
+        // of the hotbar. MenuLayoutTests cannot see it - it measures against the panel's own height.
+        //
+        // Six rows do not fit at ANY usable pitch. The budget is forced - 82 for the inventory
+        // block, 34 to the label, 20 for the strip, 28 of header - which leaves the list about 108
+        // pixels, and 108/6 is 18 only if the rest is free. It is not. So the screen shows FOUR and
+        // scrolls, which is the Buy Terminal's answer to the same arithmetic. Every shipped phase
+        // asks for two goods, so nothing scrolls today; MAX_LINES stays 6 so a pack can still ask
+        // for six, and the fourth row's hint says how many are hidden.
+.rows("manifest", VISIBLE_LINES, 8, 28, 160, 16, 18)
         // ONE ROW rather than a 3x3. The strip is a landing pad the ticker empties, not storage, so
         // giving it the footprint of a chest would suggest it holds things. Nine wide at
         // INVENTORY_X so it really does line up with the hotbar under it - it was at x=7 for one
         // review cycle, one pixel off the inventory it claimed to match, which no sweep catches
         // because the centring check only covers CELL groups.
-        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, GuiTheme.INVENTORY_X, 142)
-        .playerInventory(176)
+        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, GuiTheme.INVENTORY_X, 104)
+        .playerInventory(138)
         .build();
 
     private static final int STRIP_END = FreightTerminalBlockEntity.SLOT_COUNT;
