@@ -129,11 +129,25 @@ class TerminalRoutesTest {
         }
     }
 
+    /**
+     * What this recipe puts in the player's hands, whichever way its schema spells that.
+     *
+     * <p><b>A market offer counts, and missing it was the hole review found.</b> A
+     * {@code recompile:market_offer} has no {@code result} at all - it names its goods in a
+     * top-level {@code item}, as a bare string - so an offer selling a terminal over the counter
+     * would have been a second route with the find skipped entirely, and this test would still have
+     * gone green. That is not hypothetical: the shelf already sells three items outright. The
+     * primitive-string spelling of {@code result} is handled for the same reason.
+     */
     private static String result(JsonObject recipe) {
-        if (!recipe.has("result") || !recipe.get("result").isJsonObject()) {
-            return null;
+        if (recipe.has("result")) {
+            return itemOf(recipe.get("result"));
         }
-        return itemOf(recipe.get("result"));
+        String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
+        if (type.equals("recompile:market_offer")) {
+            return itemOf(recipe.get("item"));
+        }
+        return null;
     }
 
     @Test
@@ -189,9 +203,10 @@ class TerminalRoutesTest {
             }
         }
         for (Map.Entry<String, List<String>> entry : fabricated.entrySet()) {
-            problems.add(entry.getKey() + " can be made without a Broken Terminal by " + entry.getValue()
+            problems.add(entry.getKey() + " can be had without a Broken Terminal by " + entry.getValue()
                 + ". The owner removed the plain recipes on 2026-09-07: a terminal is a thing you "
-                + "found and fixed, not one you fabricated.");
+                + "found and fixed, not one you fabricated - and not one you buy over the counter "
+                + "of the terminal you would need it to build.");
         }
         assertTrue(problems.isEmpty(), String.join("\n  ", problems));
     }

@@ -29,13 +29,12 @@
     "B": "recompile:bulb",
     "E": "recompile:e_scrap",
     "T": "recompile:broken_terminal",
-    "R": "recompile:rebar",
-    "S": "recompile:scrap_metal"
+    "R": "recompile:rebar"
   },
   "pattern": [
     "GBG",
     "ETE",
-    "RSR"
+    "RRR"
   ],
   "result": {
     "id": "recompile:freight_terminal",

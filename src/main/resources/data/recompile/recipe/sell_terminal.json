@@ -29,13 +29,12 @@
     "B": "recompile:bulb",
     "E": "recompile:e_scrap",
     "T": "recompile:broken_terminal",
-    "S": "recompile:scrap_metal",
-    "P": "recompile:plastic_scrap"
+    "S": "recompile:scrap_metal"
   },
   "pattern": [
     "GBG",
     "ETE",
-    "SPS"
+    "SSS"
   ],
   "result": {
     "id": "recompile:sell_terminal",
