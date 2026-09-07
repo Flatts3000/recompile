@@ -43,9 +43,20 @@ import org.junit.jupiter.api.Test;
  *       A test that flags those is unusable: it fires on almost every model in the mod.
  * </ul>
  *
- * <p>A rotation about an axis other than the plane's own tilts that plane out of true, so those pairs
- * are skipped rather than guessed at. That is deliberately conservative - it can miss a fight, it
- * cannot invent one - and no model in this mod uses one today.
+ * <p><b>A third thing, found in review: the rotation has to turn the right way.</b> Vanilla bakes an
+ * element rotation as {@code Axis.YP.rotationDegrees(angle)} and friends, and the first version of
+ * this computed {@code R(-angle)} on the X and Y planes by pairing the two in-plane coordinates in
+ * the wrong order. It measured correctly anyway, for a reason that would not have lasted: both
+ * rotated cases in this mod are sign-invariant - the Pump's rotated element is a square centred on
+ * its own rotation origin, and the tire's four are a 4-fold-symmetric set, so they measure 69.13 at
+ * +45 and at -45 alike. An element rotated about an origin off its own centre would have had its
+ * mirror image measured, which is the vacuous pass the bullets above warn about arriving by a
+ * different door.
+ *
+ * <p>Two things are still not modelled, neither of them used by any model here: a rotation about an
+ * axis other than the plane's own tilts that plane out of true, so those pairs are skipped rather
+ * than guessed at, and {@code "rescale": true} would widen a footprint by {@code 1/cos(angle)} and is
+ * ignored. Both are conservative - they can miss a fight, they cannot invent one.
  */
 class ModelFacesDoNotZFightTest {
 
@@ -56,11 +67,13 @@ class ModelFacesDoNotZFightTest {
     private static final double AREA_EPSILON = 1e-6;
 
     /**
-     * <b>A ratchet, not an amnesty.</b> Three models still carry doubled faces where the members of a
+     * <b>A ratchet, not an amnesty.</b> Two models still carry doubled faces where the members of a
      * flush lattice cross - a rim rail passing a corner post, a rail passing a mullion - and each
      * crossing doubles a square pixel or two on the shared outer plane. They are listed with the
-     * area measured on 2026-09-07, so the sweep still fails on a NEW model, on a new axis, or on any
-     * of these three growing.
+     * area measured on 2026-09-07, <b>keyed by model AND axis</b>, so the sweep still fails on a new
+     * model, on a new axis of a listed one, or on any listed number growing. Keyed by model alone it
+     * would not: a file could take a regression on one plane, shed the same area on another, and sit
+     * under its total unchanged, which is the drift the list exists to stop.
      *
      * <p><b>Why these are left and the others were not.</b> The cases fixed in this pass were
      * removable exactly: geometry that was redundant, so deleting it left the model's union
@@ -78,11 +91,10 @@ class ModelFacesDoNotZFightTest {
      * members; if not, delete the entry and leave a note saying it was checked.
      */
     private static final Map<String, Double> LATTICE_CROSSINGS = Map.of(
-        "block/rain_collector_base.json", 50.40,
-        "block/water_tank.json", 50.40,
-        // The body's underside and the corner posts' undersides share y=1 - both sitting ON the floor
-        // slab that spans 0..1 across the whole block, so neither face can be seen from any angle.
-        "block/compost_heap.json", 4.00);
+        "block/rain_collector_base.json|east/west", 24.00,
+        "block/rain_collector_base.json|north/south", 26.40,
+        "block/water_tank.json|east/west", 24.00,
+        "block/water_tank.json|north/south", 26.40);
 
     private static Path resourceRoot() {
         for (Path dir = Path.of("").toAbsolutePath(); dir != null; dir = dir.getParent()) {
@@ -103,20 +115,25 @@ class ModelFacesDoNotZFightTest {
      * {@code Y} is up/down, {@code X} is east/west, {@code Z} is north/south.
      */
     private enum Axis {
-        Y(0, 2, 1, "up/down"),
-        X(2, 1, 0, "east/west"),
-        Z(0, 1, 2, "north/south");
+        Y(2, 0, 1, "up/down", "down", "up"),
+        X(1, 2, 0, "east/west", "west", "east"),
+        Z(0, 1, 2, "north/south", "north", "south");
 
         final int u;
         final int v;
         final int normal;
         final String faces;
+        /** The face key an element must declare to draw on the low plane, and on the high one. */
+        final String nearFace;
+        final String farFace;
 
-        Axis(int u, int v, int normal, String faces) {
+        Axis(int u, int v, int normal, String faces, String nearFace, String farFace) {
             this.u = u;
             this.v = v;
             this.normal = normal;
             this.faces = faces;
+            this.nearFace = nearFace;
+            this.farFace = farFace;
         }
     }
 
@@ -242,29 +259,26 @@ class ModelFacesDoNotZFightTest {
                 withElements++;
                 JsonArray elements = model.getAsJsonArray("elements");
                 String id = models.relativize(file).toString().replace('\\', '/');
-                double allowed = LATTICE_CROSSINGS.getOrDefault(id, 0.0);
-                double total = 0;
-                List<String> perAxis = new ArrayList<>();
+                // PER AXIS, not per file. Summing the three would let a model trade a regression on
+                // one plane against an improvement on another and stay under a total, which is
+                // exactly the drift an allowance list exists to stop.
                 for (Axis axis : Axis.values()) {
                     double area = overlap(elements, axis);
-                    if (area > AREA_EPSILON) {
-                        total += area;
-                        perAxis.add(String.format("%.2f on %s", area, axis.faces));
+                    double allowed = LATTICE_CROSSINGS.getOrDefault(id + "|" + axis.faces, 0.0);
+                    if (area > allowed + AREA_EPSILON) {
+                        problems.add(String.format("%s: %.2f sq px of doubled %s faces%s", id, area,
+                            axis.faces,
+                            allowed > 0 ? String.format(" - allowed %.2f", allowed) : ""));
                     }
-                }
-                // Strictly greater, so a listed model that gets BETTER does not fail - but the
-                // entry then overstates it, so the message says to retighten the number.
-                if (total > allowed + AREA_EPSILON) {
-                    problems.add(String.format("%s: %.2f sq px doubled (%s)%s", id, total,
-                        String.join(", ", perAxis),
-                        allowed > 0 ? String.format(" - allowed %.2f", allowed) : ""));
-                }
-                if (allowed > 0 && total < allowed - AREA_EPSILON) {
-                    problems.add(String.format(
-                        "%s is down to %.2f sq px but LATTICE_CROSSINGS still allows %.2f - lower the "
-                            + "entry to the new number, or delete it if it is now zero. A stale "
-                            + "allowance is a hole the next regression falls through.",
-                        id, total, allowed));
+                    // A listed model that gets BETTER does not fail, but the entry now overstates
+                    // it, so say so rather than leaving the slack behind.
+                    if (allowed > 0 && area < allowed - AREA_EPSILON) {
+                        problems.add(String.format(
+                            "%s is down to %.2f sq px of %s faces but LATTICE_CROSSINGS still allows "
+                                + "%.2f - lower the entry, or delete it if it is now zero. A stale "
+                                + "allowance is a hole the next regression falls through.",
+                            id, area, axis.faces, allowed));
+                    }
                 }
             }
         }
@@ -287,6 +301,23 @@ class ModelFacesDoNotZFightTest {
                 + "something has to stay continuous through that plane. See TireBlock's javadoc.");
     }
 
+    /**
+     * <b>A shared plane is only a fight if both elements actually DRAW there.</b> An element's
+     * {@code faces} map is not required to hold all six, and omitting one is how a modeller says "this
+     * side is inside something else, do not draw it" - so two elements can share a plane with at most
+     * one quad on it, which cannot fight anything.
+     *
+     * <p>This was missing at first and it did real damage rather than just over-reporting. The compost
+     * heap's floor slab declares only {@code down} and {@code up} while its corner posts declare no
+     * {@code down} at all, so the 32 square pixels the sweep charged it were entirely phantom - and
+     * the "fix" for them raised the posts off the floor, which deleted the only side faces drawn in
+     * the block's bottom pixel and opened a see-through band all the way round. A false positive in a
+     * build-failing test does not stay a false positive; somebody makes the model worse to satisfy it.
+     */
+    private static boolean draws(JsonObject element, String face) {
+        return element.has("faces") && element.getAsJsonObject("faces").has(face);
+    }
+
     private static double overlap(JsonArray elements, Axis axis) {
         double total = 0;
         for (int i = 0; i < elements.size(); i++) {
@@ -299,8 +330,12 @@ class ModelFacesDoNotZFightTest {
                 if (second == null) {
                     continue;
                 }
-                boolean nearShared = Math.abs(first.near() - second.near()) <= PLANE_EPSILON;
-                boolean farShared = Math.abs(first.far() - second.far()) <= PLANE_EPSILON;
+                JsonObject a = elements.get(i).getAsJsonObject();
+                JsonObject b = elements.get(j).getAsJsonObject();
+                boolean nearShared = Math.abs(first.near() - second.near()) <= PLANE_EPSILON
+                    && draws(a, axis.nearFace) && draws(b, axis.nearFace);
+                boolean farShared = Math.abs(first.far() - second.far()) <= PLANE_EPSILON
+                    && draws(a, axis.farFace) && draws(b, axis.farFace);
                 if (!nearShared && !farShared) {
                     continue;
                 }
