@@ -417,8 +417,27 @@ public class RecompileJeiPlugin implements IModPlugin {
         // A worked example is not a duplicate of the logic; it is the one thing a recipe viewer can
         // show for a recipe whose ingredients are a data component. The numbers come from the same
         // places the real recipe reads them, so a retune moves both.
+        //
+        // THE SETS COME FROM THE SEQUENCER, not from BlueprintItem.shipped(). Since #390 no teardown
+        // teaches, so nothing in the game grants a fragment toward any of the eleven machine and
+        // component sets shipped() lists - the only fragments that exist are the spawn-egg ones the
+        // Sequencer reads out of amber. Iterating shipped() here advertised eleven assemblies a player
+        // can never perform and zero of the one they can, which is the "a viewer must not list an
+        // uncraftable thing" rule pointed backwards. Reading the set off the fragment the Sequencer
+        // would actually produce means the two cannot drift.
         List<AssemblyRecipe> examples = new ArrayList<>();
-        for (Identifier set : com.flatts.recompile.content.item.BlueprintItem.shipped()) {
+        for (Identifier species : SortingData.amberSpecies()) {
+            ItemStack stamped = new ItemStack(RCItems.AMBER.get());
+            stamped.set(com.flatts.recompile.registry.RCDataComponents.SPECIES.get(), species);
+            ItemStack one = com.flatts.recompile.content.block.entity.SequencerBlockEntity
+                .fragmentFor(stamped);
+            if (one.isEmpty()) {
+                continue;
+            }
+            Identifier set = one.get(com.flatts.recompile.registry.RCDataComponents.BLUEPRINT.get());
+            if (set == null) {
+                continue;
+            }
             // One slot per fragment rather than one stack of four, because a grid of four is what the
             // player will actually lay out and a "4" in the corner of one slot reads as optional.
             List<ItemStack> fragments = new ArrayList<>();

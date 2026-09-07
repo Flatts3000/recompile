@@ -1,19 +1,15 @@
 {
   "type": "recompile:teardown",
   "_comment": [
-    "THE COILS. A fridge's refrigerant loop is copper pipe, so it yields the part it is actually made of rather than a second motor.",
-    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge. The pools below are unchanged - a teardown is never a total loss once you already have the part."
+    "NO SIGNATURE COMPONENT, and that is deliberate (#390). Every other appliance yields one fixed part;",
+    "the fridge yields a LOTTERY of three, by the owner's 2026-08-12 ruling, and that ruling survives the",
+    "move to function. A Copper Pipe signature was added here and then removed in the same pass: stacked on",
+    "top of the lottery it handed back two components per teardown where main gave one."
   ],
   "input": "recompile:fridge",
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 160,
-  "results": [
-    {
-      "item": "recompile:copper_pipe",
-      "count": 2
-    }
-  ],
   "pools": [
     {
       "_comment": "Scrap roll. A fridge is mostly sheet steel and moulded plastic, with the control board's electronics rarer.",

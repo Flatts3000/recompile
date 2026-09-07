@@ -275,14 +275,14 @@ final class ComponentBlueprintTests {
             java.util.Map<Item, List<String>> yielders = new java.util.HashMap<>();
             for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
                     .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                for (TeardownRecipe.ItemResult r : holder.value().results()) {
-                    // Name the INPUT ITEM, not the Ingredient. Ingredient.toString is an identity
-                    // hash, so the first version of this message read "2 different teardowns
-                    // [Ingredient@52165026, Ingredient@101b47ec]" and told a reader nothing about
-                    // which two objects collided.
-                    String what = holder.value().input().items().findFirst()
-                        .map(h -> h.value().toString()).orElse("?");
-                    yielders.computeIfAbsent(r.item(), k -> new ArrayList<>()).add(what);
+                // Name the INPUT ITEM, not the Ingredient. Ingredient.toString is an identity
+                // hash, so the first version of this message read "2 different teardowns
+                // [Ingredient@52165026, Ingredient@101b47ec]" and told a reader nothing about
+                // which two objects collided.
+                String what = holder.value().input().items().findFirst()
+                    .map(h -> h.value().toString()).orElse("?");
+                for (Item guaranteed : guaranteedComponents(holder.value())) {
+                    yielders.computeIfAbsent(guaranteed, k -> new ArrayList<>()).add(what);
                 }
             }
             List<String> broken = new ArrayList<>();
@@ -388,4 +388,55 @@ final class ComponentBlueprintTests {
             helper.succeed();
         });
     }
+
+    /**
+     * Every component this teardown hands over EVERY time, however the JSON says so.
+     *
+     * <p><b>Reading {@code results()} alone is not enough, and that is the whole reason this method
+     * exists.</b> A guaranteed component can be written two ways - as a deterministic result, or as a
+     * pool with no filler entry, which draws an item on every roll. The first version of
+     * {@code no_two_objects_yield_the_same_signature_component} read only {@code results()} and so
+     * passed against data that violated it three times over: the washing machine guaranteed a Pump
+     * from a filler-free pool while the Broken Hydroponics Bay's signature WAS the Pump, and the Bay
+     * guaranteed a Copper Pipe the same way. That is the same failure the sibling test above already
+     * warns about - "reading one field made the invariant a fact about JSON layout".
+     *
+     * <p>A filler-free pool with SEVERAL entries guarantees a component but not WHICH one, so it
+     * contributes nothing here. That is what lets the fridge keep its three-way lottery (owner,
+     * 2026-08-12) without colliding with anybody's signature.
+     */
+    private static java.util.Set<Item> guaranteedComponents(TeardownRecipe recipe) {
+        java.util.Set<Item> out = new java.util.LinkedHashSet<>();
+        List<Item> components = componentVocabulary();
+        for (TeardownRecipe.ItemResult r : recipe.results()) {
+            if (components.contains(r.item())) {
+                out.add(r.item());
+            }
+        }
+        for (TeardownRecipe.Pool pool : recipe.pools()) {
+            if (pool.rolls() < 1 || pool.entries().size() != 1) {
+                continue;
+            }
+            TeardownRecipe.PoolEntry only = pool.entries().get(0);
+            only.item().filter(components::contains).ifPresent(out::add);
+        }
+        return out;
+    }
+
+
+    /**
+     * The whole component vocabulary, placeable and crafting alike.
+     *
+     * <p>Deliberately WIDER than {@link #gatedComponents()}, which is the three parts behind a
+     * blueprint. A signature is about which object a part identifies, and a Solar Panel identifies the
+     * Hauler whether or not you could also build one - so the narrow set would have let a collision on
+     * any of the freely craftable parts through. Same deferred-method reason as its sibling: resolving
+     * DeferredItems in a static initialiser fails the mod to load.
+     */
+    private static List<Item> componentVocabulary() {
+        return List.of(RCItems.PUMP.get(), RCItems.MOTOR.get(), RCItems.BULB.get(),
+            RCItems.BATTERY.get(), RCItems.MACHINE_FRAME.get(), RCItems.SOLAR_PANEL.get(),
+            RCItems.WATER_TANK.get(), RCItems.COPPER_PIPE.get());
+    }
+
 }

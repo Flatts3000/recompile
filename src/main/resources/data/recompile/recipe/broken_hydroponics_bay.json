@@ -16,14 +16,6 @@
   ],
   "pools": [
     {
-      "rolls": 1,
-      "entries": [
-        {
-          "item": "recompile:copper_pipe"
-        }
-      ]
-    },
-    {
       "rolls": 4,
       "entries": [
         {
