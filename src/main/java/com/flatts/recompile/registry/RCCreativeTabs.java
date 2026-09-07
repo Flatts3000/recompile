@@ -15,10 +15,15 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * Creative-mode tab. One dedicated Recompile tab aggregating the mod's items in
- * category order (raw garbage, tools, materials, stations, machines, the
- * reclamation ladder, plants, food, light, shelter, collectibles). The accept
- * order here is the mod's public item ordering (JEI/EMI read it too).
+ * Creative-mode tab. One dedicated Recompile tab, and <b>the accept order here is the mod's public
+ * item ordering</b>: JEI's default {@code ingredientSortStages} ends in {@code CREATIVE_MENU}, so
+ * within this mod the panel a player scrolls IS this file. EMI reads it too.
+ *
+ * <p><b>Grouped by KIND, ordered by progression inside each group</b> (owner, 2026-09-07, recorded in
+ * {@code CLAUDE.md}). The groups are named in the section comments below and deliberately NOT listed
+ * here: this javadoc used to enumerate them, named a "shelter" group that does not exist, and omitted
+ * five that do - which is the failure this file keeps paying for, a list that reads as complete. Read
+ * the section comments.
  */
 public final class RCCreativeTabs {
 

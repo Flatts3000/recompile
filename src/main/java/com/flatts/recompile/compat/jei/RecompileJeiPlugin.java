@@ -227,9 +227,6 @@ public class RecompileJeiPlugin implements IModPlugin {
                 gui.createDrawableItemStack(new ItemStack(RCItems.SEPARATOR.get())), false,
                 com.flatts.recompile.compat.SeparatingData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
-            // showChance TRUE since the bouquet joined (#344 review): the clay row is a certainty and
-            // draws no tooltip either way (SalvageCategory gates on chance < 1.0), but the bouquet is a
-            // one-in-five draw and false made five plants read as all five at once.
             new SalvageCategory(PULVERIZING, Component.translatable("jei.recompile.pulverizing"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.PULVERIZER.get())), false,
                 com.flatts.recompile.compat.PulverizingData.all().stream()
@@ -246,6 +243,9 @@ public class RecompileJeiPlugin implements IModPlugin {
             new SpawnEggCategory(SPAWN_EGG, Component.translatable("jei.recompile.spawn_egg"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
             // Green.
+            // showChance TRUE since the bouquet joined (#344 review): the clay row is a certainty and
+            // draws no tooltip either way (SalvageCategory gates on chance < 1.0), but the bouquet is a
+            // one-in-five draw and false made five plants read as all five at once.
             new SalvageCategory(HYDRATING, Component.translatable("jei.recompile.hydrating"),
                 gui.createDrawableItemStack(new ItemStack(Items.WATER_BUCKET)), true,
                 widest(SortingData.BOUQUET)),
