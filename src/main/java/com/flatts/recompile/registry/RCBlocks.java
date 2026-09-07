@@ -1260,9 +1260,13 @@ public final class RCBlocks {
     );
 
     /**
-     * Solar Panel: a shared machine component. <b>Inert</b> - no light detection, no redstone, no
-     * power (P3.5: no RF before the Nether). A recoloured vanilla daylight detector, so it costs no
-     * new art.
+     * Solar Panel: a shared machine component, and <b>the one that is NOT inert</b>. This said
+     * "no light detection, no redstone, no power (P3.5: no RF before the Nether)" long after #72
+     * reversed that lock and gave it a block entity that generates and pushes to its neighbours -
+     * see {@link com.flatts.recompile.content.block.SolarPanelBlock}, whose own javadoc has said so
+     * throughout. A stale claim of inertness is worse than no comment: it was read as licence to
+     * conclude that a panel placed on a Hauler Depot does nothing, which is the opposite of what it
+     * does. A recoloured vanilla daylight detector, so it costs no new art.
      */
     public static final DeferredBlock<SolarPanelBlock> SOLAR_PANEL = BLOCKS.registerBlock(
         "solar_panel",
