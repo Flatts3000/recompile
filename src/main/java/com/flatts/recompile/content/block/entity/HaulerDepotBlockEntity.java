@@ -9,10 +9,13 @@ import com.flatts.recompile.content.menu.HaulerDepotMenu;
 import com.flatts.recompile.registry.RCBlockEntities;
 import com.flatts.recompile.registry.RCEntities;
 import com.flatts.recompile.registry.RCSounds;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -336,12 +339,15 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         if (deployed || !(stack.getItem() instanceof ScrapHaulerItem)) {
             return false;
         }
-        BlockPos at = worldPosition.above();
+        Vec3 at = spawnSpot(level, worldPosition);
+        if (at == null) {
+            return false;
+        }
         ScrapHaulerEntity hauler = RCEntities.SCRAP_HAULER.get().create(level, EntitySpawnReason.TRIGGERED);
         if (hauler == null) {
             return false;
         }
-        hauler.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextFloat() * 360.0F, 0.0F);
+        hauler.snapTo(at.x, at.y, at.z, level.getRandom().nextFloat() * 360.0F, 0.0F);
         hauler.bind(worldPosition);
         hauler.setCharge(ScrapHaulerItem.charge(stack));
         hauler.setMode(ScrapHaulerEntity.Mode.SEEKING);
@@ -357,6 +363,100 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         level.playSound(null, worldPosition, RCSounds.HAULER_DEPLOY.get(), SoundSource.BLOCKS, 0.8F, 1.0F);
         setChanged();
         return true;
+    }
+
+
+    /**
+     * Where the Hauler comes out: the best of the 26 blocks around the Depot, or {@code null} only if
+     * every one of them is occupied.
+     *
+     * <p><b>This used to be {@code worldPosition.above()} with no check at all</b>, which is fine
+     * until somebody puts something on the Depot. Reported from playtest (2026-09-06): a Solar Panel
+     * placed on the Depot and then Deploy pressed leaves the Hauler stranded on top of the panel.
+     * <b>The reporter guessed half-blocks and that is not it</b> - the panel is a
+     * {@code box(0, 0, 0, 16, 6, 16)}, so it happens to leave standing room, but a full block above
+     * would have spawned the machine INSIDE it and any block at all reproduces the fault. The bug was
+     * that deploy never asked whether the space was free.
+     *
+     * <p><b>A fixed fallback order was the second wrong answer</b> (owner, 2026-09-07: place it
+     * smartly rather than always in one position). An ordered list still cannot tell a spot the
+     * machine can stand on from one it will fall out of, so it scores every neighbour instead. <b>The
+     * bullets below are a strict priority, not a blend</b> - each weight outranks everything under it
+     * added together, so a lower bullet can only ever break a tie the ones above it left open:
+     *
+     * <ul>
+     *   <li><b>It must fit</b>, asked with the entity's own spawn box rather than by reasoning about
+     *       block shapes - which is exactly what "it must be a half-block problem" got wrong.
+     *   <li><b>Standing room beats a drop.</b> A spot with a sturdy face underneath is worth more than
+     *       anything else here, because a machine that comes out falling is the same report in a
+     *       different shape.
+     *   <li><b>Ground level beside the Depot beats the roof.</b> The Hauler's job is on the ground, and
+     *       the roof is where whatever the player stacked on the Depot lives.
+     *   <li>A cardinal neighbour beats a diagonal.
+     *   <li><b>Dry beats standing in fluid</b>, and one sample settles it: the Hauler is 0.9 blocks
+     *       tall and spawns on an integer y, so its box is inside the one cell.
+     * </ul>
+     *
+     * <p><b>Refusal is exactly "all 26 are occupied"</b> (owner). Short of that the machine comes out
+     * somewhere, because refusing while a free block exists would strand the Depot for a reason the
+     * player cannot see: the item is locked in the slot while deployed.
+     */
+    /**
+     * The placement weights, and <b>each one is larger than everything below it added together</b>,
+     * so the score is the bullet list above read as a strict priority rather than four numbers that
+     * happen to add up. They did not, in the first version: dry was 20 against a 10-point gap between
+     * ground level and the roof, so a flooded cardinal neighbour scored 150 and the dry roof scored
+     * 150 too, and which one the Hauler came out of was decided by the order the loop happened to
+     * visit them in. A tie between two different criteria is always a bug here - it means the code is
+     * silently ranking on something the javadoc never claimed.
+     */
+    private static final int STANDING_ROOM = 1000;
+    private static final int GROUND_LEVEL = 100;
+    private static final int ROOF_LEVEL = 50;
+    private static final int CARDINAL = 10;
+    private static final int DRY = 1;
+
+    private static @Nullable Vec3 spawnSpot(ServerLevel level, BlockPos depot) {
+        BlockPos best = null;
+        int bestScore = Integer.MIN_VALUE;
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    BlockPos pos = depot.offset(dx, dy, dz);
+                    double x = pos.getX() + 0.5;
+                    double y = pos.getY();
+                    double z = pos.getZ() + 0.5;
+                    if (!level.noCollision(RCEntities.SCRAP_HAULER.get().getSpawnAABB(x, y, z))) {
+                        continue;
+                    }
+                    int score = 0;
+                    BlockPos below = pos.below();
+                    if (level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)) {
+                        score += STANDING_ROOM;
+                    }
+                    score += switch (dy) {
+                        case 0 -> GROUND_LEVEL;
+                        case 1 -> ROOF_LEVEL;
+                        default -> 0;
+                    };
+                    if (Math.abs(dx) + Math.abs(dz) == 1) {
+                        score += CARDINAL;
+                    }
+                    if (level.getFluidState(pos).isEmpty()) {
+                        score += DRY;
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        best = pos;
+                    }
+                }
+            }
+        }
+        return best == null ? null
+            : new Vec3(best.getX() + 0.5, best.getY(), best.getZ() + 0.5);
     }
 
     /**
