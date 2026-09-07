@@ -268,7 +268,20 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         }
     }
 
-    /** RF is optional: a docked Hauler under open sky charges the way it does in the field. */
+    /**
+     * RF is optional: a docked Hauler under open sky charges the way it does in the field.
+     *
+     * <p><b>The Depot generates nothing and has no panel of its own</b> - this is the HAULER's solar,
+     * at the Hauler's own rate, and the Depot is only where it is parked.
+     *
+     * <p><b>Anything on the roof switches it off, and that is accepted</b> (owner, 2026-09-07). The
+     * sky test is at {@code worldPosition.above()}, so a block there stops a docked Hauler charging
+     * from the sky. The trap is that a Solar Panel is the likeliest thing to be put there: components
+     * are inert, so it generates nothing itself, and placing it to power the Depot is exactly what
+     * turns the free charging off. It is not a defect - something on your roof does shade you - and
+     * it degrades to "you now need RF" rather than to nothing charging, because the battery's trickle
+     * into the slot runs on its own path above. Do not "fix" it by moving the sky test.
+     */
     private void trickleDocked(ServerLevel level) {
         ItemStack stack = items.get(HAULER_SLOT);
         if (deployed || !(stack.getItem() instanceof ScrapHaulerItem)
