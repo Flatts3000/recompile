@@ -2,25 +2,39 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "_comment": [
-    "PLAIN CRAFTING, NOT blueprint_crafting (owner, 2026-09-06). The two terminals used to",
-    "sit behind a Blueprint taught by tearing down a Broken Terminal. Once the market became",
-    "the only source of knowledge that deadlocked a fresh world: you would have needed the",
-    "Buy Terminal to buy the Buy Terminal's own sheet, and the Sell Terminal to earn any",
-    "scrip at all. The entry to the economy cannot sit behind the economy.",
+    "A REPAIR KIT, AND THE ONLY ROUTE (owner, playtest 2026-09-07: \"remove the recipes that don't",
+    "take broken terminals. Enrich the recipe to take parts that would be expected to be used to",
+    "repair a terminal, like circuits or something\").",
     "",
-    "Craftable rather than carved out of the market rule, so that rule keeps no exceptions.",
-    "The two patterns still differ so they cannot collide at the bench."
+    "THIS REVERSES THE CALL MADE IN #406 AND THE REVERSAL IS THE OWNER'S. That PR kept a plain",
+    "recipe beside the repair, on the grounds that the Buy Terminal is the only source of every",
+    "Blueprint and the Sell Terminal the only source of scrip, so requiring a 1-in-16 Bulky Waste",
+    "find puts the whole progression spine behind a roll. The concern was raised, the owner ruled,",
+    "and what it actually buys is worth stating: a terminal now reads as a thing you FOUND and",
+    "fixed rather than a thing you fabricated, which is the mod's premise applied to its own shop",
+    "counter. The rate limit is real - see the note below.",
+    "",
+    "The parts are what a dead terminal is missing rather than a generic pile of scrap: the screen",
+    "is a Bulb behind two Glass Shards, the boards are E-Scrap - this world's circuitry, and the",
+    "one that is household-tier, where Fused Circuitry is depths-side and Circuit Powder needs a",
+    "Pulverizer - and the casing is what distinguishes which terminal you get.",
+    "",
+    "WHAT MAKES THIS SAFE IS THE FIND RATE, NOT THE RECIPE. A Broken Terminal is 1 in 16 Bulky",
+    "Waste, and Bulky Waste is 5 percent of a mound's surface, so it is a thing you meet early and",
+    "often rather than a wall. If that ever stops being true this is the first recipe to revisit,",
+    "because everything the market gates is downstream of it."
   ],
   "key": {
-    "S": "recompile:scrap_metal",
+    "G": "recompile:glass_shards",
     "B": "recompile:bulb",
     "E": "recompile:e_scrap",
+    "T": "recompile:broken_terminal",
     "P": "recompile:plastic_scrap"
   },
   "pattern": [
-    "SBS",
-    "SPS",
-    "SES"
+    "GBG",
+    "ETE",
+    "PPP"
   ],
   "result": {
     "id": "recompile:buy_terminal",

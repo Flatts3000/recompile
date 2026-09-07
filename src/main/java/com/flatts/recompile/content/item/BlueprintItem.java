@@ -141,8 +141,8 @@ public class BlueprintItem extends Item {
         Identifier.fromNamespaceAndPath("recompile", "powder_snow_bucket");
 
     /*
-     * THE TWO MARKET TERMINALS NO LONGER HAVE BLUEPRINT SETS (owner, 2026-09-06). They craft
-     * plainly now.
+     * THE TWO MARKET TERMINALS NO LONGER HAVE BLUEPRINT SETS (owner, 2026-09-06). They are
+     * repaired from a Broken Terminal, which since 2026-09-07 is their only route.
      *
      * The sets were removed rather than left unused because of what this javadoc used to say: "The
      * Buy Terminal sells both sheets too, which is circular and harmless: a second terminal." That

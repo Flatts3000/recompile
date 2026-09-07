@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,26 +20,26 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 /**
- * Every terminal must be buildable from parts AND repairable from a Broken Terminal, and neither
- * route may be the only one.
+ * A terminal is repaired from a Broken Terminal, and there is no other way to get one.
  *
- * <p><b>Both halves are load-bearing and they fail in opposite directions.</b>
+ * <p><b>This rule has been inverted once, by the owner, and the history is the useful part.</b> The
+ * find taught both market terminals until #390 took its teaching away and nothing replaced the role,
+ * leaving a Broken Terminal as a generic bag of scrap shaped like a terminal. #406 gave it a repair
+ * recipe but kept the plain one beside it, on the argument that the Buy Terminal is the only source
+ * of every Blueprint in the game and the Sell Terminal the only source of scrip, so requiring the
+ * find would put the whole progression spine behind a 1-in-16 roll. <b>The owner ruled the other way
+ * on 2026-09-07</b> - "remove the recipes that don't take broken terminals" - and this test now
+ * enforces that, so the earlier version of it, which failed on a terminal that had ONLY the repair,
+ * would fail on today's repo.
  *
- * <p><b>No repair route</b> is what this was written for (owner, 2026-09-07: a Broken Terminal
- * should be used for crafting terminals or removed). The find taught both market terminals until
- * #390 took its teaching away, and nothing replaced the role - so a Broken Terminal became a generic
- * bag of scrap that happened to be shaped like a terminal.
+ * <p>What the ruling buys: a terminal reads as a thing you found and fixed rather than a thing you
+ * fabricated, which is this mod's premise applied to its own shop counter. What makes it safe is the
+ * find rate rather than the recipe - 1 in 16 Bulky Waste, and Bulky Waste is 5 percent of a mound's
+ * surface. <b>If that ever stops being true these are the first recipes to revisit</b>, because
+ * everything the market gates is downstream of them.
  *
- * <p><b>No plain route</b> is the deadlock #390 removed, and making the find a required ingredient
- * would bring it back in a new shape. The Buy Terminal is the only source of knowledge in the game
- * and the Sell Terminal is the only source of scrip, so gating either on a 1-in-16 Bulky Waste roll
- * puts the whole progression spine behind a die. The entry to the economy cannot sit behind a die
- * roll any more than it can sit behind the economy. That is why the repair is a SECOND recipe rather
- * than an edit to the first, and why this test fails on a terminal that has only the repair.
- *
- * <p>The set of terminals is derived from the recipes rather than listed, so a fourth one is covered
- * the day it ships - which is the point, because a hand-list is exactly how the mod ended up with a
- * find whose only remaining use was scrap.
+ * <p>The set of terminals is derived from the recipes rather than listed, so a fourth is covered the
+ * day it ships - a hand-list is exactly how the find ended up with no use but scrap.
  */
 class TerminalRoutesTest {
 
@@ -64,80 +65,148 @@ class TerminalRoutesTest {
         return Path.of("src", "main", "resources");
     }
 
-    /** The result id, whichever of the two spellings a recipe type uses for it. */
-    private static String result(JsonObject recipe) {
-        if (!recipe.has("result")) {
+    private static String itemOf(JsonElement element) {
+        if (element == null || element.isJsonNull()) {
             return null;
         }
-        JsonElement result = recipe.get("result");
-        if (!result.isJsonObject()) {
-            return result.isJsonPrimitive() ? result.getAsString() : null;
+        if (element.isJsonPrimitive()) {
+            return element.getAsString();
         }
-        JsonObject object = result.getAsJsonObject();
-        for (String key : List.of("id", "item")) {
-            if (object.has(key) && object.get(key).isJsonPrimitive()) {
-                return object.get(key).getAsString();
+        if (element.isJsonObject()) {
+            JsonObject object = element.getAsJsonObject();
+            for (String key : List.of("id", "item")) {
+                if (object.has(key) && object.get(key).isJsonPrimitive()) {
+                    return object.get(key).getAsString();
+                }
             }
         }
         return null;
     }
 
-    /** Does this recipe consume a Broken Terminal anywhere in its inputs? */
-    private static boolean consumesBroken(JsonObject recipe) {
-        JsonObject withoutResult = recipe.deepCopy();
-        withoutResult.remove("result");
-        // The comment blocks in this repo's recipes discuss the Broken Terminal at length, and a
-        // comment is not an ingredient. Drop them before looking, or every plain terminal recipe
-        // reads as a repair.
-        withoutResult.remove("_comment");
-        return withoutResult.toString().contains(BROKEN);
+    /**
+     * Every item id this recipe consumes.
+     *
+     * <p><b>Read out of the ingredients, never scanned for as a substring.</b> The sibling
+     * {@code SpawnerIsMeteredTest} shipped with the substring version and review caught it: this
+     * repo's recipes carry long {@code _comment} blocks that discuss their own ingredients by id, and
+     * nested comments inside pools too, so a mention in prose satisfied the check. A test written
+     * because a comment was the only guard, satisfied by a comment.
+     */
+    private static Set<String> consumed(JsonObject recipe) {
+        Set<String> ids = new LinkedHashSet<>();
+        if (recipe.has("key") && recipe.get("key").isJsonObject()) {
+            StringBuilder pattern = new StringBuilder();
+            if (recipe.has("pattern") && recipe.get("pattern").isJsonArray()) {
+                for (JsonElement row : recipe.getAsJsonArray("pattern")) {
+                    pattern.append(row.getAsString());
+                }
+            }
+            for (Map.Entry<String, JsonElement> entry : recipe.getAsJsonObject("key").entrySet()) {
+                if (pattern.indexOf(entry.getKey()) >= 0) {
+                    collect(entry.getValue(), ids);
+                }
+            }
+        }
+        if (recipe.has("ingredients") && recipe.get("ingredients").isJsonArray()) {
+            for (JsonElement ingredient : recipe.getAsJsonArray("ingredients")) {
+                collect(ingredient, ids);
+            }
+        }
+        collect(recipe.get("ingredient"), ids);
+        return ids;
+    }
+
+    private static void collect(JsonElement ingredient, Set<String> into) {
+        if (ingredient != null && ingredient.isJsonArray()) {
+            for (JsonElement one : ingredient.getAsJsonArray()) {
+                collect(one, into);
+            }
+            return;
+        }
+        String id = itemOf(ingredient);
+        if (id != null) {
+            into.add(id);
+        }
+    }
+
+    /**
+     * What this recipe puts in the player's hands, whichever way its schema spells that.
+     *
+     * <p><b>A market offer counts, and missing it was the hole review found.</b> A
+     * {@code recompile:market_offer} has no {@code result} at all - it names its goods in a
+     * top-level {@code item}, as a bare string - so an offer selling a terminal over the counter
+     * would have been a second route with the find skipped entirely, and this test would still have
+     * gone green. That is not hypothetical: the shelf already sells three items outright. The
+     * primitive-string spelling of {@code result} is handled for the same reason.
+     */
+    private static String result(JsonObject recipe) {
+        if (recipe.has("result")) {
+            return itemOf(recipe.get("result"));
+        }
+        String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
+        if (type.equals("recompile:market_offer")) {
+            return itemOf(recipe.get("item"));
+        }
+        return null;
     }
 
     @Test
-    void every_terminal_can_be_built_from_parts_and_repaired_from_a_find() throws IOException {
-        Path recipes = resourceRoot().resolve("data").resolve("recompile").resolve("recipe");
-        assertTrue(Files.isDirectory(recipes), "no recipe directory at " + recipes);
+    void a_terminal_can_only_be_had_by_repairing_a_broken_one() throws IOException {
+        Path data = resourceRoot().resolve("data");
+        assertTrue(Files.isDirectory(data), "no data directory at " + data);
 
-        Map<String, List<String>> plain = new TreeMap<>();
-        Map<String, List<String>> repair = new TreeMap<>();
-        try (Stream<Path> tree = Files.walk(recipes)) {
-            for (Path file : tree.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
-                JsonObject recipe = JsonParser
-                    .parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
-                String result = result(recipe);
-                if (result == null || !result.endsWith("_terminal") || result.equals(BROKEN)
-                    || NOT_A_MARKET_TERMINAL.contains(result)) {
+        // Every namespace, because overriding another mod's recipe id is routine here.
+        List<Path> files = new ArrayList<>();
+        try (Stream<Path> namespaces = Files.list(data)) {
+            for (Path namespace : namespaces.filter(Files::isDirectory).sorted().toList()) {
+                Path recipes = namespace.resolve("recipe");
+                if (!Files.isDirectory(recipes)) {
                     continue;
                 }
-                String id = file.getFileName().toString().replace(".json", "");
-                (consumesBroken(recipe) ? repair : plain)
-                    .computeIfAbsent(result, key -> new ArrayList<>()).add(id);
+                try (Stream<Path> tree = Files.walk(recipes)) {
+                    files.addAll(tree.filter(p -> p.toString().endsWith(".json")).sorted().toList());
+                }
             }
         }
 
-        // A derivation that derives nothing passes for the wrong reason - and this has to count the
-        // UNION. Adding the two map sizes double-counts every terminal that has both routes, which
-        // is all of them when the rule holds, so a repo that had quietly shrunk to two covered
-        // terminals would still total four and sail past a check written to catch exactly that.
-        Set<String> terminals = new TreeSet<>(plain.keySet());
-        terminals.addAll(repair.keySet());
+        Map<String, List<String>> repaired = new TreeMap<>();
+        Map<String, List<String>> fabricated = new TreeMap<>();
+        for (Path file : files) {
+            JsonElement parsed =
+                JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+            if (!parsed.isJsonObject()) {
+                continue;
+            }
+            JsonObject recipe = parsed.getAsJsonObject();
+            String made = result(recipe);
+            if (made == null || !made.endsWith("_terminal") || made.equals(BROKEN)
+                || NOT_A_MARKET_TERMINAL.contains(made)) {
+                continue;
+            }
+            String id = data.relativize(file).toString().replace('\\', '/');
+            (consumed(recipe).contains(BROKEN) ? repaired : fabricated)
+                .computeIfAbsent(made, key -> new ArrayList<>()).add(id);
+        }
+
+        // The UNION - adding two map sizes double-counts anything in both, which is how a check
+        // meant to catch a shrinking scan could pass on two terminals instead of three.
+        Set<String> terminals = new TreeSet<>(repaired.keySet());
+        terminals.addAll(fabricated.keySet());
         assertTrue(terminals.size() >= 3,
             "found only " + terminals.size() + " terminals " + terminals + " - the scan found nothing");
 
         List<String> problems = new ArrayList<>();
-        for (String terminal : new TreeMap<>(plain).keySet()) {
-            if (!repair.containsKey(terminal)) {
-                problems.add(terminal + " can be built from parts but a Broken Terminal cannot be "
-                    + "repaired into one. The find then has no use connected to what it is, which is "
-                    + "the state #390 left it in and this rule exists to prevent.");
+        for (String terminal : terminals) {
+            if (!repaired.containsKey(terminal)) {
+                problems.add(terminal + " cannot be repaired from a Broken Terminal, so the find has "
+                    + "no use connected to what it is - the state #390 left it in.");
             }
         }
-        for (String terminal : repair.keySet()) {
-            if (!plain.containsKey(terminal)) {
-                problems.add(terminal + " can ONLY be made from a Broken Terminal, so a 1-in-16 Bulky "
-                    + "Waste roll gates it. For the Buy Terminal that is every Blueprint in the game "
-                    + "and for the Sell Terminal it is all scrip: keep the plain recipe.");
-            }
+        for (Map.Entry<String, List<String>> entry : fabricated.entrySet()) {
+            problems.add(entry.getKey() + " can be had without a Broken Terminal by " + entry.getValue()
+                + ". The owner removed the plain recipes on 2026-09-07: a terminal is a thing you "
+                + "found and fixed, not one you fabricated - and not one you buy over the counter "
+                + "of the terminal you would need it to build.");
         }
         assertTrue(problems.isEmpty(), String.join("\n  ", problems));
     }
