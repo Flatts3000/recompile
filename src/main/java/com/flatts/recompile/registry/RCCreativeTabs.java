@@ -15,10 +15,15 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * Creative-mode tab. One dedicated Recompile tab aggregating the mod's items in
- * category order (raw garbage, tools, materials, stations, machines, the
- * reclamation ladder, plants, food, light, shelter, collectibles). The accept
- * order here is the mod's public item ordering (JEI/EMI read it too).
+ * Creative-mode tab. One dedicated Recompile tab, and <b>the accept order here is the mod's public
+ * item ordering</b>: JEI's default {@code ingredientSortStages} ends in {@code CREATIVE_MENU}, so
+ * within this mod the panel a player scrolls IS this file. EMI reads it too.
+ *
+ * <p><b>Grouped by KIND, ordered by progression inside each group</b> (owner, 2026-09-07, recorded in
+ * {@code CLAUDE.md}). The groups are named in the section comments below and deliberately NOT listed
+ * here: this javadoc used to enumerate them, named a "shelter" group that does not exist, and omitted
+ * five that do - which is the failure this file keeps paying for, a list that reads as complete. Read
+ * the section comments.
  */
 public final class RCCreativeTabs {
 
@@ -62,12 +67,9 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.MILL_TAILINGS.get());
                     output.accept(RCItems.WASTE_DRUM.get());
                     output.accept(RCItems.STAINED_GROUND.get());
-                    output.accept(RCItems.URANIUM_GLASS.get());
                     output.accept(RCItems.RADIUM_DIAL_CLOCK.get());
                     output.accept(RCItems.SMOKE_DETECTOR.get());
                     output.accept(RCItems.THORIATED_WELDING_RODS.get());
-                    output.accept(RCItems.REINFORCED_CONCRETE.get());
-                    output.accept(RCItems.STEEL_I_BEAM.get());
                     output.accept(RCItems.MECHANICAL_WASTE.get());
                     // The only way to hold leachate, and the only way to place it in creative.
                     output.accept(RCItems.LEACHATE_BUCKET.get());
@@ -87,7 +89,6 @@ public final class RCCreativeTabs {
                     RCItems.SLEDGEHAMMERS.forEach(hammer -> output.accept(hammer.get()));
                     output.accept(RCItems.CUTTING_TORCH.get());
                     RCItems.GARBAGE_VACUUMS.forEach(vacuum -> output.accept(vacuum.get()));
-                    output.accept(RCItems.SCRAP_HAULER.get());
 
                     // --- 4. Base materials, then the salvaged metals and stone they sit beside ---
                     RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
@@ -139,15 +140,17 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.BURN_BARREL.get());
                     output.accept(RCItems.SLAG_FURNACE.get());
                     output.accept(RCItems.SINTERING_KILN.get());
-                    output.accept(RCItems.BLAZE_BRIQUETTE.get());
-                    output.accept(RCItems.PROPELLANT_BRIQUETTE.get());
                     output.accept(RCItems.CUPOLA_FURNACE.get());
-                    // The market: where you sell, then where you spend it.
+
+                    // --- 7. The market: where you sell, then where you spend it ---
+                    // Its own group rather than filed under Workstations, where it sat from a time when the
+                    // Buy Terminal was one more bench. It is the only source of knowledge in the game now,
+                    // so it reads next to Knowledge rather than two groups away from it.
                     output.accept(RCItems.SELL_TERMINAL.get());
                     output.accept(RCItems.BUY_TERMINAL.get());
                     output.accept(RCItems.FREIGHT_TERMINAL.get());
 
-                    // --- 7. Knowledge (#95): fragments, the sheets they become, what they unlock ---
+                    // --- 8. Knowledge (#95): fragments, the sheets they become, what they unlock ---
                     com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
                         output.accept(com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
                             RCItems.SPAWN_EGG_FRAGMENT.get(), set, 1)));
@@ -156,13 +159,11 @@ public final class RCCreativeTabs {
                             RCItems.BLUEPRINT.get(), set)));
                     RCItems.CLEAN_MATTRESSES.forEach(m -> output.accept(m.get()));
 
-                    // --- 8. Power ---
+                    // --- 9. Power ---
                     output.accept(RCItems.BURNER_GENERATOR.get());
-                    output.accept(RCItems.SEQUENCER.get());
                     output.accept(RCItems.CHARGING_STATION.get());
-                    output.accept(RCItems.HAULER_DEPOT.get());
 
-                    // --- 9. Machines, in the order a base gets them ---
+                    // --- 10. Machines, in the order a base gets them ---
                     output.accept(RCItems.RAIN_COLLECTOR.get());
                     output.accept(RCItems.RAIN_COLLECTOR_FUNNEL.get());
                     output.accept(RCItems.GRASS_SPREADER.get());
@@ -180,7 +181,14 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SEPARATOR_HOUSING.get());
                     output.accept(RCItems.SEPARATOR_CHUTE.get());
 
-                    // --- 10. Reclamation consumables, rung by rung ---
+                    // The Sequencer reads amber and the Depot is a hold with a robot in it: neither makes
+                    // power, so neither belongs in the group above. The Hauler comes with its Depot rather
+                    // than filed under Tools - it is a machine you deploy, not one you hold.
+                    output.accept(RCItems.SEQUENCER.get());
+                    output.accept(RCItems.HAULER_DEPOT.get());
+                    output.accept(RCItems.SCRAP_HAULER.get());
+
+                    // --- 11. Reclamation consumables, rung by rung ---
                     output.accept(RCItems.FERTILIZER.get());
                     output.accept(RCItems.UNKNOWN_SEEDLING.get());
                     output.accept(RCItems.HERBIVORE_BAIT.get());
@@ -190,24 +198,34 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.RICH_CARNIVORE_BAIT.get());
                     output.accept(RCItems.RICH_OMNIVORE_BAIT.get());
 
-                    // --- 11. Plants ---
+                    // --- 12. Plants ---
                     output.accept(RCItems.WEEDGRASS.get());
                     output.accept(RCItems.FIREWEED.get());
 
-                    // --- 12. Food, scavenged and foraged. Roaches belong here, not under
+                    // --- 13. Food, scavenged and foraged. Roaches belong here, not under
                     // Workstations, where they sat because that is where the code happened to go. ---
                     RCItems.FOOD.forEach(food -> output.accept(food.get()));
                     output.accept(RCItems.RAW_ROACH.get());
                     output.accept(RCItems.COOKED_ROACH.get());
 
-                    // --- 13. Light and fuel ---
+                    // --- 14. Light and fuel ---
                     output.accept(RCItems.OILY_RAG.get());
                     output.accept(RCItems.SCRAP_TORCH.get());
+                    // The two briquettes sat between the Sintering Kiln and the Cupola because that is what
+                    // fires them. They are consumables, so they belong with the other things you burn.
+                    output.accept(RCItems.BLAZE_BRIQUETTE.get());
+                    output.accept(RCItems.PROPELLANT_BRIQUETTE.get());
 
-                    // --- 14. Building blocks ---
+                    // --- 15. Building blocks ---
                     RCItems.BUILDING_BLOCKS.forEach(block -> output.accept(block.get()));
+                    // From the frontier regions rather than the bench, and grouped here anyway: a player
+                    // hunting something to build with should not have to know which region dropped it.
+                    // Progression order inside the group is what carries the region (owner, 2026-09-07).
+                    output.accept(RCItems.REINFORCED_CONCRETE.get());
+                    output.accept(RCItems.STEEL_I_BEAM.get());
+                    output.accept(RCItems.URANIUM_GLASS.get());
 
-                    // --- 15. Collectibles and their stand ---
+                    // --- 16. Collectibles and their stand ---
                     output.accept(RCItems.DISPLAY_PEDESTAL.get());
                     RCItems.COLLECTIBLES.forEach(collectible -> output.accept(collectible.get()));
                     output.accept(RCItems.PUZZLE_CUBE.get());
@@ -224,7 +242,7 @@ public final class RCCreativeTabs {
                     // acceptance criteria ask for: the item in your hand says Mona Lisa.
                     RECOVERED_PAINTINGS.forEach(id -> output.accept(paintingStack(parameters, id)));
 
-                    // --- 16. Spawn eggs last, the way vanilla keeps them out of the way ---
+                    // --- 17. Spawn eggs last, the way vanilla keeps them out of the way ---
                     output.accept(RCItems.ROACH_SPAWN_EGG.get());
                     output.accept(RCItems.PIGEON_SPAWN_EGG.get());
                 })
