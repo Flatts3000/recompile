@@ -12,7 +12,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +43,16 @@ import org.junit.jupiter.api.Test;
 class TerminalRoutesTest {
 
     private static final String BROKEN = "recompile:broken_terminal";
+
+    /**
+     * Ids that end in {@code _terminal} and are not one, with the reason. Empty today, and it exists
+     * because the rule below is keyed on a NAME: the moment something borrows the noun without being
+     * part of the market spine - a decorative terminal, a dead-screen prop, a machine that happens to
+     * be called one - the build fails with a message about Blueprints and scrip that does not apply
+     * to it. The repo's convention is a justified entry rather than a loosened check, the same shape
+     * as {@code RegistryCompletenessTests}' own two lists.
+     */
+    private static final Set<String> NOT_A_MARKET_TERMINAL = Set.of();
 
     private static Path resourceRoot() {
         for (Path dir = Path.of("").toAbsolutePath(); dir != null; dir = dir.getParent()) {
@@ -93,7 +105,8 @@ class TerminalRoutesTest {
                 JsonObject recipe = JsonParser
                     .parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
                 String result = result(recipe);
-                if (result == null || !result.endsWith("_terminal") || result.equals(BROKEN)) {
+                if (result == null || !result.endsWith("_terminal") || result.equals(BROKEN)
+                    || NOT_A_MARKET_TERMINAL.contains(result)) {
                     continue;
                 }
                 String id = file.getFileName().toString().replace(".json", "");
@@ -102,9 +115,14 @@ class TerminalRoutesTest {
             }
         }
 
-        // A derivation that derives nothing passes for the wrong reason.
-        assertTrue(plain.size() + repair.size() >= 3,
-            "found only " + (plain.size() + repair.size()) + " terminals - the scan found nothing");
+        // A derivation that derives nothing passes for the wrong reason - and this has to count the
+        // UNION. Adding the two map sizes double-counts every terminal that has both routes, which
+        // is all of them when the rule holds, so a repo that had quietly shrunk to two covered
+        // terminals would still total four and sail past a check written to catch exactly that.
+        Set<String> terminals = new TreeSet<>(plain.keySet());
+        terminals.addAll(repair.keySet());
+        assertTrue(terminals.size() >= 3,
+            "found only " + terminals.size() + " terminals " + terminals + " - the scan found nothing");
 
         List<String> problems = new ArrayList<>();
         for (String terminal : new TreeMap<>(plain).keySet()) {
