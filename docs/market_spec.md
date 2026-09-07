@@ -279,7 +279,7 @@ shelf that stayed locked after the rung landed would read as broken.
 
 ## 6.6 The terminals are not gated by a Blueprint, and this reverses Q3 (2026-09-06, #389)
 
-Both terminals craft plainly at a bench. They have no Blueprint sets and nothing teaches them.
+Both terminals are repaired from a Broken Terminal at a bench - there is no plain recipe, reversed by the owner on 2026-09-07. They have no Blueprint sets and nothing teaches them.
 
 **Q3's answer created a deadlock that only appeared once P3.10 landed.** It was sound while teardown
 also taught them: one find, two sets, four fragments each. But P3.10 made the market the sole source
