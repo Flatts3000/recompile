@@ -1,23 +1,40 @@
 {
   "type": "recompile:blueprint_crafting",
   "_comment": [
-    "THE ENTIRE BALANCE OF #294 LIVES IN THESE INGREDIENTS. The blueprint is permanent, so four",
-    "Broken Spawners buy spawners forever and there is no second lever - see the note on #36.",
+    "THE ENTIRE BALANCE OF #294 LIVES IN THESE INGREDIENTS, and one of them is now a find.",
     "",
-    "First pass, deliberately expensive: a cage of rebar around soul sand, with the sculk that",
-    "listens for something to be born. Every ingredient is depths-side or reclamation-side, so a",
-    "spawner cannot be assembled from household garbage alone."
+    "A cage of rebar around soul sand, with the sculk that listens for something to be born, and",
+    "at the heart of it the Broken Spawner itself - a cage that has already done this once. Every",
+    "ingredient is depths-side or reclamation-side, so a spawner cannot be assembled from",
+    "household garbage alone.",
+    "",
+    "THE BROKEN SPAWNER IS THE SECOND LEVER THIS RECIPE ASKED FOR (owner, 2026-09-07: broken",
+    "spawners should be used for crafting spawners). This comment used to say 'the blueprint is",
+    "permanent, so four Broken Spawners buy spawners forever and there is no second lever'. The",
+    "worry was right and the sentence was stale twice over: teardown stopped teaching anything in",
+    "#390, and the sheet is bought from the Buy Terminal for 1500 scrip at tier 7 - so the find",
+    "had no connection to a spawner at all, and the faucet ran with nothing metering it. Consuming",
+    "one per craft is the meter. It is 1 in 2000 depths pulls, about the Bucket's rarity, so",
+    "spawners are rate-limited rather than unlimited, and rate-limited is what a progression gate",
+    "is - the same reasoning that lets the Motor be find-only.",
+    "",
+    "It replaces a single soul sand and nothing else moves, deliberately: the change is 'the find",
+    "is required now', not a re-costing of the rest. The teardown still yields a Machine Frame, so",
+    "this is a choice about what the find is worth rather than a new use for a spare one.",
+    "",
+    "SpawnerIsMeteredTest pins it, because a comment was the only guard last time and it rotted."
   ],
   "blueprint": "recompile:spawner",
   "key": {
     "R": "recompile:rebar",
     "S": "minecraft:soul_sand",
-    "C": "minecraft:sculk_catalyst"
+    "C": "minecraft:sculk_catalyst",
+    "B": "recompile:broken_spawner"
   },
   "pattern": [
     "RSR",
-    "SCS",
-    "RSR"
+    "SBS",
+    "RCR"
   ],
   "result": {
     "item": "minecraft:spawner"
