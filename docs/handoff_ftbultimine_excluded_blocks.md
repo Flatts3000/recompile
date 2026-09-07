@@ -4,7 +4,16 @@
 [#62](https://github.com/Flatts3000/trashlands/issues/62).
 **Analysed against:** Recompile **v0.19.0-dev**, FTB Ultimine (NeoForge) `26.1.2.5` (CF project
 386134, file 8231335), MC 26.1.2 / NeoForge 26.1.2.100.
-**Status:** REQUESTED. Nothing shipped yet.
+**Status:** **WITHDRAWN 2026-09-07, same day it was raised. Do not build this.** The premise was
+that the pack cannot ship data on 26.1.2. That stopped being true hours later: KubeJS is in the
+pack, pinned alongside standalone `better-advanced-tooltips-2601.1.0-build.9`, which displaces the
+broken bundled `build.8` that used to crash the client at bootstrap. The tag now ships from the
+pack at `pack/kubejs/data/ftbultimine/tags/block/excluded_blocks.json`, which is where a curation
+decision belongs under the engine/pack split. Nothing is being asked of Recompile.
+
+The rest is kept for two reasons: the two observations at the end are still live questions for
+this repo, and the same route now exists to take back the Simple Magnets overrides and the Ender
+IO grains, which their own handoffs said to reclaim the moment it opened.
 
 ## What the pack needs
 
@@ -22,12 +31,14 @@ One file:
         "recompile:cardboard_pile",
         "recompile:bulky_waste",
         "recompile:mound_ground",
+        "recompile:stained_ground",
         "recompile:stone_rubble",
         "recompile:mechanical_waste",
         "recompile:mill_tailings",
         "recompile:waste_drum",
         "recompile:techno_organic_waste",
         "recompile:slag_rubble",
+        "recompile:ancient_sculk",
         "recompile:tire"
       ]
     }
@@ -79,8 +90,10 @@ A tag naming a mod that is absent is inert - the block tag is built and never qu
 
 ## The list, and why it is flat
 
-Twelve of the fourteen entries are already enumerated by `#recompile:vacuumable/netherite`, which
-transitively covers copper, iron and diamond. Referencing that tag instead of listing blocks was
+Nine of the sixteen entries are already enumerated by `#recompile:vacuumable/netherite`, which
+transitively covers copper, iron and diamond: `garbage_block`, `trash_bag`, `compacted_bale`,
+`stone_rubble`, `mechanical_waste`, `mill_tailings`, `waste_drum`, `techno_organic_waste` and
+`slag_rubble`. Referencing that tag instead of listing blocks was
 considered and **not** recommended: it couples what Ultimine may break to the Garbage Vacuum's tier
 ladder, so a future retier of the vacuum would silently change vein-mining. The failure would be
 quiet and would surface as a balance complaint, not an error.
