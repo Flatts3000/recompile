@@ -66,6 +66,13 @@ SCREENS = [
     # that flips to Recall - the button's state and the gauge are exactly what the layout sweep
     # cannot see. Opens with an empty slot here, which is the first thing a new owner sees.
     ("hauler_depot", "recompile:hauler_depot"),
+    # The Freight Terminal (#387): the twelfth, and it shipped without being added here, which is
+    # the same gap the Sequencer and the Kiln had. It is the one screen whose whole content is
+    # TEXT the layout sweep cannot read - a manifest of what is wanted against what is delivered,
+    # plus the phase name and "N of 8". It also has the only contents that arrive in the open
+    # buffer rather than in data slots, so a wrong stream codec draws an empty table and passes
+    # every server-side test. Opens at phase 1 in a fresh world, which is what a new player sees.
+    ("freight_terminal", "recompile:freight_terminal"),
 ]
 
 FOCUS_PS = """
