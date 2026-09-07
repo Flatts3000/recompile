@@ -337,6 +337,31 @@ public final class ScrapHaulerTests {
                     + helper.getLevel().getBrightness(LightLayer.SKY, above)));
         });
 
+        /*
+         * Owner, playtest 2026-09-07, in two messages: "Scrap Hauler doesn't use RF power it seems",
+         * then "actually it does but the UI in the depot is stale". Both are the same defect. The
+         * charge component was written at deploy and again at recall and nowhere between, so the
+         * docked item's tooltip quoted the charge the machine LEFT with while Jade on the entity read
+         * the truth - and the natural reading of a number that never moves is that nothing spends it.
+         */
+        RCGameTests.test("the_docked_item_tracks_the_deployed_haulers_charge", 20, helper -> {
+            final int lift = lift(1);
+            ServerLevel level = helper.getLevel();
+            HaulerDepotBlockEntity depot = docked(helper, ScrapHaulerItem.CAPACITY, lift);
+            helper.assertTrue(depot.deploy(level), "deploy refused");
+            ScrapHaulerEntity hauler = haulers(helper, lift).get(0);
+            // Spend some, the way a tick of work does.
+            hauler.setCharge(ScrapHaulerItem.CAPACITY / 4);
+            helper.runAfterDelay(2, () -> {
+                int onItem = ScrapHaulerItem.charge(depot.hauler());
+                helper.assertTrue(onItem == hauler.charge(),
+                    "the item in the slot says " + onItem + " FE while the machine it represents has "
+                        + hauler.charge() + " - two surfaces disagreeing about one machine, which is "
+                        + "what made a working Hauler look like it spent nothing");
+                helper.succeed();
+            });
+        });
+
         RCGameTests.test("a_second_deploy_does_not_make_a_second_hauler", 20, helper -> {
             final int lift = lift(1);
             ServerLevel level = helper.getLevel();
