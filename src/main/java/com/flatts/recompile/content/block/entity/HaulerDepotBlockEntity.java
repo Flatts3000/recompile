@@ -274,13 +274,22 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
      * <p><b>The Depot generates nothing and has no panel of its own</b> - this is the HAULER's solar,
      * at the Hauler's own rate, and the Depot is only where it is parked.
      *
-     * <p><b>Anything on the roof switches it off, and that is accepted</b> (owner, 2026-09-07). The
-     * sky test is at {@code worldPosition.above()}, so a block there stops a docked Hauler charging
-     * from the sky. The trap is that a Solar Panel is the likeliest thing to be put there: components
-     * are inert, so it generates nothing itself, and placing it to power the Depot is exactly what
-     * turns the free charging off. It is not a defect - something on your roof does shade you - and
-     * it degrades to "you now need RF" rather than to nothing charging, because the battery's trickle
-     * into the slot runs on its own path above. Do not "fix" it by moving the sky test.
+     * <p><b>A LIGHT-BLOCKING roof switches it off, and that is accepted</b> (owner, 2026-09-07). Note
+     * which word is doing the work: {@code canSeeSky} is a light query rather than a heightmap one,
+     * so what matters is whether the block passes sky light and not whether a block is there at all.
+     * A full block shades the Depot and the trickle stops; a slab, a carpet or a pane does not.
+     * Something solid on your roof does shade you, and it degrades to "you now need RF" rather than
+     * to nothing charging, because the battery's trickle into the slot runs on its own path above.
+     * Do not "fix" it by moving the sky test.
+     *
+     * <p><b>The Solar Panel is the case everyone reaches for, and it is the one this does not apply
+     * to</b> - twice over, which is why it is written down rather than left to be re-derived. It is
+     * {@code noOcclusion} with a {@code box(0, 0, 0, 16, 6, 16)}, so it propagates sky light and the
+     * Depot is not shaded by it; and it has not been inert since #72, so it generates and pushes into
+     * the Depot's battery, which is registered insert-only on every face. Putting one on a Depot
+     * helps twice and costs nothing. This paragraph asserted the opposite of all of that until it was
+     * measured - {@code a_solar_panel_on_the_depot_does_not_shade_it} is the measurement, paired with
+     * a full block going the other way so neither can pass vacuously.
      */
     private void trickleDocked(ServerLevel level) {
         ItemStack stack = items.get(HAULER_SLOT);

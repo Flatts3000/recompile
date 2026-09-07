@@ -23,6 +23,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 
@@ -294,6 +295,46 @@ public final class ScrapHaulerTests {
                     + "other three sides - dry beats fluid, and a tie that the visit order settles "
                     + "is not a rule");
             helper.succeed();
+        });
+
+        /*
+         * WHAT SHADES A DOCKED HAULER, MEASURED. trickleDocked gates on canSeeSky(worldPosition
+         * .above()), and a review of #402 asserted from that - without measuring - that "anything on
+         * the roof" stops a docked Hauler charging, with a Solar Panel as the worked example. Both
+         * halves were wrong, and these two tests are how that was settled.
+         *
+         * canSeeSky is a LIGHT query, not a heightmap one - literally getBrightness(SKY, pos) >= 15 -
+         * so what matters is whether the block passes sky light, not whether a block is there. The
+         * panel is noOcclusion with a box(0, 0, 0, 16, 6, 16), so it propagates skylight, blocks 0,
+         * and the position under it stays at 15. A slab, a carpet or a pane would behave the same.
+         *
+         * Both use succeedWhen rather than a fixed delay: the sky layer belongs to the lighting
+         * thread and cannot be drained from a test, so any fixed wait is a race that only gets
+         * narrower. Two tests rather than one, because re-reading the same position after swapping
+         * the block is that same race in a smaller window.
+         */
+        RCGameTests.test("a_solar_panel_on_the_depot_does_not_shade_it", 60, helper -> {
+            final int lift = lift(1);
+            docked(helper, 0, lift);
+            helper.setBlock(DEPOT.above(lift + 1), RCBlocks.SOLAR_PANEL.get());
+            BlockPos above = helper.absolutePos(DEPOT.above(lift + 1));
+            helper.succeedWhen(() -> helper.assertTrue(
+                helper.getLevel().canSeeSky(above),
+                "a Solar Panel on the Depot shaded it - the docked Hauler's solar trickle is gated on "
+                    + "canSeeSky here, and a panel passes sky light rather than blocking it. Sky light "
+                    + helper.getLevel().getBrightness(LightLayer.SKY, above)));
+        });
+
+        RCGameTests.test("a_full_block_on_the_depot_does_shade_it", 60, helper -> {
+            final int lift = lift(2);
+            docked(helper, 0, lift);
+            helper.setBlock(DEPOT.above(lift + 1), Blocks.STONE);
+            BlockPos above = helper.absolutePos(DEPOT.above(lift + 1));
+            helper.succeedWhen(() -> helper.assertTrue(
+                !helper.getLevel().canSeeSky(above),
+                "stone on the Depot did not shade it, so the pair above proves nothing - one of these "
+                    + "two has to go each way or the sky gate is not being measured at all. Sky light "
+                    + helper.getLevel().getBrightness(LightLayer.SKY, above)));
         });
 
         RCGameTests.test("a_second_deploy_does_not_make_a_second_hauler", 20, helper -> {
