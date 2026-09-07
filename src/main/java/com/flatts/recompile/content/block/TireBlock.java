@@ -19,6 +19,31 @@ import net.minecraft.world.level.block.state.BlockState;
  * {@code sqrt(3^2 + 7^2) = 7.62}, and the rotated copies land theirs at 7.62 too - which is what stops
  * the diagonals bulging past the flats. The hole is 8 across the flats.
  *
+ * <p><b>The rotated copies are SHIFTED UP a quarter pixel, and that is not a rounding accident</b>
+ * (owner report, 2026-09-07: z-fighting on the tops of tires). The two sets of four overlap where a
+ * flat segment meets a diagonal - 4.32 square pixels per junction, eight junctions - and every
+ * element ran the full 0 to 8, so those overlaps put two {@code up} faces on exactly the same plane
+ * and two {@code down} faces on another. Coplanar faces pointing the same way is the definition of
+ * z-fighting, and it flickered across the whole top surface of a heap.
+ *
+ * <p><b>Trimming the boxes to abut instead was measured and does not work.</b> The intersection
+ * boundary is diagonal, so an axis-aligned trim cuts material the ring needs rather than the part
+ * that overlaps: by the time the footprint has lost 6.2 square pixels the overlap is still 10 of the
+ * original 69 and the ring already has holes in it. It never reaches zero.
+ *
+ * <p><b>And it is a shift rather than an inset, which is the whole point.</b> Insetting the rotated
+ * boxes at BOTH ends was the first fix, took the overlap to zero, and put a half-pixel slit straight
+ * through all four diagonal walls at every ring boundary - the lower ring ending at 7.75 while the
+ * upper began at 8.25, with only the flats covering the difference. That is daylight through a tire,
+ * which is the exact look this model's own history above says was rejected, and it repeated at every
+ * block boundary up a heap. Shifting instead keeps each rotated box touching the next one exactly
+ * ({@code 8.25} to {@code 8.25}, and {@code 16.25} to the block above's {@code 0.25 + 16}), so the
+ * wall is continuous while no two same-facing planes coincide. The cost is a quarter-pixel lip above
+ * the flats at the top of a stack and the same gap at the very bottom, against the ground.
+ * {@code 1/64} of a block is exactly representable in float and a quarter of one texel, so neither
+ * can be drawn. <b>Do not "tidy" the rotated elements back to whole numbers, and do not turn the
+ * shift back into an inset.</b>
+ *
  * <p><b>So this block DOES ask for {@code noOcclusion}</b>, because the model has a hole through it -
  * see the note in {@code RCBlocks}. Collision is still the plain slab box, which is what lets a player
  * walk up a pile.
