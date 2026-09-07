@@ -56,6 +56,14 @@ public final class ScrapHaulerTests {
      * columns within {@code VERTICAL_REACH} (24) of the Depot, so 26-block steps keep each stage
      * invisible to every other. The steps run from 40 to 352; the world ceiling is 320 and the base
      * is -56, so the top stage sits at 298.
+     *
+     * <p><b>That is thirteen rungs and the ceiling allows no more</b>, so the three deploy-placement
+     * tests share lifts 0, 1 and 2 with three others. <b>What a unique lift buys is the PILE</b> -
+     * one stage's Hauler must not be able to reach another stage's target - and none of the six tests
+     * on those three rungs places a pile at all: each docks a Hauler, deploys, asserts, and is done.
+     * The other thing a unique lift used to buy, that {@link #haulers} counts only this test's
+     * machines, is bought by that method's own filter now rather than by the height, which is where
+     * it belonged. <b>Give any test that places a pile a rung of its own.</b>
      */
     private static final int LIFT_STEP = ScrapHaulerGoal.VERTICAL_REACH + 2;
     private static final int LIFT_BASE = 40;
@@ -117,11 +125,29 @@ public final class ScrapHaulerTests {
         return depot;
     }
 
-    /** The Haulers on THIS test's stage: a box around the plot at the stage's own height only. */
+    /**
+     * The Haulers on THIS test's stage: a generous box around the plot at the stage's own height,
+     * <b>filtered to the ones bound to this plot's own Depot</b>.
+     *
+     * <p><b>The box alone was not enough, and the lift ladder was carrying the difference.</b> It
+     * runs from {@code -8} to {@code +13} in both horizontals, which is nearly two plots across at
+     * the harness's twelve-block spacing - so a neighbouring test's Hauler is inside it whenever the
+     * two stages share a height, and {@code isEmpty()} and {@code size() == 1} then answer about the
+     * wrong machine. Nothing caught that because every deploying test had a lift to itself, which
+     * made the overlap invisible rather than absent, and the ladder is at capacity: the steps have to
+     * be 26 to keep a Hauler's vertical search off the next stage, and thirteen of them already reach
+     * 298 against a world ceiling of 320.
+     *
+     * <p>So the filter is what makes a Hauler ours, and the box is only a cheap prefilter. It is also
+     * strictly the better question: a Hauler that walked off the plot is still ours and still counted,
+     * where narrowing the box to the plot would have made an escape look like a clean pass.
+     */
     private static List<ScrapHaulerEntity> haulers(GameTestHelper helper, int lift) {
+        BlockPos depot = helper.absolutePos(DEPOT.above(lift));
         return helper.getLevel().getEntitiesOfClass(ScrapHaulerEntity.class,
             AABB.encapsulatingFullBlocks(helper.absolutePos(new BlockPos(-8, lift - 2, -8)),
-                helper.absolutePos(new BlockPos(13, lift + 8, 13))));
+                helper.absolutePos(new BlockPos(13, lift + 8, 13))),
+            hauler -> depot.equals(hauler.depotPos()));
     }
 
     private static int holdCount(HaulerDepotBlockEntity depot) {
@@ -150,16 +176,6 @@ public final class ScrapHaulerTests {
             helper.succeed();
         });
 
-        /*
-         * PLAYTEST REPORT, 2026-09-06: a Solar Panel placed on the Depot, then Deploy, left the
-         * Hauler stranded on top of the panel. Deploy used worldPosition.above() with no check that
-         * anything was there.
-         *
-         * THE REPORTER'S DIAGNOSIS WAS WRONG AND THE TEST SAYS SO: it was guessed as a half-block
-         * problem, and the panel's box(0, 0, 0, 16, 6, 16) is a red herring. The fault is that the
-         * destination was never checked at all, so this pins the general case with a FULL block -
-         * which the old code would have spawned the machine inside - and the reported case below.
-         */
         /*
          * PLAYTEST REPORT, 2026-09-06: a Solar Panel placed on the Depot, then Deploy, left the
          * Hauler stranded on top of the panel. Deploy used worldPosition.above() with no check that
@@ -251,6 +267,32 @@ public final class ScrapHaulerTests {
                 "the Hauler came out at " + where + " rather than the one neighbour with ground "
                     + "under it at " + supported + " - fitting is not standing, and a machine that "
                     + "comes out falling is the reported bug in a different shape");
+            helper.succeed();
+        });
+
+        /*
+         * The lowest bullet in spawnSpot's priority list, and it had no test: among candidates that
+         * are otherwise equal, dry beats standing in fluid. It went untested while the weights did
+         * not express a strict order, which is how the fluid penalty came to be worth more than the
+         * gap between ground level and the roof and left two different criteria tied on 150 - decided,
+         * silently, by whichever the loop reached first.
+         */
+        RCGameTests.test("deploy_prefers_a_dry_neighbour_to_a_flooded_one", 20, helper -> {
+            final int lift = lift(0);
+            ServerLevel level = helper.getLevel();
+            HaulerDepotBlockEntity depot = docked(helper, ScrapHaulerItem.CAPACITY, lift);
+            BlockPos at = DEPOT.above(lift);
+            // West is the first ground-level cardinal the search visits, so flooding it is what a
+            // tie broken by iteration order would pick. Every other neighbour is dry air.
+            helper.setBlock(at.west(), Blocks.WATER);
+            helper.assertTrue(depot.deploy(level), "the Depot refused with dry ground all round it");
+            List<ScrapHaulerEntity> out = haulers(helper, lift);
+            helper.assertTrue(out.size() == 1, "expected one Hauler, found " + out.size());
+            BlockPos where = out.get(0).blockPosition();
+            helper.assertTrue(!where.equals(helper.absolutePos(at.west())),
+                "the Hauler came out standing in the water at " + where + " with dry ground on the "
+                    + "other three sides - dry beats fluid, and a tie that the visit order settles "
+                    + "is not a rule");
             helper.succeed();
         });
 

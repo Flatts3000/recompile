@@ -6,6 +6,7 @@ import com.flatts.recompile.content.item.ScrapHaulerItem;
 import com.flatts.recompile.gui.GuiTheme;
 import com.flatts.recompile.gui.ScreenLayout;
 import com.flatts.recompile.registry.RCMenus;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -181,7 +182,29 @@ public class HaulerDepotMenu extends AbstractContainerMenu {
             return false;
         }
         return switch (id) {
-            case DEPLOY_BUTTON -> depot.deploy(level);
+            case DEPLOY_BUTTON -> {
+                if (depot.deploy(level)) {
+                    yield true;
+                }
+                /*
+                 * A REFUSED DEPLOY MUST SAY SO. Deploy can now decline because all 26 blocks around
+                 * the Depot are occupied, and without this the player presses the button and nothing
+                 * whatever happens - no sound, no message, no state change - which is the same
+                 * invisible failure the placement search was written to end. The Garbage Vacuum
+                 * already names its refusals in the action bar.
+                 *
+                 * Only the no-room case is worth a message, so the condition narrows to it: a
+                 * duplicated Deploy against a Hauler that is already out is a deliberate no-op and
+                 * nagging about it would be wrong, and an empty slot is refused with the button's
+                 * own emptiness as the explanation. Still undeployed with a Hauler in the slot
+                 * leaves nowhere to stand as the only reachable reason.
+                 */
+                if (!depot.deployed() && depot.hauler().getItem() instanceof ScrapHaulerItem) {
+                    player.sendOverlayMessage(
+                        Component.translatable("message.recompile.hauler_no_room"));
+                }
+                yield false;
+            }
             case RECALL_BUTTON -> depot.recall(level);
             case RADIUS_DOWN_BUTTON -> {
                 depot.adjustRadius(-1);

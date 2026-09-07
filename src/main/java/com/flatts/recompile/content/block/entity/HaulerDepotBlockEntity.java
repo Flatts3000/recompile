@@ -339,12 +339,12 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
         if (deployed || !(stack.getItem() instanceof ScrapHaulerItem)) {
             return false;
         }
-        ScrapHaulerEntity hauler = RCEntities.SCRAP_HAULER.get().create(level, EntitySpawnReason.TRIGGERED);
-        if (hauler == null) {
-            return false;
-        }
         Vec3 at = spawnSpot(level, worldPosition);
         if (at == null) {
+            return false;
+        }
+        ScrapHaulerEntity hauler = RCEntities.SCRAP_HAULER.get().create(level, EntitySpawnReason.TRIGGERED);
+        if (hauler == null) {
             return false;
         }
         hauler.snapTo(at.x, at.y, at.z, level.getRandom().nextFloat() * 360.0F, 0.0F);
@@ -380,7 +380,9 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
      *
      * <p><b>A fixed fallback order was the second wrong answer</b> (owner, 2026-09-07: place it
      * smartly rather than always in one position). An ordered list still cannot tell a spot the
-     * machine can stand on from one it will fall out of, so it scores every neighbour instead:
+     * machine can stand on from one it will fall out of, so it scores every neighbour instead. <b>The
+     * bullets below are a strict priority, not a blend</b> - each weight outranks everything under it
+     * added together, so a lower bullet can only ever break a tie the ones above it left open:
      *
      * <ul>
      *   <li><b>It must fit</b>, asked with the entity's own spawn box rather than by reasoning about
@@ -390,13 +392,30 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
      *       different shape.
      *   <li><b>Ground level beside the Depot beats the roof.</b> The Hauler's job is on the ground, and
      *       the roof is where whatever the player stacked on the Depot lives.
-     *   <li>A cardinal neighbour beats a diagonal, and dry beats standing in fluid.
+     *   <li>A cardinal neighbour beats a diagonal.
+     *   <li><b>Dry beats standing in fluid</b>, and one sample settles it: the Hauler is 0.9 blocks
+     *       tall and spawns on an integer y, so its box is inside the one cell.
      * </ul>
      *
      * <p><b>Refusal is exactly "all 26 are occupied"</b> (owner). Short of that the machine comes out
      * somewhere, because refusing while a free block exists would strand the Depot for a reason the
      * player cannot see: the item is locked in the slot while deployed.
      */
+    /**
+     * The placement weights, and <b>each one is larger than everything below it added together</b>,
+     * so the score is the bullet list above read as a strict priority rather than four numbers that
+     * happen to add up. They did not, in the first version: dry was 20 against a 10-point gap between
+     * ground level and the roof, so a flooded cardinal neighbour scored 150 and the dry roof scored
+     * 150 too, and which one the Hauler came out of was decided by the order the loop happened to
+     * visit them in. A tie between two different criteria is always a bug here - it means the code is
+     * silently ranking on something the javadoc never claimed.
+     */
+    private static final int STANDING_ROOM = 1000;
+    private static final int GROUND_LEVEL = 100;
+    private static final int ROOF_LEVEL = 50;
+    private static final int CARDINAL = 10;
+    private static final int DRY = 1;
+
     private static @Nullable Vec3 spawnSpot(ServerLevel level, BlockPos depot) {
         BlockPos best = null;
         int bestScore = Integer.MIN_VALUE;
@@ -416,18 +435,18 @@ public class HaulerDepotBlockEntity extends BlockEntity implements WorldlyContai
                     int score = 0;
                     BlockPos below = pos.below();
                     if (level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)) {
-                        score += 100;
+                        score += STANDING_ROOM;
                     }
                     score += switch (dy) {
-                        case 0 -> 40;
-                        case 1 -> 30;
+                        case 0 -> GROUND_LEVEL;
+                        case 1 -> ROOF_LEVEL;
                         default -> 0;
                     };
                     if (Math.abs(dx) + Math.abs(dz) == 1) {
-                        score += 10;
+                        score += CARDINAL;
                     }
                     if (level.getFluidState(pos).isEmpty()) {
-                        score += 20;
+                        score += DRY;
                     }
                     if (score > bestScore) {
                         bestScore = score;
