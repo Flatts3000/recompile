@@ -7,11 +7,12 @@
   "pools": [
     {
       "_comment": [
-        "NO BULB IN THIS POOL, deliberately: the object that yields a component should be the",
-        "one that teaches it, and the Bulb belongs to the lamp rather than to the terminal.",
+        "NO BULB IN THIS POOL, deliberately: the Bulb belongs to the lamp rather than to the terminal.",
         "",
-        "The clause that used to sit here - about what this find teaches being declared at the",
-        "top level - is gone with the teaching itself (2026-09-06)."
+        "This find taught both market terminals until 2026-09-06. It teaches nothing now (#390), which",
+        "also resolved a deadlock the old design had walked into: once the market is the only source of",
+        "knowledge, a terminal you must buy the Buy Terminal to learn is unreachable. Both terminals are",
+        "plain craftable instead."
       ],
       "rolls": 4,
       "entries": [

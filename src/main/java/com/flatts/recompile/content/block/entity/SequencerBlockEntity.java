@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p><b>It is not a teardown, and that is the point of it being a machine at all.</b> The Recompile
  * Workbench takes an object apart with hand tools; this reads information out of one and hands the
- * amber's contents back as an Idea Fragment. Owner call: a bench cannot sequence DNA.
+ * amber's contents back as an Spawn Egg Fragment. Owner call: a bench cannot sequence DNA.
  *
  * <p><b>It also does not change the material, which is why it is a sixth verb rather than a sixth
  * machine of an existing kind.</b> The five-machine table's test is what an operation does to what it
@@ -160,7 +160,7 @@ public class SequencerBlockEntity extends BlockEntity implements WorldlyContaine
         if (species == null) {
             return ItemStack.EMPTY;
         }
-        ItemStack fragment = new ItemStack(RCItems.IDEA_FRAGMENT.get());
+        ItemStack fragment = new ItemStack(RCItems.SPAWN_EGG_FRAGMENT.get());
         // The blueprint set is named for the species, so every vanilla mob is a set without anything
         // being registered per-species in Java. A pack adds a creature by adding a loot entry and a
         // blueprint recipe, and nothing here changes.

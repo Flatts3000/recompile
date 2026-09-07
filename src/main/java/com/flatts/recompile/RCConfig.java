@@ -294,7 +294,7 @@ public final class RCConfig {
                 "load, which is what makes this reach worlds that already exist.")
             .define("disableInfiniteWater", true);
         BLUEPRINTS_ENABLED = builder
-            .comment("Whether tearing something down can teach an Idea Fragment (#95). Off means the",
+            .comment("Whether tearing something down can teach an Spawn Egg Fragment (#95). Off means the",
                 "workbench stays materials-only, the way it was before blueprints existed.")
             .define("blueprintsEnabled", true);
         HYDROPONICS_ENABLED = builder

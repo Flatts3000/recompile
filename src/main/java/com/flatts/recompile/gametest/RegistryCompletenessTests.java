@@ -109,10 +109,10 @@ final class RegistryCompletenessTests {
      * this class already follow.
      */
     private static final Set<String> NOT_IN_TAB = Set.of(
-        // A blank Blueprint and a blank Idea Fragment are inert by design; the tab offers the real
+        // A blank Blueprint and a blank Spawn Egg Fragment are inert by design; the tab offers the real
         // ones, already carrying their component, so a creative pull is a working sheet.
         "blueprint",
-        "idea_fragment");
+        "spawn_egg_fragment");
 
     private static final Set<String> VANILLA_PARENTS = Set.of(
         "block/block",

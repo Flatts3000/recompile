@@ -228,7 +228,7 @@ public class RecompileJeiPlugin implements IModPlugin {
                 com.flatts.recompile.compat.SinteringData.all().stream()
                     .mapToInt(e -> e.outputs().size()).max().orElse(1)),
             new AssemblyCategory(ASSEMBLY, Component.translatable("jei.recompile.assembly"),
-                gui.createDrawableItemStack(new ItemStack(RCItems.IDEA_FRAGMENT.get())), 4),
+                gui.createDrawableItemStack(new ItemStack(RCItems.SPAWN_EGG_FRAGMENT.get())), 4),
             new BlueprintCraftingCategory(BLUEPRINT_CRAFTING,
                 Component.translatable("jei.recompile.blueprint_crafting"),
                 gui.createDrawableItemStack(new ItemStack(RCItems.BLUEPRINT.get()))),
@@ -423,8 +423,8 @@ public class RecompileJeiPlugin implements IModPlugin {
             // player will actually lay out and a "4" in the corner of one slot reads as optional.
             List<ItemStack> fragments = new ArrayList<>();
             for (int i = 0; i < com.flatts.recompile.compat.BlueprintData.fragmentsFor(set); i++) {
-                fragments.add(com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                    RCItems.IDEA_FRAGMENT.get(), set, 1));
+                fragments.add(com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                    RCItems.SPAWN_EGG_FRAGMENT.get(), set, 1));
             }
             examples.add(new AssemblyRecipe(fragments,
                 com.flatts.recompile.content.item.BlueprintItem.of(RCItems.BLUEPRINT.get(), set)));

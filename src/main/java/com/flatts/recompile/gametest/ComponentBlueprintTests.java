@@ -259,56 +259,51 @@ final class ComponentBlueprintTests {
         });
 
         /*
-         * The knowledge half. chance and scraps_required are asserted the same way the mattress's are,
-         * because both numbers have a design reason rather than being tuning: every teardown teaches
-         * (a dice roll is not the thing that ends a grind), and a one-fragment blueprint IS the sheet.
+         * #160's invariant, re-expressed for a teardown that yields FUNCTION rather than knowledge.
+         *
+         * The old form asserted that the teardown yielding a component also TEACHES it: hanging the
+         * lesson on some other object breaks the tie between the thing you take apart and the thing
+         * you learn. Since #390 no teardown teaches anything, so that form could only ever fail.
+         *
+         * The tie it protected is still worth protecting and is arguably tighter now - the object
+         * hands you the part rather than the idea of it. What is machine-checkable is that the tie is
+         * ONE-TO-ONE: no two objects yield the same signature component. That is what would catch the
+         * lazy version of this feature, where every appliance drops a Motor because a Motor was the
+         * example in the spec, and the objects stop being distinguishable.
          */
-        RCGameTests.test("the_object_that_yields_a_component_is_the_one_that_teaches_it", 20, helper -> {
-            List<String> broken = new ArrayList<>();
-            for (Item component : gatedComponents()) {
-                Identifier blueprint = BuiltInRegistries.ITEM.getKey(component);
-                TeardownRecipe.TeachEntry lesson = null;
-                for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
-                        .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
-                    boolean yields = holder.value().everyPossibleOutput()
-                        .anyMatch(i -> i == component);
-                    if (!yields) {
-                        continue;
-                    }
-                    for (TeardownRecipe.TeachEntry teach : holder.value().teaches()) {
-                        if (teach.recipe().equals(blueprint)) {
-                            lesson = teach;
-                        }
-                    }
-                }
-                if (lesson == null) {
-                    broken.add(blueprint + ": the teardown that yields it does not teach it. Hanging "
-                        + "the lesson on some other object breaks the tie between the thing you take "
-                        + "apart and the thing you learn, which is the whole shape of #160");
-                    continue;
-                }
-                if (lesson.chance() < 1.0f) {
-                    broken.add(blueprint + ": teaches at chance " + lesson.chance()
-                        + ". Every teardown teaches (owner, 2026-08-02) - below 1 the cost is a dice "
-                        + "game, and what ends a grind is knowing the recipe, not getting lucky");
-                }
-                if (lesson.scrapsRequired() <= 1) {
-                    broken.add(blueprint + ": scraps_required is " + lesson.scrapsRequired()
-                        + " - at 1 the fragment IS the sheet, so fragments stop meaning anything");
+        RCGameTests.test("no_two_objects_yield_the_same_signature_component", 20, helper -> {
+            java.util.Map<Item, List<String>> yielders = new java.util.HashMap<>();
+            for (RecipeHolder<TeardownRecipe> holder : helper.getLevel().recipeAccess()
+                    .recipeMap().byType(RCRecipeTypes.TEARDOWN.get())) {
+                for (TeardownRecipe.ItemResult r : holder.value().results()) {
+                    // Name the INPUT ITEM, not the Ingredient. Ingredient.toString is an identity
+                    // hash, so the first version of this message read "2 different teardowns
+                    // [Ingredient@52165026, Ingredient@101b47ec]" and told a reader nothing about
+                    // which two objects collided.
+                    String what = holder.value().input().items().findFirst()
+                        .map(h -> h.value().toString()).orElse("?");
+                    yielders.computeIfAbsent(r.item(), k -> new ArrayList<>()).add(what);
                 }
             }
-            helper.assertTrue(broken.isEmpty(),
-                "component teardowns are wrong (" + broken.size() + "): " + broken);
+            List<String> broken = new ArrayList<>();
+            for (var e : yielders.entrySet()) {
+                if (e.getValue().size() > 1) {
+                    broken.add(BuiltInRegistries.ITEM.getKey(e.getKey()) + " is the guaranteed result "
+                        + "of " + e.getValue().size() + " different teardowns " + e.getValue()
+                        + ". A signature part should belong to one object, or taking things apart "
+                        + "stops telling you anything about what they were");
+                }
+            }
+            helper.assertTrue(broken.isEmpty(), String.join("; ", broken));
+
+            // And the tie must exist at all: if nothing yields a component deterministically, this
+            // guard is watching an empty set and would pass forever.
+            helper.assertTrue(!yielders.isEmpty(),
+                "no teardown has a guaranteed result, so nothing yields function and this guard is "
+                    + "vacuous");
             helper.succeed();
         });
 
-        /*
-         * Every blueprint the mod ships must be nameable, buildable and learnable. Each half of this has
-         * already failed here once: the schema's example recipe taught a blueprint that did not exist
-         * (dangling teaches), and the JEI panels shipped lang keys nothing ever asked for. A blueprint
-         * missing its lang key renders the raw key to the player, which is silent in exactly the same
-         * way.
-         */
         RCGameTests.test("every_shipped_blueprint_has_a_name_a_recipe_and_a_route", 20, helper -> {
             List<String> broken = new ArrayList<>();
 

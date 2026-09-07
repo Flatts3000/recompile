@@ -1,24 +1,45 @@
 {
   "type": "recompile:teardown",
+  "_comment": [
+    "THE MOTOR. P1.4's own worked example: in an infinite dump materials are worthless and function is precious, and there is no infinite supply of working motors.",
+    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge. The pools below are unchanged - a teardown is never a total loss once you already have the part."
+  ],
   "input": "recompile:washing_machine",
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 120,
+  "results": [
+    {
+      "item": "recompile:motor",
+      "count": 1
+    }
+  ],
   "pools": [
     {
-      "_comment": "The component, and the knowledge follows it. A single-entry teaching pool behaves exactly as the old results+teaches pair did - stated in the new form so every appliance reads the same way.",
+      "_comment": [
+        "A SECOND COMPONENT as a bonus draw, gated behind four scraps. A washer really does hold a",
+        "motor and a pump; the motor is the signature and comes out every time, the pump is the",
+        "reward for a thorough job."
+      ],
       "rolls": 1,
-      "teaches": true,
       "scraps_required": 4,
       "entries": [
-        { "item": "recompile:pump" }
+        {
+          "item": "recompile:pump"
+        }
       ]
     },
     {
       "rolls": 5,
       "entries": [
-        { "item": "recompile:scrap_metal", "weight": 3 },
-        { "item": "recompile:plastic_scrap", "weight": 2 }
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 3
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 2
+        }
       ]
     }
   ]

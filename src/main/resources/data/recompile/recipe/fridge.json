@@ -1,17 +1,36 @@
 {
   "type": "recompile:teardown",
+  "_comment": [
+    "THE COILS. A fridge's refrigerant loop is copper pipe, so it yields the part it is actually made of rather than a second motor.",
+    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge. The pools below are unchanged - a teardown is never a total loss once you already have the part."
+  ],
   "input": "recompile:fridge",
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 160,
+  "results": [
+    {
+      "item": "recompile:copper_pipe",
+      "count": 2
+    }
+  ],
   "pools": [
     {
       "_comment": "Scrap roll. A fridge is mostly sheet steel and moulded plastic, with the control board's electronics rarer.",
       "rolls": 8,
       "entries": [
-        { "item": "recompile:scrap_metal", "weight": 5 },
-        { "item": "recompile:plastic_scrap", "weight": 4 },
-        { "item": "recompile:e_scrap", "weight": 1 }
+        {
+          "item": "recompile:scrap_metal",
+          "weight": 5
+        },
+        {
+          "item": "recompile:plastic_scrap",
+          "weight": 4
+        },
+        {
+          "item": "recompile:e_scrap",
+          "weight": 1
+        }
       ]
     },
     {
@@ -35,27 +54,41 @@
       ],
       "rolls": 1,
       "entries": [
-        { "item": "minecraft:snowball", "weight": 3 },
-        { "item": "minecraft:ice", "weight": 1 }
+        {
+          "item": "minecraft:snowball",
+          "weight": 3
+        },
+        {
+          "item": "minecraft:ice",
+          "weight": 1
+        }
       ]
     },
     {
       "_comment": [
-        "Component roll, and the knowledge follows it. A fridge holds a compressor motor, a",
-        "refrigerant pump and an interior bulb, so which one you recover is a lottery - and whichever",
-        "comes out is the one you learn.",
+        "COMPONENT LOTTERY. A fridge holds a compressor motor, a refrigerant pump and an interior bulb,",
+        "so which one you recover is a draw. It is a bonus on top of the copper pipe at the top level,",
+        "gated behind four scraps.",
         "",
         "NO FILLER ENTRY, deliberately. You always get exactly one component; what you never get is to",
         "choose which. That is what keeps a_component_teardown_always_yields_a_component true after the",
         "owner's 2026-08-12 ruling that the lottery overrides the old one-object-one-component rule."
       ],
       "rolls": 1,
-      "teaches": true,
       "scraps_required": 4,
       "entries": [
-        { "item": "recompile:motor", "weight": 1 },
-        { "item": "recompile:pump", "weight": 1 },
-        { "item": "recompile:bulb", "weight": 1 }
+        {
+          "item": "recompile:motor",
+          "weight": 1
+        },
+        {
+          "item": "recompile:pump",
+          "weight": 1
+        },
+        {
+          "item": "recompile:bulb",
+          "weight": 1
+        }
       ]
     }
   ]

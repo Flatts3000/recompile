@@ -424,8 +424,8 @@ public final class RCItems {
     // one it is lives in a data component. CLEAN_MATTRESS is the proof of concept's payoff and is
     // deliberately craftable by nothing - the only route to it is the blueprint bench, which is what
     // blueprint_crafting_is_the_only_route_to_a_clean_mattress asserts.
-    public static final DeferredItem<com.flatts.recompile.content.item.IdeaFragmentItem> IDEA_FRAGMENT =
-        ITEMS.registerItem("idea_fragment", com.flatts.recompile.content.item.IdeaFragmentItem::new);
+    public static final DeferredItem<com.flatts.recompile.content.item.SpawnEggFragmentItem> SPAWN_EGG_FRAGMENT =
+        ITEMS.registerItem("spawn_egg_fragment", com.flatts.recompile.content.item.SpawnEggFragmentItem::new);
 
     public static final DeferredItem<com.flatts.recompile.content.item.BlueprintItem> BLUEPRINT =
         ITEMS.registerItem("blueprint", com.flatts.recompile.content.item.BlueprintItem::new);

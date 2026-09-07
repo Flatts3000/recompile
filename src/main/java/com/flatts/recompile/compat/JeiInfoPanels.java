@@ -73,7 +73,7 @@ public final class JeiInfoPanels {
 
             // The blueprint mechanic: three items, and no recipe expresses any of it.
             new Panel(RCItems.BLUEPRINT.get(), "blueprint"),
-            new Panel(RCItems.IDEA_FRAGMENT.get(), "idea_fragment"),
+            new Panel(RCItems.SPAWN_EGG_FRAGMENT.get(), "spawn_egg_fragment"),
             new Panel(RCItems.FILING_CABINET.get(), "filing_cabinet"),
             new Panel(RCItems.cleanMattress(DyeColor.WHITE), "clean_mattress"),
 

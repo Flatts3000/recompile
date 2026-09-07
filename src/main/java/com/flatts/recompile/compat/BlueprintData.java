@@ -135,7 +135,7 @@ public final class BlueprintData {
     }
 
     /**
-     * How many Idea Fragments make this blueprint, from whichever bundled teardown teaches it.
+     * How many Spawn Egg Fragments make this blueprint, from whichever bundled teardown teaches it.
      *
      * <p>Read from files so it is answerable <b>on the client, at any time</b> - the item tooltip needs
      * it, and a tooltip cannot reach the server's recipe manager. It is the same number

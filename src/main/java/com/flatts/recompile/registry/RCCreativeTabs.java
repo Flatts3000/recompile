@@ -149,8 +149,8 @@ public final class RCCreativeTabs {
 
                     // --- 7. Knowledge (#95): fragments, the sheets they become, what they unlock ---
                     com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
-                        output.accept(com.flatts.recompile.content.item.IdeaFragmentItem.of(
-                            RCItems.IDEA_FRAGMENT.get(), set, 1)));
+                        output.accept(com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                            RCItems.SPAWN_EGG_FRAGMENT.get(), set, 1)));
                     com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
                         output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
                             RCItems.BLUEPRINT.get(), set)));

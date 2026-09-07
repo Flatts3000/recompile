@@ -1,19 +1,27 @@
 {
   "type": "recompile:teardown",
+  "_comment": [
+    "THE PANEL. The Hauler idles on sunlight, so the panel is the part that defines it.",
+    "TEACHES NOTHING (#390). Teardown yields FUNCTION now, not knowledge; the market is the only source of tier knowledge. The pools below are unchanged - a teardown is never a total loss once you already have the part."
+  ],
   "input": "recompile:broken_hauler",
   "station": "recompile:workbench",
   "tool": "recompile:prybar",
   "ticks": 120,
+  "results": [
+    {
+      "item": "recompile:solar_panel",
+      "count": 1
+    }
+  ],
   "pools": [
     {
       "_comment": [
         "A dead Scrap Hauler, found in Bulky Waste: the hull, the board, the tread rubber. Four",
         "draws, no filler, so a teardown always hands something back.",
         "",
-        "NO COMPONENT IN THIS POOL, the Broken Terminal's rule: the thing that yields a component is",
-        "meant to be the thing that teaches it (ComponentBlueprintTests), and this teaches the two",
-        "machine sheets instead - declared at the top level so the fragments are granted without the",
-        "pool having to draw the thing they teach. ONE FIND, TWO SHEETS, exactly as broken_terminal."
+        "NO COMPONENT IN THIS POOL. The Solar Panel is the signature result at the top level and",
+        "comes out every time; a component that also appeared here would arrive twice from one find."
       ],
       "rolls": 4,
       "entries": [
@@ -34,18 +42,6 @@
           "weight": 1
         }
       ]
-    }
-  ],
-  "teaches": [
-    {
-      "recipe": "recompile:scrap_hauler",
-      "chance": 1.0,
-      "scraps_required": 4
-    },
-    {
-      "recipe": "recompile:hauler_depot",
-      "chance": 1.0,
-      "scraps_required": 4
     }
   ]
 }

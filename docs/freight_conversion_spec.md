@@ -149,7 +149,13 @@ teardown stops teaching them, or the items become unreachable and `FoundNotCraft
 ### Step 4 - Teardown becomes function
 
 - Strip `teaches` from those nine recipes; give each component outputs instead (`results`/`extras`).
-- Delete the Idea Fragment item, the `recompile:fragment_assembly` recipe type and its one recipe.
+- ~~Delete the Idea Fragment item, the `recompile:fragment_assembly` recipe type and its one
+  recipe.~~ **WRONG, corrected during step 4.** The Sequencer *makes* those fragments and spawn-egg
+  Blueprints are four of them, so deleting the item would have broken the exception ruled sanctioned
+  in the same pass. What actually dies is teardown GRANTING them - the Workbench's `teach` and
+  `grantFragment` are gone. The item survives, **renamed to Spawn Egg Fragment** (owner's suggestion),
+  because a thing that only ever comes from amber and only ever makes a creature Blueprint should not
+  be called an Idea Fragment.
 - Update `every_shipped_blueprint_has_a_name_a_recipe_and_a_route` for the new single route.
 - Blueprints, the Filing Cabinet and the Scrap Crafting Table are untouched: you still hold sheets and
   still craft from them, they just come from a counter now.
