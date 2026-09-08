@@ -1,6 +1,7 @@
 package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.content.block.LeachateBlock;
+import com.flatts.recompile.content.block.TailingsSlurryBlock;
 import com.flatts.recompile.content.block.entity.HaulerDepotBlockEntity;
 import com.flatts.recompile.content.entity.ScrapHaulerEntity;
 import com.flatts.recompile.content.entity.VacuumedBlockEntity;
@@ -697,7 +698,15 @@ public final class ScrapHaulerTests {
                 "the Hauler took damage: " + before + " -> " + hauler.getHealth());
             helper.assertTrue(!LeachateBlock.sicken(level, hauler),
                 "leachate sickened the Hauler - a mob effect ignores invulnerability, so this needs its exemption");
+            // BOTH LIQUIDS, because the exemption is per-fluid and was copied rather than shared. The
+            // slurry's is the one that matters more: it adds Poison, which unlike Hunger has no floor
+            // for a non-player, so a Hauler that lost this exemption would be killed by a pond it was
+            // standing in - by an effect, which is the one thing its invulnerability cannot stop.
+            helper.assertTrue(!TailingsSlurryBlock.sicken(level, hauler),
+                "tailings slurry sickened the Hauler - same trap as leachate above, and worse, because "
+                    + "Poison damages and a mob effect ignores invulnerability");
             helper.assertTrue(!hauler.hasEffect(MobEffects.HUNGER), "the Hauler carries the leachate effect");
+            helper.assertTrue(!hauler.hasEffect(MobEffects.POISON), "the Hauler carries the slurry effect");
             helper.assertTrue(!hauler.canBeLeashed(), "the Hauler can be leashed");
             helper.assertTrue(!hauler.removeWhenFarAway(1_000_000), "the Hauler would despawn");
             helper.succeed();

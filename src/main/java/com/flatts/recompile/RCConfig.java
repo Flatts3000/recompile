@@ -19,6 +19,19 @@ public final class RCConfig {
     public static final ModConfigSpec.BooleanValue LEACHATE_SICKENS;
     public static final ModConfigSpec.BooleanValue LEACHATE_DROWNS;
     public static final ModConfigSpec.IntValue LEACHATE_SICKNESS_TICKS;
+
+    /**
+     * The tailings slurry's hazard (#423). Its own keys rather than leachate's, because the whole
+     * point of the second fluid is that it is WORSE - Poison on top of Hunger - and a pack that wants
+     * to soften one should not have to soften both.
+     *
+     * <p>Drowning is the exception and is deliberately still {@code LEACHATE_DROWNS}: it is one
+     * behaviour shared by both liquids, and a world where you can breathe under one and not the other
+     * is a distinction no player could learn.
+     */
+    public static final ModConfigSpec.BooleanValue TAILINGS_SLURRY_SICKENS;
+    public static final ModConfigSpec.IntValue TAILINGS_SLURRY_SICKNESS_TICKS;
+    public static final ModConfigSpec.IntValue TAILINGS_SLURRY_POISON_TICKS;
     public static final ModConfigSpec.BooleanValue GARBAGE_GRAVITY_ENABLED;
     public static final ModConfigSpec.BooleanValue ROACHES_ENABLED;
     public static final ModConfigSpec.BooleanValue ANALYTICS_ENABLED;
@@ -151,6 +164,27 @@ public final class RCConfig {
                 "so this is the cost of leaving rather than a total.",
                 "First-pass number; joins the pre-beta balance pass with every other placeholder.")
             .defineInRange("leachateSicknessTicks", 100, 20, 1200);
+
+        TAILINGS_SLURRY_SICKENS = builder
+            .comment("Whether standing in tailings slurry gives Hunger AND Poison.",
+                "The slurry is deliberately WORSE than leachate (owner, 2026-09-08), and that",
+                "reverses the 2026-08-05 hazard ruling of 'ill, and deliberately nothing worse'.",
+                "The reversal is bounded: Poison cannot take a player below half a heart, so a",
+                "decant pond still cannot kill you. It CAN kill a mob, which leachate never did.",
+                "Off leaves the pond as a liquid you simply cannot use, which is leachate's",
+                "original shape.")
+            .define("tailingsSlurrySickens", true);
+        TAILINGS_SLURRY_SICKNESS_TICKS = builder
+            .comment("How long the slurry's Hunger lasts, in ticks. Refreshed while you stand in it.",
+                "First-pass number; joins the pre-beta balance pass with every other placeholder.")
+            .defineInRange("tailingsSlurrySicknessTicks", 200, 1, 24000);
+        TAILINGS_SLURRY_POISON_TICKS = builder
+            .comment("How long the slurry's Poison lasts, in ticks. Refreshed rather than stacked,",
+                "which matters more here than for the Hunger: banking duration would turn a long",
+                "wade into damage that lands after you have climbed out, which is a delayed",
+                "execution rather than a hazard.",
+                "First-pass number; joins the pre-beta balance pass with every other placeholder.")
+            .defineInRange("tailingsSlurryPoisonTicks", 100, 1, 24000);
         GARBAGE_GRAVITY_ENABLED = builder
             .comment("Whether Blocks of Garbage obey gravity (slump when quarried, deorbit on regrowth).")
             .define("garbageGravityEnabled", true);

@@ -323,16 +323,28 @@ the opposite, that sewer water made it a second instance of an existing route. B
 - **Sewer water is not the precedent.** No sewer code places `Blocks.WATER` at all. The checklist's
   "fill a bucket from sewer water" is a hand-declared `INTERACT` line in `reachability.py`, and it is
   the same shape of unverified claim as the `large_fern` premise that #344 had to correct.
-- **The real precedent is the tailings decant pond**, which `TailingsHeapFeature` fills with plain
-  vanilla water, in the radioactive dump. So free infinite water already exists in this world.
-- **Volume is not a dial, so "keep it small" is not a mitigation.** Two source blocks regenerate each
-  other forever. A two-block tank and a room-sized reservoir are the same infinite tap, and any
-  argument that reaches for a counted number of blocks is answering the wrong question.
+- ~~**The real precedent is the tailings decant pond**, which `TailingsHeapFeature` fills with plain
+  vanilla water.~~ **CORRECTED 2026-09-08 (#423): it does not any more.** The pond is
+  `recompile:tailings_slurry`, a fluid of its own that is not water, will not fill a Rain Collector
+  and will not water a crop. So this precedent is gone and the aquarium's tank does not have one.
+- ~~**Volume is not a dial. Two source blocks regenerate each other forever.**~~ **CORRECTED: not in
+  this world, and this was already false when it was written.** `RCWaterEconomy` turns
+  `water_source_conversion` OFF in every garbage world (#101, the whole point being that the Rain
+  Collector must not become scenery), so source blocks do NOT breed. A pond or a tank is a finite
+  cache of bucketable blocks. **Volume is therefore exactly the dial this said it was not**, unless a
+  pack turns `disableInfiniteWater` off, in which case both this bullet and the one above come back.
 
-**The one dial that is real is distance.** The demolition yard has onset 512 and the radioactive dump
-1024, so putting water in this building does not create free water, it moves the existing free water
-**twice as close**. That is the decision to make knowingly, and it is an economy call rather than a set
-dressing one. Section 8.6 lists the way out if it is judged too cheap.
+**So the third bullet's conclusion has to be re-read, and it lands somewhere easier.** With both
+premises gone, the aquarium's guardian tank is not an infinite tap moved from onset 1024 to onset 512 -
+it is a FINITE quantity of water, placed once by a structure, at onset 512. That is a smaller thing
+than this section was written to weigh, and it is a relaxation rather than a new risk, so nothing needs
+doing about it today. **It does want the owner's eye before it is treated as settled**, because the
+decision recorded here was taken against an argument that no longer holds. Section 8.6 still lists the
+way out if it is judged too cheap.
+
+*(Two false premises, arrived at separately: one by a change made four releases later, one wrong on the
+day it was written. The pattern worth keeping is that this section states its premises as bullets,
+which is the only reason either was findable.)*
 
 The smokestack lesson applies to both spawners: give them a spawn range wide enough that mobs appear
 around a player walking past rather than staying sealed in a tank until somebody breaks the glass. A

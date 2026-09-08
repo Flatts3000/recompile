@@ -268,7 +268,7 @@ final class ScatterFeatureTests {
                         BlockState state = level.getBlockState(origin.offset(dx, dy, dz));
                         if (state.is(RCBlocks.MILL_TAILINGS.get())) {
                             top = dy;
-                        } else if (state.is(Blocks.WATER)) {
+                        } else if (state.is(RCBlocks.TAILINGS_SLURRY.get())) {
                             pondLevels.add(dy);
                         }
                     }
@@ -828,7 +828,7 @@ final class ScatterFeatureTests {
                         BlockState state = level.getBlockState(origin.offset(dx, dy, dz));
                         if (state.is(RCBlocks.MILL_TAILINGS.get())) {
                             tailings++;
-                        } else if (state.is(Blocks.WATER)) {
+                        } else if (state.is(RCBlocks.TAILINGS_SLURRY.get())) {
                             waterAt = dy;
                         }
                     }

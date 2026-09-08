@@ -66,6 +66,23 @@ public final class RCItems {
     );
 
     /**
+     * Tailings Slurry Bucket (#423). The same shape as the leachate bucket, and it costs almost
+     * nothing to have: a bucket needs no art, because {@code neoforge:fluid_container} composites the
+     * vanilla bucket sprite with a mask that takes the FLUID's tint, so this comes out turquoise for
+     * free.
+     *
+     * <p><b>It is also the only way to drain a pond</b>, which matters more here than it does for
+     * leachate. The slurry is a hazard - Poison on top of Hunger - so without a bucket the plateau of
+     * every impoundment is permanently dangerous with no counterplay. With one, clearing it is a
+     * choice. And because the memory block never claims the pond's cell, a drained pond stays drained.
+     */
+    public static final DeferredItem<BucketItem> TAILINGS_SLURRY_BUCKET = ITEMS.registerItem(
+        "tailings_slurry_bucket",
+        props -> new BucketItem(RCFluids.TAILINGS_SLURRY.get(), props),
+        () -> new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)
+    );
+
+    /**
      * Bulb: the first CRAFTING component (owner, 2026-08-06), as opposed to the placeable ones.
      * Found in household sorting, and spent as an ingredient rather than stacked into a structure -
      * the Hydroponics Bay needs one, because a bay under a mound has no other light.

@@ -54,7 +54,9 @@ final class RegistryCompletenessTests {
         "wall_scrap_torch",
         // A liquid. Breaking it yields nothing anywhere in the game, which is why its Properties
         // say noLootTable() - a JSON here would be a table that can never roll.
-        "leachate"
+        "leachate",
+        // The other liquid, same reason (#423).
+        "tailings_slurry"
     );
 
     /**
@@ -68,6 +70,8 @@ final class RegistryCompletenessTests {
         // The leachate fluid's in-world block. Its "item" is the bucket, which is a BucketItem
         // registered against the fluid rather than a BlockItem, so there is no block-item to find.
         "leachate",
+        // The tailings slurry's in-world block, same reason (#423).
+        "tailings_slurry",
         // Formed-only cells: what a Pump and a Copper Pipe BECOME inside an assembled Grass
         // Spreader. They are never held - disband returns the component you placed, not these.
         "grass_spreader_frame",

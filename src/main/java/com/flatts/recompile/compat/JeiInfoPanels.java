@@ -57,6 +57,7 @@ public final class JeiInfoPanels {
             new Panel(RCItems.RUBBER_SCRAP.get(), "rubber_scrap"),
             new Panel(RCItems.TIRE.get(), "tire"),
             new Panel(RCItems.LEACHATE_BUCKET.get(), "leachate_bucket"),
+            new Panel(RCItems.TAILINGS_SLURRY_BUCKET.get(), "tailings_slurry_bucket"),
 
             // Machines whose restriction or behaviour no recipe states.
             new Panel(RCItems.BURN_BARREL.get(), "burn_barrel"),

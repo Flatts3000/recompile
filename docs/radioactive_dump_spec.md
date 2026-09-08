@@ -162,7 +162,8 @@ perched on), a single sharp step for a side, and - at radius 2-3 - a literal plu
 silhouette.
 
 The reference is Moab and Church Rock: **one enormous engineered pile**, roughly 1:12 across to high,
-flat on top, with a pale turquoise decant pond and a barren stained ring. The flat top was never the
+flat on top, with a pale turquoise decant pond and a barren stained ring. The pond is Tailings
+Slurry, a fluid of this region's own since #423. The flat top was never the
 problem; the scale was.
 
 So: radius 9-12, height 3-4, a skirt whose width is derived from the height at the angle of repose, a
@@ -174,9 +175,16 @@ decant pond cut one block into the plateau.
 so a feature may only write 16 blocks from its origin in the worst case. The longest lobe plus the
 stain ring is `12 * 1.21 + 1 = 15.5`. A draft of this rewrite used radius 16 with drums thrown to 23;
 every block past the limit is silently rejected and logged at ERROR, and the pile comes out sheared
-flat along a chunk line. The pond is plain water tinted by the biome's
-`water_color` - deliberately **not** the mod's Leachate block, which is rain drained through refuse and
-sprawl-only by the 2026-08-05 ruling.
+flat along a chunk line. **The pond is `recompile:tailings_slurry`** since #423, and it is neither
+water nor leachate. It was plain water tinted by the biome's `water_color` until 2026-09-08; the
+turquoise moved into the fluid's own tint, because a custom fluid does not read that key. Leachate is
+still **not** it and that half of the 2026-08-05 ruling stands - leachate is rain drained through
+refuse, which is why it is sprawl-only - what was reversed is only the conclusion that the pond is
+therefore water.
+
+`water_color` is still in the biome file, at the pond's old colour, and it is **vestigial rather than
+load-bearing**: `BiomeSpecialEffects` has it as a required field, so deleting it fails the biome to
+load outright with *"No key water_color in MapLike"*. Measured, not assumed - it was deleted first.
 
 **The pond was the trap.** At the first radius and height ranges the skirt ate almost the whole
 footprint, so only 26% of piles had a plateau big enough to hold one - and nothing failed, because a
@@ -304,7 +312,7 @@ rather than stacked. Two reasons recorded with it, and **both still bind**:
 - **The effect is the SECOND penalty, not the first.** The real cost of leachate is that it is water
   you cannot use.
 
-**The exception (owner, 2026-09-08, RULED BUT NOT YET SHIPPED - tracked at #423).** The decant pond
+**The exception (owner, 2026-09-08, SHIPPED in #423).** The decant pond
 stops being water and becomes a **tailings slurry fluid of its own**, neither water nor leachate, and
 **it is worse than leachate: Poison on top of Hunger.**
 

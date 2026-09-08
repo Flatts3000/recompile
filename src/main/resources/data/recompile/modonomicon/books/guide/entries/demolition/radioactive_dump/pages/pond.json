@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "pond",
+  "sort_number": 2,
+  "show_title_separator": true,
+  "title": "book.recompile.guide.demolition.radioactive_dump.pond.title",
+  "text": "book.recompile.guide.demolition.radioactive_dump.pond.text"
+}

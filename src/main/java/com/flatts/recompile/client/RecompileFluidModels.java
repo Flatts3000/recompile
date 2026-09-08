@@ -34,6 +34,28 @@ public final class RecompileFluidModels {
     private static final Identifier STILL = Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "block/leachate_still");
     private static final Identifier FLOW = Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "block/leachate_flow");
 
+    /**
+     * The tailings slurry borrows VANILLA's water sprites and tints them (#423), where leachate ships
+     * its own. That is a real decision and not laziness, on three counts.
+     *
+     * <p><b>Vanilla's water sprite is greyscale BY DESIGN</b>, because vanilla tints it per biome. It
+     * is the one texture in the game built to be recoloured, so recolouring it is using it as
+     * intended rather than working around it.
+     *
+     * <p><b>A fluid sprite is a 32-frame vertical strip</b> - leachate's still is 16x512 and its flow
+     * 32x1024 - and texgen's finalize resizes a texture to a square and quantizes it, which would
+     * flatten a strip into a single frame. That is why leachate's own sprites are the only block
+     * textures in this repo with no texgen surface, and generating two more outside the pipeline
+     * would have doubled a gap rather than closed it.
+     *
+     * <p><b>And the tint is where the region's colour has to live anyway.</b> The dump's turquoise
+     * used to come from the biome's {@code water_color}, which a custom fluid does not read - keeping
+     * the pond turquoise IS the reason it is a separate fluid rather than reused leachate - so the
+     * colour has to be carried here. Doing it with a sprite as well would be two places for one
+     * colour to disagree with itself.
+     */
+    private static final int SLURRY_TINT = 0xFF4E8C80;
+
     private RecompileFluidModels() {
     }
 
@@ -50,6 +72,15 @@ public final class RecompileFluidModels {
 
         // Both halves share one model, so a flowing edge cannot drift from the pool it came out of.
         event.register(model, RCFluids.LEACHATE, RCFluids.LEACHATE_FLOWING);
+
+        // The tailings slurry: vanilla's greyscale water sprites, recoloured to the turquoise the
+        // radioactive dump used to get from its biome's water_color. See SLURRY_TINT.
+        FluidModel.Unbaked slurry = new FluidModel.Unbaked(
+            material(Identifier.withDefaultNamespace("block/water_still")),
+            material(Identifier.withDefaultNamespace("block/water_flow")),
+            null,
+            FluidTintSources.constant(SLURRY_TINT));
+        event.register(slurry, RCFluids.TAILINGS_SLURRY, RCFluids.TAILINGS_SLURRY_FLOWING);
     }
 
     /**

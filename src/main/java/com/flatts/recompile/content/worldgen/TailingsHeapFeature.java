@@ -41,10 +41,13 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  *       {@link #SLOPE}.
  *   <li><b>A decant pond.</b> Tailings are pumped in as a slurry and the process water pools on top.
  *       Cut one block below the plateau, so the rim stands above it on every side - which is both what
- *       makes it read as a basin and why it cannot flow. It is plain water: the colour is the biome's
- *       {@code water_color}, which is what makes it read as process water rather than as a lake.
- *       Deliberately NOT the mod's Leachate block - leachate is rain drained through refuse, which is
- *       why it is sprawl-only (owner, 2026-08-05).
+ *       makes it read as a basin and why it cannot flow. It is <b>Tailings Slurry</b>, a fluid of this
+ *       region's own (#423, owner 2026-09-08). It is deliberately NOT leachate - that is rain drained
+ *       through refuse and stays sprawl-only by the 2026-08-05 ruling - and it is no longer plain
+ *       water either, which is the half of that ruling being reversed. The turquoise moved with it:
+ *       it used to come from the biome's {@code water_color} and now comes from the fluid's own tint,
+ *       so the two colour settings cannot disagree. It is also a hazard, Poison on top of Hunger, so
+ *       the plateau costs something to cross.
  *   <li><b>Drums at the toe, in clusters.</b> Nobody carries a drum to the summit. They are dumped at
  *       the bottom and left, so they cluster, and ones that landed on the skirt end up half sunk in
  *       it.
@@ -136,7 +139,7 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
 
         BlockState tailings = RCBlocks.MILL_TAILINGS.get().defaultBlockState();
         BlockState stain = RCBlocks.STAINED_GROUND.get().defaultBlockState();
-        BlockState water = Blocks.WATER.defaultBlockState();
+        BlockState pondFluid = RCBlocks.TAILINGS_SLURRY.get().defaultBlockState();
 
         // The pond is levelled off the ORIGIN's ground rather than each column's, so it comes out flat
         // even where the pile is following uneven terrain. A column standing on different ground gets
@@ -209,7 +212,7 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
                     BlockPos pos = new BlockPos(
                         origin.getX() + dx, base + column - 1, origin.getZ() + dz);
                     if (level.getBlockState(pos).isAir()) {
-                        level.setBlock(pos, water, 2);
+                        level.setBlock(pos, pondFluid, 2);
                     }
                 }
             }

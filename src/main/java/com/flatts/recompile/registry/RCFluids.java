@@ -110,6 +110,67 @@ public final class RCFluids {
             .explosionResistance(100.0F);
     }
 
+    /**
+     * Tailings slurry: the decant pond on a radioactive-dump impoundment (#423, P1.10-R).
+     *
+     * <p><b>A second fluid rather than reusing leachate, and that is a ruling rather than a
+     * preference</b> (owner, 2026-09-08). Leachate means rain drained through refuse, which is why it
+     * was ruled sprawl-only on 2026-08-05; tailings decant water is process water pumped up with the
+     * slurry and left to settle. Stretching one fluid over both would have made the definition mean
+     * nothing, and the pond would have gone brown - which matters, because the biome's turquoise
+     * exists for this pond and nothing else.
+     *
+     * <p><b>The pond was plain water until now, and that is the half being reversed.</b> The rest of
+     * the 2026-08-05 ruling stands untouched: leachate is still sprawl-only, and it is still the only
+     * thing this world calls leachate.
+     *
+     * <p><b>It is worse than leachate: Poison on top of Hunger</b> (owner, 2026-09-08). That reverses
+     * a recorded decision - {@code docs/radioactive_dump_spec.md} section 7 spelled the hazard rule
+     * out as no damage, no Poison, no Wither, cannot kill - and the reversal is BOUNDED: Poison cannot
+     * kill a player on its own, so only the Poison clause falls. See {@code RCLeachateContact}, which
+     * applies both fluids' effects, and the spec section, which now records the rule and its
+     * exception together.
+     *
+     * <p><b>Physically it copies leachate exactly</b> (owner: "copy leachate"). Same density,
+     * viscosity, spread and tick rate - the basin's rim confines the pond either way, so a bespoke set
+     * of numbers would have bought nothing and given the two fluids one more axis to drift on. The two
+     * omissions leachate makes are load-bearing and are repeated here for the same reasons: <b>no
+     * {@code canHydrate}</b>, or every farm plot within four blocks of a pond gets permanent free
+     * encroachment immunity; and <b>no fluid tag</b>, or it fills a Rain Collector and becomes a water
+     * source in a world whose whole water economy says the Rain Collector is the only one.
+     */
+    public static final Supplier<FluidType> TAILINGS_SLURRY_TYPE = FLUID_TYPES.register(
+        "tailings_slurry",
+        () -> new FluidType(FluidType.Properties.create()
+            .descriptionId("fluid.recompile.tailings_slurry")
+            .density(1400)
+            .viscosity(6000)
+            .temperature(300)
+            .canSwim(true)
+            .canDrown(true)
+            .canPushEntity(true)
+            .canExtinguish(true)
+            .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
+            .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY)));
+
+    public static final Supplier<BaseFlowingFluid.Source> TAILINGS_SLURRY =
+        FLUIDS.register("tailings_slurry", () -> new BaseFlowingFluid.Source(slurryProperties()));
+
+    public static final Supplier<BaseFlowingFluid.Flowing> TAILINGS_SLURRY_FLOWING =
+        FLUIDS.register("flowing_tailings_slurry",
+            () -> new BaseFlowingFluid.Flowing(slurryProperties()));
+
+    private static BaseFlowingFluid.Properties slurryProperties() {
+        return new BaseFlowingFluid.Properties(
+                TAILINGS_SLURRY_TYPE, TAILINGS_SLURRY, TAILINGS_SLURRY_FLOWING)
+            .block(RCBlocks.TAILINGS_SLURRY)
+            .bucket(RCItems.TAILINGS_SLURRY_BUCKET)
+            .slopeFindDistance(2)
+            .levelDecreasePerBlock(2)
+            .tickRate(15)
+            .explosionResistance(100.0F);
+    }
+
     private RCFluids() {
         // utility class
     }
