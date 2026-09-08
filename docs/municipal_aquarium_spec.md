@@ -520,8 +520,13 @@ On the "it is a building" argument. Section 2 stands as written.
    only "no new item" is retired.)*
    **The two routes deliberately fail in opposite ways, which is what makes the pair worth having.**
    The guardian is renewable but destructible - bucket the tank dry and the drop route dies with it.
-   Tailings cannot be destroyed but heaps do not regrow, so that route is large and finite. Belt and
-   braces means two routes with different failure modes rather than two of the same one. It also lands
+   Tailings cannot be destroyed, which is the opposite failure and the whole point of the pair.
+   *(This read "heaps do not regrow, so that route is large and finite" until 2026-09-08, when P1.6-R
+   made tailings regrow. The pairing SURVIVES and its argument is unchanged - one route is destructible
+   and the other is not - but the tailings half is now renewable rather than merely large, so it is
+   strictly the safer of the two instead of the bigger one. Nothing here needs rebalancing; the reason
+   this note exists rather than a silent edit is that "large and finite" was load-bearing for the
+   belt-and-braces argument and a reader would otherwise wonder whether the argument still holds.)* It also lands
    the machine at onset 1024 against the guardian's 512, so the tank stays the early route and the
    Separator is the late scale-up.
 2. **DECIDED: the building carries a loot chest** (owner, 2026-09-03) and 5.1 records its contents in

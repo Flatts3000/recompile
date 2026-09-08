@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.worldgen;
 
+import com.flatts.recompile.content.block.StainedGroundBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -170,9 +171,19 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
                 // origin pushed up onto that pile, and its whole stain disc then converts the
                 // neighbour's MILL TAILINGS into dressing. That turns the region's only uranium block
                 // into a block with no loot at all. Caught in review of #286.
+                //
+                // AND IT ONLY EVER PAINTS COARSE DIRT, which used to be "coarse dirt OR stain" and was
+                // harmless for exactly as long as stain carried no state. Since P1.6-R it does: the
+                // dressing state above is height 0, so repainting a cell an EARLIER impoundment
+                // remembered wiped that memory. Inside the new pile's footprint writeBed then read the
+                // zero, so "take the taller" was defeated and the later pile always won; out in the
+                // stain RING writeBed is never reached at all, so the neighbour's column was left
+                // inert with its tailings still standing and the pile looking perfectly intact.
+                // Repainting stain with stain was never the point - the guard is about what may NOT be
+                // painted - so the branch simply goes.
                 BlockPos groundPos = new BlockPos(origin.getX() + dx, ground, origin.getZ() + dz);
                 BlockState under = level.getBlockState(groundPos);
-                if (under.is(Blocks.COARSE_DIRT) || under.is(RCBlocks.STAINED_GROUND.get())) {
+                if (under.is(Blocks.COARSE_DIRT)) {
                     level.setBlock(groundPos, stain, 2);
                 }
                 if (dist > edge) {
@@ -186,6 +197,7 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
                 // water cannot go anywhere: every neighbour at its own level is tailings.
                 boolean pond = pondRadius > 0 && dist <= pondRadius && base == originBase;
                 int solidTop = pond ? column - 2 : column;
+                writeBed(level, groundPos, solidTop);
                 for (int dy = 0; dy <= solidTop; dy++) {
                     BlockPos pos = new BlockPos(origin.getX() + dx, base + dy, origin.getZ() + dz);
                     if (level.getBlockState(pos).isAir()) {
@@ -207,6 +219,42 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
             scatterDrums(level, origin, random, radius, phaseA, phaseB);
         }
         return placedAny;
+    }
+
+    /**
+     * Remember this column, so Phase 5 regrowth can put the tailings back (P1.6-R).
+     *
+     * <p><b>The dump needed no new block for this.</b> The stain is already painted across the whole
+     * footprint including under the pile, so {@link StainedGroundBlock} was already sitting in every
+     * cell this wants - it gained the height property and a {@code randomTicks()} and became the
+     * memory. Cells in the ring past the toe keep height 0 and stay pure dressing, by exactly the
+     * rule that makes a hand-placed one inert.
+     *
+     * <p><b>It only ever writes into stain, which is the same guard the stain paint above makes.</b>
+     * A later pile whose origin was pushed up onto an earlier one stands on MILL TAILINGS rather than
+     * ground; the stain is not painted there and the memory must not be either, or it would punch a
+     * hole in a stack nobody has touched. Overlapping piles take the taller, as mounds do, so a rim
+     * column of 0 cannot flatten a tall neighbour's memory.
+     *
+     * <p><b>The pond is why this takes solidTop rather than the column height, and that one argument
+     * is the whole pond carve-out.</b> A pond column is cut one block below the plateau and holds
+     * water in the cell above its last tailings block. Regrowth stops at the remembered height and
+     * water is a REPLACEABLE block, so had this recorded the full column the pond would have been
+     * filled in one block at a time, silently, until the basin was gone. Recording the count of
+     * TAILINGS instead means the memory never claims that cell and regrowth needs no special case at
+     * all. It also means a player who drains the pond keeps it drained, which is the counterplay to
+     * it being a hazard.
+     */
+    private void writeBed(WorldGenLevel level, BlockPos pos, int solidTop) {
+        BlockState existing = level.getBlockState(pos);
+        if (!(existing.getBlock() instanceof StainedGroundBlock)) {
+            return;
+        }
+        int height = Math.min(solidTop + 1, 16);
+        if (existing.getValue(StainedGroundBlock.HEIGHT) >= height) {
+            return;
+        }
+        level.setBlock(pos, existing.setValue(StainedGroundBlock.HEIGHT, height), 2);
     }
 
     /** Whether a block offset from the origin is inside the window this feature may write to. */

@@ -3,6 +3,7 @@
   "values": [
     "minecraft:coarse_dirt",
     "minecraft:dirt",
-    "recompile:mound_ground"
+    "recompile:mound_ground",
+    "recompile:rubble_ground"
   ]
 }

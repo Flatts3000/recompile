@@ -2144,6 +2144,36 @@ style = "rubble"
 palette = ["#3a5a7a", "#2e4a66", "#d8a03a", "#7a5a42", "#4a6a8a", "#f0c060", "#26384c"]
 
 
+
+# Rubble Ground (P1.6-R): the demolition yard's memory block, the same job Mound Ground does one
+# region over. Retinted vanilla coarse dirt for the same reason - it IS the yard's coarse dirt with
+# the concrete dust of the place ground into it, so generating one blind would have invented a
+# material that merely sat next to the floor instead of being it.
+#
+# IT GOES THE OTHER WAY FROM MOUND GROUND, WHICH IS THE POINT OF THE PAIR. Vanilla coarse dirt is
+# mean luma 90.4; mound_ground lands at 66 because a garbage mound's bed is soaked and dark, and this
+# lands lighter and greyer because a demolition yard's is crushed stone. Two memory blocks that both
+# read as "something stood here" without either being mistakable for the other, and neither
+# mistakable for the plain coarse dirt between them.
+#
+# MEASURED OFF THE SHIPPED PNG, after promote: mean luma 111.9 and chroma 6.4, against vanilla coarse
+# dirt's 90.4 and mound_ground's 66.4 / 19.5. So it sits 21.5 above the floor it lies on and 45.5
+# above the other memory block, and it is markedly greyer than either - the three are separable in
+# both directions, which is the whole requirement. Zero pixels clip at 1.55; 1.75 was tried and read
+# washed out at luma 126.
+#
+# Calibrate any change against mound_ground and vanilla coarse dirt TOGETHER, and measure AFTER
+# promote - finalize quantizes to the pack's 16-colour cap, so a figure taken before it is a few
+# pixels short of what ships.
+[surface.rubble_ground]
+kind = "block"
+backend = "retint"
+size = 16
+source = "block/coarse_dirt"
+tint = "#c9c6bd"
+brightness = 1.55
+prompt = "vanilla coarse dirt, paler and greyer with concrete dust"
+
 # Mound Ground (Phase 5): the memory block under a mound's footprint. It IS coarse dirt with a
 # different name and a darker face, so the texture is vanilla coarse dirt retinted rather than a new
 # drawing - same grain, same read, unmistakably darker. Generating one blind would have invented a

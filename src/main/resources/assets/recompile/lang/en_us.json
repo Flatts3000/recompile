@@ -813,5 +813,6 @@
   "tooltip.recompile.vacuum_band.iron": "Handles: household, demolition",
   "tooltip.recompile.vacuum_band.netherite": "Handles: all waste, including the depths",
   "tooltip.recompile.vacuum_radius": "Intake radius: %s blocks",
-  "tooltip.recompile.water_stored": "%s / %s mB"
+  "tooltip.recompile.water_stored": "%s / %s mB",
+  "block.recompile.rubble_ground": "Rubble Ground"
 }

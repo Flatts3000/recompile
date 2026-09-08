@@ -40,7 +40,7 @@ public class LeachateBlock extends LiquidBlock {
 
     /**
      * Apply the pool's effect to one entity. The static entry point the GameTests drive, the same way
-     * {@code SortableBlock.sortOnce} and {@code MoundGroundBlock.regrowOnce} are.
+     * {@code SortableBlock.sortOnce} and {@code RegrowingGroundBlock.regrowOnce} are.
      *
      * <p><b>The block does not call this - {@code RCLeachateContact} does.</b> A {@code entityInside}
      * override was the first attempt and is never invoked for a fluid; see that class for why, and

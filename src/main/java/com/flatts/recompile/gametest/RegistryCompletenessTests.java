@@ -80,6 +80,10 @@ final class RegistryCompletenessTests {
         // so Phase 5 can grow it back. There is nothing to hold: digging one out forgets that column,
         // which is the same outcome as retiring it with grass and wants no second rule.
         "mound_ground",
+        // The same block one region over: the demolition yard's memory, under a rubble pile (P1.6-R).
+        // Same argument, and note the dump's memory is NOT here - Stained Ground was a material a
+        // builder could collect before regrowth reached it, and keeps its item for that reason.
+        "rubble_ground",
         // The sewer's manhole cover. It is structure-only and prybar-only: prying it leaves air, and
         // the reward is the shaft underneath rather than a plate to carry. Giving it an item would make
         // a decorative block out of the one thing that means "there is a sewer here".

@@ -23,10 +23,19 @@ import org.jspecify.annotations.Nullable;
  *
  * <p><b>It falls</b>, like every {@link SortableBlock}. Loose spoil is loose spoil.
  *
- * <p><b>It does not regrow</b> (owner, 2026-08-22), and that is consistent rather than exceptional:
- * {@code MoundGroundBlock} is written by {@code MoundFeature} alone, so the demolition yard's features
- * already write none of it. The sprawl regrows because you live in it; the frontier does not, because
- * you leave. A deposit is stripped once, and the noisy region gradient means there is always another.
+ * <p><b>It REGROWS, since 2026-09-08 (P1.6-R), and this paragraph used to say the opposite.</b> The
+ * 2026-08-22 ruling was that nothing on the frontier comes back - <i>the sprawl regrows because you
+ * live in it; the frontier does not, because you leave</i> - and the owner reversed it. Tailings are
+ * now remembered by {@link StainedGroundBlock} under every column and put back one at a time, the same
+ * mechanic mounds have had since Phase 5.
+ *
+ * <p><b>What the reversal costs is worth knowing, because the old ruling had a real argument behind
+ * it.</b> {@code powah:uraninite} is reactor FUEL, a running cost rather than a one-time build cost,
+ * and "strip a deposit and travel to the next" is what uranium extraction actually is. Regrowth turns
+ * that into a pump on a renewable supply instead. The compensating ruling taken in the same breath is
+ * that a tailings impoundment NEVER RETIRES - Stained Ground cannot be greened - so the dump is the
+ * one region of the world that can never be reclaimed, and its scarcity moved from the deposit to the
+ * land.
  *
  * <p><b>A sledgehammer, of any tier</b> - see {@link #requiredToolFamily()}. That puts this behind the
  * reclamation ladder exactly as the demolition yard is (the tool needs sticks, sticks need trees), so

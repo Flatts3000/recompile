@@ -3,6 +3,7 @@ package com.flatts.recompile.content.worldgen;
 import com.flatts.recompile.content.block.BulkyWasteBlock;
 import com.flatts.recompile.content.block.CardboardPileBlock;
 import com.flatts.recompile.content.block.MoundGroundBlock;
+import com.flatts.recompile.content.block.RegrowingGroundBlock;
 import com.flatts.recompile.content.block.SortableBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
@@ -180,9 +181,11 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
      * {@link #pickBlock}'s outputs against this, so the next variant fails the build instead.
      */
     public static boolean isMoundContent(BlockState state) {
-        return state.getBlock() instanceof SortableBlock
-            || state.getBlock() instanceof BulkyWasteBlock
-            || state.getBlock() instanceof CardboardPileBlock;
+        // ONE DEFINITION. This kept its name because the test that keeps it honest is named for it and
+        // because "content" is the right word at a feature's call site, but the answer lives in
+        // RegrowingGroundBlock, which asks the same question when it measures a column. They were two
+        // copies and drifted once already: #309 added the cardboard pile here and not there.
+        return RegrowingGroundBlock.isPile(state);
     }
 
     /**

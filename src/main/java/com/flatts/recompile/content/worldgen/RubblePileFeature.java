@@ -1,5 +1,7 @@
 package com.flatts.recompile.content.worldgen;
 
+import com.flatts.recompile.content.block.RegrowingGroundBlock;
+import com.flatts.recompile.content.block.RubbleGroundBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -52,6 +54,7 @@ public class RubblePileFeature extends Feature<NoneFeatureConfiguration> {
                 }
                 // Dome profile: tallest at the center, tapering to a 1-block rim.
                 int column = (int) Math.round(height * (1.0 - dist / radius));
+                writeBed(level, origin.offset(dx, -1, dz), column);
                 for (int dy = 0; dy <= column; dy++) {
                     BlockPos pos = origin.offset(dx, dy, dz);
                     if (level.getBlockState(pos).isAir()) {
@@ -62,5 +65,37 @@ public class RubblePileFeature extends Feature<NoneFeatureConfiguration> {
             }
         }
         return placedAny;
+    }
+
+    /**
+     * Remember this column, so Phase 5 regrowth can put it back (P1.6-R).
+     *
+     * <p>{@link MoundFeature#writeBed} is the original and this is the same three rules, because they
+     * were all paid for once already on mounds and none of them is specific to garbage:
+     *
+     * <ul>
+     *   <li><b>Overlapping piles take the TALLER.</b> A later pile's rim is a column of 0 and would
+     *       otherwise overwrite a tall neighbour's memory, permanently flattening what regrows there -
+     *       silent, and invisible until somebody quarries that pile and watches it come back wrong.
+     *   <li><b>Only ever replaces ground.</b> Writing into another pile's rubble would punch a hole in
+     *       a stack nobody has touched yet.
+     *   <li><b>Stores the block COUNT, not the top offset.</b> The loop above fills
+     *       {@code dy = 0..column} inclusive, so a rim cell of column 0 still carries one block.
+     *       Storing the offset would build every pile one block short and would leave 0 meaning both
+     *       "a one-block rim" and "nothing here" - and 0 has to keep meaning only the second, because
+     *       that is what makes a hand-placed block inert.
+     * </ul>
+     */
+    private void writeBed(WorldGenLevel level, BlockPos pos, int column) {
+        BlockState existing = level.getBlockState(pos);
+        if (existing.getBlock() instanceof RubbleGroundBlock) {
+            if (existing.getValue(RubbleGroundBlock.HEIGHT) >= column + 1) {
+                return;
+            }
+        } else if (!existing.isSolidRender() || RegrowingGroundBlock.isPile(existing)) {
+            return;
+        }
+        level.setBlock(pos, RCBlocks.RUBBLE_GROUND.get().defaultBlockState()
+            .setValue(RubbleGroundBlock.HEIGHT, Math.min(column + 1, 16)), 2);
     }
 }

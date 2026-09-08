@@ -113,9 +113,17 @@ public final class RCConfig {
     public static final ModConfigSpec.IntValue SCRAP_BIN_CAPACITY;
 
     /**
-     * Mound regrowth (P1.6, Phase 5). A mound is a renewable quarry: it grows back toward the size it
-     * was and never past it. Rarity is per random tick per bed cell, so it is a rate rather than a
-     * timer - default slow enough to read as recovery rather than respawn.
+     * Pile regrowth (P1.6 and P1.6-R, Phase 5). A pile is a renewable quarry: it grows back toward the
+     * size it was and never past it. Rarity is per random tick per bed cell, so it is a rate rather
+     * than a timer - default slow enough to read as recovery rather than respawn.
+     *
+     * <p><b>These three govern ALL of it, not just mounds, despite what their names say.</b> Since
+     * 2026-09-08 every {@code RegrowingGroundBlock} reads them - garbage mounds in the sprawl, rubble
+     * piles in the demolition yard and tailings impoundments in the radioactive dump - so turning the
+     * switch off makes every pile in the world finite and retuning the rarity repaces all three at
+     * once. The keys keep the {@code mound} prefix because they are player-facing config and a rename
+     * silently resets whatever a pack or a server has already set; the honest fix is this sentence
+     * rather than churn in everybody's config file.
      */
     public static final ModConfigSpec.BooleanValue MOUND_REGROWTH_ENABLED;
     public static final ModConfigSpec.IntValue MOUND_REGROWTH_RARITY;

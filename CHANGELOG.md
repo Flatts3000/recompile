@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### The frontier rebuilds too
+
+- **Rubble piles and tailings heaps grow back**, the way garbage mounds have since v0.7.0. Work a
+  demolition yard or a tailings field out and it refills, one block falling from the sky at a time,
+  while you are somewhere near enough to watch.
+- **The radioactive dump can never be cleaned up**, and that is the trade. Green a mound's footprint
+  or a rubble pile's and it is retired for good; stained ground does not take grass, so the dump keeps
+  giving and keeps being the dump. Its scarcity is the land now, not the ore.
+- **Only new worlds.** A yard or a dump you have already been to stays as finite as it was.
+
 ### Simple Magnets goes back to the pack
 
 - **The four re-themed Simple Magnets recipes are no longer part of the mod.** They shipped here only

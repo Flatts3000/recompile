@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.RegionBiomeSource;
+import com.flatts.recompile.content.block.RegrowingGroundBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCFeatures;
 import java.io.IOException;
@@ -38,7 +39,10 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * and nothing written outside a plot is cleaned up between tests, so two wide builds at a common height
  * write through each other's neighbours. Spoken for elsewhere: 0/40/80/120/160/240 by the aquarium
  * builds (38 blocks wide, clearing 28 above) and 40/80/120 by the tire dumps (14 blocks out). This file
- * takes <b>200, 216 and 232</b> for the three tailings tests, whose footprint is 35 blocks across.
+ * takes <b>200, 216, 232, 272 and 288</b> for the five tailings tests, whose footprint is 35 blocks
+ * across (288 lays a field 49 across, because it places two of them fourteen apart).
+ * <b>272 rather than the 248 that looks free</b>: the aquarium's 240 clears 28 blocks above itself and
+ * so reaches 268, which is the kind of thing only the list above can tell you.
  * <b>Sixteen apart rather than eight, and the gap is set by the MEASUREMENT window rather than by the
  * build.</b> A pile is about six tall, so eight looked ample; the drums test scans ten blocks to catch
  * a drum sitting on the skirt, and at eight it was reading the next band's drums as its own. It passed
@@ -123,6 +127,17 @@ final class ScatterFeatureTests {
 
     /** The tallest offset a pile reached and how far out it reached; -1 for each if it placed none. */
     private record Pile(int top, int radius) {
+    }
+
+    /** Empty the NEAR box above an origin, so a feature that writes into air only has room to work. */
+    private static void clear(ServerLevel level, BlockPos origin) {
+        for (int dx = -NEAR; dx <= NEAR; dx++) {
+            for (int dz = -NEAR; dz <= NEAR; dz++) {
+                for (int dy = 0; dy <= 8; dy++) {
+                    level.setBlock(origin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+        }
     }
 
     /**
@@ -601,6 +616,257 @@ final class ScatterFeatureTests {
         // pile of each proves nothing. The seeds are fixed, so this is deterministic rather than flaky.
         //
         // No band: neither pile reaches past three blocks. See the class note.
+        // A RUBBLE PILE LEAVES A BED, AND ITS HEIGHT IS THE COLUMN IT STOOD UNDER (P1.6-R).
+        //
+        // Regrowth is entirely a function of this bed: the block does the growing, but if the feature
+        // never wrote a memory there is nothing to grow and the whole mechanic is inert with nothing
+        // logged. The unit tests drive regrowOnce against a bed they placed themselves, so they cannot
+        // see this half at all - which is exactly how rubble piles went four releases without one.
+        //
+        // The invariant asserted is the one that matters rather than a spot check: for EVERY column,
+        // the remembered height equals the number of rubble blocks standing on it. Off by one in
+        // either direction and every pile in the world regrows wrong - short forever, or one block
+        // taller each time it is quarried.
+        //
+        // Mechanical waste is checked in the same breath for the opposite property. It is a yard pile
+        // too and it is deliberately NOT in P1.6-R's scope, so a bed under one would be scope creep
+        // that no other test could see.
+        RCGameTests.test("a_rubble_pile_leaves_a_bed_and_a_waste_heap_does_not", 60, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+
+            // NO BAND, and the box is CLEARED first, which is the same pairing every narrow test in
+            // this file uses. A rubble pile is at most seven wide, so NEAR covers it and no number of
+            // these can touch a neighbouring plot. The clear is what the first draft of this test
+            // missed: the feature writes into air only, so leftover world blocks in the column make it
+            // place fewer than it recorded and the bed reads as over-claiming. It cost a red run, and
+            // the red was the test being wrong rather than the feature.
+            clear(level, origin);
+            layField(level, origin, Blocks.COARSE_DIRT, NEAR);
+
+            helper.assertTrue(place(level, RCFeatures.RUBBLE_PILE, origin, 7L),
+                "the rubble pile refused a flat field of coarse dirt, so this measured nothing");
+
+            int beds = 0;
+            List<String> wrong = new ArrayList<>();
+            for (int dx = -NEAR; dx <= NEAR; dx++) {
+                for (int dz = -NEAR; dz <= NEAR; dz++) {
+                    int rubble = 0;
+                    for (int dy = 0; dy <= 8; dy++) {
+                        if (level.getBlockState(origin.offset(dx, dy, dz))
+                                .is(RCBlocks.STONE_RUBBLE.get())) {
+                            rubble++;
+                        }
+                    }
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    boolean remembered = bed.is(RCBlocks.RUBBLE_GROUND.get());
+                    if (rubble == 0 && !remembered) {
+                        continue;
+                    }
+                    if (!remembered) {
+                        wrong.add(dx + "," + dz + ": " + rubble + " rubble on plain ground");
+                        continue;
+                    }
+                    beds++;
+                    int height = bed.getValue(RegrowingGroundBlock.HEIGHT);
+                    if (height != rubble) {
+                        wrong.add(dx + "," + dz + ": remembers " + height + " but carries " + rubble);
+                    }
+                }
+            }
+            helper.assertTrue(beds > 0,
+                "the pile placed rubble and left no bed anywhere under it, so nothing in the "
+                    + "demolition yard will ever regrow");
+            helper.assertTrue(wrong.isEmpty(),
+                "these columns disagree with the bed underneath them, so they regrow to the wrong "
+                    + "height forever: " + wrong);
+
+            // The other yard pile, which is out of scope on purpose. Same origin, wiped back to bare
+            // field first and CHECKED bare - reusing the box keeps this bandless, but only if the
+            // reset is asserted rather than assumed, since a rubble bed left behind would otherwise
+            // read as one this heap wrote and that is the exact claim being made.
+            clear(level, origin);
+            layField(level, origin, Blocks.COARSE_DIRT, NEAR);
+            for (int dx = -NEAR; dx <= NEAR; dx++) {
+                for (int dz = -NEAR; dz <= NEAR; dz++) {
+                    helper.assertTrue(
+                        !level.getBlockState(origin.offset(dx, -1, dz))
+                            .is(RCBlocks.RUBBLE_GROUND.get()),
+                        "the reset left a rubble bed behind, so the waste-heap half below would have "
+                            + "passed or failed on the rubble pile's leftovers");
+                }
+            }
+            place(level, RCFeatures.MECHANICAL_WASTE_PILE, origin, 7L);
+            List<String> strays = new ArrayList<>();
+            for (int dx = -NEAR; dx <= NEAR; dx++) {
+                for (int dz = -NEAR; dz <= NEAR; dz++) {
+                    if (level.getBlockState(origin.offset(dx, -1, dz))
+                            .is(RCBlocks.RUBBLE_GROUND.get())) {
+                        strays.add(dx + "," + dz);
+                    }
+                }
+            }
+            helper.assertTrue(strays.isEmpty(),
+                "a mechanical waste heap left a regrowth bed. It is deliberately outside P1.6-R - the "
+                    + "owner named garbage, rubble and tailings and nothing else - so this is scope "
+                    + "arriving by accident: " + strays);
+            helper.succeed();
+        });
+
+        // THE TAILINGS BED NEVER CLAIMS THE POND CELL, WHICH IS THE WHOLE POND CARVE-OUT.
+        //
+        // Water is a REPLACEABLE block, so regrowth would happily target the decant pond and fill the
+        // basin in one block at a time until it was gone - silently, over a long time, in a region
+        // nobody is watching. There is no special case in the block for this. Instead the feature
+        // records the count of TAILINGS rather than the column height, so the memory simply never
+        // reaches that cell.
+        //
+        // Asserted as a relationship rather than a number: the pond sits exactly one above the last
+        // cell the bed claims. Both halves are checked, because a bed that claims nothing would also
+        // pass "the pond is safe".
+        // AN OVERLAPPING IMPOUNDMENT MUST NOT ERASE ITS NEIGHBOUR'S MEMORY (P1.6-R).
+        //
+        // The stain pass repaints every cell of its disc that is coarse dirt or already stain, and the
+        // second half of that guard is what makes this dangerous now: the dressing state it paints
+        // with carries height 0, so repainting a cell an EARLIER pile already remembered wipes the
+        // memory. Two ways it lands, and the second is the worse one:
+        //
+        //   - inside the new pile's own footprint, writeBed runs straight after and reads the zero, so
+        //     "overlapping piles take the taller" is defeated and the later pile always wins whatever
+        //     its height;
+        //   - out in the stain RING, past the footprint, writeBed is never reached at all, so the
+        //     older pile's column is left inert and can never regrow. Its tailings are still standing,
+        //     so the pile looks perfectly intact.
+        //
+        // Neither is visible from a single impoundment, which is all the other tailings tests place -
+        // and the Y bands exist precisely to keep test placements apart, so nothing else in this file
+        // could ever have caught it. The feature sites roughly one per three chunks at up to 15 blocks
+        // of reach, so overlap is ordinary rather than contrived.
+        //
+        // The invariant is the general one rather than a reproduction of either case: NO CELL EVER
+        // LOSES HEIGHT. That is "take the taller" stated as something a test can measure, and it holds
+        // however many piles land on each other.
+        //
+        // BAND 288.
+        RCGameTests.test("an_overlapping_impoundment_keeps_the_taller_memory", 100, helper -> {
+            ServerLevel level = helper.getLevel();
+            final int floor = 288;
+            BlockPos origin = helper.absolutePos(new BlockPos(2, floor + 1, 2));
+            layField(level, origin, Blocks.COARSE_DIRT, 24);
+
+            helper.assertTrue(place(level, RCFeatures.TAILINGS_HEAP, origin, 5L),
+                "the first impoundment refused a flat field, so this measured nothing");
+
+            // What the first pile remembers, before anything lands on it.
+            int[][] before = new int[49][49];
+            int remembered = 0;
+            for (int dx = -24; dx <= 24; dx++) {
+                for (int dz = -24; dz <= 24; dz++) {
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    int height = bed.is(RCBlocks.STAINED_GROUND.get())
+                        ? bed.getValue(RegrowingGroundBlock.HEIGHT) : 0;
+                    before[dx + 24][dz + 24] = height;
+                    if (height > 0) {
+                        remembered++;
+                    }
+                }
+            }
+            helper.assertTrue(remembered > 0,
+                "the first impoundment remembered nothing, so the overlap below measures nothing");
+
+            // A SECOND PILE WHOSE ORIGIN STANDS ON CLEAN GROUND while its disc reaches over the first.
+            // The origin matters: a pile sited ON the neighbour has its own origin pushed up onto that
+            // pile by the heightmap, so every column reads the neighbour's TAILINGS as its ground and
+            // the repaint never fires. Standing clear of it is what puts the earlier pile's BED back
+            // under the scan, which is the case that breaks.
+            BlockPos second = origin.offset(14, 0, 0);
+            helper.assertTrue(place(level, RCFeatures.TAILINGS_HEAP, second, 11L),
+                "the second impoundment refused, so this measured nothing");
+
+            List<String> lost = new ArrayList<>();
+            for (int dx = -24; dx <= 24; dx++) {
+                for (int dz = -24; dz <= 24; dz++) {
+                    int was = before[dx + 24][dz + 24];
+                    if (was == 0) {
+                        continue;
+                    }
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    int now = bed.is(RCBlocks.STAINED_GROUND.get())
+                        ? bed.getValue(RegrowingGroundBlock.HEIGHT) : -1;
+                    if (now < was) {
+                        lost.add(dx + "," + dz + ": " + was + " -> " + now);
+                    }
+                }
+            }
+            helper.assertTrue(lost.isEmpty(),
+                "a second impoundment cut the memory under columns the first one built, so those "
+                    + "columns are inert while their tailings still stand and the pile looks fine: "
+                    + lost);
+            helper.succeed();
+        });
+
+        RCGameTests.test("a_tailings_bed_stops_one_below_the_pond", 100, helper -> {
+            ServerLevel level = helper.getLevel();
+            // BAND 272. See the class note: this build is 35 blocks across, so it needs a height
+            // nothing else writes at. 248 and 256 look free and are not - the aquarium's 240 clears 28
+            // blocks above itself and reaches 268.
+            final int floor = 272;
+            BlockPos origin = helper.absolutePos(new BlockPos(2, floor + 1, 2));
+            layField(level, origin, Blocks.COARSE_DIRT, 17);
+
+            helper.assertTrue(place(level, RCFeatures.TAILINGS_HEAP, origin, 5L),
+                "the impoundment refused a flat field of coarse dirt, so this measured nothing");
+
+            int ponds = 0;
+            int beds = 0;
+            List<String> wrong = new ArrayList<>();
+            for (int dx = -16; dx <= 16; dx++) {
+                for (int dz = -16; dz <= 16; dz++) {
+                    int tailings = 0;
+                    int waterAt = -1;
+                    for (int dy = 0; dy <= 6; dy++) {
+                        BlockState state = level.getBlockState(origin.offset(dx, dy, dz));
+                        if (state.is(RCBlocks.MILL_TAILINGS.get())) {
+                            tailings++;
+                        } else if (state.is(Blocks.WATER)) {
+                            waterAt = dy;
+                        }
+                    }
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    if (!bed.is(RCBlocks.STAINED_GROUND.get())) {
+                        continue;
+                    }
+                    int height = bed.getValue(RegrowingGroundBlock.HEIGHT);
+                    if (tailings > 0) {
+                        beds++;
+                        if (height != tailings) {
+                            wrong.add(dx + "," + dz + ": remembers " + height + " tailings but "
+                                + "carries " + tailings);
+                        }
+                    }
+                    if (waterAt >= 0) {
+                        ponds++;
+                        // regrowOnce fills up to bed.above(height), which is dy = height - 1 here. So
+                        // the pond is safe exactly when the water sits at dy == height.
+                        if (height != waterAt) {
+                            wrong.add(dx + "," + dz + ": water at " + waterAt + " but the bed claims "
+                                + height + ", so regrowth "
+                                + (height > waterAt ? "will fill the pond in" : "leaves a gap"));
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(beds > 0,
+                "the impoundment left no bed under any tailings column, so the dump will never regrow");
+            helper.assertTrue(ponds > 0,
+                "this heap came out with no pond at all, so the carve-out below measured nothing. "
+                    + "a_decant_pond_is_not_a_coin_flip pins the rate; if that is green and this is "
+                    + "not, the seed is unlucky rather than the code wrong");
+            helper.assertTrue(wrong.isEmpty(),
+                "the bed disagrees with the column above it: " + wrong);
+            helper.succeed();
+        });
+
         RCGameTests.test("a_rubble_pile_spreads_and_a_waste_heap_stacks", 60, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
