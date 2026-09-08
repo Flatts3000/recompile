@@ -82,13 +82,28 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         // These three went through gameMode directly, and the two radius arrows did it without the
-        // null check their own sibling three lines below had. press() carries the guard, so the
-        // asymmetry cannot come back.
+        // null check their own sibling three lines below had. press() carries that null check.
+        //
+        // AN ARROW AT ITS LIMIT IS NOT SENT, which is the Sell Terminal's rule applied to the other
+        // dead control in this mod. paint() already draws each arrow with SLOT_SHADOW and refuses it
+        // the hover tint at its end of the range, so both were drawn disabled and clicked through
+        // anyway; adjustRadius clamps, so the press was a silent no-op. Adding the click SOUND is
+        // what made that a defect rather than a wart - at the ceiling you now hear the confirming
+        // click of a press that changed nothing, which is worse than the silence it replaced. The
+        // conditions are paint()'s own, so a screen that looks pressable and one that is cannot
+        // drift apart.
+        int radius = this.menu.chunkRadius();
         if (event.button() == 0 && isOver("radius_down", event.x(), event.y())) {
+            if (radius <= 0) {
+                return true;
+            }
             press(HaulerDepotMenu.RADIUS_DOWN_BUTTON);
             return true;
         }
         if (event.button() == 0 && isOver("radius_up", event.x(), event.y())) {
+            if (radius >= this.menu.maxChunkRadius()) {
+                return true;
+            }
             press(HaulerDepotMenu.RADIUS_UP_BUTTON);
             return true;
         }

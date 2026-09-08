@@ -792,20 +792,6 @@ final class MarketTests {
         });
 
         /*
-         * THE THIRD AXIS FAILS CLOSED AGAINST THE SECOND (spec section 14).
-         *
-         * <p>Until the market there were two ways to hold a thing: find it, or build it.
-         * `#recompile:found_only` is the rule that some things may only be found, and
-         * FoundNotCraftedTests enforces it by sweeping RECIPES - which a shop counter is not. So a
-         * market line selling a found-only item would put a second source on it and every existing
-         * guard would stay green, which is exactly the shape of silent leak this repo keeps paying
-         * for. The market may sell what the dump cannot give; it may not sell what the dump is
-         * SUPPOSED to be the only giver of.
-         *
-         * <p>It covers what a blueprint line unlocks too, not just the sheet, since selling the
-         * knowledge to craft a found-only item reaches the same end one step later.
-         */
-        /*
          * THE SHELF ORDER, WHICH NOTHING PINNED UNTIL NOW - not even when #415 introduced it. The
          * owner asked for the stock to be ordered by tier and it was, and the rule then lived only in
          * one comparator with no test under it, so the one case it got wrong went unnoticed until
@@ -856,6 +842,20 @@ final class MarketTests {
             helper.succeed();
         });
 
+        /*
+         * THE THIRD AXIS FAILS CLOSED AGAINST THE SECOND (spec section 14).
+         *
+         * <p>Until the market there were two ways to hold a thing: find it, or build it.
+         * `#recompile:found_only` is the rule that some things may only be found, and
+         * FoundNotCraftedTests enforces it by sweeping RECIPES - which a shop counter is not. So a
+         * market line selling a found-only item would put a second source on it and every existing
+         * guard would stay green, which is exactly the shape of silent leak this repo keeps paying
+         * for. The market may sell what the dump cannot give; it may not sell what the dump is
+         * SUPPOSED to be the only giver of.
+         *
+         * <p>It covers what a blueprint line unlocks too, not just the sheet, since selling the
+         * knowledge to craft a found-only item reaches the same end one step later.
+         */
         RCGameTests.test("the_market_never_sells_what_is_meant_to_be_found", 20, helper -> {
             ServerLevel level = helper.getLevel();
             List<Market.Offer> offers = MarketTerminalBlock.Buy.offers(level.getServer());
