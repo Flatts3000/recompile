@@ -658,14 +658,32 @@ Most tutorials target 1.20/1.21 and will mislead you:
 - **Carry BlockEntity state through break+replace with an item data component, not just `saveAdditional`.** `saveAdditional`/`loadAdditional` survive *save/load* only; breaking the block destroys the BE, so its state is lost on pickup. To keep it on the dropped item (the Rain Collector's water), register a `DataComponentType` (`RCDataComponents`), write it in `BlockEntity.collectImplicitComponents` (read back in `applyImplicitComponents` on placement), and copy it onto the drop with a `minecraft:copy_components` loot function (`"source": "block_entity"`, `"include": [...]`) - the mechanism vanilla beehives use for bees. See `RainCollectorBlockEntity`.
 - **Entity animation is data until baked, and the 1.20-era `animate` helper is gone.** An `AnimationDefinition` (built with `AnimationDefinition.Builder.withLength(...)` and channels of `Keyframe`s) is a description; `definition.bake(ModelPart root)` returns a `KeyframeAnimation`, and the model calls `animation.apply(AnimationState, ageInTicks)` from `setupAnim`. `EntityModel.animate(state, definition, age)`, which every 1.20/1.21 tutorial reaches for, does not exist in 26.1 (`javap` on the merged jar shows `EntityModel` with two constructors and nothing else), so a model written against it fails to compile with a bare `cannot find symbol`. Bake once in the constructor, not per frame. See `ScrapHaulerModel`. In the same area, **`PathType` renamed its hazard constants**: `FIRE`, `FIRE_IN_NEIGHBOR`, `DAMAGING`, `DAMAGING_IN_NEIGHBOR`; there is no `DANGER_FIRE` or `DAMAGE_FIRE`, so a 1.21 `setPathfindingMalus` snippet will not compile either.
 
-## Three cross-mod stopgaps, which are pack content living in the engine
+## Two cross-mod stopgaps left, and the third has gone home
 
-**The pack cannot ship data on 26.1.2** - no datapack loader has a NeoForge build, KubeJS crashes the
-client, CraftTweaker has not ported - so things that belong to Trashlands ship here instead. **This
-cuts against the engine/pack split rather than revising it**, and they all leave when KubeJS is fixed
-(`Flatts3000/trashlands#46`, `#47` and `#52`). Specs and removal instructions:
-`docs/handoff_ae2_presses_sewer_loot.md`, `docs/handoff_simple_magnets_recipes.md`,
-`docs/handoff_enderio_grains_and_blaze.md`.
+**The pack could not ship data on 26.1.2** - no datapack loader had a NeoForge build, KubeJS crashed
+the client, CraftTweaker had not ported - so things that belong to Trashlands shipped here instead.
+**That cut against the engine/pack split rather than revising it**, and the exit condition was always
+KubeJS being fixed. **It was, on 2026-09-07**, so these are now being dismantled in order rather than
+waiting on anything (`Flatts3000/trashlands#46`, `#47` and `#52`; the engine half is #420). Specs and
+removal instructions: `docs/handoff_ae2_presses_sewer_loot.md`,
+`docs/handoff_simple_magnets_recipes.md`, `docs/handoff_enderio_grains_and_blaze.md`.
+
+**Simple Magnets went first, on 2026-09-08, and it is the template for the other two.** Its four
+recipe overrides now ship from `pack/kubejs/data/simplemagnets/recipe/` and nothing under
+`data/simplemagnets/` remains here; the `[[dependencies]]` block and the
+`a_guarded_override_is_inert_without_its_mod` GameTest left with them. **The ORDER is the part to
+copy**: the pack copy has to be live before the engine copy is deleted, never the other way round.
+Both shipping at one recipe id for a while is safe only because they are identical and the pack's wins
+on load order; deleting the engine's first would leave a window with neither. `trashlands#47` was
+closed as done while this repo was still shipping its copies, which is how that window nearly opened.
+For Ender IO the same mistake is worse than a window - see the blaze paragraph below, where the
+override is the only thing keeping a rod-to-powder loop shut.
+
+**What is left here, and what each is waiting on.** AE2's Inscriber-press pool and lang key wait on
+`trashlands#46`; its **four sourcing recipes are a separate question** and are argued below rather
+than assumed to be moving. Ender IO's Grains of Infinity find and blaze-grinding disable wait on
+`trashlands#52`. Neither has shipped in the pack as of 2026-09-08, so neither may be deleted here
+yet.
 
 **Ender IO needed no sourcing work, unlike AE2**, and that is worth knowing before anyone re-audits it:
 a reachability closure over its 1187 recipes puts 897 of 924 items in reach from a vanilla-only seed,
@@ -736,7 +754,13 @@ player. Filter those before reading a red run as a regression.
   sight-unseen, into a closed economy. Reopen only if a vanilla mechanic turns out to be silently not
   firing, or if enough mods are blocked that per-mod handoffs stop scaling. The sourcing routes are
   what made that ruling affordable.
-- **Simple Magnets' four recipes** are overridden onto Magnet Scrap at that mod's own recipe ids.
+- **Simple Magnets' four recipes** were overridden onto Magnet Scrap at that mod's own recipe ids
+  and **are no longer here** (2026-09-08, #420) - the pack ships them. Left in this list because the
+  next person to read it will otherwise go looking for `data/simplemagnets/` and find nothing, and
+  because the consequence is worth stating: a **standalone** Recompile install with Simple Magnets now
+  gets Simple Magnets' own recipes, which want an ender pearl, lapis, an ender eye and a diamond. That
+  is a downgrade for that configuration and it is the split working as ruled - re-theming another
+  mod's recipes is curation, and curation is the pack's.
 
 Three traps live here, all measured rather than reasoned about:
 
@@ -753,8 +777,12 @@ Three traps live here, all measured rather than reasoned about:
   namespace in ascending priority, so a one-key `assets/<their-ns>/lang/en_us.json` override only has
   to be LATER, not complete. A recipe at another mod's id is a whole-file replacement and only the top
   file at a path is read at all - which also means a typo there does not degrade to their recipe, it
-  deletes the id. Both need `ordering = "AFTER"` on an optional dependency; `neoforge.mods.toml` now
-  carries four such entries (neoforge, simplemagnets, ae2, enderio).
+  deletes the id. Both need `ordering = "AFTER"` on an optional dependency; `neoforge.mods.toml`
+  carries **three** such entries today (neoforge, ae2, enderio). It carried four until the Simple
+  Magnets block left with its files - do not read the number off this sentence, read it off the file,
+  which is what `every_cross_mod_override_is_ordered_after_its_mod` does: it derives the namespaces
+  needing a block from what this mod actually ships under `data/` and `assets/`, so a stopgap arriving
+  or leaving moves the requirement by itself.
 
 **CI cannot see either override working**, because neither mod is present at test time. What the tests
 assert is inertness WITHOUT the mod, plus the reason for it; the with-mod half was verified by dropping

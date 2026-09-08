@@ -332,8 +332,8 @@ egg.
 - Alpha, and still being worked on. The numbers are not balanced yet.
 - Start a new world when you update. New regions do not appear in one you have already been to.
 - The End is closed. The Nether is not.
-- Works with **AE2**, **Powah**, **Simple Magnets** and **Ender IO**. Each of them needs something
-  this world does not hand out, and each has a way in here. None of them are required.
+- Works with **AE2**, **Powah** and **Ender IO**. Each of them needs something this world does not
+  hand out, and each has a way in here. None of them are required.
 - **JEI** and **Jade** plugins, and an in-game guidebook with 3D multiblock pages.
 
 ## Links
