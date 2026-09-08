@@ -91,7 +91,7 @@ item in a hand.
 
 ## Recipes
 
-Eight public recipe types. A pack writes these the way it writes a vanilla one, in
+Ten public recipe types. A pack writes these the way it writes a vanilla one, in
 `data/<pack>/recipe/`:
 
 | Type | Shape |
