@@ -1,5 +1,57 @@
 # Changelog
 
+## v0.20.0
+
+**The dump stopped teaching you.** Everything you know how to build is bought now, from a counter that
+only opens as far as you have delivered. Tearing something apart still pays, but it pays in parts you
+cannot forge: a working motor out of a washing machine is worth more than any amount of scrap, because
+nothing in this world makes one.
+
+### The freight ladder
+
+- **A Freight Terminal takes delivery quotas**, eight of them, and each one you fill opens the next
+  rung. It is the only thing that moves your tier.
+- **The Buy Terminal only sells what your tier has opened.** A sheet you cannot afford shows its price;
+  a sheet you have not earned shows the rung it is waiting on.
+- **The terminal joins the Scrap Network and takes hoppers and pipes**, so a machine line can ship for
+  you. It only ever claims what the current phase is still waiting on, and only up to the amount
+  outstanding, so it cannot swallow a sorted stockpile. Everything else routes past it to your bins.
+- **A quota asks for named goods rather than a scrip balance.** Money is fungible and would have made
+  every region pay into one number; a manifest asks for the thing itself.
+
+### Teardown pays in parts, not knowledge
+
+- **Tearing something down no longer teaches you anything.** Every Blueprint is bought from the Buy
+  Terminal. Four systems, four jobs: the market sells knowledge, freight moves your tier, teardown
+  yields function, sorting yields materials.
+- **What teardown gives instead is the part that makes the object what it is.** A washing machine has a
+  motor in it. A dead Hauler has a solar panel. A broken spawner has a cage.
+- **The Motor cannot be made or bought.** It is salvage or nothing, and mounds regrow, so it is a rate
+  limit rather than a wall.
+
+### A terminal is something you found
+
+- **Both market terminals and the Freight Terminal are repaired from a Broken Terminal**, and there is
+  no building one from scratch. The kit is a bulb behind two glass shards for the screen, two E-Scrap
+  for the boards, and a bottom row that picks which terminal you get.
+- **A spawner costs a Broken Spawner** on top of its cage. The sheet is permanent, so the find is what
+  keeps spawners rare.
+- **The Freight Terminal has its own face** instead of wearing the Sell Terminal's.
+
+### Fixes
+
+- **Tires stopped shimmering.** The tops of a heap flickered as you moved, and five other blocks had
+  the same fault: two faces drawn at the same depth, fighting over which one you see.
+- **The Hauler comes out somewhere it fits.** Putting anything on a Depot used to strand it on the roof
+  when you pressed Deploy. It now picks the best of the twenty-six spaces around the Depot, prefers
+  ground it can stand on, and refuses rather than dropping the machine somewhere wrong.
+- **A docked Hauler shows the charge it has**, not the charge it left with. It was spending power the
+  whole time and the number in the Depot never moved, which read as a machine that used none.
+- **The Buy Terminal lists by tier.** It was sorted by price, so the rungs interleaved and you could
+  not see where what you can buy stopped.
+- **The freight manifest has room between its lines** instead of stacking them on top of each other.
+- **A Solar Panel on a Hauler Depot helps.** It does not shade the Depot, and it feeds it.
+
 ## v0.19.0
 
 **Something else does the clearing.** v0.17.0 made clearing a mound fast and v0.18.0 gave you places
