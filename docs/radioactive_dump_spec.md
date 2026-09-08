@@ -260,21 +260,41 @@ and because **lead does not exist in this world today**; Mekanism brings it.
 
 ---
 
-## 7. The hazard ruling this must not walk into
+## 7. The hazard ruling, and the reversal taken against it
+
+**This section used to be titled "the hazard ruling this must not walk into". On 2026-09-08 the owner
+walked into it deliberately, so it now records both the rule and the exception.** Read both halves
+before adding a hazard here; neither one on its own is the state of things.
 
 **Leachate is the precedent** (owner, 2026-08-05): *"Standing in it makes you ill, and deliberately
 nothing worse."* No damage, no Poison, no Wither, cannot kill. Hunger for a few seconds, refreshed
-rather than stacked. Two reasons recorded with it:
+rather than stacked. Two reasons recorded with it, and **both still bind**:
 
 - **Hunger over Nausea** - nausea is a screen-wobble a player reads as the game being unpleasant
   without learning anything; hunger costs a resource this world meters.
 - **The effect is the SECOND penalty, not the first.** The real cost of leachate is that it is water
   you cannot use.
 
-So *radiation damages you unless you wear a suit* is a **reversal of a recorded decision**, not a
-default. Deferring the whole hazard to Mekanism keeps that ruling intact by construction rather than by
-argument - and when it lands, the cost is positional and recedes as you work, which is much closer to
-leachate's shape than a flat debuff would be.
+**The exception (owner, 2026-09-08, RULED BUT NOT YET SHIPPED - tracked at #423).** The decant pond
+stops being water and becomes a **tailings slurry fluid of its own**, neither water nor leachate, and
+**it is worse than leachate: Poison on top of Hunger.**
+
+**The reversal is bounded and the boundary is the point.** Poison cannot kill a player on its own - it
+stops at half a heart - so of the original four clauses, *no Poison* falls and *no damage*, *no
+Wither* and *cannot kill* stand. A hazard here that can kill is still a reversal nobody has taken.
+
+**Why it was worth taking.** This region has had no hazard of its own at all. Its identity came
+entirely from what is found in it and what it looks like, precisely because the radiation went to
+Mekanism - and a region whose whole premise is contamination, where nothing is more dangerous than the
+starting biome, was the gap. Three softer readings were rejected: the same effect turned up, an effect
+that lingers after you leave, and the pond being merely useless.
+
+**Two things to carry forward.** *Radiation damages you unless you wear a suit* is still a separate
+reversal and is still not taken - deferring it to Mekanism remains the plan, and when it lands it puts
+a SECOND hazard on this same region, which wants looking at as a pair rather than in isolation. And
+Poison **can** kill a mob where it cannot kill a player, so animals that wander a pond die in it; that
+is a behaviour change from leachate, which was written so mobs are affected exactly as a survival
+player is.
 
 ---
 
