@@ -703,6 +703,13 @@ style = "rolling_bag_open_front"
 # (13,33,221), luma 42, and the retint faithfully produced a 20/255 grey that rendered as a black
 # silhouette. Retint from the LIGHTEST, least saturated variant available, never from the one whose
 # colour you happen to like.
+#
+# QUALIFIED 2026-09-08 BY THE SURFACE DIRECTLY BELOW, which deliberately does the opposite: the two
+# spawn eggs retint the DARK parrot and silverfish sources (luma 77.8 and 95.6) rather than the bright
+# chicken egg, because their ancestry is the point. That is not a counterexample to the rule so much
+# as its missing second half - the darkness is real and `brightness` is what pays for it, solved
+# against a luma target rather than guessed. Reach for the lightest source when nothing else decides
+# it; when something does, compensate and measure.
 [surface.pigeon]
 kind = "entity"
 backend = "procedural"
@@ -719,14 +726,20 @@ style = "pigeon_skin"
 # averages luma 78 and retinted to slate it came back a black blob". Re-measured, that is 77.8, so
 # the observation was right. THE CONCLUSION WAS NOT, because the fix is the brightness key rather
 # than a different source - it just had to be solved rather than guessed. 3.08 lands the parrot-
-# sourced egg at luma 112.8 against the 112.5 the shipped one was approved at, and 2.87 lands the
-# silverfish-sourced roach at 97.9 against 98.0. Same tone, new ancestor.
+# sourced egg at luma 113.3 against the 112.5 the shipped one was approved at, and 2.87 lands the
+# silverfish-sourced roach at 98.0 against 98.0. Same tone, new ancestor.
+#
+# THOSE ARE THE SHIPPED NUMBERS, MEASURED OFF THE PNG, and the distinction cost a wrong claim once
+# already. `promote` ends in `finalize`, which quantizes to the pack's 16-colour cap, so a figure
+# taken from `colorize` + `scale_brightness` alone is a few pixels short of what lands - 10 on the
+# Pigeon and 12 on the Roach. Anything re-solved against this block must be measured after promote,
+# not before it, or the target drifts by the width of the quantizer.
 #
 # TWO THINGS THE OLD NOTE ALSO HAD WRONG, both cheap to check and both load-bearing here. "Every
 # spawn egg is the same silhouette" - they are not: the chicken egg covers 90 non-transparent pixels,
 # the parrot 103 and the silverfish 106, so the source decides shape as well as tone. And the
 # speckles the chicken was kept for come out STRONGER, not weaker: internal contrast rises from
-# stdev 38.6 to 64.5 on the Pigeon and 33.6 to 48.3 on the Roach, with 6 and 5 pixels clipping. The
+# stdev 38.6 to 63.9 on the Pigeon and 33.6 to 48.1 on the Roach, with 6 and 5 pixels clipping. The
 # blob was never the source, it was an uncompensated one.
 #
 # These two brightness values are SOLVED, not chosen. Re-tune the tint and they have to be re-solved
@@ -1619,11 +1632,16 @@ source = "item/mace"
 handle_tint = "#7a4a24"
 handle_from = 8
 
+# TRACKS THE VACUUM'S TINT, and moved with it on 2026-09-08 (#408). The comment on the vacuum block
+# below asserts that the retinted tiers share tints so the two tools read as one material, and taking
+# the vacuum to #584a63 alone would have falsified that while leaving this head at chroma 3.4 and luma
+# 25.2 - which is #408's complaint measured on the other tool. Same defect, same fix, one hex.
+# Only the HEAD moves: handle_from splits the tile at row 8 and the handle keeps its wood.
 [surface.netherite_sledgehammer]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#4a4148"
+tint = "#584a63"
 source = "item/mace"
 handle_tint = "#7a4a24"
 handle_from = 8
@@ -2563,7 +2581,10 @@ bottom = "a full-bleed Minecraft block face of a plain heavy scrap steel base pl
 #
 # FOUR TIERS FROM ONE BODY. The copper vacuum is the generated object; the other three are retints of
 # its shipped texture, the sledgehammer's own recipe (same tints, so a diamond vacuum and a diamond
-# sledgehammer read as the same material). Generating each tier from its own prompt would give four
+# sledgehammer read as the same material). THAT PAIRING IS AN INVARIANT, not a coincidence: iron is
+# #cececf on both and diamond #4dd0c8 on both, and when #408 moved netherite here the sledgehammer
+# moved with it in the same commit. Retint one tier of one tool and you have quietly made a player
+# holding both see two materials - check the sibling before editing a tint. Generating each tier from its own prompt would give four
 # different tools that happen to share a name - the drift `reference` exists to prevent, and a retint
 # prevents it for free because there is only ever one drawing.
 #
