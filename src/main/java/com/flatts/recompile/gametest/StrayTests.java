@@ -222,6 +222,61 @@ final class StrayTests {
             helper.succeed();
         });
 
+        // ONE PECK PER VISIT, AND THIS IS THE BUG THAT SHIPPED. The first version kept the goal
+        // running once the bird arrived, so it pecked every two seconds for as long as it stood
+        // there and made a small heap of loot in under a minute. The cooldown existed and only
+        // gated STARTING, which reads as a tuning problem and is not one. The fix was to end the
+        // goal on the peck - and nothing guarded that, because the sibling test above asserts the
+        // loot table rather than the goal and says so in its own comment.
+        //
+        // Driven by hand rather than by pathing: the goal is constructed, its stagger drained, and
+        // the bird put on the pile so isReachedTarget is true without a walk. That is what the
+        // other test declined to do, and it is the only way the lifecycle is reachable at all.
+        RCGameTests.test("a_pigeon_pecks_once_per_visit", 60, helper -> {
+            BlockPos pos = new BlockPos(1, 2, 1);
+            helper.setBlock(pos, RCBlocks.GARBAGE_BLOCK.get());
+            PigeonEntity pigeon = RCEntities.PIGEON.get().create(
+                helper.getLevel(), net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+            helper.assertTrue(pigeon != null, "could not create a pigeon");
+            // ON TOP of the pile, not in it: MoveToBlockGoal aims at getMoveToTarget(), which is
+            // blockPos.above(), and closerToCenterThan is strict - a bird at the block's own centre
+            // is exactly 1.0 away from that and never counts as arrived.
+            var at = net.minecraft.world.phys.Vec3.atCenterOf(helper.absolutePos(pos.above()));
+            pigeon.snapTo(at.x, at.y, at.z, 0.0F, 0.0F);
+            helper.getLevel().addFreshEntity(pigeon);
+
+            PigeonForageGoal goal = new PigeonForageGoal(pigeon);
+            // The constructor staggers a flock by up to one whole interval, and canUse spends that
+            // one tick per call. Drain it by asking, which is what the mob's goal selector does.
+            int asked = 0;
+            while (!goal.canUse() && asked++ < 20_000) {
+                // deliberately empty: canUse decrements the stagger and reports not yet
+            }
+            helper.assertTrue(asked < 20_000,
+                "the goal never became usable in 20,000 asks - either the stagger does not drain or "
+                    + "it never found the pile it is standing on");
+
+            goal.start();
+            helper.assertTrue(goal.canContinueToUse(),
+                "the goal stopped before it had pecked at all");
+            for (int tick = 0; tick < 200 && goal.canContinueToUse(); tick++) {
+                goal.tick();
+            }
+            helper.assertTrue(!goal.canContinueToUse(),
+                "the bird is still foraging after its peck - that is the shipped bug: a pigeon that "
+                    + "stands on a pile and pecks every two seconds until something scares it off");
+
+            // And stopping arms the full cooldown, so the next visit is a visit rather than a
+            // continuation. Without this the one-peck rule just moves the heap along by a tick.
+            goal.stop();
+            helper.assertTrue(!goal.canUse(),
+                "the goal was immediately usable again after stopping, so the cooldown it sets on "
+                    + "stop is not being honoured and one peck per visit means nothing");
+
+            helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), pos);
+            helper.succeed();
+        });
+
         // A PIGEON CAN ONLY FIND WHAT THE PILE ITSELF WOULD GIVE YOU, AND THAT IS A GATING RULE
         // (owner, 2026-08-04). A mob that produces a NEW material is a route around whatever gates that
         // material, and this one wanders into your base on its own.

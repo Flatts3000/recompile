@@ -84,6 +84,59 @@ aimed at a Block of Garbage does nothing and says nothing (#358).
 Minecraft is `ChestBlockEntity`'s double-chest swap - for this BE it is an abstract-method obligation
 with no live call site, and covering it would mean inventing a caller.
 
+## The numbers, 2026-09-07 (post-freight, pre-v0.20.0)
+
+| | line | branch |
+|---|---|---|
+| Merged, both layers | **74.0%** | 61.3% |
+| **Actionable** (minus what neither layer can reach) | **83.4%** | - |
+
+Up from 71.8% / 57.6% at the 2026-08-31 reading, across the freight ladder, the Scrap Hauler, the
+market and the aquarium. The suite kept pace with a large amount of new code rather than being
+diluted by it, which is the number worth watching - the headline moving a tenth of a point in a COVER
+pass is normal and is not the point of one.
+
+**What the 2026-09-07 pass changed**, and it is deliberately two classes rather than a broad sweep:
+
+- `PigeonForageGoal` went **10% to 68%** line and 0 to 12 of 24 branches. Every method was
+  uncovered. `StrayTests` already pinned the *gating rule* - that a peck rolls the block's own pull
+  table and nothing else - but its own comment declines to run the goal, "which needs pathing and a
+  real walk", so the lifecycle had nothing on it. That is where the documented bug actually shipped:
+  the first version kept the goal running once the bird arrived, so it pecked every two seconds and
+  the cooldown only gated *starting*. The new test drives the goal by hand - constructed, stagger
+  drained, bird placed on the pile so `isReachedTarget` is true without a walk - and goes red against
+  that exact bug reintroduced.
+- `TeardownData` went **59.1% to 73.1%** line and to 49 of 76 branches. `read` had no coverage *and
+  no callers*, despite a javadoc reading "Kept for tests"; `forInput`'s only caller draws an
+  `ITooltip`, so it sits in the client half.
+
+**And those tests are GameTests, which is why the gap existed.** `TeardownData` is pure data parsing,
+so `src/test/java` is where it belongs by every rule in this repo - and it cannot live there. An
+`Entry` holds an `ItemStack`, building one needs item components bound, and outside a running server
+they are not: every parse returns null, `all()` comes back empty, and a test written there passes by
+asserting nothing. That was measured by writing it and watching it pass vacuously.
+
+## What "actionable" excludes, corrected
+
+**The figure above excludes 1,601 lines, not the 854 this document used to claim.** Two things moved:
+
+| | lines at 0% | why |
+|---|---|---|
+| `client` + `client/gui` | 782 | screens, the GUI painter, the entity model and renderers |
+| `compat/jei` | 455 | categories and transfer handlers; JEI registers client-side only |
+| `compat/jade`'s `*Provider` half | 364 | draws an `ITooltip` - the same category as the two above |
+
+**The third row is the correction.** This document already said Jade's `IBlockComponentProvider`
+half "belongs with" the unreachable set because "it draws, so it is only checkable by looking" - and
+then never subtracted it, so 364 lines of undrawable tooltip code have been counted as actionable
+debt. That is why `compat/jade` reads 37.8% and looks like the worst package in the mod while its
+testable half is essentially finished: `WorkbenchDataProvider` misses 1 line, `ScrapBinDataProvider`
+1, `CompostHeapDataProvider` 2, `HaulerDepotDataProvider` 3, `TreeNurseryDataProvider` 6,
+`GeneratorDataProvider` 10. The 2026-08-31 COVER pass did that work; the number never showed it.
+
+**Read the split before treating a low package as debt.** `compat/jade` at 37.8% is two populations
+averaged together, and the average describes neither.
+
 ## The numbers, 2026-08-31 (post-v0.16.0)
 
 | | line | branch |

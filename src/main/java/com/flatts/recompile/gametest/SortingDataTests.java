@@ -24,6 +24,7 @@ final class SortingDataTests {
 
     static void register() {
         registerTagFormGuard();
+        registerTeardownDataGuard();
         // JEI INFO PANELS AND LANG KEYS AGREE, BOTH WAYS.
         //
         // A declared-but-unregistered key is a translation nothing can ever ask for: it resolves
@@ -524,6 +525,86 @@ final class SortingDataTests {
      * content. {@code expand: true} is unaffected and stays free to use - it is what the Grains of
      * Infinity entry uses, and the rate census measures it end to end.
      */
+    /**
+     * What the viewers read out of the bundled teardown files.
+     *
+     * <p><b>Here rather than in the JUnit layer, and that is why the gap existed.</b> This is pure
+     * data parsing, so {@code src/test/java} is where it belongs by every rule in this repo - and it
+     * cannot live there. A {@code TeardownData.Entry} holds an {@code ItemStack}, building one needs
+     * item components bound, and outside a running server they are not: every parse returns null,
+     * {@code all()} comes back empty, and a test written there passes by asserting nothing. Measured
+     * on 2026-09-07 while writing exactly that test.
+     *
+     * <p>So two methods had no coverage at all. {@code read} had none AND no callers, despite a
+     * javadoc reading "Kept for tests" - using it here is what makes that true. {@code forInput}'s
+     * only caller is {@code WorkbenchHintProvider}, which draws an {@code ITooltip} and so sits in
+     * the client half neither layer reaches.
+     */
+    private static void registerTeardownDataGuard() {
+        RCGameTests.test("a_bundled_teardown_parses_into_what_the_file_says", 20, helper -> {
+            var entry = com.flatts.recompile.compat.TeardownData.read(
+                "/data/recompile/recipe/broken_spawner.json");
+            helper.assertTrue(entry != null,
+                "the Broken Spawner's teardown did not parse out of the bundle - which is how a "
+                    + "viewer comes to deny a teardown the world performs perfectly well");
+            helper.assertTrue(entry.input().is(RCItems.BROKEN_SPAWNER.get()),
+                "parsed the wrong input: " + entry.input());
+            helper.assertTrue(entry.tool() != null,
+                "the recipe names a prybar and the parse dropped it, so the hint would tell a "
+                    + "player they need no tool");
+            helper.assertTrue(!entry.outputs().isEmpty(),
+                "no outputs parsed, so the panel draws an empty row and reads as a teardown that "
+                    + "yields nothing");
+
+            // A viewer reads paths it derives, so a wrong one degrades to "no entry" rather than
+            // taking the panel down with it.
+            helper.assertTrue(
+                com.flatts.recompile.compat.TeardownData.read("/data/recompile/recipe/nope.json")
+                    == null,
+                "a missing file parsed into something");
+            helper.succeed();
+        });
+
+        RCGameTests.test("a_teardown_input_that_is_not_a_bare_item_is_declined", 20, helper -> {
+            // Tag and array inputs are legal in the schema and are not surfaced yet. A viewer that
+            // guessed would advertise a teardown against the wrong item, which is worse than
+            // advertising none at all.
+            for (String body : java.util.List.of(
+                    "{\"input\": {\"tag\": \"c:ingots\"}}",
+                    "{\"input\": [\"minecraft:stone\"]}",
+                    "{}",
+                    "{\"input\": \"recompile:not_a_real_item\"}")) {
+                var root = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                helper.assertTrue(com.flatts.recompile.compat.TeardownData.parse(root) == null,
+                    "parsed something out of " + body);
+            }
+            helper.succeed();
+        });
+
+        RCGameTests.test("every_bundled_teardown_is_reachable_by_its_input", 20, helper -> {
+            var all = com.flatts.recompile.compat.TeardownData.all();
+            // The guard the other two need: all() discovers files through RecipeFiles, and a
+            // discovery that finds nothing makes every assertion above vacuous while looking green.
+            helper.assertTrue(all.size() >= 5,
+                "only " + all.size() + " bundled teardowns were discovered");
+            long distinct = all.stream().map(e -> e.input().getItem()).distinct().count();
+            helper.assertTrue(distinct == all.size(),
+                "two bundled teardowns share an input item - forInput returns the first and the "
+                    + "other is invisible to every viewer");
+            for (var entry : all) {
+                helper.assertTrue(
+                    com.flatts.recompile.compat.TeardownData.forInput(entry.input().getItem())
+                        != null,
+                    "forInput could not find " + entry.input() + ", which it was just handed");
+            }
+            helper.assertTrue(
+                com.flatts.recompile.compat.TeardownData.forInput(
+                    net.minecraft.world.item.Items.STONE) == null,
+                "found a teardown for stone, which this mod does not ship");
+            helper.succeed();
+        });
+    }
+
     private static void registerTagFormGuard() {
         RCGameTests.test("no_unexercised_tag_entry_reaches_the_viewer", 40, helper -> {
             var offenders = new java.util.TreeSet<String>();
