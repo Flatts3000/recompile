@@ -1,5 +1,6 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.content.entity.PigeonEntity;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.content.entity.PigeonForageGoal;
@@ -245,16 +246,25 @@ final class StrayTests {
             pigeon.snapTo(at.x, at.y, at.z, 0.0F, 0.0F);
             helper.getLevel().addFreshEntity(pigeon);
 
+            if (!RCConfig.PIGEON_FORAGE_ENABLED.get()) {
+                // A pack may turn foraging off. Then canUse refuses forever by design, and a drain
+                // loop would report a stagger bug that does not exist.
+                helper.succeed();
+                return;
+            }
             PigeonForageGoal goal = new PigeonForageGoal(pigeon);
             // The constructor staggers a flock by up to one whole interval, and canUse spends that
             // one tick per call. Drain it by asking, which is what the mob's goal selector does.
+            // The cap comes off the config rather than a literal: the interval's own maximum is
+            // 24,000, so a hardcoded 20,000 would fail on a retuned pack and blame working code.
+            int cap = RCConfig.PIGEON_FORAGE_INTERVAL_TICKS.get() + 100;
             int asked = 0;
-            while (!goal.canUse() && asked++ < 20_000) {
+            while (!goal.canUse() && asked++ < cap) {
                 // deliberately empty: canUse decrements the stagger and reports not yet
             }
-            helper.assertTrue(asked < 20_000,
-                "the goal never became usable in 20,000 asks - either the stagger does not drain or "
-                    + "it never found the pile it is standing on");
+            helper.assertTrue(asked < cap,
+                "the goal never became usable in " + cap + " asks - either the stagger does not "
+                    + "drain or it never found the pile it is standing on");
 
             goal.start();
             helper.assertTrue(goal.canContinueToUse(),
@@ -269,9 +279,18 @@ final class StrayTests {
             // And stopping arms the full cooldown, so the next visit is a visit rather than a
             // continuation. Without this the one-peck rule just moves the heap along by a tick.
             goal.stop();
-            helper.assertTrue(!goal.canUse(),
-                "the goal was immediately usable again after stopping, so the cooldown it sets on "
-                    + "stop is not being honoured and one peck per visit means nothing");
+            // THERE IS DELIBERATELY NO ASSERTION ABOUT THE COOLDOWN stop() ARMS, and the reason is
+            // the same one RegistryCompletenessTests records about the duplicate-tab test: one was
+            // written, driven RED by deleting `cooldown = ...` from stop(), and stayed GREEN.
+            //
+            // Vanilla refuses first and hides ours. MoveToBlockGoal.canUse sets its own nextStartTick
+            // on every call, so a stopped goal declines for reasons that have nothing to do with this
+            // class - and asking past that ceiling did not expose it either, which is where the
+            // attempt was abandoned rather than tuned until it went red for an unknown reason. A test
+            // that cannot fail is worse than no test, because it reads as coverage.
+            //
+            // What IS pinned above is the half that actually shipped broken: the goal ends on the
+            // peck. The cooldown was never the bug - it worked and only gated starting.
 
             helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), pos);
             helper.succeed();

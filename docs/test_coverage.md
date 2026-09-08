@@ -43,6 +43,48 @@ argued with.
 - Gradle does not honour command-line order for tasks with no declared relationship, so `coverageReport`
   could run before either test task had written anything. It now `mustRunAfter` both.
 
+## The numbers, 2026-09-07 (post-freight)
+
+| Scope | Line | Branch |
+|---|---|---|
+| Merged, both layers | **74.0%** (10361/14005) | **61.3%** (4033/6583) |
+| Actionable (minus the 1,281 unreachable below) | **81.4%** | - |
+
+**The headline went DOWN and the actionable figure did not, which is the whole reason this table has
+two rows.** Against 2026-09-04 the merged number fell 75.0 to 74.0 and branch 63.1 to 61.3, while
+actionable moved 81.3 to 81.4. Nothing regressed: the codebase grew by about 2,000 lines and 350 of
+them are client-only, so the denominator took on code neither layer can execute and dragged the
+merged figure with it. `client` alone went from 288 lines to 629 as the Scrap Hauler's model, its
+renderer, and the Depot and Freight screens shipped.
+
+**Read the actionable row, not the headline, when client code has landed.** The headline is the right
+number for "is this suite keeping up" only while the two populations grow at similar rates, and a
+release that ships four screens is exactly when they do not.
+
+772 GameTests (771 of them this mod's) and 147 JUnit tests, both layers green, measured 2026-09-07.
+
+**What the 2026-09-07 pass changed**, deliberately two classes rather than a broad sweep:
+
+- `PigeonForageGoal` went **10% to 68%** line and 0 to 12 of 24 branches. Every method was uncovered.
+  `StrayTests` already pinned the *gating rule* - a peck rolls the block's own pull table and nothing
+  else - but its own comment declines to run the goal, "which needs pathing and a real walk", so the
+  lifecycle had nothing on it. That is where the documented bug shipped: the first version kept the
+  goal running once the bird arrived, so it pecked every two seconds. The new test drives the goal by
+  hand and goes red against that bug reintroduced.
+- `TeardownData` went **59.1% to 73.1%** line and to 49 of 76 branches. `read` had no coverage *and no
+  callers*, despite a javadoc reading "Kept for tests"; `forInput`'s only caller draws an `ITooltip`.
+
+**Both had to be GameTests, which is why the gap existed.** `TeardownData` is pure data parsing, so
+`src/test/java` is where it belongs by every rule in this repo - and it cannot live there. An `Entry`
+holds an `ItemStack`, building one needs item components bound, and outside a running server they are
+not: every parse returns null, `all()` comes back empty, and the JUnit version written first passed by
+asserting nothing.
+
+**And one assertion was written, driven red, and deleted.** A check that `stop()` arms the forage
+cooldown stayed green with `cooldown = ...` removed from `stop()`, because vanilla's
+`MoveToBlockGoal.canUse` refuses first for reasons of its own. It is gone rather than tuned until it
+went red for an unknown reason, with the note in `StrayTests` saying so.
+
 ## The numbers, 2026-09-04 (post-v0.18.0)
 
 | Scope | Line | Branch |
@@ -54,7 +96,7 @@ argued with.
 57.6 to 63.1 across two passes; branch is the number that moved most in this one, which is what you
 would expect from a pass that went after guards rather than after happy paths.
 
-709 GameTests (708 of them this mod's) and 108 JUnit tests, both layers green, measured 2026-09-04. **The percentages above belong to that COVER pass and were not re-measured since** - the market (#368, #370) has added tests to both layers, so treat them as a floor rather than as today's number.
+709 GameTests (708 of them this mod's) and 108 JUnit tests, both layers green, measured 2026-09-04. **Superseded by the 2026-09-07 reading above**; kept as the trend - the market (#368, #370) has added tests to both layers, so treat them as a floor rather than as today's number.
 
 **What this pass added, and it is worth reading as a list of what was NOT proven before:** the Garbage
 Vacuum's entire hold-to-vacuum loop (`onUseTick` was 0/19 lines, so the headline tool of v0.17.0 had
@@ -83,59 +125,6 @@ aimed at a Block of Garbage does nothing and says nothing (#358).
 **Deliberately not covered:** `ScrapBarrelBlockEntity.setItems`, whose only caller anywhere in
 Minecraft is `ChestBlockEntity`'s double-chest swap - for this BE it is an abstract-method obligation
 with no live call site, and covering it would mean inventing a caller.
-
-## The numbers, 2026-09-07 (post-freight, pre-v0.20.0)
-
-| | line | branch |
-|---|---|---|
-| Merged, both layers | **74.0%** | 61.3% |
-| **Actionable** (minus what neither layer can reach) | **83.4%** | - |
-
-Up from 71.8% / 57.6% at the 2026-08-31 reading, across the freight ladder, the Scrap Hauler, the
-market and the aquarium. The suite kept pace with a large amount of new code rather than being
-diluted by it, which is the number worth watching - the headline moving a tenth of a point in a COVER
-pass is normal and is not the point of one.
-
-**What the 2026-09-07 pass changed**, and it is deliberately two classes rather than a broad sweep:
-
-- `PigeonForageGoal` went **10% to 68%** line and 0 to 12 of 24 branches. Every method was
-  uncovered. `StrayTests` already pinned the *gating rule* - that a peck rolls the block's own pull
-  table and nothing else - but its own comment declines to run the goal, "which needs pathing and a
-  real walk", so the lifecycle had nothing on it. That is where the documented bug actually shipped:
-  the first version kept the goal running once the bird arrived, so it pecked every two seconds and
-  the cooldown only gated *starting*. The new test drives the goal by hand - constructed, stagger
-  drained, bird placed on the pile so `isReachedTarget` is true without a walk - and goes red against
-  that exact bug reintroduced.
-- `TeardownData` went **59.1% to 73.1%** line and to 49 of 76 branches. `read` had no coverage *and
-  no callers*, despite a javadoc reading "Kept for tests"; `forInput`'s only caller draws an
-  `ITooltip`, so it sits in the client half.
-
-**And those tests are GameTests, which is why the gap existed.** `TeardownData` is pure data parsing,
-so `src/test/java` is where it belongs by every rule in this repo - and it cannot live there. An
-`Entry` holds an `ItemStack`, building one needs item components bound, and outside a running server
-they are not: every parse returns null, `all()` comes back empty, and a test written there passes by
-asserting nothing. That was measured by writing it and watching it pass vacuously.
-
-## What "actionable" excludes, corrected
-
-**The figure above excludes 1,601 lines, not the 854 this document used to claim.** Two things moved:
-
-| | lines at 0% | why |
-|---|---|---|
-| `client` + `client/gui` | 782 | screens, the GUI painter, the entity model and renderers |
-| `compat/jei` | 455 | categories and transfer handlers; JEI registers client-side only |
-| `compat/jade`'s `*Provider` half | 364 | draws an `ITooltip` - the same category as the two above |
-
-**The third row is the correction.** This document already said Jade's `IBlockComponentProvider`
-half "belongs with" the unreachable set because "it draws, so it is only checkable by looking" - and
-then never subtracted it, so 364 lines of undrawable tooltip code have been counted as actionable
-debt. That is why `compat/jade` reads 37.8% and looks like the worst package in the mod while its
-testable half is essentially finished: `WorkbenchDataProvider` misses 1 line, `ScrapBinDataProvider`
-1, `CompostHeapDataProvider` 2, `HaulerDepotDataProvider` 3, `TreeNurseryDataProvider` 6,
-`GeneratorDataProvider` 10. The 2026-08-31 COVER pass did that work; the number never showed it.
-
-**Read the split before treating a low package as debt.** `compat/jade` at 37.8% is two populations
-averaged together, and the average describes neither.
 
 ## The numbers, 2026-08-31 (post-v0.16.0)
 
@@ -195,7 +184,7 @@ directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
-**931 lines as of 2026-09-04**: 887 in the three unreachable packages (`compat/jei` 446, `client` 288, `client/gui` 153) plus 44 in the `Dist.CLIENT` classes outside `client/**` (`MultiblockPlacementPreview` 26, `RCFuelTooltip` 12, `RCBlockColors` and its inner class 3 each). The first write of this line said 884 and 47, which summed to the right headline out of two cancelling errors, on the page that calls itself the one place the subtraction is stated, all at 0%, excluded from the actionable figure rather than counted as
+**1,281 lines as of 2026-09-07**, up from 931 on 2026-09-04: 1,237 in the three unreachable packages (`client` 629, `compat/jei` 455, `client/gui` 153) plus 44 in the `Dist.CLIENT` classes outside `client/**` (`MultiblockPlacementPreview` 26, `RCFuelTooltip` 12, `RCBlockColors` and its inner class 3 each). `client` more than doubled - 288 to 629 - because the Scrap Hauler's model and renderer and three screens shipped between the two readings, which is what pulled the merged headline down while actionable held. The first write of this line said 884 and 47, which summed to the right headline out of two cancelling errors, on the page that calls itself the one place the subtraction is stated, all at 0%, excluded from the actionable figure rather than counted as
 debt. *(These grow with the code; they were 771 at v0.14.0. This is the one place they are stated -
 anywhere else that quotes a total is a second source waiting to drift from this one.)*
 
@@ -209,6 +198,17 @@ anywhere else that quotes a total is a second source waiting to drift from this 
 
 Chasing these would mean either a headless-client harness or tests that assert nothing. Neither is
 worth it; both are worth saying out loud so the next person does not re-derive it.
+
+**A candidate for this list that is NOT on it: `compat/jade`'s `IBlockComponentProvider` half,
+364 lines.** The section below already argues it belongs with the client code because it draws, and
+it has never been subtracted, so `compat/jade` reads 37.8% and looks like the worst package in the
+mod while its testable half is essentially finished - `WorkbenchDataProvider` misses 1 line,
+`ScrapBinDataProvider` 1, `CompostHeapDataProvider` 2, `HaulerDepotDataProvider` 3,
+`TreeNurseryDataProvider` 6, `GeneratorDataProvider` 10. Subtracting it too would put actionable at
+83.8%. **It is deliberately left in the denominator** rather than quietly moved: the number above is
+the one this file has always meant by unreachable, and widening the definition in the same edit that
+restates it is how a subtraction stops being arguable. Treat 37.8% as two populations averaged, and
+read the split before calling that package debt.
 
 ## The half of Jade that IS reachable
 
