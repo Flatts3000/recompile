@@ -1,0 +1,13 @@
+{
+  "type": "recompile:freight_phase",
+  "tier": 1,
+  "name": "freight.recompile.phase.1",
+  "requires": [
+    { "item": "minecraft:dirt",        "count": 40 },
+    { "item": "minecraft:cobblestone", "count": 41 },
+    { "item": "minecraft:oak_planks",  "count": 42 },
+    { "item": "minecraft:sand",        "count": 43 },
+    { "item": "minecraft:gravel",      "count": 44 },
+    { "item": "minecraft:clay_ball",   "count": 45 }
+  ]
+}

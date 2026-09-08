@@ -100,7 +100,10 @@ public class FreightTerminalScreen extends LayoutScreen<FreightTerminalMenu> {
         // Say what is off the bottom rather than just ending. Four rows is what the window's
         // guaranteed 240 logical pixels leaves for the list - see the note on the layout - and a
         // manifest that quietly stopped at four would read as a phase asking for less than it does.
-        painter.scrollTail("manifest", FreightTerminalMenu.VISIBLE_LINES - 1, NAME_X, 12,
+        // The cell extrapolated under the last row, which a vertical run answers for on purpose -
+        // the Buy Terminal's idiom. It used to be drawn INSIDE the last row at dy=12, across that
+        // row's own name; the panel grew ten pixels so it no longer has to be.
+        painter.scrollTail("manifest", shown, NAME_X, 2,
             scroll, total - scroll - shown, GuiTheme.TEXT_MUTED);
     }
 

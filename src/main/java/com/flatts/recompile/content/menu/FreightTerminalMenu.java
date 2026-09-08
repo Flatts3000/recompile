@@ -38,7 +38,7 @@ public class FreightTerminalMenu extends AbstractContainerMenu {
     /** Manifest lines on screen at once; the rest scroll. See the note on the layout. */
     public static final int VISIBLE_LINES = 4;
 
-    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 220)
+    public static final ScreenLayout LAYOUT = ScreenLayout.builder(GuiTheme.PANEL_W, 230)
         .panel()
         // Which rung this is, above the lines. Without it the screen is a list of goods with no
         // indication that a ladder exists at all.
@@ -60,15 +60,24 @@ public class FreightTerminalMenu extends AbstractContainerMenu {
         // pixels, and 108/6 is 18 only if the rest is free. It is not. So the screen shows FOUR and
         // scrolls, which is the Buy Terminal's answer to the same arithmetic. Every shipped phase
         // asks for two goods, so nothing scrolls today; MAX_LINES stays 6 so a pack can still ask
-        // for six, and the fourth row's hint says how many are hidden.
-.rows("manifest", VISIBLE_LINES, 8, 28, 160, 16, 18)
+        // for six, and a hint under the last row says how many are hidden.
+        //
+        // THE PANEL IS 230 RATHER THAN 220 SO THAT HINT HAS SOMEWHERE TO GO. Four rows at 18 from
+        // y=28 end at 98 and the strip began at 104, which left six pixels - less than the font's
+        // nine - so the hint was crammed INSIDE the last row at dy=12 and drew across that row's
+        // own name and the bottom of its item icon. Invisible in the shipped game, because every
+        // phase asks for two goods and the hint never appears; a datapack with six lines shows it
+        // immediately, which is how this was found. The extra ten pixels buy the hint its own band
+        // at y=100 and are still twenty short of the 240 the window guarantees, which
+        // no_panel_is_bigger_than_the_smallest_promised_window now pins.
+        .rows("manifest", VISIBLE_LINES, 8, 28, 160, 16, 18)
         // ONE ROW rather than a 3x3. The strip is a landing pad the ticker empties, not storage, so
         // giving it the footprint of a chest would suggest it holds things. Nine wide at
         // INVENTORY_X so it really does line up with the hotbar under it - it was at x=7 for one
         // review cycle, one pixel off the inventory it claimed to match, which no sweep catches
         // because the centring check only covers CELL groups.
-        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, GuiTheme.INVENTORY_X, 104)
-        .playerInventory(138)
+        .slotRow("strip", FreightTerminalBlockEntity.SLOT_COUNT, GuiTheme.INVENTORY_X, 114)
+        .playerInventory(148)
         .build();
 
     private static final int STRIP_END = FreightTerminalBlockEntity.SLOT_COUNT;

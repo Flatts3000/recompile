@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "GUI audit: a six-line freight phase, so the manifest scrolls (PR #418)",
+    "min_format": 84,
+    "max_format": 84
+  }
+}
