@@ -4,7 +4,51 @@
 [#40](https://github.com/Flatts3000/trashlands/issues/40).
 **Analysed against:** Recompile **v0.13.0**, Simple Magnets `1.1.12-neoforge-mc26.1` (CF project
 394140, file 8370420), MC 26.1.2 / NeoForge 26.1.2.94.
-**Status:** SHIPPED. The four overrides live at `data/simplemagnets/recipe/` (`advancedmagnet`, `basicmagnet`, `advanced_demagnetization_coil`, `basic_demagnetization_coil`), each at that mod's own recipe id.
+**Status:** RETIRED 2026-09-08 (#420). The four overrides shipped here from v0.14.0 and have now
+left for the pack, which is where they always belonged. Nothing under `data/simplemagnets/` remains in
+this repo. The recipes themselves are unchanged and live at
+`pack/kubejs/data/simplemagnets/recipe/` in Trashlands (`Flatts3000/trashlands#47`, pack PR #73);
+everything below is kept as the record of the design and the load-order reasoning, both of which the
+pack inherited along with the files.
+
+## The retirement, and what came out with the files
+
+**The exit condition was KubeJS, and it was met.** `kubejs-neoforge-26.1.2-8.0.4.jar` landed in the
+pack on 2026-09-07, which ended the "the pack cannot ship data on 26.1.2" constraint this whole
+handoff was built around. The pack took the four recipes back the next day; this repo dropped its
+copies once the pack's were live, in that order, because two datapacks at one recipe id resolve by
+load order with nothing logged and a copy is only safe while it stays a copy.
+
+**The removal was the size the "build it to be deleted" section below promised**, which is the point
+of writing that section up front:
+
+- four JSON files, deleted wholesale, nothing folded into an engine table
+- one `[[dependencies]]` block in `neoforge.mods.toml`, gone with them
+- one GameTest, `a_guarded_override_is_inert_without_its_mod`, deleted rather than left green over an
+  empty list
+
+**That last one is a judgement, so here is the reasoning.** The test was written to pass over an empty
+list precisely so the removal would stay a delete, and it would have. But it was the only guard for the
+one pattern that no longer exists here - a `neoforge:mod_loaded`-guarded file at a foreign mod's recipe
+id - and a test named "a guarded override is inert without its mod" that measures nothing reads as
+coverage. The remaining foreign-namespace content has its own guards:
+`every_cross_mod_override_is_ordered_after_its_mod` derives its namespace list from what this mod
+actually ships, so it followed the deletion by itself, and `the_blaze_grinding_override_can_never_load`
+covers Ender IO's `neoforge:never` file.
+
+**The lesson inside that test is worth more than the test, so it is recorded here.** An absence
+assertion over an override is vacuous unless it also checks the REASON for the absence. "No
+`simplemagnets` recipe is loaded" is green in both the good state and the bad one: with the guard the
+file is skipped, and *without* the guard it fails to parse on its own unresolvable result id and is
+equally absent. A bare presence check on the condition key is not enough either - an empty condition
+array reads as all-conditions-met, and a typo in the modid makes the condition simply false forever.
+Anything that guards an override in future has to assert the condition's contents.
+
+**A standalone Recompile install running Simple Magnets now gets Simple Magnets' own recipes**, which
+want an ender pearl, lapis, an ender eye and a diamond. That is a real downgrade for that
+configuration and it is deliberate: re-theming another mod's recipes is curation, curation is the
+pack's job, and the engine/pack split in `CLAUDE.md` is what this handoff suspended rather than
+revised. `docs/curseforge_page.md` no longer claims Simple Magnets has a way in here.
 
 ## Why this is a Recompile job and not a pack job
 
@@ -164,7 +208,11 @@ and each of the four files needs the usual guard so it is inert without the mod:
 **Verify in game that the override actually took**, not merely that the pack loads. That is the
 lesson the seventeen-recipe incident already paid for once.
 
-## What the pack will do
+## What the pack did
 
-Nothing until this ships. Simple Magnets is pinned and shipping with its stock recipes, and the pack
-issue stays open pointing here.
+Took them back. `Flatts3000/trashlands#47` shipped the four files under `pack/kubejs/data/` on
+2026-09-08 with the recipes byte-for-byte unchanged and the comments rewritten for their new home, and
+this repo deleted its copies the same day. `tools/check_pack_deps.py` in the pack compares every file
+under `pack/kubejs/data/` against the same path inside the pinned Recompile jar and fails on a
+difference; a path the jar no longer contains is skipped as pack-only content, so the deletion here
+retires that comparison rather than breaking it.

@@ -13,7 +13,9 @@ decision belongs under the engine/pack split. Nothing is being asked of Recompil
 
 The rest is kept for two reasons: the two observations at the end are still live questions for
 this repo, and the same route now exists to take back the Simple Magnets overrides and the Ender
-IO grains, which their own handoffs said to reclaim the moment it opened.
+IO grains, which their own handoffs said to reclaim the moment it opened. **Simple Magnets took
+that route on 2026-09-08** (`trashlands#47`, engine half #420) and its four files are gone from
+this repo; Ender IO's are still here pending `trashlands#52`.
 
 ## What the pack needs
 
