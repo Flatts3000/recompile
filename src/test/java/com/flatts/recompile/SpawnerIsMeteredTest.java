@@ -129,10 +129,12 @@ class SpawnerIsMeteredTest {
         Path data = resourceRoot().resolve("data");
         assertTrue(Files.isDirectory(data), "no data directory at " + data);
 
-        // EVERY namespace, not just this mod's. Recipes ship under data/minecraft, data/enderio and
-        // data/simplemagnets here as a matter of routine - overriding another mod's id is how a
-        // recipe gets disabled - so a spawner recipe added under one of those would have escaped a
-        // scan of data/recompile/recipe alone, silently, while the guard still reported green.
+        // EVERY namespace, not just this mod's. Recipes ship under data/minecraft and data/enderio
+        // as a matter of routine - overriding another mod's id is how a recipe gets disabled - so a
+        // spawner recipe added under one of those would have escaped a scan of data/recompile/recipe
+        // alone, silently, while the guard still reported green. The set of foreign namespaces MOVES:
+        // data/simplemagnets was in this sentence until its four overrides went back to the pack
+        // (#420), which is why the scan below lists the directory rather than naming namespaces.
         List<Path> files = new ArrayList<>();
         try (Stream<Path> namespaces = Files.list(data)) {
             for (Path namespace : namespaces.filter(Files::isDirectory).sorted().toList()) {
