@@ -710,29 +710,44 @@ size = 32
 [surface.pigeon.procedural]
 style = "pigeon_skin"
 
-# Sourced from the CHICKEN egg, not the parrot's, for the same luminance reason the skin is sourced
-# from the grey parrot. Every spawn egg is the same silhouette, so the source only decides the tone: the
-# parrot egg averages luma 78 and retinted to slate it came back a black blob in the hotbar, while the
-# chicken egg averages 160 and keeps its speckles. Bird either way.
+# SOURCED FROM THE PARROT AND SILVERFISH EGGS, WHICH REVERSES THE NOTE THAT USED TO SIT HERE
+# (owner, 2026-09-08, #409). Each egg now comes from the vanilla egg of the mob its entity is built
+# on - the Pigeon wears vanilla's parrot model and the Roach wears the silverfish's - so the item and
+# the creature finally cite the same ancestor.
+#
+# The old note argued for the chicken egg on measured grounds and they were real: "the parrot egg
+# averages luma 78 and retinted to slate it came back a black blob". Re-measured, that is 77.8, so
+# the observation was right. THE CONCLUSION WAS NOT, because the fix is the brightness key rather
+# than a different source - it just had to be solved rather than guessed. 3.08 lands the parrot-
+# sourced egg at luma 112.8 against the 112.5 the shipped one was approved at, and 2.87 lands the
+# silverfish-sourced roach at 97.9 against 98.0. Same tone, new ancestor.
+#
+# TWO THINGS THE OLD NOTE ALSO HAD WRONG, both cheap to check and both load-bearing here. "Every
+# spawn egg is the same silhouette" - they are not: the chicken egg covers 90 non-transparent pixels,
+# the parrot 103 and the silverfish 106, so the source decides shape as well as tone. And the
+# speckles the chicken was kept for come out STRONGER, not weaker: internal contrast rises from
+# stdev 38.6 to 64.5 on the Pigeon and 33.6 to 48.3 on the Roach, with 6 and 5 pixels clipping. The
+# blob was never the source, it was an uncompensated one.
+#
+# These two brightness values are SOLVED, not chosen. Re-tune the tint and they have to be re-solved
+# against the same luma targets, or the eggs drift off the tone that was approved.
 [surface.pigeon_spawn_egg]
 kind = "item"
 backend = "retint"
 size = 16
 tint = "#6b7079"
-source = "item/chicken_spawn_egg"
-brightness = 1.6
+source = "item/parrot_spawn_egg"
+brightness = 3.08
 
 [surface.roach_spawn_egg]
 kind = "item"
 backend = "retint"
 size = 16
 tint = "#8a5230"
-source = "item/chicken_spawn_egg"
-# The same compensation the Pigeon's egg carries, for the same measured reason: retint darkens as it
-# casts, so a brown over the bright chicken egg still landed at 58. 1.7 puts it at 98 - clear of the
-# 78 that was rejected as a blob, and deliberately short of the Pigeon's 113, because a roach egg
-# should read darker than a pigeon's.
-brightness = 1.7
+source = "item/silverfish_spawn_egg"
+# Deliberately short of the Pigeon's 113, because a roach egg should read darker than a pigeon's.
+# That relationship survived the source change because both were solved to their old targets.
+brightness = 2.87
 
 # Raw and Cooked Roach (#78) - what the dump's one native creature drops, and what the Burn Barrel
 # turns it into. Icons, so they read at inventory scale on transparent; cooked reads as cooked at a
@@ -2577,11 +2592,20 @@ size = 16
 tint = "#4dd0c8"
 source = "item/copper_garbage_vacuum"
 
+# VIOLET RATHER THAN NEAR-BLACK, and the complaint it answers is measurable (owner, 2026-09-08,
+# #409's sibling #408). The old #4a4148 averaged chroma 3.2 on a 0-255 scale, where 0 is pure grey -
+# so on coal block, deepslate or a netherite block the item had no edge to find. What settles it is
+# the tier LADDER rather than taste: copper sits at chroma 58.1 and diamond at 48.6, and iron is 0.4
+# because iron IS grey. At 3.2 the top tier read as a second iron.
+#
+# The owner picked the most conservative of four candidates, which lands at chroma 9.1 and luma 29.2 -
+# still the darkest vacuum by a distance, just no longer hueless. Deliberately short of the brighter
+# options: netherite should stay dark, it should just stop vanishing.
 [surface.netherite_garbage_vacuum]
 kind = "item"
 backend = "retint"
 size = 16
-tint = "#4a4148"
+tint = "#584a63"
 source = "item/copper_garbage_vacuum"
 
 # The running overlay: layer1 over any tier's body, shown only while the item is in use. Six frames
