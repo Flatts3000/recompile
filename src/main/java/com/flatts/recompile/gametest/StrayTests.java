@@ -1,5 +1,6 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.content.entity.PigeonEntity;
 import com.flatts.recompile.compat.SortingData;
 import com.flatts.recompile.content.entity.PigeonForageGoal;
@@ -219,6 +220,79 @@ final class StrayTests {
             helper.assertTrue(helper.getBlockState(pos).equals(before),
                 "foraging must leave the pile exactly as it was - a pigeon that advances the sorted "
                     + "count is a pigeon that eats an unattended dump");
+            helper.succeed();
+        });
+
+        // ONE PECK PER VISIT, AND THIS IS THE BUG THAT SHIPPED. The first version kept the goal
+        // running once the bird arrived, so it pecked every two seconds for as long as it stood
+        // there and made a small heap of loot in under a minute. The cooldown existed and only
+        // gated STARTING, which reads as a tuning problem and is not one. The fix was to end the
+        // goal on the peck - and nothing guarded that, because the sibling test above asserts the
+        // loot table rather than the goal and says so in its own comment.
+        //
+        // Driven by hand rather than by pathing: the goal is constructed, its stagger drained, and
+        // the bird put on the pile so isReachedTarget is true without a walk. That is what the
+        // other test declined to do, and it is the only way the lifecycle is reachable at all.
+        RCGameTests.test("a_pigeon_pecks_once_per_visit", 60, helper -> {
+            BlockPos pos = new BlockPos(1, 2, 1);
+            helper.setBlock(pos, RCBlocks.GARBAGE_BLOCK.get());
+            PigeonEntity pigeon = RCEntities.PIGEON.get().create(
+                helper.getLevel(), net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+            helper.assertTrue(pigeon != null, "could not create a pigeon");
+            // ON TOP of the pile, not in it: MoveToBlockGoal aims at getMoveToTarget(), which is
+            // blockPos.above(), and closerToCenterThan is strict - a bird at the block's own centre
+            // is exactly 1.0 away from that and never counts as arrived.
+            var at = net.minecraft.world.phys.Vec3.atCenterOf(helper.absolutePos(pos.above()));
+            pigeon.snapTo(at.x, at.y, at.z, 0.0F, 0.0F);
+            helper.getLevel().addFreshEntity(pigeon);
+
+            if (!RCConfig.PIGEON_FORAGE_ENABLED.get()) {
+                // A pack may turn foraging off. Then canUse refuses forever by design, and a drain
+                // loop would report a stagger bug that does not exist.
+                helper.succeed();
+                return;
+            }
+            PigeonForageGoal goal = new PigeonForageGoal(pigeon);
+            // The constructor staggers a flock by up to one whole interval, and canUse spends that
+            // one tick per call. Drain it by asking, which is what the mob's goal selector does.
+            // The cap comes off the config rather than a literal: the interval's own maximum is
+            // 24,000, so a hardcoded 20,000 would fail on a retuned pack and blame working code.
+            int cap = RCConfig.PIGEON_FORAGE_INTERVAL_TICKS.get() + 100;
+            int asked = 0;
+            while (!goal.canUse() && asked++ < cap) {
+                // deliberately empty: canUse decrements the stagger and reports not yet
+            }
+            helper.assertTrue(asked < cap,
+                "the goal never became usable in " + cap + " asks - either the stagger does not "
+                    + "drain or it never found the pile it is standing on");
+
+            goal.start();
+            helper.assertTrue(goal.canContinueToUse(),
+                "the goal stopped before it had pecked at all");
+            for (int tick = 0; tick < 200 && goal.canContinueToUse(); tick++) {
+                goal.tick();
+            }
+            helper.assertTrue(!goal.canContinueToUse(),
+                "the bird is still foraging after its peck - that is the shipped bug: a pigeon that "
+                    + "stands on a pile and pecks every two seconds until something scares it off");
+
+            // And stopping arms the full cooldown, so the next visit is a visit rather than a
+            // continuation. Without this the one-peck rule just moves the heap along by a tick.
+            goal.stop();
+            // THERE IS DELIBERATELY NO ASSERTION ABOUT THE COOLDOWN stop() ARMS, and the reason is
+            // the same one RegistryCompletenessTests records about the duplicate-tab test: one was
+            // written, driven RED by deleting `cooldown = ...` from stop(), and stayed GREEN.
+            //
+            // Vanilla refuses first and hides ours. MoveToBlockGoal.canUse sets its own nextStartTick
+            // on every call, so a stopped goal declines for reasons that have nothing to do with this
+            // class - and asking past that ceiling did not expose it either, which is where the
+            // attempt was abandoned rather than tuned until it went red for an unknown reason. A test
+            // that cannot fail is worse than no test, because it reads as coverage.
+            //
+            // What IS pinned above is the half that actually shipped broken: the goal ends on the
+            // peck. The cooldown was never the bug - it worked and only gated starting.
+
+            helper.assertBlockPresent(RCBlocks.GARBAGE_BLOCK.get(), pos);
             helper.succeed();
         });
 
