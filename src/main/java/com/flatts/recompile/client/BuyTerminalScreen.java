@@ -73,16 +73,8 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
         }
         // The tail line sits in the extrapolated cell under the last row, which a single-column
         // run answers for on purpose - see ScreenLayout.Group.cell.
-        int hidden = offers.size() - scroll - shown;
-        if (hidden > 0) {
-            painter.textIn("offers", shown, 20, 4,
-                Component.translatable("container.recompile.more_scroll", hidden).getString(),
-                GuiTheme.TEXT_MUTED);
-        } else if (scroll > 0) {
-            painter.textIn("offers", shown, 20, 4,
-                Component.translatable("container.recompile.scroll_up").getString(),
-                GuiTheme.TEXT_MUTED);
-        }
+        painter.scrollTail("offers", shown, 20, 4, scroll, offers.size() - scroll - shown,
+            GuiTheme.TEXT_MUTED);
 
         painter.text("balance", Component.translatable("container.recompile.scrip_balance",
             String.format("%,d", balance)).getString(), GuiTheme.TEXT_LABEL);
@@ -170,8 +162,7 @@ public class BuyTerminalScreen extends LayoutScreen<BuyTerminalMenu> {
                     return true;
                 }
                 // The vanilla Stonecutter/Loom path: the id travels as a VAR_INT, no custom packet.
-                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
-                    scroll + row);
+                press(scroll + row);
                 return true;
             }
         }

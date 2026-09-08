@@ -3,7 +3,6 @@ package com.flatts.recompile.client;
 import com.flatts.recompile.client.gui.GuiPainter;
 import com.flatts.recompile.client.gui.LayoutScreen;
 import com.flatts.recompile.content.menu.CupolaFurnaceMenu;
-import com.flatts.recompile.gui.GuiTheme;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 

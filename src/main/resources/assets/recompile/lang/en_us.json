@@ -470,6 +470,7 @@
   "container.recompile.locked_tier": "Tier %s",
   "container.recompile.more": "+%s more",
   "container.recompile.more_scroll": "+%s more (scroll)",
+  "container.recompile.scroll_both": "%s up, %s down",
   "container.recompile.needs_blueprint": "No blueprint in your inventory or attached storage",
   "container.recompile.no_offers": "Nothing is for sale",
   "container.recompile.not_connected": "No storage connected",
