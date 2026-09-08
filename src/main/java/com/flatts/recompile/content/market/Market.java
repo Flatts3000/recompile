@@ -172,6 +172,32 @@ public final class Market {
                 : stack.getHoverName();
         }
 
+        /**
+         * Where this row sits on the shelf: its tier, with an UNGATED row sorting after every gated
+         * one rather than before all of them.
+         *
+         * <p><b>An absent tier is 0, and 0 is not the bottom of the ladder - it is off the ladder.</b>
+         * Sorting on {@link #tier()} directly read 0 as "rung zero" and put the three ungated lines at
+         * the very top of the shop, which is where a new player's eye lands: a Bucket of Powder Snow at
+         * 600, a Totem at 2,500 and a Heavy Core at 3,000, above the Clean Mattress the whole first
+         * rung is aimed at. The three most expensive things in the game headed a list a player opens
+         * holding nothing, and the ladder that list exists to teach began on row four.
+         *
+         * <p>The list's organising principle is the freight ladder - #415 sorted by tier so a player
+         * can see the progression, and with no recipe book in this mod that shelf is the only surface
+         * teaching the ladder exists. A row with no tier requirement is never part of that progression,
+         * so putting it first teaches something false: that powder snow is what rung zero gives you.
+         * After the ladder it reads as what it is, stock that was always on the shelf.
+         *
+         * <p>Nothing is hidden by the move. An ungated row is unlocked at every tier, so it is never
+         * the thing a player is waiting on, and all three cost more scrip than a player at tier 0 can
+         * have earned - the only terminal that mints scrip is the Sell Terminal, which is itself
+         * repaired from a find.
+         */
+        public int shelfRank() {
+            return tier == 0 ? Integer.MAX_VALUE : tier;
+        }
+
         /** The Blueprint set this row sells, or null if it sells a thing rather than knowledge. */
         public @org.jspecify.annotations.Nullable Identifier blueprint() {
             return com.flatts.recompile.content.item.BlueprintItem.blueprintOf(stack);

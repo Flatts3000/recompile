@@ -150,7 +150,9 @@ public abstract class MarketTerminalBlock extends HorizontalDirectionalBlock {
             // reloads AND across languages. Tie-breaking on the display name was the first cut and
             // resolved through the server's language while each client renders its own, so rows
             // came out in an order that was alphabetical for nobody but the server.
-            offers.sort(Comparator.comparingInt(Market.Offer::tier)
+            // shelfRank rather than tier: an absent tier is 0, and 0 means UNGATED rather than
+            // rung zero, so it sorts after the ladder instead of ahead of it. See Offer.shelfRank.
+            offers.sort(Comparator.comparingInt(Market.Offer::shelfRank)
                 .thenComparingInt(Market.Offer::price)
                 .thenComparing(Market.Offer::identity));
             return offers;

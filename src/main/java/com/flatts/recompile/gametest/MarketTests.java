@@ -805,6 +805,57 @@ final class MarketTests {
          * <p>It covers what a blueprint line unlocks too, not just the sheet, since selling the
          * knowledge to craft a found-only item reaches the same end one step later.
          */
+        /*
+         * THE SHELF ORDER, WHICH NOTHING PINNED UNTIL NOW - not even when #415 introduced it. The
+         * owner asked for the stock to be ordered by tier and it was, and the rule then lived only in
+         * one comparator with no test under it, so the one case it got wrong went unnoticed until
+         * somebody opened the shop and looked.
+         *
+         * An absent tier is 0 and 0 means UNGATED, not rung zero. Sorting on tier() read it as rung
+         * zero and put every always-available line at the very top - which in the shipped stock is a
+         * Bucket of Powder Snow at 600, a Totem at 2,500 and a Heavy Core at 3,000, above the Clean
+         * Mattress that the first freight rung is aimed at. Three unaffordable luxuries heading a shop
+         * a new player opens holding nothing, with the ladder the shelf exists to teach starting on
+         * row four.
+         *
+         * Asserted as the RULE rather than as the shipped list, so adding an offer does not fail it
+         * and reordering the file it lives in cannot pass it by accident.
+         */
+        RCGameTests.test("the_shelf_puts_the_ladder_first_and_ungated_stock_last", 20, helper -> {
+            List<Market.Offer> offers =
+                MarketTerminalBlock.Buy.offers(helper.getLevel().getServer());
+            helper.assertTrue(!offers.isEmpty(), "no offers loaded - this would check nothing");
+
+            // Both halves have to exist or the sweep below is vacuous in one direction: a shelf of
+            // all-gated or all-ungated stock satisfies every ordering trivially.
+            helper.assertTrue(offers.stream().anyMatch(o -> o.tier() > 0),
+                "no gated offer on the shelf - the ordering rule would be untested");
+            helper.assertTrue(offers.stream().anyMatch(o -> o.tier() == 0),
+                "no ungated offer on the shelf - the half this test exists for would be untested");
+
+            List<String> wrong = new ArrayList<>();
+            boolean seenUngated = false;
+            int lastTier = 0;
+            for (Market.Offer offer : offers) {
+                if (offer.tier() == 0) {
+                    seenUngated = true;
+                    continue;
+                }
+                // A gated row after an ungated one is the defect this test was written for.
+                if (seenUngated) {
+                    wrong.add("tier " + offer.tier() + " row '" + offer.identity()
+                        + "' sits below an ungated row; ungated stock belongs after the ladder");
+                }
+                if (offer.tier() < lastTier) {
+                    wrong.add("tier " + offer.tier() + " row '" + offer.identity()
+                        + "' comes after tier " + lastTier + "; the ladder must read upward");
+                }
+                lastTier = offer.tier();
+            }
+            helper.assertTrue(wrong.isEmpty(), "shelf out of order (" + wrong.size() + "): " + wrong);
+            helper.succeed();
+        });
+
         RCGameTests.test("the_market_never_sells_what_is_meant_to_be_found", 20, helper -> {
             ServerLevel level = helper.getLevel();
             List<Market.Offer> offers = MarketTerminalBlock.Buy.offers(level.getServer());
