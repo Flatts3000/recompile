@@ -82,7 +82,7 @@ public class TreeNurseryScreen extends LayoutScreen<TreeNurseryMenu> {
                 event.x(), event.y());
             if (picked >= 0) {
                 // The vanilla Stonecutter/Loom path: the id travels as a VAR_INT, no custom packet.
-                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, picked);
+                press(picked);
                 return true;
             }
         }

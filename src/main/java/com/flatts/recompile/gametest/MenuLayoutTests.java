@@ -520,6 +520,42 @@ final class MenuLayoutTests {
             report(helper, escaped, "screen elements outside their panel");
         });
 
+        /*
+         * NO PANEL MAY BE TALLER THAN THE SMALLEST WINDOW THE GAME PROMISES, and this is the one
+         * geometry rule the sweeps above could not see: they all measure a panel against ITSELF, so a
+         * layout can be internally perfect and still not fit on screen.
+         *
+         * Auto GUI scale picks the largest integer scale that keeps at least 320x240 LOGICAL pixels,
+         * so 320x240 is the floor a screen must fit inside - a player on a small window or a high
+         * scale gets exactly that and no more. AbstractContainerScreen then centres with
+         * `topPos = (height - imageHeight) / 2` and NEVER CLAMPS, so a panel taller than the viewport
+         * gets a negative origin and loses its top and bottom off both edges at once - the title and
+         * the hotbar, which is to say the two things that tell you what you are looking at and let
+         * you do anything about it.
+         *
+         * This is a REGRESSION GUARD, not a hypothetical: the Freight Terminal shipped at 258 in
+         * #414, clipped, and was cut to 220 by hand with nothing left behind to stop the next one.
+         * The Buy Terminal sits at 230 today, which is ten pixels of headroom, so the next row added
+         * to a list is close enough to the edge to reach it by accident.
+         */
+        RCGameTests.test("no_panel_is_bigger_than_the_smallest_promised_window", 20, helper -> {
+            final int MIN_LOGICAL_W = 320;
+            final int MIN_LOGICAL_H = 240;
+            List<String> tooBig = new ArrayList<>();
+            for (Screen screen : SCREENS) {
+                ScreenLayout layout = screen.layout();
+                if (layout.height() > MIN_LOGICAL_H) {
+                    tooBig.add(screen.name() + " is " + layout.height() + " tall, over the "
+                        + MIN_LOGICAL_H + " a window is guaranteed to have");
+                }
+                if (layout.width() > MIN_LOGICAL_W) {
+                    tooBig.add(screen.name() + " is " + layout.width() + " wide, over the "
+                        + MIN_LOGICAL_W + " a window is guaranteed to have");
+                }
+            }
+            report(helper, tooBig, "panels larger than a guaranteed 320x240 viewport");
+        });
+
         // Every menu must carry the player's 36 inventory slots. Forgetting a row is a classic
         // hand-rolled-menu bug: the screen looks fine and a third of the backpack is unreachable.
         RCGameTests.test("every_menu_includes_the_player_inventory", 20, helper -> {

@@ -111,13 +111,11 @@ public class ScrapCraftingStationScreen extends LayoutScreen<ScrapCraftingStatio
         } else {
             // How many are still BELOW the window, not how many the window omits. Counting the latter
             // would keep saying "+20 more" after you had scrolled to the last row, pointing down at
-            // nothing - which is the same defect as the old dead arrow, just further along.
-            int below = materials.size() - (this.scroll + shown);
-            if (below > 0) {
-                painter.wrapped("shelf_rows", shown,
-                    Component.translatable("container.recompile.more_scroll", below),
-                    GuiTheme.TEXT_MUTED);
-            }
+            // nothing - which is the same defect as the old dead arrow, just further along. What this
+            // shelf did NOT say is that anything was above, so scrolling to the bottom of a long
+            // network left a screen that looked like a short list drawn from the top.
+            painter.scrollTail("shelf_rows", shown, 0, 0,
+                this.scroll, materials.size() - (this.scroll + shown), GuiTheme.TEXT_MUTED);
         }
 
         if (!this.menu.getCarried().isEmpty()) {
@@ -174,8 +172,7 @@ public class ScrapCraftingStationScreen extends LayoutScreen<ScrapCraftingStatio
             // Holding a stack over the panel deposits it into the network (and stops vanilla from
             // dropping the cursor into the world, which a panel click would otherwise do).
             if (left && !this.menu.getCarried().isEmpty()) {
-                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
-                    ScrapCraftingStationMenu.DEPOSIT_BUTTON);
+                press(ScrapCraftingStationMenu.DEPOSIT_BUTTON);
                 return true;
             }
             // Empty cursor: a material row withdraws. The button id carries the item's registry id (so
@@ -193,8 +190,7 @@ public class ScrapCraftingStationScreen extends LayoutScreen<ScrapCraftingStatio
             int row = overIndex("shelf_rows", shown(materials.size()), event.x(), event.y());
             if (row >= 0) {
                 int itemId = BuiltInRegistries.ITEM.getId(materials.get(this.scroll + row).item());
-                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
-                    ScrapPanelInteraction.encode(itemId, mode));
+                press(ScrapPanelInteraction.encode(itemId, mode));
             }
             return true;   // consume other panel clicks so an empty cursor click does nothing here
         }

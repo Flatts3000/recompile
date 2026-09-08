@@ -72,7 +72,13 @@ public class FreightTerminalScreen extends LayoutScreen<FreightTerminalMenu> {
         int shown = Math.max(0, Math.min(FreightTerminalMenu.VISIBLE_LINES, total - scroll));
         for (int row = 0; row < shown; row++) {
             FreightManifest.Line line = manifest.lines().get(scroll + row);
-            int delivered = Math.min(this.menu.delivered(row), line.required());
+            // INDEXED BY MANIFEST LINE, NOT BY SCREEN ROW. This read delivered(row), which is the
+            // same number only while nothing has scrolled. MAX_LINES is 6 and VISIBLE_LINES is 4, so
+            // a phase with five or six goods draws row 0 as line 1's item and quota beside line 0's
+            // progress - and because `done` drives the green, a line could render finished while it
+            // was not. The shipped ladder asks for two goods per rung so scroll is always 0 and this
+            // cannot fire today; freight_phase is public API and a pack reaches it with one file.
+            int delivered = Math.min(this.menu.delivered(scroll + row), line.required());
             boolean done = delivered >= line.required();
 
             painter.item("manifest", row, new ItemStack(line.item()));
@@ -94,16 +100,8 @@ public class FreightTerminalScreen extends LayoutScreen<FreightTerminalMenu> {
         // Say what is off the bottom rather than just ending. Four rows is what the window's
         // guaranteed 240 logical pixels leaves for the list - see the note on the layout - and a
         // manifest that quietly stopped at four would read as a phase asking for less than it does.
-        int hidden = total - scroll - shown;
-        if (hidden > 0) {
-            painter.textIn("manifest", FreightTerminalMenu.VISIBLE_LINES - 1, NAME_X, 12,
-                Component.translatable("container.recompile.more_scroll", hidden).getString(),
-                GuiTheme.TEXT_MUTED);
-        } else if (scroll > 0) {
-            painter.textIn("manifest", FreightTerminalMenu.VISIBLE_LINES - 1, NAME_X, 12,
-                Component.translatable("container.recompile.scroll_up").getString(),
-                GuiTheme.TEXT_MUTED);
-        }
+        painter.scrollTail("manifest", FreightTerminalMenu.VISIBLE_LINES - 1, NAME_X, 12,
+            scroll, total - scroll - shown, GuiTheme.TEXT_MUTED);
     }
 
     @Override

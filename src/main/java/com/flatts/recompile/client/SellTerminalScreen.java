@@ -46,11 +46,16 @@ public class SellTerminalScreen extends LayoutScreen<SellTerminalMenu> {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == 0 && this.minecraft != null && this.minecraft.gameMode != null
-                && isOver("sell", event.x(), event.y())) {
-            // The vanilla Stonecutter/Loom path: the id travels as a VAR_INT, no custom packet.
-            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
-                SellTerminalMenu.SELL_BUTTON);
+        if (event.button() == 0 && isOver("sell", event.x(), event.y())) {
+            // A DEAD BUTTON IS NOT SENT. paint() already draws it dim and refuses it the hover tint
+            // when there is nothing to sell, and it was still clickable - so the one control on this
+            // screen looked disabled, sent anyway, and got silence back from a server that had
+            // nothing to sell either. The sibling Buy Terminal refuses a locked row before sending it
+            // for exactly this reason; this is that rule applied to the other terminal.
+            if (this.menu.quote() <= 0) {
+                return true;
+            }
+            press(SellTerminalMenu.SELL_BUTTON);
             return true;
         }
         return super.mouseClicked(event, doubleClick);

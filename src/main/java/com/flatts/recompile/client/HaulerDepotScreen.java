@@ -81,18 +81,20 @@ public class HaulerDepotScreen extends LayoutScreen<HaulerDepotMenu> {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        // These three went through gameMode directly, and the two radius arrows did it without the
+        // null check their own sibling three lines below had. press() carries the guard, so the
+        // asymmetry cannot come back.
         if (event.button() == 0 && isOver("radius_down", event.x(), event.y())) {
-            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, HaulerDepotMenu.RADIUS_DOWN_BUTTON);
+            press(HaulerDepotMenu.RADIUS_DOWN_BUTTON);
             return true;
         }
         if (event.button() == 0 && isOver("radius_up", event.x(), event.y())) {
-            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, HaulerDepotMenu.RADIUS_UP_BUTTON);
+            press(HaulerDepotMenu.RADIUS_UP_BUTTON);
             return true;
         }
         if (event.button() == 0 && this.menu.hasHauler() && isOver("deploy", event.x(), event.y())) {
             // Send what the button SAID, so the server can ignore a click that no longer applies.
-            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId,
-                this.menu.deployed() ? HaulerDepotMenu.RECALL_BUTTON : HaulerDepotMenu.DEPLOY_BUTTON);
+            press(this.menu.deployed() ? HaulerDepotMenu.RECALL_BUTTON : HaulerDepotMenu.DEPLOY_BUTTON);
             return true;
         }
         return super.mouseClicked(event, doubleClick);

@@ -224,6 +224,45 @@ public final class GuiPainter {
         wrapped(name, 0, text, colour);
     }
 
+    /**
+     * The tail line under a scrolling list: what is off the bottom, what is off the top, or both.
+     *
+     * <p><b>Three lists shipped three different answers to the same question.</b> The Buy Terminal and
+     * the Freight Terminal said "+N more" or, failing that, "scroll up"; the Scrap Crafting Station's
+     * shelf said "+N more" or nothing at all. All three shared the defect underneath that spread: the
+     * two states are written as a chain, so the MIDDLE of a list - the ordinary place to be in a list
+     * long enough to scroll - only ever advertises the way down. Twelve market offers over five rows
+     * spends most of its travel there, showing "+3 more" and no sign that anything is above.
+     *
+     * <p><b>The both-directions string is kept short on purpose.</b> The narrowest list this serves is
+     * the Scrap Crafting Station's shelf at 80 usable pixels, so "3 up, 4 down" rather than the
+     * "3 above, 4 below" it started as - the longer wording wraps to a second line there, and the tail
+     * sits in the cell extrapolated past the last row, so a second line has nothing under it.
+     *
+     * <p>Both counts are drawn when both apply, and nothing is drawn when the list fits. Living in the
+     * painter rather than in each screen is the same argument the rest of this class makes: a tail line
+     * is list vocabulary, and three copies of it drifted apart exactly as three copies of the slot loop
+     * did before {@link #drawChrome()} took that away.
+     */
+    public void scrollTail(String name, int index, int dx, int dy, int above, int below, int colour) {
+        Component text;
+        if (above > 0 && below > 0) {
+            text = Component.translatable("container.recompile.scroll_both", above, below);
+        } else if (below > 0) {
+            text = Component.translatable("container.recompile.more_scroll", below);
+        } else if (above > 0) {
+            text = Component.translatable("container.recompile.scroll_up");
+        } else {
+            return;
+        }
+        Rect rect = at(name, index);
+        int line = rect.y() + dy;
+        for (FormattedCharSequence part : font.split(text, rect.width() - dx)) {
+            graphics.text(font, part, rect.x() + dx, line, colour, false);
+            line += font.lineHeight;
+        }
+    }
+
     /** The same, at a cell of a multi-row group - a list's tail line under however many rows it drew. */
     public void wrapped(String name, int index, Component text, int colour) {
         Rect rect = at(name, index);
