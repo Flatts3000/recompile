@@ -39,7 +39,8 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * and nothing written outside a plot is cleaned up between tests, so two wide builds at a common height
  * write through each other's neighbours. Spoken for elsewhere: 0/40/80/120/160/240 by the aquarium
  * builds (38 blocks wide, clearing 28 above) and 40/80/120 by the tire dumps (14 blocks out). This file
- * takes <b>200, 216, 232 and 272</b> for the four tailings tests, whose footprint is 35 blocks across.
+ * takes <b>200, 216, 232, 272 and 288</b> for the five tailings tests, whose footprint is 35 blocks
+ * across (288 lays a field 49 across, because it places two of them fourteen apart).
  * <b>272 rather than the 248 that looks free</b>: the aquarium's 240 clears 28 blocks above itself and
  * so reaches 268, which is the kind of thing only the list above can tell you.
  * <b>Sixteen apart rather than eight, and the gap is set by the MEASUREMENT window rather than by the
@@ -723,6 +724,87 @@ final class ScatterFeatureTests {
         // Asserted as a relationship rather than a number: the pond sits exactly one above the last
         // cell the bed claims. Both halves are checked, because a bed that claims nothing would also
         // pass "the pond is safe".
+        // AN OVERLAPPING IMPOUNDMENT MUST NOT ERASE ITS NEIGHBOUR'S MEMORY (P1.6-R).
+        //
+        // The stain pass repaints every cell of its disc that is coarse dirt or already stain, and the
+        // second half of that guard is what makes this dangerous now: the dressing state it paints
+        // with carries height 0, so repainting a cell an EARLIER pile already remembered wipes the
+        // memory. Two ways it lands, and the second is the worse one:
+        //
+        //   - inside the new pile's own footprint, writeBed runs straight after and reads the zero, so
+        //     "overlapping piles take the taller" is defeated and the later pile always wins whatever
+        //     its height;
+        //   - out in the stain RING, past the footprint, writeBed is never reached at all, so the
+        //     older pile's column is left inert and can never regrow. Its tailings are still standing,
+        //     so the pile looks perfectly intact.
+        //
+        // Neither is visible from a single impoundment, which is all the other tailings tests place -
+        // and the Y bands exist precisely to keep test placements apart, so nothing else in this file
+        // could ever have caught it. The feature sites roughly one per three chunks at up to 15 blocks
+        // of reach, so overlap is ordinary rather than contrived.
+        //
+        // The invariant is the general one rather than a reproduction of either case: NO CELL EVER
+        // LOSES HEIGHT. That is "take the taller" stated as something a test can measure, and it holds
+        // however many piles land on each other.
+        //
+        // BAND 288.
+        RCGameTests.test("an_overlapping_impoundment_keeps_the_taller_memory", 100, helper -> {
+            ServerLevel level = helper.getLevel();
+            final int floor = 288;
+            BlockPos origin = helper.absolutePos(new BlockPos(2, floor + 1, 2));
+            layField(level, origin, Blocks.COARSE_DIRT, 24);
+
+            helper.assertTrue(place(level, RCFeatures.TAILINGS_HEAP, origin, 5L),
+                "the first impoundment refused a flat field, so this measured nothing");
+
+            // What the first pile remembers, before anything lands on it.
+            int[][] before = new int[49][49];
+            int remembered = 0;
+            for (int dx = -24; dx <= 24; dx++) {
+                for (int dz = -24; dz <= 24; dz++) {
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    int height = bed.is(RCBlocks.STAINED_GROUND.get())
+                        ? bed.getValue(RegrowingGroundBlock.HEIGHT) : 0;
+                    before[dx + 24][dz + 24] = height;
+                    if (height > 0) {
+                        remembered++;
+                    }
+                }
+            }
+            helper.assertTrue(remembered > 0,
+                "the first impoundment remembered nothing, so the overlap below measures nothing");
+
+            // A SECOND PILE WHOSE ORIGIN STANDS ON CLEAN GROUND while its disc reaches over the first.
+            // The origin matters: a pile sited ON the neighbour has its own origin pushed up onto that
+            // pile by the heightmap, so every column reads the neighbour's TAILINGS as its ground and
+            // the repaint never fires. Standing clear of it is what puts the earlier pile's BED back
+            // under the scan, which is the case that breaks.
+            BlockPos second = origin.offset(14, 0, 0);
+            helper.assertTrue(place(level, RCFeatures.TAILINGS_HEAP, second, 11L),
+                "the second impoundment refused, so this measured nothing");
+
+            List<String> lost = new ArrayList<>();
+            for (int dx = -24; dx <= 24; dx++) {
+                for (int dz = -24; dz <= 24; dz++) {
+                    int was = before[dx + 24][dz + 24];
+                    if (was == 0) {
+                        continue;
+                    }
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    int now = bed.is(RCBlocks.STAINED_GROUND.get())
+                        ? bed.getValue(RegrowingGroundBlock.HEIGHT) : -1;
+                    if (now < was) {
+                        lost.add(dx + "," + dz + ": " + was + " -> " + now);
+                    }
+                }
+            }
+            helper.assertTrue(lost.isEmpty(),
+                "a second impoundment cut the memory under columns the first one built, so those "
+                    + "columns are inert while their tailings still stand and the pile looks fine: "
+                    + lost);
+            helper.succeed();
+        });
+
         RCGameTests.test("a_tailings_bed_stops_one_below_the_pond", 100, helper -> {
             ServerLevel level = helper.getLevel();
             // BAND 272. See the class note: this build is 35 blocks across, so it needs a height

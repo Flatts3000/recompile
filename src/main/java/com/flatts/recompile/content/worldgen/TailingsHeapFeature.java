@@ -171,9 +171,19 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
                 // origin pushed up onto that pile, and its whole stain disc then converts the
                 // neighbour's MILL TAILINGS into dressing. That turns the region's only uranium block
                 // into a block with no loot at all. Caught in review of #286.
+                //
+                // AND IT ONLY EVER PAINTS COARSE DIRT, which used to be "coarse dirt OR stain" and was
+                // harmless for exactly as long as stain carried no state. Since P1.6-R it does: the
+                // dressing state above is height 0, so repainting a cell an EARLIER impoundment
+                // remembered wiped that memory. Inside the new pile's footprint writeBed then read the
+                // zero, so "take the taller" was defeated and the later pile always won; out in the
+                // stain RING writeBed is never reached at all, so the neighbour's column was left
+                // inert with its tailings still standing and the pile looking perfectly intact.
+                // Repainting stain with stain was never the point - the guard is about what may NOT be
+                // painted - so the branch simply goes.
                 BlockPos groundPos = new BlockPos(origin.getX() + dx, ground, origin.getZ() + dz);
                 BlockState under = level.getBlockState(groundPos);
-                if (under.is(Blocks.COARSE_DIRT) || under.is(RCBlocks.STAINED_GROUND.get())) {
+                if (under.is(Blocks.COARSE_DIRT)) {
                     level.setBlock(groundPos, stain, 2);
                 }
                 if (dist > edge) {

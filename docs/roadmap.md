@@ -401,10 +401,19 @@ scrapyard / e-waste" - working names from the design pass, and none of the three
 `compacted_depths`, and there is no scrapyard or e-waste biome. E-waste survives as a MATERIAL, the
 E-Scrap that feeds the Pulverizer's gold chain, rather than as a place.)*
 
-## Phase 5 - Mound regrowth  *(DONE 2026-08-05, design P1.6 / P1.7-R)*
+## Phase 5 - Mound regrowth  *(DONE 2026-08-05, design P1.6 / P1.7-R; EXTENDED 2026-09-08, P1.6-R)*
 
 "Wait, the mounds grew back." Deorbit falling-block delivery (reuses P0.3 gravity). The
 quarry-vs-heal tension is the pack's engine.
+
+**Extended to the frontier on 2026-09-08 (P1.6-R, #422), which reversed the 2026-08-22 ruling that
+only the sprawl regrows.** Rubble piles in the demolition yard and tailings impoundments in the
+radioactive dump now come back the same way, off their own memory blocks - a new Rubble Ground for
+the yard, and Stained Ground for the dump, which was already painted under every impoundment and only
+needed the height property. Mechanical Waste is deliberately out of scope. **The quarry-vs-heal
+tension does not extend with it:** Stained Ground cannot be greened, so a tailings impoundment never
+retires and the dump is the one region with no reclamation ending. Its scarcity is the land rather
+than the deposit.
 
 **Healed-land immunity already shipped, inverted, as Phase 2.10** - the surface is contested, not
 immune. What remains here is the mound layer, whose retirement *is* permanent.

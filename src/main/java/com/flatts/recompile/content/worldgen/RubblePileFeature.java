@@ -1,5 +1,6 @@
 package com.flatts.recompile.content.worldgen;
 
+import com.flatts.recompile.content.block.RegrowingGroundBlock;
 import com.flatts.recompile.content.block.RubbleGroundBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import net.minecraft.core.BlockPos;
@@ -91,9 +92,7 @@ public class RubblePileFeature extends Feature<NoneFeatureConfiguration> {
             if (existing.getValue(RubbleGroundBlock.HEIGHT) >= column + 1) {
                 return;
             }
-        } else if (!existing.isSolidRender()
-                || existing.getBlock() instanceof com.flatts.recompile.content.block.SortableBlock
-                || existing.getBlock() instanceof com.flatts.recompile.content.block.BulkyWasteBlock) {
+        } else if (!existing.isSolidRender() || RegrowingGroundBlock.isPile(existing)) {
             return;
         }
         level.setBlock(pos, RCBlocks.RUBBLE_GROUND.get().defaultBlockState()

@@ -174,9 +174,16 @@ public abstract class RegrowingGroundBlock extends Block {
      * Whether this block counts as part of the pile when measuring the column.
      *
      * <p>Every block a pile feature places, so a bale, a bag or an unopened Bulky Waste in the stack
-     * is not read as a gap and buried under fresh garbage. Derived from {@link SortableBlock} rather
-     * than listed, so a new pile variant is covered the day it is registered; Bulky Waste is named
-     * because it is the one mound block that is not sortable.
+     * is not read as a gap and buried under fresh garbage. Mostly derived from {@link SortableBlock}
+     * rather than listed, so a new pile variant is covered the day it is registered; Bulky Waste and
+     * the cardboard pile are named because they are the two mound blocks that are not sortable.
+     *
+     * <p><b>This is the single definition, and {@code MoundFeature.isMoundContent} defers to it.</b>
+     * They were two copies of one idea and had already drifted once: #309 added the cardboard pile to
+     * the feature's copy and not to this one, so a column topped with cardboard reported BLOCKED
+     * where it should report FULL. Bounded, because cardboard only ever lands on the surface cell -
+     * but two methods answering the same question is how it happened, and one of them is covered by
+     * {@code every_block_a_mound_places_is_recognised_as_mound_content} while the other was not.
      *
      * <p><b>It is deliberately blind to WHICH pile block it finds, and the kind-aware version is
      * strictly worse.</b> The obvious worry once three regions regrow is that a column reads a
@@ -188,8 +195,9 @@ public abstract class RegrowingGroundBlock extends Block {
      * the player mines that block out, the blind version reclaims the cell on the next tick, because
      * air is not pile.
      */
-    private static boolean isPile(BlockState state) {
+    public static boolean isPile(BlockState state) {
         return state.getBlock() instanceof SortableBlock
-            || state.getBlock() instanceof BulkyWasteBlock;
+            || state.getBlock() instanceof BulkyWasteBlock
+            || state.getBlock() instanceof CardboardPileBlock;
     }
 }
