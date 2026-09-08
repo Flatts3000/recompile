@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.content.block.LeachateBlock;
+import com.flatts.recompile.content.block.TailingsSlurryBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCFeatures;
 import com.flatts.recompile.registry.RCFluids;
@@ -175,6 +176,123 @@ final class LeachateTests {
         // A pool must actually appear, and it must be a basin rather than a slab dropped on the
         // surface: an unsupported source block flows until it finds an edge, so "did it place" and
         // "did it stay put" are the same question asked twice.
+        // NOR DOES THE SLURRY WATER FARMLAND, which is the second omission it inherits and the one
+        // with teeth. canHydrate defaults to false and RCFluids says nothing, so this passes by an
+        // ABSENCE in the source - one word away from being undone, and undoing it would hand every
+        // plot within four blocks of a pond permanent free encroachment immunity.
+        //
+        // Asserted through the real farmland block rather than by reading FluidType.canHydrate, for
+        // the reason leachate_does_not_water_farmland gives: the property is only one of two paths in,
+        // since FarmlandWaterManager hands out water tickets too, so a test that read the flag would
+        // pass while the block sat there wet.
+        RCGameTests.test("the_tailings_slurry_does_not_water_farmland", 60, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos farm = GROUND.east();
+
+            helper.setBlock(GROUND, RCBlocks.TAILINGS_SLURRY.get());
+            helper.setBlock(farm, Blocks.FARMLAND);
+
+            BlockPos absFarm = helper.absolutePos(farm);
+            for (int i = 0; i < 40; i++) {
+                BlockState state = level.getBlockState(absFarm);
+                if (!state.is(Blocks.FARMLAND)) {
+                    break; // dried out and reverted, which is the fate a plot beside a pond deserves
+                }
+                int moisture = state.getValue(FarmlandBlock.MOISTURE);
+                helper.assertTrue(moisture == 0,
+                    "the tailings slurry irrigated farmland - moisture " + moisture + " on tick " + i
+                        + ". A decant pond sits on most impoundments, so this would be permanent "
+                        + "free encroachment immunity across the whole region");
+                state.randomTick(level, absFarm, level.getRandom());
+            }
+            helper.succeed();
+        });
+
+        // THE TAILINGS SLURRY IS NOT WATER EITHER, and it has to fail the same two ways leachate
+        // does. It is a second custom fluid (#423) and it inherits both of leachate's load-bearing
+        // omissions: out of every fluid tag, so vanilla's breathing check and the Rain Collector
+        // cannot see it, and canHydrate left at its default false, so it cannot water farmland.
+        // Neither omission is visible in the source as anything but an absence, which is exactly why
+        // they are asserted.
+        RCGameTests.test("the_tailings_slurry_is_not_water", 20, helper -> {
+            helper.setBlock(GROUND, RCBlocks.TAILINGS_SLURRY.get());
+            BlockPos abs = helper.absolutePos(GROUND);
+
+            var fluid = helper.getLevel().getFluidState(abs);
+            helper.assertTrue(fluid.getType() == RCFluids.TAILINGS_SLURRY.get(),
+                "the slurry block must carry the slurry fluid, got " + fluid.getType());
+            helper.assertTrue(!fluid.is(Fluids.WATER) && !fluid.is(Fluids.FLOWING_WATER),
+                "the tailings slurry must not be water. A decant pond is a disc of source blocks on "
+                    + "most impoundments, so this would be a large free water supply in a world "
+                    + "whose stated rule is that the Rain Collector is the only source");
+            helper.assertTrue(fluid.getType() != RCFluids.LEACHATE.get(),
+                "the slurry must not be leachate. Leachate is rain drained through refuse and stays "
+                    + "sprawl-only by the 2026-08-05 ruling; only the conclusion that the pond is "
+                    + "therefore plain water was reversed");
+            helper.succeed();
+        });
+
+        // THE SLURRY IS WORSE THAN LEACHATE, WHICH IS THE POINT OF IT BEING A SECOND FLUID.
+        //
+        // Owner, 2026-09-08, reversing the 2026-08-05 hazard ruling that this world's liquids make
+        // you ill "and deliberately nothing worse". The reversal is BOUNDED, and both halves of that
+        // are asserted here rather than described: Poison arrives, and the player is not killed by
+        // it. Poison cannot take a player below half a heart, so of the original four clauses - no
+        // damage, no Poison, no Wither, cannot kill - only the Poison one falls, and a future change
+        // that reaches for Wither or a damage source will trip the second assertion.
+        RCGameTests.test("the_slurry_poisons_where_leachate_only_starves", 60, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);   // instabuild is set by default and is exempt
+
+            BlockPos abs = helper.absolutePos(GROUND);
+            helper.setBlock(GROUND, RCBlocks.TAILINGS_SLURRY.get());
+            player.teleportTo(abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5);
+
+            helper.assertTrue(TailingsSlurryBlock.sicken(helper.getLevel(), player),
+                "a survival player standing in tailings slurry must be affected");
+            helper.succeedWhen(() -> {
+                helper.assertTrue(player.hasEffect(MobEffects.HUNGER),
+                    "the slurry must give Hunger, as leachate does - the reversal ADDED Poison, it "
+                        + "did not swap one effect for another");
+                helper.assertTrue(player.hasEffect(MobEffects.POISON),
+                    "the slurry must give Poison. This is the whole difference between it and "
+                        + "leachate, and the region's only hazard");
+
+                List<String> forbidden = new ArrayList<>();
+                for (var held : player.getActiveEffects()) {
+                    if (!held.getEffect().is(MobEffects.HUNGER)
+                            && !held.getEffect().is(MobEffects.POISON)) {
+                        forbidden.add(held.getEffect().getRegisteredName());
+                    }
+                }
+                helper.assertTrue(forbidden.isEmpty(),
+                    "the reversal is bounded to Poison. Anything else here is a second reversal "
+                        + "nobody has taken: " + forbidden);
+            });
+        });
+
+        // AND LEACHATE DID NOT CHANGE. The handler now dispatches on which fluid is underfoot, and
+        // the cheap way to write that is one effect list for both - which would quietly make every
+        // pond in the household sprawl poisonous, in a region whose whole hazard budget is one
+        // Hunger effect. leachate_gives_hunger_and_nothing_worse above already forbids it, but only
+        // through sicken(); this proves the DISPATCH sends the sprawl's fluid to the sprawl's rules.
+        RCGameTests.test("the_slurry_hazard_did_not_leak_into_leachate", 60, helper -> {
+            var player = helper.makeMockServerPlayerInLevel();
+            player.setGameMode(GameType.SURVIVAL);
+
+            BlockPos abs = helper.absolutePos(GROUND);
+            helper.setBlock(GROUND, RCBlocks.LEACHATE.get());
+            player.teleportTo(abs.getX() + 0.5, abs.getY(), abs.getZ() + 0.5);
+
+            helper.succeedWhen(() -> {
+                helper.assertTrue(player.hasEffect(MobEffects.HUNGER),
+                    "standing in leachate must still apply Hunger through the real hook");
+                helper.assertTrue(!player.hasEffect(MobEffects.POISON),
+                    "leachate poisoned the player. The slurry's Poison must not reach the sprawl - "
+                        + "the 2026-08-05 ruling was reversed for the radioactive dump's pond alone");
+            });
+        });
+
         RCGameTests.test("a_leachate_pool_digs_itself_into_the_ground", 40, helper -> {
             ServerLevel level = helper.getLevel();
             // A patch of ground to pool in, with solid rock beneath so the floor check passes.
@@ -335,6 +453,12 @@ final class LeachateTests {
             // Exactly one biome should carry pools: the household sprawl. The demolition yard was
             // dropped on purpose (owner, 2026-08-05) - leachate comes from refuse, and a yard full
             // of concrete and steel does not produce it.
+            //
+            // THIS IS ABOUT LEACHATE, NOT ABOUT LIQUIDS. Since #423 the radioactive dump has a pond
+            // in every impoundment, and it is Tailings Slurry rather than leachate for exactly the
+            // reason above: process water off a mill is not rain through refuse. So "one biome" is
+            // still the whole truth about where LEACHATE is, and no longer the whole truth about
+            // where a liquid is - read the assertion as the former.
             helper.assertTrue(checked == 1,
                 "expected exactly one recompile biome to place leachate pools (the household "
                     + "sprawl), found " + checked + ". Zero means the feature was dropped from the "

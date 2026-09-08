@@ -3,6 +3,7 @@ package com.flatts.recompile.event;
 import com.flatts.recompile.RCConfig;
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.block.LeachateBlock;
+import com.flatts.recompile.content.block.TailingsSlurryBlock;
 import com.flatts.recompile.registry.RCFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -48,8 +49,17 @@ public final class RCLeachateContact {
         }
         // Feet, not eyes. A pool is one block deep, so an eye check would never fire on anything
         // taller than a chicken and the hazard would be invisible to the player it is aimed at.
-        if (entity.level().getFluidState(entity.blockPosition()).getType() == RCFluids.LEACHATE.get()) {
+        //
+        // TWO FLUIDS SINCE #423, and they are not the same hazard: leachate gives Hunger, the tailings
+        // slurry gives Hunger AND Poison. Dispatching on the fluid here rather than giving the slurry
+        // a handler of its own keeps one answer to "what is under my feet" - the feet-versus-eyes
+        // reasoning, the exemptions and the refresh-not-stack rule are shared, and only the effect
+        // list differs.
+        var under = entity.level().getFluidState(entity.blockPosition()).getType();
+        if (under == RCFluids.LEACHATE.get()) {
             LeachateBlock.sicken(entity.level(), entity);
+        } else if (under == RCFluids.TAILINGS_SLURRY.get()) {
+            TailingsSlurryBlock.sicken(entity.level(), entity);
         }
         drown(entity);
     }
@@ -87,7 +97,12 @@ public final class RCLeachateContact {
             return;
         }
         BlockPos eye = BlockPos.containing(living.getX(), living.getEyeY(), living.getZ());
-        if (living.level().getFluidState(eye).getType() != RCFluids.LEACHATE.get()) {
+        // BOTH FLUIDS DROWN, off one switch. Drowning is a property of having your head under a
+        // liquid that is not water rather than of which liquid it is, and a slurry you can breathe
+        // while a leachate pool you cannot would be a distinction nobody could learn. The decant pond
+        // is one block deep like a leachate pool, so this reaches a player who crawls or swims.
+        var over = living.level().getFluidState(eye).getType();
+        if (over != RCFluids.LEACHATE.get() && over != RCFluids.TAILINGS_SLURRY.get()) {
             return;
         }
         int air = living.getAirSupply();

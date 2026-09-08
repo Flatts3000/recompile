@@ -5,7 +5,6 @@
   "attributes": {
     "visual/fog_color": "#9AA36B",
     "visual/sky_color": "#A8AC84",
-    "visual/water_fog_color": "#2C544D",
     "audio/ambient_sounds": {
       "mood": {
         "sound": "minecraft:ambient.cave",
@@ -21,12 +20,13 @@
         },
         "probability": 0.025
       }
-    ]
+    ],
+    "visual/water_fog_color": "#2C544D"
   },
   "effects": {
-    "water_color": 5147776,
     "grass_color": 9080646,
-    "foliage_color": 8160064
+    "foliage_color": 8160064,
+    "water_color": 5147776
   },
   "spawners": {
     "monster": [
@@ -143,10 +143,24 @@
     "The dust is white_ash at 0.025, the rate vanilla gives crimson forest's spores. Basalt deltas runs",
     "white_ash at 0.118 and that reads as weather rather than as a place.",
     "",
-    "water_color is the decant pond and nothing else in this biome is wet. Tailings arrive as a slurry",
-    "and the process water sits on top of the impoundment; that pale turquoise is the single most",
-    "recognisable thing in a photograph of a uranium mill site. It is water rather than the mod's",
-    "Leachate block on purpose - leachate is rain drained through refuse, which is why it is sprawl-only",
-    "and why the yard was ruled to have none."
+    "THE DECANT POND IS A FLUID OF ITS OWN NOW, SO water_color IS VESTIGIAL (#423, owner",
+    "2026-09-08). It used to tint exactly one thing: the pond on top of a tailings impoundment,",
+    "nothing else in the dump being wet. The pond is recompile:tailings_slurry now, and a custom",
+    "fluid does not read this key - its colour comes from the FluidTintSource in",
+    "RecompileFluidModels. That pale turquoise is the single most recognisable thing in a photograph",
+    "of a uranium mill site, so it did not go away; it MOVED, and this key no longer reaches it.",
+    "",
+    "IT IS KEPT BECAUSE THE CODEC DEMANDS IT, not because anything reads it. Deleting it was tried",
+    "and the biome fails to load outright: 'No key water_color in MapLike' - BiomeSpecialEffects has",
+    "it as a required field, unlike the fog and sky values that moved to 'attributes' in 26.1. So it",
+    "stays at the pond's old colour, which is the least misleading value available: if anything in",
+    "this biome is ever water again, it will look like the pond did. visual/water_fog_color is kept",
+    "beside it for the same reason - it is optional, but a lone fog colour for a fluid the biome does",
+    "not contain is worse than the pair.",
+    "",
+    "The pond is deliberately NOT leachate, and that half of the 2026-08-05 ruling STANDS: leachate",
+    "is rain drained through refuse, which is why it is sprawl-only and why the yard was ruled to",
+    "have none. What was reversed is only the conclusion drawn from it, that the pond is therefore",
+    "plain water. See docs/radioactive_dump_spec.md sections 3 and 7."
   ]
 }

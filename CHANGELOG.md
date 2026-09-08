@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Something is floating on the tailings
+
+- **The pond on top of a tailings heap is its own liquid now.** It looks the same - the pale turquoise
+  was always the point - but it is not water and it never was drinkable. You cannot fill a Rain
+  Collector from it, it will not water a crop, and standing in it makes you hungry and poisons you.
+- **It will not kill you.** Poison stops at half a heart. It will kill an animal that wanders into
+  one, which leachate never did.
+- **You can bucket it**, which is the only way to drain a pond and make a plateau safe to walk. Drain
+  one and it stays drained.
+
 ### The frontier rebuilds too
 
 - **Rubble piles and tailings heaps grow back**, the way garbage mounds have since v0.7.0. Work a

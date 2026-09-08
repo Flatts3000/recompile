@@ -814,5 +814,9 @@
   "tooltip.recompile.vacuum_band.netherite": "Handles: all waste, including the depths",
   "tooltip.recompile.vacuum_radius": "Intake radius: %s blocks",
   "tooltip.recompile.water_stored": "%s / %s mB",
-  "block.recompile.rubble_ground": "Rubble Ground"
+  "block.recompile.rubble_ground": "Rubble Ground",
+  "block.recompile.tailings_slurry": "Tailings Slurry",
+  "fluid.recompile.tailings_slurry": "Tailings Slurry",
+  "item.recompile.tailings_slurry_bucket": "Tailings Slurry Bucket",
+  "jei.recompile.info.tailings_slurry_bucket": "Process water off a tailings impoundment, pumped up with the slurry and left to settle on top. It is not leachate and it is not water: nothing will drink it, water with it or fill a Rain Collector from it. Standing in it makes you hungry and poisons you."
 }

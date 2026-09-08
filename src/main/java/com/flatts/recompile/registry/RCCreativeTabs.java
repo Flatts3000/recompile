@@ -71,7 +71,12 @@ public final class RCCreativeTabs {
                     output.accept(RCItems.SMOKE_DETECTOR.get());
                     output.accept(RCItems.THORIATED_WELDING_RODS.get());
                     output.accept(RCItems.MECHANICAL_WASTE.get());
-                    // The only way to hold leachate, and the only way to place it in creative.
+                    // The two liquids, and the only way to place either in creative. The slurry
+                    // sits with the dump's own finds above it rather than beside the leachate it
+                    // resembles, because the group is a REGION and the slurry belongs to this one -
+                    // grouping by kind and ordering by progression inside the group is the rule, and
+                    // a "liquids" cluster would be a kind that exists nowhere else in this tab.
+                    output.accept(RCItems.TAILINGS_SLURRY_BUCKET.get());
                     output.accept(RCItems.LEACHATE_BUCKET.get());
 
                     // --- 2. Bulky Waste finds: the furniture the dump hands you ---

@@ -38,6 +38,7 @@ import com.flatts.recompile.content.block.RubbleGroundBlock;
 import com.flatts.recompile.content.block.MillTailingsBlock;
 import com.flatts.recompile.content.block.WasteDrumBlock;
 import com.flatts.recompile.content.block.StainedGroundBlock;
+import com.flatts.recompile.content.block.TailingsSlurryBlock;
 import com.flatts.recompile.content.block.SlagRubbleBlock;
 import com.flatts.recompile.content.block.TechnoOrganicWasteBlock;
 import com.flatts.recompile.content.block.SeparatorPartBlock;
@@ -318,6 +319,25 @@ public final class RCBlocks {
      * {@code noLootTable} because breaking a liquid yields nothing, and {@code liquid()} so vanilla
      * treats it as one for pathing and placement.
      */
+    /**
+     * Tailings Slurry: the decant pond block (#423). Leachate's properties with a different map colour
+     * - {@code TERRACOTTA_CYAN} rather than brown - because the two liquids are found in different
+     * regions and a map is one of the few places a player sees them side by side.
+     */
+    public static final DeferredBlock<TailingsSlurryBlock> TAILINGS_SLURRY = BLOCKS.registerBlock(
+        "tailings_slurry",
+        props -> new TailingsSlurryBlock(RCFluids.TAILINGS_SLURRY.get(), props),
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.TERRACOTTA_CYAN)
+            .replaceable()
+            .noCollision()
+            .strength(100.0F)
+            .pushReaction(PushReaction.DESTROY)
+            .noLootTable()
+            .liquid()
+            .sound(SoundType.EMPTY)
+    );
+
     public static final DeferredBlock<LeachateBlock> LEACHATE = BLOCKS.registerBlock(
         "leachate",
         props -> new LeachateBlock(RCFluids.LEACHATE.get(), props),
