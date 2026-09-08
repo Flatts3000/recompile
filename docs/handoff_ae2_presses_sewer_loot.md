@@ -42,7 +42,12 @@ exactly, and it fits AE2's own fiction, where presses are ancient artefacts you 
 
 ## This is temporary, and it should be built to be deleted
 
-**Owner, 2026-08-20: both cross-mod handoffs are stopgaps until KubeJS is fixed.** The pack cannot
+> **THE BLOCKER CLEARED ON 2026-09-07.** `kubejs-neoforge-26.1.2-8.0.4.jar` is in the pack's lineup and
+> `pack/kubejs/data/` is live, so the paragraph below describes a constraint that no longer holds.
+> Simple Magnets went home on that basis in #421 (2026-09-08), and it is the template: **the pack copy
+> must be live before the engine copy is deleted, never the reverse.** Engine-side tracking is #420.
+
+**Owner, 2026-08-20: both cross-mod handoffs are stopgaps until KubeJS is fixed.** The pack could not
 ship data on 26.1.2 - that is the only reason this lives in the engine at all. When
 [kube-mods/kubejs#1178](https://github.com/kube-mods/kubejs/issues/1178) is fixed (or any datapack
 loader ports), this moves to the pack and comes back out of Recompile.

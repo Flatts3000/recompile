@@ -590,8 +590,18 @@ roll rather than an entry competing with bulk salvage for a slot, offering Bulb,
 Frame.
 
 **Why this does not skip a tier, which is the criterion it has to clear.** All three of the interesting
-ones are `blueprint_crafting` - gated on a blueprint that teardown teaches - so a found component is
-**one unit that teaches nothing**. The player still cannot make a second without doing the teardown, and
+ones are `blueprint_crafting` - gated on a blueprint that is BOUGHT at the Buy Terminal since
+2026-09-06 (P3.10; it read "that teardown teaches" until 2026-09-08) - so a found component is **one
+unit that teaches nothing**, which is still true and is now true of every teardown in the mod. The
+player still cannot make a second without the sheet, and
+
+**One of the three changed side, though.** The **Motor** is `#recompile:function_only` now: no recipe
+and no market offer, salvaged or nothing. So a Motor out of a sump is not a head start on a thing you
+could otherwise buy - for a while it is the only one you have. That makes this pool a bigger deal than
+this section was written to weigh, and it is worth re-reading against the rate rather than assumed
+still fine.
+
+
 the machines those parts go into need Steel I-Beams and the yard the sewer is already in. It is a
 head start, not a shortcut.
 

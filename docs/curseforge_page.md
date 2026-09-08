@@ -75,7 +75,7 @@ consecutive frames came back photographing its back.
 
 | Field | Value |
 |---|---|
-| **Summary** | `A world buried under its own rubbish, where the recipes went in the bin with everything else. Vacuum the piles up or send a robot to do it, tear your finds apart to relearn them, and go looking through the sewers and a drained aquarium for the rest.` |
+| **Summary** | `A world buried under its own rubbish, where the recipes went in the bin with everything else. Vacuum the piles up or send a robot to do it, tear your finds apart for the parts that still work, and buy back what you have forgotten how to build.` |
 | **Categories** | Processing, World Gen, Technology |
 | **License** | MIT |
 | **Source / issues** | `https://github.com/Flatts3000/recompile` |
@@ -182,10 +182,14 @@ never both at once.
 Buried in the mounds are whole objects. A prybar opens one and you get a washing machine, a printer, a
 filing cabinet.
 
-Take it apart at the Teardown Workbench and you get two things: what it was made of, and an idea of
-how it was made. Four ideas about a mattress and you can make a mattress again.
+Take it apart at the Teardown Workbench and you get the part of it that still works. A washing
+machine has a motor in it. A dead hauler has a solar panel. A broken hydroponics bay has a pump.
 
-The materials are the easy part. What you are actually recovering is how the thing was made.
+The materials are the easy part. There is an infinite amount of scrap out here and no amount of it
+melts down into a working motor, which is why the motor is the thing worth having.
+
+Knowing how to build it again is a separate problem, and the answer is money. Fix up a terminal, sell
+what you make, and buy the recipe back.
 
 ## Sorting is the job
 
@@ -260,7 +264,9 @@ household objects that were quietly radioactive the whole time.
 
 A radium dial clock. A smoke detector. Thoriated welding rods. Uranium glass.
 
-Nothing out here grows back. You strip a dump and move to the next one.
+The heaps grow back. Strip one and it refills, a block at a time out of the sky, the way the mounds
+at home do. What does not come back is the ground: the stain under a heap never takes grass, so this
+is the one place you can work forever and never finish.
 
 ### The cooling tower
 
@@ -284,7 +290,8 @@ Break a tire by hand and you get the tire. Break it with a Scrap Knife and you g
 home and take it apart at the workbench instead and you get more, plus the steel belts out of the
 middle.
 
-Nothing regrows a tire. A dump you strip is a dump you leave.
+Nothing regrows a tire, and tire dumps are the exception now rather than the rule - garbage mounds,
+rubble piles and tailings heaps all refill. Strip a tire dump and it is gone.
 
 ### The Nether is solid
 

@@ -109,7 +109,7 @@ These are the contract. Everything after this section derives from them.
 | **Charge surviving on a dropped item** | `RCDataComponents.VACUUM_CHARGE` |
 | **Menu buttons with no custom packet** | Vanilla's Stonecutter/Loom path, used in four menus here: `handleInventoryButtonClick` plus `clickMenuButton` |
 | **Sunlight into FE** | `SolarPanelBlockEntity`, pinned by `solar_panel_makes_nothing_under_a_roof` |
-| **One find teaching two blueprints** | `broken_terminal` teaches both market terminals from one teardown, two `teaches` entries at four scraps each |
+| **One find teaching two blueprints** | `broken_terminal` REPAIRS into a terminal and teaches nothing (#390/#416) *(Corrected by SCRUB 2026-09-08: teardown stopped teaching on 2026-09-06, P3.10. No shipped `recompile:teardown` recipe carries a `teaches` field. Blueprints are bought at the Buy Terminal.)* |
 
 **So the Depot is close to "a Charging Station that also deploys a Hauler and holds cargo."** That is
 why the dedicated block is affordable.

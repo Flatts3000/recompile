@@ -37,9 +37,10 @@ auto-assemble, and the facing machinery are all gone.
 - **Auto-adjacency, flood-fill.** Any scrap blocks sharing a face are one network. No tool, no
   controller, no link step. Face adjacency only (the six orthogonal neighbours).
 - **Only scrap blocks conduct.** The member set is a block tag, `#recompile:scrap_connectable`, and the
-  tag file is the list - **20 entries today**, not six. Thirteen placeable member types (Scrap Bin,
+  tag file is the list - **22 entries today**, not six. Fifteen placeable member types (Scrap Bin,
   Scrap Barrel, Sorting Tarp, Recompile Workbench, Burn Barrel, Scrap Crafting Table, Cupola Furnace,
-  Slag Furnace, Sintering Kiln, Filing Cabinet, Separator, Trommel, Pulverizer) plus seven formed cells
+  Slag Furnace, Sintering Kiln, Filing Cabinet, Hauler Depot, Freight Terminal, Separator, Trommel,
+  Pulverizer) plus seven formed cells
   of the three conveyor machines (`separator_chamber`, `separator_chute`, `separator_housing`,
   `trommel_drum`, `trommel_stand`, `trommel_chute`, `pulverizer_housing`), so any face of an assembled
   Separator, Trommel or Pulverizer connects. All of them conduct; a Machine Frame does not (it was only
@@ -76,7 +77,7 @@ auto-assemble, and the facing machinery are all gone.
   `insertFromMember(` and read the last argument rather than trusting either sentence.)*
 - `reachesStorage(Level, BlockPos)` - does the cluster contain any sink; gates the file-all.
 
-**Only two of the thirteen placeable member types are sinks:** a Scrap Bin (`ScrapBinBlockEntity`), and
+**Only three of the fifteen placeable member types are sinks:** a Scrap Bin (`ScrapBinBlockEntity`), and
 the Scrap Barrel (its `Container`, **matched by block id**). The Burn Barrel conducts but is
 deliberately never a sink - it is a furnace `WorldlyContainer`, and routing must not land in its smelt
 slots; the same reasoning covers the Cupola Furnace, the Slag Furnace and the Sintering Kiln, which are
@@ -87,7 +88,7 @@ conductors, never sinks.
 
 **Build status (2026-07-24):** all four flows + the file-all are **built** on `feat/workstation` and
 GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide bench never did). Flow
-4 shipped with the connected-storage panel - the mod's one custom screen, a recorded design reversal.
+4 shipped with the connected-storage panel - the mod's FIRST custom screen, a recorded design reversal. There are twelve now, each its own recorded exception.
 
 1. **Sorting Tarp -> bins, two ways.**
    - **Right-click** sifts *garbage* into materials, which land via `insertFromMember(..., false)`
@@ -109,7 +110,7 @@ GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide 
    **The connected-storage panel ships with it** (the Tinkers Crafting Station pattern): the crafting
    screen has a right-side panel showing the whole network's contents - bins **and** barrel, merged by
    item with exact totals - plus a "N bins (+ barrel)" summary, so opening the table shows what the
-   network holds. This is the mod's **one custom screen** - a recorded reversal of the
+   network holds. This was the mod's **first custom screen** - a recorded reversal of the
    no-custom-machine-screen rule, justified by the proven pattern and scoped to this block. Vanilla
    `CraftingMenu` hard-locks its `MenuType`, so the menu is reimplemented over `AbstractContainerMenu`
    with a custom `MenuType` (`RCMenus`) + `ScrapCraftingStationScreen`.

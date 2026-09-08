@@ -174,9 +174,12 @@ designed for.
    discovered by drift** - the share fell from 40% to 14.3% across four additions, and nobody
    re-checked until the 2026-08-12 scrub. The lesson is that "worth re-checking" is not a mechanism;
    `FindRateTest` is.
-5. ~~**Does the knowledge system (P1.4) touch this?**~~ **ANSWERED: it landed, and it does.** Every
-   teardown of a Pump-yielding object also grants an Idea Fragment toward the Pump blueprint, and the
-   fridge grants the fragment for whichever component it drew. Original text: If teardown ever gates
+5. ~~**Does the knowledge system (P1.4) touch this?**~~ **ANSWERED TWICE.** It landed on 2026-08-02
+   and every Pump-yielding teardown granted an Idea Fragment toward the Pump blueprint. Then P3.10
+   reversed it on 2026-09-06: teardown teaches nothing, no shipped teardown carries a `teaches` field,
+   and the Pump blueprint is bought (`market_offer_pump.json`, tier 3, 300 scrip). So the answer to
+   the original question is now *no* - the knowledge system exists and does not touch this at all.
+   Original text: If teardown ever gates
    on *studying* a recipe, the Pump inherits that gate. P1.4 is under review; nothing here should
    assume it lands.
 

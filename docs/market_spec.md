@@ -160,8 +160,9 @@ Furnace and the Sintering Kiln do.
 
 An earlier proposal in #311 had GUI-less selling plus recipe-based buying, specifically to avoid
 minting screens. That is off the table (owner, 2026-08-30), and it is written down because **this mod
-has eight custom screens and the standing rule is that each one is a deliberate exception recorded in
-CLAUDE.md.** This feature makes ten in one go, which is the largest single addition to that count.
+had eight custom screens when this was written and the standing rule is that each one is a deliberate
+exception recorded in CLAUDE.md.** This feature made it ten in one go, the largest single addition to
+that count. It is twelve today - the Hauler Depot and the Freight Terminal followed.
 
 The justification is the same shape as every existing exception: **no vanilla screen shows a price.**
 The Burner Generator needed an energy bar, the Tree Nursery a species picker, the Cupola a second

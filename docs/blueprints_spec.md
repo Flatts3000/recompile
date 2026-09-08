@@ -1,6 +1,20 @@
 # Blueprints: teardown-as-knowledge - spec
 
-**Status: SHIPPED 2026-08-02** (#95, PRs #108 and #110). The mod's namesake mechanic.
+> **REVERSED 2026-09-06 by P3.10: TEARDOWN NO LONGER TEACHES.** Everything below describing teardown
+> as the source of knowledge is a record of what shipped between 2026-08-02 and 2026-09-06, not of how
+> the mod works now. **No shipped `recompile:teardown` recipe carries a `teaches` field** - verified by
+> grep, 2026-09-08. Blueprints are bought at the Buy Terminal for scrip (ten `recompile:market_offer`
+> lines), gated by the tier your freight deliveries have opened. What teardown yields instead is
+> FUNCTION: the signature working component an object is built around.
+>
+> **The Blueprint item, the Filing Cabinet, `recompile:blueprint_crafting` and its reachability rule
+> all survive unchanged** - only where a sheet COMES FROM moved. The Idea Fragment survives too, as
+> the **Spawn Egg Fragment**, with the Sequencer as its only source.
+>
+> See P3.10 in `../trashlands/docs/design_decisions.md` and the spine paragraphs at the top of
+> `CLAUDE.md`.
+
+**Status: SHIPPED 2026-08-02, KNOWLEDGE HALF REVERSED 2026-09-06** (#95, PRs #108 and #110). The mod's namesake mechanic.
 Idea Fragments, the Filing Cabinet, the `recompile:blueprint_crafting` recipe type and its
 reachability rule all ship; the bed is the proof of concept and the Hydroponics Bay is the second
 item behind a sheet. What follows is the design as built, not a plan.

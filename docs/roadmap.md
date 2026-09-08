@@ -356,10 +356,13 @@ the racked tool wears. The `recompile:teardown` schema gained optional `tool` + 
 The mattress migrated onto it (its in-hand knife-cut retired), so string is now bench-gated. JEI
 Teardown category + a Jade diagnostic ship with it.
 
-**The axis is decided: KNOWLEDGE** (owner, 2026-08-01) and **the system shipped 2026-08-02** (#95,
-PRs #108 and #110). Spec: `docs/blueprints_spec.md`. The `teaches` field, parsed and ignored since
-Phase 0, is finally read - which immediately turned the schema's own example recipe into live
-content, because it pointed at a blueprint that did not exist.
+**The axis was decided KNOWLEDGE on 2026-08-01, shipped 2026-08-02, and REVERSED TO FUNCTION on
+2026-09-06** (P3.10). Spec: `docs/blueprints_spec.md`, which carries the same banner. What follows in
+this section is the 2026-08-02 design as built; the knowledge half of it is history.
+
+**What actually holds now:** teardown yields the signature working component an object is built
+around, Blueprints are bought at the Buy Terminal for scrip, and freight quotas are the tier gate.
+The `teaches` field is still parsed and **no shipped recipe uses it**.
 
 The old objections to gating are answered by **not gating vanilla crafting at all.** Knowledge is an
 **Immersive-Engineering-style Blueprint item** and blueprint-only recipes live on their own bench, so
@@ -367,10 +370,11 @@ there is no `doLimitedCrafting` flag to leak through Create autocrafting, nothin
 sync, and no catalog-wide lockout to justify. The item *is* the knowledge, which also means no saved
 state - the same grain as encroachment, the scrap network, and `FORMED`.
 
-Function (recover working components) was not chosen and is not blocked; it could layer onto the same
-bench later.
+Function (recover working components) was not chosen here **and was chosen later** - P3.10, 2026-09-06.
+It did not layer on top; it replaced the knowledge half outright, and the market took knowledge over.
 
-**Built:** all of it. Tearing something down at the Workbench grants an **Idea Fragment**; enough
+**Built 2026-08-02, and the first clause is no longer true.** Tearing something down at the Workbench
+granted an **Idea Fragment**; enough
 fragments about one thing craft into a **Blueprint**; a **Filing Cabinet** found in Bulky Waste files
 them and joins the Scrap Network by placement; and the Scrap Crafting Table runs a
 `recompile:blueprint_crafting` recipe only while the sheet is in the player's inventory or in a
@@ -426,8 +430,11 @@ it **visually distinct** (dark, saturated earth) so the player learns to read th
 this one comes back, which puts the quarry-vs-heal decision underfoot. Rung 1 converting mound bed
 to grass is what retires it forever.
 
-**Status: SHIPPED.** `MoundGroundBlock` carries the memory and the regrowth; `MoundFeature` writes
-it; rate, on/off and drop height are config. Pre-existing saved worlds have no mound ground, so their
+**Status: SHIPPED, and extended to three regions on 2026-09-08 (P1.6-R, #424).**
+`RegrowingGroundBlock` carries the memory and the regrowth; `MoundGroundBlock`, `RubbleGroundBlock`
+and `StainedGroundBlock` are its subclasses, written by `MoundFeature`, `RubblePileFeature` and
+`TailingsHeapFeature`. Rate, on/off and drop height are config, and the same three keys now pace all
+three regions. Pre-existing saved worlds have no mound ground, so their
 mounds stay finite - accepted (owner, 2026-08-05).
 
 Three things in the plan above did not survive building it:
@@ -500,8 +507,10 @@ Not a phase. A pair of workstations the owner called for (#311), recorded here b
   teacher **or** a market offer). And found-only is enforced by a sweep over RECIPES, which a shop
   counter is not, so `the_market_never_sells_what_is_meant_to_be_found` fails the build on an offer
   selling a `#recompile:found_only` item or the knowledge to make one.
-- **Both are learned from a Broken Terminal** pried out of Bulky Waste and torn down. One find
-  teaches both sets.
+- **Both are REPAIRED from a Broken Terminal** pried out of Bulky Waste (owner, 2026-09-07, #416).
+  Neither has a blueprint set, and the Broken Terminal teaches nothing - its own recipe file says so
+  in a comment. There is no plain recipe for any terminal either, so the entry to the economy is a
+  thing you found and fixed rather than one you fabricated.
 
 Spec: [`market_spec.md`](market_spec.md), section 14 for the acquisition axis. Open from it: the
 scrip-vs-fragment ratio is still unsettled (section 12, question 4), and the balance's 16-bit sync

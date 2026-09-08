@@ -22,6 +22,29 @@
   giving and keeps being the dump. Its scarcity is the land now, not the ore.
 - **Only new worlds.** A yard or a dump you have already been to stays as finite as it was.
 
+### Screens
+
+- **A freight line could show as delivered when it was not.** Only on a delivery phase asking for
+  more goods than the screen shows at once, which nothing shipped does - but a pack can write one with
+  a single file.
+- **Buttons make a sound now.** Deploy, Recall, Sell and the Depot's two radius arrows were all
+  silent, which mattered most on the ones whose result you cannot see: Deploy puts a machine into the
+  world behind the screen you are looking at.
+- **Scrolling lists say which way you can go.** The Buy Terminal, the Freight Terminal and the
+  crafting shelf all only ever advertised the way down, so the middle of a long list looked like the
+  end of it.
+- **The Sell Terminal no longer takes a click when there is nothing to sell**, and the Hauler Depot's
+  radius arrows no longer take one at their limits.
+- **The Buy Terminal leads with what you can afford first.** It used to list its most expensive
+  sheets at the top.
+
+### Textures
+
+- **The netherite Garbage Vacuum and Sledgehammer are violet**, not the near-black they were. At the
+  top of a tier ladder they read as a second iron, which is the one thing the top tier should not do.
+- **The Pigeon and Roach spawn eggs come from the mob they are about** - the parrot and silverfish
+  eggs rather than the chicken - so the speckles are the right speckles. Same colours as before.
+
 ### Simple Magnets goes back to the pack
 
 - **The four re-themed Simple Magnets recipes are no longer part of the mod.** They shipped here only

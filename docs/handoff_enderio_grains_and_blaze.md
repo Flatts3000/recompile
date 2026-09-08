@@ -7,7 +7,12 @@ NeoForge 26.1.2.76.
 
 ## Why this is in the engine at all
 
-Identical to the other two stopgaps: **the pack cannot ship data on 26.1.2.** No datapack loader has a
+> **THE BLOCKER CLEARED ON 2026-09-07.** `kubejs-neoforge-26.1.2-8.0.4.jar` is in the pack's lineup and
+> `pack/kubejs/data/` is live, so the paragraph below describes a constraint that no longer holds.
+> Simple Magnets went home on that basis in #421 (2026-09-08), and it is the template: **the pack copy
+> must be live before the engine copy is deleted, never the reverse.** Engine-side tracking is #420.
+
+Identical to the other two stopgaps: **the pack could not ship data on 26.1.2.** No datapack loader has a
 NeoForge build, KubeJS crashes the client
 ([kube-mods/kubejs#1178](https://github.com/kube-mods/kubejs/issues/1178)), CraftTweaker has not
 ported. So content that belongs to Trashlands ships here instead.

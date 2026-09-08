@@ -518,7 +518,7 @@ Currently: drowned, slimes, and a Hunger tax. That is thin for a structure whose
 
 | Item | Takes | Risk |
 |---|---|---|
-| **Gas pockets** - a damaging or blinding zone | **XL.** A new fluid or a block with behaviour, plus its own tick logic and cleanup story. | High. The mod has one custom fluid and it took real work. |
+| **Gas pockets** - a damaging or blinding zone | **XL.** A new fluid or a block with behaviour, plus its own tick logic and cleanup story. | High. The mod has two custom fluids (leachate, and the tailings slurry since #423) and the first took real work. |
 | **Weak floors** - a block that gives way | **M-L.** Behaviour block plus falling logic. | Medium-high. |
 | **Deeper darkness** - actively suppress light | **Not possible without mixins.** The mod has none. | N/A - this is phase 0's answer again. |
 

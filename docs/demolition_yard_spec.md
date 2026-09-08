@@ -329,3 +329,23 @@ PNGs committed.
 (b) the husk reading as deliberate ruins vs noise (mitigated by the runClient loop); (c) the automatable-forge
 reversal (deliberate, recorded). Existing saved worlds keep the old `fixed` source - the region system applies
 to new worlds only; acceptable pre-beta.
+
+---
+
+## Added after the fact: the yard's piles regrow (P1.6-R, 2026-09-08, #424)
+
+This spec predates regrowth reaching the frontier and had no word of it, so: **rubble piles come
+back.** `RubblePileFeature` writes a `recompile:rubble_ground` under every footprint cell carrying that
+column's height, and the block puts Stone Rubble back one at a time, falling from the sky, exactly as
+a garbage mound does. It is a new block - the yard's floor is plain coarse dirt with nothing to hang a
+memory on, which is the only reason it needed one where the radioactive dump did not.
+
+**Rubble Ground is in `#recompile:spreadable`, so a rubble pile RETIRES.** Green its footprint and the
+memory goes with it, and the yard is finishable in a way the radioactive dump deliberately is not.
+That asymmetry is the point of the pair; `the_yard_can_be_retired_and_the_dump_cannot` asserts it.
+
+**Mechanical waste heaps do NOT regrow.** The owner named garbage, rubble and tailings and nothing
+else, so the yard has one pile that refills and one that does not. That is deliberate rather than an
+oversight and should not be "fixed" without a ruling.
+
+**Only new worlds.** A yard already generated has no Rubble Ground and its piles stay finite.

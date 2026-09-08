@@ -166,13 +166,15 @@ where the idea comes from.**
 - **Depleted Battery** - found loose in `household_pulls`, at the Bulb's weight. Not a component and
   not spendable as one. It is a teardown input: cut one open at the workbench with a Scrap Knife for
   scrap metal, e-scrap and plastic.
-- **The knowledge rides on that teardown**, declared as a top-level `teaches` entry rather than a
+- ~~**The knowledge rides on that teardown**~~ **The knowledge is BOUGHT** (`market_offer_battery.json`, tier 2). Teardown stopped teaching on 2026-09-06 (P3.10) and `depleted_battery.json` carries no `teaches` field; what the four dead cells buy you now is the scrap, not the sheet. Historic text follows:, declared as a top-level `teaches` entry rather than a
   `teaches: true` pool. That distinction is load-bearing: a teaching POOL grants the fragment for
   whatever item it drew, so saying it that way would have handed back a live battery for tearing up a
   dead one. Four of them completes the blueprint.
 - **Battery** - manufactured, never found. The first component here that is **blueprint only**: the
-  Pump, Motor and Bulb are salvage first and blueprint second, and this one has no salvage route at
-  all, because a dead cell is not a live one. So it is deliberately absent from
+  Pump and Bulb are salvage first and blueprint second, and this one has no salvage route at
+  all, because a dead cell is not a live one. *(The Motor was in that list until P3.10, 2026-09-06.
+  It now runs the other way: `#recompile:function_only`, salvage or nothing, with no recipe and no
+  market offer - so the two components bracket this one rather than sitting beside it.)* So it is deliberately absent from
   `ComponentBlueprintTests`' salvage-and-blueprint list, and covered instead by
   `a_blueprint_result_has_no_other_route`, which is the sweep that actually means something for it.
 

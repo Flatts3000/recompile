@@ -243,7 +243,7 @@ Leaning on vanilla and what exists, per the strategy that carried the rain colle
 | **Grass Spreader** | `PCP / RMR / PPP` - plating, copper pipe, rebar, scrap metal. |
 | **Solar Panel** | `GGG / EEE / PPP` - cullet glass, e-scrap, scrap plating. |
 | **Copper Pipe** | `NNN / ... / NNN` - six copper nuggets, yields 3. |
-| **Pump** | *(stale as written: it is `recompile:blueprint_crafting` now - copper ingots, scrap metal, plastic scrap, gated on the `recompile:pump` blueprint, which teardown teaches.)* |
+| **Pump** | *(stale as written: it is `recompile:blueprint_crafting` now - copper ingots, scrap metal, plastic scrap, gated on the `recompile:pump` blueprint, which is bought at the Buy Terminal (`market_offer_pump.json`, tier 3) *(Corrected by SCRUB 2026-09-08: teardown stopped teaching on 2026-09-06, P3.10. No shipped `recompile:teardown` recipe carries a `teaches` field. Blueprints are bought at the Buy Terminal.)*.)* |
 
 **The tank is the primitive, not the collector.** Building a tank *out of* a collector had the
 dependency backwards - a collector already contains one. Both machines now share the tank part.

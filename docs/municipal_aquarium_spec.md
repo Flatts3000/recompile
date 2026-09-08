@@ -122,7 +122,7 @@ Mechanically it is the shipped landmark pattern with nothing new:
 - a `StructureType` + `StructurePiece` under `content/worldgen/aquarium/`
 - `worldgen/structure/municipal_aquarium.json` naming `#recompile:has_structure/municipal_aquarium`,
   `step: top_layer_modification`, `terrain_adaptation: beard_thin`
-- `worldgen/structure_set/municipal_aquarium.json` with `random_spread`
+- `worldgen/structure_set/municipal_aquariums.json` with `random_spread`
 - the biome tag holding `recompile:demolition_yard`
 
 ---
@@ -477,9 +477,14 @@ runoff, not sea water.
 
 **One exception**, forced by 8.3: the guardian tank holds real water, because a guardian cannot use
 leachate and fails silently rather than visibly. Section 5 has the mechanism and the corrected cost.
-The short version: free infinite water already exists in the tailings ponds, volume is not a dial
-because two source blocks regenerate forever, and what this actually changes is the **distance** at
-which free water becomes available - onset 512 rather than 1024.
+The short version **was** that free infinite water already existed in the tailings ponds and volume
+was not a dial, so this only changed the DISTANCE at which free water became available. **Both of
+those premises are false and are struck through in section 5** - the ponds are no longer water (#425),
+and source blocks have never bred in this world because `RCWaterEconomy` turns
+`water_source_conversion` off (#101). What the tank actually is: a FINITE quantity of water, placed
+once by a structure, at onset 512. Smaller than this section was written to weigh, and a relaxation
+rather than a new risk - but the decision recorded here was taken against an argument that no longer
+holds, so it wants the owner's eye before it is treated as settled.
 
 ### 8.2 Is the coral revival chain worth building? DECIDED: yes
 
