@@ -34,6 +34,7 @@ import com.flatts.recompile.content.block.CompactedBaleBlock;
 import com.flatts.recompile.content.block.MechanicalWasteBlock;
 import com.flatts.recompile.content.block.MoundGroundBlock;
 import com.flatts.recompile.content.block.RubbleBlock;
+import com.flatts.recompile.content.block.RubbleGroundBlock;
 import com.flatts.recompile.content.block.MillTailingsBlock;
 import com.flatts.recompile.content.block.WasteDrumBlock;
 import com.flatts.recompile.content.block.StainedGroundBlock;
@@ -241,6 +242,30 @@ public final class RCBlocks {
             .mapColor(MapColor.TERRACOTTA_GREEN)
             .strength(0.5F)
             .sound(SoundType.GRAVEL)
+            // RANDOM TICKS ARE LOAD-BEARING SINCE P1.6-R, and their absence is silent. This block
+            // became the radioactive dump's regrowth memory, and RegrowingGroundBlock.randomTick is
+            // the only thing that drives regrowth in a real game - without the flag the tailings
+            // simply never come back and every GameTest still passes, because they call regrowOnce
+            // directly. every_regrowing_ground_random_ticks is what actually pins it.
+            .randomTicks()
+    );
+
+    /**
+     * Rubble Ground: the demolition yard's regrowth memory (P1.6-R), under a rubble pile's footprint.
+     *
+     * <p>Mound Ground's properties exactly - it is the same coarse dirt with a different face - and
+     * like it, no {@code requiresCorrectToolForDrops}, no item form and no drops. The only reason the
+     * yard needed a new block where the other two regions did not is that its floor is plain coarse
+     * dirt, so there was nothing already down there to hang a memory on.
+     */
+    public static final DeferredBlock<RubbleGroundBlock> RUBBLE_GROUND = BLOCKS.registerBlock(
+        "rubble_ground",
+        RubbleGroundBlock::new,
+        () -> BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE)
+            .strength(0.5F)
+            .sound(SoundType.GRAVEL)
+            .randomTicks()
     );
 
     /**

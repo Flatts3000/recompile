@@ -88,21 +88,50 @@ its fog and sky in the dead half.
 
 ---
 
-## 3. Nothing here regrows (owner, 2026-08-22)
+## 3. Tailings regrow, and the land never heals (owner, 2026-09-08 - REVERSES 2026-08-22)
 
-**Tailings do not regrow.** A deposit is stripped once and stays stripped.
+**This section said the opposite until 2026-09-08, and the old ruling is kept below rather than
+deleted**, because it had a real argument and the reversal is only worth reading against it.
 
-This is **consistent with existing behaviour rather than a new exception**, which is worth stating
-because it reads like one. `MoundGroundBlock` - the block that remembers a mound's footprint and
-respawns it - is written by `MoundFeature` alone. The demolition yard's four features (Building Husk,
-Rubble Pile, Steel Stack, Mechanical Waste Pile) write none of it, so **the yard already does not
-regrow**. The rule was there and unstated:
+**Tailings regrow.** `StainedGroundBlock` remembers how many tailings stood on each column and puts
+them back one at a time, the same mechanic mounds have had since Phase 5. Rubble piles in the
+demolition yard do too. The owner's words: *"garbage falls from the sky. I want to flesh out the rest
+of the overworld blocks so that they also rebuild."*
 
-> The sprawl regrows because you live in it. The frontier does not, because you leave.
+**The dump needed no new block for it.** The stain is already painted across the whole footprint
+including under the pile, so the memory went into a block that was already there and already looked
+right; only the demolition yard needed a new ground block.
 
-**The consequence, accepted:** `powah:uraninite` is reactor *fuel*, a running cost rather than a
-one-time build cost, so a player exhausts a deposit and travels to the next. That is what uranium
-extraction is, and the noisy gradient means there is always a next one.
+**In exchange, a tailings impoundment NEVER RETIRES, and the region is permanently
+non-reclaimable.** Greening a footprint is what retires a mound and a rubble pile, and Stained Ground
+is deliberately out of `#recompile:spreadable` because contamination that scrubs clean is not
+contamination (2026-08-05, untouched). So the scarcity did not disappear, it MOVED: from the deposit,
+which now refills, to the land, which never comes back. The dump is the one region of the world with
+no reclamation ending.
+
+### What the 2026-08-22 ruling said, and why it was reversed
+
+> **Tailings do not regrow.** A deposit is stripped once and stays stripped.
+>
+> This is consistent with existing behaviour rather than a new exception. `MoundGroundBlock` is
+> written by `MoundFeature` alone, and the demolition yard's four features write none of it, so the
+> yard already does not regrow. The rule was there and unstated:
+>
+> > The sprawl regrows because you live in it. The frontier does not, because you leave.
+>
+> **The consequence, accepted:** `powah:uraninite` is reactor *fuel*, a running cost rather than a
+> one-time build cost, so a player exhausts a deposit and travels to the next. That is what uranium
+> extraction is, and the noisy gradient means there is always a next one.
+
+That reasoning was sound and the sentence it rested on - "the yard already does not regrow" -
+described an accident rather than a decision: nobody had ruled the frontier out, the memory block
+simply had one writer. Read the other way, *live in it / leave it* argues for regrowth as travel
+distance grows rather than against it, because a region you visit and leave is exactly the one that
+should not be permanently spent by a single visit.
+
+**The uraninite consequence is now the reverse and is accepted in the same spirit:** fuel comes off a
+renewable supply, so a Powah reactor is a running cost you can actually run. What is finite is the
+land, not the ore.
 
 **A note for V2**, not a commitment: once Mekanism is in, the renewable radioactive material is the
 **nuclear waste the player produces themselves**. You clear their dump, then you make your own - which

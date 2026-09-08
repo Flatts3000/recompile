@@ -5,6 +5,7 @@
     "recompile:stone_rubble",
     "recompile:trash_bag",
     "recompile:mound_ground",
-    "recompile:stained_ground"
+    "recompile:stained_ground",
+    "recompile:rubble_ground"
   ]
 }

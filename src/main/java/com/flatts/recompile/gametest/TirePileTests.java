@@ -145,7 +145,7 @@ public final class TirePileTests {
         });
 
         // THE TIRE IS NOT A SortableBlock, which decides three separate things: no gravity (that class
-        // extends FallingBlock), no pull stream, and MoundGroundBlock.isMound never counting a tire as
+        // extends FallingBlock), no pull stream, and RegrowingGroundBlock.isPile never counting a tire as
         // part of a mound. All three would regress silently if somebody "tidied" the hierarchy.
         RCGameTests.test("a_tire_is_a_plain_block_not_a_sortable_one", 20, helper -> {
             // isAssignableFrom rather than instanceof: the compiler already knows a TireBlock is
@@ -154,7 +154,7 @@ public final class TirePileTests {
             Class<?> tire = RCBlocks.TIRE.get().getClass();
             helper.assertTrue(!SortableBlock.class.isAssignableFrom(tire),
                 "a tire must not be a SortableBlock: it would inherit FallingBlock's gravity and would "
-                    + "be counted as mound by MoundGroundBlock.isMound");
+                    + "be counted as mound by RegrowingGroundBlock.isPile");
             helper.assertTrue(!net.minecraft.world.level.block.FallingBlock.class.isAssignableFrom(tire),
                 "and it must not fall - a tipped stack stays where it was tipped");
             helper.succeed();

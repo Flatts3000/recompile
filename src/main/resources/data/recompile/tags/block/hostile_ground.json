@@ -7,6 +7,7 @@
     "recompile:cardboard_pile",
     "recompile:compacted_bale",
     "recompile:bulky_waste",
-    "recompile:mound_ground"
+    "recompile:mound_ground",
+    "recompile:rubble_ground"
   ]
 }

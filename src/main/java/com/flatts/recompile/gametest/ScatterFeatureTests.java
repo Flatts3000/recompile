@@ -2,6 +2,7 @@ package com.flatts.recompile.gametest;
 
 import com.flatts.recompile.Recompile;
 import com.flatts.recompile.content.worldgen.RegionBiomeSource;
+import com.flatts.recompile.content.block.RegrowingGroundBlock;
 import com.flatts.recompile.registry.RCBlocks;
 import com.flatts.recompile.registry.RCFeatures;
 import java.io.IOException;
@@ -38,7 +39,9 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * and nothing written outside a plot is cleaned up between tests, so two wide builds at a common height
  * write through each other's neighbours. Spoken for elsewhere: 0/40/80/120/160/240 by the aquarium
  * builds (38 blocks wide, clearing 28 above) and 40/80/120 by the tire dumps (14 blocks out). This file
- * takes <b>200, 216 and 232</b> for the three tailings tests, whose footprint is 35 blocks across.
+ * takes <b>200, 216, 232 and 272</b> for the four tailings tests, whose footprint is 35 blocks across.
+ * <b>272 rather than the 248 that looks free</b>: the aquarium's 240 clears 28 blocks above itself and
+ * so reaches 268, which is the kind of thing only the list above can tell you.
  * <b>Sixteen apart rather than eight, and the gap is set by the MEASUREMENT window rather than by the
  * build.</b> A pile is about six tall, so eight looked ample; the drums test scans ten blocks to catch
  * a drum sitting on the skirt, and at eight it was reading the next band's drums as its own. It passed
@@ -123,6 +126,17 @@ final class ScatterFeatureTests {
 
     /** The tallest offset a pile reached and how far out it reached; -1 for each if it placed none. */
     private record Pile(int top, int radius) {
+    }
+
+    /** Empty the NEAR box above an origin, so a feature that writes into air only has room to work. */
+    private static void clear(ServerLevel level, BlockPos origin) {
+        for (int dx = -NEAR; dx <= NEAR; dx++) {
+            for (int dz = -NEAR; dz <= NEAR; dz++) {
+                for (int dy = 0; dy <= 8; dy++) {
+                    level.setBlock(origin.offset(dx, dy, dz), Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+        }
     }
 
     /**
@@ -601,6 +615,176 @@ final class ScatterFeatureTests {
         // pile of each proves nothing. The seeds are fixed, so this is deterministic rather than flaky.
         //
         // No band: neither pile reaches past three blocks. See the class note.
+        // A RUBBLE PILE LEAVES A BED, AND ITS HEIGHT IS THE COLUMN IT STOOD UNDER (P1.6-R).
+        //
+        // Regrowth is entirely a function of this bed: the block does the growing, but if the feature
+        // never wrote a memory there is nothing to grow and the whole mechanic is inert with nothing
+        // logged. The unit tests drive regrowOnce against a bed they placed themselves, so they cannot
+        // see this half at all - which is exactly how rubble piles went four releases without one.
+        //
+        // The invariant asserted is the one that matters rather than a spot check: for EVERY column,
+        // the remembered height equals the number of rubble blocks standing on it. Off by one in
+        // either direction and every pile in the world regrows wrong - short forever, or one block
+        // taller each time it is quarried.
+        //
+        // Mechanical waste is checked in the same breath for the opposite property. It is a yard pile
+        // too and it is deliberately NOT in P1.6-R's scope, so a bed under one would be scope creep
+        // that no other test could see.
+        RCGameTests.test("a_rubble_pile_leaves_a_bed_and_a_waste_heap_does_not", 60, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+
+            // NO BAND, and the box is CLEARED first, which is the same pairing every narrow test in
+            // this file uses. A rubble pile is at most seven wide, so NEAR covers it and no number of
+            // these can touch a neighbouring plot. The clear is what the first draft of this test
+            // missed: the feature writes into air only, so leftover world blocks in the column make it
+            // place fewer than it recorded and the bed reads as over-claiming. It cost a red run, and
+            // the red was the test being wrong rather than the feature.
+            clear(level, origin);
+            layField(level, origin, Blocks.COARSE_DIRT, NEAR);
+
+            helper.assertTrue(place(level, RCFeatures.RUBBLE_PILE, origin, 7L),
+                "the rubble pile refused a flat field of coarse dirt, so this measured nothing");
+
+            int beds = 0;
+            List<String> wrong = new ArrayList<>();
+            for (int dx = -NEAR; dx <= NEAR; dx++) {
+                for (int dz = -NEAR; dz <= NEAR; dz++) {
+                    int rubble = 0;
+                    for (int dy = 0; dy <= 8; dy++) {
+                        if (level.getBlockState(origin.offset(dx, dy, dz))
+                                .is(RCBlocks.STONE_RUBBLE.get())) {
+                            rubble++;
+                        }
+                    }
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    boolean remembered = bed.is(RCBlocks.RUBBLE_GROUND.get());
+                    if (rubble == 0 && !remembered) {
+                        continue;
+                    }
+                    if (!remembered) {
+                        wrong.add(dx + "," + dz + ": " + rubble + " rubble on plain ground");
+                        continue;
+                    }
+                    beds++;
+                    int height = bed.getValue(RegrowingGroundBlock.HEIGHT);
+                    if (height != rubble) {
+                        wrong.add(dx + "," + dz + ": remembers " + height + " but carries " + rubble);
+                    }
+                }
+            }
+            helper.assertTrue(beds > 0,
+                "the pile placed rubble and left no bed anywhere under it, so nothing in the "
+                    + "demolition yard will ever regrow");
+            helper.assertTrue(wrong.isEmpty(),
+                "these columns disagree with the bed underneath them, so they regrow to the wrong "
+                    + "height forever: " + wrong);
+
+            // The other yard pile, which is out of scope on purpose. Same origin, wiped back to bare
+            // field first and CHECKED bare - reusing the box keeps this bandless, but only if the
+            // reset is asserted rather than assumed, since a rubble bed left behind would otherwise
+            // read as one this heap wrote and that is the exact claim being made.
+            clear(level, origin);
+            layField(level, origin, Blocks.COARSE_DIRT, NEAR);
+            for (int dx = -NEAR; dx <= NEAR; dx++) {
+                for (int dz = -NEAR; dz <= NEAR; dz++) {
+                    helper.assertTrue(
+                        !level.getBlockState(origin.offset(dx, -1, dz))
+                            .is(RCBlocks.RUBBLE_GROUND.get()),
+                        "the reset left a rubble bed behind, so the waste-heap half below would have "
+                            + "passed or failed on the rubble pile's leftovers");
+                }
+            }
+            place(level, RCFeatures.MECHANICAL_WASTE_PILE, origin, 7L);
+            List<String> strays = new ArrayList<>();
+            for (int dx = -NEAR; dx <= NEAR; dx++) {
+                for (int dz = -NEAR; dz <= NEAR; dz++) {
+                    if (level.getBlockState(origin.offset(dx, -1, dz))
+                            .is(RCBlocks.RUBBLE_GROUND.get())) {
+                        strays.add(dx + "," + dz);
+                    }
+                }
+            }
+            helper.assertTrue(strays.isEmpty(),
+                "a mechanical waste heap left a regrowth bed. It is deliberately outside P1.6-R - the "
+                    + "owner named garbage, rubble and tailings and nothing else - so this is scope "
+                    + "arriving by accident: " + strays);
+            helper.succeed();
+        });
+
+        // THE TAILINGS BED NEVER CLAIMS THE POND CELL, WHICH IS THE WHOLE POND CARVE-OUT.
+        //
+        // Water is a REPLACEABLE block, so regrowth would happily target the decant pond and fill the
+        // basin in one block at a time until it was gone - silently, over a long time, in a region
+        // nobody is watching. There is no special case in the block for this. Instead the feature
+        // records the count of TAILINGS rather than the column height, so the memory simply never
+        // reaches that cell.
+        //
+        // Asserted as a relationship rather than a number: the pond sits exactly one above the last
+        // cell the bed claims. Both halves are checked, because a bed that claims nothing would also
+        // pass "the pond is safe".
+        RCGameTests.test("a_tailings_bed_stops_one_below_the_pond", 100, helper -> {
+            ServerLevel level = helper.getLevel();
+            // BAND 272. See the class note: this build is 35 blocks across, so it needs a height
+            // nothing else writes at. 248 and 256 look free and are not - the aquarium's 240 clears 28
+            // blocks above itself and reaches 268.
+            final int floor = 272;
+            BlockPos origin = helper.absolutePos(new BlockPos(2, floor + 1, 2));
+            layField(level, origin, Blocks.COARSE_DIRT, 17);
+
+            helper.assertTrue(place(level, RCFeatures.TAILINGS_HEAP, origin, 5L),
+                "the impoundment refused a flat field of coarse dirt, so this measured nothing");
+
+            int ponds = 0;
+            int beds = 0;
+            List<String> wrong = new ArrayList<>();
+            for (int dx = -16; dx <= 16; dx++) {
+                for (int dz = -16; dz <= 16; dz++) {
+                    int tailings = 0;
+                    int waterAt = -1;
+                    for (int dy = 0; dy <= 6; dy++) {
+                        BlockState state = level.getBlockState(origin.offset(dx, dy, dz));
+                        if (state.is(RCBlocks.MILL_TAILINGS.get())) {
+                            tailings++;
+                        } else if (state.is(Blocks.WATER)) {
+                            waterAt = dy;
+                        }
+                    }
+                    BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
+                    if (!bed.is(RCBlocks.STAINED_GROUND.get())) {
+                        continue;
+                    }
+                    int height = bed.getValue(RegrowingGroundBlock.HEIGHT);
+                    if (tailings > 0) {
+                        beds++;
+                        if (height != tailings) {
+                            wrong.add(dx + "," + dz + ": remembers " + height + " tailings but "
+                                + "carries " + tailings);
+                        }
+                    }
+                    if (waterAt >= 0) {
+                        ponds++;
+                        // regrowOnce fills up to bed.above(height), which is dy = height - 1 here. So
+                        // the pond is safe exactly when the water sits at dy == height.
+                        if (height != waterAt) {
+                            wrong.add(dx + "," + dz + ": water at " + waterAt + " but the bed claims "
+                                + height + ", so regrowth "
+                                + (height > waterAt ? "will fill the pond in" : "leaves a gap"));
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(beds > 0,
+                "the impoundment left no bed under any tailings column, so the dump will never regrow");
+            helper.assertTrue(ponds > 0,
+                "this heap came out with no pond at all, so the carve-out below measured nothing. "
+                    + "a_decant_pond_is_not_a_coin_flip pins the rate; if that is green and this is "
+                    + "not, the seed is unlucky rather than the code wrong");
+            helper.assertTrue(wrong.isEmpty(),
+                "the bed disagrees with the column above it: " + wrong);
+            helper.succeed();
+        });
+
         RCGameTests.test("a_rubble_pile_spreads_and_a_waste_heap_stacks", 60, helper -> {
             ServerLevel level = helper.getLevel();
             BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));

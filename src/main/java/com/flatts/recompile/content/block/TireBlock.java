@@ -57,7 +57,7 @@ import net.minecraft.world.level.block.state.BlockState;
  *
  * <p><b>Not being a {@code SortableBlock} decides two other things for free.</b> That class extends
  * {@code FallingBlock}, so a tire would have inherited gravity behind an {@code obeysGravity()} hook;
- * a plain block brings none and a stack stays where it was tipped. And {@code MoundGroundBlock.isMound}
+ * a plain block brings none and a stack stays where it was tipped. And {@code RegrowingGroundBlock.isPile}
  * counts only {@code SortableBlock} and {@code BulkyWasteBlock}, so a tire standing on Mound Ground is
  * never mistaken for part of a mound - which retires the Phase 5 hazard #155 identified. Piles still
  * keep off mound footprints, but as a design call rather than a technical necessity.
