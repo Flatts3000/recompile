@@ -647,20 +647,28 @@ RECLAIM_AFTER = Scene(
 # other, the far ones shrink with distance, and no camera catches the Separator without losing the
 # bench behind it. A wall gives every machine the same distance and the same size, which is the whole
 # reason the museum works, and here the subject is the machines rather than the room.
-WALL_W, WALL_H = 13, 9
+WALL_W, WALL_H = 13, 11
 PANEL = "recompile:corrugated_metal"
-BEAM, FRAME = "recompile:steel_i_beam", "recompile:machine_frame"
+BEAM, FRAME, MOTOR = "recompile:steel_i_beam", "recompile:machine_frame", "recompile:motor"
 
-# Mounted on the wall face, read left to right, top row down: what you build, what you burn, what you
-# power it with, what you store it in, and what you feed it.
+# Mounted on the wall face, read left to right, top row down: what you trade, what you build, what you
+# burn, what you power it with, what you store it in, and what you feed it.
 #
 # SPACED TWO APART, NOT THREE. The first pass used a 19-wide wall on a three-block grid and the
 # machines read as scattered dots on a field of panel - a wall works by putting things next to each
 # other, and gaps that large undo the reason for building one.
 COLS = (1, 3, 5, 7, 9, 11)
 ROWS = (7, 5, 3)
+# The market row, added on top when the terminals and the Hauler Depot shipped (#354). Four machines,
+# centred on the wall's middle column, so the grid below keeps its six-wide rhythm untouched.
+TOP_ROW = 9
 
 WALL_MACHINES = {
+    (COLS[1], TOP_ROW): "recompile:sell_terminal[facing=south]",
+    (COLS[2], TOP_ROW): "recompile:buy_terminal[facing=south]",
+    (COLS[3], TOP_ROW): "recompile:freight_terminal",
+    (COLS[4], TOP_ROW): "recompile:hauler_depot",
+
     (COLS[0], ROWS[0]): "recompile:recompile_workbench",
     (COLS[1], ROWS[0]): "recompile:scrap_crafting_table",
     (COLS[2], ROWS[0]): "recompile:cupola_furnace[facing=south,lit=true]",
@@ -675,22 +683,25 @@ WALL_MACHINES = {
     (COLS[4], ROWS[1]): "recompile:sorting_tarp",
     (COLS[5], ROWS[1]): "recompile:scrap_bin",
 
-    (COLS[0], ROWS[2]): "recompile:mechanical_waste",
-    (COLS[1], ROWS[2]): "recompile:garbage_block",
+    # Facing SOUTH for the same reason every other directional block on this wall does: the camera
+    # looks down -z, so a default-facing furnace would present its back to it.
+    (COLS[0], ROWS[2]): "recompile:slag_furnace[facing=south,lit=true]",
+    (COLS[1], ROWS[2]): "recompile:sintering_kiln[facing=south,lit=true]",
     # The two conveyor machines that share the Separator's contract, put beside the gap it stands in.
     (COLS[2], ROWS[2]): "recompile:trommel[facing=south,active=false,formed=false]",
     (COLS[3], ROWS[2]): "recompile:pulverizer[facing=south,active=false,formed=false]",
-    (COLS[4], ROWS[2]): "recompile:trash_bag",
-    (COLS[5], ROWS[2]): "recompile:compacted_bale",
+    (COLS[4], ROWS[2]): "recompile:sequencer[facing=south]",
+    (COLS[5], ROWS[2]): "recompile:charging_station",
 
-    # THE BOTTOM COURSE, which the Separator has had to itself. It is three wide and centred at
-    # COLS[2..3], so four cells flank it and four machines were missing a place to stand. Facing SOUTH
-    # for the same reason every other directional block on this wall does: the camera looks down -z, so
-    # a default-facing furnace would present its back to it.
-    (COLS[0], 1): "recompile:slag_furnace[facing=south,lit=true]",
-    (COLS[1], 1): "recompile:sintering_kiln[facing=south,lit=true]",
-    (COLS[4], 1): "recompile:sequencer[facing=south]",
-    (COLS[5], 1): "recompile:charging_station",
+    # THE BOTTOM COURSE: the Separator, flanked by the piles it all starts from. The piles have to be
+    # here and nowhere higher, because every one of them is a FallingBlock - mounted on the wall they
+    # drop the moment the scene is placed. They used to hang in the row above and land on the floor,
+    # which looked deliberate; once #367 put machines on this course they landed on top of those
+    # instead (#354). On the floor they are already where gravity would put them.
+    (COLS[0], 1): "recompile:mechanical_waste",
+    (COLS[1], 1): "recompile:garbage_block",
+    (COLS[4], 1): "recompile:trash_bag",
+    (COLS[5], 1): "recompile:compacted_bale",
 }
 
 
@@ -710,9 +721,14 @@ def _wall_cells() -> dict:
 
 # The Separator's blueprint, transcribed as COMPONENTS only - the formed cells are the game's job.
 # Offsets are the blueprint's own, valid at facing=north.
+#
+# (1, 0, 1) IS THE MOTOR, the back-centre drive cell (owner ruling 2026-08-06, #165). This read FRAME
+# from the day the Motor cell shipped, so the blueprint could never be satisfied and the wall's
+# centrepiece never formed - in every shot taken since (#354). The transcription is by hand, so it
+# is checked against SeparatorCoreBlock.createBlueprint() rather than trusted.
 SEPARATOR_CELLS = {
     (1, 0, 0): FRAME, (2, 0, 0): FRAME,
-    (0, 0, 1): FRAME, (1, 0, 1): FRAME, (2, 0, 1): FRAME,
+    (0, 0, 1): FRAME, (1, 0, 1): MOTOR, (2, 0, 1): FRAME,
     (0, 1, 0): FRAME, (0, 1, 1): FRAME,
     (1, 1, 0): BEAM, (1, 1, 1): BEAM, (2, 1, 0): BEAM, (2, 1, 1): BEAM,
 }
@@ -726,9 +742,10 @@ MACHINE_WALL = Scene(
     # Centred at the bottom and standing proud of the wall, because it is the one machine that is
     # three blocks wide and the only multiblock here. Its own depth carries it toward the camera.
     assemble=[Machine(core="recompile:separator", at=(5, 1, 1), cells=SEPARATOR_CELLS)],
-    # Distance set by the wall's height, which is the binding dimension at this aspect: 4.5/tan(35)
-    # is about 6.4, so 8 back leaves a little margin without stranding it in the middle of the frame.
-    camera=Camera(pos=(6.5, 5.4, 10.0), yaw=180.0, pitch=2.0),
+    # Distance set by the wall's height, which is the binding dimension at this aspect: 5.5/tan(35)
+    # is about 7.9, and 11.5 back keeps the margin the 9-high wall had at 10 before the market row
+    # went on top. Height is the wall's middle, lifted the same 0.4 it always was.
+    camera=Camera(pos=(6.5, 6.4, 11.5), yaw=180.0, pitch=2.0),
     clearance=4,
     anchor="player",
 )

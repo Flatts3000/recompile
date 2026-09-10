@@ -10,7 +10,7 @@ weather clear
 # hanging a second set on top of the first.
 kill @e[type=minecraft:painting,distance=..64]
 
-fill ~-4 ~-1 ~-4 ~17 ~17 ~12 air
+fill ~-4 ~-1 ~-4 ~17 ~19 ~14 air
 
 place template recompile:showcase/machine_wall ~0 ~-1 ~0
 
@@ -18,7 +18,7 @@ place template recompile:showcase/machine_wall ~0 ~-1 ~0
 setblock ~6 ~0 ~1 recompile:machine_frame
 setblock ~7 ~0 ~1 recompile:machine_frame
 setblock ~5 ~0 ~2 recompile:machine_frame
-setblock ~6 ~0 ~2 recompile:machine_frame
+setblock ~6 ~0 ~2 recompile:motor
 setblock ~7 ~0 ~2 recompile:machine_frame
 setblock ~5 ~1 ~1 recompile:machine_frame
 setblock ~5 ~1 ~2 recompile:machine_frame
@@ -31,4 +31,4 @@ setblock ~6 ~0 ~1 minecraft:air
 setblock ~6 ~0 ~1 recompile:machine_frame
 
 
-tp @s ~6.5 ~4.4 ~10 180.0 2.0
+tp @s ~6.5 ~5.4 ~11.5 180.0 2.0
