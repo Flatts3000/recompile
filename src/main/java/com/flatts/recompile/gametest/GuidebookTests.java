@@ -49,6 +49,8 @@ final class GuidebookTests {
     /** A {@code "entry": "<id>"} inside an entry's parents list. */
     private static final Pattern PARENT_ENTRY =
         Pattern.compile("\"entry\"\\s*:\\s*\"([a-z0-9_.-]+:[a-z0-9_/.-]+)\"");
+    /** A page's {@code "sort_number": N}. */
+    private static final Pattern SORT_NUMBER = Pattern.compile("\"sort_number\"\\s*:\\s*(-?\\d+)");
     /** An {@code "id": "<namespace>:<path>"} pair, which in this book is always an item icon. */
     private static final Pattern ICON_ID =
         Pattern.compile("\"id\"\\s*:\\s*\"([a-z0-9_.-]+:[a-z0-9_/.-]+)\"");
@@ -328,16 +330,36 @@ final class GuidebookTests {
                 String name = file.getFileName().toString();
                 Path pages = file.getParent().resolve(name.substring(0, name.length() - 5))
                     .resolve("pages");
-                boolean hasPage = false;
+                List<Path> pageFiles = new ArrayList<>();
                 if (Files.isDirectory(pages)) {
                     try (Stream<Path> inside = Files.list(pages)) {
-                        hasPage = inside.anyMatch(p -> p.toString().endsWith(".json"));
+                        inside.filter(p -> p.toString().endsWith(".json")).forEach(pageFiles::add);
                     } catch (IOException ignored) {
-                        hasPage = false;
+                        pageFiles.clear();
                     }
                 }
-                if (!hasPage) {
+                if (pageFiles.isEmpty()) {
                     problems.add(id + " has no pages, so it opens blank");
+                }
+                // Two pages on one sort_number have no defined order: Modonomicon promises nothing for a
+                // tie, so the page order is whatever the loader happens to return. The dump's pond and
+                // ground pages shipped that way (#433), with the pond meant to come first.
+                java.util.Map<String, String> bySort = new java.util.HashMap<>();
+                for (Path page : pageFiles) {
+                    String text;
+                    try {
+                        text = Files.readString(page, StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        problems.add(page + " unreadable: " + e);
+                        continue;
+                    }
+                    Matcher sort = SORT_NUMBER.matcher(text);
+                    String key = sort.find() ? sort.group(1) : "(none)";
+                    String other = bySort.putIfAbsent(key, page.getFileName().toString());
+                    if (other != null) {
+                        problems.add(id + ": pages " + other + " and " + page.getFileName()
+                            + " share sort_number " + key + ", so their order is undefined");
+                    }
                 }
             }
             report(helper, problems, "guidebook entries that are not wired up");

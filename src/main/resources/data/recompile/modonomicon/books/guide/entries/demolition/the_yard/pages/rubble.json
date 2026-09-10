@@ -1,0 +1,8 @@
+{
+  "type": "modonomicon:text",
+  "id": "rubble",
+  "sort_number": 2,
+  "show_title_separator": true,
+  "text": "book.recompile.guide.demolition.the_yard.rubble.text",
+  "title": "book.recompile.guide.demolition.the_yard.rubble.title"
+}
