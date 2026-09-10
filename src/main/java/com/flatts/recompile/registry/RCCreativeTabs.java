@@ -19,11 +19,12 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * item ordering</b>: JEI's default {@code ingredientSortStages} ends in {@code CREATIVE_MENU}, so
  * within this mod the panel a player scrolls IS this file. EMI reads it too.
  *
- * <p><b>Grouped by KIND, ordered by progression inside each group</b> (owner, 2026-09-07, recorded in
- * {@code CLAUDE.md}). The groups are named in the section comments below and deliberately NOT listed
- * here: this javadoc used to enumerate them, named a "shelter" group that does not exist, and omitted
- * five that do - which is the failure this file keeps paying for, a list that reads as complete. Read
- * the section comments.
+ * <p><b>Grouped by KIND, ordered by progression inside each group</b> (owner, 2026-09-07; the full
+ * reasoning is in {@code docs/systems_notes.md}). Progression runs household, then the demolition yard
+ * and its sewers, then the radioactive dump, then the depths. The groups are named in the section
+ * comments below and deliberately NOT listed here: this javadoc used to enumerate them, named a
+ * "shelter" group that does not exist, and omitted five that do - which is the failure this file keeps
+ * paying for, a list that reads as complete. Read the section comments.
  */
 public final class RCCreativeTabs {
 
@@ -47,210 +48,7 @@ public final class RCCreativeTabs {
             () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.recompile"))
                 .icon(() -> RCItems.GARBAGE_BLOCK.get().getDefaultInstance())
-                .displayItems((parameters, output) -> {
-                    // ORDER IS THE PRODUCT HERE. This list is what JEI and EMI show a player in their
-                    // ingredient panel, and it had drifted into a record of the order things were
-                    // built: roaches filed under Workstations, stone shards under Blueprints. Groups
-                    // run in play order, and items run in progression order inside each.
-                    //
-                    // every_mod_item_is_in_the_creative_tab keeps this honest. Nothing else would: an
-                    // item left out of the tab is invisible in creative and in JEI's panel while
-                    // working perfectly in every test.
-
-                    // --- 1. Raw garbage: what you pick through ---
-                    RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
-                    output.accept(RCItems.STONE_RUBBLE.get());
-                    output.accept(RCItems.TECHNO_ORGANIC_WASTE.get());
-                    output.accept(RCItems.SLAG_RUBBLE.get());
-
-                    // The radioactive dump (#285)
-                    output.accept(RCItems.MILL_TAILINGS.get());
-                    output.accept(RCItems.WASTE_DRUM.get());
-                    output.accept(RCItems.STAINED_GROUND.get());
-                    output.accept(RCItems.RADIUM_DIAL_CLOCK.get());
-                    output.accept(RCItems.SMOKE_DETECTOR.get());
-                    output.accept(RCItems.THORIATED_WELDING_RODS.get());
-                    output.accept(RCItems.MECHANICAL_WASTE.get());
-                    // The two liquids, and the only way to place either in creative. The slurry
-                    // sits with the dump's own finds above it rather than beside the leachate it
-                    // resembles, because the group is a REGION and the slurry belongs to this one -
-                    // grouping by kind and ordering by progression inside the group is the rule, and
-                    // a "liquids" cluster would be a kind that exists nowhere else in this tab.
-                    output.accept(RCItems.TAILINGS_SLURRY_BUCKET.get());
-                    output.accept(RCItems.LEACHATE_BUCKET.get());
-
-                    // --- 2. Bulky Waste finds: the furniture the dump hands you ---
-                    output.accept(RCItems.BULKY_WASTE.get());
-                    output.accept(RCItems.FRIDGE.get());
-                    output.accept(RCItems.MATTRESS.get());
-                    output.accept(RCItems.WASHING_MACHINE.get());
-                    output.accept(RCItems.FILING_CABINET.get());
-                    output.accept(RCItems.PRINTER.get());
-                    output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
-                    output.accept(RCItems.BROKEN_TERMINAL.get());
-
-                    // --- 3. Tools ---
-                    RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
-                    RCItems.SLEDGEHAMMERS.forEach(hammer -> output.accept(hammer.get()));
-                    output.accept(RCItems.CUTTING_TORCH.get());
-                    RCItems.GARBAGE_VACUUMS.forEach(vacuum -> output.accept(vacuum.get()));
-
-                    // --- 4. Base materials, then the salvaged metals and stone they sit beside ---
-                    RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
-                    output.accept(RCItems.REBAR.get());
-                    output.accept(RCItems.STEEL_OFFCUT.get());
-                    output.accept(RCItems.SLAG.get());
-                    RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
-                    RCItems.DEPTHS_SCRAP.forEach(scrap -> output.accept(scrap.get()));
-                    // Beside the scrap it is found with, though it is a find rather than a material.
-                    output.accept(RCItems.WORN_FORGING_DIE.get());
-                    output.accept(RCItems.ANCIENT_SCULK.get());
-                    output.accept(RCItems.SCULK_POWDER.get());
-                    // Both #294 finds sit beside the depths scrap: the Broken Spawner is found there,
-                    // and Amber is beside it because the two are one chain even though the amber
-                    // itself comes out of household garbage.
-                    output.accept(RCItems.BROKEN_SPAWNER.get());
-                    output.accept(RCItems.AMBER.get());
-                    output.accept(RCItems.SPENT_AMBER.get());
-                    output.accept(RCItems.TURPENTINE.get());
-                    RCItems.NETHER_SHARDS.forEach(shard -> output.accept(shard.get()));
-                    RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
-                    output.accept(RCItems.PRISMARINE_GRIT.get());
-                    output.accept(RCItems.RUBBER_SCRAP.get());
-                    output.accept(RCItems.TIRE.get());
-                    output.accept(RCItems.CIRCUIT_POWDER.get());
-                    output.accept(RCItems.GROG.get());
-                    output.accept(RCItems.KITTY_LITTER.get());
-                    output.accept(RCItems.DRY_CLAY_BODY.get());
-                    output.accept(RCItems.DRIED_BOUQUET.get());
-
-                    // --- 5. Machine parts: what every multiblock is assembled from ---
-                    output.accept(RCItems.MACHINE_FRAME.get());
-                    output.accept(RCItems.COPPER_PIPE.get());
-                    output.accept(RCItems.PUMP.get());
-                    output.accept(RCItems.MOTOR.get());
-                    output.accept(RCItems.BULB.get());
-                    output.accept(RCItems.DEPLETED_BATTERY.get());
-                    output.accept(RCItems.BROKEN_HAULER.get());
-                    output.accept(RCItems.BATTERY.get());
-                    output.accept(RCItems.WATER_TANK.get());
-                    output.accept(RCItems.SOLAR_PANEL.get());
-
-                    // --- 6. Workstations: sort, craft, store, smelt ---
-                    output.accept(RCItems.SCRAP_CRAFTING_TABLE.get());
-                    output.accept(RCItems.SORTING_TARP.get());
-                    output.accept(RCItems.RECOMPILE_WORKBENCH.get());
-                    output.accept(RCItems.SCRAP_BARREL.get());
-                    output.accept(RCItems.SCRAP_BIN.get());
-                    output.accept(RCItems.BURN_BARREL.get());
-                    output.accept(RCItems.SLAG_FURNACE.get());
-                    output.accept(RCItems.SINTERING_KILN.get());
-                    output.accept(RCItems.CUPOLA_FURNACE.get());
-
-                    // --- 7. The market: where you sell, then where you spend it ---
-                    // Its own group rather than filed under Workstations, where it sat from a time when the
-                    // Buy Terminal was one more bench. It is the only source of knowledge in the game now,
-                    // so it reads next to Knowledge rather than two groups away from it.
-                    output.accept(RCItems.SELL_TERMINAL.get());
-                    output.accept(RCItems.BUY_TERMINAL.get());
-                    output.accept(RCItems.FREIGHT_TERMINAL.get());
-
-                    // --- 8. Knowledge (#95): fragments, the sheets they become, what they unlock ---
-                    com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
-                        output.accept(com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
-                            RCItems.SPAWN_EGG_FRAGMENT.get(), set, 1)));
-                    com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
-                        output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
-                            RCItems.BLUEPRINT.get(), set)));
-                    RCItems.CLEAN_MATTRESSES.forEach(m -> output.accept(m.get()));
-
-                    // --- 9. Power ---
-                    output.accept(RCItems.BURNER_GENERATOR.get());
-                    output.accept(RCItems.CHARGING_STATION.get());
-
-                    // --- 10. Machines, in the order a base gets them ---
-                    output.accept(RCItems.RAIN_COLLECTOR.get());
-                    output.accept(RCItems.RAIN_COLLECTOR_FUNNEL.get());
-                    output.accept(RCItems.GRASS_SPREADER.get());
-                    output.accept(RCItems.COMPOST_HEAP.get());
-                    output.accept(RCItems.TREE_NURSERY.get());
-                    output.accept(RCItems.HYDROPONICS_BAY.get());
-                    output.accept(RCItems.SEPARATOR.get());
-                    output.accept(RCItems.PULVERIZER.get());
-                    output.accept(RCItems.PULVERIZER_HOUSING.get());
-                    output.accept(RCItems.TROMMEL.get());
-                    output.accept(RCItems.TROMMEL_DRUM.get());
-                    output.accept(RCItems.TROMMEL_STAND.get());
-                    output.accept(RCItems.TROMMEL_CHUTE.get());
-                    output.accept(RCItems.SEPARATOR_CHAMBER.get());
-                    output.accept(RCItems.SEPARATOR_HOUSING.get());
-                    output.accept(RCItems.SEPARATOR_CHUTE.get());
-
-                    // The Sequencer reads amber and the Depot is a hold with a robot in it: neither makes
-                    // power, so neither belongs in the group above. The Hauler comes with its Depot rather
-                    // than filed under Tools - it is a machine you deploy, not one you hold.
-                    output.accept(RCItems.SEQUENCER.get());
-                    output.accept(RCItems.HAULER_DEPOT.get());
-                    output.accept(RCItems.SCRAP_HAULER.get());
-
-                    // --- 11. Reclamation consumables, rung by rung ---
-                    output.accept(RCItems.FERTILIZER.get());
-                    output.accept(RCItems.UNKNOWN_SEEDLING.get());
-                    output.accept(RCItems.HERBIVORE_BAIT.get());
-                    output.accept(RCItems.CARNIVORE_BAIT.get());
-                    output.accept(RCItems.OMNIVORE_BAIT.get());
-                    output.accept(RCItems.RICH_HERBIVORE_BAIT.get());
-                    output.accept(RCItems.RICH_CARNIVORE_BAIT.get());
-                    output.accept(RCItems.RICH_OMNIVORE_BAIT.get());
-
-                    // --- 12. Plants ---
-                    output.accept(RCItems.WEEDGRASS.get());
-                    output.accept(RCItems.FIREWEED.get());
-
-                    // --- 13. Food, scavenged and foraged. Roaches belong here, not under
-                    // Workstations, where they sat because that is where the code happened to go. ---
-                    RCItems.FOOD.forEach(food -> output.accept(food.get()));
-                    output.accept(RCItems.RAW_ROACH.get());
-                    output.accept(RCItems.COOKED_ROACH.get());
-
-                    // --- 14. Light and fuel ---
-                    output.accept(RCItems.OILY_RAG.get());
-                    output.accept(RCItems.SCRAP_TORCH.get());
-                    // The two briquettes sat between the Sintering Kiln and the Cupola because that is what
-                    // fires them. They are consumables, so they belong with the other things you burn.
-                    output.accept(RCItems.BLAZE_BRIQUETTE.get());
-                    output.accept(RCItems.PROPELLANT_BRIQUETTE.get());
-
-                    // --- 15. Building blocks ---
-                    RCItems.BUILDING_BLOCKS.forEach(block -> output.accept(block.get()));
-                    // From the frontier regions rather than the bench, and grouped here anyway: a player
-                    // hunting something to build with should not have to know which region dropped it.
-                    // Progression order inside the group is what carries the region (owner, 2026-09-07).
-                    output.accept(RCItems.REINFORCED_CONCRETE.get());
-                    output.accept(RCItems.STEEL_I_BEAM.get());
-                    output.accept(RCItems.URANIUM_GLASS.get());
-
-                    // --- 16. Collectibles and their stand ---
-                    output.accept(RCItems.DISPLAY_PEDESTAL.get());
-                    RCItems.COLLECTIBLES.forEach(collectible -> output.accept(collectible.get()));
-                    output.accept(RCItems.PUZZLE_CUBE.get());
-                    output.accept(RCItems.PUZZLE_CUBE_SCRAMBLED.get());
-                    output.accept(RCItems.AVOCADO.get());
-                    output.accept(RCItems.PRESENT.get());
-                    output.accept(RCItems.GOLD_COIN.get());
-                    output.accept(RCItems.TOY_CAR.get());
-
-                    // Recovered paintings (#99). Vanilla already puts one stack per placeable variant in
-                    // Functional Blocks, but it sets only the variant - so all six show as "Painting",
-                    // are indistinguishable in a row, and searching JEI for "Mona Lisa" finds nothing.
-                    // These carry item_name as well, which is what the loot drop does and what the
-                    // acceptance criteria ask for: the item in your hand says Mona Lisa.
-                    RECOVERED_PAINTINGS.forEach(id -> output.accept(paintingStack(parameters, id)));
-
-                    // --- 17. Spawn eggs last, the way vanilla keeps them out of the way ---
-                    output.accept(RCItems.ROACH_SPAWN_EGG.get());
-                    output.accept(RCItems.PIGEON_SPAWN_EGG.get());
-                })
+                .displayItems(RCCreativeTabs::fill)
                 .build()
         );
 
@@ -260,6 +58,222 @@ public final class RCCreativeTabs {
 
     public static void register(IEventBus modEventBus) {
         CREATIVE_MODE_TABS.register(modEventBus);
+    }
+
+    /**
+     * Everything the tab shows, in order.
+     *
+     * <p>A method rather than an inline lambda so a test can hand it a recording {@link
+     * CreativeModeTab.Output} and count the accepts. Reading the built tab cannot see a duplicate: the
+     * builder collects with {@code ItemStack} equality and a repeat collapses into the FIRST slot, which
+     * is how Bulky Waste sat in the wrong group for a release with nothing failing (#426).
+     */
+    public static void fill(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+        // ORDER IS THE PRODUCT HERE. This list is what JEI and EMI show a player in their
+        // ingredient panel, and it had drifted into a record of the order things were
+        // built: roaches filed under Workstations, stone shards under Blueprints. Groups
+        // run in play order, and items run in progression order inside each.
+        //
+        // every_mod_item_is_in_the_creative_tab keeps this honest. Nothing else would: an
+        // item left out of the tab is invisible in creative and in JEI's panel while
+        // working perfectly in every test.
+
+        // --- 1. Raw garbage: what you pick through, household to the depths ---
+        RCItems.GARBAGE_BLOCKS.forEach(block -> output.accept(block.get()));
+        output.accept(RCItems.STONE_RUBBLE.get());
+        output.accept(RCItems.MECHANICAL_WASTE.get());
+        output.accept(RCItems.MILL_TAILINGS.get());
+        output.accept(RCItems.WASTE_DRUM.get());
+        output.accept(RCItems.TECHNO_ORGANIC_WASTE.get());
+        output.accept(RCItems.SLAG_RUBBLE.get());
+        // The two liquids, and the only way to place either in creative. They sit together and in
+        // progression order - leachate pools in the yard's sewers, the slurry on the dump's heaps -
+        // rather than each with its own region, because this tab groups by kind (#431).
+        output.accept(RCItems.LEACHATE_BUCKET.get());
+        output.accept(RCItems.TAILINGS_SLURRY_BUCKET.get());
+
+        // --- 2. Bulky Waste finds: the furniture the dump hands you ---
+        output.accept(RCItems.BULKY_WASTE.get());
+        output.accept(RCItems.FRIDGE.get());
+        output.accept(RCItems.MATTRESS.get());
+        output.accept(RCItems.WASHING_MACHINE.get());
+        output.accept(RCItems.FILING_CABINET.get());
+        output.accept(RCItems.PRINTER.get());
+        output.accept(RCItems.BROKEN_HYDROPONICS_BAY.get());
+        output.accept(RCItems.BROKEN_TERMINAL.get());
+        output.accept(RCItems.BROKEN_HAULER.get());
+
+        // --- 3. Tools ---
+        RCItems.TRASH_TOOLS.forEach(tool -> output.accept(tool.get()));
+        RCItems.SLEDGEHAMMERS.forEach(hammer -> output.accept(hammer.get()));
+        output.accept(RCItems.CUTTING_TORCH.get());
+        RCItems.GARBAGE_VACUUMS.forEach(vacuum -> output.accept(vacuum.get()));
+
+        // --- 4. Base materials, then the salvaged metals, stone and finds they sit beside ---
+        // Household first.
+        RCItems.BASE_MATERIALS.forEach(material -> output.accept(material.get()));
+        output.accept(RCItems.REBAR.get());
+        output.accept(RCItems.RUBBER_SCRAP.get());
+        output.accept(RCItems.TIRE.get());
+        output.accept(RCItems.DRIED_BOUQUET.get());
+        // The demolition yard, and what its machines make of it. The clay chain stays together:
+        // its inputs are household finds, but it cannot start until the Pulverizer makes Grog.
+        output.accept(RCItems.STEEL_OFFCUT.get());
+        output.accept(RCItems.SLAG.get());
+        RCItems.STONE_SHARDS.forEach(shard -> output.accept(shard.get()));
+        RCItems.INDUSTRIAL_SCRAP.forEach(scrap -> output.accept(scrap.get()));
+        output.accept(RCItems.CIRCUIT_POWDER.get());
+        output.accept(RCItems.GROG.get());
+        output.accept(RCItems.KITTY_LITTER.get());
+        output.accept(RCItems.DRY_CLAY_BODY.get());
+        // The radioactive dump.
+        output.accept(RCItems.PRISMARINE_GRIT.get());
+        output.accept(RCItems.RADIUM_DIAL_CLOCK.get());
+        output.accept(RCItems.SMOKE_DETECTOR.get());
+        output.accept(RCItems.THORIATED_WELDING_RODS.get());
+        // The depths.
+        RCItems.DEPTHS_SCRAP.forEach(scrap -> output.accept(scrap.get()));
+        // Beside the scrap it is found with, though it is a find rather than a material.
+        output.accept(RCItems.WORN_FORGING_DIE.get());
+        output.accept(RCItems.ANCIENT_SCULK.get());
+        output.accept(RCItems.SCULK_POWDER.get());
+        // Both #294 finds sit beside the depths scrap: the Broken Spawner is found there,
+        // and Amber is beside it because the two are one chain even though the amber
+        // itself comes out of household garbage.
+        output.accept(RCItems.BROKEN_SPAWNER.get());
+        output.accept(RCItems.AMBER.get());
+        output.accept(RCItems.SPENT_AMBER.get());
+        output.accept(RCItems.TURPENTINE.get());
+        RCItems.NETHER_SHARDS.forEach(shard -> output.accept(shard.get()));
+
+        // --- 5. Machine parts: what every multiblock is assembled from ---
+        output.accept(RCItems.MACHINE_FRAME.get());
+        output.accept(RCItems.COPPER_PIPE.get());
+        // Beside the pipe: the two are the Rain Collector, the first machine a base builds.
+        output.accept(RCItems.WATER_TANK.get());
+        output.accept(RCItems.PUMP.get());
+        output.accept(RCItems.MOTOR.get());
+        output.accept(RCItems.BULB.get());
+        output.accept(RCItems.DEPLETED_BATTERY.get());
+        output.accept(RCItems.BATTERY.get());
+        output.accept(RCItems.SOLAR_PANEL.get());
+
+        // --- 6. Workstations: sort, craft, store, smelt ---
+        output.accept(RCItems.SCRAP_CRAFTING_TABLE.get());
+        output.accept(RCItems.SORTING_TARP.get());
+        output.accept(RCItems.RECOMPILE_WORKBENCH.get());
+        output.accept(RCItems.SCRAP_BARREL.get());
+        output.accept(RCItems.SCRAP_BIN.get());
+        output.accept(RCItems.BURN_BARREL.get());
+        // The Cupola before the Slag Furnace: the slag is what the Cupola rakes off.
+        output.accept(RCItems.CUPOLA_FURNACE.get());
+        output.accept(RCItems.SLAG_FURNACE.get());
+        output.accept(RCItems.SINTERING_KILN.get());
+
+        // --- 7. The market: where you sell, then where you spend it ---
+        // Its own group rather than filed under Workstations, where it sat from a time when the
+        // Buy Terminal was one more bench. It is the only source of knowledge in the game now,
+        // so it reads next to Knowledge rather than two groups away from it.
+        output.accept(RCItems.SELL_TERMINAL.get());
+        output.accept(RCItems.BUY_TERMINAL.get());
+        output.accept(RCItems.FREIGHT_TERMINAL.get());
+
+        // --- 8. Knowledge (#95): fragments, the sheets they become, what they unlock ---
+        com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
+            output.accept(com.flatts.recompile.content.item.SpawnEggFragmentItem.of(
+                RCItems.SPAWN_EGG_FRAGMENT.get(), set, 1)));
+        com.flatts.recompile.content.item.BlueprintItem.shipped().forEach(set ->
+            output.accept(com.flatts.recompile.content.item.BlueprintItem.of(
+                RCItems.BLUEPRINT.get(), set)));
+        RCItems.CLEAN_MATTRESSES.forEach(m -> output.accept(m.get()));
+
+        // --- 9. Power ---
+        output.accept(RCItems.BURNER_GENERATOR.get());
+        output.accept(RCItems.CHARGING_STATION.get());
+
+        // --- 10. Machines, in the order a base gets them ---
+        output.accept(RCItems.RAIN_COLLECTOR.get());
+        output.accept(RCItems.RAIN_COLLECTOR_FUNNEL.get());
+        output.accept(RCItems.GRASS_SPREADER.get());
+        output.accept(RCItems.COMPOST_HEAP.get());
+        output.accept(RCItems.TREE_NURSERY.get());
+        output.accept(RCItems.HYDROPONICS_BAY.get());
+        output.accept(RCItems.SEPARATOR.get());
+        output.accept(RCItems.PULVERIZER.get());
+        output.accept(RCItems.PULVERIZER_HOUSING.get());
+        output.accept(RCItems.TROMMEL.get());
+        output.accept(RCItems.TROMMEL_DRUM.get());
+        output.accept(RCItems.TROMMEL_STAND.get());
+        output.accept(RCItems.TROMMEL_CHUTE.get());
+        output.accept(RCItems.SEPARATOR_CHAMBER.get());
+        output.accept(RCItems.SEPARATOR_HOUSING.get());
+        output.accept(RCItems.SEPARATOR_CHUTE.get());
+
+        // The Sequencer reads amber and the Depot is a hold with a robot in it: neither makes
+        // power, so neither belongs in the group above. The Hauler comes with its Depot rather
+        // than filed under Tools - it is a machine you deploy, not one you hold.
+        output.accept(RCItems.SEQUENCER.get());
+        output.accept(RCItems.HAULER_DEPOT.get());
+        output.accept(RCItems.SCRAP_HAULER.get());
+
+        // --- 11. Reclamation consumables, rung by rung ---
+        output.accept(RCItems.FERTILIZER.get());
+        output.accept(RCItems.UNKNOWN_SEEDLING.get());
+        output.accept(RCItems.HERBIVORE_BAIT.get());
+        output.accept(RCItems.CARNIVORE_BAIT.get());
+        output.accept(RCItems.OMNIVORE_BAIT.get());
+        output.accept(RCItems.RICH_HERBIVORE_BAIT.get());
+        output.accept(RCItems.RICH_CARNIVORE_BAIT.get());
+        output.accept(RCItems.RICH_OMNIVORE_BAIT.get());
+
+        // --- 12. Plants ---
+        output.accept(RCItems.WEEDGRASS.get());
+        output.accept(RCItems.FIREWEED.get());
+
+        // --- 13. Food, scavenged and foraged. The roaches are in FOOD, which puts them here rather
+        // than under Workstations, where they once sat because that is where the code went. ---
+        RCItems.FOOD.forEach(food -> output.accept(food.get()));
+
+        // --- 14. Light and fuel ---
+        output.accept(RCItems.OILY_RAG.get());
+        output.accept(RCItems.SCRAP_TORCH.get());
+        // The two briquettes sat between the Sintering Kiln and the Cupola because that is what
+        // fires them. They are consumables, so they belong with the other things you burn.
+        output.accept(RCItems.BLAZE_BRIQUETTE.get());
+        output.accept(RCItems.PROPELLANT_BRIQUETTE.get());
+
+        // --- 15. Building blocks ---
+        RCItems.BUILDING_BLOCKS.forEach(block -> output.accept(block.get()));
+        // From the frontier regions rather than the bench, and grouped here anyway: a player
+        // hunting something to build with should not have to know which region dropped it.
+        // Progression order inside the group is what carries the region (owner, 2026-09-07).
+        output.accept(RCItems.REINFORCED_CONCRETE.get());
+        output.accept(RCItems.STEEL_I_BEAM.get());
+        output.accept(RCItems.URANIUM_GLASS.get());
+        // The dump's ground: nothing picks through it, and it is the only one of the three
+        // regrowth grounds with an item form, so it is a building block rather than raw garbage (#431).
+        output.accept(RCItems.STAINED_GROUND.get());
+
+        // --- 16. Collectibles and their stand ---
+        output.accept(RCItems.DISPLAY_PEDESTAL.get());
+        RCItems.COLLECTIBLES.forEach(collectible -> output.accept(collectible.get()));
+        output.accept(RCItems.PUZZLE_CUBE.get());
+        output.accept(RCItems.PUZZLE_CUBE_SCRAMBLED.get());
+        output.accept(RCItems.AVOCADO.get());
+        output.accept(RCItems.PRESENT.get());
+        output.accept(RCItems.GOLD_COIN.get());
+        output.accept(RCItems.TOY_CAR.get());
+
+        // Recovered paintings (#99). Vanilla already puts one stack per placeable variant in
+        // Functional Blocks, but it sets only the variant - so all six show as "Painting",
+        // are indistinguishable in a row, and searching JEI for "Mona Lisa" finds nothing.
+        // These carry item_name as well, which is what the loot drop does and what the
+        // acceptance criteria ask for: the item in your hand says Mona Lisa.
+        RECOVERED_PAINTINGS.forEach(id -> output.accept(paintingStack(parameters, id)));
+
+        // --- 17. Spawn eggs last, the way vanilla keeps them out of the way ---
+        output.accept(RCItems.ROACH_SPAWN_EGG.get());
+        output.accept(RCItems.PIGEON_SPAWN_EGG.get());
     }
 
 

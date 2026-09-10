@@ -212,10 +212,34 @@ final class RegistryCompletenessTests {
             report(helper, missing, "mod items absent from the creative tab");
         });
 
-        // There is deliberately NO duplicate test to go with this. One was written and dropped after it
-        // was driven RED and did not fail: vanilla's tab builder collects into a set with ItemStack
-        // equality, so adding the same item twice collapses to one entry before anything can see it.
-        // A test that cannot fail is worse than no test, because it reads as coverage.
+        // A DUPLICATE ACCEPT, which the built tab cannot show. The first duplicate test here read
+        // getDisplayItems(), was driven RED and did not fail: the builder collects with ItemStack
+        // equality, so a repeat collapses into the FIRST slot before anything can see it. That is
+        // how Bulky Waste sat in the raw-garbage group for a release while its explicit accept at
+        // the head of the finds group was dead code (#426). So this records the accepts themselves,
+        // through RCCreativeTabs.fill, before the builder gets to collapse anything.
+        RCGameTests.test("no_stack_is_accepted_into_the_creative_tab_twice", 20, helper -> {
+            var parameters = new net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters(
+                net.minecraft.world.flag.FeatureFlags.REGISTRY.allFlags(), true,
+                helper.getLevel().registryAccess());
+            List<ItemStack> accepted = new ArrayList<>();
+            RCCreativeTabs.fill(parameters, (stack, visibility) -> accepted.add(stack));
+            helper.assertTrue(accepted.size() > 50,
+                "only " + accepted.size() + " stacks were accepted - fill did not run, so this would "
+                    + "pass against an empty tab");
+
+            List<String> repeated = new ArrayList<>();
+            for (int i = 0; i < accepted.size(); i++) {
+                for (int j = 0; j < i; j++) {
+                    if (ItemStack.isSameItemSameComponents(accepted.get(i), accepted.get(j))) {
+                        repeated.add(BuiltInRegistries.ITEM.getKey(accepted.get(i).getItem())
+                            + " (\"" + accepted.get(i).getHoverName().getString() + "\")");
+                        break;
+                    }
+                }
+            }
+            report(helper, repeated, "stacks accepted into the creative tab more than once");
+        });
 
         // BIOMES ARE A DATAPACK REGISTRY, which is exactly why they were missed. This sweep walks items
         // and blocks off BuiltInRegistries; biomes are not there, so both of the mod's shipped biomes

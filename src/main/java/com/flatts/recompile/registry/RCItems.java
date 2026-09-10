@@ -1165,9 +1165,12 @@ public final class RCItems {
         props -> new StandingAndWallBlockItem(
             RCBlocks.SCRAP_TORCH.get(), RCBlocks.WALL_SCRAP_TORCH.get(), Direction.DOWN, props));
 
-    /** The garbage-block family in creative-tab order. */
+    /**
+     * The household piles you pick through, in creative-tab order. Bulky Waste is deliberately not one:
+     * it is pried open in one action rather than picked through, and it heads the finds group (#426).
+     */
     public static final List<DeferredItem<BlockItem>> GARBAGE_BLOCKS = List.of(
-        GARBAGE_BLOCK, TRASH_BAG, CARDBOARD_PILE, COMPACTED_BALE, BULKY_WASTE);
+        GARBAGE_BLOCK, TRASH_BAG, CARDBOARD_PILE, COMPACTED_BALE);
 
     // ---------------- Building blocks (P1.12): the deliberate shelter tier ----------------
     // Refined from scrap into blocks you would choose to build a home from. Full kit per
