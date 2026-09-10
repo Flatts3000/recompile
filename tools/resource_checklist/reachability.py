@@ -139,12 +139,13 @@ mob("zoglin", "lure a hoglin into the overworld")
 VANILLA_IN_WORLD = {
     "coarse_dirt": "overworld terrain", "deepslate": "overworld terrain",
     "lava": "the compacted depths",
-    # NOT the sewers. Nothing in the sewer sources places Blocks.WATER at all - the standing
-    # fluid down there is leachate, which is a different fluid on purpose. Exactly two things in
-    # the mod place vanilla water: TailingsHeapFeature's decant ponds, and the Municipal
-    # Aquarium's guardian tank. The aquarium is the nearer of the two, at the demolition yard's
-    # onset rather than the radioactive dump's.
-    "water": "a tailings decant pond, or the aquarium's guardian tank",
+    # NOT the sewers, and not the decant pond. Nothing in the sewer sources places Blocks.WATER - the
+    # standing fluid down there is leachate - and since #425 the pond on a tailings heap is
+    # recompile:tailings_slurry, a fluid in no fluid tag that a bucket fills as slurry. So exactly ONE
+    # thing in the mod places vanilla water: the Municipal Aquarium's guardian tank
+    # (AquariumPalette.TANK_WATER). Water as a thing you carry comes first from a Rain Collector;
+    # see the water_bucket route below.
+    "water": "the aquarium's guardian tank",
     "sand": "sewers", "gravel": "sewers", "mud": "sewers", "cobweb": "sewers",
     "red_mushroom": "sewers", "mycelium": "mycelium patches",
     "bricks": "sewers", "brick_stairs": "sewers", "mossy_stone_bricks": "sewers",
@@ -306,7 +307,7 @@ for job in ("armorer baby butcher cartographer cleric farmer fisherman fletcher 
     add_table("minecraft:gameplay/hero_of_the_village/" + job + "_gift", "Hero of the Village gift")
 for t in ("minecraft:gameplay/fishing", "minecraft:gameplay/fishing/fish",
           "minecraft:gameplay/fishing/junk", "minecraft:gameplay/fishing/treasure"):
-    add_table(t, "fishing (water from a Rain Collector or the sewers)")
+    add_table(t, "fishing (water from a Rain Collector)")
 for t in ("creeper", "piglin", "skeleton", "wither_skeleton", "zombie"):
     add_table("minecraft:charged_creeper/" + t, "a charged creeper kills a " + t.replace("_", " "))
 # vanilla nether structure chests
@@ -492,8 +493,11 @@ INTERACT = [(["minecraft:coarse_dirt"], "minecraft:grass_block",
              "bone meal a brown mushroom into a huge one"),
             (["minecraft:bone_meal", "minecraft:red_mushroom"], "minecraft:mushroom_stem",
              "bone meal a mushroom into a huge one"),
+            # The Rain Collector first: its tank fills a bucket (RainCollectorCoreBlock, through
+            # FluidUtil.interactWithFluidHandler), it is built from copper alone (#157), and it is the
+            # household route. The guardian tank is the yard's.
             (["minecraft:bucket"], "minecraft:water_bucket",
-             "fill a bucket from a tailings decant pond or the aquarium's guardian tank"),
+             "fill a bucket from a Rain Collector's tank, or from the aquarium's guardian tank"),
             (["minecraft:bucket"], "minecraft:lava_bucket",
              "fill a bucket from lava in the compacted depths"),
             ]
@@ -737,6 +741,12 @@ def load_recipes(root, ns, disabled=()):
             # A bare marker type; the fragments-to-sheet logic lives in Java.
             add_rule([{"recompile:spawn_egg_fragment"}], ["recompile:blueprint"],
                      "assembled at the Scrap Crafting Table")
+            continue
+        elif t == "recompile:freight_phase":
+            # A delivery rung (#392): goods go IN and nothing comes out. The Freight Terminal
+            # consumes it and it is never matched, so it contributes no rule - but it still needs an
+            # arm, or the cross-check below reports it as a hole in the closure and prints a banner
+            # over the doc.
             continue
         elif t == "recompile:market_offer":
             # THE THIRD ACQUISITION AXIS, and the closure was blind to it (docs/market_spec.md

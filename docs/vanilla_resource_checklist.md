@@ -19,7 +19,7 @@ own data. Seeded from what the garbage world actually generates (its 4 biomes, i
 its sewers/cooling towers/smokestacks, and the vanilla nether fortress and bastion its biome tags
 let through), plus every mob that can exist, plus the mod's loot tables. Then closed under every
 recipe that still loads - vanilla minus the 30 the mod disables, plus the mod's own 170 and its
-eight custom recipe types - until nothing new appeared. Interactions that are neither loot nor
+nine custom recipe types - until nothing new appeared. Interactions that are neither loot nor
 recipe are encoded explicitly (bucket fills, axe-stripping, oxidation, the Compost Heap volunteer,
 the Sequencer's byproduct, the Dry Clay Body cauldron step).
 
@@ -387,7 +387,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 ### Trading
 
 - [x] `blue_orchid` - buy from a wandering trader
-- [x] `lily_pad` - fishing (water from a Rain Collector or the sewers)
+- [x] `lily_pad` - fishing (water from a Rain Collector)
 
 ### Other
 
@@ -490,7 +490,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `nautilus_shell` - brush sewer silt
 - [x] `prismarine_crystals` - mine sea_lantern (the Municipal Aquarium's tank lighting)
 - [x] `prismarine_shard` - separated in the Separator from prismarine grit
-- [x] `pufferfish` - fishing (water from a Rain Collector or the sewers)
+- [x] `pufferfish` - fishing (water from a Rain Collector)
 - [x] `salmon` - kill a polar bear (spawn egg (amber -> Sequencer -> Blueprint))
 - [x] `seagrass` - kill a turtle (sewer resident)
 - [x] `tide_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
@@ -608,7 +608,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `emerald` `(c)` - buy from a armorer
 - [x] `redstone` `(c)` - kill a witch (spawns in the demolition yard / radioactive dump)
 - [x] `sculk_catalyst` - crafted from sculk powder + echo shard
-- [x] `tropical_fish` - fishing (water from a Rain Collector or the sewers)
+- [x] `tropical_fish` - fishing (water from a Rain Collector)
 
 ### Harvest & interact
 
@@ -915,7 +915,7 @@ eggs for 29 more, and **curing a zombie villager** opens the whole villager trad
 - [x] `tnt` `(c)` - crafted from red sand + gunpowder
 - [x] `vex_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `ward_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
-- [x] `water_bucket` - fill a bucket from a tailings decant pond or the aquarium's guardian tank
+- [x] `water_bucket` - fill a bucket from a Rain Collector's tank, or from the aquarium's guardian tank
 - [x] `wild_armor_trim_smithing_template` `(c)` - chests/aquarium_curator
 - [x] `wind_charge` `(c)` - crafted from breeze rod
 - [x] `wooden_axe` `(c)` - crafted from stick + bamboo planks
