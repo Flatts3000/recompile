@@ -132,9 +132,10 @@ that actually validates and assembles. There is no seam to source one from the o
 runtime, so the second half of the original instruction applies: **`GuidebookMultiblockTests`
 locks them together**, comparing the pattern's cells against `blueprint().cells()` in both
 directions, and failing if a page draws a machine that would not form. A separate check makes
-adding a fifth machine's page without extending that test a failure rather than a silent gap.
+adding another machine's page without extending that test a failure rather than a silent gap.
 
-Three facts the four shipped patterns encode:
+Three facts every shipped pattern encodes (the set is `modonomicon/multiblocks/*.json`; seven as of
+2026-09-10):
 
 - **Layers run top-first.** `DenseMultiblock` stores `stateMatchers[x][height - 1 - y][z]`, so
   `pattern[0]` is the highest layer. (This is also why Modonomicon's own demo patterns put
@@ -176,3 +177,56 @@ only with Modonomicon present.
 
 *Two items were closed by #37: the Modonomicon 2.x page schema is confirmed against the shipped
 book, and multiblock pattern sourcing is settled above.*
+
+## Implementation notes and silent failures
+
+*Relocated from CLAUDE.md on 2026-09-10. Engine posture, the governing rule, the data layout and
+multiblock pattern sourcing are covered in the sections above and are not repeated here.*
+
+**Counts go stale; derive them.** As of 2026-09-10 the book has 11 categories
+(`ls data/recompile/modonomicon/books/guide/categories`), 77 entries (the `*.json` files directly
+under `entries/<cat>/`) and 76 text pages (page files whose type is `modonomicon:text`). The newest
+category is the compacted depths (#252).
+
+**An entry does not list its pages** - the `pages/` directory is scanned, so adding a page is adding a
+file. Because Modonomicon scans the fixed `modonomicon/books` folder under every namespace, this is
+also how a pack extends the book without touching the mod.
+
+**Multiblock render pages are the one part with a drift risk, and it is locked** (#37) - see
+Multiblock sourcing above for the dense-pattern conventions and what `GuidebookMultiblockTests`
+compares.
+
+**Four things that fail silently.**
+
+1. A `text` naming a lang key that does not exist renders the raw key to the player.
+2. An entry icon naming a missing item renders the pink-and-black missing texture on the category map.
+3. A plain string in any text field is treated as a **translation key** (`BookTextHolder` runs it
+   through `I18n`), so literal prose in one of those fields renders as itself.
+4. **A blank line does not break a paragraph** (#241), below.
+
+`GuidebookTests` covers the first two off the classpath (`every_guidebook_lang_key_resolves`,
+`every_guidebook_icon_is_a_real_item`) and the fourth
+(`every_guidebook_paragraph_break_actually_breaks`). Anything else about how a page looks still needs
+the `runClient` pass under Verification.
+
+**The paragraph-break trap, which cost the most** (#241). Modonomicon's `CoreComponentNodeRenderer`
+claims `Paragraph` in `getNodeTypes()` and has **no `visit(Paragraph)` override**, so
+`AbstractVisitor` walks a paragraph's children and emits nothing at the boundary - the last word of one
+paragraph is welded to the first word of the next, which reads as a typo rather than a layout fault. It
+shipped that way in every text page the book had (71 at the time) for releases.
+
+- The only node that emits a **newline** is `HardLineBreak`, and commonmark makes one from a
+  **backslash at end of line** - so a paragraph gap is a blank line followed by TWO
+  backslash-terminated lines, and a single line break is ONE, which is the idiom Modonomicon's own
+  demo book uses.
+- **A lone newline is not a break either**: it parses to a `SoftLineBreak`, and `BookTextRenderer`
+  sets `renderSoftLineBreaks(false)` with `replaceSoftLineBreaksWithSpace(true)`, so it renders as a
+  **space** - which is how a nine-item list shipped as one wrapped sentence, and how the first version
+  of the fix walked past it.
+- `every_guidebook_paragraph_break_actually_breaks` fails the build on a bare blank line.
+- Proved offline by parsing each candidate with the commonmark 0.29 jar Modonomicon jarjars, rather
+  than by guessing at markdown: `A\n\nB` parses to two `Paragraph`s and renders as `AB`.
+
+**Page length.** Modonomicon shrinks the font as a text page grows, so the book's longest entry (1237
+characters, six paragraphs) still fits one page with room to spare. Blank lines are not the
+page-budget risk they look like.
