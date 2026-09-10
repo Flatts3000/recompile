@@ -32,8 +32,9 @@ import org.jspecify.annotations.Nullable;
  * exit the whole found economy was waiting on (the P1.11.5 invariant, "finds in, materials
  * out"). It reads a {@code recompile:teardown} recipe's {@code results}/{@code extras}: a
  * breakdown yields FUNCTION (the signature component an object is) and materials, never
- * knowledge (#390). It does not read {@code teaches}; the market is the only source of a
- * Blueprint. See {@link com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity}.
+ * knowledge (#390). It does not read {@code teaches}: Blueprints are bought at the market, except
+ * a creature's, which assembles from the Spawn Egg Fragments the Sequencer reads out of amber. See
+ * {@link com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity}.
  *
  * <p>Stateless-feeling and GUI-free, in keeping with the mod's "no machine screen" identity:
  * <ul>

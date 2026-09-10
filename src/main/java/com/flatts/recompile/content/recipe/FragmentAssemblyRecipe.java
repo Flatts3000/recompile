@@ -29,8 +29,14 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>How many is {@code scraps_required} on a teardown {@code teaches} entry naming the blueprint, and
  * {@link #DEFAULT_REQUIRED} otherwise. Since #390 teardown teaches nothing and no shipped teardown
- * carries {@code teaches}, so every blueprint costs the default; the lookup survives only as a pack
- * hook. Fragments themselves come from the Sequencer, not from a teardown.
+ * carries {@code teaches}, so every blueprint costs the default. Fragments themselves come from the
+ * Sequencer, not from a teardown.
+ *
+ * <p><b>A pack that sets {@code scraps_required} desyncs the tooltip.</b> This class reads the live
+ * recipe manager, so the grid and the Filing Cabinet honour a pack's value. But the tooltip and JEI
+ * count come from {@code BlueprintData.fragmentsFor}, which reads only this mod's bundled files
+ * ({@code RecipeFiles} cannot see a datapack), so they keep saying 4. The test that pins the two
+ * together walks only the shipped Blueprints and cannot catch it.
  */
 public class FragmentAssemblyRecipe extends CustomRecipe {
 

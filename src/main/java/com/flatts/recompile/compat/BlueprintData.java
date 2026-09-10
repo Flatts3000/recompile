@@ -141,8 +141,10 @@ public final class BlueprintData {
      *
      * <p>Read from files so it is answerable <b>on the client, at any time</b> - the item tooltip needs
      * it, and a tooltip cannot reach the server's recipe manager. It is the same number
-     * {@code FragmentAssemblyRecipe} uses, taken from the same {@code scraps_required} field, so the
-     * count a player is shown and the count the recipe demands cannot disagree.
+     * {@code FragmentAssemblyRecipe} uses, taken from the same {@code scraps_required} field, so for
+     * this mod's own files the count a player is shown and the count the recipe demands agree. A
+     * datapack's {@code teaches} is invisible here (see {@code RecipeFiles}) while the recipe honours
+     * it, so a pack that retunes the cost makes the two disagree.
      */
     public static int fragmentsFor(Identifier set) {
         for (JsonObject recipe : RecipeFiles.ofType("recompile:teardown")) {

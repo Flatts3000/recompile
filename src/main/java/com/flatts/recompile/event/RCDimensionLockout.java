@@ -45,6 +45,8 @@ import net.neoforged.neoforge.event.level.BlockEvent;
  *       nether gold ore and bartering.</li>
  *   <li>Quartz, glowstone and ancient debris, each of which has a designed found source in
  *       {@code material_economy.md}.</li>
+ *   <li><b>Obsidian</b>, which the Slag Furnace is otherwise the only source of, from
+ *       {@code minecraft:gameplay/piglin_bartering}.</li>
  * </ul>
  *
  * <p>What remains is structure loot and bartering rather than terrain: fortresses and bastions are

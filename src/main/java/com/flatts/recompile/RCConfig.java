@@ -264,8 +264,9 @@ public final class RCConfig {
         builder.push("dimensions");
         NETHER_ENABLED = builder
             .comment("Allow travel to the Nether. ON: its resources and progression are the reason to go.",
-                "It generates as the compacted depths. Fortresses and bastions are kept, so iron and",
-                "gold still arrive through their chests and piglin bartering, ahead of the designed gates.")
+                "It generates as the compacted depths. Fortresses and bastions are kept, so their",
+                "chests and piglin bartering still yield things the designed gates hold back, among",
+                "them iron, gold, quartz, obsidian and ancient debris.")
             .define("netherEnabled", true);
         END_ENABLED = builder
             .comment("Allow travel to the End. Off until the themed End ships (P1.8).")
