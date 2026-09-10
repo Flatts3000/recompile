@@ -186,7 +186,7 @@ public class TailingsHeapFeature extends Feature<NoneFeatureConfiguration> {
                 // painted - so the branch simply goes.
                 BlockPos groundPos = new BlockPos(origin.getX() + dx, ground, origin.getZ() + dz);
                 BlockState under = level.getBlockState(groundPos);
-                if (under.is(Blocks.COARSE_DIRT)) {
+                if (com.flatts.recompile.content.block.RegrowingGroundBlock.isBedGround(under)) {
                     level.setBlock(groundPos, stain, 2);
                 }
                 if (dist > edge) {

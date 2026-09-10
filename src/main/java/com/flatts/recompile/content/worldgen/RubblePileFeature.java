@@ -77,8 +77,9 @@ public class RubblePileFeature extends Feature<NoneFeatureConfiguration> {
      *   <li><b>Overlapping piles take the TALLER.</b> A later pile's rim is a column of 0 and would
      *       otherwise overwrite a tall neighbour's memory, permanently flattening what regrows there -
      *       silent, and invisible until somebody quarries that pile and watches it come back wrong.
-     *   <li><b>Only ever replaces ground.</b> Writing into another pile's rubble would punch a hole in
-     *       a stack nobody has touched yet.
+     *   <li><b>Only ever replaces ground</b>, which is {@link RegrowingGroundBlock#isBedGround}: coarse
+     *       dirt. Writing into another pile's rubble would punch a hole in a stack nobody has touched
+     *       yet, and writing into anything else solid replaced a sewer entrance's pad (#432).
      *   <li><b>Stores the block COUNT, not the top offset.</b> The loop above fills
      *       {@code dy = 0..column} inclusive, so a rim cell of column 0 still carries one block.
      *       Storing the offset would build every pile one block short and would leave 0 meaning both
@@ -92,7 +93,7 @@ public class RubblePileFeature extends Feature<NoneFeatureConfiguration> {
             if (existing.getValue(RubbleGroundBlock.HEIGHT) >= column + 1) {
                 return;
             }
-        } else if (!existing.isSolidRender() || RegrowingGroundBlock.isPile(existing)) {
+        } else if (!RegrowingGroundBlock.isBedGround(existing)) {
             return;
         }
         level.setBlock(pos, RCBlocks.RUBBLE_GROUND.get().defaultBlockState()

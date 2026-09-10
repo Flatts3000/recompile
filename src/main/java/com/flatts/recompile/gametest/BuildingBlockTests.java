@@ -335,14 +335,12 @@ final class BuildingBlockTests {
 
         // EVERY BLOCK A MOUND PLACES MUST BE RECOGNISED AS MOUND CONTENT.
         //
-        // MoundFeature.writeBed lays the regrowth bed UNDER a mound, and bails when the cell it is
-        // about to write already holds part of a mound - because mounds overlap, and overwriting a
-        // neighbour's stack punches a hole in it. That guard was two instanceof checks, complete
-        // only while every mound block was a SortableBlock or Bulky Waste. The Cardboard Pile is
-        // neither: a plain FallingBlock, and a full opaque cube, so it passed isSolidRender() and
-        // fell through - a later mound would have replaced a pile with Mound Ground, destroying it
-        // and planting a regrowth bed partway up a stack. Nothing logged, and invisible until
-        // somebody quarried that mound and watched it come back from the middle.
+        // Regrowth measures a column by counting pile blocks up from the bed (RegrowingGroundBlock
+        // .isPile), so every block a mound places has to count, or a column topped with it reads as
+        // BLOCKED forever instead of FULL. The guard was two instanceof checks, complete only while
+        // every mound block was a SortableBlock or Bulky Waste; the Cardboard Pile is neither, and
+        // slipped through once. (MoundFeature.writeBed leaned on the same answer until #432 narrowed
+        // it to coarse dirt only.)
         //
         // So the list is swept rather than trusted. A new mound variant that forgets this fails
         // here instead of shipping.

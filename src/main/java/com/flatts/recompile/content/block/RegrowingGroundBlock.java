@@ -200,4 +200,21 @@ public abstract class RegrowingGroundBlock extends Block {
             || state.getBlock() instanceof BulkyWasteBlock
             || state.getBlock() instanceof CardboardPileBlock;
     }
+
+    /**
+     * Whether a pile feature may write its regrowth memory INTO this block: coarse dirt, and nothing
+     * else. Every writer asks this - {@code MoundFeature}, {@code RubblePileFeature} and
+     * {@code TailingsHeapFeature} - so "ground" means one thing.
+     *
+     * <p><b>It used to be "any solid block that is not a pile", which is broader than ground</b>
+     * (#432). A sewer entrance is a Reinforced Concrete pad with a Manhole in it, flush with the
+     * surface and placed before any feature runs, so a rubble pile landing on one replaced the pad
+     * with Rubble Ground and then regrew rubble on the spot forever. The same test let a pile write
+     * over a neighbouring structure's floor, or another region's ground at a border. Coarse dirt is the
+     * only block the surface rule places, so it is the whole of what ground is when a feature runs;
+     * the tailings heap already painted its stain on coarse dirt alone, for its own reason.
+     */
+    public static boolean isBedGround(BlockState state) {
+        return state.is(net.minecraft.world.level.block.Blocks.COARSE_DIRT);
+    }
 }
