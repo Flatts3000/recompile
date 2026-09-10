@@ -17,8 +17,9 @@ import snownee.jade.api.config.IPluginConfig;
 /**
  * Jade (client): every gate on an animal bait is an invisible failure mode ("I placed it and nothing
  * happened"), so name the exact blocker on hover - no grass, a player too near (settling is held), too
- * close to another bait, or the settle countdown - plus what the surrounding land is drawing. All of it
- * is read client-side from the blockstate and the world, so no server data provider is needed.
+ * close to another bait, or the settle countdown - plus what the surrounding land is drawing (the
+ * Expecting line, #436). All of it is read client-side from the blockstate, the world, the synced diet
+ * tags and the synced {@code bait_weight} data map, so no server data provider is needed.
  */
 public enum AnimalBaitProvider implements IBlockComponentProvider {
     INSTANCE;
@@ -66,6 +67,42 @@ public enum AnimalBaitProvider implements IBlockComponentProvider {
                     .withStyle(ChatFormatting.GREEN));
             }
         }
+
+        // What the land is drawing, even while something else holds the bait: the terrain decides the
+        // animal, and that is the one thing about a bait a player cannot see until it fires (#436).
+        // Skipped off grass, where the bait never fires at all and a shortlist would be a promise.
+        if (AnimalBaitBlock.onGrass(level, pos)) {
+            Component expected = expecting(level, pos, state.getValue(AnimalBaitBlock.DIET));
+            if (expected != null) {
+                tooltip.add(Component.translatable("jade.recompile.bait_expecting", expected)
+                    .withStyle(ChatFormatting.GRAY));
+            }
+        }
+    }
+
+    /** How many names the Expecting line carries: enough to show the lean, few enough to read at a glance. */
+    private static final int SHORTLIST = 3;
+
+    /**
+     * The likeliest few animals, heaviest first, from the same scoring the draw uses. Null when the diet
+     * tag is empty. Ties keep tag order, because the sort is stable.
+     */
+    static @org.jspecify.annotations.Nullable Component expecting(Level level, BlockPos pos,
+            AnimalBaitBlock.Diet diet) {
+        java.util.List<AnimalBaitBlock.Candidate> ranked =
+            new java.util.ArrayList<>(AnimalBaitBlock.candidates(level, pos, diet));
+        if (ranked.isEmpty()) {
+            return null;
+        }
+        ranked.sort(java.util.Comparator.comparingInt(AnimalBaitBlock.Candidate::weight).reversed());
+        net.minecraft.network.chat.MutableComponent line = Component.empty();
+        for (int i = 0; i < Math.min(SHORTLIST, ranked.size()); i++) {
+            if (i > 0) {
+                line.append(", ");
+            }
+            line.append(ranked.get(i).type().getDescription());
+        }
+        return line;
     }
 
     @Override
