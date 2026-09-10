@@ -264,9 +264,8 @@ public final class RCConfig {
         builder.push("dimensions");
         NETHER_ENABLED = builder
             .comment("Allow travel to the Nether. ON: its resources and progression are the reason to go.",
-                "Until the themed generation lands this is the VANILLA Nether, which routes around",
-                "several designed gates - iron (bartering and fortress chests), wood (crimson and",
-                "warped stems are planks), gold, quartz, glowstone and ancient debris.")
+                "It generates as the compacted depths. Fortresses and bastions are kept, so iron and",
+                "gold still arrive through their chests and piglin bartering, ahead of the designed gates.")
             .define("netherEnabled", true);
         END_ENABLED = builder
             .comment("Allow travel to the End. Off until the themed End ships (P1.8).")

@@ -62,7 +62,7 @@ final class Ae2SourcingTests {
         // aim.</b> neoforge:add_table does fire on this mod's pull streams (measured at 3.6% against
         // an intended 3.7%), but restricting it to one table needs neoforge:loot_table_id, which
         // compares getQueriedLootTableId() - never set on a table rolled programmatically, which is
-        // how all five of this mod's roll sites work. With the condition it dropped nothing at all;
+        // how every one of this mod's roll sites works. With the condition it dropped nothing at all;
         // without it, it fired on every table in the game.
         RCGameTests.test("sky_stone_shard_is_inert_without_ae2", 60, helper -> {
             var level = helper.getLevel();
@@ -164,8 +164,7 @@ final class Ae2SourcingTests {
 
         // THE RECIPES ARE ABSENT, AND FOR THE RIGHT REASON.
         //
-        // <p>Same shape as a_guarded_override_is_inert_without_its_mod, and for the same reason: "no
-        // ae2 recipe is loaded" passes in BOTH the good and the bad state. With the guard the recipe is
+        // <p>"No ae2 recipe is loaded" passes in BOTH the good and the bad state. With the guard the recipe is
         // skipped; WITHOUT it the file fails to parse on its own result id and is equally absent. A
         // broken file and a correct one are indistinguishable from the recipe map, so absence is
         // asserted together with the reason for it.

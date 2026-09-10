@@ -39,7 +39,7 @@ import net.neoforged.neoforge.common.loot.LootModifier;
  * mod's pull streams - measured at 3.6% against an intended 3.7%. What it cannot do is aim: the only
  * way to restrict a modifier to one table is {@code neoforge:loot_table_id}, which compares
  * {@code LootContext.getQueriedLootTableId()}, and <b>that is never set on a table rolled
- * programmatically</b>. All five of this mod's roll sites call
+ * programmatically</b>. Every one of this mod's roll sites (grep {@code getRandomItems}) calls
  * {@code LootTable.getRandomItems(LootParams)} directly, so the condition matched nothing and the
  * drop rate was zero; with the condition removed the modifier fired on every table in the game.
  * Stripping needs no aim, because the invariant really is global: without AE2 that item is not loot

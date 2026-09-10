@@ -27,9 +27,9 @@ class DimensionDefaultsTest {
     @DisplayName("the Nether ships open and the End ships shut")
     void dimensionDefaultsAreTheDesign() {
         // Owner ruling 2026-08-19: "Nether resources and progression are the reasons to go to the
-        // Nether. Portals should be enabled." Until the themed generation lands this is the VANILLA
-        // Nether, and RCDimensionLockout's javadoc lists what that routes around - iron and wood being
-        // the two that matter most. Turning this back off is a design reversal, not a tuning tweak.
+        // Nether. Portals should be enabled." It generates as the compacted depths, and
+        // RCDimensionLockout's javadoc lists what being open still costs - iron and gold through
+        // fortress and bastion loot. Turning this back off is a design reversal, not a tuning tweak.
         assertTrue(RCConfig.NETHER_ENABLED.getDefault(),
             "the Nether ships OPEN; flipping this off reverses an owner ruling rather than tuning a "
                 + "number, and it would also stop portal frames forming");

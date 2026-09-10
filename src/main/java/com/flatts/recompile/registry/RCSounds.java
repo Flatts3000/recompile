@@ -32,9 +32,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  *   <li><b>Loops.</b> A machine loop plays for as long as a player holds a button. A seam is not a
  *       blemish, it is a click once a cycle forever. Synthesis is seamless by construction; a clip
  *       has to be crossfaded by hand and still drifts.</li>
- *   <li><b>Families.</b> Every sound this mod needs is a machine, so one declared voice gives the
- *       Hauler and the Garbage Vacuum a shared character that cannot drift apart, and a tier ladder
- *       becomes a scalar rather than four more sourcing jobs.</li>
+ *   <li><b>Families.</b> Every sound this mod needs is a machine, so a declared voice keeps one
+ *       machine's sounds a family that cannot drift apart, and a tier ladder becomes a scalar rather
+ *       than four more sourcing jobs. The Hauler and the Garbage Vacuum have separate voices
+ *       ({@code cheerful} and {@code heavy} in {@code sfxgen.toml}): a first pass shared one, and the
+ *       little robot sounded like the machine that digs.</li>
  * </ul>
  *
  * <p>The generator is {@code sfxgen} in {@code ../mc-pack-toolkit}, texgen's audio sibling, driven by
