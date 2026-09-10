@@ -27,9 +27,11 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
  * already happened.
  *
  * <p><b>It follows the data, not a count.</b> A rung whose file does not exist is skipped quietly, so a
- * pack that adds a ninth phase adds {@code tier_9.json} beside it and needs no Java; a pack that deletes
- * one loses nothing but its advancement. {@code every_freight_phase_has_an_advancement} holds the
- * shipped ladder to having one each.
+ * pack that adds a ninth phase adds {@code tier_9.json} beside it and needs no Java. Removing one is
+ * not free: each rung's parent is the rung before, so deleting a middle file orphans every rung after
+ * it - the game logs "Couldn't load advancements" and leaves them out of the screen, though they are
+ * still granted and tracked by id. {@code every_freight_phase_has_an_advancement} holds the shipped
+ * ladder to having one each.
  */
 @EventBusSubscriber(modid = Recompile.MOD_ID)
 public final class FreightAdvancements {
