@@ -4,9 +4,10 @@
 [#40](https://github.com/Flatts3000/trashlands/issues/40).
 **Analysed against:** Recompile **v0.13.0**, Simple Magnets `1.1.12-neoforge-mc26.1` (CF project
 394140, file 8370420), MC 26.1.2 / NeoForge 26.1.2.94.
-**Status:** RETIRED 2026-09-08 (#420). The four overrides shipped here from v0.14.0 and have now
-left for the pack, which is where they always belonged. Nothing under `data/simplemagnets/` remains in
-this repo. The recipes themselves are unchanged and live at
+**Status:** RETIRED 2026-09-08 (#421, part of #420). The four overrides shipped here from v0.14.0 and
+have now left for the pack, which is where they always belonged. Nothing under `data/simplemagnets/`
+remains on `main`; the released v0.20.0 jar still carries them until the next release, which is why
+`trashlands#47` stays open (as of 2026-09-10). The recipes themselves are unchanged and live at
 `pack/kubejs/data/simplemagnets/recipe/` in Trashlands (`Flatts3000/trashlands#47`, pack PR #73);
 everything below is kept as the record of the design and the load-order reasoning, both of which the
 pack inherited along with the files.
@@ -50,9 +51,10 @@ configuration and it is deliberate: re-theming another mod's recipes is curation
 pack's job, and the engine/pack split in `CLAUDE.md` is what this handoff suspended rather than
 revised. `docs/curseforge_page.md` no longer claims Simple Magnets has a way in here.
 
-## Why this is a Recompile job and not a pack job
+## Why this was a Recompile job and not a pack job
 
-The pack cannot ship data of its own on 26.1.2. It has no datapack loader (Open Loader and Datapack
+*(As of 2026-08-20. This constraint ended on 2026-09-07; see the retirement section above.)* The pack
+could not ship data of its own on 26.1.2. It has no datapack loader (Open Loader and Datapack
 Loader have no 26.1.2 NeoForge build), KubeJS crashes the client on load
 ([kube-mods/kubejs#1178](https://github.com/kube-mods/kubejs/issues/1178), reproduced 2026-08-20 on
 NeoForge 26.1.2.94 with the bundled tooltip jar alone in an empty mods folder), CraftTweaker has not
@@ -210,8 +212,8 @@ lesson the seventeen-recipe incident already paid for once.
 
 ## What the pack did
 
-Took them back. `Flatts3000/trashlands#47` shipped the four files under `pack/kubejs/data/` on
-2026-09-08 with the recipes byte-for-byte unchanged and the comments rewritten for their new home, and
+Took them back. Pack PR #73 (under `Flatts3000/trashlands#47`) shipped the four files under
+`pack/kubejs/data/` on 2026-09-08 with the recipes byte-for-byte unchanged and the comments rewritten for their new home, and
 this repo deleted its copies the same day. `tools/check_pack_deps.py` in the pack compares every file
 under `pack/kubejs/data/` against the same path inside the pinned Recompile jar and fails on a
 difference; a path the jar no longer contains is skipped as pack-only content, so the deletion here

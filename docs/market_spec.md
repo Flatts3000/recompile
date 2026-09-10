@@ -1,9 +1,15 @@
 # The market: selling products, and buying back knowledge
 
-**Status: BUILT 2026-09-04, on the branch for #311.** Rulings 2026-08-30 and 2026-09-04 are marked
+**Status: SHIPPED in v0.19.0 (#368, for #311).** Rulings 2026-08-30 and 2026-09-04 are marked
 with their date; everything else is derivation and is arguable. Section 13 records what the build
 decided where this document had left a choice open, and each of those is the assistant's call rather
 than the owner's.
+
+**P3.10 (v0.20.0, epic #386) changed the ground under sections 0, 3.1, 9 and 12.** Teardown teaches
+nothing since #390, so every Blueprint is bought here and there is no fragment grind for the market to
+be a shortcut past (fragments now come only from the Sequencer, for spawn eggs). Offers are gated by
+freight tier (section 6.5), and the terminals are repaired from a Broken Terminal rather than learned
+from one (section 6.6, #416), which supersedes section 9. Those sections are kept as the design record.
 
 **This document is lore-free on purpose, and that is a hard constraint rather than an oversight.** The
 market block is Recompile, which is a system; what it MEANS is Trashlands, which is curation. The
@@ -161,7 +167,7 @@ Furnace and the Sintering Kiln do.
 An earlier proposal in #311 had GUI-less selling plus recipe-based buying, specifically to avoid
 minting screens. That is off the table (owner, 2026-08-30), and it is written down because **this mod
 had eight custom screens when this was written and the standing rule is that each one is a deliberate
-exception recorded in CLAUDE.md.** This feature made it ten in one go, the largest single addition to
+exception recorded in `docs/gui_notes.md`** (CLAUDE.md held that list when this was written). This feature made it ten in one go, the largest single addition to
 that count. It is twelve today - the Hauler Depot and the Freight Terminal followed.
 
 The justification is the same shape as every existing exception: **no vanilla screen shows a price.**
@@ -213,7 +219,9 @@ Clean Mattress and their kin. Things with a real assembly step behind them.
 `#recompile:function_only`: no recipe and no offer, salvaged or nothing. The shelf listed it until step
 5 of #386 removed the line, and `nothing_function_only_is_sold_at_the_market` now fails the build on any
 offer that puts it back - including one selling the knowledge rather than the thing, which the
-recipe-side sweep in `FoundNotCraftedTests` structurally cannot see (section 14).
+recipe-side sweep in `FoundNotCraftedTests` structurally cannot see (section 14). *It is still in
+`#recompile:sellable` (30 scrip in `scrip_value.json`): the Sell Terminal buys a salvaged Motor, and
+only the Buy Terminal's shelf leaves it out.*
 
 **It explicitly excludes anything one press away from raw junk**, and that exclusion is the whole
 ruling rather than a detail. Pressed Junk is a building family made directly from the commonest thing
@@ -323,6 +331,10 @@ and means nothing. Junk's share is its share of the pool it is in.)*
 
 ## 9. How you get the terminals: recovered, not invented
 
+*Superseded by section 6.6: the Broken Terminal teaches nothing since #390, and since #416 every
+terminal is repaired from one at a crafting grid. The "recovered, not invented" intent survives; the
+teardown-and-blueprint mechanism below does not.*
+
 **You find one of their machines in the rubbish, tear it down at the Teardown Workbench, and build your
 own from what you learned** (owner, 2026-08-30, from a one-word answer: "teardown").
 
@@ -365,7 +377,7 @@ cannot be named from another class's static initialiser during mod construction;
 "Components not bound yet" trap, and it takes the whole mod down with a bare
 `ExceptionInInitializerError`.
 
-**A Blueprint is an item carrying a data component**, a set of recipe ids under
+**A Blueprint is an item carrying a data component**, the `Identifier` of a blueprint set under
 `RCDataComponents.BLUEPRINT`. The buy terminal hands over a Blueprint stack with that component set,
 which is the same shape `fragment_assembly` already produces. It does not need a new knowledge system.
 
@@ -432,7 +444,7 @@ to ship, and is the first thing to revisit if it reads wrong.
 | How the stock reaches the client | Written into the menu's **open buffer**, the way the Scrap Crafting Table sends its position | The screen draws exactly the list the server sells from, and no second sync path exists to drift. The balance is a menu data slot, per section 10. |
 | Q4: the ratio | First-pass offers from 120 (Bulb) to 1,500 (the spawner cage and the netherite pattern), against sell prices of 5 to 45 per item | Each sheet is priced at roughly what selling its fragment count's worth of teardown yield would take, so scrip is an alternative to the grind without being faster for every sheet; region-gating sheets sit past a casual balance. The RATIO is design and the numbers are #36's. |
 | The sell list at ship | The eight machine parts plus every Clean Mattress, via `#recompile:clean_mattresses` | "Components and finished goods with a real assembly step." `nothing_sellable_is_raw_scrap_or_one_step_from_junk` is the ruling made mechanical: nothing binnable, and nothing craftable from binnable inputs alone. |
-| The art | Declared in `texgen.toml` as section 5 lays out after the second ruling: screen fronts, the buy side and top as retints of the sell ones, one shared bottom, and a dead-screen front for the Broken Terminal, which reuses the Sell Terminal's flanks | AI candidates are generated and one per face is promoted so the blocks render as terminals; none is in `gen/approved.json` until the owner runs `select`. |
+| The art | Declared in `texgen.toml` as section 5 lays out after the second ruling: screen fronts, the buy side and top as retints of the sell ones, one shared bottom, and a dead-screen front for the Broken Terminal, which reuses the Sell Terminal's flanks | AI candidates are generated and one per face is promoted so the blocks render as terminals. None was in `gen/approved.json` at build time; every terminal surface is in it now (checked 2026-09-10). |
 
 **What the build did not do, on purpose.** No JEI category for the offers (the info panels on the
 three blocks say where the stock is), no Jade provider (there is no state on the block to show), and

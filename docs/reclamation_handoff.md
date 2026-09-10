@@ -10,8 +10,9 @@ dedicated specs.
 > (`grass_spreader_spec.md`, `tree_nursery_spec.md`, `animals_tier_spec.md`) and the Phase 2.12-2.17
 > entries in [`roadmap.md`](roadmap.md). The "resume point" and open questions below are answered - read
 > them as the record of what was open on 2026-07-23, not as live work. (The one genuine carry-over: the
-> Farming rung shipped the in-ground path only; whole-plant farmables are held for a later hydroponics
-> option.)
+> Farming rung shipped the in-ground path only, and whole-plant farmables were held for a later
+> hydroponics option. That is discharged: sugar cane, bamboo, cactus and sweet berries are all in
+> `#recompile:hydroponic` and grow in the Hydroponics Bay; see `roadmap.md`.)
 
 > **Superseded in part, same day.** After this was written, three things happened and this doc no
 > longer leads:
@@ -102,7 +103,10 @@ are new.
   permanent, the **green surface** is contested. Encroachment reverts grass to plain coarse dirt,
   never back to mound bed, so a retired mound stays retired even if its surface later erodes.
 - **P1.9 locked "no ambient creature spawns in the initial biome, on purpose."** That decision is
-  what makes rung 4 land. Do not weaken it to make animals easier.
+  what makes rung 4 land. Do not weaken it to make animals easier. (The shipped biome is not
+  creature-free: `household_sprawl.json` lists cats and wolves under `creature` and the Pigeon under
+  `ambient`; `worldgen_notes.md` records why the rationale holds regardless - none of the three yields
+  meat.)
 - **Wood-as-treasure (P2.4 item 4) survives**, reshaped: keep the nursery expensive, but gate it
   on healed area rather than on elapsed time. Wood becomes scarcity the player can attack rather
   than scarcity that is simply withheld. The first tree is still a monument - and under P1.7-R it

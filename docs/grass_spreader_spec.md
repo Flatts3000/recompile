@@ -20,7 +20,7 @@
 
 Design source of truth is the pack repo: `../trashlands/docs/design_decisions.md` (**P2.4** the
 original chain, **P2.4-R** the economy revision, **P1.7-R** encroachment). The decisions here are
-**not yet recorded there** - see "Design record still owed".
+recorded there as **P2.4-R3** - see "Design record" at the bottom.
 
 ---
 
@@ -46,8 +46,10 @@ and the shape must change - `RainCollectorBlockEntity` checks `canSeeSky(pos.abo
 
 ## Structure - four cells, bottom to top
 
-**No Machine Frame in this machine.** The Machine Frame stays the Rain Collector's component, so the
-shared vocabulary keeps its user; here the moving part is a **Motor**.
+**No Machine Frame and no Motor in this machine.** The moving part is the **Pump**. (This read "the
+Machine Frame stays the Rain Collector's component ... here the moving part is a **Motor**". A Motor
+sprinkler head was the pre-build design and was swapped for the Pump manifold in the build, #21; and the
+Rain Collector's placed component is its Funnel, which is merely *crafted* from a Machine Frame.)
 
 | Cell | You place | Formed as | Notes |
 |---|---|---|---|
@@ -64,11 +66,15 @@ outright. **The tank is the primitive and the collector is built from it** - a C
 so the two machines are siblings sharing a part rather than an ordered chain, and neither consumes the
 other. See the recipe appendix.
 
-**The pump is the machine's gate**, though not in the way this said. It was **teardown-only**, torn
-out of a found appliance and never crafted; since blueprints shipped it is crafted from a blueprint
-that *teardown teaches*, and two appliances teach it - the Washing Machine and the Dead Fridge. The
-gate is the same shape (you salvage before you can water anything) and one step longer. So rung 1 sits behind the teardown spine and a find, which orders progression well:
-you salvage a pump before you can water anything. It also means the spreader cannot be rushed.
+**The pump is the machine's gate**, though not in the way this said. It shipped **teardown-only**,
+torn out of a Washing Machine find and never crafted. Today it has two routes, and **salvage comes
+first**: a Broken Hydroponics Bay tears down to one every time (the Pump is its signature component),
+and a Fridge tears down to a Motor, a Pump or a Bulb, one in three each. The crafted route is
+`recompile:blueprint_crafting` on the `recompile:pump` Blueprint, which since P3.10 (2026-09-06) is
+**bought at the Buy Terminal** (`market_offer_pump.json`, tier 3) - teardown no longer teaches anything.
+The Washing Machine now yields a Motor, not a Pump. So rung 1 still sits behind a find, which orders
+progression well: you salvage a pump before you can water anything, unless you have climbed the freight
+ladder to tier 3. It also means the spreader cannot be rushed.
 
 **The Solar Panel keeps its own appearance** - the framework supports a `Multiblock.Cell` naming the
 same block as component *and* formed, so a cell that does not change costs one block, not two. The Pump
@@ -89,8 +95,8 @@ Sneak-place gives a bare core. Breaking any cell disbands the whole and returns 
 claim the opposite - that you craft a collector and build the spreader around it, "your first machine
 becomes part of your second". It is a good beat and it is not this machine; the dependency runs the
 other way, since a collector is a tank with a pipe on it. Rung 1 is still gated, by the **Pump**
-(a teardown of a Washing Machine find) and by **copper** (the Burn Barrel), so nothing went soft when
-the ordering was retired.
+(salvaged from a Broken Hydroponics Bay or a Fridge, or crafted on a bought Blueprint) and by
+**copper** (the Burn Barrel), so nothing went soft when the ordering was retired.
 
 ---
 
@@ -104,31 +110,34 @@ Three bespoke to this machine, plus two shared components later machines reuse.
 | `water_tank` | **shared component**, and its own formed appearance | The tank cell. It holds water (#229) and the spreader does not drink it; it is NOT a Rain Collector core (no nested cores). |
 | `grass_spreader_frame` | dummy, bespoke | What a Pump becomes: the manifold the drip ring bolts into. Formed-only, no item. |
 | `grass_spreader_spigot` | dummy, bespoke | What each of the four Copper Pipes becomes. Drips via `animateTick`. Formed-only, no item. |
-| `pump` | **shared component** | **Teardown-only**, from a `washing_machine` find. Inert - see below. |
-| `solar_panel` | craftable **and** dummy, **shared** | Inert - see below. Reusable by later machines. |
+| `pump` | **shared component** | Salvaged (Broken Hydroponics Bay, Fridge) or blueprint-crafted - see above. Inert - see below. |
+| `solar_panel` | craftable **and** dummy, **shared** | A real generator since #72 - see below. Reusable by later machines. |
 
-The `washing_machine` find and its teardown recipe (`-> pump + scrap_metal + plastic_scrap`) come
-with this machine: one line in `loot_table/blocks/bulky_waste.json` plus one `recompile:teardown`
-recipe, no new systems. It restores the appliance P1.11 dropped when Bulky Waste replaced it - but as a
+The `washing_machine` find and its teardown recipe (`-> pump + scrap_metal + plastic_scrap`) came
+with this machine: one find line plus one `recompile:teardown` recipe, no new systems. *(Both have
+moved since: the find is a line in `loot_table/gameplay/bulky_spine.json`, because `bulky_waste.json`
+is now a routing table, and the teardown yields a **Motor** plus a scrap pool, the Motor being the
+washing machine's signature component under P3.10.)* It restores the appliance P1.11 dropped when Bulky Waste replaced it - but as a
 **concrete object**, which is what P1.11 item 1 actually asked for when it called the generic
 appliance "a vague abstraction sitting between the player and a specific thing." A washing machine
 visibly pumps water out, so the teardown needs no explanation.
 
-**The Solar Panel is inert here and its name invites the opposite** - so state it
-plainly, because either would break locked design:
+**The Pump is inert and its name invites the opposite** - so state it plainly. It does **not** move
+fluid; P2.3 locks "Recompile converts, Create moves", and the mod never *requires* Create. (The Motor,
+which this list also named from the pre-build design, is not part of this machine, and is inert too.)
 
-- **Solar Panel** - a recoloured, **no-op** daylight detector: vanilla's `template_daylight_detector`
-  model with its texture recoloured to the palette, because vanilla already ships a block that *is* a
-  solar panel. It does **not** detect light, emit redstone, or generate power. P3.5 locks "no RF
-  before the Nether."
-- **Motor** - it does **not** rotate anything, expose kinetics, or require Create. P2.3 locks
-  "Recompile converts, Create moves", and the mod never *requires* Create.
+**The Solar Panel was inert when this was written and is not now.** It was specced as a recoloured,
+**no-op** daylight detector (vanilla's `template_daylight_detector` model with its texture recoloured,
+because vanilla already ships a block that *is* a solar panel), under P3.5's "no RF before the Nether".
+**That was reversed on 2026-07-31**: the energy tier arrived with hydroponics, and since #72 the Solar
+Panel is a real Forge Energy generator that pushes to adjacent consumers. The panel capping a spreader
+generates too; the spreader simply does not consume. See `../trashlands/docs/design_decisions.md`
+P3.5 and `docs/hydroponics_spec.md`.
 
-**RF status changed 2026-07-31.** P3.5's "no RF before the Nether" was reversed: the energy tier now arrives with hydroponics, and the Solar Panel becomes a real generator. See `../trashlands/docs/design_decisions.md` P3.5 and `docs/hydroponics_spec.md`. The **Pump stays inert** - that is P2.3, a separate decision.
-
-Same rule the Machine Frame already follows. The eventual spinning head is a **client-side visual on
-the formed machine**, not the motor gaining behaviour - if either component ever grows real
-mechanics, that is a new design decision, not an implementation detail.
+The Pump's inertness is the same rule the Machine Frame already follows. Any eventual moving part (the
+spinning head below) is a **client-side visual on the formed machine**, not a component gaining
+behaviour - if a component ever grows real mechanics, that is a new design decision, not an
+implementation detail.
 
 ---
 
@@ -140,7 +149,8 @@ untouched ground, so it is repaired first - no separate repair pass, no stored p
 
 **Eligibility.** Convert a surface block when all hold:
 
-1. it is in the `recompile:spreadable` tag (ships as `minecraft:coarse_dirt` + `minecraft:dirt`);
+1. it is in the `recompile:spreadable` tag (ships as `minecraft:coarse_dirt`, `minecraft:dirt`,
+   `recompile:mound_ground` and `recompile:rubble_ground`);
 2. it is **not** mycelium (the dump-mushroom substrate, the P1.9 forage economy - the same carve-out
    encroachment makes);
 3. its surface is within a vertical tolerance of the machine, so it cannot reach up cliffs or down
@@ -200,11 +210,16 @@ BlockEntity on a dummy is a wrinkle the framework has not needed yet).
 - **Mound retirement (Phase 5)** - DONE. The block shipped as `recompile:mound_ground` (renamed from
   `mound_bed`) and is already in `tags/block/spreadable.json`, so spreading over
   a footprint **retires that mound forever**. The quarry-vs-heal decision made physical, and the most
-  important interaction in the chain.
+  important interaction in the chain. `recompile:rubble_ground` joined the tag when rubble piles began
+  to regrow (#424), so a demolition-yard pile retires the same way; `recompile:stained_ground` is
+  deliberately left out, so a tailings impoundment never does.
 - **Rungs 2-3** - spreader output *is* the precondition terrain the seeder and nursery test for
-  (P2.4-R item 4). No counters, no flags.
+  (P2.4-R item 4). No counters, no flags. *(As shipped, rung 2 is Fertilizer rather than a seeder, and
+  its grass-only scatter is the one that reads this terrain. The Tree Nursery shipped as a producer
+  with no terrain gate; see `tree_nursery_spec.md`.)*
 - **The water thread (P1.10)** - the collector stops being a one-off utility and becomes a component
-  of the machine that heals the world.
+  of the machine that heals the world. *(Superseded with the rest of the collector-as-component beat:
+  the spreader takes a Water Tank, and the collector is its sibling rather than its part.)*
 
 ---
 
@@ -223,7 +238,8 @@ Leaning on vanilla and what exists, per the strategy that carried the rain colle
 
 ## Data surface
 
-- Tag `recompile:spreadable` (coarse dirt + dirt) and `recompile:spread_immune` (mycelium).
+- Tag `recompile:spreadable` (coarse dirt, dirt, Mound Ground, Rubble Ground) and
+  `recompile:spread_immune` (mycelium).
   **`spread_immune` is deliberately not `encroachment_immune`**: that one contains coarse dirt,
   because coarse dirt is what encroachment reverts *to*. Here it is the primary target. The two
   systems mean opposite things by "immune", and sharing one tag made the machine refuse the one
@@ -238,20 +254,20 @@ Leaning on vanilla and what exists, per the strategy that carried the rain colle
 |---|---|
 | **Water Tank** | `PPP / R R / RMR` - plastic scrap, rebar, scrap metal. The shared primitive. |
 | **Rain Collector** | copper pipe over water tank. Literally a tank with a pipe on top. |
-| **Rain Collector Funnel** | shapeless: machine frame + plastic scrap. A frame wrapped in sheeting. |
+| **Rain Collector Funnel** | shaped `P P / PFP / _P_`: one machine frame in five plastic scrap. A frame wrapped in sheeting. (Specced as shapeless frame + plastic; the shaped form landed in #178.) |
 | **Machine Frame** | `RPR / P P / RPR` - rebar + scrap plating, yields 2. |
 | **Grass Spreader** | `PCP / RMR / PPP` - plating, copper pipe, rebar, scrap metal. |
-| **Solar Panel** | `GGG / EEE / PPP` - cullet glass, e-scrap, scrap plating. |
+| **Solar Panel** | `GGG / EEE / PPP` - cullet glass pane, e-scrap, scrap plating. |
 | **Copper Pipe** | `NNN / ... / NNN` - six copper nuggets, yields 3. |
-| **Pump** | *(stale as written: it is `recompile:blueprint_crafting` now - copper ingots, scrap metal, plastic scrap, gated on the `recompile:pump` blueprint, which is bought at the Buy Terminal (`market_offer_pump.json`, tier 3) *(Corrected by SCRUB 2026-09-08: teardown stopped teaching on 2026-09-06, P3.10. No shipped `recompile:teardown` recipe carries a `teaches` field. Blueprints are bought at the Buy Terminal.)*.)* |
+| **Pump** | `recompile:blueprint_crafting`, ` C / CMC / _P_` - three copper ingots, scrap metal, rubber scrap (rubber since #352) - gated on the `recompile:pump` Blueprint, which is bought at the Buy Terminal (`market_offer_pump.json`, tier 3). Specced as teardown-only; teardown stopped teaching on 2026-09-06 (P3.10), and no shipped `recompile:teardown` recipe carries a `teaches` field. Also salvaged: see "The pump is the machine's gate" above. |
 
 **The tank is the primitive, not the collector.** Building a tank *out of* a collector had the
 dependency backwards - a collector already contains one. Both machines now share the tank part.
 
 **Consequence, and it corrects P2.4-R3:** the spreader no longer consumes a Rain Collector, so
 "no collector, no spreader" is no longer true. Rung 1 is still gated behind two other systems - the
-**Pump** (teardown plus a Bulky Waste find) and **copper** (the Burn Barrel) - so it has not gone
-soft. The collector needing copper also puts *it* behind the Burn Barrel, which is consistent with
+**Pump** (a Bulky Waste find torn down, or a bought Blueprint) and **copper** (the Burn Barrel) - so it
+has not gone soft. The collector needing copper also puts *it* behind the Burn Barrel, which is consistent with
 P1.10's "improvised, pre-iron" since copper is this world's first metal, not iron.
 
 **Copper pipe is the most load-bearing part in the mod:** one in the collector, one in the spreader
@@ -295,10 +311,12 @@ static entry point per the `sortOnce` / `encroachOnce` convention:
    from there** rather than from renders.
 4. **Run a code review before merging**, not after.
 
-## Design record still owed
+## Design record
 
 **Recorded 2026-07-23** in `../trashlands/docs/design_decisions.md` as **P2.4-R3**, and revised
 there during the build: rung 1 is a *drip irrigator* fed by an incorporated **Water Tank** (not a
 Rain Collector - no nested cores), the Pump is the teardown-only part and it comes out of a
 **Washing Machine**, and item 8's "no collector, no spreader" ordering is retired: the machines are
-deliberately siblings built from the same Water Tank, not an ordered chain (closed 2026-07-24).
+deliberately siblings built from the same Water Tank, not an ordered chain (closed 2026-07-24). The
+teardown-only Pump clause was corrected there on 2026-09-04 (the Pump is `blueprint_crafting` as well
+as a find).

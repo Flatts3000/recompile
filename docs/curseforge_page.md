@@ -42,6 +42,10 @@ made the line false, so it is gone. That is the shortest a "not yet" has ever li
 worked because the release and the page moved together. A marker that outlives the release it
 describes is worse than never having written one.
 
+**Ahead of the release, as of 2026-09-10.** The lines saying rubble piles and tailings heaps grow back
+(#424) describe `main`, not v0.20.0. Paste this page when the next release ships, not before, or the
+live page claims something the downloadable jar does not do.
+
 **The aquarium has a screenshot now** (2026-09-07, `26-municipal-aquarium.png`), shot against a
 `runClient` over `gamebridge`. **The vacuum and the tire dump still do not**: frames for both were shot
 in the same pass and the owner rejected them. Do not invent a filename to fill either gap - an image
@@ -318,10 +322,11 @@ turns up depends on the bait and on what is growing around it.
 
 ![The machine tier, built by stacking components on a core.](https://raw.githubusercontent.com/Flatts3000/recompile/main/docs/cf_image_gallery/03-machine-wall.png)
 
-The machines are multiblocks. You place a core, stack parts on it, and it forms where it stands.
+The big machines are multiblocks. You place a core, stack parts on it, and it forms where it stands.
 
-A trommel sorts. A separator divides. A pulverizer grinds. A kiln presses powder back into something
-solid. A cupola melts scrap down into iron, and rakes off slag while it does.
+A trommel sorts. A separator divides. A pulverizer grinds. Beside them sit the furnaces: a kiln
+presses powder back into something solid, and a cupola melts scrap down into iron and rakes off slag
+while it does.
 
 ## Things worth finding
 
@@ -339,8 +344,8 @@ egg.
 - Alpha, and still being worked on. The numbers are not balanced yet.
 - Start a new world when you update. New regions do not appear in one you have already been to.
 - The End is closed. The Nether is not.
-- Works with **AE2**, **Powah** and **Ender IO**. Each of them needs something this world does not
-  hand out, and each has a way in here. None of them are required.
+- Works with **AE2**, **Powah** and **Ender IO**. AE2 and Powah each need something this world does
+  not hand out, and each has a way in here. Ender IO runs as it is. None of them are required.
 - **JEI** and **Jade** plugins, and an in-game guidebook with 3D multiblock pages.
 
 ## Links

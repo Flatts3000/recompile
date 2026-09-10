@@ -5,10 +5,17 @@ and lapis. **Gold was split out to #120** and is not part of this spec. Every de
 in the 2026-08-02 design session; what remains is build order, art, and the numbers, which join the
 pre-beta balance pass (#36).
 
+**What shipped differs from the numbers and one structure below** (checked against the data
+2026-09-10): every separating recipe is **1 in, 1 out at 40 ticks** and always was (`separating_*.json`
+since #122), not the 12/16-to-a-few placeholders; in `mechanical_pulls` **spent abrasive is the rare
+entry** (weight 5) and magnet scrap the middle one (15), so diamond, not redstone, is the scarcest gem;
+the Separator gained a **Motor** cell in its back row on 2026-08-06 (#165), so it takes three component
+types; and the Separator now runs **eleven** separating recipes (three of them only with AE2), not three.
+
 ## 0. The idea, and why it fits
 
-**Iron is where this world currently ends.** A reachability closure over every vanilla and mod recipe
-confirms it: past the iron gate there is no gold, no diamond, no redstone, no lapis, no amethyst, no
+**Iron was where this world ended** when this was designed (2026-08-02). A reachability closure over
+every vanilla and mod recipe confirmed it: past the iron gate there is no gold, no diamond, no redstone, no lapis, no amethyst, no
 emerald, and worldgen carries no ores at all. Everything above iron is greenfield. (**Gold is tracked
 separately at #120**, because its input already exists and it can move without any of this.)
 
@@ -34,7 +41,7 @@ both the real economics and a gate that cannot be cheesed.
 | Redstone | **Refined from Mechanical Waste** | Real: rare-earth magnets in motors and speakers. **This is the tier's gate** |
 | Amethyst | **Refined from Mechanical Waste** | Weakest real fit; defensible read is recovered **quartz** that happens to be purple |
 | Lapis | **Printer teardown** (#112) | Lapis is a pigment and a printer is full of pigment. Machinery contains none |
-| Emerald | **Deferred** | No industrial stream exists in reality, and vanilla uses it only as villager currency. *(That clause used to read "which this world has none of", and it is false: villagers are reachable by curing a zombie villager, amber carries a villager entry in both pull streams, and `emerald` is marked reachable in the resource checklist. The decision stands on the first clause alone.)* |
+| Emerald | **Deferred** | No industrial stream exists in reality, and vanilla uses it only as villager currency. *(That clause used to read "which this world has none of", and it is false: villagers are reachable by curing a zombie villager, amber carries a villager entry in both pull streams, and `emerald` is marked reachable in the resource checklist. The decision stands on the first clause alone. Emeralds arrived by that route in #227: zombie villagers in the demolition yard, cured into villagers that trade.)* |
 | Mechanical Waste | **A fourth `SortableBlock`**, generated in the demolition yard beside Stone Rubble | The yard already generates piles; no new region needed |
 | What the pile sorts into | **Industrial scrap variants, never gems** | The pile is the found half and is picked through like any other sortable block; the gem is the refined half |
 | How many variants | **Several, one per gem** | One shared scrap would put every gem on a single difficulty curve, and redstone being the hard gate is a decision |
@@ -101,8 +108,10 @@ The schema, following `TeardownRecipe`'s shape so the two read as siblings:
 **No BlockEntityRenderer, and no fifth screen.** The BER ban has exactly one recorded exception (the
 Display Pedestal) and this is not a second. Motion comes from **animated textures** (`.mcmeta` frame
 animation, pure vanilla, no code, how fire and prismarine work) plus **particles and a running
-blockstate**, which the Burner Generator already does. The mod ships no `.mcmeta` today, so that is a
-first, but it needs no exception.
+blockstate**, which the Burner Generator already does. The mod shipped no `.mcmeta` when this was
+written, so that was a first, but it needs no exception. (The pedestal is still the only BER. "No fifth
+screen" held for this machine, which has none; the mod's screen count has since moved past five on
+other machines, each recorded in `docs/gui_notes.md`.)
 
 **The art budget is distinct cell types, not volume.** The Compost Heap is 2x2x2, eight cells, and its
 entire formed appearance is **one** bespoke block repeated across seven dummies. A 3x3x3 Separator with
@@ -144,7 +153,11 @@ and E-Scrap was the wrong call twice over: it is *household* waste, so it read a
 turning up in a demolition yard, and it is the one entry the Separator has no recipe for - so the
 commonest thing a player pulled from a machine pile was the one thing that machine refuses. Its weight
 folded into Scrap Metal rather than being deleted, which holds the table at 222 and leaves every gem
-rate exactly where it was tuned. E-Scrap keeps its household source, so nothing is orphaned.
+rate exactly where it was tuned. E-Scrap keeps its household source, so nothing is orphaned. *(The
+table has since grown: a Motor at weight 5 (#165) makes it 227, and a `c:dusts/grains_of_infinity`
+tag entry at 20 (#279) makes it 247 when Ender IO is installed. The tag entry uses `expand: true`, so
+without Ender IO it contributes nothing and the total stays 227. The gem rates are therefore 222/227 of
+what was tuned here in a default install, and 222/247 with Ender IO.)*
 
 **This phase goes first because gold left.** The earlier draft opened with the Separator proven against
 gold from E-Scrap, which needed no new worldgen at all; with gold at #120 there is no longer any input
@@ -209,7 +222,10 @@ real plant. Rates are unchanged, because both still call `SortableBlock.sortRoll
 the separating recipes are untouched. What stops is feeding it garbage blocks.
 
 **Do not re-thicken it with a second verb.** Sorting was added because the Separator looked thin at
-three recipes, and it is back to three. Thin is a content problem; a second verb is an identity
+three recipes, and it was back to three. *(It has since thickened the right way: eleven separating
+recipes ship now - slag, prismarine grit, fused circuitry, rendered organics and oily swarf joined the
+three gems, plus certus, fluix and silicon when AE2 is present - and every one splits its feed into a
+result and a byproduct.)* Thin is a content problem; a second verb is an identity
 problem, and trading the first for the second is what produced #187. The fix is more work of its own
 kind - "liberate the valuable thing from the matrix holding it" has room in it, and every new
 Mechanical Waste material is a candidate.
@@ -225,12 +241,14 @@ the `recompile:separating` type, and **one recipe: quartz grit to amethyst.**
 
 Twelve cells: one core the player places, eleven dummies. **Two component types only** - auto-assemble is
 all-or-nothing and quantity-correct, so every extra component type is another way for a player to stand
-in front of a core that will not form.
+in front of a core that will not form. *(Overruled by the owner on 2026-08-06, #165: the centre of the
+back row takes a **Motor**, which puts the Separator behind a component you cannot forge from any
+amount of scrap. So three types. It forms into ordinary housing, and disband hands the Motor back.)*
 
 | Cells | Component placed | Formed block |
 |---|---|---|
 | 4 bay | **Steel I-Beam** x4 | `separator_chamber` |
-| 6 housing | **Machine Frame** x6 | `separator_housing` |
+| 6 housing | **Machine Frame** x5 + **Motor** x1 (back centre, since #165) | `separator_housing` |
 | 1 chute | **Machine Frame** x1 | `separator_chute` |
 
 ```
@@ -266,6 +284,7 @@ allows and the Grass Spreader already does.
 **The core must cost iron.** It sits directly above the iron gate, and paying iron for it is what makes
 the Cupola feel like a step toward something rather than a terminus. Proposal: Machine Frame, two Steel
 I-Beam and four Iron Ingot, shaped. The exact recipe joins #36; the constraint is that iron appears in it.
+*(Shipped as `IBI / IFI`: four Iron Ingot, one Steel I-Beam, one Machine Frame.)*
 
 ### How material actually gets in and out
 
@@ -293,7 +312,10 @@ I-Beam and four Iron Ingot, shaped. The exact recipe joins #36; the constraint i
 - **No power means the material waits.** Items do not bounce out and are not refused. The machine simply
   does not consume them, the way a furnace with no fuel sits full and cold. Legible without a screen.
 - **Output spawns at the chute face with a small outward velocity**, so it lands in front of the machine
-  rather than inside it, and a hopper under the chute catches it.
+  rather than inside it, and a hopper under the chute catches it. *(As shipped, output goes to the
+  **Scrap Network** first - the Separator and its formed cells are in `#recompile:scrap_connectable` -
+  then into any container at the chute, and only what neither takes falls on the floor. The "no Scrap
+  Network feed" decision above is about input, and still holds.)*
 
 ### Numbers
 
@@ -302,7 +324,7 @@ Placeholders, chosen against the machines either side of it, and joining #36:
 | Value | Setting | Why |
 |---|---|---|
 | Energy | **16 FE/tick** | The Hydroponics Bay is 8. This is the top tier and should cost visibly more |
-| Time | **200 ticks** (10s) per operation | Half the Bay's cook. This used to read "because the input count is doing the work instead", which stopped being true when every count went to 1 (owner, 2026-08-19) |
+| Time | **200 ticks** (10s) per operation | Half the Bay's cook. This used to read "because the input count is doing the work instead", which stopped being true when every count went to 1 (owner, 2026-08-19). *Shipped at **40 ticks** (2s) in all three gem recipes* |
 
 **The grinder separates, it does not transmute.** One run yields the raw material **plus recovered
 ordinary scrap** - metal, plastic, glass - because that is what a real separator does: it splits a mixed
@@ -343,6 +365,13 @@ Starting placeholders:
 | Amethyst | 12 quartz grit | 2 amethyst shard | 1 glass shards |
 | Diamond | 16 spent abrasive | 1 diamond | 2 scrap metal |
 | Redstone | 16 magnet scrap | 4 redstone | 2 scrap metal |
+
+*Shipped instead (#122, two owner calls from playtest inside that PR, after seven Spent Abrasive sat
+in a machine that needed sixteen and said nothing): each of the three is 1 in, 1 out - one quartz grit
+to one amethyst shard plus one glass shards, one spent abrasive to one diamond plus one scrap metal, one
+magnet scrap to one redstone plus one scrap metal - and grind time dropped from 200 ticks to 40. All the
+difficulty moved into the pull weights, retuned to quartz grit 30, magnet scrap 15, **spent abrasive
+5**, so diamond is the scarcest of the three.*
 
 Pull weights, inversely: quartz grit common, spent abrasive uncommon, **magnet scrap rare**. **Redstone gets the
 harshest ratio**: it drags fifteen vanilla items behind it (piston, dispenser, dropper, observer,
@@ -391,13 +420,16 @@ thing in this progression that is genuinely scarce.
 
 **Obsidian and slag are out of scope** (owner, 2026-08-02). Neither is part of this tier. The grinder
 returning ordinary recovered scrap removes any need for slag here, and `material_economy.md` already
-queues a **slag field** region where slag, fluorite and oily scrap belong together.
+queues a **slag field** region where slag, fluorite and oily scrap belong together. *(Slag arrived
+another way: the Cupola rakes it off as a byproduct (#236), and the Separator does now take it,
+dividing it into concrete powder and scrap metal.)*
 
 That leaves one thing worth stating plainly, because it will otherwise be assumed: **this tier does not
 complete enchanting.** An enchanting table needs obsidian, diamond and lapis. This spec delivers the
-diamond and the Printer delivers the lapis (#112); obsidian is elsewhere and unbuilt. So the gem tier
-can ship complete and enchanting will still not be reachable, and that is by design rather than an
-oversight.
+diamond and the Printer delivers the lapis (#112); obsidian was elsewhere and unbuilt when this was
+written. So the gem tier shipped complete without enchanting, and that was by design rather than an
+oversight. *(Obsidian has since shipped: the Slag Furnace vitrifies the Cupola's slag into it (#236,
+PR #242), so all three halves of the table are now reachable, none of them from this tier alone.)*
 
 ## Open
 
@@ -405,7 +437,7 @@ Everything below is a look-at-it decision. Nothing here blocks starting work.
 
 - **Footprint confirmation.** 3x2x2 with four cell types is the working assumption and step 1 of the
   model spec's build order is to look at it in-world. If it changes, the cell counts in Phase 2 change
-  with it; nothing else does.
+  with it; nothing else does. *(Shipped at 3x2x2: core, chamber, housing and chute.)*
 - **Every number above is a first-pass placeholder**, as the standing pre-beta gate requires. Pull
   weights, FE rate, times, input counts and byproduct amounts all join #36 together, because tuning them
   piecemeal is what that gate exists to prevent.

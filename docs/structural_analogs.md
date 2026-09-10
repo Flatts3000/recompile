@@ -195,8 +195,9 @@ layer supplies distinctiveness, and five spines at twenty percent each was the c
 this.
 
 **Families 4, 5 and 6 are not promoted** and are now the audit list. The filter, restoration and
-holding-ground are each either rescoped to serve the primary or accepted as decorative, and that audit
-has not been done yet.
+holding-ground are each either rescoped to serve the primary or accepted as decorative. That audit was
+done the same day and is [`spine_audit.md`](spine_audit.md); the build it produced is
+[`freight_conversion_spec.md`](freight_conversion_spec.md), shipped in v0.20.0.
 
 ---
 

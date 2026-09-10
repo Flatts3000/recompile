@@ -28,8 +28,10 @@ whole feature is a recipe plus a one-line hoe lockout.
   is the raw dead dump the player has in bulk, so making it fertile costs more compost).
 - **Hoe lockout** (`RCFarming`): an `@EventBusSubscriber` handler cancels NeoForge's
   `BlockEvent.BlockToolModificationEvent` when the ability is `ItemAbilities.HOE_TILL` and
-  `disableHoeTilling` is set. No hoe exists in the base mod, so this is defensive - it keeps the compost
-  recipe canonical even in a pack that adds a hoe. No mixin.
+  `disableHoeTilling` is set. The mod adds no hoe, and there is none at this rung, but the lockout is not
+  only defensive: once the Tree Nursery (rung 4) supplies wood, vanilla's wooden hoe is craftable (no
+  recipe override removes it), so this handler is what keeps the compost recipe canonical after trees as
+  well as in a pack that adds a hoe. No mixin.
 - **Config**: `disableHoeTilling` (default true).
 - **Water tie kept**: it *is* vanilla farmland, so it dries without water and the sweep takes it when dry
   (P1.7-R item 0a). Irrigate (Rain Collector) to hold a plot.
@@ -59,6 +61,9 @@ own seed deterministically - the RNG is only the entry point, not a permanent ta
   progression system - a hydroponic grower that unlocks the cuttings - rather than something the player
   finds and plants in dirt now. So the in-ground farming tier ships the six seed-crops only, and the
   cuttings arrive when hydroponics does. Do not add a found/teardown source for them in the meantime.
+  *(Delivered: the Hydroponics Bay shipped in #43 (PR #104), and a seedling in the bay rolling
+  `loot_table/gameplay/hydroponics_seedling.json` is the only source of all four. See
+  `hydroponics_spec.md`.)*
 - No bespoke farmland block, no placer item, no custom texture (farmland's own item covers it).
 - The P1.9 scrap planter (potted muck-compost food-grower) is untouched and still deferred; this
   in-ground path coexists with it.
@@ -66,4 +71,5 @@ own seed deterministically - the RNG is only the entry point, not a permanent ta
 ## Tests
 
 `compost_recipes_craft_farmland` (the recipe resolves and yields `minecraft:farmland`). The hoe
-lockout is untested for want of a hoe in the mod; the handler is trivial.
+lockout is untested; the handler is trivial, but since vanilla's wooden hoe is reachable after trees it
+now guards a real route rather than a hypothetical one.

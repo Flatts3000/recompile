@@ -22,7 +22,9 @@ Specs and removal instructions for each stopgap live in the handoff docs, which 
 the client, CraftTweaker had not ported - so things that belong to Trashlands shipped here instead.
 **That cut against the engine/pack split rather than revising it**, and the exit condition was always
 KubeJS being fixed. **It was, on 2026-09-07**, so these are now being dismantled in order rather than
-waiting on anything (`Flatts3000/trashlands#46`, `#47` and `#52`; the engine half is #420).
+waiting on anything (`Flatts3000/trashlands#46`, `#47` and `#52`; the engine half is #420). All three
+pack issues are open as of 2026-09-10, `#47` only because the released v0.20.0 jar still carries the
+Simple Magnets copies until the next Recompile release.
 
 ## Simple Magnets went home first, and it is the template
 
@@ -36,7 +38,7 @@ now ship from `pack/kubejs/data/simplemagnets/recipe/` in the pack, and nothing 
 never the other way round. Both shipping at one recipe id for a while is safe only because they are
 identical and the pack's wins on load order; deleting the engine's first would leave a window with
 neither. `trashlands#47` was closed as done while this repo was still shipping its copies, which is how
-that window nearly opened. For Ender IO the same mistake is worse than a window - see
+that window nearly opened; it was reopened and stays open until a release ships without them. For Ender IO the same mistake is worse than a window - see
 [the blaze-grinding disable](#the-blaze-grinding-disable-subtracts-rather-than-adds), where the
 override is the only thing keeping a rod-to-powder loop shut.
 
@@ -47,8 +49,8 @@ re-theming another mod's recipes is curation, and curation is the pack's.
 
 ## What is left, and what each waits on
 
-AE2's Inscriber-press pool and lang key wait on `trashlands#46`; its **four sourcing recipes are a
-separate question** and are argued under [AE2](#ae2) rather than assumed to be moving. Ender IO's
+AE2's Inscriber-press pool and lang key wait on `trashlands#46`; its **four sourcing recipes stay
+here** (owner ruling 2026-09-08 on #420, see [AE2](#ae2) below) and do not move with the presses. Ender IO's
 Grains of Infinity find and blaze-grinding disable wait on `trashlands#52`. Neither has shipped in the
 pack (as of 2026-09-10 both issues are open and the pack's `pack/kubejs/data/` holds only
 `simplemagnets` and `ftbultimine`), so neither may be deleted here yet.
@@ -137,6 +139,13 @@ of the demolition yard's granite, fluix likewise (`separating_silicon`, `separat
 `separating_fluix`), and Sky Stone Shards ride the slag rubble stream. Manufacture rather than a drop
 because the owner puts a playthrough at 4 to 8 stacks each of certus and fluix, and only a machine
 produces at that scale.
+
+**Those four STAY: they are engine content** (owner ruling 2026-09-08, on #420). `trashlands#46` is
+titled for both halves, but only the presses and the lang key move. The sourcing recipes are
+`recompile:separating` recipes (plus one grid recipe) on this mod's own machines and feedstocks, and
+they are what made the no-meteorites ruling below affordable, so deleting them would reopen that
+ruling. Do not sweep them across because they mention another mod. The `ae2` block in
+`neoforge.mods.toml` stays with them, because they still name `ae2:` ids.
 
 **No meteorites, and that ruling stands.** Meteorites gate on `#minecraft:is_overworld` and this mod
 ships **no entry for it, by owner ruling 2026-08-20**. Adding the tag would fix AE2 and every other mod

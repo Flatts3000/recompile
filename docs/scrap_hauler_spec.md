@@ -1,9 +1,15 @@
 # The Scrap Hauler - automated gathering, and this mod's quarry
 
-**Status: BUILT 2026-09-05, on the branch for #376.** Owner rulings are numbered and dated in
+**Status: SHIPPED in v0.19.0 (#377, for #376).** Owner rulings are numbered and dated in
 section 3; everything else is derivation and is arguable. Section 12 records what the build decided
 where this document had left a choice open, and each of those is the assistant's call rather than the
 owner's.
+
+**P3.10 (v0.20.0) changed the route to the sheets** (sections 7 and 12). Teardown teaches nothing
+since #390, so the Broken Hauler now yields its signature component, a Solar Panel, plus scrap; the
+Scrap Hauler and Hauler Depot Blueprints are bought at the Buy Terminal, both at freight tier 8
+(`market_offer_scrap_hauler.json` 2,200 scrip, `market_offer_hauler_depot.json` 1,800). Ruling 12
+(both blueprint-gated) still holds.
 
 **The one-line version:** a **Hauler Depot** block holds a **Scrap Hauler** item, deploys it as an
 entity that gathers whole garbage blocks from a square of chunks around the Depot, and receives what it brings
@@ -173,9 +179,10 @@ strand itself needs retrieval that always works, and walking home is exactly wha
 **Both blueprint-gated (ruling 12), so both need a route.**
 `every_shipped_blueprint_has_a_name_a_recipe_and_a_route` requires a teardown teacher **or** a market
 offer per sheet. **The answer the market already used: a single Broken Hauler find in Bulky Waste
-teaching both sets**, exactly as `broken_terminal` does. That is one line in
-`loot_table/blocks/bulky_waste.json`, a weight in `bulky_spine` (currently 7 members, weight 15), and
-one teardown recipe.
+teaching both sets**, exactly as `broken_terminal` did. That was one weight in
+`loot_table/gameplay/bulky_spine.json` (7 members, weight 15 before it; 8 and 16 after) and one
+teardown recipe. *(Since P3.10 the route is the market instead: both sheets are tier-8 offers and the
+teardown teaches nothing; see the status note at the top.)*
 
 **No region gating (ruling 20), and it holds up because the Depot is a fixed installation.** A tier
 gate matters on a handheld vacuum, because otherwise you strip the radioactive dump from your
@@ -204,8 +211,9 @@ slot**, a **large bulk inventory**, and an **FE gauge**. Vanilla has no screen s
 
 Consequences that are part of the work:
 
-- **CLAUDE.md's screen count goes ten to eleven.** That count has already been wrong three times, twice
-  found by a SCRUB rather than by the person adding a screen.
+- **The screen count goes ten to eleven.** That count has already been wrong three times, twice
+  found by a SCRUB rather than by the person adding a screen. (It lived in CLAUDE.md then; the
+  per-screen record is now `docs/gui_notes.md`, and the set is derived from `client/*Screen.java`.)
 - It runs on the GUI framework like the other ten: a `ScreenLayout` in **common** code with no
   `net.minecraft.client` imports, a `static final LAYOUT` computable before the screen exists that
   must not transitively touch a registry-backed class at class-init, and no `blit`, `RenderPipelines`
@@ -214,7 +222,9 @@ Consequences that are part of the work:
 - **The FE gauge puts this block in range of #369.** Every value a menu syncs travels through
   `ClientboundContainerSetDataPacket`, which writes a **short**: past 32,767 it reaches the screen
   wrapped negative, past 65,535 truncated, silently. Use the split-slot helper from day one
-  (`content/menu/BalanceSync`, arithmetic on `Market` so a JUnit test can drive it with no world).
+  (`content/menu/WideSync`, which the market's `BalanceSync` is built on, so a JUnit test can drive
+  it with no world). *(As built, both capacities were kept under 32,767 and each travels in one slot
+  instead; see section 12.)*
   The deployed flag is a boolean and is nowhere near the ceiling.
 
 ## 9. Presentation
@@ -324,15 +334,16 @@ untouched; nothing below reverses one, and the one place the build reads a rulin
 | Being buried by its own work | `ScrapHaulerEntity.unstick`: if the cell it occupies has become solid, it teleports to the first non-solid cell in the eight above and stops navigating | Taking the foot of a stack collapses it (`taking_the_foot_of_a_stack_lets_it_collapse`), and a landed garbage block cannot hurt this machine but can entomb it |
 | Section 11, the intake cadence | One block per **4 ticks** while in reach (`INTAKE_PERIOD_TICKS`, read off `GarbageVacuumItem` so the two machines take at one speed) | The first build took a block every tick it stood inside a cluster: twenty a second, a full hold in three, and a trail of flying blocks it had outrun. That is both the wrong look and a rate no balance pass could reason about; the vacuum's own cadence is the honest first-pass number |
 | Section 11, the numbers (first pass, #36) | Cargo **64** (`CARGO_CAPACITY`); work area a **chunk radius set on the Depot**, default **1** (3x3 chunks), config ceiling **2** (5x5, `haulerMaxChunkRadius`, up to 8), piles within **24** blocks vertically of the Depot (`VERTICAL_REACH`); reach **2.6** blocks; solar **2 FE/tick** (`SOLAR_PER_TICK`, one Solar Panel's output); Hauler charge **16,000 FE** (`ScrapHaulerItem.CAPACITY`, the diamond vacuum's); Depot buffer **20,000 FE**; **27** hold slots plus the Hauler slot; **200 FE/tick** docked transfer; parks below `VacuumTier.costFor(4)` = **40 FE** and resumes at **1,600** (a tenth of capacity); idle rescan every **40** ticks; step height **1.0**, movement speed **0.28**, follow range **48**; a block costs what the vacuum charges for it (`VacuumTier.costFor(sortRolls)`) | Sized so one Hauler feeds roughly one Trommel (ruling 29). Both capacities sit under 32,767 on purpose, since the Depot's screen syncs each through one menu data slot, and `ScrapHaulerSyncTest` (JUnit) fails the build if either is raised past the wire ceiling |
-| Section 7, the route to the sheets | `broken_hauler`, a plain item, weight **1** in `gameplay/bulky_spine` (now 8 spine finds, total weight 16). Its teardown (`recipe/broken_hauler.json`, prybar, 120 ticks) draws four times from scrap metal, e-scrap, rubber and plastic with no filler, and `teaches` **both** `recompile:scrap_hauler` and `recompile:hauler_depot` at 4 scraps each | The Broken Terminal's shape exactly: one find, two sheets. No component in the pool, per that recipe's rule that the thing yielding a component should be the thing teaching it |
-| Rulings 28, 33 and 34, the sounds | `RCSounds` registers four events, `entity.scrap_hauler.{idle,pickup,deploy,recall}`, the mod's first, and all four are backed by real `.ogg` files **synthesised by `sfxgen`** from the `cheerful` voice in `sfxgen.toml` (ruling 35; they were the vacuum's `heavy` for a day). The idle is a 1.6 s seamless loop; pickup, deploy and recall are layered one-shots, the last two built from the same three parts run in opposite directions so the pair reads as one mechanism | **Sourcing was reversed on licensing** (owner, same day): MIT plus a jar anyone can unzip means the licence grants redistribution that ElevenLabs' policy 9(c) forbids for sound-effect output. Synthesis also loops by construction and keeps the Hauler and the Vacuum on one voice. Three traps were paid for on the way, all silent: a bare vanilla FILE path does not resolve from a mod's `sounds.json` (the first build logged `Missing sound for event` for all four) where an event redirect does; a `_comment` key is deserialised AS a sound entry and takes the whole file down (`Invalid sounds.json in resourcepack`), so that file carries no comment; and Vorbis' edge reconstruction error lands exactly on a loop point, so loops encode at q8 rather than q6 |
+| Section 7, the route to the sheets | `broken_hauler`, a plain item, weight **1** in `gameplay/bulky_spine` (now 8 spine finds, total weight 16). Its teardown (`recipe/broken_hauler.json`, prybar, 120 ticks) draws four times from scrap metal, e-scrap, rubber and plastic with no filler. As first built it `teaches` **both** `recompile:scrap_hauler` and `recompile:hauler_depot` at 4 scraps each. **Since P3.10 (#397) it teaches nothing and returns a guaranteed Solar Panel** in `results`, and both sheets are tier-8 market offers | The Broken Terminal's shape exactly, as first built: one find, two sheets. The Solar Panel is its signature component under P3.10: a dead Hauler is a solar machine |
+| Rulings 28, 33 and 34, the sounds | `RCSounds` registers four events, `entity.scrap_hauler.{idle,pickup,deploy,recall}`, the mod's first, and all four are backed by real `.ogg` files **synthesised by `sfxgen`** from the `cheerful` voice in `sfxgen.toml` (ruling 35; they were the vacuum's `heavy` for a day). The idle is a 1.6 s seamless loop; pickup, deploy and recall are layered one-shots, the last two built from the same three parts run in opposite directions so the pair reads as one mechanism | **Sourcing was reversed on licensing** (owner, same day): MIT plus a jar anyone can unzip means the licence grants redistribution that ElevenLabs' policy 9(c) forbids for sound-effect output. Synthesis also loops by construction, and a declared voice keeps one machine's sounds consistent (the Hauler and the Vacuum shared one voice for a day, until ruling 35 split them). Three traps were paid for on the way, all silent: a bare vanilla FILE path does not resolve from a mod's `sounds.json` (the first build logged `Missing sound for event` for all four) where an event redirect does; a `_comment` key is deserialised AS a sound entry and takes the whole file down (`Invalid sounds.json in resourcepack`), so that file carries no comment; and Vorbis' edge reconstruction error lands exactly on a loop point, so loops encode at q8 rather than q6 |
 | Ruling 35, the cute voice | Three of the four are `chirp`, an `sfxgen` primitive whose content is a pitch CONTOUR interpolated in log frequency; only the idle is still a loop, on a small warm `cheerful` voice. The Garbage Vacuum keeps `heavy` | The first pass gave the robot the vacuum's voice and it sounded like the machine that digs. Cute is not that voice raised: what separates machinery from a small creature is INFLECTION, so pickup blips up and settles under the peak, deploy keeps climbing over a mechanical latch, and recall is that figure inverted onto a soft latch. Log frequency because pitch is heard geometrically - a straight line in hertz audibly slows as it climbs, which reads as running out of puff. Deliberately NOT formant synthesis from vowel tables, which builds one specific fictional robot rather than a character |
 | Ruling 28, the idle actually playing | `ScrapHaulerEntity.idleHum` plays `HAULER_IDLE` every `IDLE_SOUND_TICKS` (32) while the Hauler is not parked or waiting | **The event was registered, documented as "looped while it works", and played by nothing at all** - found while wiring the real audio, not by any test, because no test can hear. The cadence is 32 ticks because that is exactly the clip's 1.6 s length, so consecutive one-shots butt together into one unbroken hum; a synthesised file can be made both seamless and a whole number of ticks long, which a sourced one cannot easily be. It is gated on mode so a Depot with a parked Hauler on it is silent - a machine humming forever beside a bed is a bug report |
-| Section 9, the textures | Four texgen surfaces, all promoted and all **pending owner approval** (none is in `gen/approved.json`): `hauler_depot` (block, top/bottom/side), `scrap_hauler` (item), `broken_hauler` (item, `reference = "scrap_hauler"` so the two read as one object in two states), `scrap_hauler_skin` (entity) | `select` by the owner is approval, and none has been issued. All four ship as candidates in the meantime, which is the `mound_ground` situation this repo has already recorded once |
+| Section 9, the textures | Four texgen surfaces, all promoted: `hauler_depot` (block, top/bottom/side), `scrap_hauler` (item), `broken_hauler` (item, `reference = "scrap_hauler"` so the two read as one object in two states), `scrap_hauler_skin` (entity). They were **pending owner approval** at build time; all four are in `gen/approved.json` now | `select` by the owner is approval. All four shipped as candidates before it was issued, which is the `mound_ground` situation this repo has already recorded once |
 | Section 9, the ordering constraint on the skin | The entity skin is **procedural**: a new `hauler_skin` style in texgen's procedural backend (`../mc-pack-toolkit/texgen/texgen/backends/procedural.py`) paints the 64x64 atlas from the exact box layout `ScrapHaulerModel` declares (hull, head, arm, two treads) | This is the first entity here whose UV layout was not fixed by a vanilla model, so an AI generator would be painting blind into a layout it knows nothing about. The spec's fallback ("draw it procedurally, as the Puzzle Cube stickers are") became the primary route |
 | Section 9, the silhouette | **0 ships** (owner, 2026-09-05). Candidates were selected at launch with `-Drecompile.hauler.silhouette=N` while the review was open; that knob is REMOVED now the pick is made, and `createBodyLayer(int)` keeps all three because every candidate holds the same box dimensions and differs only in where the parts sit | A model cannot go on the texture review page; what it can do is be photographed in a dev client, which is what settled it. Same box sizes is what keeps the UV contract true for every candidate, and it is why the two that lost cost nothing to keep as the record of what was considered. A system property that changes a shipped model is one a player can set by accident |
 | Section 8, the screen | `HaulerDepotMenu.LAYOUT` is 176x206: a header band with the Hauler slot, the Deploy/Recall button, a status line and a vertical FE gauge, then the hold as a chest's 9x3, then the player inventory. `quickMoveStack` checks `slot.mayPickup` explicitly | Vanilla's shift-click path never consults a slot's pickup guard, so the second conservation row lives there; `the_hauler_cannot_be_shift_clicked_out_while_deployed` pins it |
 | Section 11, the automation policy row | Written: `docs/automation_policy_spec.md` has a Hauler Depot row, and says in prose that the entity itself exposes nothing to automation | The row shape did not need to change. The Hauler is a mobile collector, but its only automation surface is its Depot |
 
-Eighteen GameTests in `ScrapHaulerTests` and three JUnit tests in `ScrapHaulerSyncTest` cover the
-above; the GameTest names are the invariant table in executable form.
+Eighteen GameTests in `ScrapHaulerTests` (28 as of 2026-09-10; count them there rather than here) and
+three JUnit tests in `ScrapHaulerSyncTest` covered the above at build time; the GameTest names are the
+invariant table in executable form.

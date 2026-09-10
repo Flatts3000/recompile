@@ -13,8 +13,10 @@ settles onto the quiet, livable land while you are not watching. The bait is con
 yours; **vanilla breeding takes over** from there. Baits only *seed* the population.
 
 **This is not a machine** (no GUI, no BlockEntity for a screen) - it is the one rung that is an item +
-a placed block, which is the right shape for "wildlife wanders in" and keeps the mod's one-custom-screen
-budget intact (spent on the Tree Nursery).
+a placed block, which is the right shape for "wildlife wanders in" and adds no custom screen. (This read
+"keeps the mod's one-custom-screen budget intact (spent on the Tree Nursery)", which was already off by
+one when written and is far off now: every custom screen is a recorded exception, listed in
+`docs/gui_notes.md`, and the set is derived from `client/*Screen.java` rather than from a count.)
 
 ## The three baits
 
@@ -40,7 +42,10 @@ Place a bait on **grass**, and on a self-scheduled tick it checks, in order:
 1. **Still on grass?** If the block beneath is not grass, it is inert (no settling).
 2. **Any player within `baitPlayerRadius`?** If so, **settling resets to 0** - wildlife will not come
    while watched. (Mechanic 4, the undisturbed timer.)
-3. **Another bait within `baitSpacing`?** If so, inert - baits do not stack up a spot.
+3. **Another bait within `baitSpacing`?** If so, it holds rather than settles - baits do not stack up a
+   spot. *As shipped it yields only to a bait that sorts earlier by position, so in any cluster exactly
+   one bait settles and the next takes over when it fires; "every bait in range is inert" would deadlock
+   a cluster forever (`AnimalBaitBlock.baitNear`, pinned by `animal_bait_spacing_resolves_a_cluster`).*
 4. Otherwise **settle**: advance a coarse `settle` progress. When it reaches full, **fire**.
 
 On firing: pick a mob (below), spawn it on the bait's block via vanilla `finalizeSpawn` (so it gets the
@@ -57,6 +62,10 @@ land actually is, so the animal reflects the ground you built:
 - **sand / badlands** nearby -> rabbit, camel weighted up
 - **trees / leaves** overhead -> fox (carnivore), parrot (omnivore) weighted up
 - **water** in range -> a small general bonus (livable land)
+
+*As shipped, `AnimalBaitBlock.scan` reads one dominant terrain - grass, sand or leaves - over a 9x9
+area, and a mob whose data-map `terrain` matches it gets a flat +5 on top of its base weight. There is
+no water bonus.*
 
 Weights are a data table (blocks -> per-mob nudges), tunable. A bare grass tile still yields the
 grazers; a richer patch yields more variety. No hard success gate (mechanic 2 was **not** taken) - the
@@ -77,7 +86,9 @@ early-animal** economy, closing the ladder loop (grass -> veg -> trees -> farm -
 
 A **Rich** grade of each bait (a costlier recipe) seeds a **bonded pair** - a mother + baby, or two
 adults - instead of a lone adult, so the player is not stranded with one un-breedable animal. Basic
-bait = one; Rich bait = a pair. (Open: 3 baits + 3 rich = 6 items, vs a single data-driven "rich" flag.)
+bait = one; Rich bait = a pair. (Settled: six items - three diets, each with a `rich_` twin - placing
+one `animal_bait` block that carries a `rich` blockstate. The pair is an adult plus a baby, for any
+`AgeableMob`.)
 
 ### 10 - Feedback (so the mechanic is learnable)
 
@@ -110,6 +121,11 @@ This mirrors `MachineStatusProvider`'s "name the one thing the player can act on
 **data provider** sends the settle ticks + the environment read; a **client component** renders the
 line. Same two-class split as the Compost Heap / Tree Nursery.
 
+*As shipped, `compat/jade/AnimalBaitProvider` is ONE client-side class with no server data provider,
+because every gate reads from the blockstate and the world. It lists every blocker at once rather than
+only the first, and it renders no `Expecting` line: the lang key `jade.recompile.bait_expecting` exists
+and nothing uses it.*
+
 ## Architecture
 
 - **No BlockEntity.** The only state is the settle progress, which is a coarse `settle` IntegerProperty
@@ -130,9 +146,10 @@ line. Same two-class split as the Compost Heap / Tree Nursery.
 ## Config (`RCConfig`, `reclamation`)
 
 - `animalBaitEnabled`
-- `baitSettleTicks` - undisturbed time before firing (minutes, treasure-grade like the nursery)
-- `baitPlayerRadius` - how near a player holds/resets settling
-- `baitSpacing` - minimum distance between working baits
+- `animalBaitSettleIntervalTicks` - ticks per settle stage; a bait fires after 7 undisturbed stages
+  (default 300, about 1.75 minutes in all)
+- `animalBaitPlayerRadius` - how near a player holds/resets settling (default 16)
+- `animalBaitSpacing` - minimum distance between working baits (default 8)
 - All first-pass; balance pass (#36) tunes them. The *undisturbed + slow* intent is design, not placeholder.
 
 ## Data surface
@@ -145,7 +162,10 @@ line. Same two-class split as the Compost Heap / Tree Nursery.
 
 ## Tests (GameTest) - `gametest/AnimalBaitTests.java`
 
-Driven through a static entry point (`settleOnce` / `tryFire`), per the `sortOnce` convention:
+Driven through a static entry point, per the `sortOnce` convention. *Shipped: `settleOnce` is the one
+entry point (firing is private to it), and the file holds nine tests: six behaviour tests covering plan
+items 1-5 and 7, plus three over the `bait_weight` data map that stand in for item 6. Item 8 has no
+separate test.* The plan:
 
 1. On grass, undisturbed, past `settleTicks` -> spawns exactly one mob from the diet tag; bait removed.
 2. A player within `baitPlayerRadius` -> settling resets, nothing spawns.

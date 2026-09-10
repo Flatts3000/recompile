@@ -48,7 +48,7 @@ auto-assemble, and the facing machinery are all gone.
   block to the tag without a mod release.
 
   *(This read "**Scrap Bin, Scrap Barrel, Sorting Tarp, Recompile Workbench, Burn Barrel, Scrap
-  Crafting Table**. All six conduct" - the original six, unchanged since 2026-07-24. CLAUDE.md carries
+  Crafting Table**. All six conduct" - the original six, unchanged since 2026-07-24. CLAUDE.md carried
   a long parenthetical about this exact list going stale five separate times, each caught by review
   rather than by the person editing the tag; **this spec was never included in any of those five
   fixes**, so the canonical page stayed a release behind the summary page that was correcting itself.
@@ -66,8 +66,9 @@ auto-assemble, and the facing machinery are all gone.
 - `collect(Level, BlockPos start)` - bounded BFS over `#scrap_connectable`, returns the connected
   member positions.
 - `insertFromMember(Level, BlockPos member, ItemStack, boolean autoBind)` - the one entry point every
-  producer calls. Route order: a bin already **bound** to the item first; then, only if `autoBind`, an
-  **empty** bin that binds to it; then the **Scrap Barrel**. Mutates the stack, returns the remainder
+  producer calls. Route order: a **Freight Terminal** first, but only for what the current freight
+  phase is still waiting on (see "The third sink" below); then a bin already **bound** to the item;
+  then, only if `autoBind`, an **empty** bin that binds to it; then the **Scrap Barrel**. Mutates the stack, returns the remainder
   (unchanged if there is no network or no storage - the caller then does its standalone thing).
   `autoBind` is `true` in exactly **two** production callers - the Tarp's file-all
   (`SortingTarpBlock.fileAllIntoNetwork`) and the Scrap Crafting Table's
@@ -77,12 +78,14 @@ auto-assemble, and the facing machinery are all gone.
   `insertFromMember(` and read the last argument rather than trusting either sentence.)*
 - `reachesStorage(Level, BlockPos)` - does the cluster contain any sink; gates the file-all.
 
-**Only three of the fifteen placeable member types are sinks:** a Scrap Bin (`ScrapBinBlockEntity`), and
-the Scrap Barrel (its `Container`, **matched by block id**). The Burn Barrel conducts but is
+**Only three of the fifteen placeable member types are sinks:** a Scrap Bin (`ScrapBinBlockEntity`),
+the Scrap Barrel (its `Container`, **matched by block id**), and the Freight Terminal (conditional,
+see "The third sink" below). The Burn Barrel conducts but is
 deliberately never a sink - it is a furnace `WorldlyContainer`, and routing must not land in its smelt
 slots; the same reasoning covers the Cupola Furnace, the Slag Furnace and the Sintering Kiln, which are
-furnaces too. The sorter, workbench, crafting table, Filing Cabinet and the three conveyor machines are
-conductors, never sinks.
+furnaces too. The sorter, workbench, crafting table, Filing Cabinet, Hauler Depot and the three
+conveyor machines are conductors, never sinks; the Hauler Depot is a **source**, pushing its hold into
+the cluster one slot per tick.
 
 ## Cross-functional behavior - what flows where
 
@@ -131,10 +134,13 @@ GameTested (adjacency clusters fit the `empty_5x5x5` plot, which the old 6-wide 
 
 The held-item footprint preview the workstation introduced is **kept**, but since the network is no
 longer a multiblock it moves onto the real multiblock cores. `MultiblockPlacementPreview` (client-only)
-triggers for **any held `BlockItem` whose block is a `MultiblockCoreBlock`** - Rain Collector, Grass
-Spreader, and any future one - and dusts each blueprint cell at the aimed position: **green** where
+triggers for **any held `BlockItem` whose block is a `MultiblockCoreBlock`** - all seven of today's
+cores, and any future one - and dusts each blueprint cell at the aimed position: **green** where
 clear, **red** where blocked. It reads the core's blueprint (the multiblock system's single source of
-truth) and renders at `Rotation.NONE` (the shipped cores are vertical columns). Particles, not a
+truth) and rotates the footprint to the facing the core would take on placement
+(`MultiblockCoreBlock#placementRotation`), so a facing machine previews where it will actually form.
+*(This said it rendered at `Rotation.NONE` because the shipped cores were vertical columns, which held
+only while the Rain Collector and Grass Spreader were the only cores.)* Particles, not a
 render-pipeline overlay - 26.1's `RenderLevelStageEvent` lost the camera / partial-tick hooks a
 world-space outline needs.
 

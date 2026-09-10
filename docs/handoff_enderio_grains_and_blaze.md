@@ -2,7 +2,8 @@
 
 **Analysed against:** Recompile at v0.14.0+, Ender IO `9.0.5-alpha` (the jar the pack pins), MC 26.1.2 /
 NeoForge 26.1.2.76.
-**Status:** shipped 2026-08-21 across #279 and #281.
+**Status:** shipped 2026-08-21 across #279 and #281, and still in this repo as of 2026-09-10: the pack
+has not taken it back yet (`trashlands#52` open, and `pack/kubejs/data/` holds no `enderio` folder).
 **Move-back tracker:** `Flatts3000/trashlands#52`, alongside `#46` (AE2) and `#47` (Simple Magnets).
 
 ## Why this is in the engine at all
@@ -37,8 +38,12 @@ redstone alloy, grains of infinity, capacitors, conduits, Alloy Smelter, SAG Mil
 before any of this landed. **Ender IO also makes its own silicon** by SAG-milling sand, so it does not
 depend on AE2 for `#c:silicon`.
 
-**Two genuine gaps remain and are not addressed here**: `prismarine_shard` and `wind_charge` have no
-route in this world, which blocks Cloud Seed and its concentrate. Tracked in #278.
+**Two genuine gaps remained at the audit, and neither was addressed here**: `prismarine_shard` and
+`wind_charge` had no route in this world, which blocked Cloud Seed and its concentrate. Both have one
+now, from engine work rather than from this handoff: the Sintering Kiln fires the only Breeze Rod in
+the game (`breeze_rod_from_briquette.json`, #278, closed 2026-08-21), which crafts into wind charges,
+and prismarine shards come from the Municipal Aquarium's guardian and from Prismarine Grit at the
+Separator (`separating_prismarine.json`, v0.18.0).
 
 ## What ships, and what removing it means
 

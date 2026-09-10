@@ -1,7 +1,6 @@
 # Recompile - implementation roadmap
 
-**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether shipped 2026-08-19** (pulled forward - see that phase). **v0.20.0 is released** (2026-09-07, the **freight ladder** - a Freight Terminal, eight delivery phases, and the tier they set is what the Buy Terminal will sell against - plus the spine change beneath it: **teardown no longer teaches**, every Blueprint is bought, and what teardown yields instead is FUNCTION, the signature component an object IS. The **Motor** is salvage or nothing, and a **terminal is repaired from a Broken Terminal** rather than built; v0.19.0 2026-09-05, the **Scrap Hauler**, the **market**'s two terminals and its company scrip, and **Sledgehammer combat**; v0.18.0 2026-09-04 the **Municipal Aquarium** and **tire dumps** - the only prismarine, coral, sponge, sea lantern and guardian in the game, the only rubber, and the Dried Bouquet that brings back the four tall flowers; v0.17.0 2026-09-03 the Garbage Vacuum, its Charging Station and the battery chain - see "The powered-tool tier" below; v0.16.0 2026-08-31 two landmark structures and cardboard; v0.15.0 2026-08-30 spawn eggs via amber and the Sequencer, the radioactive dump as the second frontier region, and AE2 made playable; v0.14.0 2026-08-21 Ancient Sculk, the two cross-mod stopgaps and the recipe-collision fix; v0.13.0 2026-08-20 brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 2026-08-18 the sewers, v0.10.0 2026-08-17, v0.9.0 2026-08-12, v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27). **Phase 6 (the full loop) is what remains.**
-the latter as the CurseForge ModJam 2026 entry). The mod is a
+**Status:** Phases 0 through 2.17 shipped to `main`, **Phase 3 shipped 2026-08-02**, **Phase 4's region system and its first frontier region shipped**, **Phase 5 (mound regrowth) shipped 2026-08-05**, and **Phase 7's themed Nether shipped 2026-08-19** (pulled forward - see that phase). **v0.20.0 is released** (2026-09-07, the **freight ladder** - a Freight Terminal, eight delivery phases, and the tier they set is what the Buy Terminal will sell against - plus the spine change beneath it: **teardown no longer teaches**, every Blueprint but a creature's is bought, and what teardown yields instead is FUNCTION, the signature component an object IS. The **Motor** is salvage or nothing, and a **terminal is repaired from a Broken Terminal** rather than built; v0.19.0 2026-09-05, the **Scrap Hauler**, the **market**'s two terminals and its company scrip, and **Sledgehammer combat**; v0.18.0 2026-09-04 the **Municipal Aquarium** and **tire dumps** - the only prismarine, coral, sponge, sea lantern and guardian in the game, the only rubber, and the Dried Bouquet that brings back the four tall flowers; v0.17.0 2026-09-03 the Garbage Vacuum, its Charging Station and the battery chain - see "The powered-tool tier" below; v0.16.0 2026-08-31 two landmark structures and cardboard; v0.15.0 2026-08-30 spawn eggs via amber and the Sequencer, the radioactive dump as the second frontier region, and AE2 made playable; v0.14.0 2026-08-21 Ancient Sculk, the two cross-mod stopgaps and the recipe-collision fix; v0.13.0 2026-08-20 brewing, netherite and emeralds; v0.12.0 2026-08-19 the compacted depths, v0.11.0 2026-08-18 the sewers, v0.10.0 2026-08-17, v0.9.0 2026-08-12, v0.8.0 2026-08-11, v0.7.0 2026-08-05, v0.6.0 2026-08-04, v0.5.0 2026-08-02, v0.4.0 2026-08-01, v0.3.0 2026-07-30, v0.1.0 and v0.2.0 2026-07-27). **Phase 6 (the full loop) is what remains.** Recompile is the CurseForge ModJam 2026 entry. The mod is a
 playable alpha, tuned against real play. The **reclamation ladder is complete end to end** - Grass,
 Vegetation, Farming, Trees, Animals (rungs 1-5), so the grey-to-living arc the ModJam entry is built
 around now plays through. Recent tiers: the **multiblock framework + Rain Collector** (2.11),
@@ -9,7 +8,7 @@ around now plays through. Recent tiers: the **multiblock framework + Rain Collec
 (2.15, the Puzzle Cube + ported voxel curios on Display Pedestals), the **Tree Nursery** (2.16, rung 4),
 and **animal baits** (2.17, rung 5). Phase 3's **materials teardown** (the
 Recompile Workbench) shipped 2026-07-16; its **knowledge/function axis was decided on 2026-08-01 as
-knowledge**, built as Blueprint items (see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
+knowledge**, built as Blueprint items, and **reversed to function on 2026-09-06** (P3.10, see Phase 3). Its data spine (`recompile:teardown`) has been registered since Phase 0. Phases
 are ordered by
 **gameplay discovery** - the sequence a player actually lives, so each phase delivers a
 coherent playable increment. The locked feature design is the source of truth in the
@@ -39,8 +38,8 @@ config fallbacks.
 
 **Organizing principle - discovery order:** build in the order the player encounters things.
 The garbage world comes first (you spawn in it), then the early hand loop, then the tools and
-sorting that loop demands, and only then teardown-as-knowledge - the mod's distinct axis, which
-is the *payoff* of the early loop, not its entry (its on-ramp is the prybar + Bulky Waste). A
+sorting that loop demands, and only then teardown - the mod's distinct axis (knowledge when this was
+written, function since P3.10), which is the *payoff* of the early loop, not its entry (its on-ramp is the prybar + Bulky Waste). A
 few systems (dimension lockout, the knowledge system's risky internals) are pulled earlier than
 their discovery slot for a concrete reason, called out where they occur.
 
@@ -69,8 +68,8 @@ The go/no-go slice - spawn, dig, sort, get materials, in a world that reads as a
 **JEI + Jade plugins shipped (2026-07-16).** The custom mechanics that are not vanilla recipes
 now surface in-viewer: JEI **Sorting / Cutting / Prying** categories + the Scrap Crafting Table
 as the crafting station; Jade tool hints + sort progress. Reads bundled pull-table JSON
-(loot tables are not client-synced). **Teardown JEI stays a Phase 3 item** (the locked-recipe
-overlay). See CLAUDE.md "JEI / Jade integration".
+(loot tables are not client-synced). Teardown got its own JEI category when Phase 3 shipped. See
+[`data_and_api_notes.md`](data_and_api_notes.md#jei--jade-integration-compat).
 
 ---
 
@@ -115,14 +114,18 @@ be stranded where it generated), Bulky Waste is pried out. No bare-hand action m
 Pulled in ahead of Phase 3: Minecraft ships a hunger bar, so a playable alpha needs an answer
 before the knowledge system, and this is not a survival-pressure pack (no thirst, no grind).
 
-- **Creature-free starting biome, on purpose** - a silent plain sells the dead world and makes
-  the reclamation payoff land. So food is forage + scavenge, never hunting.
+- **Nothing to hunt in the starting biome, on purpose** - a silent plain sells the dead world and
+  makes the reclamation payoff land. Its `monster` list is empty, and the creatures it does spawn
+  (cat, wolf and pigeon, added by #133) yield no meat. So food is forage + scavenge, never hunting.
 - **Tin cans (scavenge):** drop from the pull tables, sealed -> opened with the scrap knife,
   and eating one rolls a random effect. Suspicious Stew's risk, moved onto the dump's food.
 - **Dump mushrooms (forage):** a first-party edible growing on vanilla-mycelium patches between
   mounds. Vanilla mushrooms are left untouched.
 - **Deferred:** the scrap planter + muck compost (waits on Phase 3 so its knowledge gating is
-  real), and roaches / infested blocks.
+  real), and roaches / infested blocks. *Since then:* composting arrived as the Compost Heap (Phase
+  2.13), the roach shipped as a mob that scuttles out of disturbed garbage (#78,
+  [`roach_spec.md`](roach_spec.md)), and the scrap planter is still parked (Phase 2.14). Infested
+  blocks were not built.
 
 ## Phase 2.6 - Building blocks, the shelter tier  *(DONE, design P1.11 shelter / P1.12)*
 
@@ -130,8 +133,8 @@ Pulled in ahead of Phase 3, like food: crude shelter is already free (the Block 
 buildable, P0.3), but stacking raw trash is not a home. This is the **deliberate** building
 tier - refine scrap into blocks you would *choose* to build with - and, just as importantly, a
 **material sink** for the bulk scrap the sort produces. Tier-0 and ungated (survival/shelter is
-free, tech is locked); crafted at the Scrap Crafting Table. Not defense - the starting biome is
-creature-free and nothing threatens builds; this is the WALL-E move of rebuilding from garbage.
+free, tech is locked); crafted at the Scrap Crafting Table. Not defense - the starting biome has no
+hostile spawns and nothing threatens builds; this is the WALL-E move of rebuilding from garbage.
 
 - **Five full-kit families** (block + slab + stairs + wall): Pressed Junk (the junk sink),
   Scrap Plating, Corrugated Metal (the shanty aesthetic), Plastic Panel, and **Cardboard** (v0.16.0,
@@ -147,13 +150,14 @@ creature-free and nothing threatens builds; this is the WALL-E move of rebuildin
 
 ## Phase 2.7 - Water, the Rain Collector  *(DONE, design P1.10)*
 
-This world has no water at all (sea level -64, `default_fluid: air`); only rain. The **Rain
-Collector** is the one source - a scrap frame + tarp (1x2x1) that fills a **real water tank**
+This world has no water at all (sea level -64, `default_fluid: air`); only rain. *(True when this
+shipped. Since v0.18.0 the Municipal Aquarium's guardian tank is the one body of generated water.)* The
+**Rain Collector** is the one source - a scrap frame + tarp (1x2x1) that fills a **real water tank**
 from rain, dispenses water bottles to a glass bottle, and moves water through pipes/buckets like
 any tank. The mod's first fluids, on 26.1's new transfer/`ResourceHandler` API (the second
 BlockEntity, after the Scrap Barrel). **Owner override of P1.10 #5:** shipped standalone rather
-than gated on a consumer; washing-salvage decoupled to a later tier. See CLAUDE.md for the
-26.1 fluid-API delta.
+than gated on a consumer; washing-salvage decoupled to a later tier. See
+[`data_and_api_notes.md`](data_and_api_notes.md#261-api-deltas-that-bite) for the 26.1 fluid-API delta.
 
 ## Phase 2.8 - Lighting  *(DONE, design P1.4-A)*
 
@@ -259,14 +263,16 @@ self-rescheduling block tick, which survives save/load with nothing serialised.
 encroachment erodes, so the constraint is **area, not attrition** - a spreader holds exactly as much
 land as it can reach, and no more.
 
-**The Pump is teardown-only**, out of a **Washing Machine** found in Bulky Waste, so rung 1 sits
-behind the teardown spine and a find. The washing machine is placeable and carries its own four-face
-art. Supply analysis: [`pump_sourcing.md`](pump_sourcing.md).
+**The Pump was teardown-only when this shipped**, out of a **Washing Machine** found in Bulky Waste, so
+rung 1 sat behind the teardown spine and a find. The washing machine is placeable and carries its own
+four-face art. Supply analysis: [`pump_sourcing.md`](pump_sourcing.md). *Since P3.10 the Pump has two
+routes: salvaged from a Broken Hydroponics Bay or a fridge, or built from a Blueprint bought at freight
+tier 3 (`market_offer_pump.json`). A Washing Machine yields a Motor now.*
 
 **Design note (settled):** the Water Tank is craftable from raw materials, so a spreader does not
 require a Rain Collector anywhere in its chain. The two are deliberately siblings built from the
 same tank, not an ordered chain - P2.4-R3 item 8's "no collector, no spreader" is retired, not a gap.
-Rung 1's gate is the Pump (teardown-only, behind a find) and the multiblock build.
+Rung 1's gate is the Pump (a find or a tier-3 Blueprint) and the multiblock build.
 
 ## Phase 2.13 - Vegetation, reclamation rung 2  *(DONE 2026-07-26, design P2.4-R2)* (#25, #26)
 
@@ -299,13 +305,14 @@ as an alternate grower.
 ## Phase 2.15 - Collectibles  *(DONE 2026-07-26, design I-2)*
 
 Curios the player finds in the garbage and displays - the WALL-E hoard. Two acquisition shapes: the
-**Puzzle Cube** is *assembled* (nine found `puzzle_cube_piece` -> a solved/scrambled cube block, ~1/1000
-per pull for a piece, all nine in ~20h), and **ported voxel collectibles** are *found whole*. The latter
+**Puzzle Cube** is *assembled* (nine found `puzzle_cube_piece` -> a solved/scrambled cube block; 1 in
+120,000 per pull for a piece since the owner's 2026-08-11 retune made collectibles 120 times rarer), and
+**ported voxel collectibles** are *found whole*. The latter
 come from the **voxel-porter** (`../mc-pack-toolkit/voxel-porter`): it voxelizes an open-source CC0 model
 (mesh or `.vox`) to Minecraft's 16px grid, samples per-voxel colour, greedy-meshes it, and emits the block
 model + palette texture + data files. v1 ports four CC0 objects - **avocado, present, gold_coin, toy_car** -
-each a rare whole find (~1/4000 per pull in `household_pulls`/`bag_pulls`, a few times rarer than a cube
-piece) that displays on the **Display Pedestal** (a ProjectE-style plinth, the mod's one BlockEntityRenderer).
+each a rare whole find (1 in 480,000 per pull in `household_pulls`/`bag_pulls`, four times rarer than a
+cube piece; `FindRateTest` pins both rates) that displays on the **Display Pedestal** (a ProjectE-style plinth, the mod's one BlockEntityRenderer).
 An earlier hand-authored **era-artifact** set (obelisk/column/chalice/hourglass) read as museum decor and was
 dropped for ported real objects. Spec: [`collectibles_spec.md`](collectibles_spec.md).
 
@@ -328,8 +335,9 @@ because the blueprint puts a Solar Panel directly above the core. *(This read "F
 go in by hand, saplings come out by hand", which was true until #340 and which
 [`automation_policy_spec.md`](automation_policy_spec.md) already records correctly - a manual-only
 nursery made a tree farm impossible rather than merely hands-on, and a nursery is the only source of
-trees in this world.)* A **copper bucket** (copper, not iron - iron is
-scarce here) moves water into it. Spec: [`tree_nursery_spec.md`](tree_nursery_spec.md).
+trees in this world.)* A **bucket** moves water into it. It shipped as a copper-bucket recipe
+(copper, not iron - iron is scarce here); since P2.11 (#161) buckets are found rather than crafted,
+and `minecraft:bucket` is in `#recompile:found_only`. Spec: [`tree_nursery_spec.md`](tree_nursery_spec.md).
 
 ## Phase 2.17 - Animals, reclamation rung 5  *(DONE 2026-07-27, design P2.4)* (#41, #42)
 
@@ -362,7 +370,8 @@ this section is the 2026-08-02 design as built; the knowledge half of it is hist
 
 **What actually holds now:** teardown yields the signature working component an object is built
 around, Blueprints are bought at the Buy Terminal for scrip, and freight quotas are the tier gate.
-The `teaches` field is still parsed and **no shipped recipe uses it**.
+The `teaches` field is still parsed, **no shipped recipe uses it, and the Workbench no longer reads it**
+(#390).
 
 The old objections to gating are answered by **not gating vanilla crafting at all.** Knowledge is an
 **Immersive-Engineering-style Blueprint item** and blueprint-only recipes live on their own bench, so
@@ -430,12 +439,14 @@ it **visually distinct** (dark, saturated earth) so the player learns to read th
 this one comes back, which puts the quarry-vs-heal decision underfoot. Rung 1 converting mound bed
 to grass is what retires it forever.
 
-**Status: SHIPPED, and extended to three regions on 2026-09-08 (P1.6-R, #424).**
+**Status: SHIPPED, and extended to three regions on 2026-09-08 (P1.6-R, #424; on `main`, not yet in a
+release as of v0.20.0).**
 `RegrowingGroundBlock` carries the memory and the regrowth; `MoundGroundBlock`, `RubbleGroundBlock`
 and `StainedGroundBlock` are its subclasses, written by `MoundFeature`, `RubblePileFeature` and
 `TailingsHeapFeature`. Rate, on/off and drop height are config, and the same three keys now pace all
 three regions. Pre-existing saved worlds have no mound ground, so their
-mounds stay finite - accepted (owner, 2026-08-05).
+mounds stay finite - accepted (owner, 2026-08-05). The same holds for the frontier: a world generated
+before P1.6-R has no Rubble Ground and height-0 Stained Ground, so its yard and dump stay finite too.
 
 Three things in the plan above did not survive building it:
 
@@ -473,15 +484,17 @@ not silent about it.
 - **The Charging Station**, with no screen: set the vacuum down, pick it up, and Jade reports both
   gauges. It is deliberately NOT in the Scrap Network, because that tag routes items and power here
   moves by adjacency.
-- **The battery chain gates both.** The garbage gives you Depleted Batteries; four torn open teach the
-  blueprint; only then can a live Battery be made. Nothing in the world hands one over.
+- **The battery chain gates both.** The garbage gives you Depleted Batteries, and a live Battery is
+  only ever made, never found. Four torn open taught its Blueprint until P3.10; since then a Depleted
+  Battery tears down for scrap only and the Blueprint is bought at freight tier 2
+  (`market_offer_battery.json`).
 
-Spec: [`garbage_vacuum_spec.md`](garbage_vacuum_spec.md). Deferred from it: the upgrade matrix
-(filter / void / network link) as data components, tracked in #338.
+Spec: [`garbage_vacuum_spec.md`](garbage_vacuum_spec.md). The upgrade matrix it deferred (filter /
+void / network link as data components) was closed unbuilt by owner call on 2026-09-03 (#338).
 
 ---
 
-## The market  *(shipped to main 2026-09-04, unreleased, outside the phase order)*
+## The market  *(shipped in v0.19.0, 2026-09-05, outside the phase order)*
 
 Not a phase. A pair of workstations the owner called for (#311), recorded here because it added a
 **third way to hold a thing** and every rule in the mod above was written when there were two.
@@ -496,8 +509,8 @@ Not a phase. A pair of workstations the owner called for (#311), recorded here b
   screens. It was reversed because **no vanilla screen shows a price**: a chest screen would show the
   goods and hide the only number that matters.
 - **Found, built, and now purchased.** A `recompile:market_offer` line sells either `blueprint`
-  (KNOWLEDGE - the specced shortcut past the fragment grind, still wanting every material and the
-  bench) or `item` (THE THING, the only route in this mod by which an object enters the world without
+  (KNOWLEDGE - specced as a shortcut past the fragment grind, and since P3.10 the only route to every
+  Blueprint but a creature's; it still wants every material and the bench) or `item` (THE THING, the only route in this mod by which an object enters the world without
   being found, grown or built). Three ship on it, all chosen because
   `vanilla_resource_checklist.md` already listed them unreachable: a **Totem of Undying** and a
   **heavy core** outright, and a **Bucket of Powder Snow** as knowledge.
@@ -512,11 +525,40 @@ Not a phase. A pair of workstations the owner called for (#311), recorded here b
   in a comment. There is no plain recipe for any terminal either, so the entry to the economy is a
   thing you found and fixed rather than one you fabricated.
 
-Spec: [`market_spec.md`](market_spec.md), section 14 for the acquisition axis. Open from it: the
-scrip-vs-fragment ratio is still unsettled (section 12, question 4), and the balance's 16-bit sync
-ceiling turned up the same latent exposure in the Hydroponics Bay, tracked in #369. What is
+Spec: [`market_spec.md`](market_spec.md), section 14 for the acquisition axis. Its section 12
+question 4, the scrip-vs-fragment ratio, got a first-pass answer in section 13 and then went moot with
+P3.10, which left no fragment route for scrip to compete with. The balance's 16-bit sync ceiling
+turned up the same latent exposure in the Hydroponics Bay and the Tree Nursery, fixed in #369. What is
 deliberately unguarded and worth watching: a future sheet whose materials are all household-side
-would genuinely sell a region gate. The two that exist do not.
+would genuinely sell a region gate. The two sheets this was checked against (the Spawner Cage and the
+Netherite Pattern) do not; the counter carries ten blueprint lines now (`market_offer_*.json`) and the
+other eight have not been re-checked against it.
+
+---
+
+## The Scrap Hauler  *(shipped in v0.19.0, 2026-09-05, outside the phase order)*
+
+Not a phase. This mod's quarry (#376): a **Hauler Depot** deploys a **Scrap Hauler** that takes whole
+piles from a square of chunks around it (radius set in the Depot's screen) and brings them back to a
+27-slot hold, which pushes into the Scrap Network. Solar in the field, charged while docked, and it
+exists exactly once, as the item in the Depot or the machine in the field. Both Blueprints are sold at
+freight tier 8. Spec: [`scrap_hauler_spec.md`](scrap_hauler_spec.md); the build notes are in
+[`systems_notes.md`](systems_notes.md#the-scrap-hauler).
+
+## The freight ladder  *(shipped in v0.20.0, 2026-09-07, outside the phase order)*
+
+Not a phase. The tier gate P3.10 called for (#387, #388, #390, #391, #393), and now the progression spine.
+
+- A **Freight Terminal** takes delivery quotas: eight `recompile:freight_phase` recipes, two per region
+  from the sprawl to the depths, each asking for named goods rather than a scrip balance. Filling one
+  opens the next tier.
+- **The tier is what the Buy Terminal sells against.** A `market_offer` carries an optional `tier`, and
+  a line above yours shows the rung it is waiting on.
+- The terminal is a **conditional Scrap Network sink**: it claims only what the current phase still
+  wants, so it cannot swallow a sorted stockpile.
+- Like the market terminals, it is repaired from a Broken Terminal and has no plain recipe.
+
+Spec: [`freight_conversion_spec.md`](freight_conversion_spec.md).
 
 ---
 
@@ -539,7 +581,7 @@ Discovered as you climb tiers; leans on curation + sibling mods.
   sentence outlived itself by a month.)* The encroachment frontier previously had no permanent
   stop. Correct for now (the world has no trees), but it makes the planter the load-bearing rung
   rather than the last one.
-- E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6). *(The BATTERY half shipped 2026-09-03 in a different shape and is not coming back here. What landed is a two-item crafting-component chain - a Depleted Battery found in household waste, torn open for scrap and for the blueprint that makes a live one - plus a Charging Station, built to power the Garbage Vacuum. It is not a mini-tree and it does not hang off E-waste, so the E-waste half of this bullet is what remains.)*
+- E-waste recovery chains, two-stage purity-as-yield + battery mini-tree (P2.6). *(The BATTERY half shipped 2026-09-03 in a different shape and is not coming back here. What landed is a two-item crafting-component chain - a Depleted Battery found in household waste, torn open for scrap and for the blueprint that makes a live one - plus a Charging Station, built to power the Garbage Vacuum. Since P3.10 the torn-open battery yields scrap only and the live one's blueprint is bought at the Buy Terminal. It is not a mini-tree and it does not hang off E-waste, so the E-waste half of this bullet is what remains.)*
 - Tier-3 logistics seam: "Recompile converts, Create moves"; never *require* Create (P2.3).
 - Hazmat gating via Mekanism radiation + suit; Recompile ships biome/blocks/caches only (P2.5).
 - Cross-mod teardown tables at scale: tag-driven defaults + landmark hand-authoring + a
@@ -561,7 +603,7 @@ Discovered as you climb tiers; leans on curation + sibling mods.
 - Themed End (Medium-Hard) - the found-economy capstone.
 - ~~Field Manual (whichever guide-book mod is on 26.x; not a lore vehicle).~~ **DONE** (#29). The
   guide-book mod on 26.x turned out to be **Modonomicon**, and `recompile:guide` ships **11
-  categories and 73 entries** under `data/recompile/modonomicon/books/guide/`. Spec:
+  categories and 77 entries** (measured 2026-09-10) under `data/recompile/modonomicon/books/guide/`. Spec:
   `docs/guidebook_spec.md`. Still not a lore vehicle: the content rule is that a mechanic earns an
   entry only where it deviates from vanilla.
 

@@ -3,6 +3,14 @@
 **Every shipped system, checked against the four jobs.** P3.10 (`../trashlands/docs/design_decisions.md`)
 locked the spine on 2026-09-06 and its own closing line says the audit had not been done. This is it.
 
+**Status: a point-in-time audit (2026-09-06), acted on by the freight conversion** (epic #386,
+`freight_conversion_spec.md`, v0.20.0). The tables below are the state on that day. What has changed
+since: the Freight Terminal exists (#392); no shipped teardown carries `teaches` (#390); the market
+stocks twelve `market_offer` lines, not thirteen, because the Motor's was removed when it went
+find-only (#398). **The Idea Fragment and `fragment_assembly` were NOT cut**, whatever the teardown
+table and the closing section say: finding 1's Sequencer exception needs them, so the item survives as
+the Spawn Egg Fragment with the Sequencer as its only source (see `freight_conversion_spec.md` step 4).
+
 The four jobs, plus the secondary spine:
 
 | Job | What it is |
@@ -18,7 +26,7 @@ wrong for it. DECORATIVE means it serves no job and that is accepted. CONFLICT m
 job and needs a ruling.
 
 **Derived from the registries, not from prose.** The block, screen, recipe-type and entity lists were
-read out of `RCBlocks`, `client/gui`, `RCRecipeTypes` and the recipe directory on 2026-09-06, because
+read out of `RCBlocks`, the `client/*Screen.java` classes, `RCRecipeTypes` and the recipe directory on 2026-09-06, because
 this file's whole purpose is to be true and CLAUDE.md's hand-maintained lists have been stale before.
 
 ---

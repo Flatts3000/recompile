@@ -44,8 +44,9 @@ The second argument is that a stack of tires reads instantly at 16px, the way th
 
 **Household sprawl only** (owner, 2026-09-04). Not the demolition yard, which #155 proposed.
 
-It joins the biome's `vegetal_decoration` array (step 9), which today holds `garbage_mound`,
-`mycelium_patch` and `leachate_pool`, and **it must be ordered after `garbage_mound`**. That ordering
+It joins the biome's `vegetal_decoration` array (step 9), which held `garbage_mound`,
+`mycelium_patch` and `leachate_pool` when this was written and now reads `garbage_mound`,
+`tire_pile`, `mycelium_patch`, `leachate_pool`, and **it must be ordered after `garbage_mound`**. That ordering
 is the whole avoidance mechanism, and it is worth being explicit about why it is enough:
 
 - **A feature can read blocks at its own position safely.** Mound Ground and the mound's own garbage
@@ -83,11 +84,12 @@ is the whole avoidance mechanism, and it is worth being explicit about why it is
    per-cell content rate is how a dial gets "tuned to match" something it does not measure.
 
 **Rule 1's reason changed when the block did, and the old one is worth recording as retired.** #155
-spotted a real hazard: `MoundGroundBlock.isMound` counts `SortableBlock` and `BulkyWasteBlock` when it
-measures a column, so a pile of that kind on Mound Ground would be read as part of the mound and
+spotted a real hazard: `MoundGroundBlock.isMound` (now `RegrowingGroundBlock.isPile`, shared by all
+three regrowing grounds since #424, and also counting the cardboard pile) counts `SortableBlock` and
+`BulkyWasteBlock` when it measures a column, so a pile of that kind on Mound Ground would be read as part of the mound and
 regrown as garbage. That was the argument while the tire was a `SortableBlock`.
 
-**It no longer applies.** Ruling 3 makes the tire a plain block, and `isMound` counts neither plain
+**It no longer applies.** Ruling 3 makes the tire a plain block, and `isPile` counts neither plain
 blocks nor slabs, so a tire standing on Mound Ground would simply block regrowth the way any built
 block does. The Phase 5 hazard is gone.
 
@@ -106,7 +108,8 @@ the shape is not new here.
 
 - **`noOcclusion()` is mandatory.** A non-cube model on a block without it punches a hole in the world:
   the game still culls the neighbour's face and you see straight through the ground. This is one of the
-  two traps CLAUDE.md warns about by name, and a tire is emphatically not a full cube.
+  two traps `docs/systems_notes.md` names under "Two traps that cost real time on the machines", and a
+  tire is emphatically not a full cube.
 - **The model is a ring, not a cylinder.** A torus at 16px reads as a tire from above and in hand; a
   solid disc reads as a hockey puck. The hole in the middle is the whole silhouette.
 - **It is a PLAIN block, not a `SortableBlock`** (owner, 2026-09-04: "a tire is not a sortable block,
@@ -238,7 +241,7 @@ the building, and the Pump sits upstream of real machines rather than in a cul-d
 one thing #155 said must not be skipped.
 
 *(The sentence here said the Pump "already gates the Rain Collector and the Hydroponics Bay". It does
-not and never did - that is the exact claim CLAUDE.md records as retired, and this document inherited
+not and never did - that is the exact claim `docs/systems_notes.md` records as retired, and this document inherited
 it. Grep says the Pump's consumers are the **Grass Spreader**, where it is a multiblock cell, and all
 four **Garbage Vacuum** recipes. That is still upstream of things worth building, so the argument
 survives; the specific claim did not.)*
@@ -262,10 +265,12 @@ a blueprint sheet already in hand is unchanged while the ingredient is not.
 
 - **It edits a shipped recipe.** Players who already hold the Pump blueprint will find it wants a
   different ingredient. That needs a changelog line in the player's voice, not a silent substitution.
-- **It removes a `plastic_scrap` sink, and that was checked rather than left as a worry.** Four recipes
-  consume plastic scrap today: the Cutting Torch, the Plastic Panel, the Rain Collector Funnel and the
-  Pump. Taking the Pump leaves three, and the Panel is an open-ended building-block sink, so plastic is
-  not devalued by the swap. Worth re-checking if that ever drops to one.
+- **It removes a `plastic_scrap` sink, and that was checked rather than left as a worry.** This said
+  four recipes consumed plastic scrap and the swap left three; the count missed the Water Tank. After
+  the swap five do (measured 2026-09-10 across every recipe's inputs): the Buy Terminal, the Cutting
+  Torch, the Plastic Panel, the Rain Collector Funnel and the Water Tank. The Panel is an open-ended
+  building-block sink, so plastic is not devalued by the swap. Worth re-checking if that ever drops to
+  one.
 
 ---
 
@@ -290,7 +295,7 @@ the spec do not quietly disagree.
 | A `tire_pile` block extending `SortableBlock`, Scrap Knife as `sortTool`, "mirroring `CompactedBaleBlock` exactly" | Plain slab-shaped tires you break, then cut the ITEM with the knife at the Workbench | Half kept, half reversed. The knife gate was right and is back (ruling 5); the `SortableBlock` was not. A pull stream and a crumble window describe one object you pick apart where it stands, and a tire is a thing you pick up. |
 | Piles in household sprawl **and the demolition yard** | Household sprawl only | Owner, 2026-09-04. |
 | Tire fire "probably cut for v1" | Fire is in v1, and eternal | Owner, 2026-09-04. It is the most recognisable thing about a tire dump. |
-| "Either keep piles off mound footprints **or** make the check narrower" | Keep them off, and do not touch the check | Still the ruling, but its reason retired with the `SortableBlock`: `isMound` never counts a plain block, so there is no Phase 5 hazard left to avoid. It stands as a design call now. See section 2. |
+| "Either keep piles off mound footprints **or** make the check narrower" | Keep them off, and do not touch the check | Still the ruling, but its reason retired with the `SortableBlock`: `isPile` (then `isMound`) never counts a plain block, so there is no Phase 5 hazard left to avoid. It stands as a design call now. See section 2. |
 | A fuel data-map entry, tires "a natural step above `junk` and below `oily_rag`" | No fuel entry, for tires or for rubber | Owner, 2026-09-04. A finite material with an infinite sink is a trap: piles do not replenish, and a furnace would drain the same tires the Pump needs, inattentively. |
 
 ### 7.1 The mound-ground rule, measured
@@ -435,8 +440,9 @@ as the fuel entry above does not open a second, unbounded demand.
 
 Section 8.3 claimed that piles-only puts rubber on the critical path to the Rain Collector and the
 Hydroponics Bay, because both are gated on the Pump. **That is wrong, and the correction matters.** The
-Pump is also *found*: it drops from the **washing machine** and **fridge** teardowns, both Bulky Waste
-finds. So a player who never locates a tire dump can still get pumps and still reach the water tier.
+Pump is also *found*: it drops from the **Broken Hydroponics Bay** (its signature component) and the
+**fridge** (one of three draws) teardowns, both Bulky Waste finds. *(This said the washing machine and
+the fridge; since #397 the washing machine yields the Motor.)* So a player who never locates a tire dump can still get pumps and still reach the water tier.
 
 Rubber therefore makes the Pump *craftable on demand* rather than *possible at all*, which is a much
 milder claim than the one made earlier and a much safer place for a finite material to sit.
@@ -467,7 +473,8 @@ make. Two consequences worth having thought about:
 
 - **A placed tire knifes into rubber like a natural one.** Not duplication: the tire came from a tire.
 - **A player can light their own with flint and steel, and it will never go out.** Flint and steel is
-  iron-gated, so this arrives long after light is solved, and the household sprawl has no hostile spawn
+  a household find, not a recipe (`#recompile:found_only`, weight 4 of 10,000 in the durable-goods
+  pool of `household_pulls`; this said "iron-gated, so this arrives long after light is solved"), and the household sprawl has no hostile spawn
   list at all, so there is no spawn-suppression exploit to worry about either. **Recommend allowing it**;
   a permanent fire you built on purpose is a reward, and forbidding it would need a special case that
   contradicts ruling 4.

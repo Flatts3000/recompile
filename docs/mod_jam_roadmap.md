@@ -104,7 +104,7 @@ over** (owner, 2026-08-01). There is no scope ceiling. Presentation (trailer, ga
 and the balance pass (#36) are the *floor* - the things that must exist by Sept 1 - and everything above
 that floor is worth building for as long as the clock allows.
 
-The tier table below still reads as though the arc were the whole entry. It is not; it is the part that
+The tier table above still reads as though the arc were the whole entry. It is not; it is the part that
 was planned in July. Content added after that date is judged on the same criteria and counts the same.
 
 ## Milestones (work backward from Sept 1)

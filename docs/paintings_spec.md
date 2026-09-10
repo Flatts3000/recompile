@@ -89,8 +89,13 @@ the block behind it) `dropItem` runs and an ItemEntity appears. Catch a bare `mi
 joining the level, find the Painting entity being removed beside it, and stamp the variant and name back
 onto the stack. One event class, every destruction cause, no mixin.
 
-This is the same problem `CLAUDE.md` already documents for the Rain Collector - state lost because
-breaking destroys the thing holding it - with an entity in place of a BlockEntity.
+This is the same problem `docs/data_and_api_notes.md` documents for the Rain Collector - state lost
+because breaking destroys the thing holding it - with an entity in place of a BlockEntity.
+
+*As built (`event/RCPaintingDrops`), the handler could not search for the painting beside the dropped
+item: `BlockAttachedEntity.hurtServer` calls `kill` BEFORE `dropItem`, so the painting has already left
+the level when the item appears. The variant is recorded on the way out and claimed on the way in,
+through a transient in-memory map keyed by dimension and position, never serialized.*
 
 ## 4. The six, and their sizes
 
@@ -108,13 +113,23 @@ capped at 4 blocks per side to match vanilla's own vocabulary.
 | The Scream | Munch (1944) | 0.808 | 3x4 | 0.750 | 7.1% | 48x64 |
 | Mona Lisa | Leonardo (1519) | 0.688 | 2x3 | 0.667 | 3.1% | 32x48 |
 | Girl with a Pearl Earring | Vermeer (1675) | 0.876 | 3x4 | 0.750 | 14.4% | 48x64 |
-| The Kiss | Klimt (1918) | 1.000 | 4x4 | 1.000 | exact | 64x64 |
+| A Sunday Afternoon on the Island of La Grande Jatte | Seurat (1891) | 1.484 | 3x2 | 1.500 | 1.1% | 48x32 |
+
+**Seurat replaced Klimt before this shipped** (owner, inside PR #100). The sixth was planned as The Kiss
+(Klimt, 1918, 4x4, the set's only square work). Seurat died in 1891, so the work is public domain
+everywhere with no term to weigh, and pointillism downscales the way the eye already blends it. The
+consequences: the set has no square painting, and it has two 3x2s (La Grande Jatte and The Great Wave).
+The Kiss looking like "a gold smear" in the first cut was a texgen palette-quantize bug, fixed in the
+same PR, not the artwork.
 
 **Vermeer is the compromise and it is deliberate.** At 0.876 the closest ratio in the entire grid is
 1x1, which would flip a portrait into a square and shrink it to a single tile. Orientation was held and
 the 14.4% error accepted: nobody measures a painting on a wall, everybody notices a portrait that is
 not one. Raising the cap to 6 would cut the worst error to 4.9% and make Starry Night exact, at the cost
 of a 6-block-wide Great Wave - a mural rather than a collectible.
+
+Provenance is recorded per surface as the `source` key in `texgen.toml` (for example
+`wikimedia:A Sunday on La Grande Jatte, Georges Seurat, 1884.jpg`).
 
 **Sourcing.** The artwork being public domain is not the whole question; a *photograph* of it can carry
 its own copyright in some jurisdictions. Take them from museum open-access programmes or Wikimedia PD-Art
@@ -159,8 +174,10 @@ The per-roll number is not tiny; the felt rate is.
 spans 20x, so the single most valuable thing a playtest can produce for this feature is a count of how
 many Bulky Waste a player actually opens in an hour. Tracked in #36.
 
-**Implementation: a second loot pool, not a re-weighting.** `bulky_waste.json` currently has one pool
-whose weights are mattress 3, washing machine 2. Adding paintings to that pool would restate the odds of
+**Implementation: a second loot pool, not a re-weighting.** `bulky_waste.json` then had one pool
+whose weights were mattress 3, washing machine 2. *(It has since become a routing table: its first pool
+sends 9 in 10 rolls to `gameplay/bulky_spine.json`, where the finds now live, and 1 in 10 to
+`gameplay/bulky_windfall.json`. The painting pool still sits beside it as the second pool.)* Adding paintings to that pool would restate the odds of
 both existing finds, and #36 warns against disturbing them. A separate pool gated on
 `minecraft:random_chance` leaves them untouched and makes the painting a bonus behind the mattress
 rather than an alternative to it - which is also the better fiction.
@@ -197,7 +214,9 @@ rather than an alternative to it - which is also the better fiction.
 
 - A pool in `loot_table/blocks/bulky_waste.json` using `minecraft:set_components` to stamp
   `minecraft:painting/variant` and `minecraft:item_name`.
-- Rate config-gated, per the standing rule.
+- Rate config-gated, per the standing rule. *(Shipped as data rather than config: a
+  `minecraft:random_chance` of 0.07 on the pool, with the six works at weight 1 each. There is no
+  painting key in `RCConfig`; a pack retunes it by overriding the table.)*
 
 **Acceptance:**
 - A dropped painting carries both components and its tooltip reads the work's name.

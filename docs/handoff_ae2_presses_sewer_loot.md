@@ -4,8 +4,10 @@
 [#41](https://github.com/Flatts3000/trashlands/issues/41).
 **Analysed against:** Recompile **v0.13.0**, AE2 `26.1.10-beta` (CF project 223794), MC 26.1.2 /
 NeoForge 26.1.2.94.
-**Status:** SHIPPED. The presses are a live pool in `loot_table/chests/sump.json` (`ae2:inscriber_presses`), alongside the lang override correcting AE2's own tooltip. Owner ruled on the approach 2026-08-20; this records what it
-needs.
+**Status:** SHIPPED, and still in this repo as of 2026-09-10. The presses are a live pool in `loot_table/chests/sump.json` (`ae2:inscriber_presses`), alongside the lang override correcting AE2's own tooltip. Owner ruled on the approach 2026-08-20; this records what it
+needs. Moving the presses and the lang key to the pack is `Flatts3000/trashlands#46` (open); the
+sourcing half STAYS here as engine content (owner ruling 2026-09-08 on #420, and the sourcing
+section below).
 **Priority:** the pack owner has made this a **release blocker** for the pack's next release.
 
 ## The problem
@@ -198,7 +200,8 @@ four presses in 20 of 20 rolls, and the key resolves to our text rather than AE2
 Any mod that gates worldgen, spawning or structure placement on that tag silently does nothing in
 this world, and nothing anywhere reports it. AE2 is simply the first case anyone checked.
 
-Adding the two biomes to that tag would fix AE2 and every other such mod at once, and would make this
+Adding the overworld biomes to that tag (two when this was written, three since the radioactive dump)
+would fix AE2 and every other such mod at once, and would make this
 handoff unnecessary.
 
 **Owner ruling, 2026-08-20: no `is_overworld` entry unless we find that we need it.** So the sewer-loot
@@ -219,15 +222,21 @@ the pattern the problem, and note that nothing reports the gap, so the count has
 
 ## What the pack will do
 
-Nothing until this ships. AE2 stays pinned and non-functional, documented as such in
-`../trashlands/docs/pack_setup.md`, and the pack issue stays open pointing here. *(Path qualified 2026-09-03: that file lives in the PACK repo, and an unqualified `docs/` reads as this one.)*
+The plan when this was written was nothing until it shipped, with AE2 pinned and non-functional in
+`../trashlands/docs/pack_setup.md`. *(Path qualified 2026-09-03: that file lives in the PACK repo,
+and an unqualified `docs/` reads as this one.)* It has shipped, and the pack's remaining job is
+taking the presses back now that it can ship data (`trashlands#46`).
 
 ## The third half: sourcing, because the presses cleared only one of two gates (#276, #277)
 
 **Shipped 2026-08-21.** The design notes above ask whether "the rest of AE2 opens up on its own once
 presses exist" and answer no. This is what closing the rest took, and it is by far the largest part of
-the stopgap - four routes, one new item, and a Java class. **All of it moves to the pack with
-everything else.**
+the stopgap - four routes, one new item, and a Java class. It was written to move to the pack with
+everything else, and **the owner ruled on 2026-09-08 that it does not** (#420): these are
+`recompile:separating` recipes on this mod's own machines and feedstocks, and they are what made the
+no-meteorites ruling affordable, so removing them would reopen that ruling. They stay. The removal
+list below is the sourcing half's footprint, kept as a record of what it touches; it is not to be
+executed. The presses and the lang key are the only part that moves.
 
 330 of AE2's 364 items have a recipe and every one traces back to `certus_quartz_crystal`, whose only
 non-circular source is a `quartz_cluster` off a budding block, which generates only inside a meteorite.
@@ -286,7 +295,8 @@ WARN on every world load, pointing at an engine file.
 **The obvious inverse was built next and cannot aim.** `neoforge:add_table` does fire on this mod's
 pull streams - measured at 3.6% against an intended 3.7%. But restricting a modifier to one table
 needs `neoforge:loot_table_id`, which compares `LootContext.getQueriedLootTableId()`, and **that is
-never set on a table rolled programmatically**. All five of this mod's roll sites call
+never set on a table rolled programmatically**. Every one of this mod's roll sites (five then, six
+as of 2026-09-10; grep `getRandomItems` under `src/main/java`) calls
 `LootTable.getRandomItems(LootParams)` directly, so with the condition the drop rate was zero and
 without it the modifier fired on every table in the game.
 

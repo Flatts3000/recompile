@@ -17,14 +17,15 @@ Overworld Gate are built on.
 > the shared frame - which is the "formed look is bespoke" rule made concrete.
 
 Design source of truth is the pack repo: `../trashlands/docs/design_decisions.md`. This system is
-**not yet recorded there** - see "Design record still owed".
+recorded there as **P2.4-R3** items 4 to 6 (multiblocks, the shared component vocabulary, inert
+components and their later reversals) - see "Design record still owed".
 
 > **Pattern lineage:** the assembly/formation model is **Immersive Engineering's** (verified against
 > its 1.21.1 jar - see Rendering): build heterogeneous component blocks, they become a master + dummy
 > structure on formation. We take IE's **master/dummy semantics** but drop its two heavy pieces (NBT
 > `StructureTemplate` shapes and the master block-entity renderer), because our machines are tiny
 > static stacks - see the two deviations under Rendering. We copy the *pattern*, never the code: IE
-> targets 1.21.1 not 26.1 (the productive-frogs fluid trap `CLAUDE.md` records), and its license is
+> targets 1.21.1 not 26.1 (the productive-frogs fluid trap `docs/data_and_api_notes.md` records), and its license is
 > not cleared for source reuse. The whole shape is chosen to minimise the one cost that actually
 > gates this repo: **bespoke art per machine** - hence the shared frame/motor/panel vocabulary and a
 > single bespoke core per machine.
@@ -65,8 +66,8 @@ Built once, reused by every machine. This is the payoff of the heterogeneous-but
 | Block | Role | Source | Notes |
 |---|---|---|---|
 | **Frame** | shared component | crafted from `scrap_plating` / `rebar` | the Rain Collector's top cell; the cheap structural block of any stack |
-| **Pump Block** | shared component | teardown-only (from a `washing_machine` find) | placed form of the spreader spec's pump; the Grass Spreader's middle cell |
-| **Solar Panel Block** | shared component | crafted from `e_scrap` + `cullet_glass` | placed form of the spreader spec's panel; the Grass Spreader's top cell |
+| **Pump Block** | shared component | teardown-only (from a `washing_machine` find) as designed; today salvaged from a Broken Hydroponics Bay or a fridge, or `blueprint_crafting` with a bought sheet | placed form of the spreader spec's pump; the Grass Spreader's middle cell |
+| **Solar Panel Block** | shared component | crafted from `e_scrap` + `cullet_glass_pane` + `scrap_plating` | placed form of the spreader spec's panel; the Grass Spreader's top cell |
 | **`<machine>` Core** | identity + controller | per-machine recipe | the master; holds formed/unformed state; the only bespoke art per machine |
 
 The **Rain Collector is not a shared stack component** - it is a *machine in its own right* (Core +
@@ -232,9 +233,10 @@ spigot. It waters the nearest dead ground first and consumes nothing; full desig
 
 **The water cell is a Water Tank, not a Rain Collector** (and since #229 it holds water, though nothing in a Grass Spreader draws on it) - a machine may not take another
 machine's core as a component (nesting cores makes the inner one assemble itself), a rule the
-framework's `Multiblock` constructor now enforces. The **Pump** is the teardown-only part (out of a
-Washing Machine found in Bulky Waste), so rung 1 sits behind the teardown spine and a find. The
-spinning head is deferred: dripping needs only `animateTick`, and rotation waits on 26.1's block-
+framework's `Multiblock` constructor now enforces. The **Pump** was the teardown-only part (out of a
+Washing Machine found in Bulky Waste), so rung 1 sat behind the teardown spine and a find. *(No longer:
+a Pump is salvaged from a Broken Hydroponics Bay or a fridge since P3.10, or crafted from a bought
+sheet; see `pump_sourcing.md`.)* The spinning head is deferred: dripping needs only `animateTick`, and rotation waits on 26.1's block-
 entity renderer as its own task.
 
 Two framework capabilities this leans on, both already supported: a `Cell` may name the same block
@@ -251,11 +253,14 @@ normally because `findCore` returns null, and inside a machine it redirects to t
   ever changes, `canSeeSky(pos.above(2))` comes back and the shape must change.
 - **The core runs only while `FORMED`** - break a cell and healing stops; the frontier begins to win.
   That intact-structure requirement is the ongoing "cost", with still no consumable.
-- **The solar panel is a recoloured no-op daylight detector** - vanilla already ships a block that
-  *is* a solar panel. Inert: no light detection, no redstone, no power.
-- **This machine is where the BER arrives** (a spinning head), which the Rendering section above
-  deferred to "whatever machine first needs animation". Water particles come first and need no
-  renderer at all.
+- **The solar panel is a recoloured daylight detector** - vanilla already ships a block that
+  *is* a solar panel. It was inert when this was written (no light detection, no redstone, no power);
+  since #72 it is a real generator with a block entity that pushes FE to its neighbours
+  (`SolarPanelBlockEntity`).
+- **This machine was to be where the BER arrives** (a spinning head), which the Rendering section above
+  deferred to "whatever machine first needs animation". Water particles came first and need no
+  renderer at all; the spinning head is still deferred, and the Display Pedestal's is the mod's only
+  `BlockEntityRenderer`.
 
 Full detail, including the conversion behaviour: [`grass_spreader_spec.md`](grass_spreader_spec.md).
 
@@ -268,6 +273,10 @@ Full detail, including the conversion behaviour: [`grass_spreader_spec.md`](gras
   optional.
 - **JEI** - a **multiblock preview** category showing the blueprint exploded, driven off the same
   `Multiblock` object. Deferred-acceptable if Jade covers the missing-block hint at ship.
+
+*As built:* the Jade hint shipped (`compat/jade/MachineStatusProvider`). No JEI multiblock preview
+was built; the guidebook's multiblock render pages (`modonomicon/multiblocks/`, one per machine,
+checked against `Multiblock.java` by `GuidebookMultiblockTests`) do that job instead.
 
 ## Tests (GameTest)
 
@@ -343,6 +352,10 @@ integration is close). Fold anything better than this spec back into it.
   so it needs no new formed model. Every other machine does.
 
 ## Design record still owed
+
+*Recorded: `../trashlands/docs/design_decisions.md` P2.4-R3 items 4 to 6 (locked 2026-07-23) carry
+the multiblock pattern, the shared vocabulary and the inert-components rule, with the later Water
+Tank reversal noted there. The original instruction follows.*
 
 Record in `../trashlands/docs/design_decisions.md` once settled, likely folded into **P2.4-R3**
 alongside the spreader: the multiblock pattern (IE-style master/dummy formed-in-place, heterogeneous

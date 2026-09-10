@@ -97,10 +97,13 @@ and are the door being closed. Sixteen `dye_<colour>_bed` recipes recolour a bed
 create nothing, and **stay** - a player who earns a bed should still be able to paint it. Sixteen files
 is exactly the surface where fifteen get done, which is why the gate has a test rather than a checklist.
 
-**This needs a fourth custom screen, and that is a recorded reversal.** CLAUDE.md holds the rule that no
+**This needs a fourth custom screen, and that is a recorded reversal.** CLAUDE.md held the rule that no
 new machine screen ships without one being written down, after the count silently drifted from one to
-three. A blueprint slot plus a recipe list has no vanilla screen to borrow, which is the same test the
-Burner Generator and Tree Nursery passed. Write it down; do not let it drift again.
+three (the rule and the per-screen record now live in `docs/gui_notes.md`). A blueprint slot plus a
+recipe list has no vanilla screen to borrow, which is the same test the Burner Generator and Tree
+Nursery passed. Write it down; do not let it drift again. *As built, no new screen was needed: the
+blueprint lookup went into the Scrap Crafting Table's existing menu (`ScrapCraftingStationMenu`, phase
+4), and the Filing Cabinet reuses `ChestMenu`.*
 
 **`scraps_required` implies state this mod has never had.** The schema's shape is
 `{ "recipe": ..., "chance": 0.25, "scraps_required": 3 }`, which reads as "accumulate partial
@@ -112,7 +115,7 @@ there.
 
 **Ships:** wool no longer makes a bed, in any colour.
 
-- 16 overrides at `data/minecraft/recipe/<colour>_bed.json`, each carrying a `neoforge:false` condition.
+- 16 overrides at `data/minecraft/recipe/<colour>_bed.json`, each carrying a `neoforge:never` condition.
   Overriding a vanilla recipe path from a mod datapack replaces it; a never-true condition then stops
   the replacement loading, which deletes a vanilla recipe with no mixin. The mod already uses
   `neoforge:conditions` for the guidebook, so the mechanism was known to work here.

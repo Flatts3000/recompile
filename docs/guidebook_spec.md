@@ -1,15 +1,17 @@
 # In-game guidebook - build spec
 
 > **Status: SHIPPED.** The book landed as seven chapters on 2026-07-27 (#29, PR #35) and has
-> **The map below lags the book.** It is the original contract and entries have been added without it
-> since - the sewers, clay, gold, the Trommel and the Pulverizer are all in the book and not in the
-> table. Read it as the plan it was, not as an inventory of what ships.
->
 > grown to **eleven categories**; an audit on 2026-08-02 (PR #105) found and filled twelve
-> systems that had shipped without an entry, and the four multiblock render pages landed the
+> systems that had shipped without an entry, and the first four multiblock render pages landed the
 > same week (#37, PR #111). This stays the contract for the work: the engine, the dependency
 > posture, the voice, the content map (every mechanic that deviates from vanilla), and
 > verification. The build order below is the order it was actually built in.
+>
+> **The map below lags the book.** It is the original contract and entries have been added without it
+> since - the sewers, clay, gold, the Trommel, the Pulverizer, the market and freight are all in the
+> book and not in the table, and some of its cells describe a world that has since changed (the
+> teardown-exit invariant, "no animals"). Read it as the plan it was, not as an inventory of what
+> ships; the current counts are under Implementation notes.
 
 ## The governing rule
 
@@ -120,7 +122,7 @@ can slot content between. Ordered by discovery - the sequence a player actually 
 
 Cover every shipped feature regardless of default state. A gated entry carries one factual
 line - "off by default; a pack enables it in the config" - never hype, never a full config
-dump. The **Config toggles** entry (category 15) is the one place that enumerates the flags,
+dump. The **Config toggles** entry (category 17 in the map above) is the one place that enumerates the flags,
 for pack authors.
 
 ## Multiblock sourcing (no drift)
@@ -173,7 +175,8 @@ only with Modonomicon present.
 
 ## Open items (not blockers)
 
-- Decide the guide item + its recipe (which base material gates it).
+None open. The guide item is decided: `recipe/guide_book.json` is a shapeless E-Scrap + Fiber Scrap
+recipe producing a Modonomicon book stamped `recompile:guide`, gated `mod_loaded: modonomicon`.
 
 *Two items were closed by #37: the Modonomicon 2.x page schema is confirmed against the shipped
 book, and multiblock pattern sourcing is settled above.*

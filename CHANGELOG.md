@@ -7,16 +7,19 @@
 - **The pond on top of a tailings heap is its own liquid now.** It looks the same - the pale turquoise
   was always the point - but it is not water and it never was drinkable. You cannot fill a Rain
   Collector from it, it will not water a crop, and standing in it makes you hungry and poisons you.
-- **It will not kill you.** Poison stops at half a heart. It will kill an animal that wanders into
-  one, which leachate never did.
+- **The poison will not kill you.** It stops at half a heart, for you and for an animal that wanders
+  in. Anything that goes under can still drown, the same as in leachate.
 - **You can bucket it**, which is the only way to drain a pond and make a plateau safe to walk. Drain
   one and it stays drained.
+- **Only in ground that has not generated yet.** A pond you have already seen stays water.
 
 ### The frontier rebuilds too
 
 - **Rubble piles and tailings heaps grow back**, the way garbage mounds have since v0.7.0. Work a
   demolition yard or a tailings field out and it refills, one block falling from the sky at a time,
   while you are somewhere near enough to watch.
+- **Rubble piles sit on Rubble Ground**, a paler dirt than the yard floor. It is what remembers the
+  pile, the way Mound Ground does at home.
 - **The radioactive dump can never be cleaned up**, and that is the trade. Green a mound's footprint
   or a rubble pile's and it is retired for good; stained ground does not take grass, so the dump keeps
   giving and keeps being the dump. Its scarcity is the land now, not the ore.
@@ -24,9 +27,9 @@
 
 ### Screens
 
-- **A freight line could show as delivered when it was not.** Only on a delivery phase asking for
-  more goods than the screen shows at once, which nothing shipped does - but a pack can write one with
-  a single file.
+- **A freight line could show as delivered when it was not**, and the manifest's "more" hint sat on
+  top of its last line. Only on a delivery phase asking for more goods than the screen shows at once,
+  which nothing shipped does - but a pack can write one with a single file.
 - **Buttons make a sound now.** Deploy, Recall, Sell and the Depot's two radius arrows were all
   silent, which mattered most on the ones whose result you cannot see: Deploy puts a machine into the
   world behind the screen you are looking at.
@@ -35,8 +38,9 @@
   end of it.
 - **The Sell Terminal no longer takes a click when there is nothing to sell**, and the Hauler Depot's
   radius arrows no longer take one at their limits.
-- **The Buy Terminal leads with what you can afford first.** It used to list its most expensive
-  sheets at the top.
+- **The Buy Terminal opens on the first freight rung.** The Totem, the Heavy Core and the Powder Snow
+  sheet, which no rung gates and which cost more than a new player can have, used to sit above it.
+  They are listed after the ladder now.
 
 ### Textures
 

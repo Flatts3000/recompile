@@ -3,8 +3,13 @@
 **Written 2026-07-27.** Rung 4 of the reclamation chain (design P2.4-R), the Mod Jam "Trees" tier.
 **SHIPPED** as reclamation rung 4 (Phase 2.16, 2026-07-27): `TreeNurseryCoreBlock`, `TreeNurseryBlockEntity`, `TreeNurseryMenu`, `TreeNurseryScreen`, `TreeNurseryTests`, and the `reclamation/nursery` guidebook entry. Design source of truth: `../trashlands/docs/design_decisions.md`
 (**P2.4-R** the economy revision, **P2.4-R2** the sapling lockout, **P1.7-R** encroachment). This
-spec **revises P2.4-R2** - see "The reversal" - and that revision is **not yet recorded there**; see
-"Design record owed".
+spec **revises P2.4-R2** - see "The reversal" - and P2.4-R2 now carries it: it names the Tree Nursery as
+the only machine that produces a sapling. See "Design record" at the bottom for what is still not there.
+
+**Where the build differs from this plan:** the tank cell forms into its own `tree_nursery_tank`
+cabinet block rather than staying a bare Water Tank; the Solar Panels generate (since #72); the copper
+bucket recipe is gone, because buckets are found, not crafted (#161); and the screen runs on the GUI
+framework (#164). Each is noted where it comes up below.
 
 ---
 
@@ -49,7 +54,8 @@ raw grey anchors a spot nobody is fighting over and grants no free reclamation. 
 that a rung-1 grass edge could be anchored with a nursery tree without building rung 2 first.
 
 - **Default (this spec): ship plain vanilla saplings, plantable anywhere.** Simplest, most
-  player-friendly, and the exploit is mild per the above.
+  player-friendly, and the exploit is mild per the above. **This is what shipped**: the output is the
+  vanilla sapling (or mangrove propagule) item for the selected species.
 - **Alternative if we want to protect the ladder story:** a custom sapling item gated to healed
   ground (refuses coarse dirt). Moderately more work - a custom `BlockItem`/placement check per
   species, or one seed item carrying species in a data component. Deferred unless Jason calls for it.
@@ -71,7 +77,7 @@ component art and no Machine Frame** in this machine.
 | Offset (x,y,z) | You place | Formed as | Notes |
 |---|---|---|---|
 | (0,0,0) core | *(the core itself)* | **Tree Nursery Core** | The master, bottom row. Holds the BE (water tank, slots, species, output), opens the GUI, and accepts the bucket. Its own texture. |
-| (1,0,0) | **Water Tank** | *unchanged* | Bottom, beside the core. **Inert** - the shared `water_tank` dummy, reused as-is; holds no fluid. The **core** stores and accepts the water. |
+| (1,0,0) | **Water Tank** | **`tree_nursery_tank`** | Bottom, beside the core. Specced as the shared `water_tank` reused as-is; it shipped forming into its own full-block cabinet cell (`TreeNurseryTankBlock`) so the bottom row reads as one machine. It holds no fluid - the **core** stores and accepts the water. |
 | (0,1,0) | **Solar Panel** | *unchanged* | Top, above the core. Shared inert no-op decorator (craftable + dummy), same as the Grass Spreader's cap. |
 | (1,1,0) | **Solar Panel** | *unchanged* | Top, above the tank. |
 
@@ -87,14 +93,15 @@ the GUI face reads front-on (the framework already rotates blueprints per `rotat
 Workstation was the first directional user). The "wide" axis is the core's left-right; "deep" (1) is
 front-back.
 
-**Solar panels are inert.** Two on top read as "this machine is powered", but per P3.5 (no RF before
-the Nether) they do **not** generate or gate power - the nursery runs on its inputs, not on daylight.
-Same standing rule the Grass Spreader's panel follows.
+**Solar panels do not power it.** Two on top read as "this machine is powered". When this was written,
+P3.5 (no RF before the Nether) meant they did not generate at all; since #72 they do (see below), but
+the nursery consumes none of it and does not gate on power - it runs on its inputs, not on daylight.
+Same as the Grass Spreader's panel.
 
 **RF status changed 2026-07-31.** P3.5's "no RF before the Nether" was reversed: the energy tier now arrives with hydroponics, and the Solar Panel becomes a real generator. See `../trashlands/docs/design_decisions.md` P3.5 and `docs/hydroponics_spec.md`. The **Pump stays inert** - that is P2.3, a separate decision.
 
-**Why the tank is inert and the core holds the water** (Jason, this session). One BE, no new
-fluid-storage block. The core carries a water-only `FluidStacksResourceHandler` (the Rain Collector's
+**Why the tank is inert and the core holds the water** (Jason, this session). One BE, no
+fluid-storage block (the `tree_nursery_tank` cell is cladding, not storage). The core carries a water-only `FluidStacksResourceHandler` (the Rain Collector's
 exact tank) and **accepts the bucket itself**: right-click the core with a water bucket and
 `FluidUtil.interactWithFluidHandler` fills it, the same path `RainCollectorCoreBlock` already uses.
 The tank cell is the visual "here is where the water lives", nothing more.
@@ -102,6 +109,13 @@ The tank cell is the visual "here is where the water lives", nothing more.
 ---
 
 ## The bucket - vanilla item, copper recipe
+
+> **Superseded by #161 (PR #169): buckets are FOUND, not crafted.** The copper recipe below shipped
+> with the nursery and was deleted when the owner ruled that finished goods come out of the dump
+> ("players should find buckets, not craft them"). `minecraft:bucket` is in `#recompile:found_only`,
+> vanilla's iron recipe is overridden with a `neoforge:never` condition, and the bucket drops from
+> `household_pulls`. The vessel problem this section solves is unchanged, and so is the loop; only
+> where the bucket comes from moved. Iron is also no longer absent - it is gated behind the Cupola.
 
 The player needs a vessel to carry water from a Rain Collector to the nursery. The **plumbing already
 exists**: vanilla buckets interoperate with every fluid handler in the mod (the Rain Collector
@@ -132,9 +146,10 @@ cosmetic win, so not now.)
 
 ## The GUI - the mod's second bespoke screen (recorded reversal)
 
-The mod's standing rule is **no new custom machine screen without recording a reversal** (CLAUDE.md;
-`design_decisions.md`). There is exactly one today: the Scrap Crafting Station's connected-storage
-panel. The nursery earns the second, and the justification is concrete: **species selection has no
+The mod's standing rule is **no new custom machine screen without recording a reversal**
+(`docs/gui_notes.md`, which now holds every recorded exception). When this was written there was
+exactly one: the Scrap Crafting Station's connected-storage panel. The nursery earned the second (more
+have followed; derive the set from `client/*Screen.java`, not from a count), and the justification is concrete: **species selection has no
 vanilla-screen analog**, and it cannot be an inserted-item template because the player has no sapling to
 insert - the nursery is what produces them, so requiring one as input would be circular. A picker means buttons; no `FurnaceMenu`/`ChestMenu` has them.
 
@@ -155,6 +170,12 @@ insert - the nursery is what produces them, so requiring one as input would be c
   Stonecutter a recipe - a well-trodden, no-custom-packet path.
 - **Water gauge + progress arrow** via `ContainerData` (`DataSlot`s), the furnace pattern: stored
   water mB and cook progress travel to the screen with no bespoke networking.
+
+*Since the GUI framework (#164) the screen extends `client/gui/LayoutScreen`, not
+`AbstractContainerScreen` directly, and the menu places its slots from a declared `ScreenLayout`; all
+pipeline and blit drawing lives in `client/gui/VanillaGui`. And a data slot is 16 bits on the wire, so
+the arrow now travels as a permille and the water amounts as two halves recombined by `WideSync`. See
+`docs/gui_notes.md`.*
 
 **Species set:** the vanilla saplings/propagules - oak, birch, spruce, jungle, acacia, dark oak,
 mangrove, cherry, pale oak (whatever `26.1` ships). Each button shows the sapling icon; the selected
@@ -179,6 +200,11 @@ Furnace-shaped, on the core's BE server ticker (the `RainCollectorCoreBlock` / `
    Seedling, and place one sapling of the selected species in the output. Reset progress.
 4. **Idle** when any input is missing or the output is full; resume when supplied.
 
+**Automation (not in this plan, added in #340, owner 2026-09-03).** The nursery shipped manual-only and
+became a `WorldlyContainer`: its two inputs are exposed to the sides and its output to the bottom, so
+hoppers and pipes can run a tree farm. Hand-loading through the GUI is unchanged, and the water was
+always automatable through the fluid capability.
+
 Static entry points for GameTests (`produceOnce`, or a "fully load + tick to completion" helper),
 per the `sortOnce` / `encroachOnce` / Compost Heap convention - tests drive the BE directly, never a
 simulated click.
@@ -200,12 +226,13 @@ item.
 | BE `tree_nursery` | BlockEntity | Water tank (`FluidStacksResourceHandler`, water-only) + Fertilizer/Seedling/output slots + selected-species field + cook progress. Save/load via `ValueOutput`/`ValueInput` (Scrap Barrel pattern). |
 | `TreeNurseryMenu` | menu | Custom `MenuType` in `RCMenus`. |
 | `TreeNurseryScreen` | screen | Registered in `RCMenuScreens`, client-only. |
-| `minecraft:bucket` | vanilla item | New copper crafting recipe only - no new item. |
-| `water_tank` | existing shared dummy | **Reused inert** (bottom cell), no change. |
+| `minecraft:bucket` | vanilla item | Planned as a new copper crafting recipe; since #161 the bucket is found, not crafted. |
+| `water_tank` | existing shared component | Placed in the bottom cell; forms into `tree_nursery_tank` (below). |
+| `tree_nursery_tank` | formed cell, bespoke | Not in the plan. The tank cell's own cladding; no item, disband-returns the Water Tank. |
 | `solar_panel` | existing shared component | **Reused** for both top cells, no change. |
 
 No Machine Frame and no new component blocks - the wall is core + Water Tank + 2 Solar Panels, all
-existing.
+existing. The one new block beyond the core is the formed `tree_nursery_tank` cell.
 
 No new sapling items in the default plan (vanilla saplings are the output). The custom gated-sapling
 lives only in the alternative branch of the open question above.
@@ -221,11 +248,14 @@ lives only in the alternative branch of the open question above.
   patient, treasure-grade act. Tune the magnitude at the balance pass; keep it slow.
 - **Recipes:**
   - **Tree Nursery** core - a scrap recipe in the machine family (frame + plating + copper, settle
-    exact shape with the other machines).
-  - **Bucket** - `C C / _C_` copper ingots (above).
+    exact shape with the other machines). *Shipped as `GBG / PCP / PPP`: cullet glass, a Bulb, a
+    copper pipe and scrap plating.*
+  - **Bucket** - `C C / _C_` copper ingots (above). *Deleted in #161; buckets are found.*
   - Fertilizer, Unknown Seedling - already ship from the Compost Heap; no change.
 - **Loot:** core drops itself; the tank and both solar cells disband-return their components (Water
-  Tank / Solar Panel) - they are unchanged cells, so their existing loot tables already do this.
+  Tank / Solar Panel). *That is the framework's job, not the cells' loot tables: `Multiblock.disband`
+  returns the component the blueprint names for each cell, which is what lets the tank cell be a
+  different formed block and still hand back a Water Tank.*
 - **Tags:** `#recompile:scrap_connectable`? No - the nursery is a reclamation machine, not a
   scrap-network member. Leave it off the network tag.
 - **Lang** for the block, the GUI title, and any species-button tooltips.
@@ -238,7 +268,8 @@ Lean on vanilla + existing, per the strategy that carried the other machines:
 
 - **Core** - bespoke, iterated in-world (no real-world reference for "garbage-world tree nursery";
   start from a planter/bench silhouette). Must not reuse the collector or spreader palette.
-- **Tank cell** - the shipped `water_tank` model, unchanged.
+- **Tank cell** - planned as the shipped `water_tank` model, unchanged; shipped as `tree_nursery_tank`,
+  cut from one skin spanning both bottom cells so the cabinet reads as one machine.
 - **Solar panels** - the shipped `solar_panel` model, unchanged (two on top).
 - **GUI background** - a bespoke 176-wide panel following the Scrap Crafting Station's texture layout
   (slots + picker row + water gauge + arrow).
@@ -273,6 +304,7 @@ lang + model + blockstate + loot automatically.
 
 1. **Coarse-dirt planting** (the big one, above): ship vanilla saplings (default, plant anywhere) vs
    a healed-ground-gated custom sapling. **Needs Jason's call before build if we want the gate.**
+   *(Shipped the default: vanilla saplings, plantable anywhere. No gated sapling was built.)*
 2. **Exact blueprint offsets + core silhouette** - iterate in-world.
 3. **Species button layout** - single row of ~9 vs a small grid; settle against the GUI width.
 4. **All numbers** - cook time, water per sapling, recipe costs. Deferred to the balance pass (#36).
@@ -286,10 +318,15 @@ lang + model + blockstate + loot automatically.
    species, watch it cook a sapling, plant it. Iterate on the core look and GUI layout from there.
 4. **Code review before merge.**
 
-## Design record owed
+## Design record
 
-Record in `../trashlands/docs/design_decisions.md` as **P2.4-R2b** (revises P2.4-R2): saplings ARE
-obtainable, but only as a Tree Nursery output; the loot strip stays, so the nursery is the sole
-sapling source and wood stays machine-metered. Capture the coarse-dirt decision (whichever way it
-lands) in the same entry. Also record the **second bespoke-screen reversal** (the species-picker GUI),
-scoped to this block, alongside the Scrap Crafting Station's.
+The plan was to record this in `../trashlands/docs/design_decisions.md` as **P2.4-R2b** (revises
+P2.4-R2): saplings ARE obtainable, but only as a Tree Nursery output; the loot strip stays, so the
+nursery is the sole sapling source and wood stays machine-metered. Capture the coarse-dirt decision
+(whichever way it lands) in the same entry. Also record the **second bespoke-screen reversal** (the
+species-picker GUI), scoped to this block, alongside the Scrap Crafting Station's.
+
+**Where that stands:** there is no P2.4-R2b entry. P2.4-R2 itself was rewritten instead - it now reads
+"no LOOT ROLL yields a sapling" and names the Tree Nursery as the only machine that produces one, plus
+the 2026-08-20 wandering-trader narrowing. The screen reversal is recorded in `docs/gui_notes.md`. The
+coarse-dirt decision (vanilla saplings, plantable anywhere) is not recorded as its own ruling there.

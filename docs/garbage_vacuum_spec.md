@@ -98,8 +98,9 @@ Nothing in this mod holds a charge as an item today and there is no `Capabilitie
 registration anywhere, so this needs two new things: the item-side energy capability, and somewhere to
 charge it.
 
-**The P2.6 battery mini-tree is NOT pulled forward.** It stays parked on the roadmap. What ships is
-the smallest thing that makes a powered tool work: a **Charging Station** block that takes FE from
+**The P2.6 battery mini-tree is NOT pulled forward.** *(`docs/roadmap.md` now records P2.6's battery
+half as shipped in a different shape - the two-item Battery chain below - and not coming back; only
+its E-waste half remains parked.)* What ships is the smallest thing that makes a powered tool work: a **Charging Station** block that takes FE from
 whatever generator is touching it and pushes it into the vacuum set on it.
 
 **It is NOT in `#recompile:scrap_connectable`**, and a first draft of this page said it was. That tag
@@ -166,7 +167,7 @@ where the idea comes from.**
 - **Depleted Battery** - found loose in `household_pulls`, at the Bulb's weight. Not a component and
   not spendable as one. It is a teardown input: cut one open at the workbench with a Scrap Knife for
   scrap metal, e-scrap and plastic.
-- ~~**The knowledge rides on that teardown**~~ **The knowledge is BOUGHT** (`market_offer_battery.json`, tier 2). Teardown stopped teaching on 2026-09-06 (P3.10) and `depleted_battery.json` carries no `teaches` field; what the four dead cells buy you now is the scrap, not the sheet. Historic text follows:, declared as a top-level `teaches` entry rather than a
+- ~~**The knowledge rides on that teardown**~~ **The knowledge is BOUGHT** (`market_offer_battery.json`, tier 2). Teardown stopped teaching on 2026-09-06 (P3.10) and `depleted_battery.json` carries no `teaches` field; what the four dead cells buy you now is the scrap, not the sheet. Historic text follows: the knowledge rode on that teardown, declared as a top-level `teaches` entry rather than a
   `teaches: true` pool. That distinction is load-bearing: a teaching POOL grants the fragment for
   whatever item it drew, so saying it that way would have handed back a live battery for tearing up a
   dead one. Four of them completes the blueprint.
@@ -184,8 +185,8 @@ nothing is not a bug, it is the noun. The live one is an ingredient you spend, w
 component is here.
 
 **The cell gates the whole powered tier at both ends**, since the Charging Station needs one as well as
-the vacuum does: no cell, no charger, no vacuum, and no way to learn the cell but to take the rubbish
-apart.
+the vacuum does: no cell, no charger, no vacuum. The way to learn the cell was to take the rubbish
+apart; since P3.10 it is to buy the sheet (`market_offer_battery.json`, freight tier 2).
 
 ---
 

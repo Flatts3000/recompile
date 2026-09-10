@@ -10,7 +10,7 @@ it points to. Read that doc before changing the area.
   It ships the garbage-world systems the **Trashlands** modpack is built on: worldgen, Blocks of Garbage,
   sorting, mound regrowth, the reclamation ladder, the market and the freight ladder.
 - **Four systems, four jobs, no overlap** (owner 2026-09-06, P3.10 in `../trashlands/docs/design_decisions.md`):
-  the **market** is the only source of knowledge (every Blueprint is bought with scrip), **freight
+  the **market** is the source of knowledge (every Blueprint but a spawn egg's is bought with scrip), **freight
   quotas** are tier progression (delivering named processed goods, not a scrip balance), **teardown**
   yields **function** (working components), and **sorting** yields bulk materials. Teardown no longer
   teaches: no shipped teardown carries `teaches`, and the Workbench no longer reads it (#390). The
@@ -228,7 +228,7 @@ Most tutorials target 1.20/1.21. Full notes are in `docs/data_and_api_notes.md`.
 | JEI / Jade | `compat/jei`, `compat/jade`, loaded only when the viewer is present. `MultiblockParts` hides uncraftable cells. | `docs/data_and_api_notes.md` |
 | Guidebook | `data/recompile/modonomicon/` (Modonomicon, `runtimeOnly`) | `docs/guidebook_spec.md` |
 | Config | `RCConfig` (COMMON). `RCDimensionLockout` holds the End; the Nether is open. Read its javadoc before assuming a gate holds. | `docs/systems_notes.md` |
-| Cross-mod stopgaps | AE2 presses and sourcing, Ender IO grains and blaze disable. Moving to the pack. | `docs/cross_mod_stopgaps.md` |
+| Cross-mod stopgaps | AE2 presses and sourcing, Ender IO grains and blaze disable. Presses and Ender IO are moving to the pack; the AE2 sourcing recipes stay here (owner ruling on #420). | `docs/cross_mod_stopgaps.md` |
 | Textures, audio, devbridge | texgen, sfxgen, `tools/make_dev_world.py`, `tools/shoot_*.py` | `docs/dev_tooling.md` |
 
 ## Conventions

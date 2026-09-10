@@ -3,6 +3,13 @@
 Engineering spec for rung 2 (Vegetation) of the reclamation ladder. Design is locked in
 `../trashlands/docs/design_decisions.md` (P2.4-R, P1.7-R); this is the build.
 
+**Status: shipped in #26; #71 (PR #97) later widened Fertilizer.** What shipped differs from this plan
+in four places: **two** custom plants (`weedgrass`, `fireweed`), not four; the defaults are **128**
+attempts and a **120-tick (6s)** ripple, not ~64 and 60; there is no radius config, and the scatter
+weights are hardcoded in `event/FertilizerScatter` rather than config values; and since #71 Fertilizer
+on anything other than grass or mycelium falls through to vanilla's bone-meal growth, so decision 8 and
+the "no crop-growth acceleration" non-goal no longer hold. See the config section below for what exists.
+
 ## What it is
 
 Fertilizer (the Compost Heap's output) is a custom "fancy bonemeal", **surface-aware** like vanilla
@@ -14,15 +21,17 @@ bonemeal:
   -> more foraged mushrooms). Mycelium is exempt from encroachment, so this is a pure food play, not a
   reclamation rung.
 
-Both use the same bonemeal-sized footprint revealed over the 3-second ripple; Fertilizer no-ops on any
-other surface (coarse dirt, etc.).
+Both use the same bonemeal-sized footprint revealed over the ripple. On any other surface Fertilizer
+falls through to vanilla's bone-meal path (#71): it grows a crop or sapling, and does nothing and is not
+consumed on ground that cannot grow (coarse dirt, stone).
 
 The plant scatter is the reclamation half. The plants **are** the vegetation - there is no separate
 "vegetated" blockstate. Live plants:
 
 - are `frontier_cover` (encroachment strips a plant instead of reverting the grass under it - the
   defensive half of P1.7-R), and
-- will be the terrain the Nursery rung (trees) requires later (rung gate, P2.4-R item 4).
+- were planned as the terrain the Nursery rung (trees) would require (rung gate, P2.4-R item 4). The
+  Tree Nursery shipped as a producer with no terrain gate (`tree_nursery_spec.md`), so nothing reads it.
 
 Grass (rung 1, the Grass Spreader) is unchanged and is the prerequisite: Fertilizer no-ops on coarse dirt.
 
@@ -40,14 +49,17 @@ Grass (rung 1, the Grass Spreader) is unchanged and is the prerequisite: Fertili
    their own. Break them (by hand or by encroachment) and the ground is no longer vegetated; re-fertilize
    to regrow.
 5. **Grass-only gate.** No-op, and no item consumed, on coarse dirt or any non-grass. You cannot skip
-   rung 1.
+   rung 1. *(Still true of the plant scatter. Since #71 a crop or sapling is the exception: Fertilizer
+   grows it like bone meal. Coarse dirt still no-ops.)*
 6. **Plants = frontier_cover.** Added to `#recompile:frontier_cover`. The encroachment sweep already
    strips a cover block before reverting grass (`RCEncroachment`, tested for vanilla poppy/short_grass),
    so placing our plants in the tag is the whole integration.
 7. **Grass drop rules.** Hand-break destroys (no drop); shears retrieve the plant block. Block-items so a
    sheared plant re-places. No fiber drop (avoids a compost perpetual-motion loop).
 8. **No crop bonemealing.** The custom use-item handles grass -> plants only; crops are out of scope (and
-   would be extra code, not less, since we are not extending vanilla `BoneMealItem`).
+   would be extra code, not less, since we are not extending vanilla `BoneMealItem`). *Reversed by #71
+   (PR #97): off grass and mycelium, `FertilizerItem` now calls vanilla's `BoneMealItem.applyBonemeal`,
+   because this world has no bone meal at all. Gated by `fertilizerGrowthEnabled`.*
 
 ## The plants
 
@@ -70,7 +82,8 @@ cross-model (X-shaped, cutout, no collision) like `dump_mushroom`; survival is n
   `cornflower`
 
 The scatter leans **grass-dominant** - a reclaiming wasteland, not a garden: ~65-70% grasses/weeds,
-~30-35% hardy wildflowers. Two-block plants (`tall_grass`, `large_fern`) place both halves. Every
+~30-35% hardy wildflowers. (Shipped leaner still: the flowers, fireweed included, are 5 of 77 weight in
+`FertilizerScatter.grassScatter()`, about 6%, so one use averages a flower or two.) Two-block plants (`tall_grass`, `large_fern`) place both halves. Every
 scattered plant is added to `#recompile:frontier_cover`.
 
 Deliberately excluded: cultivated/garden flowers (roses, tulips, allium, lily of the valley, sunflower)
@@ -80,16 +93,21 @@ covers the former; kept as notes).
 
 ## Config (`RCConfig`, all gated; defaults are the design)
 
-- `vegetationEnabled` (bool)
-- `fertilizerRadius` (int; default matches bonemeal, ~4)
-- `fertilizerAttempts` (int; scatter density, default ~64)
-- `fertilizerRippleTicks` (int; default 60 = 3s)
-- per-plant scatter weights (weedgrass / dandelion / fireweed)
+What shipped:
+
+- `vegetationEnabled` (bool, default true)
+- `fertilizerAttempts` (int; scatter density, default 128, which is vanilla bonemeal's count)
+- `fertilizerRippleTicks` (int; default 120 = 6s)
+- `fertilizerGrowthEnabled` (bool, default true; the #71 bone-meal fallback)
+
+The plan also listed a `fertilizerRadius` and per-plant weights. Neither exists: the reach falls out of
+bonemeal's outward walk, and the weights are constants in `FertilizerScatter.grassScatter()` /
+`mushroomScatter()`.
 
 ## Non-goals
 
 - No auto-spread, no auto-decay, no `vegetated` blockstate.
-- No crop-growth acceleration.
+- No crop-growth acceleration. *(Reversed by #71; see decision 8.)*
 - No Vegetation Seeder machine (that is the later automation tier).
 - Fertilizer -> farmland is the separate Farming thread, not this spec.
 

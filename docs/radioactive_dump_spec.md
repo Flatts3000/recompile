@@ -15,14 +15,15 @@ Somewhere past the demolition yard, someone buried the things nobody would take.
 science-fiction wasteland - a **landfill with drums in it**: mill tailings left in open heaps, steel
 drums with a trefoil stencilled on the side, and the ordinary domestic radioactive objects that really
 do end up in refuse - dial clocks, welding rods, smoke detectors, uranium glass. You go because it is
-the only uranium in the world. You leave when you have stripped it, because **nothing here grows back**.
+the only uranium in the world. You leave when you have stripped it, and the heaps refill behind you,
+but **the stained ground never heals** (section 3).
 
 ---
 
 ## 1. Placement
 
 **DECIDED (2026-08-22): onset 1024.** A second entry in the `frontier` list of
-`world_preset/garbage.json`, which today holds exactly one:
+`world_preset/garbage.json`, which held exactly one before this region shipped and now reads:
 
 ```json
 { "biome": "recompile:demolition_yard",  "onset": 512  }
@@ -37,8 +38,10 @@ reachable well before the Nether, and it removes the main risk of a distant regi
 found at all. It also sets up a deliberate tension with section 8: **you find the place before you can
 exploit it**, which turns the tool into a goal rather than a wall.
 
-Placement is by distance gradient plus noise, so a world holds **many** radioactive dumps. That matters
-given section 3: each deposit is finite, the world is not.
+Placement is by distance gradient plus noise, so a world holds **many** radioactive dumps. That
+mattered most under the original section 3, when each deposit was finite and the world was not; since
+tailings regrow (section 3, 2026-09-08) it means many refilling deposits rather than a supply that
+runs out.
 
 **The generator is baked into `level.dat` at world creation**, so this only affects NEW worlds. Testing
 needs a fresh one, and `runClient`'s quickPlay world is not it - quickPlay creates a DEFAULT world that
@@ -64,7 +67,9 @@ silently ignores the preset. Use `runServer` with `level-type=recompile\:garbage
 
 ### 2.1 Atmosphere (owner, 2026-08-23)
 
-**DECIDED: windblown dust and a sallow haze. No ambient sound.**
+**DECIDED: windblown dust and a sallow haze. No ambient loop.** (The biome keeps the cave `mood`
+sound under `audio/ambient_sounds`, the same entry every biome in this mod carries; what was declined
+is a `loop`, below.)
 
 V1 ships no radiation, so the air is one of the few things carrying the region's identity, and the
 honest version of it is dust: radon and windblown fines off an uncovered impoundment are what the real
@@ -83,7 +88,7 @@ available without authoring audio are vanilla's - which are all nether or cave l
 under an open overworld sky reads as a bug rather than as atmosphere.
 
 **The mechanism is `attributes`, not `effects`, and that is not a detail.** 26.1 split
-`BiomeSpecialEffects`; see CLAUDE.md's API-deltas section. Every biome in this mod had been shipping
+`BiomeSpecialEffects`; see the `BiomeSpecialEffects` entry in `docs/data_and_api_notes.md`. Every biome in this mod had been shipping
 its fog and sky in the dead half.
 
 ---
@@ -105,7 +110,7 @@ right; only the demolition yard needed a new ground block.
 **In exchange, a tailings impoundment NEVER RETIRES, and the region is permanently
 non-reclaimable.** Greening a footprint is what retires a mound and a rubble pile, and Stained Ground
 is deliberately out of `#recompile:spreadable` because contamination that scrubs clean is not
-contamination (2026-08-05, untouched). So the scarcity did not disappear, it MOVED: from the deposit,
+contamination (proposed in section 4.3 on 2026-08-22 and shipped with V1, untouched). So the scarcity did not disappear, it MOVED: from the deposit,
 which now refills, to the land, which never comes back. The dump is the one region of the world with
 no reclamation ending.
 
@@ -145,7 +150,7 @@ resolves finiteness without ever making waste replenish itself.
 three block families and cost an entire phase; this is deliberately smaller.
 
 A `SortableBlock` variant supplies five things - a `sorted` property, a pull table, a min/max crumble
-window, and a required tool - and there are already seven variants, so **no new mechanic is needed**
+window, and a required tool - and there were already seven variants (nine once these two shipped), so **no new mechanic is needed**
 (but see section 8 for the one change the tool gate does need).
 
 Each sortable does three jobs at once, and that is what makes the design tight: it **holds the loot**,
@@ -204,14 +209,15 @@ Rarer than tailings, better pulls, and the object that says what the place is.
 
 ### 4.3 Stained Ground (dressing, no loot)
 
-A discoloured patch where something leaked. No pull table, no drops - it exists so the ground the drums
-sit on reads as contaminated.
+A discoloured patch where something leaked. No pull table, and it drops only itself
+(`loot_table/blocks/stained_ground.json`) - it exists so the ground the drums sit on reads as
+contaminated. Since 2026-09-08 (#424) it is also the dump's regrowth memory; see section 3.
 
 **It is a SURFACE block, which is the one qualification to section 2, and it has a consequence worth
 deciding deliberately: it cannot be healed.** If it sits outside `#minecraft:substrate_overworld` then
 grass will never spread onto it and the Grass Spreader will not convert it.
 
-**That is proposed as correct rather than as a limitation.** Contamination that scrubs clean is not
+**That was proposed as correct rather than as a limitation, and shipped that way with V1.** Contamination that scrubs clean is not
 contamination, and there is precedent: `MoundGroundBlock` is deliberately kept out of
 `#minecraft:dirt`, because membership would reach `#encroachable` through `#substrate_overworld` and
 the junkyard would eat its own memory.
@@ -329,9 +335,10 @@ that lingers after you leave, and the pond being merely useless.
 **Two things to carry forward.** *Radiation damages you unless you wear a suit* is still a separate
 reversal and is still not taken - deferring it to Mekanism remains the plan, and when it lands it puts
 a SECOND hazard on this same region, which wants looking at as a pair rather than in isolation. And
-Poison **can** kill a mob where it cannot kill a player, so animals that wander a pond die in it; that
-is a behaviour change from leachate, which was written so mobs are affected exactly as a survival
-player is.
+Poison cannot kill a mob either: vanilla `PoisonMobEffect.applyEffectTick` only damages while
+`getHealth() > 1.0F`, for every `LivingEntity`, so an animal that wanders a pond is left at half a heart
+rather than killed, exactly as a survival player is. (This line said Poison kills mobs; it does not.
+The `TailingsSlurryBlock` javadoc and the guidebook's pond page carry the same false claim, #433.)
 
 ---
 
@@ -363,7 +370,10 @@ Java: Ancient Sculk uses `#recompile:mineable/sledgehammer` for the type plus
 `#minecraft:needs_diamond_tool` for the tier, which works only because `RCItems.COPPER_TIER` is built
 on `INCORRECT_FOR_STONE_TOOL`.
 
-### 8.2 The mechanism cannot express "any sledgehammer" today
+### 8.2 The mechanism could not express "any sledgehammer"
+
+**Resolved in V1:** `SortableBlock.requiredToolFamily()`, which `MillTailingsBlock` answers with
+`#recompile:sledgehammer` (section 9). What follows is the pre-build analysis.
 
 `SortableBlock.requiredTool()` returns a **single `Item`**, and there are **four** sledgehammers -
 copper, iron, diamond, netherite. Naming one means the other three do not work.

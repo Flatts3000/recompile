@@ -1,6 +1,8 @@
 # Demolition Yard + the Region System - spec
 
-**Status: partially built (2026-07-28).** The demolition yard is the first **frontier region**: the
+**Status: built.** It was partially built on 2026-07-28, and everything the Remaining list below held
+has since shipped. Sections 5 to 11 are the pre-build plan: where they name the Makeshift Forge, read
+the Cupola Furnace (section 7 says what differs). The demolition yard is the first **frontier region**: the
 dangerous, gated place you travel to for the two structural materials the closed economy withholds -
 **stone and iron**. It also introduces the **region system** (a distance-gated, noise-filled `BiomeSource`),
 which is the reusable Phase 4 foundation every future region plugs into.
@@ -21,7 +23,9 @@ P2.4 material economy). This is the engineering spec. Everything ships config-ga
 - **The iron entry** (S4.2, S5, S6): **Reinforced Concrete** (sledgehammer-only, `requiresCorrectToolForDrops`)
   -> aggregate + rebar; the **full Sledgehammer ladder** (copper/iron/diamond/netherite - copper is a custom
   `ToolMaterial`, each crafts as a metal block on two sticks, handle = tree gate; textures are the vanilla
-  mace two-zone-retinted per tier with a wood handle); **rebar -> iron** smelting.
+  mace two-zone-retinted per tier with a wood handle); **rebar -> iron**, built as smelting and since
+  #91 `minecraft:blasting` (`recipe/iron_nugget_from_rebar.json`, rebar to a nugget), which only the
+  Cupola Furnace runs.
 
 **Remaining**: nothing on this list. All four shipped, three under their own names and one under
 another. Kept as the record of what was outstanding, with what closed each:
@@ -31,7 +35,7 @@ another. Kept as the record of what was outstanding, with what closed each:
 - ~~**Steel I-Beam + Cutting Torch**~~ (S4.3, S6-torch) - `SteelBeamBlock.java`, `CuttingTorchItem.java`
   and `recipe/cutting_torch.json`. Shipped 2026-07-30, per `steel_cutting_torch_spec.md`.
 - ~~**Makeshift Forge**~~ (S7) - **never shipped under that name**; it became the **Cupola Furnace**
-  (#236), which is the blast tier and IS the iron gate. `grep -rli makeshift_forge src/` returns
+  (#50, the Makeshift Forge issue; its slag output came with #236), which is the blast tier and IS the iron gate. `grep -rli makeshift_forge src/` returns
   nothing, so do not go looking for it.
 - ~~**Textures**~~ - `reinforced_concrete_{0,1,2}.png` are real generated textures, declared in
   `texgen.toml`.
@@ -254,6 +258,13 @@ Two demolition verbs, two tools - you crush concrete but you cut steel.
 ---
 
 ## 7. The Makeshift Forge (processor)
+
+**Shipped as the Cupola Furnace (#50), not under this name.** What differs from the plan below: since
+#236 it has its own menu and screen (`CupolaFurnaceMenu`, `CupolaFurnaceScreen`) rather than
+`BlastFurnaceMenu`, because it hands back slag in a second output slot; it is still a `RecipeType.BLASTING` machine, built from concrete
+(`recipe/cupola_furnace.json`, `#c:concretes`) and hopper-automatable (`CupolaFurnaceBlockEntity`
+keeps vanilla's faces and adds the slag slot below). The iron recipes are `iron_nugget_from_rebar`
+and `iron_from_steel_offcut`, both `minecraft:blasting`.
 
 - A **retextured vanilla blast furnace**: `AbstractFurnaceBlock`/`AbstractFurnaceBlockEntity` subtype on
   `RecipeType.BLASTING`, reusing **`BlastFurnaceMenu`** (no bespoke screen - same path as the Burn Barrel).

@@ -1,12 +1,15 @@
 # Hydroponics + the power tier - spec (issue #43)
 
 **Status: SHIPPED.** The power tier landed 2026-07-31 (#72, PR #73) and the Hydroponics Bay on
-2026-08-02 (#43, PR #104); the bay moved behind a blueprint the same day (#95, PR #110), so it now
-costs a Broken Hydroponics Bay teardown as well as the parts. Captured from a design session; every
-numbered item was an owner call made there, and the numbers still want the #36 balance pass.
+2026-08-02 (#43, PR #104); the bay moved behind a blueprint the same day (#95, PR #110). That
+blueprint was first learned by tearing down a Broken Hydroponics Bay; since P3.10 (2026-09-06)
+teardown teaches nothing, and the `recompile:hydroponics_bay` Blueprint is **bought at the Buy
+Terminal** (`market_offer_hydroponics_bay.json`, tier 5). A Broken Hydroponics Bay now tears down to a
+**Pump**, its signature component. Captured from a design session; every numbered item was an owner
+call made there, and the numbers still want the #36 balance pass.
 
-**Two issues, one spec.** The power tier is **#72** and the hydroponics machine is **#43**; #43 is blocked
-on #72, since the machine consumes RF and nothing generates it yet. They were split on 2026-07-31 because
+**Two issues, one spec.** The power tier is **#72** and the hydroponics machine is **#43**; #43 was
+blocked on #72, since the machine consumes RF and nothing generated it until #72 shipped. They were split on 2026-07-31 because
 #43 had quietly grown from four plants into an energy layer plus a reversed design lock.
 
 Design source of truth for the reversal this depends on: `../trashlands/docs/design_decisions.md` P3.5.
@@ -135,10 +138,13 @@ speed-up rather than a requirement.
 
 ## 2. The power tier - SHIPPED
 
-**Built 2026-07-31 (#72).** The machine below still has to be written; the energy layer it consumes now exists. **Two generators**, both new:
+**Built 2026-07-31 (#72).** The machine that consumes it shipped two days later (#43, PR #104). **Two generators**, both new:
 
 - The **Burner Generator** - burns anything in the vanilla fuel data map, so it tracks the Burn Barrel's
-  fuel list rather than keeping its own. Fed by right-click, no screen and no inventory. 20 FE/tick.
+  fuel list rather than keeping its own. 20 FE/tick. *Specced as "fed by right-click, no screen and no
+  inventory"; it shipped in the same PR with a fuel buffer and a bespoke screen carrying a power meter
+  (owner, 2026-07-31), so it runs unattended and automation can fuel it. That screen is one of the
+  recorded exceptions in `docs/gui_notes.md`.*
 - The **Solar Panel is a real generator** - 2 FE/tick scaled by actual daylight, using vanilla's own
   daylight-detector maths so night, dusk and weather all fall out of one expression.
 
@@ -174,26 +180,32 @@ modest standalone generator so it is playable alone.
 
 Recorded in full at `design_decisions.md` P3.5. The headline: **the Nether loses its stated reason to
 exist.** "First RF power originates here" was the draw. Osmium and the netherite-analog remain, but
-whether they carry a dimension alone is **open, and must be answered before P3.5 is built.**
+whether they carry a dimension alone is **open, and must be answered before P3.5 is built.** *(P3.5 has
+since been built: the compacted depths shipped on 2026-08-19, #247, and the Nether is open because its
+resources and progression are the reason to go. See `docs/worldgen_notes.md` for the depths and
+`docs/systems_notes.md` for the ruling.)*
 
 Three specs that restated "no RF" have been annotated: `grass_spreader_spec.md`,
 `multiblock_system_spec.md`, `tree_nursery_spec.md`. The **Pump stays inert** - that is P2.3, untouched.
 
 ## 4. Open questions
 
-- **Does it need a screen?** The swap probably wants a visible slot showing what the machine is seeded
-  with. Note that CLAUDE.md's "there is exactly one custom screen" is **already false** - the Tree Nursery
-  ships `TreeNurseryScreen` alongside the Scrap Crafting Table's, registered together in `RCMenuScreens`.
-  That doc needs correcting either way; whether machine screens are now simply accepted for producers is
-  a decision that has been made in practice but never written down.
+- **Does it need a screen?** *Answered: yes.* `HydroponicsBayScreen` shows the crop slot and water
+  and power gauges together, because the bay is the only machine consuming water AND power, so "why is
+  it not running" has two answers. The note that stood here - that CLAUDE.md's "there is exactly one
+  custom screen" was already false, and that "screens are accepted for producers" had been decided in
+  practice but never written down - is resolved: every custom screen is now a recorded exception in
+  `docs/gui_notes.md`, which states the producer pattern.
 - **Growth rate, RF cost, water cost** - all first-pass, folding into #36.
 - **Does it undercut rung 3?** In-ground farming's point is that irrigation *defends* a plot against
   encroachment. A box that grows everything indoors makes that loop optional. Late arrival is the
   intended mitigation: by the time you have power, the frontier fight has already done its work.
 - **Fertilizer interaction** - #71 proposes Fertilizer as a growth accelerant. If both ship, decide
-  whether it also speeds hydroponics or only in-ground growth.
+  whether it also speeds hydroponics or only in-ground growth. *(Both shipped. #71 (PR #97) made
+  Fertilizer a bone-meal stand-in for crops and saplings in the world; the bay does not read Fertilizer
+  at all.)*
 
-## 5. Build order (when it is picked up)
+## 5. Build order *(done: steps 1-2 in #72, 3-4 in #43; step 5 was the split into #72 and #43)*
 
 1. Energy layer: `EnergyHandler` on a scratch block, proven against a real consumer in `runClient`. The
    API moved to the transfer package like fluids did, so 1.21-era tutorials will be wrong.

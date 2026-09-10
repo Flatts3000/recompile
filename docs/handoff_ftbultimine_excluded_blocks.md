@@ -9,7 +9,9 @@ that the pack cannot ship data on 26.1.2. That stopped being true hours later: K
 pack, pinned alongside standalone `better-advanced-tooltips-2601.1.0-build.9`, which displaces the
 broken bundled `build.8` that used to crash the client at bootstrap. The tag now ships from the
 pack at `pack/kubejs/data/ftbultimine/tags/block/excluded_blocks.json`, which is where a curation
-decision belongs under the engine/pack split. Nothing is being asked of Recompile.
+decision belongs under the engine/pack split. Nothing is being asked of Recompile. The pack's file has
+since moved past the list below (it adds `minecraft:deepslate`, pack PR #68), so read it
+there rather than here.
 
 The rest is kept for two reasons: the two observations at the end are still live questions for
 this repo, and the same route now exists to take back the Simple Magnets overrides and the Ender
@@ -62,9 +64,10 @@ leaves it pointed at the **rebuilt** world instead of the garbage one. Trees, cr
 stone, player builds. That is a convenience, not an economy skip, and it draws a line the pack
 actually wants drawn: the junkyard is dug by hand, the world you make from it is not.
 
-## Why this is a Recompile job and not a pack job
+## Why this was raised as a Recompile job
 
-The pack cannot ship data of its own on 26.1.2. No datapack loader has a 26.1.2 NeoForge build (Open
+*(The premise as it stood on the morning of 2026-09-07; it was false by the end of that day, see
+Status.)* The pack cannot ship data of its own on 26.1.2. No datapack loader has a 26.1.2 NeoForge build (Open
 Loader 354339 and Datapack Loader 309529 both stop short), KubeJS is still the build that crashed the
 client on load, CraftTweaker has not ported, and `release.yml` rejects a loose jar in the CurseForge
 export so a datapack-as-mod is out. A world datapack is per-save and cannot ship with the pack.

@@ -14,7 +14,7 @@ The gallery is real in-game screenshots and needs no tooling.
 ## The avatar
 
 `python branding/compose_logo.py` writes all of it. A green sprout rising out of a pile of junk - the
-mod's pitch in one image - with `REC` stamped across the pile.
+mod's pitch in one image - with the `RECOMPILE` wordmark across the pile.
 
 **It used to pixelate a painterly AI render and that had to go** (2026-08-04). The artwork is now a sky
 ramp, a mound profile with junk scattered over it, a stem, and two leaves drawn as rotated ellipses.

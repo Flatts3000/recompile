@@ -13,14 +13,15 @@ decisions still open.
 **1. A Pump IS craftable now.** Open question 1 below asked "should a Pump ever be craftable? Today:
 no", and argued that "salvaged, never made" was a strong identity line. The blueprint system (#95,
 shipped 2026-08-02) answered it: `recipe/pump.json` is a `recompile:blueprint_crafting` recipe, and
-you unlock it by tearing down four of the object that yields one. So the identity line survives in a
+you unlocked it by tearing down four of the object that yields one (since P3.10 the sheet is bought
+instead; see correction 5 and open question 5). So the identity line survived in a
 modified form - you still cannot make a Pump until salvage has taught you how - but "nothing crafts a
 Pump" is simply no longer true, and this page said it twice.
 
 **2. It is not the only salvaged machine part.** The **Motor** and the **Bulb** both exist, and the
 line below saying "the Motor no longer exists (it became the Pump)" is stale - the Motor came back as
 its own component. Components now split into **placeable** (Motor, Pump, Solar Panel, ...) and
-**crafting** (Bulb); see CLAUDE.md.
+**crafting** (Bulb, Battery); see `docs/systems_notes.md`.
 
 **3. The washing machine is no longer the only source, and a fridge is one of them.** The section
 below rules a fridge out as "the worst first pick" because "its signature part is a compressor, which
@@ -29,8 +30,19 @@ one of motor / pump / bulb. That is a real reversal, and the reasoning that beat
 a fridge holds all three plausibly, so it became the one find where *which* component you get is a
 draw - which is a mechanic, where "it has a compressor" was only a quibble about naming.
 
-**4. The find table is six entries, not two**, which is exactly the fix this page recommends. See
-"The find table is two entries" below, which is now purely historical.
+**4. The find table is six entries, not two** (eight since the Broken Terminal and the Broken Hauler
+joined), which is exactly the fix this page recommends. See "The find table is two entries" below,
+which is now purely historical.
+
+**5. The washing machine no longer yields a Pump** (P3.10, #397, 2026-09-06). Each object now yields
+its signature component: a washing machine tears down into a **Motor**, and the Pump's own object is the
+**Broken Hydroponics Bay**, which returns one guaranteed. The fridge still draws one of motor / pump /
+bulb. On `bulky_spine.json` today (eight entries, total weight 16, reached on 9 of 10 Bulky Waste via
+the routing table `blocks/bulky_waste.json`), the bay is about 5.6% of Bulky Waste and a fridge Pump
+about 7.5% (a third of the fridge's 22.5%), so **roughly 13% of Bulky Waste gives a Pump**. The sewer
+chest (`chests/sewer.json`) also carries them, and the Pump blueprint is bought rather than taught
+(open question 5). Everything below that says "washing machine -> Pump" describes the chain before
+P3.10.
 
 **What the numbers become.** On `bulky_spine.json` at v0.9.0 - mattress 3, washing_machine 2,
 filing_cabinet 2, printer 2, broken_hydroponics_bay 1, fridge 4, total 14 - a washing machine is
@@ -47,15 +59,16 @@ permanently lost) and the recommendation not to retune worldgen's 5% for one fin
 
 ```
 mound worldgen -> Bulky Waste block (5% per core cell)
-               -> pry it open -> Washing Machine (13.3% of finds) or Dead Fridge (26.7%)
+               -> pry it open -> Broken Hydroponics Bay (5.6% of Bulky Waste) or Dead Fridge (22.5%)
                -> tear down at the Teardown Workbench with a prybar
-               -> washing machine: 1 Pump + 5 scrap, split metal/plastic
+               -> hydroponics bay: 1 Pump + 4 glass/metal scrap + a chance of e-scrap or plastic
                -> fridge:          1 of motor/pump/bulb + 8 scrap + snow or ice
 ```
 
-Salvage is still the *first* route: you cannot craft a Pump until four teardowns have taught you how,
-so rung 1 remains behind the teardown spine and you must have a Workbench and a prybar before you can
-water anything. What changed is that the gate is now a **one-time** gate rather than a permanent one.
+Salvage is still the *first* route: the Pump blueprint is a tier-3 market line
+(`market_offer_pump.json`, 300 scrip), so until the freight ladder reaches tier 3 the only Pumps are
+salvaged ones or a sewer crate's, and you must have a Workbench and a prybar before you can water
+anything. What changed is that the gate is now a **one-time** gate rather than a permanent one.
 
 ## Why it is a washing machine and not a "Broken Appliance"
 

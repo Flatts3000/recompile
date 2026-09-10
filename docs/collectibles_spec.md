@@ -111,8 +111,12 @@ solved + 6 scrambled). The piece's cubie faces are the `single_sticker` style; t
 
 ## Found-economy invariant
 
-Satisfied: pieces enter via garbage, and the **exit is craft-into-cube** (a placeable/displayable
-sink), so collectibles never become clutter.
+**Retired** (owner, 2026-08-01; see `paintings_spec.md` section 1b and `docs/systems_notes.md`). The
+invariant said nothing enters the found economy without a teardown exit. The collectibles were already
+the counterexample: the four ported objects are found whole and displayed with no exit at all. Pieces
+still have one, **craft-into-cube**, but that is now a property of the Puzzle Cube rather than a rule
+the system has to meet. What survives is the reason behind it: a find needs *a* point, and displaying
+it is one.
 
 ## Not this (v1)
 

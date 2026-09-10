@@ -46,7 +46,7 @@ Closing #324 without adding an ocean.
 | Live coral, fans, blocks (5 colours) | 15 | the revival chain, section 4 - **approved, ruling 8.2** |
 | `heart_of_the_sea` | 1 | the centrepiece exhibit, one per building |
 | Armor trim smithing templates | 16 | **the chest** - ruling 8.4 reversed, see 5.1 |
-| `turtle_scute` | 1 | **the chest** - the only route, see #345 |
+| `turtle_scute` | 1 | **the chest** - a second route, not the only one; see #345 and 5.1 |
 
 **Renewability is the whole argument for the guardian, and it was not in the first draft of this
 spec.** Every prismarine block in the game is crafted from prismarine shards: 4 shards make prismarine,
@@ -64,17 +64,17 @@ seedling table, so it is renewable rather than found. **What is missing is mater
 those are mob drops: shards and crystals from a guardian, and wet sponge from an elder guardian, which
 is ruled out.
 
-**The two exceptions are the turtle's, and the resource checklist is wrong about the second one.**
-`SewerTurtleDen` places three adult turtles in every sewer, persistent, and a turtle drops seagrass -
-so seagrass is real but **finite and one-way**, capped at the sewers a player finds times three
-turtles, and each unit costs a turtle permanently. `turtle_scute` is worse than finite: the checklist
-says "a turtle grows up", and **no turtle here can**. Scute drops only when a baby matures, egg-laying
-needs `y < seaLevel + 4` against a sea level of -64 (which `SewerLifeTests` already records as the
-reason turtles are not renewable), and the den cannot spawn a baby either: it calls `finalizeSpawn`
-with a null group data once per turtle, and `AgeableMob` gates its baby roll behind
-`getGroupSize() > 0`, which a fresh group data never satisfies. So every den turtle is an adult,
-forever. **Not this structure's problem to fix**, but it is a live checklist error and it is filed
-rather than folded in here.
+**The two exceptions are the turtle's.** `SewerTurtleDen` places three adult turtles in every sewer,
+persistent, and a turtle drops seagrass. This paragraph first said seagrass was **finite and
+one-way** and that `turtle_scute` had no source because **no turtle here can grow up**, and filed that
+as #345. Half of it held: the den cannot spawn a baby (it calls `finalizeSpawn` with a null group
+data once per turtle, and `AgeableMob` gates its baby roll behind `getGroupSize() > 0`, which a fresh
+group data never satisfies), so every turtle a den is BUILT with is an adult. The other half did not:
+it read `y < seaLevel + 4` as an egg-laying rule, and that clause is on turtle SPAWNING. #345's close
+records that laying asks only for an egg and the home position, the den sets `homePos` and beds its
+turtles on sand, so den turtles bred on seagrass lay, and a baby growing up drops a scute. Seagrass is
+therefore renewable, and the checklist's "a turtle grows up" was right. The curator's chest (5.1) is
+a second scute route, not the only one.
 
 **Correction to the first draft on the nautilus armours.** It said they "need nothing from this"
 because `nautilus_shell` is already reachable. That is wrong: the copper, iron, golden and diamond
@@ -276,7 +276,8 @@ submerged**, permanently and by construction.
 
 **That is a feature rather than a defect, and it is the honest reading.** It makes live coral a
 decorative flex that costs standing water to maintain, in a world where water is scarce and comes from
-Rain Collectors and the sewers. A player who has built enough water infrastructure to keep a reef alive
+Rain Collectors. *(This said "and the sewers"; the sewers hold only leachate - no sewer source places
+`Blocks.WATER` - which section 5 records.)* A player who has built enough water infrastructure to keep a reef alive
 has earned the reef. What it must not do is ship as a surprise: the guidebook entry has to say that
 coral dies dry, or the first thing a player does with a revived coral is lose it.
 

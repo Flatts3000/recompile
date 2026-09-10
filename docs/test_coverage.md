@@ -11,6 +11,11 @@ JAVA_HOME="/c/Program Files/Java/jdk-25" \
 
 Report lands at `build/reports/jacoco/coverageReport/html/index.html`, XML beside it.
 
+**Suite size (measured 2026-09-10):** 783 GameTests registered through `RCGameTests.test` (a run
+reports 784, because vanilla's one `minecraft:default` test runs alongside), and 147 JUnit tests across
+35 classes (`build/test-results/test`). The coverage readings below are dated and were not re-run with
+this count.
+
 ## Why it takes three tasks
 
 **Neither test layer alone tells the truth, and reading either one on its own gives a wrong answer in
@@ -30,8 +35,8 @@ live under `src/main/java`, because GameTest registration requires it - counting
 number with tests testing themselves.
 
 **`client/**` is deliberately NOT excluded from the reports**, even though neither layer can reach it.
-Hiding it would make the headline look better while deleting the evidence that 389 lines have no
-automated coverage at all. The "actionable" row subtracts it in the open, where the subtraction can be
+Hiding it would make the headline look better while deleting the evidence that those lines (counted
+under *What neither layer can reach* below) have no automated coverage at all. The "actionable" row subtracts it in the open, where the subtraction can be
 argued with.
 
 **Two ways this measurement can lie to you, both now guarded:**
@@ -184,15 +189,18 @@ directly), and `event` (118).
 
 ## What neither layer can reach, and why that is not a gap to fill
 
-**1,281 lines as of 2026-09-07**, up from 931 on 2026-09-04: 1,237 in the three unreachable packages (`client` 629, `compat/jei` 455, `client/gui` 153) plus 44 in the `Dist.CLIENT` classes outside `client/**` (`MultiblockPlacementPreview` 26, `RCFuelTooltip` 12, `RCBlockColors` and its inner class 3 each). `client` more than doubled - 288 to 629 - because the Scrap Hauler's model and renderer and three screens shipped between the two readings, which is what pulled the merged headline down while actionable held. The first write of this line said 884 and 47, which summed to the right headline out of two cancelling errors, on the page that calls itself the one place the subtraction is stated, all at 0%, excluded from the actionable figure rather than counted as
-debt. *(These grow with the code; they were 771 at v0.14.0. This is the one place they are stated -
-anywhere else that quotes a total is a second source waiting to drift from this one.)*
+**1,281 lines as of 2026-09-07**, up from 931 on 2026-09-04: 1,237 in the three unreachable packages (`client` 629, `compat/jei` 455, `client/gui` 153) plus 44 in the `Dist.CLIENT` classes outside `client/**` (`MultiblockPlacementPreview` 26, `RCFuelTooltip` 12, `RCBlockColors` and its inner class 3 each). `client` more than doubled - 288 to 629 - because the Scrap Hauler's model and renderer and three screens shipped between the two readings, which is what pulled the merged headline down while actionable held. All of it is at 0%, and it is
+excluded from the actionable figure rather than counted as debt. (The 2026-09-04 write of this line
+said 884 and 47, which summed to the right headline out of two cancelling errors.) *(These grow with
+the code; they were 771 at v0.14.0. This is the one place they are stated - anywhere else that quotes
+a total is a second source waiting to drift from this one.)*
 
-- **`client/**` (441 lines: `client` 288 plus `client/gui` 153)** - screens, the GUI framework's rendering visitor, the one
-  BlockEntityRenderer. A GameTest server has no client and JUnit loads none. `CLAUDE.md` already says
-  screens are the layer both test layers are blind to; `python tools/shoot_screens.py` against a
-  running `runClient` is the acceptance evidence for them, not a coverage number.
-- **`compat/jei` (446 lines)** - categories and renderers. JEI's own registration only happens
+- **`client/**` (782 lines on 2026-09-07: `client` 629 plus `client/gui` 153)** - screens, the GUI
+  framework's rendering visitor, the one BlockEntityRenderer, the Scrap Hauler's model and renderer. A
+  GameTest server has no client and JUnit loads none. Screens are the layer both test layers are blind
+  to ([`gui_notes.md`](gui_notes.md#verifying-screens-and-the-guidebook)); `python tools/shoot_screens.py`
+  against a running `runClient` is the acceptance evidence for them, not a coverage number.
+- **`compat/jei` (455 lines on 2026-09-07)** - categories and renderers. JEI's own registration only happens
   client-side. `SortingData` is the server-safe half and is covered by `SortingDataTests`, which is
   exactly why that split exists.
 

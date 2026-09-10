@@ -40,8 +40,11 @@ cost it two.
 
 **1. Nothing the structure places may drop a member of `#minecraft:stone_crafting_materials`.**
 That tag is exactly `cobblestone`, `blackstone`, `cobbled_deepslate`, and any of them crafts a vanilla
-furnace, which skips the Cupola and opens the iron gate. **The classic mossy-cobblestone sewer is the
-one thing that cannot be built.** `mossy_stone_bricks` gets the same read and is not in the tag.
+furnace. *(This said the furnace "skips the Cupola and opens the iron gate". It has not since #91
+(2026-08-01): both iron recipes are `minecraft:blasting`, which a vanilla furnace cannot run, and a
+furnace is craftable anyway from the cobbled deepslate a wooden pickaxe digs - see
+`CupolaFurnaceBlockEntity`. The constraint is still enforced; its stated reason is out of date.)*
+**The classic mossy-cobblestone sewer is the one thing that cannot be built.** `mossy_stone_bricks` gets the same read and is not in the tag.
 Enforced by `the_sewer_palette_opens_no_gate`, which walks `SewerPalette.ALL`.
 
 **2. Every block the structure places must end up in `SewerPalette.ALL`** - but this is a **soft
@@ -405,7 +408,8 @@ Three consequences, all of them worth knowing before tuning:
 
 **The brush is a soft gate, and it is worth knowing which side of it the sewer sits on.**
 `minecraft:brush` is a feather, a stick and a copper ingot. Copper and sticks are early; the feather is
-not, because this world has no mobs until the animals rung and a chicken arrives on omnivore bait. So a
+not, because nothing that drops one lives here until a chicken or a parrot arrives on omnivore bait
+(the animals rung). So a
 player who reaches the demolition yard before they reach chickens finds a sewer full of deposits they
 cannot open. That is a delay rather than a dead end - nothing about the silt is consumed by being seen -
 but it means the silt is **not** the sewer's introduction to itself, and the crate in the sump (which
@@ -497,7 +501,7 @@ The category with the most surface already built, and therefore the cheapest add
 |---|---|---|
 | **More den types** (bats, silverfish-analogue) | **M each**, following the existing `SewerDen` base - `doorSide()`, `bed()`, `population()`, `resident()`. The pattern is proven now. | Low. The abstract base already carries the door and the placement rules. |
 | **Wandering roach density** - tune the `spawn_overrides` weights | **XS.** JSON. | Low, and it belongs to the balance pass (#36) anyway. |
-| **A named or unique inhabitant** | **XL.** A new entity is art, model, renderer, lang, spawn egg, loot, and a Jade line. | High. The mod has exactly two custom entities and both were substantial. |
+| **A named or unique inhabitant** | **XL.** A new entity is art, model, renderer, lang, spawn egg, loot, and a Jade line. | High. The mod had exactly two custom entities when this was written (four now, see `RCEntities`) and both were substantial. |
 
 ---
 
@@ -507,7 +511,7 @@ The category with the most surface already built, and therefore the cheapest add
 |---|---|---|
 | **Depth-scaled loot** - richer barrels further from the entrance | **M.** The piece knows its `genDepth`; the barrel placement would need to pick a table from it. | Low mechanically. **Medium in design:** it rewards exploring, which is the point, but it needs #36's numbers to mean anything. |
 | **A unique find** - one item that only a sewer produces | **M-XL** depending on whether it is an existing item or a new one. | **This is the item most likely to be worth doing.** The sewer currently pays in materials the player already has routes to; one thing that exists nowhere else changes it from a resource stop into a destination. |
-| **More component variety** in the barrels | **XS.** Loot table only. | Low - all `blueprint_crafting`, so a found one teaches nothing. |
+| **More component variety** in the barrels | **XS.** Loot table only. | Low - a found one teaches nothing. No longer "all `blueprint_crafting`": the Machine Frame is a plain recipe and the Motor has none since #398 (`#recompile:function_only`), so a found Motor is the only kind there is. |
 
 ---
 

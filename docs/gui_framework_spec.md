@@ -16,9 +16,9 @@ declaration exists. See section 10 for why that turned out to be the whole job.
 
 ## 1. The problem, measured
 
-**Eleven** custom screens ship today - Scrap Crafting Table, Tree Nursery, Burner Generator,
+**Twelve** custom screens ship today - Scrap Crafting Table, Tree Nursery, Burner Generator,
 Hydroponics Bay, Cupola Furnace, Slag Furnace, Sintering Kiln, Sequencer, the market's Sell and
-Buy Terminals, and the Hauler Depot - each a recorded exception
+Buy Terminals, the Hauler Depot and the Freight Terminal - each a recorded exception
 to "the mod keeps machine GUIs to a minimum". *(This sentence said four while the paragraph ten lines
 below already said eight, so the page contradicted itself on its own subject. `find src/main/java
 -name "*Screen.java"` settles it; the four in the table below are the ones the framework LAUNCHED
@@ -126,6 +126,11 @@ Derived from what the four existing screens actually need, not invented:
 | `Picker(items)` | Tree Nursery | species selection |
 | `Label` | several | text, with vanilla's shadow conventions |
 
+*As built, the vocabulary is verbs on `ScreenLayout.Builder` that declare named rectangle groups
+(`slot`, `slotRow`, `slotGrid`, `cellGrid`, `well`, `arrow`, `region`, `backdrop`, `rows`,
+`playerInventory`, `title`, `panel`, `noChrome`) rather than the widget classes above, and the client
+draws them through `GuiPainter` by group name (section 10).*
+
 **Gauges are the load-bearing addition.** The recorded reason these screens exist is that energy
 bars, tank gauges and pickers have no vanilla screen to borrow. A framework that ships a good gauge
 removes the *reason* most of these screens were bespoke.
@@ -216,7 +221,7 @@ blind** - and that is now a recorded reason rather than something to rediscover.
 
 The second thing owo settled: its component tree is dozens of classes with a full flexbox, KDL/XML UI
 models and error toasts. We need none of it. Vanilla containers are hand-placed by nature and there
-are four of them. **The value is one declaration feeding both sides, not an auto-layout engine.**
+were four of ours at the time. **The value is one declaration feeding both sides, not an auto-layout engine.**
 
 ### Hit regions reach the screen by name
 

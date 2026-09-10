@@ -6,11 +6,20 @@ dedicated tool, charged with Oily Rags rather than durability-only. Parent spec:
 [`demolition_yard_spec.md`](demolition_yard_spec.md) S4.3 / S6-torch. Everything ships config-gated; defaults
 are the design; tuning joins the pre-beta pass (#36).
 
+**Where the build moved past this plan:** the beam drops **Steel Offcut**, not raw iron (section 1),
+and both iron routes are `minecraft:blasting` in the Cupola (#91). The block is **`SteelBeamBlock`**,
+not a `RotatedPillarBlock`: `AXIS` plus `X` / `Z` / `TOP` / `BOTTOM` run-and-gusset properties, a slim
+`noOcclusion()` I-profile model, and a connection state machine ported from Create's `GirderBlock`
+(MIT code; none of its assets). **A pickaxe returns the beam itself** (#129, PR #132, and the beam is in
+`#minecraft:mineable/pickaxe`) so players can build with steel, while the torch still cuts it into
+offcuts. Real textures shipped (`steel_beam_flange`, `steel_beam_web`, `steel_beam_gusset`,
+`cutting_torch`).
+
 ## 0. The two iron grades (why this exists)
 
 ```
-rebar        (from Reinforced Concrete, common ~35%, sledgehammer)  -> smelt -> 1 iron    [trickle, shipped]
-Steel I-Beam (from husks / steel piles, cut with the Cutting Torch) -> raw iron (bulk)  -> smelt -> iron   [bulk, THIS]
+rebar        (from Reinforced Concrete, common ~35%, sledgehammer)  -> blast (Cupola) -> 1 iron nugget  [trickle, shipped]
+Steel I-Beam (from husks / steel piles, cut with the Cutting Torch) -> Steel Offcut (bulk) -> blast (Cupola) -> iron ingot  [bulk, THIS]
 ```
 
 You crush concrete but you **cut** steel - two verbs, two tools. The I-beam is the frame of the building
@@ -23,12 +32,14 @@ survival placement lands with #49.
   vertical **column** or a horizontal **girder**, placed by the face clicked and by the husk generator.
   End-cap texture on the two axis ends, web/flange texture on the four sides (like a log's end vs bark).
 - **Solid, `requiresCorrectToolForDrops`**, carries the new `#recompile:mineable/cutting_torch` tag - so
-  bare hands, the sledgehammer, and any other tool yield **nothing**. Steel is cut, not crushed or mined.
-- **Not in `#minecraft:mineable/pickaxe`** (there are no pickaxes here anyway) - the cutting torch is the
-  only correct tool.
+  bare hands and the sledgehammer yield **nothing**. Steel is cut, not crushed.
+- ~~**Not in `#minecraft:mineable/pickaxe`** (there are no pickaxes here anyway) - the cutting torch is the
+  only correct tool.~~ **Reversed 2026-08-04 (#129):** the beam is in `#minecraft:mineable/pickaxe`, and
+  a pickaxe hands the beam itself back (the loot table's fallback branch) so a girder can be moved; only
+  the torch yields offcuts.
 - `strength` a bit tougher than reinforced concrete (steel); `sound(SoundType.METAL)`, `mapColor` grey.
-- Full cube, so no `noOcclusion()` needed (if the final model is a non-cube I-beam profile, add it - see the
-  CLAUDE.md occlusion trap).
+- The final model is a non-cube I-beam profile, so the block sets `noOcclusion()` (the occlusion trap in
+  CLAUDE.md and `docs/systems_notes.md`).
 
 ### Loot (`loot_table/blocks/steel_i_beam.json`)
 - Drops **Steel Offcut** - `recompile:steel_offcut`, uniform **2-4** (tune #36). Settled 2026-07-30,
@@ -112,8 +123,8 @@ first-copper rather than a full ingot's worth beyond it.
 That stopped working when iron moved behind the Cupola Furnace (#50) - the torch would have needed iron to
 cut the steel that is the only source of iron. Substituting copper breaks the circle: copper is the everyman
 metal (`material_economy.md`), so the torch sits one step past first-copper and the demolition yard is
-reachable without the Cupola. What still waits on the Cupola is *refining* what you cut - beams drop raw
-iron, and nothing smelts it until that machine exists. That is a deliberate "you found it, now build the
+reachable without the Cupola. What still waits on the Cupola is *refining* what you cut - beams drop Steel
+Offcut, and nothing turns it into iron until that machine exists. That is a deliberate "you found it, now build the
 smelter" beat rather than a lockout.
 
 The Oily Rag ties the P1.4-A fuel line into the tool, and is why a freshly crafted torch arrives with one
@@ -126,9 +137,10 @@ rag's charge already in it.
 
 ## 4. Registry + data
 
-- **`RCBlocks`**: `STEEL_I_BEAM` (RotatedPillarBlock, requiresCorrectToolForDrops, METAL sound).
-- **`RCItems`**: `TORCH_TIER` ToolMaterial + `CUTTING_TORCH` item; `STEEL_I_BEAM` block-item (a
-  `RotatedPillarBlock` places by clicked face via its own placement, so a plain block-item is fine).
+- **`RCBlocks`**: `STEEL_I_BEAM` (`SteelBeamBlock` as built, not the `RotatedPillarBlock` first planned;
+  requiresCorrectToolForDrops, noOcclusion, METAL sound).
+- **`RCItems`**: `TORCH_TIER` ToolMaterial + `CUTTING_TORCH` item; `STEEL_I_BEAM` block-item (the block
+  takes its axis from the clicked face in its own placement, so a plain block-item is fine).
 - **`RCTags`**: `MINEABLE_WITH_CUTTING_TORCH`.
 - **`RCCreativeTabs`**: steel I-beam in the raw-source group (near rubble / reinforced concrete), the
   cutting torch in the tools group (after the sledgehammer ladder).
@@ -136,7 +148,7 @@ rag's charge already in it.
   `recipe/cutting_torch.json`; blockstate (axis=x/y/z -> the pillar model rotations); `models/block`
   (I-beam) + `models/item`; `items/` client defs; `lang`.
 
-## 5. Textures (placeholder now, real via #51)
+## 5. Textures (placeholder at first, real via #51; the real ones have shipped, see the note at the top)
 
 - `steel_i_beam` -> `minecraft:block/iron_block` (end) + a metal side, or just `iron_block` all faces as a
   placeholder. `cutting_torch` -> a vanilla tool/torch item texture (e.g. `minecraft:item/flint_and_steel`,
@@ -146,7 +158,8 @@ rag's charge already in it.
 
 - **Tool gate:** a Steel I-Beam is `requiresCorrectToolForDrops`; the Cutting Torch `isCorrectToolForDrops`,
   a bare hand and a Copper Sledgehammer are **not** (mirror `reinforced_concrete_needs_sledgehammer`).
-- **Yield:** `Block.getDrops(...)` with the torch returns `raw_iron` (count in range). Optional.
+- **Yield:** `Block.getDrops(...)` with the torch returns Steel Offcut (count in range); as built,
+  `steel_beam_drops_offcuts_not_ore` and `a_pickaxe_returns_the_beam_and_a_torch_cuts_it`.
 - Placement is covered by the husk feature's tests (#49).
 
 ## 7. 26.1 API notes
@@ -168,5 +181,6 @@ rag's charge already in it.
 
 ## 9. Balance (#36)
 
-I-beam raw-iron count (2-4), torch durability (the fuel-tank size), the recipe costs, and whether the torch
-moves to fuel-per-cut. All first-pass; fold into the single pre-beta pass.
+I-beam offcut count (2-4), the torch's charge (8 cuts per rag, 64 capacity), and the recipe costs. All
+first-pass; fold into the single pre-beta pass. *(This listed torch durability and fuel-per-cut, both
+settled by the charged-torch model in section 2.)*

@@ -1,14 +1,14 @@
 # Showcase scenes - where this got to
 
-**Marker, 2026-08-04.** Phase 1 and 2 of `docs/showcase_spec.md` are built and merged. This file is the
-resume point, not a design doc.
+**Marker, 2026-08-04.** Phases 1 and 2 of `docs/showcase_spec.md` were built and merged by then; phase 3,
+the machine hall, has since shipped as `machine_wall`. This file is the resume point, not a design doc.
 
 ## Built and shot
 
 | Scene | State |
 | --- | --- |
 | `museum` | **Done and approved.** Six recovered masterworks over four loaded pedestals, landfill on the horizon. Ready for the CurseForge gallery |
-| `machine_wall` | **Built, not re-shot.** Twenty-two blocks in one plane plus the Separator, assembled by the game, standing in the dump. #367 added six machines (Trommel, Pulverizer, Slag Furnace, Sintering Kiln, Sequencer, Charging Station); the gallery image still shows the old wall, which is open as #354 |
+| `machine_wall` | **Built, not re-shot, and the Separator never forms.** Twenty-two blocks in one plane plus the Separator's loose components, standing in the dump. `SEPARATOR_CELLS` in `tools/build_showcase.py` puts a Machine Frame at `(1, 0, 1)` where `SeparatorCoreBlock`'s blueprint wants the Motor, so the game cannot assemble it. #367 added six machines (Trommel, Pulverizer, Slag Furnace, Sintering Kiln, Sequencer, Charging Station); the Hauler Depot and the Freight, Sell and Buy Terminals are still missing, and the gallery image still shows the old wall. All of it is open as #354 |
 | `reclaim_before` / `reclaim_after` | **Done, and shot automatically.** Ground-anchored, standing in real terrain with the dump around them, HUD off, identical camera. `python tools/shoot_scenes.py` takes both without a keystroke - it defaults to the pair, because they are the two frames that must share a camera |
 
 ## Where the images go

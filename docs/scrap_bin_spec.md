@@ -3,14 +3,16 @@
 **Written 2026-07-24. Built 2026-07-24** (branch `feat/scrap-bin`).
 Stale design notes below are kept where they explain *why*; where the build diverged, the built form is noted inline. A single craftable storage block that binds to one salvage
 type and holds a large amount of it, with a screen-free UX. Real-world model: the labeled bulk bin
-of a sorting operation. Design decisions in this doc are the ones locked in the 2026-07-24 session;
-record them in `../trashlands/docs/design_decisions.md` under a new P-code before building.
+of a sorting operation. Design decisions in this doc are the ones locked in the 2026-07-24 session,
+recorded in `../trashlands/docs/design_decisions.md` as **P2.9**.
 
 ## Why
 
 Hoarding is a designed mechanic, not just a convenience: the e-waste tier (P2.6) deliberately rewards
 stockpiling boards, because late Mekanism chains recover far more from the same board than early
-crude smelting does. A bulk bin per commodity is the tool that loop wants.
+crude smelting does. A bulk bin per commodity is the tool that loop wants. *(Mekanism has no 26.1.2
+build and is not in the pack. The conclusion survives on the mod's own chain: E-Scrap pulverizes into
+circuit powder that the Cupola blasts into gold, so a stockpile of boards is worth more later.)*
 
 It complements the **Scrap Barrel** rather than replacing it. The barrel is general 27-slot storage
 (it reuses `ChestMenu`); the bin is one type, enormous capacity, and no screen. The bin is also the
@@ -53,11 +55,16 @@ The seam between the two systems, stated plainly so it is not conflated in the b
   `e_scrap`, `junk`. **Not** the pull stream's non-raw outputs (`rebar`, `tin_can`, `glass_bottle`),
   not crafted intermediates (`scrap_plating`, `cullet_glass`), not finds, food, or tools - only raw
   scrap. A pack adds modded scrap to the tag without a mod release; anything not in the tag is refused
-  on insert.
+  on insert. *(The principle held and the list grew with the world: `tags/item/binnable.json` now also
+  carries cardboard, `#recompile:stone_shards` (the demolition yard), `#recompile:nether_shards` (the
+  depths), fused circuitry, phosphor scrap, rendered organics, oily swarf and lignite. Read the tag, not
+  this list.)*
 - **The color is enum-driven and finite.** A blockstate can only show a color for a material that has
   a `content` value. The mod's own vocabulary gets its signature tint; **binnable-but-uncolored modded
   scrap binds to the neutral grey bin.** It is still held, and Jade still names it - it just does not
-  get a bespoke color. This is the honest ceiling of avoiding the BER, and it is a graceful fallback,
+  get a bespoke color. *(Shipped as `ScrapBinContent.GENERIC`. The colored set is the seven raw
+  materials, cardboard and the seven stone shards; the nether shards and the other later additions bind
+  to GENERIC.)* This is the honest ceiling of avoiding the BER, and it is a graceful fallback,
   not a wall.
 
 ## Binding lifecycle
@@ -72,7 +79,7 @@ The binding is sticky: it survives an empty placed bin, and it travels with a fu
 | Broken / picked up **with contents** | Dropped item **carries its scrap and its binding** - relocate a full tote of sorted metal |
 
 Carrying contents + binding on the dropped item is the **Rain Collector water pattern**
-(`CLAUDE.md`): register a `DataComponentType` on `RCDataComponents` holding `{material, count}`, write
+(`docs/data_and_api_notes.md`): register a `DataComponentType` on `RCDataComponents` holding `{material, count}`, write
 it in `BlockEntity.collectImplicitComponents`, read it back in `applyImplicitComponents` on
 placement, and copy it onto the drop with a `minecraft:copy_components` loot function
 (`"source": "block_entity"`). An empty bin writes no component, so its loot table drops the plain
@@ -98,6 +105,9 @@ hand-rolled `ResourceHandler<ItemResource>` on `Capabilities.Item.BLOCK`:
   withdraws by hand (left-click), which bypasses the blocked extract.
 
 26.1's vanilla hoppers route through this capability, so insert-only there is "hopper in, no out".
+
+The bin is also a **Scrap Network** member and one of its routing sinks: junk sifted, sorted or
+deposited anywhere in a connected cluster lands in a bin bound to it. See `scrap_network_spec.md`.
 
 ## Interaction (screen-free) - Functional Storage's scheme
 
@@ -140,14 +150,15 @@ P P P
 
 | Registry name | Type | Notes |
 |---|---|---|
-| `scrap_bin` | `ScrapBinBlock` + `BlockItem` | The one craftable. Holds `content` + `fill` blockstates; BE for the count. |
+| `scrap_bin` | `ScrapBinBlock` + `BlockItem` | The one craftable. Holds `facing`, `content` + `fill` blockstates; BE for the count. |
 
 - **BlockEntity** `ScrapBinBlockEntity` - holds `{material id, count}`, serialized with
   `ValueOutput`/`ValueInput` (26.1), plus the implicit-component read/write for break+replace.
-- **`content` enum** - a custom `EnumProperty` over the labeled materials + `EMPTY`. Finite; adding a
-  material later is a mod update (new value + texture), the same constraint as any blockstate.
-- **`fill` enum** - `EMPTY/LOW/MID/HIGH/FULL`, derived from `count / capacity` and refreshed on every
-  deposit/withdraw.
+- **`content` enum** - a custom `EnumProperty` (`ScrapBinContent`) over the labeled materials plus
+  `EMPTY` and `GENERIC`. Finite; adding a material later is a mod update (new value + texture), the same
+  constraint as any blockstate.
+- **`fill`** - five levels, derived from `count / capacity` and refreshed on every deposit/withdraw.
+  Shipped as an `IntegerProperty` 0-4 rather than a named enum.
 
 ## Data and assets
 
@@ -161,6 +172,11 @@ P P P
   flagged `tintindex: 0`; the steel frame, rivets and glass window are left un-indexed so they keep
   their own look and only the panels take the material color. The fill pile is part of the same
   model, its height the only thing `fill` changes.
+
+*As built (see "Built" under the mechanic above), these two bullets were inverted: the blockstate file
+keys on `content` x `facing` and ignores `fill`, and there is one model per `content`
+(`scrap_bin_<content>`), each carrying the bound item's texture on the front placard as a `label`
+texture. `empty` and `generic` share `scrap_bin_empty`. The tint still comes from the color handler.*
 - **Color at render - no per-material art, no atlas gotcha:** one authored texture set (near-greyscale
   on the tinted faces so a multiply reads true), colored in-engine by a client `BlockColor` registered
   on `RegisterColorHandlersEvent`, keyed on the `content` blockstate - the same mechanism vanilla
@@ -216,7 +232,8 @@ deposit-all, and left-click extract). The mod's first JUnit unit tests cover the
   `BlockColor` keyed on the `content` state), not per-material art and not the bold recycling
   palette. The bin agrees with its contents and no palette is invented.
 - **`#binnable` is the raw material vocabulary only** - the seven materials pulled from garbage
-  (`scrap_metal`, `plastic_scrap`, `glass_shards`, `organic_muck`, `fiber_scrap`, `e_scrap`, `junk`).
+  (`scrap_metal`, `plastic_scrap`, `glass_shards`, `organic_muck`, `fiber_scrap`, `e_scrap`, `junk`);
+  later regions added their own raw scrap under the same rule (see Acceptance above).
   Excludes the pull stream's non-raw outputs (`rebar`, `tin_can`, `glass_bottle`), crafted
   intermediates (`scrap_plating`, `cullet_glass`), finds, food, and tools.
 - **Placed-and-emptied bins stay bound** (they only unbind when broken while empty). Confirmed.

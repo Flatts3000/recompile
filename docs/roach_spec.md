@@ -2,7 +2,9 @@
 
 **Status: SHIPPED** (#78). All four phases landed 2026-07-31 to 2026-08-01 (PRs #79 entity, #80 food,
 #81 trigger and copy, #83 skin and spawn egg), and the spawn rate was retuned to one per 128 blocks of
-garbage on 2026-08-02 (PR #98). The dump's one native creature, and the mod's **first entity**. Every
+garbage on 2026-08-02 (PR #98), then again to `roachChanceDenominator` 800, about one roach per mound
+(owner, 2026-08-11; pinned by `FindRateTest.roachesAreAboutOnePerMound`). Since #211 roaches also spawn
+naturally inside sewers. The dump's one native creature, and the mod's **first entity**. Every
 decision below was made in the design session; the phase order it describes is the order it was built.
 
 ## 0. The idea, and why it fits
@@ -40,6 +42,7 @@ integration, no drops.
 - `EntityType` built from `Monster` or a trimmed subclass. **Do not extend `Silverfish`** - inheriting it
   inherits the summon behaviour, which is the one thing being deliberately left out.
 - Attributes via `EntityAttributeCreationEvent`. Silverfish-ish: 8 health, low damage, fast, small hitbox.
+  *(Shipped at 6 health, which `RoachTests` asserts.)*
 - Renderer registered client-only through `RegisterRenderersEvent`, reusing **`SilverfishModel` and
   `ModelLayers.SILVERFISH`** (both confirmed present in 26.1). The entity is ours; the mesh and animation
   are vanilla's, so the art budget is one skin.
@@ -53,7 +56,8 @@ integration, no drops.
 - **texgen has no entity kind.** `Surface.subdir` returns `item` or `block` and nothing else, so an
   entity skin has nowhere to go. Either add an `entity` kind to the toolkit (small, and it is where the
   pipeline should own it) or place this one texture by hand and document the exception. **Decide before
-  generating**, not after.
+  generating**, not after. *(Decided: texgen gained an `entity` kind, and `[surface.roach]` in
+  `texgen.toml` is a procedural `roach_skin` at 64px.)*
 
 **Proves it works:** spawn from the egg in `runClient` and confirm it renders and moves. A GameTest can
 assert the type registers and spawns; it cannot see the model.
@@ -124,5 +128,9 @@ Levers, in order of preference: **low nutrition** (below the tin can's 4), then 
 
 - **Does it appear in the demolition yard too?** The yard already has four hostile spawns; the mechanic
   is about the *starting* biome having one thing that reacts to being disturbed. Leaning sprawl-only.
+  *(Answered: only a Block of Garbage harbours one - `SortableBlock.harboursRoaches` is false by
+  default and `GarbageBlock` alone overrides it, so bags, bales, rubble and everything in the yard and
+  the depths are roach-free. The one other place a roach appears is a sewer, where the structure's
+  `spawn_overrides` add it as a natural monster spawn (#211).)*
 - ~~**Does it burn in the Cupola as well?**~~ Answered by #91: no. The Cupola became a blast-only metal
   furnace, so it does not cook. Food stays with the Burn Barrel, which is where a roach belongs anyway.

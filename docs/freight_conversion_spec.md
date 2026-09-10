@@ -1,5 +1,13 @@
 # The freight conversion
 
+**Status: all five steps SHIPPED in v0.20.0 (epic #386).** Step 1 #392 (issue #387), step 2 #394
+(#388), step 3 #396 (#389), step 4 #397 (#390), step 5 #398 (#391), and the conditional network sink
+#395 (#393). **Where the build differs from this plan:** the eight completion advancements ruled in
+section 2.5 were not built, and no advancement files ship; `FreightCompletion` posts a NeoForge bus
+event only, whose javadoc still records the event as a deviation from this spec. And step 4's
+`every_shipped_blueprint_has_a_name_a_recipe_and_a_route` was left accepting a teardown teacher OR a
+market offer rather than narrowed to the single market route.
+
 **What this is.** The build plan for P3.10 (`../trashlands/docs/design_decisions.md`), which made the
 economy the spine: tiers open by shipping named processed goods, the market is the only source of tier
 knowledge, teardown yields function, and sorting yields bulk. Five build **steps**, each one shippable
@@ -45,7 +53,7 @@ the other thing a pack already extends by dropping a file in.
 {
   "type": "recompile:freight_phase",
   "tier": 3,
-  "name": "recompile.freight.phase.3",
+  "name": "freight.recompile.phase.3",
   "requires": [
     { "item": "recompile:reinforced_concrete", "count": 200 },
     { "item": "recompile:steel_offcut",        "count": 50  },
@@ -219,7 +227,7 @@ CurseForge page's three missing screenshots ride the same release.
 
 ## 3. Out of scope, and why
 
-- **The Gate itself** is pack content. The engine ships the signal in phase 1 and stops.
+- **The Gate itself** is pack content. The engine ships the signal in step 1 and stops.
 - **Encroachment's rescope** (audit finding 4) is a design question with no ruling. It serves the
   secondary spine and is currently too weak for it, but that is a separate decision.
 - **The structures as bounded restoration sites** (audit finding 5) is recorded as a deliberate loss,

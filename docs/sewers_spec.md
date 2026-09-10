@@ -1,6 +1,6 @@
 # Explorable sewers - spec
 
-**Status: SHIPPED in v0.11.0 (2026-08-18).** `content/worldgen/sewer/` builds them, 27 GameTests across `SewerLifeTests`, `SewerShapeTests` and `SewerLootTests` hold them, and `demolition/sewers` is the guidebook entry. The build order and risk notes below are kept as the record of how it was planned; read them as history, not as work outstanding. Design locked 2026-08-01. The mod's first real structure, its first finite
+**Status: SHIPPED in v0.11.0 (2026-08-18).** `content/worldgen/sewer/` builds them, the GameTests in `SewerLifeTests`, `SewerShapeTests` and `SewerLootTests` hold them (count them there, not here), and `demolition/sewers` is the guidebook entry. The build order and risk notes below are kept as the record of how it was planned; read them as history, not as work outstanding. Design locked 2026-08-01. The mod's first real structure, its first finite
 content, and the home for the aquatic life deferred from rung 5. Every decision below was made in the
 design session; what remains is build order and the risks each phase carries.
 
@@ -30,7 +30,7 @@ superseded rather than closed by this** - see the progression note below.
 | Look | **Brick corridors, large brick rooms, scattered pipe, flowing leachate** | Said "flowing water" until 2026-08-17, six rows above the decision that there is no water down here - the row a phase 2 implementer reads first |
 | Extent | **Finite per sewer** | One is cleared and done. The world holds more |
 | Inhabitants | **Roaches, frogs, turtles, drowned, slime** | Slime added 2026-08-02; **both a mob and a material**, decided 2026-08-17 |
-| Cobwebs | **Generated in the corridors** | Decided 2026-08-02. The mineshaft parallel, and the only source in the game |
+| Cobwebs | **Generated in the corridors** | Decided 2026-08-02. The mineshaft parallel, and the only source in the game until the Municipal Aquarium (v0.18.0) put them in its rooms too |
 | Reward | **Barrels with real loot** | Finite content needs a reason to clear it |
 | Generation | **A custom Java `StructureType`** | Vanilla mineshaft sprawl is code-backed; jigsaw would read like a bastion |
 | Water | **Leachate, one block deep** (owner, 2026-08-17) | The fluid the dump already drains. Not water, asserted; no route to water at all; no new fluid and no filter machine |
@@ -40,8 +40,11 @@ superseded rather than closed by this** - see the progression note below.
 ## 2. The constraints that shape everything below
 
 **The iron gate is the thing most likely to be broken by accident.** The mod ships no stone-mining tool
-of its own - sledgehammers are tag-gated to `recompile:reinforced_concrete` alone - and that absence is
-what `CupolaFurnaceBlockEntity` documents as keeping a vanilla furnace uncraftable. Brick was checked
+of its own - `#recompile:mineable/sledgehammer` holds Reinforced Concrete, Ancient Sculk and Mill
+Tailings, and no stone. That absence is no longer what holds the gate: a vanilla furnace is craftable
+anyway (the hole at the end of this section), and since #91 `CupolaFurnaceBlockEntity` documents the
+gate as the recipe TYPE - both iron recipes are `minecraft:blasting`, which a vanilla furnace cannot
+run. The tag check below is still enforced. Brick was checked
 and is safe: `#minecraft:stone_crafting_materials` is only cobblestone, blackstone and cobbled
 deepslate. **Any new sewer block must be checked against that tag before it ships**, and
 `progression_gates.md` in the Trashlands repo tracks what is reachable when.
@@ -58,9 +61,11 @@ the end of this section.)
 **This mod has no mixins.** That is a standing architectural rule, and it is what makes the held-light
 requirement a research task rather than a feature.
 
-**Sewer water is leachate** (owner, 2026-08-17). A bucket is three iron, iron comes from the yard, and
-the sewer is *in* the yard, so a plain water source down there would end the Rain Collector's monopoly
-(a locked P1.10 decision) the moment sewers become reachable.
+**Sewer water is leachate** (owner, 2026-08-17). A player who reaches a sewer can have a bucket, so a
+plain water source down there would end the Rain Collector's monopoly (a locked P1.10 decision) the
+moment sewers become reachable. *(This said "a bucket is three iron, iron comes from the yard"; the
+bucket recipe has been disabled since #161 (2026-08-08) and a bucket is a household find, which leaves
+the argument standing.)*
 
 This spec's answer was a bespoke sewage fluid plus a filter machine that "this spec creates and does not
 design". **Leachate is better on every axis and it already ships** (#156):
@@ -115,8 +120,10 @@ or swims: that is the accepted cost of the ruling, not an oversight in it.
 **A gate hole found while writing this, filed separately.** Plain `minecraft:deepslate` sits in
 `mineable/pickaxe` and in no `needs_*_tool` tag, so a **wooden** pickaxe drops cobbled deepslate - which
 is in `#minecraft:stone_crafting_materials` and crafts a vanilla furnace. The Tree Nursery supplies the
-wood. So the Cupola can be skipped today. It is not a sewer problem, but it is the same trap
-`CupolaFurnaceBlockEntity` warns about, and it changes what "the player has at this depth" means.
+wood. So the Cupola could be skipped when this was written. It was filed as #91 and closed the same
+day by moving both iron recipes to `minecraft:blasting`, so the furnace is still craftable but no
+longer makes iron. It is not a sewer problem, but it is the same trap `CupolaFurnaceBlockEntity`
+records, and it changes what "the player has at this depth" means.
 
 ---
 
@@ -277,8 +284,9 @@ pass - a slab that grew upward would break every mound, spreader and farm plot i
 That is the same trap that cost a playtester 90 minutes looking for a demolition yard in a v0.2.0 save.
 Accepted deliberately here (the mod is alpha, per the #87 close), but the release notes have to say it.
 
-This is **the mod's first real structure either way.** There is exactly one `.nbt` in the repo today
-and it is the gametest plot, so structure sets, template pools and processors are all new surface.
+This is **the mod's first real structure either way.** The mod ships exactly one `.nbt`, the gametest
+plot (the only others in the repo are the dev-only showcase scenes under `dev/showcase/`), so structure
+sets, template pools and processors are all new surface.
 
 **Shipped 2026-08-17.** `SewerStructure` + `SewerPieces` + `SewerPalette`, with the placement data at
 `worldgen/structure/sewer.json`, `worldgen/structure_set/sewers.json` and the
@@ -405,8 +413,11 @@ mechanisms, and the difference is in vanilla's own code:
 - **Turtles: placed as entities at generation.** Their predicate has no spawner branch, so a spawner
   would need `custom_spawn_rules` to bypass it - and a spawner endlessly producing a passive animal
   reads wrong. Placing them directly sidesteps every rule and makes the population **finite**, which is
-  what this spec already wanted: they cannot breed here (no seagrass) or lay eggs (no sand), so a
-  sewer's turtles are the turtles it was built with. **Three turtles and two frogs, one den each** - this
+  what this spec already wanted. *(This went on to say they cannot breed here (no seagrass) or lay eggs
+  (no sand), so a sewer's turtles are the turtles it was built with. #345 found otherwise: a turtle
+  drops seagrass, the den beds them on sand and sets their home there, and egg-laying has no height
+  rule - `y < seaLevel + 4` is on SPAWNING - so den turtles can be bred and their clutch grows up. The
+  population a sewer is BUILT with is still fixed.)* **Three turtles and two frogs, one den each** - this
   said "two to four per chamber" until the dens landed, and they are not in the chamber at all now. Since
   2026-08-18 the count is a **ceiling the room has to earn**, not a constant: see the revision below.
 
@@ -447,9 +458,10 @@ that is a code change (an override of `convertable_to_mud`) and not a doc one.
 The substrate is the mechanism as much as the look:
 `#minecraft:frogs_spawnable_on` is grass block, mud and the two mangrove roots, so **mud is the one
 member a sewer could plausibly hold**; and `TurtleEggBlock.onSand` is half of vanilla's turtle rule. The
-animals stand on ground their own game logic names. Neither becomes renewable - the other half of the
-turtle rule is `y < seaLevel + 4` against a sea level of **-64**, and a frog needs light this place does
-not have.
+animals stand on ground their own game logic names. Neither SPAWNS naturally - the other half of the
+turtle spawn rule is `y < seaLevel + 4` against a sea level of **-64**, and a frog needs light this
+place does not have. *(This said "neither becomes renewable". For turtles that is wrong: the height
+rule governs spawning, not laying, so den turtles bred on seagrass lay on the den's own sand (#345).)*
 
 The dens hang off the chamber's high-X wall, which every corridor mouth is far from (children all grow
 from the min corner), and they are attached **deterministically** rather than grown from the graph: "one
@@ -533,9 +545,10 @@ lists slimes - relying on "nothing else offers them" would be true today and sil
 The spawner stays **drowned-only**: slimes and roaches now have natural routes, so putting them in the
 spawner as well would be a second mechanism for a solved problem.
 
-Worth knowing before tuning: **most of these cannot renew here, which suits a finite sewer.** Turtles
-need sand to lay eggs and this world has none. Frogs need magma cubes for froglights and the Nether is
-locked. So they are finds, not farms.
+Worth knowing before tuning: **most of these cannot renew here, which suits a finite sewer.** Frogs
+need magma cubes for froglights. Turtles were listed here as needing sand the world did not have; the
+den has sand, and #345 found den turtles breed on seagrass and lay on it, so turtles are the exception
+and can be farmed.
 
 - **Roaches** already exist and already have a food line. Free, and thematically exact.
 - **Drowned** are the threat, and their loot stays **vanilla, trident included.** An earlier draft
@@ -548,17 +561,19 @@ locked. So they are finds, not farms.
 path - see [`pack_extension.md`](pack_extension.md). The silt one is under `archaeology/` rather
 than `chests/`, and `chests/sump` is the echo shard's only source in the game.
 
-**Cobwebs and slime (decided 2026-08-02; slime's exclusivity ended 2026-08-20).** Cobwebs are still sewer-exclusive. Slime is not: the demolition yard's hostile list became vanilla plains' entry for entry (#227), which lists slime, and this world's ground is below y=40 everywhere so the slime-chunk route is open there. The sewer keeps its own reliable route; it no longer keeps the monopoly. Originally, and a reachability closure
+**Cobwebs and slime (decided 2026-08-02; slime's exclusivity ended 2026-08-20).** Cobwebs stayed sewer-exclusive until the Municipal Aquarium (v0.18.0) placed them in its rooms too (`AquariumPalette.AGE`). Slime is not: the demolition yard's hostile list became vanilla plains' entry for entry (#227), which lists slime, and this world's ground is below y=40 everywhere so the slime-chunk route is open there. The sewer keeps its own reliable route; it no longer keeps the monopoly. Originally, and a reachability closure
 confirms neither has any other route in this world.
 
 - **Cobwebs** generate in the corridors the way they do in a vanilla mineshaft, which this structure
   already mirrors. Harvesting one needs **shears** (a sword yields string instead), and found used
-  shears were decided the same day, so a player may arrive with them; iron shears are craftable in the
-  yard regardless. Their value here is **atmosphere rather than material** - string already comes from
+  shears were decided the same day, so a player may arrive with them. *(This added "iron shears are
+  craftable in the yard regardless"; since #178 shears are `#recompile:found_only` and the vanilla
+  recipe is disabled, so found shears are the only ones.)* Their value here is **atmosphere rather than material** - string already comes from
   mattress teardown and from the yard's spiders, so nothing downstream waits on it.
 - **Slime** is the reverse: near-worthless now, real later. A slimeball unlocks almost nothing on its
-  own, because its payoff is the **sticky piston** and a piston needs redstone, which does not exist
-  yet. Slime is a deposit against the redstone tier.
+  own, because its payoff is the **sticky piston** and a piston needs redstone, which did not exist
+  when this was written. It does now (a Separator divides Magnet Scrap into it,
+  `recipe/separating_redstone.json`, and witches drop it), so the deposit is payable.
 - **Both, decided 2026-08-17 (owner).** Slimes spawn via `spawn_overrides` **and** slimeballs appear as
   sewer material. The consequence is deliberate and worth stating: the inhabitant list stops being
   passive-apart-from-drowned, so the sewer becomes somewhere you fight through rather than somewhere you
@@ -589,21 +604,19 @@ the contents stay a datapack question - which is where the balance of this belon
 roll rather than an entry competing with bulk salvage for a slot, offering Bulb, Pump, Motor and Machine
 Frame.
 
-**Why this does not skip a tier, which is the criterion it has to clear.** All three of the interesting
-ones are `blueprint_crafting` - gated on a blueprint that is BOUGHT at the Buy Terminal since
-2026-09-06 (P3.10; it read "that teardown teaches" until 2026-09-08) - so a found component is **one
-unit that teaches nothing**, which is still true and is now true of every teardown in the mod. The
-player still cannot make a second without the sheet, and
+**Why this does not skip a tier, which is the criterion it has to clear.** Two of the three interesting
+ones, the Bulb and the Pump, are `blueprint_crafting` - gated on a blueprint that is BOUGHT at the Buy
+Terminal since 2026-09-06 (P3.10; it read "that teardown teaches" until 2026-09-08) - so a found
+component is **one unit that teaches nothing**, which is still true and is now true of every teardown
+in the mod. The player still cannot make a second without the sheet, and the machines those parts go
+into need Steel I-Beams and the yard the sewer is already in. It is a head start, not a shortcut.
 
-**One of the three changed side, though.** The **Motor** is `#recompile:function_only` now: no recipe
-and no market offer, salvaged or nothing. So a Motor out of a sump is not a head start on a thing you
-could otherwise buy - for a while it is the only one you have. That makes this pool a bigger deal than
-this section was written to weigh, and it is worth re-reading against the rate rather than assumed
-still fine.
-
-
-the machines those parts go into need Steel I-Beams and the yard the sewer is already in. It is a
-head start, not a shortcut.
+**The third changed side.** The **Motor** was `blueprint_crafting` too when this was written; since
+#398 it is `#recompile:function_only`: no recipe and no market offer, salvaged or nothing. So a Motor
+out of a sewer barrel (`chests/sewer`, weight 4 of 60 in its component pool) is not a head start on a
+thing you could otherwise buy - for a while it is the only one you have. That makes this pool a bigger
+deal than this section was written to weigh, and it is worth re-reading against the rate rather than
+assumed still fine.
 
 **And it answers the acceptance line the rest of the table could not.** "The reward is worth a cleared
 sewer, stated as a comparison against what the same time spent picking garbage yields" - bulk salvage
@@ -612,8 +625,8 @@ weights were set. A Motor is something sorting will never hand you.
 
 **It is otherwise deliberately dull, and that is the acceptance criterion working.** "Nothing in it skips a tier"
 rules out everything exciting: no iron, no gems, no blueprints, no bucket. What is left is bulk salvage
-(scrap metal, plastic scrap, e-scrap, rebar, cullet glass), string and bone, and three uncommon lines -
-a glass bottle, a nautilus shell, a name tag. The *value* question is #36's and is not answered here.
+(scrap metal, plastic scrap, e-scrap, rebar, cullet glass), string and bone, and four uncommon lines -
+a glass bottle, a nautilus shell, a name tag, and since #347 a closed eyeblossom. The *value* question is #36's and is not answered here.
 
 **One thing flagged rather than decided:** the glass bottle is `found_only` and its scarcity is what the
 P1.10 water economy leans on. A sewer barrel is a second route to one, bounded by travel and a finite
@@ -627,8 +640,9 @@ structure. Recorded in `progression_gates.md` for the balance pass.
 
 ## Phase 5 - the surrounding work
 
-- **Guidebook:** *shipped.* `demolition/sewers`, two pages - what the pad looks like from above and that
-  a Prybar is the only thing that lifts it, then what is down there. A player who finds the pad and
+- **Guidebook:** *shipped.* `demolition/sewers`, two pages at first - what the pad looks like from above
+  and that a Prybar is the only thing that lifts it, then what is down there - and four now (`intro`,
+  `inside`, `silt`, `bottom`). A player who finds the pad and
   cannot act on it reads the whole structure as scenery.
 - **Jade:** *shipped.* The manhole is registered against the existing `ToolHintProvider`, which already
   answers "Prybar" for Bulky Waste - the same gate, so the same hint. Nothing new was written.

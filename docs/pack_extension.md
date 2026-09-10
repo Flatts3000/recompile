@@ -14,8 +14,8 @@ A pack ships a file at the same namespaced path the mod uses, and the pack's cop
 global datapack sits **above** every mod's datapack in the pack stack, so there is no ordering question
 to get wrong.
 
-> **This is not the trap CLAUDE.md documents for the sixteen bed recipes.** That one is *mod versus
-> mod*: NeoForge re-ships 17 vanilla recipe ids, and overriding those needed `ordering = "AFTER"` in
+> **This is not the vanilla-recipe-override trap in [`data_and_api_notes.md`](data_and_api_notes.md#datapack-and-loot-modifier-traps).**
+> That one is *mod versus mod*: NeoForge re-ships 17 vanilla recipe ids, and overriding those needed `ordering = "AFTER"` in
 > `neoforge.mods.toml`. Pack-over-mod has no such ambiguity, and nothing on this page is affected by it.
 
 If a pack wants to **add** rather than **replace**, a NeoForge global loot modifier does that without
@@ -85,9 +85,11 @@ param validation - so a replacement must keep it.
 
 ### Finds
 
-Adding a find to Bulky Waste is **a line in `recompile:blocks/bulky_waste`** and nothing else. There are
-no per-find models, no structure templates and no entities; a find only becomes a thing when it is an
-item in a hand.
+Adding a find to Bulky Waste is **a line in `recompile:gameplay/bulky_spine`** (or `bulky_windfall` for
+the rare tier) and nothing else. `recompile:blocks/bulky_waste` is only a routing table (`bulky_spine`
+at weight 9, `bulky_windfall` at weight 1, plus the painting pool), so a line added there competes with
+the whole find list instead of joining it. There are no per-find models, no structure templates and no
+entities; a find only becomes a thing when it is an item in a hand.
 
 ## Recipes
 
@@ -121,9 +123,10 @@ one they mean, which is also why this is the only recipe in the mod where a Blue
 is not consumed: the table's result slot puts it back, gated on a spawn-egg recipe having matched.
 
 **Two `blueprint_crafting` sets arrived with the Scrap Hauler** (#376): `recompile:scrap_hauler` and
-`recompile:hauler_depot`, one recipe each, both taught by the `recompile:broken_hauler` teardown at
-four scraps apiece - the Broken Terminal's shape, one find teaching two sheets. A pack that wants a
-second route to either set adds a `market_offer` for it.
+`recompile:hauler_depot`, one recipe each. Both sheets are sold at the Buy Terminal
+(`market_offer_scrap_hauler`, `market_offer_hauler_depot`); the `recompile:broken_hauler` teardown
+taught them until #390 and yields a Solar Panel now. A pack reprices either by overriding its offer
+file.
 
 **One rule binds all of them:** on the three GUI-less machines - Trommel, Separator, Pulverizer - a
 recipe must not consume more than one input (owner, 2026-08-19). Those machines have no screen and are
@@ -166,8 +169,8 @@ is the authority.
 that adds a wholly new way to obtain something** (`docs/market_spec.md` section 14). `"blueprint"`
 sells a sheet, so the buyer still needs the materials and the bench; `"item"` sells the thing itself,
 which is the only route in this mod by which an object enters the world without being found, grown or
-built. Use it for what this world genuinely cannot produce - the two shipped lines are a Totem of
-Undying and, as knowledge, a Bucket of Powder Snow, both of which
+built. Use it for what this world genuinely cannot produce - the three shipped vanilla lines are a
+Totem of Undying and a heavy core outright and, as knowledge, a Bucket of Powder Snow, all of which
 `docs/vanilla_resource_checklist.md` lists as unreachable. **Two guards bind a pack here**: nothing in
 `#recompile:found_only` may be sold, nor the knowledge to make it (the found-only rule is enforced by
 a sweep over recipes, and a shop counter is not a recipe), and a line must carry exactly one of
@@ -209,7 +212,7 @@ blank line followed by two backslash-terminated lines; a lone newline renders as
 - **The viewers will not follow.** `SortingData` and the JEI categories read the mod's **bundled** JSON
   rather than the live registry, because loot tables are not client-synced. A pack that retunes a pull
   stream gets the new behaviour in-world and the old numbers in JEI. Accepted limitation, recorded in
-  CLAUDE.md.
+  [`data_and_api_notes.md`](data_and_api_notes.md#jei--jade-integration-compat).
 - **The mod's own tests do not see pack data either**, for the same reason. That is correct - they are
   testing the mod - but it means a pack cannot lean on them to catch its own mistakes.
 - **Worldgen shape.** Sewer layout, the region gradient and the compacted depths' fill are Java. A pack
