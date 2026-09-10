@@ -31,11 +31,12 @@ import net.minecraft.world.level.material.FlowingFluid;
  * is found in it and what it looks like, precisely because the radiation went to Mekanism, so the one
  * region whose whole premise is contamination was also the one where nothing could hurt you.
  *
- * <p><b>One thing Poison does that Hunger does not: it kills mobs.</b> It cannot take a player below
- * half a heart, but it has no such floor for anything else, so animals that wander a pond die in it.
- * That is a real behaviour change from leachate, which was written so a mob is affected exactly as a
- * survival player is. Judged atmospheric rather than a problem, but it is a change and it is written
- * down here rather than discovered.
+ * <p><b>Poison kills nothing, mob or player.</b> Vanilla {@code PoisonMobEffect.applyEffectTick} only
+ * deals damage while {@code getHealth() > 1.0F}, and that floor applies to every {@code LivingEntity},
+ * so an animal that wanders a pond is left at half a heart exactly as a survival player is - the same
+ * parity leachate was written for. What can kill in a pond is drowning, which {@code RCLeachateContact}
+ * applies to both fluids off one switch. (This note once said Poison has no floor for mobs; the 26.1.2
+ * source says otherwise, #433.)
  *
  * <p><b>The block does not call this - {@code RCLeachateContact} does</b>, for the reason its own
  * class note gives at length: {@code Block.entityInside} is never invoked for a fluid, and the two

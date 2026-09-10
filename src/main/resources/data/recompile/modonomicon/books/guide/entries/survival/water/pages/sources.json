@@ -1,7 +1,7 @@
 {
   "type": "modonomicon:text",
   "id": "sources",
-  "sort_number": 1,
+  "sort_number": 2,
   "show_title_separator": true,
   "text": "book.recompile.guide.survival.water.sources.text",
   "title": "book.recompile.guide.survival.water.sources.title"
