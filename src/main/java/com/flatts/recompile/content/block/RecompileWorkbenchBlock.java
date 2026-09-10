@@ -30,10 +30,11 @@ import org.jspecify.annotations.Nullable;
 /**
  * The Recompile Workbench (design P1.4): a hand-cranked disassembly table - the teardown
  * exit the whole found economy was waiting on (the P1.11.5 invariant, "finds in, materials
- * out"). It reads a {@code recompile:teardown} recipe's {@code results}/{@code extras} for
- * materials and its {@code teaches} for knowledge (#95): a breakdown hands back an <b>Idea
- * Fragment</b>, which files itself into a connected Filing Cabinet if there is one. It stops
- * teaching once the blueprint is reachable, so the fragments end rather than pile up.
+ * out"). It reads a {@code recompile:teardown} recipe's {@code results}/{@code extras}: a
+ * breakdown yields FUNCTION (the signature component an object is) and materials, never
+ * knowledge (#390). It does not read {@code teaches}: Blueprints are bought at the market, except
+ * a creature's, which assembles from the Spawn Egg Fragments the Sequencer reads out of amber. See
+ * {@link com.flatts.recompile.content.block.entity.RecompileWorkbenchBlockEntity}.
  *
  * <p>Stateless-feeling and GUI-free, in keeping with the mod's "no machine screen" identity:
  * <ul>

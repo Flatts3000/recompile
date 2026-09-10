@@ -8,11 +8,12 @@
 #      prohibited use policy 9(c) bars distributing sound-effect output "on a standalone
 #      basis ... including as isolated files, audio samples ... or other collections of
 #      sounds"), so the licence would promise something the assets could not back. Same
-#      shape as the Create split already recorded in CLAUDE.md: MIT code, reserved assets.
+#      shape as the Create split (MIT code, reserved assets); see docs/dev_tooling.md.
 #   2. A machine loop plays for as long as a button is held, so a seam is a click once a
 #      second forever. Synthesis loops by construction; a clip has to be edited and hoped at.
-#   3. Every sound this mod needs is a MACHINE. One voice gives a whole family that cannot
-#      drift, and a tier ladder is a scalar rather than four more sourcing jobs.
+#   3. Every sound this mod needs is a MACHINE. A voice keeps one machine's sounds a family
+#      that cannot drift, and a tier ladder is a scalar rather than four more sourcing jobs.
+#      Different machines get different voices (the Hauler section below says why).
 #
 # Tool: ../mc-pack-toolkit/sfxgen. Run `python -m sfxgen all` here, listen on the page it
 # writes to gen/, then `approve` and `promote`.

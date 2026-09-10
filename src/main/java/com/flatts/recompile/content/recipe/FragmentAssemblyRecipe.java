@@ -27,8 +27,16 @@ import org.jspecify.annotations.Nullable;
  * could pool unrelated ideas into whichever blueprint they liked, and the whole point of a fragment
  * naming its target is that you have to earn each one separately.
  *
- * <p>How many is {@code scraps_required} on the teardown that teaches it, read here off the recipe
- * that taught it rather than hardcoded, so a pack retunes the cost in the same file it sets the odds.
+ * <p>How many is {@code scraps_required} on a teardown {@code teaches} entry naming the blueprint, and
+ * {@link #DEFAULT_REQUIRED} otherwise. Since #390 teardown teaches nothing and no shipped teardown
+ * carries {@code teaches}, so every blueprint costs the default. Fragments themselves come from the
+ * Sequencer, not from a teardown.
+ *
+ * <p><b>A pack that sets {@code scraps_required} desyncs the tooltip.</b> This class reads the live
+ * recipe manager, so the grid and the Filing Cabinet honour a pack's value. But the tooltip and JEI
+ * count come from {@code BlueprintData.fragmentsFor}, which reads only this mod's bundled files
+ * ({@code RecipeFiles} cannot see a datapack), so they keep saying 4. The test that pins the two
+ * together walks only the shipped Blueprints and cannot catch it.
  */
 public class FragmentAssemblyRecipe extends CustomRecipe {
 
@@ -104,11 +112,13 @@ public class FragmentAssemblyRecipe extends CustomRecipe {
     }
 
     /**
-     * How many fragments this blueprint costs, taken from whichever teardown teaches it.
+     * How many fragments this blueprint costs: a teardown {@code teaches} entry's
+     * {@code scraps_required} if a pack declares one, else {@link #DEFAULT_REQUIRED}.
      *
      * <p>Read from the recipe manager rather than stored here, so {@code scraps_required} means one
-     * thing in one place: a pack that retunes the odds of learning something retunes its cost in the
-     * same file, and the two cannot drift into disagreeing.
+     * thing in one place. No shipped teardown declares one (#390), so today this always returns the
+     * default. {@code BlueprintData.fragmentsFor} answers the same question from files for the
+     * client, and {@code BlueprintTests} asserts the two agree.
      */
     public static int requiredFor(Level level, Identifier set) {
         if (level.getServer() == null) {
