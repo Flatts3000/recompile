@@ -70,8 +70,9 @@ public enum AnimalBaitProvider implements IBlockComponentProvider {
 
         // What the land is drawing, even while something else holds the bait: the terrain decides the
         // animal, and that is the one thing about a bait a player cannot see until it fires (#436).
-        // Skipped off grass, where the bait never fires at all and a shortlist would be a promise.
-        if (AnimalBaitBlock.onGrass(level, pos)) {
+        // Skipped wherever the bait can never fire - off grass, or with baits disabled in the config -
+        // because there a shortlist would be a promise.
+        if (RCConfig.ANIMAL_BAIT_ENABLED.get() && AnimalBaitBlock.onGrass(level, pos)) {
             Component expected = expecting(level, pos, state.getValue(AnimalBaitBlock.DIET));
             if (expected != null) {
                 tooltip.add(Component.translatable("jade.recompile.bait_expecting", expected)

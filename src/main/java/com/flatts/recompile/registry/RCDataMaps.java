@@ -60,10 +60,9 @@ public final class RCDataMaps {
      * not something you can plant. That mapping cannot come from the tag, because the tag says what goes
      * in and this says what comes out.
      *
-     * <p><b>Synced, unlike {@link #BAIT_WEIGHT}.</b> JEI runs on the client and its Hydroponics category
-     * lists both the yield and the byproduct; without the sync {@code getData} returns null there and
-     * every crop silently reads as producing itself with nothing else. That is the exact failure the bait
-     * map's comment warns about, and this is the consumer it was warning about.
+     * <p><b>Synced, for the same reason {@link #BAIT_WEIGHT} is.</b> JEI runs on the client and its
+     * Hydroponics category lists both the yield and the byproduct; without the sync {@code getData}
+     * returns null there and every crop silently reads as producing itself with nothing else.
      */
     public static final DataMapType<Item, Crop> HYDROPONIC_CROP = DataMapType
         .builder(Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "hydroponic_crop"),
