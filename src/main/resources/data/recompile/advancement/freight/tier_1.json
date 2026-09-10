@@ -1,0 +1,29 @@
+{
+  "parent": "recompile:freight/root",
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.recompile.freight.tier.description",
+      "with": [
+        "1"
+      ]
+    },
+    "frame": "task",
+    "icon": {
+      "id": "recompile:pressed_junk_block"
+    },
+    "title": {
+      "translate": "freight.recompile.phase.1"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}

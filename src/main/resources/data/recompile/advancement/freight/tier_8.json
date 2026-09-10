@@ -1,0 +1,29 @@
+{
+  "parent": "recompile:freight/tier_7",
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.recompile.freight.tier.description",
+      "with": [
+        "8"
+      ]
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "minecraft:obsidian"
+    },
+    "title": {
+      "translate": "freight.recompile.phase.8"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}

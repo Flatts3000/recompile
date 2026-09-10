@@ -1,0 +1,29 @@
+{
+  "parent": "recompile:freight/tier_2",
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.recompile.freight.tier.description",
+      "with": [
+        "3"
+      ]
+    },
+    "frame": "task",
+    "icon": {
+      "id": "recompile:reinforced_concrete"
+    },
+    "title": {
+      "translate": "freight.recompile.phase.3"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}

@@ -1,6 +1,9 @@
 package com.flatts.recompile.gametest;
 
+import com.flatts.recompile.content.block.entity.FreightCompletion;
 import com.flatts.recompile.content.block.entity.FreightTerminalBlockEntity;
+import com.flatts.recompile.content.freight.FreightAdvancements;
+import net.minecraft.server.level.ServerPlayer;
 import com.flatts.recompile.content.block.ScrapNetwork;
 import net.minecraft.world.item.Items;
 import com.flatts.recompile.content.freight.FreightPhases;
@@ -49,6 +52,28 @@ public final class FreightTerminalTests {
         FreightState.of(level).setTier(0);
         helper.setBlock(at(index), RCBlocks.FREIGHT_TERMINAL.get().defaultBlockState());
         return (FreightTerminalBlockEntity) level.getBlockEntity(helper.absolutePos(at(index)));
+    }
+
+    /** Whether {@code player} holds the advancement {@code id}. */
+    private static boolean done(GameTestHelper helper, ServerPlayer player, net.minecraft.resources.Identifier id) {
+        var holder = helper.getLevel().getServer().getAdvancements().get(id);
+        return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
+    }
+
+    /** Take every freight advancement back off {@code player}: the root and one per shipped rung. */
+    private static void revokeFreight(GameTestHelper helper, ServerPlayer player) {
+        var advancements = helper.getLevel().getServer().getAdvancements();
+        List<net.minecraft.resources.Identifier> ids = new java.util.ArrayList<>();
+        ids.add(FreightAdvancements.root());
+        for (FreightPhaseRecipe phase : FreightPhases.sorted(helper.getLevel())) {
+            ids.add(FreightAdvancements.tier(phase.tier()));
+        }
+        for (var id : ids) {
+            var holder = advancements.get(id);
+            if (holder != null) {
+                player.getAdvancements().revoke(holder, FreightAdvancements.CRITERION);
+            }
+        }
     }
 
     /** The first rung of whatever ladder the datapack shipped. */
@@ -201,6 +226,49 @@ public final class FreightTerminalTests {
                 helper.assertTrue(tier == i + 1,
                     "the ladder is not dense: position " + i + " is tier " + tier);
             }
+            helper.succeed();
+        });
+
+        // THE RUNG ADVANCEMENTS (#434) are what a pack's quest line hangs off, and FreightAdvancements
+        // skips a rung with no file quietly on purpose, so a pack can add or drop one. That means
+        // nothing at runtime notices a SHIPPED phase with no advancement; this does.
+        RCGameTests.test("every_freight_phase_has_an_advancement", 10, helper -> {
+            var advancements = helper.getLevel().getServer().getAdvancements();
+            helper.assertTrue(advancements.get(FreightAdvancements.root()) != null,
+                "no " + FreightAdvancements.root() + " advancement loaded, so the rungs have no tab");
+            for (FreightPhaseRecipe phase : FreightPhases.sorted(helper.getLevel())) {
+                helper.assertTrue(advancements.get(FreightAdvancements.tier(phase.tier())) != null,
+                    "freight phase " + phase.tier() + " has no advancement, so a pack cannot hook it");
+            }
+            helper.succeed();
+        });
+
+        // Granting follows the tier, not the phase alone: a player given tier N holds the root and every
+        // rung up to N, and nothing past it. Revoked first, because the shared world tier other tests
+        // advance is granted to a mock player the moment it logs in.
+        RCGameTests.test("a_rung_advancement_grants_everything_below_it_and_nothing_above", 10, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            revokeFreight(helper, player);
+            FreightAdvancements.awardThrough(player, 2);
+            helper.assertTrue(done(helper, player, FreightAdvancements.root()), "the root was not granted");
+            helper.assertTrue(done(helper, player, FreightAdvancements.tier(1)), "rung 1 was not granted");
+            helper.assertTrue(done(helper, player, FreightAdvancements.tier(2)), "rung 2 was not granted");
+            helper.assertFalse(done(helper, player, FreightAdvancements.tier(3)),
+                "rung 3 was granted for a world at tier 2");
+            player.discard();
+            helper.succeed();
+        });
+
+        // The completion path itself, and to a player who did not deliver anything: the tier is the
+        // world's, so a partner on the other side of the base earns the rung too.
+        RCGameTests.test("completing_a_phase_grants_its_advancement_to_every_player", 20, helper -> {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            revokeFreight(helper, player);
+            FreightCompletion.onPhaseCompleted(helper.getLevel(), helper.absolutePos(at(4)),
+                firstPhase(helper), 1);
+            helper.assertTrue(done(helper, player, FreightAdvancements.tier(1)),
+                "completing phase 1 did not grant recompile:freight/tier_1 to a player in the world");
+            player.discard();
             helper.succeed();
         });
 

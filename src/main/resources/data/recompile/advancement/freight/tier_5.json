@@ -1,0 +1,29 @@
+{
+  "parent": "recompile:freight/tier_4",
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.recompile.freight.tier.description",
+      "with": [
+        "5"
+      ]
+    },
+    "frame": "task",
+    "icon": {
+      "id": "recompile:prismarine_grit"
+    },
+    "title": {
+      "translate": "freight.recompile.phase.5"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}

@@ -19,13 +19,12 @@ import net.neoforged.neoforge.common.NeoForge;
  * engine/pack split in {@code market_spec.md} section 5. Nothing in this class, its lang keys or its
  * sounds may carry narrative.
  *
- * <p><b>A NeoForge bus event rather than an advancement criterion, for now.</b> The spec asked for
- * an advancement, which is the hook a DATAPACK can see, and this ships a bus event instead, which
- * only another mod can see. The reason is that the consumer does not exist yet: the pack content
- * that reacts to completion is explicitly parked, so the shape a criterion should take is a guess.
- * A bus event is real, testable and costs nothing to keep; the datapack-facing trigger is filed
- * separately and should be built when there is something to hook it to. Recorded rather than done
- * quietly, because the spec says otherwise.
+ * <p><b>Two hooks: an advancement per rung for datapacks, and a bus event for mods.</b> Every player in
+ * the world is granted {@code recompile:freight/tier_N} ({@link
+ * com.flatts.recompile.content.freight.FreightAdvancements}, #434), which is what a pack's quest line
+ * watches. The {@link PhaseCompleted} event stays for another mod that wants the phase itself. The
+ * event shipped first, alone, while the spec's advancement waited on a consumer; the spec's ruling was
+ * a plain advancement per rung rather than a custom criterion, and that is what shipped.
  */
 public final class FreightCompletion {
 
@@ -87,8 +86,9 @@ public final class FreightCompletion {
             ? Component.translatable("message.recompile.freight.ladder_finished")
             : Component.translatable("message.recompile.freight.phase_completed",
                 Component.translatable(phase.name()), tier);
-        for (ServerPlayer player : level.players()) {
+        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
             player.sendSystemMessage(message);
+            com.flatts.recompile.content.freight.FreightAdvancements.awardThrough(player, tier);
         }
 
         NeoForge.EVENT_BUS.post(new PhaseCompleted(level, pos, phase, tier, finished));
