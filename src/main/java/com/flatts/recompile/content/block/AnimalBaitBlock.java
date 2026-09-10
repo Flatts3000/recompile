@@ -179,29 +179,49 @@ public class AnimalBaitBlock extends Block {
 
     /** Pick a mob from the diet tag, weighted by the terrain around the bait, or null if the tag is empty. */
     public static @Nullable EntityType<?> pick(ServerLevel level, BlockPos pos, Diet diet, RandomSource random) {
-        java.util.Optional<HolderSet.Named<EntityType<?>>> tag = BuiltInRegistries.ENTITY_TYPE.get(diet.tag());
-        if (tag.isEmpty() || tag.get().size() == 0) {
+        List<Candidate> candidates = candidates(level, pos, diet);
+        if (candidates.isEmpty()) {
             return null;
         }
-        Terrain dominant = scan(level, pos);
-        List<EntityType<?>> types = new ArrayList<>();
-        List<Integer> weights = new ArrayList<>();
         int total = 0;
-        for (var holder : tag.get()) {
-            EntityType<?> type = holder.value();
-            int weight = weightOf(holder, dominant);
-            types.add(type);
-            weights.add(weight);
-            total += weight;
+        for (Candidate c : candidates) {
+            total += c.weight();
         }
         int roll = random.nextInt(total);
-        for (int i = 0; i < types.size(); i++) {
-            roll -= weights.get(i);
+        for (Candidate c : candidates) {
+            roll -= c.weight();
             if (roll < 0) {
-                return types.get(i);
+                return c.type();
             }
         }
-        return types.get(types.size() - 1);
+        return candidates.get(candidates.size() - 1).type();
+    }
+
+    /** One mob a bait can draw, and its weight on the land the bait is sitting in. */
+    public record Candidate(EntityType<?> type, int weight) {
+    }
+
+    /**
+     * Every mob this diet can draw here, with its terrain-adjusted weight, in tag order.
+     *
+     * <p><b>The one scoring, shared by the draw and the hover.</b> {@link #pick} rolls against it on the
+     * server, and the Jade provider shows its top entries on the client as the {@code Expecting} line
+     * (#436), so the hint can never name a shortlist the bait would not actually draw from. Takes a
+     * {@link BlockGetter} for that reason. On the client it relies on the diet tag (vanilla syncs tags)
+     * and on {@link RCDataMaps#BAIT_WEIGHT} being a SYNCED data map; without the sync every mob reads as
+     * {@link #DEFAULT_WEIGHT} there and the shortlist is a lie.
+     */
+    public static List<Candidate> candidates(BlockGetter level, BlockPos pos, Diet diet) {
+        java.util.Optional<HolderSet.Named<EntityType<?>>> tag = BuiltInRegistries.ENTITY_TYPE.get(diet.tag());
+        if (tag.isEmpty() || tag.get().size() == 0) {
+            return List.of();
+        }
+        Terrain dominant = scan(level, pos);
+        List<Candidate> out = new ArrayList<>();
+        for (var holder : tag.get()) {
+            out.add(new Candidate(holder.value(), weightOf(holder, dominant)));
+        }
+        return out;
     }
 
     /**

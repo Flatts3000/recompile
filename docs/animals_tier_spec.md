@@ -123,8 +123,9 @@ line. Same two-class split as the Compost Heap / Tree Nursery.
 
 *As shipped, `compat/jade/AnimalBaitProvider` is ONE client-side class with no server data provider,
 because every gate reads from the blockstate and the world. It lists every blocker at once rather than
-only the first, and it renders no `Expecting` line: the lang key `jade.recompile.bait_expecting` exists
-and nothing uses it.*
+only the first. The `Expecting` line arrived in #436: the three heaviest candidates from
+`AnimalBaitBlock.candidates`, the same scoring the draw rolls against, shown whenever the bait is on
+grass. That made `recompile:bait_weight` a synced data map, since the client now reads it.*
 
 ## Architecture
 

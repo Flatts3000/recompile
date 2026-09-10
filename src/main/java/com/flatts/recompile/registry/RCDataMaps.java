@@ -33,15 +33,17 @@ public final class RCDataMaps {
      * {@link AnimalBaitBlock#DEFAULT_WEIGHT} and no terrain affinity, so tagging alone is enough to make a
      * mob reachable and an entry here is purely tuning.
      *
-     * <p><b>Deliberately not synced.</b> The draw happens server-side in {@code AnimalBaitBlock.pick}, and
-     * the Jade provider reads only blockstate and placement, so the client never needs these values. If a
-     * client-side consumer is ever added - the spec's {@code Expecting: <weighted shortlist>} line is the
-     * obvious candidate - this must gain a {@code .synced(...)} call, or {@code getData} will return null
-     * on the client and every mob will silently read as {@link AnimalBaitBlock#DEFAULT_WEIGHT}.
+     * <p><b>Synced, because the client reads it.</b> The draw happens server-side in
+     * {@code AnimalBaitBlock.pick}, but the Jade provider's {@code Expecting} line (#436) scores the same
+     * shortlist on the client through {@code AnimalBaitBlock.candidates}. Unsynced, {@code getData} returns
+     * null there and every mob silently reads as {@link AnimalBaitBlock#DEFAULT_WEIGHT}, so the hint would
+     * name the wrong animals. This map was unsynced until that consumer arrived, and its javadoc said this
+     * was the change it would need.
      */
     public static final DataMapType<EntityType<?>, BaitWeight> BAIT_WEIGHT = DataMapType
         .builder(Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "bait_weight"), Registries.ENTITY_TYPE,
             BaitWeight.CODEC)
+        .synced(BaitWeight.CODEC, true)
         .build();
 
     /**
@@ -58,10 +60,9 @@ public final class RCDataMaps {
      * not something you can plant. That mapping cannot come from the tag, because the tag says what goes
      * in and this says what comes out.
      *
-     * <p><b>Synced, unlike {@link #BAIT_WEIGHT}.</b> JEI runs on the client and its Hydroponics category
-     * lists both the yield and the byproduct; without the sync {@code getData} returns null there and
-     * every crop silently reads as producing itself with nothing else. That is the exact failure the bait
-     * map's comment warns about, and this is the consumer it was warning about.
+     * <p><b>Synced, for the same reason {@link #BAIT_WEIGHT} is.</b> JEI runs on the client and its
+     * Hydroponics category lists both the yield and the byproduct; without the sync {@code getData}
+     * returns null there and every crop silently reads as producing itself with nothing else.
      */
     public static final DataMapType<Item, Crop> HYDROPONIC_CROP = DataMapType
         .builder(Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "hydroponic_crop"),

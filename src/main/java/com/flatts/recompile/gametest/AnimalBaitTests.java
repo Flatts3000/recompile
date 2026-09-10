@@ -172,6 +172,54 @@ final class AnimalBaitTests {
                 "an untuned mob must ride DEFAULT_WEIGHT with no affinity, got " + wolf);
             helper.succeed();
         });
+
+        // THE SHORTLIST FOLLOWS THE LAND (#436). candidates() is the scoring the draw rolls against AND
+        // the Jade Expecting line ranks, so this pins the ranking a player is shown: on sand a herbivore
+        // bait leans rabbit (8 + 5) over cow and sheep (10), on grass it leans cow and sheep (10 + 5).
+        // Both halves, because a scan stuck on one terrain would pass either one alone.
+        RCGameTests.test("bait_candidates_lean_toward_the_land", 1, helper -> {
+            for (int dx = 0; dx < 5; dx++) {
+                for (int dz = 0; dz < 5; dz++) {
+                    helper.setBlock(new BlockPos(dx, 1, dz), Blocks.SAND);
+                }
+            }
+            BlockPos abs = helper.absolutePos(BAIT);
+            EntityType<?> onSand = heaviest(AnimalBaitBlock.candidates(helper.getLevel(), abs, Diet.HERBIVORE));
+            helper.assertTrue(onSand == EntityType.RABBIT,
+                "on sand a herbivore bait should lean rabbit, but its heaviest candidate is " + onSand);
+
+            for (int dx = 0; dx < 5; dx++) {
+                for (int dz = 0; dz < 5; dz++) {
+                    helper.setBlock(new BlockPos(dx, 1, dz), Blocks.GRASS_BLOCK);
+                }
+            }
+            EntityType<?> onGrass = heaviest(AnimalBaitBlock.candidates(helper.getLevel(), abs, Diet.HERBIVORE));
+            helper.assertTrue(onGrass == EntityType.COW || onGrass == EntityType.SHEEP,
+                "on grass a herbivore bait should lean cow or sheep, but its heaviest candidate is " + onGrass);
+            helper.succeed();
+        });
+
+        // The Expecting line runs on the CLIENT, and a data map reaches the client only if it is synced.
+        // Unsynced, getData returns null there, every mob reads as DEFAULT_WEIGHT, and the shortlist names
+        // animals by tag order rather than by the land - wrong, silently, and only in a real client. No
+        // test layer here has a client, so the sync itself is what gets pinned.
+        RCGameTests.test("bait_weight_is_synced_to_the_client", 1, helper -> {
+            helper.assertTrue(com.flatts.recompile.registry.RCDataMaps.BAIT_WEIGHT.networkCodec() != null,
+                "recompile:bait_weight is not a synced data map, so the Jade Expecting line reads default "
+                    + "weights on the client and names the wrong animals");
+            helper.succeed();
+        });
+    }
+
+    /** The candidate with the greatest weight; ties keep the first, matching the Expecting line's stable sort. */
+    private static EntityType<?> heaviest(java.util.List<AnimalBaitBlock.Candidate> candidates) {
+        AnimalBaitBlock.Candidate best = null;
+        for (AnimalBaitBlock.Candidate c : candidates) {
+            if (best == null || c.weight() > best.weight()) {
+                best = c;
+            }
+        }
+        return best == null ? null : best.type();
     }
 
     private static Holder<EntityType<?>> holderOf(EntityType<?> type) {
