@@ -119,6 +119,7 @@ Everything here fails with **no error**. One line each; follow the pointer for t
 - `#minecraft:dirt` is three blocks in 26.1. "Overworld ground" is `#minecraft:substrate_overworld`.
 - Vanilla `sculk_patch` places nothing in solid fill. Use a `minecraft:ore` feature (block replacement).
 - Mound Ground stays out of `#minecraft:dirt`, or encroachment eats the mound memory.
+- A pile's regrowth bed is written into coarse dirt only (`RegrowingGroundBlock.isBedGround`). "Any solid block" buried sewer entrances (#432).
 - The rung-1 soil spreader must convert coarse dirt **straight** to grass. A plain-dirt step lets vanilla spread finish the job for free.
 - The regrowth column walk is deliberately blind to *which* pile block it finds. Do not "fix" it (`a_foreign_pile_block_does_not_stall_the_column`).
 

@@ -142,8 +142,9 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
      * what regrows there. Silent, and invisible until somebody quarries that mound and watches it come
      * back wrong.
      *
-     * <p>Only ever replaces ground. Writing into another mound's garbage would punch a hole in a
-     * stack nobody has touched yet.
+     * <p>Only ever replaces ground, which is {@link RegrowingGroundBlock#isBedGround}: coarse dirt.
+     * Writing into another mound's garbage would punch a hole in a stack nobody has touched yet, and
+     * writing into anything else solid could replace a sewer entrance's pad (#432).
      *
      * <p>Stores the block COUNT, not the top offset: this loop fills {@code dy = 0..column}
      * inclusive, so a rim cell of column 0 still carries one block. Storing the offset would build
@@ -156,7 +157,7 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
             if (existing.getValue(MoundGroundBlock.HEIGHT) >= column + 1) {
                 return;
             }
-        } else if (!existing.isSolidRender() || isMoundContent(existing)) {
+        } else if (!RegrowingGroundBlock.isBedGround(existing)) {
             return;
         }
         level.setBlock(pos, RCBlocks.MOUND_GROUND.get().defaultBlockState()
@@ -166,16 +167,13 @@ public class MoundFeature extends Feature<NoneFeatureConfiguration> {
     /**
      * Whether this block is something a mound is MADE of, as opposed to ground a mound can sit on.
      *
-     * <p><b>Extracted because the list went stale the first time it was extended, and silently.</b>
-     * It used to be two {@code instanceof} checks inline in {@link #writeBed} - SortableBlock and
-     * BulkyWasteBlock - which was complete only for as long as every mound block was one of those
-     * two things. The Cardboard Pile (#309) is neither: it is a plain {@link FallingBlock}, and it
-     * is a full opaque cube, so it passed {@code isSolidRender()} and fell straight through the
-     * guard. Mounds overlap by design, so a later mound's bed pass would have replaced a
-     * neighbour's cardboard pile with Mound Ground - destroying the pile AND planting a regrowth
-     * bed partway up a stack, which is precisely what {@code writeBed}'s own javadoc says it exists
-     * to prevent. Nothing would have been logged and nothing would have looked wrong until someone
-     * quarried that mound and watched it regrow from the middle.
+     * <p><b>What it guards now is regrowth's column measure.</b> {@link #writeBed} used to consult
+     * this too, back when it would write into any solid block that was not mound content; the
+     * Cardboard Pile (#309) is a full opaque cube that is neither sortable nor Bulky Waste, and it
+     * slipped through that guard until this was extended. Since #432 {@code writeBed} writes into
+     * coarse dirt only ({@link RegrowingGroundBlock#isBedGround}), which no mound block is. But
+     * {@link RegrowingGroundBlock#isPile} still has to recognise every block a mound places, or a
+     * column topped with one reads as BLOCKED instead of FULL.
      *
      * <p>{@code every_block_a_mound_places_is_recognised_as_mound_content} sweeps
      * {@link #pickBlock}'s outputs against this, so the next variant fails the build instead.

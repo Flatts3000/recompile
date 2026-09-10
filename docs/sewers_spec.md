@@ -251,7 +251,10 @@ spawner.
 `vegetal_decoration`, after `underground_structures`, and they write into air - so a pile can settle on
 top of a cover. It obscures rather than seals: rubble is breakable and the concrete pad still reads
 through it. Worth revisiting if playtest says a buried-in-rubble cover is missable, since there is
-exactly one per sewer.
+exactly one per sewer. **That acceptance needed a guard once piles regrew** (#424): a rubble pile's
+regrowth bed was written into any solid non-pile block, so a pile on an entrance turned the pad into
+Rubble Ground and regrew rubble on it forever. Since #432 a bed is written into coarse dirt only
+(`RegrowingGroundBlock.isBedGround`), and `no_pile_writes_its_bed_over_a_sewer_entrance` pins it.
 
 **Risk:** a 1x1 hole in a large biome is either exciting or miserable. The 3x3 pad exists to make it
 findable; if playtest says it still is not, the pad grows before the rarity changes.

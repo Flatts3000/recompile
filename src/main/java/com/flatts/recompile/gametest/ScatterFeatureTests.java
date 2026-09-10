@@ -713,6 +713,74 @@ final class ScatterFeatureTests {
             helper.succeed();
         });
 
+        // A PILE MUST NOT BURY A SEWER ENTRANCE UNDER ITS OWN MEMORY (#432).
+        //
+        // Sewers generate only in the demolition yard, and their entrance is a 3x3 Reinforced
+        // Concrete pad with a Manhole in the middle, flush with the surface and placed before any
+        // feature runs. writeBed used to write into any solid block that was not a pile, so a rubble
+        // pile landing on an entrance replaced the pad with Rubble Ground - and Rubble Ground then
+        // regrows rubble on that spot forever. A pile that merely sits ON the entrance is fine: that
+        // is rubble a player digs off. What must not happen is the entrance becoming ground.
+        //
+        // The in-world half runs the rubble pile, the only regrowing feature that shares a biome with
+        // the sewers, on an entrance built exactly as SewerPieces lays it. The other half pins the
+        // shared predicate every bed writer asks, which is where the mound and the tailings heap get
+        // the same answer without a plot big enough to hold a fifteen-wide mound.
+        RCGameTests.test("no_pile_writes_its_bed_over_a_sewer_entrance", 60, helper -> {
+            ServerLevel level = helper.getLevel();
+            BlockPos origin = helper.absolutePos(new BlockPos(2, 2, 2));
+            BlockState pad = com.flatts.recompile.content.worldgen.sewer.SewerPalette.PAD;
+            BlockState cover = com.flatts.recompile.content.worldgen.sewer.SewerPalette.COVER;
+
+            for (BlockState notGround : List.of(pad, cover)) {
+                helper.assertFalse(RegrowingGroundBlock.isBedGround(notGround),
+                    BuiltInRegistries.BLOCK.getKey(notGround.getBlock()) + " counts as ground a pile "
+                        + "may remember itself into, so any bed writer can overwrite a sewer entrance");
+            }
+            helper.assertTrue(RegrowingGroundBlock.isBedGround(Blocks.COARSE_DIRT.defaultBlockState()),
+                "coarse dirt is not bed ground, so no pile anywhere would remember its footprint");
+
+            clear(level, origin);
+            layField(level, origin, Blocks.COARSE_DIRT, NEAR);
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    level.setBlock(origin.offset(dx, -1, dz), pad, 2);
+                }
+            }
+            level.setBlock(origin.below(), cover, 2);
+
+            helper.assertTrue(place(level, RCFeatures.RUBBLE_PILE, origin, 7L),
+                "the rubble pile refused the plot, so this measured nothing");
+
+            List<String> buried = new ArrayList<>();
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    BlockState want = dx == 0 && dz == 0 ? cover : pad;
+                    BlockState got = level.getBlockState(origin.offset(dx, -1, dz));
+                    if (!got.is(want.getBlock())) {
+                        buried.add(dx + "," + dz + " is " + BuiltInRegistries.BLOCK.getKey(got.getBlock()));
+                    }
+                }
+            }
+            helper.assertTrue(buried.isEmpty(),
+                "a rubble pile overwrote the sewer entrance under it: " + buried);
+
+            // And the pile still remembered itself on the coarse dirt around the entrance, so the
+            // guard narrowed what counts as ground rather than switching regrowth off.
+            int beds = 0;
+            for (int dx = -NEAR; dx <= NEAR; dx++) {
+                for (int dz = -NEAR; dz <= NEAR; dz++) {
+                    if (level.getBlockState(origin.offset(dx, -1, dz)).is(RCBlocks.RUBBLE_GROUND.get())) {
+                        beds++;
+                    }
+                }
+            }
+            helper.assertTrue(beds > 0,
+                "the pile left no bed on the coarse dirt around the entrance, so the fix stopped "
+                    + "rubble regrowing rather than stopping it burying the manhole");
+            helper.succeed();
+        });
+
         // THE TAILINGS BED NEVER CLAIMS THE POND CELL, WHICH IS THE WHOLE POND CARVE-OUT.
         //
         // Water is a REPLACEABLE block, so regrowth would happily target the decant pond and fill the
