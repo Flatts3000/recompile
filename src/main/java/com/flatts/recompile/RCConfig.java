@@ -201,8 +201,8 @@ public final class RCConfig {
         MOUND_REGROWTH_DROP_HEIGHT = builder
             .comment("How far above the mound a regrowing block is spawned to fall from.",
                 "The design said 'from the top of the world'; this world's build limit is 320 over a",
-                "surface near -60, and a 380-block fall is nine seconds of entity per block for a",
-                "beat that reads the same from thirty. The flight path is checked clear first.")
+                "surface at about y 60 to 69, and a 250-block fall is several seconds of entity per",
+                "block for a beat that reads the same from thirty. The flight path is checked clear first.")
             .defineInRange("moundRegrowthDropHeight", 30, 1, 320);
         ANALYTICS_ENABLED = builder
             .comment("Write a local log of what sorting produces, to logs/recompile-pulls.tsv.",
@@ -373,7 +373,8 @@ public final class RCConfig {
 
         DISABLE_HOE_TILLING = builder
             .comment("Block hoe-tilling of farmland, so farmland comes only from the compost recipe",
-                     "(Fertilizer + dirt). The base mod has no hoe; this holds even in a pack that adds one.")
+                     "(Fertilizer + dirt). Not redundant: a vanilla wooden hoe is craftable once the Tree",
+                     "Nursery supplies wood, and without this it would till farmland past the compost route.")
             .define("disableHoeTilling", true);
 
         TREE_NURSERY_ENABLED = builder

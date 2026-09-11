@@ -231,7 +231,8 @@ public final class RCBlocks {
     );
 
     /**
-     * Stained Ground: dressing, no loot.
+     * Stained Ground: the radioactive dump's ground, and since #424 the regrowth memory under a tailings
+     * heap. It drops itself ({@code loot_table/blocks/stained_ground}).
      *
      * <p>Coarse dirt's hardness, sound and shovel, with a stained face - the same relationship
      * {@code MoundGround} has to coarse dirt. No {@code requiresCorrectToolForDrops}: it is dirt.
@@ -272,9 +273,9 @@ public final class RCBlocks {
     /**
      * Uranium Glass: a collectible, found whole (owner, 2026-08-22).
      *
-     * <p><b>The only one of the region's four finds that is genuinely collected in real life</b>, which
-     * is what decided it. Vaseline glass is a collecting hobby, it fluoresces, and as a MATERIAL it
-     * would only have duplicated Mill Tailings' job. CLAUDE.md is explicit that a find may exist to be
+     * <p><b>The only one of the region's four finds that is genuinely collected in real life</b>, which is
+     * what decided it. Vaseline glass is a collecting hobby, it fluoresces, and as a MATERIAL it would only
+     * have duplicated Mill Tailings' job. docs/systems_notes.md is explicit that a find may exist to be
      * displayed rather than processed.
      *
      * <p>A placeable light-emitting block rather than an item trophy, which is what the Puzzle Cube
@@ -418,8 +419,9 @@ public final class RCBlocks {
 
     /**
      * Steel I-Beam (demolition yard): the husk's structural steel, a column or girder (axis-oriented like a
-     * log). Solid, {@code requiresCorrectToolForDrops}, cut only by the Cutting Torch (not the sledgehammer -
-     * you cut steel, not crush it). Its loot is raw iron in bulk; see {@code loot_table/blocks/steel_i_beam}.
+     * log). Solid, {@code requiresCorrectToolForDrops}. Cutting it with the Cutting Torch yields 2 to 4
+     * Steel Offcuts (not the sledgehammer - you cut steel, not crush it); a pickaxe returns the beam
+     * itself (#132). See {@code loot_table/blocks/steel_i_beam}.
      */
     public static final DeferredBlock<SteelBeamBlock> STEEL_I_BEAM = BLOCKS.registerBlock(
         "steel_i_beam",
@@ -1403,9 +1405,9 @@ public final class RCBlocks {
      * dumps across the household sprawl.
      *
      * <p>{@code noOcclusion()} is not optional: a ring model on a block without it culls the neighbour's
-     * face and punches a hole in the world, which is one of the two traps CLAUDE.md names. Rubber is
-     * soft, so this is a hand-breakable block rather than a tool-gated one; what it DROPS is tool-gated,
-     * and that lives in the loot table.
+     * face and punches a hole in the world, which is one of the two machine traps docs/systems_notes.md
+     * names. Rubber is soft, so this is a hand-breakable block rather than a tool-gated one; what it DROPS
+     * is tool-gated, and that lives in the loot table.
      */
     public static final DeferredBlock<TireBlock> TIRE = BLOCKS.registerBlock(
         "tire", TireBlock::new,

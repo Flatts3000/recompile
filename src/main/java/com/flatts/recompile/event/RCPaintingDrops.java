@@ -44,8 +44,8 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
  * the moment between the two events. That keeps the mod's no-saved-state grain, the same reason
  * encroachment has no memory and the scrap network has no core.
  *
- * <p>This is the same problem {@code CLAUDE.md} records for the Rain Collector, state lost because
- * breaking destroys the thing holding it, with an entity in place of a BlockEntity.
+ * <p>This is the same problem {@code docs/data_and_api_notes.md} records for the Rain Collector, state lost
+ * because breaking destroys the thing holding it, with an entity in place of a BlockEntity.
  */
 @EventBusSubscriber(modid = Recompile.MOD_ID)
 public final class RCPaintingDrops {

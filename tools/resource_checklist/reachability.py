@@ -364,8 +364,9 @@ def walk_items(o, acc, depth=0):
 def stripped_items():
     """Items a global loot modifier removes from every roll in a vanilla-only install.
 
-    CLAUDE.md records that SortingData honours strip modifiers for exactly this reason: a table
-    listing an item a modifier deletes is telling the truth about itself and a lie about the world.
+    docs/data_and_api_notes.md records that SortingData honours strip modifiers for exactly this
+    reason: a table listing an item a modifier deletes is telling the truth about itself and a lie
+    about the world.
     `no_sky_stone` is the live case - it strips the Sky Stone Shard precisely when AE2 is absent,
     which is the configuration modelled here.
     """

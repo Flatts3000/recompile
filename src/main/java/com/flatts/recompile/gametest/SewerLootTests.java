@@ -27,7 +27,7 @@ import net.minecraft.world.level.levelgen.structure.StructurePiece;
  * <p><b>The palette is part of the payout.</b> A structure that places a block also hands the player
  * that block, so what a sewer is built from is a question about gates and not only about looks -
  * {@code the_sewer_palette_opens_no_gate} walks every block the structure can place rather than reading
- * the palette, because the block somebody adds next year is the one that opens the furnace route.
+ * the palette, because the block somebody adds next year is the one that goes unexamined.
  *
  * <p><b>Exclusivity is the hard half.</b> "There is a source" needs one table; "this is the ONLY source"
  * needs every table, every recipe of every type, and proof that the sweep could actually see them - which
@@ -76,9 +76,13 @@ final class SewerLootTests {
         // be asserted by walking every block the structure can place rather than by reading the palette -
         // which is why SewerPalette.ALL exists as a list at all.
         //
-        // The gate: anything in #minecraft:stone_crafting_materials crafts a vanilla furnace, and a
-        // vanilla furnace skips the Cupola. Brick was checked by hand when the spec was written; this
-        // checks it on every build, and covers the block somebody adds to the palette next year.
+        // The gate it was written for: anything in #minecraft:stone_crafting_materials crafts a vanilla
+        // furnace, and a vanilla furnace used to skip the Cupola. NEITHER HALF HOLDS ANY MORE. Since #91
+        // iron is a blasting recipe, which a vanilla furnace cannot run, and a vanilla furnace is reachable
+        // anyway: stone shards craft minecraft:stone, which a pickaxe breaks into cobblestone, and
+        // blackstone shards craft blackstone, which is in the tag outright. So this no longer protects the
+        // iron gate; it pins that the sewer palette hands out no furnace material of its own, and whether
+        // that is still worth pinning is an open question rather than a settled one (#435).
         RCGameTests.test("the_sewer_palette_opens_no_gate", 20, helper -> {
             List<String> offenders = new ArrayList<>();
             for (BlockState state : SewerPalette.ALL) {
@@ -91,8 +95,8 @@ final class SewerLootTests {
                 "the sewer palette has only " + SewerPalette.ALL.size() + " entries - discovery is "
                     + "broken, so this would pass by checking almost nothing");
             helper.assertTrue(offenders.isEmpty(),
-                "these sewer blocks craft a vanilla furnace, which skips the Cupola and opens the iron "
-                    + "gate: " + offenders);
+                "these sewer blocks are furnace materials (#minecraft:stone_crafting_materials): "
+                    + offenders);
             helper.succeed();
         });
 

@@ -1,8 +1,8 @@
 """Shoot showcase scenes automatically. Needs a dev client with devbridge on port 8605.
 
     python tools/shoot_scenes.py                          # the reclamation pair
-    python tools/shoot_scenes.py machine_hall             # one scene
-    python tools/shoot_scenes.py --at 300 300 machine_hall
+    python tools/shoot_scenes.py machine_wall             # one scene
+    python tools/shoot_scenes.py --at 300 300 machine_wall
 
 The pair is only worth anything if the two frames share a camera to the pixel, and three things have
 to be right for that:

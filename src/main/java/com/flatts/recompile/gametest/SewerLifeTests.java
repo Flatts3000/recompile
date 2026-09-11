@@ -48,8 +48,10 @@ final class SewerLifeTests {
         //
         // The substrate is the mechanism as well as the look. #minecraft:frogs_spawnable_on is grass
         // block, mud and the two mangrove roots, so mud is the one member a sewer could hold; and
-        // TurtleEggBlock.onSand is half of vanilla's turtle rule. Neither makes them renewable - the
-        // other half is y < seaLevel + 4 against a sea level of -64.
+        // TurtleEggBlock.onSand is half of vanilla's turtle SPAWN rule. Neither makes them spawn
+        // naturally - the other half is y < seaLevel + 4 against a sea level of -64. They are still
+        // renewable: laying (TurtleLayEggGoal) has no height rule, so a fed pair lays on the den's own
+        // sand (#345).
         RCGameTests.test("each_den_holds_its_animals_on_its_own_ground", 60, helper -> {
             var level = helper.getLevel();
             var gen = level.getChunkSource().getGenerator();

@@ -9,8 +9,8 @@ import com.mojang.serialization.MapCodec;
  * it disband-returns the Water Tank you placed.
  *
  * <p>This is the "a formed cell is a per-machine dummy, never the shared component restacked" rule
- * (CLAUDE.md): the Grass Spreader can reuse the caged Water Tank because it wants that industrial look,
- * but the nursery is a clad cabinet, so its tank gets its own integral cladding.
+ * (docs/systems_notes.md): the Grass Spreader can reuse the caged Water Tank because it wants that
+ * industrial look, but the nursery is a clad cabinet, so its tank gets its own integral cladding.
  *
  * <p><b>It wears the machine's skin</b> (2026-08-04): its half of the cabinet is cut from one image
  * spanning both bottom cells, so the frame, the seams and the grime run across the join instead of

@@ -36,15 +36,15 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
  * Ground" under a rubble pile and replaced the dump's own ground with the sprawl's. Two of the three
  * grounds were already in the world before regrowth reached them, which is most of the argument.
  *
- * <p><b>Delivery is a falling block from above, for all three</b> (owner, 2026-09-08), so
- * replenishing piles are visible across the plain and the lore lands: the void-dumped garbage is
- * still coming home. Per-material delivery was considered and rejected - debris is tipped and
- * tailings are pumped as slurry, but the beat's job is to be seen from a distance and that job does
- * not change with the material. The design said "from the top of the world"; it drops from
- * {@link RCConfig#MOUND_REGROWTH_DROP_HEIGHT} instead, because this world's build limit is 320 over a
- * surface near -60, and a 380-block fall is nine seconds of entity per block for a beat that reads
- * identically from thirty. The flight path is checked clear first, so a roof over a pile stops
- * regrowth instead of collecting it.
+ * <p><b>Delivery is a falling block from above, for all three</b> (owner, 2026-09-08), so replenishing
+ * piles are visible across the plain and the lore lands: the void-dumped garbage is still coming home.
+ * Per-material delivery was considered and rejected - debris is tipped and tailings are pumped as slurry,
+ * but the beat's job is to be seen from a distance and that job does not change with the material. The
+ * design said "from the top of the world"; it drops from {@link RCConfig#MOUND_REGROWTH_DROP_HEIGHT}
+ * instead, because this world's build limit is 320 over a surface at about y 60 to 69, and a fall of two
+ * hundred and fifty blocks is several seconds of entity per block for a beat that reads identically from
+ * thirty. The flight path is checked clear first, so a roof over a pile stops regrowth instead of
+ * collecting it.
  *
  * <p><b>Retirement is the block being gone, and only two of the three can be retired.</b> Greening a
  * footprint takes the memory with it, so a mound and a rubble pile both retire when the Grass

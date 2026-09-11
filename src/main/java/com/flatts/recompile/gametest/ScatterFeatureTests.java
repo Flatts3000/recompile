@@ -783,7 +783,7 @@ final class ScatterFeatureTests {
 
         // THE TAILINGS BED NEVER CLAIMS THE POND CELL, WHICH IS THE WHOLE POND CARVE-OUT.
         //
-        // Water is a REPLACEABLE block, so regrowth would happily target the decant pond and fill the
+        // A fluid is a REPLACEABLE block, so regrowth would happily target the decant pond and fill the
         // basin in one block at a time until it was gone - silently, over a long time, in a region
         // nobody is watching. There is no special case in the block for this. Instead the feature
         // records the count of TAILINGS rather than the column height, so the memory simply never
@@ -891,13 +891,13 @@ final class ScatterFeatureTests {
             for (int dx = -16; dx <= 16; dx++) {
                 for (int dz = -16; dz <= 16; dz++) {
                     int tailings = 0;
-                    int waterAt = -1;
+                    int pondAt = -1;
                     for (int dy = 0; dy <= 6; dy++) {
                         BlockState state = level.getBlockState(origin.offset(dx, dy, dz));
                         if (state.is(RCBlocks.MILL_TAILINGS.get())) {
                             tailings++;
                         } else if (state.is(RCBlocks.TAILINGS_SLURRY.get())) {
-                            waterAt = dy;
+                            pondAt = dy;
                         }
                     }
                     BlockState bed = level.getBlockState(origin.offset(dx, -1, dz));
@@ -912,14 +912,14 @@ final class ScatterFeatureTests {
                                 + "carries " + tailings);
                         }
                     }
-                    if (waterAt >= 0) {
+                    if (pondAt >= 0) {
                         ponds++;
                         // regrowOnce fills up to bed.above(height), which is dy = height - 1 here. So
-                        // the pond is safe exactly when the water sits at dy == height.
-                        if (height != waterAt) {
-                            wrong.add(dx + "," + dz + ": water at " + waterAt + " but the bed claims "
+                        // the pond is safe exactly when the slurry sits at dy == height.
+                        if (height != pondAt) {
+                            wrong.add(dx + "," + dz + ": the pond at " + pondAt + " but the bed claims "
                                 + height + ", so regrowth "
-                                + (height > waterAt ? "will fill the pond in" : "leaves a gap"));
+                                + (height > pondAt ? "will fill the pond in" : "leaves a gap"));
                         }
                     }
                 }

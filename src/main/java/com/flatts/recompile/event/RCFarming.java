@@ -10,8 +10,9 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 /**
  * Farming tier (rung 3): farmland comes only from the compost economy - the {@code Fertilizer + dirt ->
  * minecraft:farmland} recipe (26.1 gives farmland a real item, so the recipe outputs it directly, no
- * custom block or item). This cancels hoe-tilling so that recipe stays the canonical path even in a
- * modpack that adds a hoe - the base mod has none. No mixin; NeoForge's tool-modification event.
+ * custom block or item). This cancels hoe-tilling so that recipe stays the canonical path. It is
+ * load-bearing even with no mod adding a hoe: once the Tree Nursery supplies wood, a vanilla wooden hoe
+ * is craftable, and no recipe override removes it. No mixin; NeoForge's tool-modification event.
  */
 @EventBusSubscriber(modid = Recompile.MOD_ID)
 public final class RCFarming {

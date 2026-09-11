@@ -19,8 +19,9 @@
     "one that is household-tier, where Fused Circuitry is depths-side and Circuit Powder needs a",
     "Pulverizer - and the casing is what distinguishes which terminal you get.",
     "",
-    "WHAT MAKES THIS SAFE IS THE FIND RATE, NOT THE RECIPE. A Broken Terminal is 1 in 16 Bulky",
-    "Waste, and Bulky Waste is 5 percent of a mound's surface, so it is a thing you meet early and",
+    "WHAT MAKES THIS SAFE IS THE FIND RATE, NOT THE RECIPE. A Broken Terminal is 1 in 17.8 Bulky",
+    "Waste (1 of 16 in bulky_spine, which is 9 of 10 of the table), and Bulky Waste is 1 in 20 of",
+    "a mound's core cells, so it is a thing you meet early and",
     "often rather than a wall. If that ever stops being true this is the first recipe to revisit,",
     "because everything the market gates is downstream of it."
   ],

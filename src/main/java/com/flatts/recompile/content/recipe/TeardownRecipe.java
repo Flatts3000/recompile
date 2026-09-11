@@ -267,8 +267,9 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
 
         // teaches() reports the declared entries PLUS one per teaching-pool entry, so everything
         // downstream - fragment assembly, the guidebook checks, JEI - sees the full set of recipes
-        // this teardown can reveal without any of them learning about pools. Only the bench's
-        // GRANTING needs to know the difference, because a pool teaches whichever item it drew.
+        // this teardown can reveal without any of them learning about pools. (The bench's granting
+        // was the one reader that needed the difference, since a pool taught whichever item it drew;
+        // since #390 it reads no teaches at all.)
         List<TeachEntry> all = new java.util.ArrayList<>(this.declaredTeaches);
         for (Pool pool : this.pools) {
             if (!pool.teaches()) {
@@ -279,8 +280,10 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
                     Identifier id = BuiltInRegistries.ITEM.getKey(item);
                     if (all.stream().noneMatch(e -> e.recipe().equals(id))) {
                         // Chance 1: drawing the component ALWAYS teaches it. Zero would read as
-                        // "might teach", and every teardown teaches (owner, 2026-08-02) - below one
-                        // the cost becomes a dice game on top of a dice game.
+                        // "might teach", and the 2026-08-02 rule was that every teardown teaches -
+                        // below one the cost becomes a dice game on top of a dice game. (Since #390
+                        // the Workbench reads no teaches at all; the one reader left of a teaching
+                        // pool is the fragment-cost lookup, FragmentAssemblyRecipe.requiredFor, #430.)
                         all.add(new TeachEntry(id, 1.0F, pool.scrapsRequired()));
                     }
                 });
