@@ -518,7 +518,7 @@ public final class SortingData {
      *
      * <p>{@code expand: false} always contributes exactly one entry whether the tag has members or not,
      * so its weight counts in full - and an empty tag then wins rolls and yields nothing, which is why
-     * the grains entry uses {@code expand: true}.
+     * the grains entry used {@code expand: true} before it moved to the Trashlands pack in #420.
      */
     private static int effectiveWeight(JsonObject entry) {
         if (!isType(entry, "minecraft:tag") || !entry.has("name")

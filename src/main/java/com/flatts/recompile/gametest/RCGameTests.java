@@ -84,7 +84,6 @@ public final class RCGameTests {
         RadioactiveDumpTests.register();
         AmberTests.register();
         ResinTests.register();
-        EnderIoFindsTests.register();
         JadeDataTests.register();
         FoundToolTests.register();
         MattressTests.register();

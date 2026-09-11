@@ -4,8 +4,10 @@
 NeoForge 26.1.2.76.
 **Status:** shipped 2026-08-21 across #279 and #281. **The blaze disable moved on 2026-09-10**: the
 pack carries it (trashlands#84) and this repo deleted its copy and `the_blaze_grinding_override_can_never_load`
-(#420). **The Grains of Infinity find is still here**, waiting on an owner ruling on `trashlands#52`
-(ride along from a pack modifier, fork the table into the pack, or stay as engine content).
+(#420). **The Grains of Infinity find followed**: owner ruling 2026-09-10 was option 1 on
+`trashlands#52`, so the pack adds grains as a ride-along roll on `mechanical_pulls` and this repo
+deleted its weighted entry and `grains_of_infinity_is_inert_without_enderio`. Nothing of this
+handoff remains in Recompile except the `EXEMPT_RECIPES` line below, which is engine test code.
 **Move-back tracker:** `Flatts3000/trashlands#52`, alongside `#46` (AE2) and `#47` (Simple Magnets).
 
 ## Why this is in the engine at all
@@ -117,7 +119,8 @@ on it and no GameTest pinning it. This one breaks three of those, each deliberat
   `every_cross_mod_override_is_ordered_after_its_mod` derives its list from the namespaces this mod
   ships files under - so removing the enderio data directory removed it from that guard. Both went in
   #420, with `the_blaze_grinding_override_can_never_load`.
-- **A GameTest still pins the grains**: `grains_of_infinity_is_inert_without_enderio`.
+- **A GameTest pinned the grains**, `grains_of_infinity_is_inert_without_enderio`; it left with the
+  entry in #420.
 
 ## Verifying with the mod actually installed
 

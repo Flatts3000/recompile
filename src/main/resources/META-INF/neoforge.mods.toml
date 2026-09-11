@@ -50,6 +50,7 @@ side = "BOTH"
 # AE2 (#268) and Ender IO (#280) had blocks here too, both optional and AFTER, and they left with the
 # files that needed them (#420, 2026-09-10): AE2's assets/ae2/lang/en_us.json tooltip key and Ender IO's
 # never-loading override at enderio:sag_milling/blaze_powder. The pack carries both now
-# (Flatts3000/trashlands#81 and #84). What stays - AE2's four sourcing recipes and the Grains of Infinity
-# find - lives under data/recompile/, guarded by its own mod_loaded conditions and tag entries, so no
-# path of theirs is contested and load order decides nothing. Same rule as the Simple Magnets note above.
+# (Flatts3000/trashlands#81 and #84), and the Grains of Infinity find followed (trashlands#52). What
+# stays - AE2's four sourcing recipes - lives under data/recompile/, each guarded by its own mod_loaded
+# condition, so no path of theirs is contested and load order decides nothing. Same rule as the Simple
+# Magnets note above.
