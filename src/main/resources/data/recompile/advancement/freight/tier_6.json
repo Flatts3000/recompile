@@ -1,0 +1,29 @@
+{
+  "parent": "recompile:freight/tier_5",
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.recompile.freight.tier.description",
+      "with": [
+        "6"
+      ]
+    },
+    "frame": "task",
+    "icon": {
+      "id": "recompile:circuit_powder"
+    },
+    "title": {
+      "translate": "freight.recompile.phase.6"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}

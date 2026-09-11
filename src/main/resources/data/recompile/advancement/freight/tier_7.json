@@ -1,0 +1,29 @@
+{
+  "parent": "recompile:freight/tier_6",
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.recompile.freight.tier.description",
+      "with": [
+        "7"
+      ]
+    },
+    "frame": "task",
+    "icon": {
+      "id": "recompile:sculk_powder"
+    },
+    "title": {
+      "translate": "freight.recompile.phase.7"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:gui/advancements/backgrounds/stone",
+    "description": {
+      "translate": "advancements.recompile.freight.root.description"
+    },
+    "icon": {
+      "id": "recompile:freight_terminal"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.recompile.freight.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}

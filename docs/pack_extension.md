@@ -207,6 +207,18 @@ Two things that fail silently and are worth repeating here: a `text` naming a la
 exist renders the raw key to the player, and **a blank line is not a paragraph break**. A break is a
 blank line followed by two backslash-terminated lines; a lone newline renders as a space.
 
+## Freight completion
+
+Every rung of the freight ladder has a plain advancement a quest line can watch: `recompile:freight/tier_N`
+under a `recompile:freight/root` tab, each with one `minecraft:impossible` criterion named `delivered`.
+The engine grants them to **every player in the world** when a rung ships, since the tier is the save's
+rather than a player's, and grants every rung already reached when a player logs in, so a late partner
+is not locked out of the quests the base has already earned (#434).
+
+A pack that adds a ninth `recompile:freight_phase` ships `data/recompile/advancement/freight/tier_9.json`
+beside it; a rung with no file is skipped rather than failing, so no Java is involved either way. Another
+mod can listen to `FreightCompletion.PhaseCompleted` on the NeoForge bus instead.
+
 ## What a pack cannot change from data
 
 - **The viewers will not follow.** `SortingData` and the JEI categories read the mod's **bundled** JSON

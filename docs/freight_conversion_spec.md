@@ -2,9 +2,10 @@
 
 **Status: all five steps SHIPPED in v0.20.0 (epic #386).** Step 1 #392 (issue #387), step 2 #394
 (#388), step 3 #396 (#389), step 4 #397 (#390), step 5 #398 (#391), and the conditional network sink
-#395 (#393). **Where the build differs from this plan:** the eight completion advancements ruled in
-section 2.5 were not built, and no advancement files ship; `FreightCompletion` posts a NeoForge bus
-event only, whose javadoc still records the event as a deviation from this spec. And step 4's
+#395 (#393). The eight completion advancements ruled in section 2.5 followed in #434:
+`recompile:freight/root` and `recompile:freight/tier_1..8`, granted to every player in the world when
+a rung ships and again at login, alongside `FreightCompletion`'s bus event. **Where the build differs
+from this plan:** step 4's
 `every_shipped_blueprint_has_a_name_a_recipe_and_a_route` was left accepting a teardown teacher OR a
 market offer rather than narrowed to the single market route.
 

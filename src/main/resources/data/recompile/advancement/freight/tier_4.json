@@ -1,0 +1,29 @@
+{
+  "parent": "recompile:freight/tier_3",
+  "criteria": {
+    "delivered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.recompile.freight.tier.description",
+      "with": [
+        "4"
+      ]
+    },
+    "frame": "task",
+    "icon": {
+      "id": "minecraft:iron_ingot"
+    },
+    "title": {
+      "translate": "freight.recompile.phase.4"
+    }
+  },
+  "requirements": [
+    [
+      "delivered"
+    ]
+  ]
+}
