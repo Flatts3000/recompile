@@ -34,8 +34,9 @@ import org.junit.jupiter.api.Test;
  *
  * <p>What the ruling buys: a terminal reads as a thing you found and fixed rather than a thing you
  * fabricated, which is this mod's premise applied to its own shop counter. What makes it safe is the
- * find rate rather than the recipe - 1 in 16 Bulky Waste, and Bulky Waste is 5 percent of a mound's
- * surface. <b>If that ever stops being true these are the first recipes to revisit</b>, because
+ * find rate rather than the recipe - 1 in 17.8 Bulky Waste (1 of 16 in {@code bulky_spine}, which is 9
+ * of 10 of the table), and Bulky Waste is 1 in 20 of a mound's core cells. <b>If that ever stops being
+ * true these are the first recipes to revisit</b>, because
  * everything the market gates is downstream of them.
  *
  * <p>The set of terminals is derived from the recipes rather than listed, so a fourth is covered the

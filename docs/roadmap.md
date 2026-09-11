@@ -463,8 +463,8 @@ Three things in the plan above did not survive building it:
   count, 0 can only mean the latter, which is what makes a hand-placed block inert instead of the
   seed of a mound that never existed.
 - **Delivery drops from 30 blocks, not the top of the world.** The build limit is 320 over a surface
-  near -60; a 380-block fall is nine seconds of live entity per block of garbage for a beat that
-  reads identically from thirty. The flight path is checked clear first, so a roof stops regrowth
+  at about y 60 to 69; a 250-block fall is several seconds of live entity per block of garbage for a
+  beat that reads identically from thirty. The flight path is checked clear first, so a roof stops regrowth
   rather than collecting it.
 
 ---

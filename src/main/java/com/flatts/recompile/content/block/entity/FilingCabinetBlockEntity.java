@@ -36,7 +36,7 @@ import net.minecraft.world.level.storage.ValueOutput;
  * <p><b>It reuses a vanilla screen</b>, per the rule in docs/gui_notes.md: a grid of items is exactly
  * what a chest screen is for, and nothing here needs a gauge. Six rows, which is 54 blueprints. The spec asked
  * for unbounded and this is not that - it is the largest a borrowed screen goes, and going past it means
- * minting a fifth custom screen and recording another reversal. Worth doing when a save actually holds
+ * minting another custom screen and recording another reversal. Worth doing when a save actually holds
  * 54 distinct blueprints; the mod currently ships one.
  */
 public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
@@ -173,9 +173,8 @@ public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
     /**
      * File a stack here, merging into a matching one first.
      *
-     * <p>Public because the Recompile Workbench files fragments straight in rather than dropping them
-     * on the floor: the bench is where they are made and the cabinet is where they belong, and making
-     * the player carry them four paces adds nothing.
+     * <p>Public because the Recompile Workbench used to file fragments straight in rather than drop
+     * them on the floor. Since #390 the Workbench makes no fragments, and nothing calls this.
      *
      * @return true if it fit
      */
