@@ -56,16 +56,17 @@ blaze-grinding disable (trashlands#84) - and then this repo deleted its own (#42
 and the two tests that pinned them. The pack's copies reach players when the pack bumps its pin to the
 first Recompile release carrying the deletion.
 
-**What stays here, and why:**
-- **AE2's four sourcing recipes** are engine content (owner ruling 2026-09-08 on #420, see [AE2](#ae2)
-  below).
-- **Ender IO's Grains of Infinity find** in `mechanical_pulls` waits on an owner ruling
-  (trashlands#52): ride along from the pack at the same rate, fork the whole table into the pack, or
-  stay here as engine content.
+**The grains followed** (owner ruling 2026-09-10, option 1 on trashlands#52). The pack adds Grains of
+Infinity to `mechanical_pulls` as a ride-along roll at about the old rate, and this repo deleted its
+weighted entry and `grains_of_infinity_is_inert_without_enderio`. A ride-along adds grains on top of
+a pull rather than instead of one, so the table's other seven entries are back at their pre-#279 share.
+
+**What stays here, and why:** AE2's four sourcing recipes are engine content (owner ruling 2026-09-08
+on #420, see [AE2](#ae2) below). That is the whole of it.
 
 **No dependency block remains for either mod.** Both left with the files that needed them: a block
-only matters when this mod ships a file at the other mod's id, and what stays lives under
-`data/recompile/`, guarded by its own `mod_loaded` conditions and tag entries.
+only matters when this mod ships a file at the other mod's id, and the sourcing recipes live under
+`data/recompile/`, each guarded by its own `mod_loaded` condition.
 
 **A standalone install loses both moved pieces, deliberately**, the same as it lost the Simple Magnets
 re-theme: a sewer crate no longer carries AE2's presses without the pack, and with Ender IO installed
@@ -77,9 +78,10 @@ the SAG Mill grinds a blaze rod into four powder again. Curation is the pack's.
 
 **Ender IO needed no sourcing work, unlike AE2**, and that is worth knowing before anyone re-audits it:
 a reachability closure over its 1187 recipes puts 897 of 924 items in reach from a vanilla-only seed,
-its whole alloy spine included, and it makes its own silicon by SAG-milling sand. What ships for it is
-a Grains of Infinity find in Mechanical Waste (#279, owner call - the material was already obtainable
-via Ender IO's own fire crafting on deepslate), plus the two invariant fixes below.
+its whole alloy spine included, and it makes its own silicon by SAG-milling sand. What shipped for it
+was a Grains of Infinity find in Mechanical Waste (#279, owner call - the material was already
+obtainable via Ender IO's own fire crafting on deepslate), plus the two invariant fixes below. Both the
+find and the blaze disable moved to the pack in #420.
 
 ### The blaze-grinding disable subtracts rather than adds
 

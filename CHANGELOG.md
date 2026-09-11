@@ -60,6 +60,9 @@
   the crate at the bottom of a sewer still holds all four presses and the SAG Mill still refuses a
   blaze rod. Playing Recompile on its own with AE2, the crate holds no presses; with Ender IO, the SAG
   Mill grinds a rod back into powder again.
+- **Grains of Infinity come from the pack too.** Playing Trashlands, Mechanical Waste still turns them
+  up, now alongside a normal pull rather than in place of one. Playing Recompile on its own with Ender
+  IO, Mechanical Waste no longer carries them; Ender IO's own fire crafting on deepslate still does.
 - **AE2's certus, fluix, silicon and sky stone routes stay in the mod.** They run on its own machines.
 
 ## v0.20.0

@@ -154,10 +154,10 @@ turning up in a demolition yard, and it is the one entry the Separator has no re
 commonest thing a player pulled from a machine pile was the one thing that machine refuses. Its weight
 folded into Scrap Metal rather than being deleted, which holds the table at 222 and leaves every gem
 rate exactly where it was tuned. E-Scrap keeps its household source, so nothing is orphaned. *(The
-table has since grown: a Motor at weight 5 (#165) makes it 227, and a `c:dusts/grains_of_infinity`
-tag entry at 20 (#279) makes it 247 when Ender IO is installed. The tag entry uses `expand: true`, so
-without Ender IO it contributes nothing and the total stays 227. The gem rates are therefore 222/227 of
-what was tuned here in a default install, and 222/247 with Ender IO.)*
+table has since grown: a Motor at weight 5 (#165) makes it 227. A `c:dusts/grains_of_infinity` tag
+entry at 20 (#279) made it 247 with Ender IO installed until #420 moved the grains to the Trashlands
+pack, which adds them as a separate roll rather than a weighted entry. The total is 227 in every
+install now, so the gem rates are 222/227 of what was tuned here.)*
 
 **This phase goes first because gold left.** The earlier draft opened with the Separator proven against
 gold from E-Scrap, which needed no new worldgen at all; with gold at #120 there is no longer any input

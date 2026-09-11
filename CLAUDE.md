@@ -229,7 +229,7 @@ Most tutorials target 1.20/1.21. Full notes are in `docs/data_and_api_notes.md`.
 | JEI / Jade | `compat/jei`, `compat/jade`, loaded only when the viewer is present. `MultiblockParts` hides uncraftable cells. | `docs/data_and_api_notes.md` |
 | Guidebook | `data/recompile/modonomicon/` (Modonomicon, `runtimeOnly`) | `docs/guidebook_spec.md` |
 | Config | `RCConfig` (COMMON). `RCDimensionLockout` holds the End; the Nether is open. Read its javadoc before assuming a gate holds. | `docs/systems_notes.md` |
-| Cross-mod stopgaps | AE2's presses and Ender IO's blaze disable moved to the pack (#420). Still here: AE2's sourcing recipes (ruled engine content) and Ender IO's grains find (awaiting a ruling, trashlands#52). | `docs/cross_mod_stopgaps.md` |
+| Cross-mod stopgaps | AE2's presses, Ender IO's blaze disable and its grains find moved to the pack (#420). Still here: AE2's sourcing recipes, ruled engine content. | `docs/cross_mod_stopgaps.md` |
 | Textures, audio, devbridge | texgen, sfxgen, `tools/make_dev_world.py`, `tools/shoot_*.py` | `docs/dev_tooling.md` |
 
 ## Conventions
