@@ -99,7 +99,7 @@ Read the rate or rule off the test, not off prose. A test named here is the sour
 | Every mod item is in the creative tab (**membership only, not order**) | `every_mod_item_is_in_the_creative_tab` |
 | The Scrap Hauler exists exactly once, as the Depot item XOR the entity | `ScrapHaulerTests` |
 | Guidebook paragraphs break; lang keys and icons resolve; multiblock pages match `Multiblock.java` | `GuidebookTests`, `GuidebookMultiblockTests` |
-| Cross-mod overrides are `ordering = "AFTER"` their mod; the blaze-grind override never loads | `every_cross_mod_override_is_ordered_after_its_mod`, `the_blaze_grinding_override_can_never_load` |
+| A file shipped at another mod's id is `ordering = "AFTER"` that mod (none ship since #420; the guard waits for the next) | `every_cross_mod_override_is_ordered_after_its_mod` |
 | Slot geometry comes from the layout; synced values survive the 16-bit wire; screens use `VanillaGui` only | `MenuLayoutTests`, `MenuWireCeilingTest`, `GuiFrameworkDisciplineTest` |
 | Drop rates (bucket, collectibles, and more) | `FindRateTest` |
 | Stained Ground never retires (radioactive dump is non-reclaimable) | `the_yard_can_be_retired_and_the_dump_cannot` |
@@ -130,7 +130,7 @@ Everything here fails with **no error**. One line each; follow the pointer for t
   file. On a pool, entry or tag it is ignored.
 - A `minecraft:loot_table` entry pointing at a condition-gated table keeps its weight and yields nothing.
   A mod-gated drop is an unconditional entry in its own pool plus a conditional strip (`StripItemModifier`).
-- `neoforge:loot_table_id` never matches a table rolled from Java (`getQueriedLootTableId` is unset), which is how every pull stream rolls.
+- `neoforge:loot_table_id` DOES match a table rolled from Java (measured, #420); this line said the opposite for weeks. A pack adds to our tables with an aimed `add_table`, but an added roll rides along and cannot displace a weighted entry.
 - An unresolvable **item** id kills a whole loot table at parse. A **tag** entry does not.
 - The GLM dir is `loot_modifiers` (plural), and there is no `global_loot_modifiers.json` index in 26.1.
   Modonomicon's `multiblocks/` is plural too.
@@ -229,7 +229,7 @@ Most tutorials target 1.20/1.21. Full notes are in `docs/data_and_api_notes.md`.
 | JEI / Jade | `compat/jei`, `compat/jade`, loaded only when the viewer is present. `MultiblockParts` hides uncraftable cells. | `docs/data_and_api_notes.md` |
 | Guidebook | `data/recompile/modonomicon/` (Modonomicon, `runtimeOnly`) | `docs/guidebook_spec.md` |
 | Config | `RCConfig` (COMMON). `RCDimensionLockout` holds the End; the Nether is open. Read its javadoc before assuming a gate holds. | `docs/systems_notes.md` |
-| Cross-mod stopgaps | AE2 presses and sourcing, Ender IO grains and blaze disable. Presses and Ender IO are moving to the pack; the AE2 sourcing recipes stay here (owner ruling on #420). | `docs/cross_mod_stopgaps.md` |
+| Cross-mod stopgaps | AE2's presses and Ender IO's blaze disable moved to the pack (#420). Still here: AE2's sourcing recipes (ruled engine content) and Ender IO's grains find (awaiting a ruling, trashlands#52). | `docs/cross_mod_stopgaps.md` |
 | Textures, audio, devbridge | texgen, sfxgen, `tools/make_dev_world.py`, `tools/shoot_*.py` | `docs/dev_tooling.md` |
 
 ## Conventions

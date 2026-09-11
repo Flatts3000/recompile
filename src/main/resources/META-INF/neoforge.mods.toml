@@ -47,41 +47,9 @@ side = "BOTH"
 # derives the namespaces it wants blocks for from what this mod actually ships, so an entry kept
 # here after its files are gone is dead weight rather than a guard.
 
-# AE2 (#268), optional and AFTER, for a LANGUAGE key rather than a recipe.
-#
-# AE2's JEI info tab for the Inscriber presses says they come from a Mysterious Cube in a meteorite,
-# and points at the Meteorite Compass. None of that is true here - meteorites gate on a biome tag this
-# mod ships no entry for - so a player reading it is sent after something that cannot exist. This mod
-# ships assets/ae2/lang/en_us.json overriding gui.ae2.inWorldCraftingPresses to say where they really
-# are.
-#
-# LANGUAGE FILES MERGE, which is why this needs one key rather than a copy of AE2's whole file: the
-# client applies every lang resource for a namespace in ascending priority, so ours only has to be
-# LATER, not complete. That is the opposite of a recipe, where only the top file at a path is read.
-# Later still means load order, hence AFTER.
-#
-# TEMPORARY, with the press pool it explains - Flatts3000/trashlands#46.
-[[dependencies.${mod_id}]]
-modId = "ae2"
-type = "optional"
-versionRange = "*"
-ordering = "AFTER"
-side = "BOTH"
-
-# Ender IO (#280), optional and AFTER, to DISABLE one of its recipes.
-#
-# This mod ships a file at enderio:sag_milling/blaze_powder whose condition is never satisfied, which
-# replaces Ender IO's recipe with one that does not load. Its version grinds a blaze rod back into
-# four powder, and with a grinding ball's output multiplier - up to 1.75 on the vibrant alloy ball -
-# that turns this mod's four-powder-to-one-rod Sintering Kiln chain into an automatable gain of up to
-# 75 percent per cycle: the exact loop the Blaze Briquette was designed to make impossible.
-#
-# AFTER is what makes the override win. Only the top file at a path is read and datapacks are ordered
-# by mod load order, so without this line Ender IO's file stays on top, ours is never read, and
-# nothing anywhere says so.
-[[dependencies.${mod_id}]]
-modId = "enderio"
-type = "optional"
-versionRange = "*"
-ordering = "AFTER"
-side = "BOTH"
+# AE2 (#268) and Ender IO (#280) had blocks here too, both optional and AFTER, and they left with the
+# files that needed them (#420, 2026-09-10): AE2's assets/ae2/lang/en_us.json tooltip key and Ender IO's
+# never-loading override at enderio:sag_milling/blaze_powder. The pack carries both now
+# (Flatts3000/trashlands#81 and #84). What stays - AE2's four sourcing recipes and the Grains of Infinity
+# find - lives under data/recompile/, guarded by its own mod_loaded conditions and tag entries, so no
+# path of theirs is contested and load order decides nothing. Same rule as the Simple Magnets note above.

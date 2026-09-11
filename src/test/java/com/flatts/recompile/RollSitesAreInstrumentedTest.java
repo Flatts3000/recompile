@@ -52,9 +52,8 @@ class RollSitesAreInstrumentedTest {
         "RCCauldronInteractions.java", "the bouquet table - deliberately not a pull stream",
         // Does NOT roll anything. It is a global loot modifier: it filters what a roll already
         // produced, so there is no player action behind it to record. It matches only because the
-        // scan reads raw text and its javadoc CITES getRandomItems - explaining that the queried
-        // loot table id is never set on that call, which is why a modifier cannot be aimed at one
-        // table (#277). Kept blunt on purpose: a tripwire that skipped comments could be talked out
+        // scan reads raw text and its javadoc CITES getRandomItems, in explaining why this mod strips
+        // rather than adds (#277, corrected in #420). Kept blunt on purpose: a tripwire that skipped comments could be talked out
         // of firing by a real roll site that happened to look like prose.
         "StripItemModifier.java", "a loot modifier - filters a roll, never makes one");
 

@@ -34,16 +34,16 @@ import net.neoforged.neoforge.common.loot.LootModifier;
  * at 291 items from 300 rolls. It also left a permanent {@code Missing element} loot-validation
  * warning on every world load, pointing at an engine file.
  *
- * <p><b>Why not a modifier that ADDS the drop instead</b>, which is the obvious inverse and was
- * built first. NeoForge ships {@code neoforge:add_table} for exactly that, and it does fire on this
- * mod's pull streams - measured at 3.6% against an intended 3.7%. What it cannot do is aim: the only
- * way to restrict a modifier to one table is {@code neoforge:loot_table_id}, which compares
- * {@code LootContext.getQueriedLootTableId()}, and <b>that is never set on a table rolled
- * programmatically</b>. Every one of this mod's roll sites (grep {@code getRandomItems}) calls
- * {@code LootTable.getRandomItems(LootParams)} directly, so the condition matched nothing and the
- * drop rate was zero; with the condition removed the modifier fired on every table in the game.
- * Stripping needs no aim, because the invariant really is global: without AE2 that item is not loot
- * anywhere.
+ * <p><b>A strip rather than an add, and the reason first recorded for that was wrong.</b> NeoForge's
+ * {@code neoforge:add_table}, aimed with {@code neoforge:loot_table_id}, was said to match nothing on
+ * this mod's tables because {@code getQueriedLootTableId()} was "never set on a table rolled
+ * programmatically". <b>It is set</b>: {@code getRandomItems(LootParams)} routes through
+ * {@code CommonHooks.modifyLoot}, which sets it. Measured 2026-09-10 on 26.1.2.76 (#420): an aimed
+ * add_table fired on 30 of 30 rolls of both {@code chests/sump} and {@code gameplay/mechanical_pulls},
+ * each only on its own table, and the Trashlands pack measured the same on 26.1.2.100 - which is how it
+ * now adds AE2's presses to the sump without owning the file. Whatever faulted the earlier measurement
+ * was never found. The strip stays because it needs no aim at all: without AE2 that item is not loot
+ * anywhere, which is a global invariant.
  */
 public class StripItemModifier extends LootModifier {
 

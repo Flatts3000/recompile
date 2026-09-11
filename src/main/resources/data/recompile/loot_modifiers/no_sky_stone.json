@@ -12,15 +12,14 @@
     "by putting a mod_loaded guard on no_saplings.json, at which point the sapling lockout stopped",
     "applying and saplings dropped.",
     "",
-    "TEMPORARY. It is pack content living in the engine because the pack cannot ship data on 26.1.2,",
-    "and it leaves with the press pool - Flatts3000/trashlands#46. Removal is this file, the second",
-    "pool in slag_rubble_pulls.json, the four guarded recipes, and the shard item itself.",
+    "It STAYS with the sourcing recipes it serves (owner ruling 2026-09-08, #420). AE2's presses",
+    "moved to the pack; the shard, its pool in slag_rubble_pulls.json and this strip did not.",
     "",
     "conditions[] is the vanilla loot-condition list and is deliberately EMPTY: the invariant is",
     "global rather than per-table. Without AE2 a Sky Stone Shard is not loot anywhere, from any",
-    "source, which is the same shape as the sapling lockout beside it. Aiming it would not be",
-    "possible anyway - neoforge:loot_table_id compares getQueriedLootTableId(), which is never set on",
-    "a table rolled programmatically, and every pull stream in this mod is rolled that way."
+    "source, which is the same shape as the sapling lockout beside it, so it needs no aim. (This",
+    "said aiming was impossible because neoforge:loot_table_id never matches a table rolled from",
+    "Java. It does match: measured 2026-09-10, #420.)"
   ],
   "neoforge:conditions": [
     {

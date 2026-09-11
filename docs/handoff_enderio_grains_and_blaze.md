@@ -2,8 +2,10 @@
 
 **Analysed against:** Recompile at v0.14.0+, Ender IO `9.0.5-alpha` (the jar the pack pins), MC 26.1.2 /
 NeoForge 26.1.2.76.
-**Status:** shipped 2026-08-21 across #279 and #281, and still in this repo as of 2026-09-10: the pack
-has not taken it back yet (`trashlands#52` open, and `pack/kubejs/data/` holds no `enderio` folder).
+**Status:** shipped 2026-08-21 across #279 and #281. **The blaze disable moved on 2026-09-10**: the
+pack carries it (trashlands#84) and this repo deleted its copy and `the_blaze_grinding_override_can_never_load`
+(#420). **The Grains of Infinity find is still here**, waiting on an owner ruling on `trashlands#52`
+(ride along from a pack modifier, fork the table into the pack, or stay as engine content).
 **Move-back tracker:** `Flatts3000/trashlands#52`, alongside `#46` (AE2) and `#47` (Simple Magnets).
 
 ## Why this is in the engine at all
@@ -111,11 +113,11 @@ on it and no GameTest pinning it. This one breaks three of those, each deliberat
 - **Not one file.** The grains entry lives inside an engine loot table that is the only source of the
   Motor and Magnet Scrap; the exemption lives inside an engine test. Both removals are **edits, not
   file deletions.**
-- **Things depend on it.** The blaze disable needs the `[[dependencies]]` block, and
-  `every_cross_mod_override_is_ordered_after_its_mod` now derives its list from the namespaces this mod
-  ships files under - so removing the enderio data directory is what removes it from that guard.
-- **GameTests pin it**: `grains_of_infinity_is_inert_without_enderio` and
-  `the_blaze_grinding_override_can_never_load`.
+- **Things depended on it.** The blaze disable needed the `[[dependencies]]` block, and
+  `every_cross_mod_override_is_ordered_after_its_mod` derives its list from the namespaces this mod
+  ships files under - so removing the enderio data directory removed it from that guard. Both went in
+  #420, with `the_blaze_grinding_override_can_never_load`.
+- **A GameTest still pins the grains**: `grains_of_infinity_is_inert_without_enderio`.
 
 ## Verifying with the mod actually installed
 

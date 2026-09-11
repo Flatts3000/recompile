@@ -398,8 +398,8 @@ final class SortingDataTests {
             //
             // So all sixteen colours drop together in the 32 rolls per 100 that the entry wins, and
             // each colour's chance of appearing is 0.32 - not 0.02. The mod had measured this already
-            // and written it down in chests/sump.json ("yields EVERY item in the tag at once rather
-            // than picking one", 16 of 16 in #268); the code, this test and two javadocs all agreed
+            // and written it down on the AE2 press pool in chests/sump.json, which moved to the pack
+            // in #420 ("yields EVERY item in the tag at once rather than picking one", 16 of 16 in #268); the code, this test and two javadocs all agreed
             // with each other and all disagreed with the measurement. Caught reviewing #279.
             float first = wools.get(0).chance();
             for (SortingData.Weighted w : wools) {
@@ -517,8 +517,9 @@ final class SortingDataTests {
      * {@code SortingData.expandTag} dividing a tag entry's share by its member count, on the belief
      * that {@code expand: false} rolls once and picks one member. Vanilla's {@code TagEntry} emits
      * ALL members instead, so every member's chance is the entry's own - the code understated each by
-     * a factor of N. Nothing caught it because nothing reaches it: the mod's single tag entry lives in
-     * {@code chests/sump.json}, and this class reads pull streams rather than chest tables.
+     * a factor of N. Nothing caught it because nothing reaches it: no pull stream uses an
+     * {@code expand: false} tag entry (the one the mod had, AE2's presses in {@code chests/sump.json},
+     * moved to the pack in #420).
      *
      * <p>Correcting the maths without covering the path would leave the same silence behind. This
      * fails the build the day a stream starts using that form, so the coverage has to arrive with the
