@@ -49,11 +49,23 @@ re-theming another mod's recipes is curation, and curation is the pack's.
 
 ## What is left, and what each waits on
 
-AE2's Inscriber-press pool and lang key wait on `trashlands#46`; its **four sourcing recipes stay
-here** (owner ruling 2026-09-08 on #420, see [AE2](#ae2) below) and do not move with the presses. Ender IO's
-Grains of Infinity find and blaze-grinding disable wait on `trashlands#52`. Neither has shipped in the
-pack (as of 2026-09-10 both issues are open and the pack's `pack/kubejs/data/` holds only
-`simplemagnets` and `ftbultimine`), so neither may be deleted here yet.
+**Moved, 2026-09-10.** The pack shipped its copies first - AE2's Inscriber presses as an aimed
+`neoforge:add_table` modifier on `recompile:chests/sump` plus the tooltip key (trashlands#81), and the
+blaze-grinding disable (trashlands#84) - and then this repo deleted its own (#420): pool 2 of
+`chests/sump.json`, `assets/ae2/lang/en_us.json`, `data/enderio/recipe/sag_milling/blaze_powder.json`,
+and the two tests that pinned them. The pack's copies reach players when the pack bumps its pin to the
+first Recompile release carrying the deletion.
+
+**What stays here, and why:**
+- **AE2's four sourcing recipes** are engine content (owner ruling 2026-09-08 on #420, see [AE2](#ae2)
+  below), and the `ae2` dependency block stays with them.
+- **Ender IO's Grains of Infinity find** in `mechanical_pulls` waits on an owner ruling
+  (trashlands#52): ride along from the pack at the same rate, fork the whole table into the pack, or
+  stay here as engine content. The `enderio` dependency block stays until that is decided.
+
+**A standalone install loses both moved pieces, deliberately**, the same as it lost the Simple Magnets
+re-theme: a sewer crate no longer carries AE2's presses without the pack, and with Ender IO installed
+the SAG Mill grinds a blaze rod into four powder again. Curation is the pack's.
 
 ## Ender IO
 

@@ -2,8 +2,10 @@
 
 **Analysed against:** Recompile at v0.14.0+, Ender IO `9.0.5-alpha` (the jar the pack pins), MC 26.1.2 /
 NeoForge 26.1.2.76.
-**Status:** shipped 2026-08-21 across #279 and #281, and still in this repo as of 2026-09-10: the pack
-has not taken it back yet (`trashlands#52` open, and `pack/kubejs/data/` holds no `enderio` folder).
+**Status:** shipped 2026-08-21 across #279 and #281. **The blaze disable moved on 2026-09-10**: the
+pack carries it (trashlands#84) and this repo deleted its copy and `the_blaze_grinding_override_can_never_load`
+(#420). **The Grains of Infinity find is still here**, waiting on an owner ruling on `trashlands#52`
+(ride along from a pack modifier, fork the table into the pack, or stay as engine content).
 **Move-back tracker:** `Flatts3000/trashlands#52`, alongside `#46` (AE2) and `#47` (Simple Magnets).
 
 ## Why this is in the engine at all

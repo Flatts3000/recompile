@@ -4,10 +4,12 @@
 [#41](https://github.com/Flatts3000/trashlands/issues/41).
 **Analysed against:** Recompile **v0.13.0**, AE2 `26.1.10-beta` (CF project 223794), MC 26.1.2 /
 NeoForge 26.1.2.94.
-**Status:** SHIPPED, and still in this repo as of 2026-09-10. The presses are a live pool in `loot_table/chests/sump.json` (`ae2:inscriber_presses`), alongside the lang override correcting AE2's own tooltip. Owner ruled on the approach 2026-08-20; this records what it
-needs. Moving the presses and the lang key to the pack is `Flatts3000/trashlands#46` (open); the
-sourcing half STAYS here as engine content (owner ruling 2026-09-08 on #420, and the sourcing
-section below).
+**Status: the presses and the lang key have MOVED to the pack (2026-09-10).** Trashlands ships them
+(trashlands#81: an aimed `neoforge:add_table` modifier on `recompile:chests/sump` and a byte-identical
+tooltip key), and this repo deleted pool 2 of `chests/sump.json` and `assets/ae2/lang/en_us.json`
+(#420). The sourcing half STAYS here as engine content (owner ruling 2026-09-08 on #420, and the
+sourcing section below). What follows records how the stopgap was built and why, which is still the
+reference for the traps.
 **Priority:** the pack owner has made this a **release blocker** for the pack's next release.
 
 ## The problem
@@ -292,13 +294,15 @@ crumble the block, and gets no item, with no log line and no message. Measured a
 rolls. It also left a permanent `Missing element recompile:gameplay/sky_stone_finds` loot-validation
 WARN on every world load, pointing at an engine file.
 
-**The obvious inverse was built next and cannot aim.** `neoforge:add_table` does fire on this mod's
-pull streams - measured at 3.6% against an intended 3.7%. But restricting a modifier to one table
-needs `neoforge:loot_table_id`, which compares `LootContext.getQueriedLootTableId()`, and **that is
-never set on a table rolled programmatically**. Every one of this mod's roll sites (five then, six
-as of 2026-09-10; grep `getRandomItems` under `src/main/java`) calls
-`LootTable.getRandomItems(LootParams)` directly, so with the condition the drop rate was zero and
-without it the modifier fired on every table in the game.
+**The obvious inverse was built next, and the conclusion recorded here about it was wrong.** This
+said a `neoforge:add_table` modifier could not be aimed, because `neoforge:loot_table_id` compares
+`LootContext.getQueriedLootTableId()` and that was "never set on a table rolled programmatically".
+**It is set.** Every roll site calls `LootTable.getRandomItems(LootParams)`, which routes through
+`CommonHooks.modifyLoot`, and that sets the queried id. Measured 2026-09-10 on 26.1.2.76 (#420): an
+aimed add_table fired on 30 of 30 rolls of `chests/sump` and of `gameplay/mechanical_pulls`, each only
+on its own table. Trashlands measured the same on 26.1.2.100, and that is the mechanism the pack now
+uses to add the presses to the sump (trashlands#81). The fault behind the original "zero" was never
+found. The strip below was still the right call for the shard, for its own reason.
 
 **So the drop is unconditional and the STRIP is conditional.** The shard is named directly in
 `slag_rubble_pulls` - it is our own item, so the id always resolves and cannot take the table down at

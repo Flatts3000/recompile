@@ -58,12 +58,10 @@ final class Ae2SourcingTests {
         // strips it back out when AE2 is absent. Nothing dangles, and the seven terrain weights are
         // never touched.
         //
-        // <p><b>The obvious inverse - a modifier that ADDS the drop - was built first and cannot
-        // aim.</b> neoforge:add_table does fire on this mod's pull streams (measured at 3.6% against
-        // an intended 3.7%), but restricting it to one table needs neoforge:loot_table_id, which
-        // compares getQueriedLootTableId() - never set on a table rolled programmatically, which is
-        // how every one of this mod's roll sites works. With the condition it dropped nothing at all;
-        // without it, it fired on every table in the game.
+        // <p><b>The inverse - an ADD aimed with neoforge:loot_table_id - does work</b>, whatever this
+        // comment used to say: getRandomItems routes through CommonHooks.modifyLoot, which sets the
+        // queried id, and an aimed add_table fired on 30 of 30 rolls of this mod's tables (measured
+        // 2026-09-10, #420). The strip stays because it needs no aim: the invariant is global.
         RCGameTests.test("sky_stone_shard_is_inert_without_ae2", 60, helper -> {
             var level = helper.getLevel();
             if (net.neoforged.fml.ModList.get().isLoaded("ae2")) {

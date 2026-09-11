@@ -257,49 +257,21 @@ final class SewerLootTests {
         });
 
 
-        // THE AE2 PRESSES COST NOTHING WHEN AE2 IS ABSENT (#268).
+        // THE SUMP GIVES ITS SHARD AND NOTHING FOREIGN.
         //
-        // The sump carries the four Inscriber presses, because AE2 is otherwise dead content in this
-        // world: its tree hangs off Sky Stone, Sky Stone comes from meteorites, and meteorites gate on
-        // a biome tag this mod deliberately ships no entry for. Its own recipes for the presses take
-        // the same press as the stamp, so they duplicate one rather than make one.
-        //
-        // <p>THIS TEST RUNS IN A WORLD WITHOUT AE2, which is the state that needs proving. Two ways it
-        // could go wrong and neither announces itself:
-        //
-        // <p>The table could fail to PARSE. An item id in a loot table resolves against the registry
-        // when the file is read, so naming ae2:silicon_press directly would break the whole sump for
-        // everyone not running AE2 - and the symptom is an empty crate at the bottom of every sewer,
-        // which reads as bad luck. The entry is a TAG for exactly that reason: a TagKey does not
-        // resolve at parse time. Asserting the table still loads is asserting that.
-        //
-        // <p>Or it could parse and silently CARRY something. An absent tag should roll to nothing.
-        //
-        // <p><b>It deliberately does not assert the pool is there.</b> This is a stopgap that leaves
-        // when KubeJS is fixed (Flatts3000/trashlands#46), and a test pinning the entry would make
-        // that removal a code change instead of deleting a pool. Everything below stays true after
-        // the pool is gone.
-        RCGameTests.test("the_sump_is_unchanged_without_ae2", 60, helper -> {
+        // <p>It carried AE2's four Inscriber presses as a third pool until #420, when that curation
+        // moved to the Trashlands pack (Flatts3000/trashlands#46). The pack adds them back with an
+        // aimed neoforge:add_table modifier rather than by owning this file, so the sump stays engine
+        // content. What is left to prove is the part that was always true: one echo shard a roll,
+        // the table loads, and nothing from another mod comes out of it.
+        RCGameTests.test("the_sump_gives_its_shard_and_nothing_foreign", 60, helper -> {
             var level = helper.getLevel();
-            // NOT a failure when AE2 is present - a skip. This measures the WITHOUT case, and with
-            // AE2 loaded that question does not apply: the presses are SUPPOSED to appear, so every
-            // assertion below would be wrong rather than merely unmeasurable. Trashlands ships AE2,
-            // so failing here would turn a correct pack environment red with a message that reads
-            // like a defect in the sump. GameTest has no skip verb; succeeding early is the nearest
-            // thing, and it deliberately does not assert the WITH case instead - that would pin the
-            // pool and make its eventual removal a code change.
-            if (net.neoforged.fml.ModList.get().isLoaded("ae2")) {
-                helper.succeed();
-                return;
-            }
-
             var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
                 Identifier.fromNamespaceAndPath(Recompile.MOD_ID, "chests/sump"));
             var table = level.getServer().reloadableRegistries().getLootTable(key);
             helper.assertTrue(table != net.minecraft.world.level.storage.loot.LootTable.EMPTY,
-                "recompile:chests/sump did not load. An unresolvable id in a loot table takes the "
-                    + "whole file with it, so the AE2 entry has to be a tag rather than four item "
-                    + "entries - this is what says it still is.");
+                "recompile:chests/sump did not load, so every sewer's crate comes up empty - which "
+                    + "reads in game as bad luck rather than as a broken file.");
 
             var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
                 .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams
@@ -331,10 +303,10 @@ final class SewerLootTests {
                 "only " + drops + " items came out of 200 rolls of the sump, so this measured very "
                     + "little and would pass against a table that had quietly stopped working");
             helper.assertTrue(foreign.isEmpty(),
-                "the sump produced items from a mod that is not loaded: " + foreign);
+                "the sump produced items from another mod, which is pack content: " + foreign);
             helper.assertTrue(shards == 200,
                 "the sump gave " + shards + " echo shards in 200 rolls rather than one per roll, so "
-                    + "adding the press pool changed what was already there");
+                    + "the guaranteed pool is not guaranteed any more");
             helper.succeed();
         });
 

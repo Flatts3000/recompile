@@ -49,13 +49,18 @@
 - **The Pigeon and Roach spawn eggs come from the mob they are about** - the parrot and silverfish
   eggs rather than the chicken - so the speckles are the right speckles. Same colours as before.
 
-### Simple Magnets goes back to the pack
+### Other mods' tweaks go back to the pack
 
 - **The four re-themed Simple Magnets recipes are no longer part of the mod.** They shipped here only
   because the modpack had no way to ship data of its own; it does now, so it ships them. Playing
   Trashlands, nothing changes - the same recipes, from the pack instead of the mod. Playing Recompile
   on its own alongside Simple Magnets, its magnets go back to costing what Simple Magnets asks for
   them rather than Magnet Scrap.
+- **The same goes for AE2's Inscriber presses and Ender IO's blaze rod grinding.** Playing Trashlands,
+  the crate at the bottom of a sewer still holds all four presses and the SAG Mill still refuses a
+  blaze rod. Playing Recompile on its own with AE2, the crate holds no presses; with Ender IO, the SAG
+  Mill grinds a rod back into powder again.
+- **AE2's certus, fluix, silicon and sky stone routes stay in the mod.** They run on its own machines.
 
 ## v0.20.0
 
