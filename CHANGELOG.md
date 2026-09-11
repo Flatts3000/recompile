@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## v0.21.0
+
+### Freight
+
+- **Every freight rung is an advancement now**, under a Freight tab: the rung's own name, and a goal on
+  the last one. Everyone in the world gets it when a rung ships, because the tier belongs to the world,
+  and a player who joins later is given every rung already delivered. A modpack can hang its quests
+  off them.
+- **A finished phase is announced to everyone on the server**, not only to players in the same
+  dimension as the terminal.
 
 ### Something is floating on the tailings
 
@@ -41,6 +50,17 @@
 - **The Buy Terminal opens on the first freight rung.** The Totem, the Heavy Core and the Powder Snow
   sheet, which no rung gates and which cost more than a new player can have, used to sit above it.
   They are listed after the ladder now.
+
+### Hover, creative and the guide
+
+- **Hovering an Animal Bait says what the land is drawing**, for example "Expecting Rabbit, Cow,
+  Sheep" on sand: the three likeliest animals from the ground around it, worked out the same way the
+  bait picks.
+- **The creative tab is back in order**, grouped by kind and then by how far out you find each thing.
+  Bulky Waste no longer sits among the piles you pick through, and the dump's finds sit with the other
+  finds. Recipe viewers list items in the same order.
+- **The guide explains the new regrowth**: the demolition yard entry says rubble piles come back and
+  that grass retires them. The Rain Collector's pages now always open in the same order.
 
 ### Textures
 
