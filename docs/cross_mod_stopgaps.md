@@ -68,9 +68,14 @@ on #420, see [AE2](#ae2) below). That is the whole of it.
 only matters when this mod ships a file at the other mod's id, and the sourcing recipes live under
 `data/recompile/`, each guarded by its own `mod_loaded` condition.
 
-**A standalone install loses both moved pieces, deliberately**, the same as it lost the Simple Magnets
-re-theme: a sewer crate no longer carries AE2's presses without the pack, and with Ender IO installed
-the SAG Mill grinds a blaze rod into four powder again. Curation is the pack's.
+**A standalone install loses all three moved pieces, deliberately**, the same as it lost the Simple
+Magnets re-theme: a sewer crate no longer carries AE2's presses without the pack, and with Ender IO
+installed the SAG Mill grinds a blaze rod into four powder again and Mechanical Waste no longer turns up
+Grains of Infinity. Curation is the pack's.
+
+**JEI does not see what the pack adds.** Its sorting pages read this mod's bundled loot JSON
+(`SortingData`), so in Trashlands the grains still drop from Mechanical Waste but no longer appear on
+its sorting page. Same limitation `docs/pack_extension.md` records for any pack-retuned stream.
 
 ## Ender IO
 

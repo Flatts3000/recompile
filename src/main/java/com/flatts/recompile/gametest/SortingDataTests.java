@@ -523,8 +523,9 @@ final class SortingDataTests {
      *
      * <p>Correcting the maths without covering the path would leave the same silence behind. This
      * fails the build the day a stream starts using that form, so the coverage has to arrive with the
-     * content. {@code expand: true} is unaffected and stays free to use - it is what the Grains of
-     * Infinity entry uses, and the rate census measures it end to end.
+     * content. {@code expand: true} is unaffected and stays free to use - {@code tailings_pulls}'
+     * uraninite entry uses it (the Grains of Infinity entry did, until it moved to the pack in #420),
+     * and the rate census measures it end to end.
      */
     private static void registerTagFormGuard() {
         RCGameTests.test("no_unexercised_tag_entry_reaches_the_viewer", 40, helper -> {
