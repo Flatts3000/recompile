@@ -99,8 +99,9 @@ guard is unnecessary anyway: the entry is a TAG, a `TagKey` does not resolve at 
 absent tag rolls to nothing. Naming the items directly instead is what would need a guard, and no
 guard would have saved it - an unresolvable item id fails the whole table at parse.
 
-Also remove the AE2 branch in `the_sump_is_unchanged_without_ae2` when the pool goes; it is a standing
-constraint that only makes sense while the pool is there.
+The AE2 branch of that test went with the pool (#420); the test is now
+`the_sump_gives_its_shard_and_nothing_foreign`, and it rolls the table raw so the pack's modifier cannot
+turn it red.
 
 **The removal trigger is KubeJS working on 26.1.2, not a release number**, and nothing will announce
 it. Whoever next updates mods should check that issue and reopen this.
@@ -151,7 +152,8 @@ tag leaves it out.
 **No `neoforge:conditions` guard, because there is nowhere to put one and nothing to guard.**
 `neoforge:conditions` gates a whole loot table file, not a pool or an entry inside one - so a
 mod-gated entry is not available here. The tag entry needs no guard: it is inert without AE2 by
-construction, which `the_sump_is_unchanged_without_ae2` asserts in exactly that state.
+construction, which the sump test (then `the_sump_is_unchanged_without_ae2`) asserted in exactly that
+state until the pool moved to the pack in #420.
 
 No load-order problem here either, unlike the Simple Magnets handoff: this is Recompile's own loot
 table, so there is no override race and no `ordering = "AFTER"` needed.

@@ -211,12 +211,21 @@ final class SinteringKilnTests {
         //
         // Measured as an economy rather than asserted as a file: count the powder a rod costs by
         // walking the real recipes, and compare it with the powder a rod gives back.
+        //
+        // SCOPED TO VANILLA AND THIS MOD. Another mod's grinder refunding more is real - Ender IO's
+        // SAG Mill gives four - but curating another mod's recipes is the pack's job, and since #420
+        // the Trashlands pack carries the disable for that one. Standalone with Ender IO the loop is
+        // open by ruling, so counting it here would fail a configuration the mod deliberately allows.
         RCGameTests.test("no_recipe_turns_blaze_powder_into_more_blaze_powder", 20, helper -> {
             var recipes = helper.getLevel().recipeAccess();
 
-            // What one rod gives back, from vanilla's own recipe.
+            // What one rod gives back, from vanilla's own recipe and anything this mod ships.
             int refund = 0;
             for (RecipeHolder<?> holder : recipes.recipeMap().values()) {
+                String ns = holder.id().identifier().getNamespace();
+                if (!ns.equals("minecraft") && !ns.equals(com.flatts.recompile.Recompile.MOD_ID)) {
+                    continue;
+                }
                 for (var display : holder.value().display()) {
                     ItemStack out = display.result().resolveForFirstStack(
                         net.minecraft.world.item.crafting.display.SlotDisplayContext.fromLevel(

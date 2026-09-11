@@ -58,10 +58,14 @@ first Recompile release carrying the deletion.
 
 **What stays here, and why:**
 - **AE2's four sourcing recipes** are engine content (owner ruling 2026-09-08 on #420, see [AE2](#ae2)
-  below), and the `ae2` dependency block stays with them.
+  below).
 - **Ender IO's Grains of Infinity find** in `mechanical_pulls` waits on an owner ruling
   (trashlands#52): ride along from the pack at the same rate, fork the whole table into the pack, or
-  stay here as engine content. The `enderio` dependency block stays until that is decided.
+  stay here as engine content.
+
+**No dependency block remains for either mod.** Both left with the files that needed them: a block
+only matters when this mod ships a file at the other mod's id, and what stays lives under
+`data/recompile/`, guarded by its own `mod_loaded` conditions and tag entries.
 
 **A standalone install loses both moved pieces, deliberately**, the same as it lost the Simple Magnets
 re-theme: a sewer crate no longer carries AE2's presses without the pack, and with Ender IO installed
@@ -94,14 +98,16 @@ brewing here.
 another mod's recipe id replaces it wholesale (only the top file at a path is read), and a
 `neoforge:never` condition means the replacement itself is skipped - net, the id is gone. The body
 still has to be well-formed JSON but is never decoded, which is the same mechanism that lets a guarded
-recipe safely name an absent mod's items. The file here is
-`data/enderio/recipe/sag_milling/blaze_powder.json`.
+recipe safely name an absent mod's items. The file was
+`data/enderio/recipe/sag_milling/blaze_powder.json`; since #420 the pack carries it instead
+(trashlands#84), and the pack measured that KubeJS data outranks mod data, so its copy wins without a
+dependency block.
 
-Two things make it work and both are silent if missed: `ordering = "AFTER"` on an optional `enderio`
-dependency (without it Ender IO's file stays on top and nothing is logged), and the condition itself.
-`every_cross_mod_override_is_ordered_after_its_mod` pins the ordering for every mod this one ships
-files for (ae2 and enderio today), and `the_blaze_grinding_override_can_never_load` pins the
-condition.
+When this mod shipped it, two things made it work and both were silent if missed: `ordering = "AFTER"`
+on an optional `enderio` dependency (without it Ender IO's file stays on top and nothing is logged),
+and the condition itself. `every_cross_mod_override_is_ordered_after_its_mod` still pins the ordering
+for any mod this one ships files for - none today - and the test that pinned the condition left with
+the file.
 
 ### The glass bottle exemption, by recipe id
 
@@ -136,9 +142,10 @@ player. Filter those before reading a red run as a regression.
 
 **AE2 is playable here, and it takes both halves to be so.**
 
-**The presses.** The **four Inscriber presses** are a pool on `loot_table/chests/sump.json` plus a lang
-override (`assets/ae2/lang/en_us.json`) correcting AE2's own tooltip. That was #270, and it cleared ONE
-of two gates while being reported as clearing both (#276).
+**The presses.** The **four Inscriber presses** were a pool on `loot_table/chests/sump.json` plus a
+lang override (`assets/ae2/lang/en_us.json`) correcting AE2's own tooltip. That was #270, and it
+cleared ONE of two gates while being reported as clearing both (#276). Both moved to the pack in #420:
+it adds the presses to the sump with an aimed `neoforge:add_table` modifier (trashlands#81).
 
 **The materials.** The second gate: 330 of AE2's 364 items have a recipe and everything traces back to
 `certus_quartz_crystal`, whose only non-circular source is a `quartz_cluster`, which drops only from
@@ -156,8 +163,9 @@ produces at that scale.
 titled for both halves, but only the presses and the lang key move. The sourcing recipes are
 `recompile:separating` recipes (plus one grid recipe) on this mod's own machines and feedstocks, and
 they are what made the no-meteorites ruling below affordable, so deleting them would reopen that
-ruling. Do not sweep them across because they mention another mod. The `ae2` block in
-`neoforge.mods.toml` stays with them, because they still name `ae2:` ids.
+ruling. Do not sweep them across because they mention another mod. They need no `ae2` dependency
+block: they live under `data/recompile/` and each carries its own `mod_loaded` guard, so no `ae2:` path
+is contested.
 
 **No meteorites, and that ruling stands.** Meteorites gate on `#minecraft:is_overworld` and this mod
 ships **no entry for it, by owner ruling 2026-08-20**. Adding the tag would fix AE2 and every other mod

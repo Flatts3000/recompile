@@ -99,7 +99,7 @@ Read the rate or rule off the test, not off prose. A test named here is the sour
 | Every mod item is in the creative tab (**membership only, not order**) | `every_mod_item_is_in_the_creative_tab` |
 | The Scrap Hauler exists exactly once, as the Depot item XOR the entity | `ScrapHaulerTests` |
 | Guidebook paragraphs break; lang keys and icons resolve; multiblock pages match `Multiblock.java` | `GuidebookTests`, `GuidebookMultiblockTests` |
-| Cross-mod overrides are `ordering = "AFTER"` their mod; the blaze-grind override never loads | `every_cross_mod_override_is_ordered_after_its_mod`, `the_blaze_grinding_override_can_never_load` |
+| A file shipped at another mod's id is `ordering = "AFTER"` that mod (none ship since #420; the guard waits for the next) | `every_cross_mod_override_is_ordered_after_its_mod` |
 | Slot geometry comes from the layout; synced values survive the 16-bit wire; screens use `VanillaGui` only | `MenuLayoutTests`, `MenuWireCeilingTest`, `GuiFrameworkDisciplineTest` |
 | Drop rates (bucket, collectibles, and more) | `FindRateTest` |
 | Stained Ground never retires (radioactive dump is non-reclaimable) | `the_yard_can_be_retired_and_the_dump_cannot` |

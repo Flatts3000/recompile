@@ -145,10 +145,10 @@ final class RecipeReachabilityTests {
         // dependency up, where NeoForge re-ships 17 vanilla recipes and this mod's overrides for them
         // were silently ignored for months because the neoforge dependency said "NONE".
         //
-        // <p>Two features ride on it today - the AE2 lang key (#268) and the Ender IO blaze disable
-        // (#280) - and until this test none of them asserted it. There were three: the Simple Magnets
-        // re-theme (#269) left for the pack on 2026-09-08 (#420), and its dependency block left with
-        // its files. That is why the namespaces are DERIVED from what this mod actually ships rather
+        // <p>Nothing rides on it today, and it stays as the guard for the next one. Three features did:
+        // the Simple Magnets re-theme (#269) left for the pack on 2026-09-08, and the AE2 lang key
+        // (#268) and the Ender IO blaze disable (#280) followed on 2026-09-10 (#420). Each dependency
+        // block left with its files. That is why the namespaces are DERIVED from what this mod actually ships rather
         // than listed: a stopgap arriving or leaving changes the set, and a hand-list would have gone
         // stale in both directions.
         RCGameTests.test("every_cross_mod_override_is_ordered_after_its_mod", 40, helper -> {

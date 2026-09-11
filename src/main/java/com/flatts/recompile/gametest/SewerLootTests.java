@@ -263,7 +263,7 @@ final class SewerLootTests {
         // moved to the Trashlands pack (Flatts3000/trashlands#46). The pack adds them back with an
         // aimed neoforge:add_table modifier rather than by owning this file, so the sump stays engine
         // content. What is left to prove is the part that was always true: one echo shard a roll,
-        // the table loads, and nothing from another mod comes out of it.
+        // the table loads, and nothing from another mod comes out of the FILE this mod ships.
         RCGameTests.test("the_sump_gives_its_shard_and_nothing_foreign", 60, helper -> {
             var level = helper.getLevel();
             var key = net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
@@ -282,28 +282,34 @@ final class SewerLootTests {
             java.util.Set<String> foreign = new java.util.TreeSet<>();
             int shards = 0;
             int drops = 0;
+            // THE RAW ROLL, deliberately. getRandomItems runs every global loot modifier, and the pack's
+            // aimed add_table puts AE2's presses into exactly this table - so the modded roll would go
+            // red in a correct Trashlands setup. getRandomItemsRaw skips the modifiers and measures the
+            // file this mod ships, which is the thing this test is about.
+            List<ItemStack> rolled = new ArrayList<>();
             for (int i = 0; i < 200; i++) {
-                for (ItemStack stack : table.getRandomItems(params)) {
-                    if (stack.isEmpty()) {
-                        continue;
-                    }
-                    drops++;
-                    var sid = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(
-                        stack.getItem());
-                    if (!"minecraft".equals(sid.getNamespace())
-                        && !Recompile.MOD_ID.equals(sid.getNamespace())) {
-                        foreign.add(sid.toString());
-                    }
-                    if (stack.is(net.minecraft.world.item.Items.ECHO_SHARD)) {
-                        shards++;
-                    }
+                table.getRandomItemsRaw(params, rolled::add);
+            }
+            for (ItemStack stack : rolled) {
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                drops++;
+                var sid = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+                if (!"minecraft".equals(sid.getNamespace())
+                    && !Recompile.MOD_ID.equals(sid.getNamespace())) {
+                    foreign.add(sid.toString());
+                }
+                if (stack.is(net.minecraft.world.item.Items.ECHO_SHARD)) {
+                    shards++;
                 }
             }
             helper.assertTrue(drops > 200,
                 "only " + drops + " items came out of 200 rolls of the sump, so this measured very "
                     + "little and would pass against a table that had quietly stopped working");
             helper.assertTrue(foreign.isEmpty(),
-                "the sump produced items from another mod, which is pack content: " + foreign);
+                "recompile:chests/sump itself names items from another mod, which is pack content: "
+                    + foreign);
             helper.assertTrue(shards == 200,
                 "the sump gave " + shards + " echo shards in 200 rolls rather than one per roll, so "
                     + "the guaranteed pool is not guaranteed any more");

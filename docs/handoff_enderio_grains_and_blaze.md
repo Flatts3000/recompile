@@ -113,11 +113,11 @@ on it and no GameTest pinning it. This one breaks three of those, each deliberat
 - **Not one file.** The grains entry lives inside an engine loot table that is the only source of the
   Motor and Magnet Scrap; the exemption lives inside an engine test. Both removals are **edits, not
   file deletions.**
-- **Things depend on it.** The blaze disable needs the `[[dependencies]]` block, and
-  `every_cross_mod_override_is_ordered_after_its_mod` now derives its list from the namespaces this mod
-  ships files under - so removing the enderio data directory is what removes it from that guard.
-- **GameTests pin it**: `grains_of_infinity_is_inert_without_enderio` and
-  `the_blaze_grinding_override_can_never_load`.
+- **Things depended on it.** The blaze disable needed the `[[dependencies]]` block, and
+  `every_cross_mod_override_is_ordered_after_its_mod` derives its list from the namespaces this mod
+  ships files under - so removing the enderio data directory removed it from that guard. Both went in
+  #420, with `the_blaze_grinding_override_can_never_load`.
+- **A GameTest still pins the grains**: `grains_of_infinity_is_inert_without_enderio`.
 
 ## Verifying with the mod actually installed
 

@@ -477,12 +477,13 @@ public final class SortingData {
      * denominator grew to match (see {@link #effectiveWeight}), so each member is again
      * {@code weight / total}. Same figure, different mechanism.
      *
-     * <p>The mod's own data said so all along: {@code chests/sump.json} records that
-     * {@code expand: false} "yields EVERY item in the tag at once rather than picking one", measured
-     * at 16 of 16 in #268. The code contradicted its own measurement.
+     * <p>The mod's own data said so all along: the comment on the AE2 press pool in
+     * {@code chests/sump.json} recorded that {@code expand: false} "yields EVERY item in the tag at once
+     * rather than picking one", measured at 16 of 16 in #268. The code contradicted its own measurement.
+     * (That pool moved to the Trashlands pack in #420, taking the comment with it.)
      *
-     * <p><b>Nothing shipped exercises this today</b>, which is why no test caught it: the only tag
-     * entry in the mod is that sump pool, and this class reads pull streams rather than chest tables.
+     * <p><b>Nothing shipped exercises this today</b>, which is why no test caught it: no pull stream
+     * uses an {@code expand: false} tag entry, and since #420 nothing in the mod does at all.
      * {@code no_unexercised_tag_entry_reaches_the_viewer} fails the build if that stops being true, so
      * the untested path cannot be relied on without coverage arriving with it.
      */
