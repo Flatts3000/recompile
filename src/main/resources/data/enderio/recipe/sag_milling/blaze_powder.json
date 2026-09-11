@@ -7,7 +7,7 @@
     "WHY. Ender IO's version returns FOUR blaze powder from one rod. This mod's chain runs the",
     "other way - four powder press into a Blaze Briquette and the Sintering Kiln fires it into one",
     "rod - so the round trip becomes break-even, which is precisely what the Briquette exists to",
-    "prevent. CLAUDE.md: it exists because vanilla crafts one rod into TWO powder, so a",
+    "prevent. docs/machines_notes.md: it exists because vanilla crafts one rod into TWO powder, so a",
     "one-for-one powder-to-rod recipe would print rods forever.",
     "",
     "AND IT IS WORSE THAN BREAK-EVEN, because the SAG Mill multiplies output. Ender IO's own",

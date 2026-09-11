@@ -195,7 +195,7 @@ public final class RCItems {
      *
      * <p><b>It is only worth anything with AE2 installed</b>, which is the one uncomfortable thing
      * about it. Four craft an {@code ae2:sky_stone_block}, and that recipe is guarded, so without AE2
-     * the shard has no use at all. CLAUDE.md: a find that is neither useful nor wanted is clutter.
+     * the shard has no use at all. docs/systems_notes.md: a find that is neither useful nor wanted is clutter.
      *
      * <p><b>So the DROP is gated, by {@code loot_modifiers/no_sky_stone.json}, which strips this item
      * from every loot roll when AE2 is absent.</b> The shard is named directly in
@@ -239,10 +239,10 @@ public final class RCItems {
      * begins by separating the metal from the oil - so the separator divides it into magma cream and
      * the chips themselves.
      *
-     * <p>Slag already works this way (separating, pulverizing and vitrifying into three different
-     * things), so one material serving several machines is the established shape rather than a
-     * special case. It also gives magma cream a route that is not a mob drop: vanilla wants a slime ball for it, which
-     * this world has no slime.
+     * <p>Slag already works this way (separating, pulverizing and vitrifying into three different things),
+     * so one material serving several machines is the established shape rather than a special case. It also
+     * gives magma cream a route that is not a mob drop: vanilla wants a slime ball for it, which this world
+     * has no slime.
      */
     public static final DeferredItem<Item> OILY_SWARF = ITEMS.registerItem("oily_swarf", Item::new);
 

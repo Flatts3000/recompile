@@ -32,7 +32,7 @@ import sys
 import tempfile
 import time
 
-PORT = "8605"          # claimed for this repo; see CLAUDE.md on why there is no default
+PORT = "8605"          # claimed for this repo; see docs/dev_tooling.md on why there is no default
 INSTANCE = "run"       # moddev's game directory, NOT the repo root
 
 # A flat stage clear of anything, and the exact spot the player stands on it.

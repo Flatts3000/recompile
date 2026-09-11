@@ -65,7 +65,7 @@ except ImportError:
 REPO = pathlib.Path(__file__).resolve().parent.parent
 BOOKS = REPO / "src/main/resources/data/recompile/modonomicon/books/guide"
 LANG = REPO / "src/main/resources/assets/recompile/lang/en_us.json"
-PORT = 8605          # claimed for this repo; see CLAUDE.md on why there is no default
+PORT = 8605          # claimed for this repo; see docs/dev_tooling.md on why there is no default
 INSTANCE = REPO / "run"
 
 BOOK_ITEM = 'modonomicon:modonomicon[modonomicon:book_id="recompile:guide"]'

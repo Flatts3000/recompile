@@ -37,10 +37,10 @@ final class Ae2SourcingTests {
 
         // THE SHARD MUST NOT DROP INTO A WORLD THAT CANNOT USE IT (#276).
         //
-        // <p>It is OUR item, so it exists in every install, while the recipe turning four of them into
-        // an ae2 block is guarded. Without AE2 a player would pick these out of the depths forever
-        // with nothing to do with them, and CLAUDE.md is explicit that a find which is neither useful
-        // nor wanted is clutter.
+        // <p>It is OUR item, so it exists in every install, while the recipe turning four of them into an
+        // ae2 block is guarded. Without AE2 a player would pick these out of the depths forever with
+        // nothing to do with them, and docs/systems_notes.md is explicit that a find which is neither
+        // useful nor wanted is clutter.
         //
         // <p><b>Four of the five obvious ways to gate a drop do not work, and all four were tried
         // here.</b> A condition on a loot POOL or an ENTRY is not read at all. A condition on a TAG

@@ -33,8 +33,8 @@ import net.minecraft.world.level.storage.ValueOutput;
  * where the check had to move into the ticker because the slot was never consulted. Here the menu is
  * built with a filtering slot for the GUI and this method covers hoppers and pipes.
  *
- * <p><b>It reuses a vanilla screen</b>, per the rule in CLAUDE.md: a grid of items is exactly what a
- * chest screen is for, and nothing here needs a gauge. Six rows, which is 54 blueprints. The spec asked
+ * <p><b>It reuses a vanilla screen</b>, per the rule in docs/gui_notes.md: a grid of items is exactly
+ * what a chest screen is for, and nothing here needs a gauge. Six rows, which is 54 blueprints. The spec asked
  * for unbounded and this is not that - it is the largest a borrowed screen goes, and going past it means
  * minting a fifth custom screen and recording another reversal. Worth doing when a save actually holds
  * 54 distinct blueprints; the mod currently ships one.
@@ -101,9 +101,9 @@ public class FilingCabinetBlockEntity extends RandomizableContainerBlockEntity {
     /**
      * File what has been dropped in: fragments become blueprints, and surplus fragments are destroyed.
      *
-     * <p><b>The cabinet does the assembling.</b> A player who has just torn down four mattresses should
-     * be able to tip the fragments in and be done, rather than carry them to a crafting table to do a
-     * step with one possible outcome.
+     * <p><b>The cabinet does the assembling.</b> A player holding the Spawn Egg Fragments the Sequencer
+     * read out of amber should be able to tip them in and be done, rather than carry them to a crafting
+     * table to do a step with one possible outcome.
      *
      * <p><b>Surplus is destroyed on purpose, and it is the one place this mod deletes a player's
      * items</b>, so the rule is narrow enough to state in a sentence: a fragment is only ever destroyed

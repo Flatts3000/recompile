@@ -1,4 +1,4 @@
-"""Draw the Recompile logo - a sprout coming out of a scrap pile - and stamp REC across it.
+"""Draw the Recompile logo - a sprout coming out of a scrap pile - and place the RECOMPILE wordmark across it.
 
 Output: gen/logo_<variant>.png plus a 64px thumbnail for review, and the APPROVED variant
         written straight to both places it has to live: branding/logo.png (the artifact

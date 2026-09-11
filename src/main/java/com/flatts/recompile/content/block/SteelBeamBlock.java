@@ -62,7 +62,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  *
  * <p>{@code requiresCorrectToolForDrops} still holds, so bare hands get nothing. {@code noOcclusion}
  * (set on the block properties) is load-bearing: without it this slim model would cull neighbouring
- * faces and punch holes in the world (the CLAUDE.md occlusion trap).
+ * faces and punch holes in the world (the occlusion trap, docs/systems_notes.md).
  *
  * <p><b>Attribution.</b> The connection state machine below (the X/Z/TOP/BOTTOM/AXIS scheme, the placement
  * rule, and the retract-when-unsupported rule) is ported from Create's {@code GirderBlock}, trimmed to this

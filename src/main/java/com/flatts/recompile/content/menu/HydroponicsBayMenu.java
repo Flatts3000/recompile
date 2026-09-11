@@ -20,13 +20,13 @@ import net.minecraft.world.item.ItemStack;
 /**
  * The Hydroponics Bay's menu (#43).
  *
- * <p><b>The fourth custom screen, and a recorded reversal.</b> CLAUDE.md's rule is that containers reuse
- * a vanilla screen and only producers with a gauge no vanilla screen has may have their own. A serious
- * alternative was considered and rejected here: reuse a chest screen for the two slots and let Jade carry
- * water, power and progress, the way it already does for the Tree Nursery and the generators. That would
- * have obeyed the rule without reversing it. The owner's call was a real GUI (2026-08-02), on the
- * grounds that this is the automation showpiece and three simultaneous resources on hover is worse than
- * three gauges in front of you.
+ * <p><b>The fourth custom screen, and a recorded reversal.</b> The rule in docs/gui_notes.md is that
+ * containers reuse a vanilla screen and only producers with a gauge no vanilla screen has may have their
+ * own. A serious alternative was considered and rejected here: reuse a chest screen for the two slots and
+ * let Jade carry water, power and progress, the way it already does for the Tree Nursery and the
+ * generators. That would have obeyed the rule without reversing it. The owner's call was a real GUI
+ * (2026-08-02), on the grounds that this is the automation showpiece and three simultaneous resources on
+ * hover is worse than three gauges in front of you.
  *
  * <p><b>Geometry lives here, not on the screen.</b> The Burner Generator shipped with its readout drawn
  * straight through its own fuel row, and nothing could have caught it because the coordinates were in a

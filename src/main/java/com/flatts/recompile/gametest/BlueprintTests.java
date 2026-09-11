@@ -555,13 +555,12 @@ final class BlueprintTests {
             helper.succeed();
         });
 
-        // LEARNING STOPS WHEN YOU HAVE LEARNED IT. Every teardown teaches, so without this a player
-        // who finished the blueprint keeps being handed fragments toward a sheet they already own -
-        // litter that never becomes anything, forever.
-        //
-        // It checks the same two places the crafting table checks, so "known" means one thing across
-        // the system rather than two things that nearly agree.
-        RCGameTests.test("teardown_stops_teaching_once_the_blueprint_is_known", 40, helper -> {
+        // A SHEET COUNTS AS KNOWN WHETHER IT IS HELD OR FILED. BlueprintAccess.reachable is what the
+        // Scrap Crafting Table asks before it runs a blueprint recipe, so both places have to answer
+        // yes. (This was written when every teardown taught, to stop the bench handing out fragments
+        // toward a sheet already owned; since #390 teardown teaches nothing, and what is left worth
+        // pinning is the definition of "known" itself, the same two places the table checks.)
+        RCGameTests.test("a_blueprint_counts_as_known_held_or_filed", 40, helper -> {
             var player = helper.makeMockServerPlayerInLevel();
             player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
             var bench = new net.minecraft.core.BlockPos(1, 1, 1);
@@ -571,16 +570,16 @@ final class BlueprintTests {
 
             helper.assertFalse(
                 BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
-                "precondition: the player has not learned it yet, so teardowns should teach");
+                "precondition: the player holds no sheet and has none filed, so it must not read as known");
 
             player.getInventory().add(
                 BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
             helper.assertTrue(
                 BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
-                "holding the sheet must count as known, so the bench stops handing out fragments");
+                "holding the sheet must count as known, or the table refuses a recipe the player owns");
 
             // And filed next door counts too - otherwise a player who tidied their blueprints into a
-            // cabinet would start collecting fragments for them all over again.
+            // cabinet would find the table refusing every recipe they had filed.
             player.getInventory().clearContent();
             var cabinetPos = new net.minecraft.core.BlockPos(2, 1, 1);
             helper.setBlock(cabinetPos, com.flatts.recompile.registry.RCBlocks.FILING_CABINET.get());
@@ -589,7 +588,7 @@ final class BlueprintTests {
             cabinet.setItem(0, BlueprintItem.of(RCItems.BLUEPRINT.get(), BlueprintItem.CLEAN_MATTRESS));
             helper.assertTrue(
                 BlueprintAccess.reachable(level, player, abs, BlueprintItem.CLEAN_MATTRESS),
-                "filing it away must not restart the grind");
+                "a sheet filed in a cabinet in the same cluster must count as known");
             player.discard();
             helper.succeed();
         });

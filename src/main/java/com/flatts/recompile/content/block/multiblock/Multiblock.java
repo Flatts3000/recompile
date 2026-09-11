@@ -299,8 +299,8 @@ public record Multiblock(List<Cell> cells) {
     }
 
     /**
-     * Tear the machine apart, dropping each formed cell's loot (which is the loose component again)
-     * and clearing it.
+     * Tear the machine apart, dropping each cell's blueprint component ({@code cell.component()}, not
+     * the formed block's loot - see below) and clearing it.
      *
      * <p>Clears with {@code setBlock(AIR)} after {@code dropResources} rather than
      * {@code destroyBlock}: destroying a cell would re-enter that cell's own removal handler, which

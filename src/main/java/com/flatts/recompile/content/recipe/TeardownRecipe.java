@@ -279,8 +279,10 @@ public class TeardownRecipe implements Recipe<SingleRecipeInput> {
                     Identifier id = BuiltInRegistries.ITEM.getKey(item);
                     if (all.stream().noneMatch(e -> e.recipe().equals(id))) {
                         // Chance 1: drawing the component ALWAYS teaches it. Zero would read as
-                        // "might teach", and every teardown teaches (owner, 2026-08-02) - below one
-                        // the cost becomes a dice game on top of a dice game.
+                        // "might teach", and the 2026-08-02 rule was that every teardown teaches -
+                        // below one the cost becomes a dice game on top of a dice game. (Since #390
+                        // the Workbench reads no teaches at all; this synthesis survives for packs
+                        // and for the fragment-cost lookup, #430.)
                         all.add(new TeachEntry(id, 1.0F, pool.scrapsRequired()));
                     }
                 });
